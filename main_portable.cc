@@ -8,6 +8,7 @@
 #include <cassert>
 #include <fstream>
 #include <functional>
+#include <memory>
 #include <iomanip>
 #include <iostream>
 #include <signal.h>
@@ -21,8 +22,6 @@
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/operations.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/program_options.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/scoped_array.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/scoped_ptr.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
 #include "third_party/zynamics/bindetego/binexport.pb.h"
@@ -31,7 +30,6 @@
 #include "third_party/zynamics/bindiff/callgraphmatching.h"
 #include "third_party/zynamics/bindiff/databasewriter.h"
 #include "third_party/zynamics/bindiff/differ.h"
-#include "third_party/zynamics/bindiff/exporter_thread.h"
 #include "third_party/zynamics/bindiff/flowgraph.h"
 #include "third_party/zynamics/bindiff/flowgraphmatching.h"
 #include "third_party/zynamics/bindiff/log.h"
@@ -304,18 +302,15 @@ void CExporterThread::operator()() {
     std::string file;
     {
       boost::mutex::scoped_lock lock(g_QueueMutex);
-      if (m_Files->empty())
+      if (m_Files->empty()) {
         return;
+      }
       file = *m_Files->begin();
       m_Files->erase(m_Files->begin());
     }
 
     const boost::filesystem::path inPath(m_InPath);
     const boost::filesystem::path outPath(m_OutPath);
-
-    // Needed for Linux, but doesn't hurt on Windows as well
-    EnvironmentVariables env;
-    env["TVHEADLESS"] = "1";
 
     // @bug: what if we have the same base name but as .idb _and_ .i64?
     bool ida64 = false;
@@ -329,44 +324,32 @@ void CExporterThread::operator()() {
       ida64 = true;
     }
 
-    // Call IDA with custom environment and close its standard file descriptors
-    // @bug: if outpath is a relative path like "." IDA won't work. We need to
-    //       fully expand it first
+    // @bug: If outpath is a relative path like "." IDA won't work. We need to
+    // fully expand it first.
     std::string status_message;
-    std::vector<string> args;
+    std::vector<std::string> args;
     args.push_back(m_IdaDir + "/" + (!ida64 ? m_IdaExe : m_IdaExe64));
     args.push_back("-A");
-    args.push_back("-OExporterModule:"+ outPath.string());
+    args.push_back("-OExporterModule:" + outPath.string());
+#ifdef UNIX_COMPILE
     args.push_back("-S" + (outPath / "runIda.idc").string());
+#else
+    args.push_back("-S\"" + (outPath / "runIda.idc").string() + "\"");
+#endif
     args.push_back(inFile.string());
-    if (!SpawnProcess(args,
-
-                      , env, true, true, &status_message)) {
-      LOG(INFO) << "failed to spawn IDA export process: " 
-               << GetLastWindowsError();
+    if (!SpawnProcess(args, true /* Wait */, &status_message)) {
+      LOG(INFO) << "failed to spawn IDA export process: "
+                << GetLastWindowsError();
       LOG(INFO) << status_message;
       return;
     }
 
     LOG(INFO) << std::fixed << std::setprecision(2) << timer.elapsed() << "\t"
-        << boost::filesystem::file_size(inFile) << "\t" << file;
+              << boost::filesystem::file_size(inFile) << "\t" << file;
 
-    if (g_WantsToQuit)
+    if (g_WantsToQuit) {
       return;
-    /*		{
-     // CHECK: Is this more user-friendly? I guess if we cannot start
-     //        a new IDA process while batch-diffing, all subsequent
-     //        attempts to do so will fail as well.
-     std::cLOG(INFO) << "Error: Could not start IDA with `'" <<
-     curIdb << "\".";
-     break; //
-
-     // Maybe this is the way to go? -Would be a more suitable message
-     // for batch-diffing, since the user may want to just try to diff
-     // as many files as possible and ignore in-between failures.
-     std::cLOG(INFO) << "Warning: Could not start IDA with `'" <<
-     curIdb << "\"."; //
-     }*/
+    }
   }
 }
 
@@ -627,8 +610,8 @@ int main(int nrOfArguments, char** arguments) {
       throw std::runtime_error("config file invalid");
     }
 
-    boost::scoped_ptr<CallGraph> callGraph1;
-    boost::scoped_ptr<CallGraph> callGraph2;
+    std::unique_ptr<CallGraph> callGraph1;
+    std::unique_ptr<CallGraph> callGraph2;
     Instruction::Cache instructionCache;
     FlowGraphs flowGraphs1, flowGraphs2;
     ScopedCleanup cleanup(&flowGraphs1, &flowGraphs2, &instructionCache);
