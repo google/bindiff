@@ -17,11 +17,15 @@
 #include <utility>
 #include <vector>
 
+#ifdef GOOGLE
+#include "base/commandlineflags.h"
+#else
+#include <gflags/gflags.h>
+#endif  // GOOGLE
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/operations.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/program_options.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
 #include "third_party/zynamics/bindetego/binexport.pb.h"
@@ -43,281 +47,280 @@
 #undef min
 #undef max
 
+namespace fs = boost::filesystem;
+
+DEFINE_string(primary, "" /* Default */,
+              "Primary input file or path in batch mode");
+DEFINE_string(secondary, "" /* Default */, "Secondary input file (optional)");
+DEFINE_string(output_dir, "" /* Default */,
+              "Output path, defaults to current directory");
+DEFINE_bool(log_format, false /* Default */,
+            "Write results in log file format");
+DEFINE_bool(knox_format, false /* Default */,
+            "Write results in FortKnox format");
+DEFINE_bool(bin_format, false /* Default */,
+            "Write results in binary file format that can be loaded by the "
+            "BinDiff IDA plugin or the GUI");
+DEFINE_bool(md_index, false /* Default */,
+            "Dump MD indices (will not diff anything)");
+DEFINE_bool(export, false /* Default */,
+            "Batch export .idb files from input directory to BinExport format");
+DEFINE_bool(ls, false /* Default */,
+            "List hash/filenames for all .BinExport files in input directory");
+DEFINE_string(config, "" /* Default */, "Specify config file name");
+
 static const char kBinExportVersion[] = "7";  // Exporter version to use.
 
-boost::mutex g_QueueMutex;
-volatile bool g_WantsToQuit = false;
+boost::mutex g_queue_mutex;
+volatile bool g_wants_to_quit = false;
 
-typedef std::list<std::pair<std::string, std::string> > TFiles;
-typedef std::set<std::string, std::less<std::string> > TUniqueFiles;
+typedef std::list<std::pair<std::string, std::string>> TFiles;
+typedef std::set<std::string> TUniqueFiles;
 
 // This function will try and create a fully specified filename no longer than
 // 250 characters. It'll truncate part1 and part2, leaving all other fragments
 // as is. If it is not possible to get a short enough name it'll throw an
 // exception.
-std::string getTruncatedFilename(
-    const std::string& path,           // must include trailing slash
-    const std::string& part1,          // potentially truncated
+std::string GetTruncatedFilename(
+    const std::string& path /* Must include trailing slash */,
+    const std::string& part1 /* Potentially truncated */,
     const std::string& middle,
-    const std::string& part2,          // potentially truncated
+    const std::string& part2 /* Potentially truncated */,
     const std::string& extension) {
-    enum { MAX_LENGTH = 250 };
+  enum { kMaxFilename = 250 };
 
-    const std::string::size_type length = path.size()
-         + part1.size() + middle.size() + part2.size() + extension.size();
-    if (length <= MAX_LENGTH)
-      return path + part1 + middle + part2 + extension;
-
-    std::string::size_type overflow = length - MAX_LENGTH;
-
-    // first, shorten the longer of the two strings
-    std::string one(part1);
-    std::string two(part2);
-    if (part1.size() > part2.size()) {
-      one = part1.substr(0, std::max(part2.size(),
-          part1.size() > overflow ? part1.size() - overflow : 0));
-      overflow -= part1.size() - one.size();
-    } else if (part2.size() > part1.size()) {
-      two = part2.substr(0, std::max(part1.size(),
-        part2.size() > overflow ? part2.size() - overflow : 0));
-      overflow -= part2.size() - two.size();
-    }
-    if (!overflow)
-      return path + one + middle + two + extension;
-
-    // second, if that still wasn't enough, shorten both strings equally
-    assert(one.size() == two.size());
-    if (overflow / 2 >= one.size()) {
-      throw std::runtime_error((
-          "Cannot create a valid filename, please choose shorter input names "
-          "or directories! '" + path + part1 + middle + part2 + extension +
-          "'").c_str());
-    }
-    return path
-        + part1.substr(0, one.size() - overflow / 2)
-        + middle
-        + part2.substr(0, two.size() - overflow / 2)
-        + extension;
-}
-
-std::string readBinaryFile(const boost::filesystem::path& path) {
-  const uintmax_t fileSize = boost::filesystem::file_size(path);
-  if (!fileSize) {
-    return std::string();
+  const std::string::size_type length = path.size() + part1.size() +
+                                        middle.size() + part2.size() +
+                                        extension.size();
+  if (length <= kMaxFilename) {
+    return path + part1 + middle + part2 + extension;
   }
 
-  std::ifstream file(path.c_str(), std::ios_base::binary);
-  std::string buffer;
-  buffer.resize(static_cast<unsigned int>(fileSize));
-  file.read(&*buffer.begin(), static_cast<std::streamsize>(fileSize));
-  return buffer;
+  std::string::size_type overflow = length - kMaxFilename;
+
+  // First, shorten the longer of the two strings.
+  std::string one(part1);
+  std::string two(part2);
+  if (part1.size() > part2.size()) {
+    one = part1.substr(
+        0, std::max(part2.size(),
+                    part1.size() > overflow ? part1.size() - overflow : 0));
+    overflow -= part1.size() - one.size();
+  } else if (part2.size() > part1.size()) {
+    two = part2.substr(
+        0, std::max(part1.size(),
+                    part2.size() > overflow ? part2.size() - overflow : 0));
+    overflow -= part2.size() - two.size();
+  }
+  if (!overflow) {
+    return path + one + middle + two + extension;
+  }
+
+  // Second, if that still wasn't enough, shorten both strings equally.
+  assert(one.size() == two.size());
+  if (overflow / 2 >= one.size()) {
+    throw std::runtime_error(
+        ("Cannot create a valid filename, please choose shorter input names "
+         "or directories! '" +
+         path + part1 + middle + part2 + extension + "'").c_str());
+  }
+  return path + part1.substr(0, one.size() - overflow / 2) + middle +
+         part2.substr(0, two.size() - overflow / 2) + extension;
 }
 
-class CDifferThread {
+class DifferThread {
  public:
-  explicit CDifferThread(const std::string& path, const std::string& outPath,
-                         const boost::program_options::variables_map& options,
-                         TFiles* files);
+  explicit DifferThread(const std::string& path, const std::string& out_path,
+                        TFiles* files);
   void operator()();
 
  private:
-  TFiles*       m_FileQueue;
-  std::string   m_Path;
-  std::string   m_OutPath;
-  boost::program_options::variables_map m_Options;
+  TFiles* file_queue_;
+  std::string path_;
+  std::string out_path_;
 };
 
-CDifferThread::CDifferThread(
-    const std::string& path, const std::string& outPath,
-    const boost::program_options::variables_map& options, TFiles* files)
-  : m_FileQueue(files)
-  , m_Path(path)
-  , m_OutPath(outPath)
-  , m_Options(options) {
-}
+DifferThread::DifferThread(const std::string& path, const std::string& out_path,
+                           TFiles* files)
+    : file_queue_(files), path_(path), out_path_(out_path) {}
 
-void CDifferThread::operator()() {
-  const MatchingSteps
-    default_callgraph_steps(GetDefaultMatchingSteps());
-  const MatchingStepsFlowGraph
-    default_basicblock_steps(GetDefaultMatchingStepsBasicBlock());
+void DifferThread::operator()() {
+  const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
+  const MatchingStepsFlowGraph default_basicblock_steps(
+      GetDefaultMatchingStepsBasicBlock());
 
-  Instruction::Cache instructionCache;
-  FlowGraphs flowGraphs1, flowGraphs2;
-  CallGraph callGraph1, callGraph2;
-  std::string lastFile1, lastFile2;
-  ScopedCleanup cleanup(&flowGraphs1, &flowGraphs2, &instructionCache);
+  Instruction::Cache instruction_cache;
+  FlowGraphs flow_graphs1;
+  FlowGraphs flow_graphs2;
+  CallGraph call_graph1;
+  CallGraph call_graph2;
+  std::string last_file1;
+  std::string last_file2;
+  ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
   for (;;) {
-    std::string file1, file2;
+    std::string file1;
+    std::string file2;
     try {
       boost::timer timer;
-      { // pop pair from todo queue
-        boost::mutex::scoped_lock lock(g_QueueMutex);
-        if (m_FileQueue->empty())
+      {
+        // Pop pair from todo queue.
+        boost::mutex::scoped_lock lock(g_queue_mutex);
+        if (file_queue_->empty()) {
           break;
-        file1 = m_FileQueue->front().first;
-        file2 = m_FileQueue->front().second;
-        m_FileQueue->pop_front();
+        }
+        file1 = file_queue_->front().first;
+        file2 = file_queue_->front().second;
+        file_queue_->pop_front();
       }
 
-      // we need to keep the cache around if one file stays the same
-      if (lastFile1 != file1 && lastFile2 != file2) {
-        instructionCache.Clear();
+      // We need to keep the cache around if one file stays the same
+      if (last_file1 != file1 && last_file2 != file2) {
+        instruction_cache.Clear();
       }
 
-      // perform setup and diff
-      // TODO(soerenme) consider inverted pairs as well, i.e. file1 == lastFile2
-      if (lastFile1 != file1) {
+      // Perform setup and diff.
+      // TODO(soerenme): Consider inverted pairs as well, i.e. file1 ==
+      //                 last_file2.
+      if (last_file1 != file1) {
         LOG(INFO) << "reading " << file1;
-        DeleteFlowGraphs(&flowGraphs1);
+        DeleteFlowGraphs(&flow_graphs1);
         FlowGraphInfos infos;
-        Read(m_Path + "/" + file1 + ".BinExport", callGraph1, flowGraphs1,
-            infos, &instructionCache);
+        Read(path_ + "/" + file1 + ".BinExport", call_graph1, flow_graphs1,
+             infos, &instruction_cache);
       } else {
-        ResetMatches(&flowGraphs1);
+        ResetMatches(&flow_graphs1);
       }
 
-      if (lastFile2 != file2) {
+      if (last_file2 != file2) {
         LOG(INFO) << "reading " << file2;
-        DeleteFlowGraphs(&flowGraphs2);
+        DeleteFlowGraphs(&flow_graphs2);
         FlowGraphInfos infos;
-        Read(m_Path + "/" + file2 + ".BinExport", callGraph2, flowGraphs2,
-            infos, &instructionCache);
+        Read(path_ + "/" + file2 + ".BinExport", call_graph2, flow_graphs2,
+             infos, &instruction_cache);
       } else {
-        ResetMatches(&flowGraphs2);
+        ResetMatches(&flow_graphs2);
       }
 
       LOG(INFO) << "diffing " << file1 << " vs " << file2;
 
-      FixedPoints fixedPoints;
-      MatchingContext context(callGraph1, callGraph2,
-                               flowGraphs1, flowGraphs2, fixedPoints);
+      FixedPoints fixed_points;
+      MatchingContext context(call_graph1, call_graph2, flow_graphs1,
+                              flow_graphs2, fixed_points);
       Diff(&context, default_callgraph_steps, default_basicblock_steps);
 
       Histogram histogram;
       Counts counts;
-      GetCountsAndHistogram(flowGraphs1, flowGraphs2,
-                            fixedPoints, &histogram, &counts);
-      const double similarity = GetSimilarityScore(
-          callGraph1, callGraph2, histogram, counts);
+      GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points,
+                            &histogram, &counts);
+      const double similarity =
+          GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
       Confidences confidences;
       const double confidence = GetConfidence(histogram, &confidences);
 
       LOG(INFO) << "writing results";
       {
         ChainWriter writer;
-        if (m_Options.count("log")) {
-          writer.Add(boost::shared_ptr<Writer>(new ResultsLogWriter(
-              getTruncatedFilename(
-                  m_OutPath + "/",
-                  callGraph1.GetFilename(),
-                  "_vs_",
-                  callGraph2.GetFilename(),
-                  ".results"))));
+        if (FLAGS_log_format) {
+          writer.Add(boost::shared_ptr<Writer>(
+              new ResultsLogWriter(GetTruncatedFilename(
+                  out_path_ + "/", call_graph1.GetFilename(), "_vs_",
+                  call_graph2.GetFilename(), ".results"))));
         }
-        if (m_Options.count("bin") || writer.IsEmpty()) {
-          writer.Add(boost::shared_ptr<Writer>(new DatabaseWriter(
-              getTruncatedFilename(
-                  m_OutPath + "/",
-                  callGraph1.GetFilename(),
-                  "_vs_",
-                  callGraph2.GetFilename(),
-                  ".BinDiff"))));
+        if (FLAGS_bin_format || writer.IsEmpty()) {
+          writer.Add(
+              boost::shared_ptr<Writer>(new DatabaseWriter(GetTruncatedFilename(
+                  out_path_ + "/", call_graph1.GetFilename(), "_vs_",
+                  call_graph2.GetFilename(), ".BinDiff"))));
         }
 
-        writer.Write(callGraph1, callGraph2,
-                     flowGraphs1, flowGraphs2, fixedPoints);
+        writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                     fixed_points);
 
         LOG(INFO) << file1 << " vs " << file2 << " ( " << std::fixed
-            << std::setprecision(3) << timer.elapsed() << " sec ) :"
-            << "\tsimilarity:\t" << std::fixed << std::setprecision(6)
-            << similarity << "\tconfidence:\t" << std::fixed
-            << std::setprecision(6) << confidence;
+                  << std::setprecision(3) << timer.elapsed() << " sec ) :"
+                  << "\tsimilarity:\t" << std::fixed << std::setprecision(6)
+                  << similarity << "\tconfidence:\t" << std::fixed
+                  << std::setprecision(6) << confidence;
         for (Counts::const_iterator i = counts.begin(), end = counts.end();
-            i != end; ++i) {
+             i != end; ++i) {
           LOG(INFO) << "\n\t" << i->first << ":\t" << i->second;
         }
       }
 
-      lastFile1 = file1;
-      lastFile2 = file2;
+      last_file1 = file1;
+      last_file2 = file2;
 
-      if (g_WantsToQuit)
-        break;
-    } catch(const std::bad_alloc&) {
+      if (g_wants_to_quit) break;
+    } catch (const std::bad_alloc&) {
       LOG(INFO) << file1 << " vs " << file2;
 #ifdef _WIN32
-      LOG(INFO) << "Out-of-memory. Please try again with more memory available. "
-          "Some extremely large binaries\nmay require a 64-bit version of "
-          "BinDiff - please contact zynamics to request one.";
+      LOG(INFO)
+          << "Out-of-memory. Please try again with more memory available. "
+             "Some extremely large binaries\nmay require a 64-bit version of "
+             "BinDiff - please contact zynamics to request one.";
 #else
-      LOG(INFO) << "Out-of-memory. Please try again with more memory available.";
+      LOG(INFO)
+          << "Out-of-memory. Please try again with more memory available.";
 #endif
 
-      lastFile1 = lastFile2 = "";
-    } catch(const std::exception& error) {
+      last_file1.clear();
+      last_file2.clear();
+    } catch (const std::exception& error) {
       LOG(INFO) << file1 << " vs " << file2 << " : " << error.what();
 
-      lastFile1 = lastFile2 = "";
+      last_file1.clear();
+      last_file2.clear();
     }
   }
 }
 
-class CExporterThread {
+class ExporterThread {
  public:
-  explicit CExporterThread(const std::string& inPath,
-                           const std::string& outPath,
-                           const std::string& idaDir,
-                           const std::string& idaExe,
-                           const std::string& idaExe64,
-                           TUniqueFiles* files);
+  explicit ExporterThread(const std::string& in_path,
+                          const std::string& out_path,
+                          const std::string& ida_dir,
+                          const std::string& ida_exe,
+                          const std::string& ida_exe64, TUniqueFiles* files)
+      : files_(files),
+        in_path_(in_path),
+        out_path_(out_path),
+        ida_dir_(ida_dir),
+        ida_exe_(ida_exe),
+        ida_exe64_(ida_exe64) {}
+
   void operator()();
 
  private:
-  TUniqueFiles* m_Files;
-  std::string   m_InPath;
-  std::string   m_OutPath;
-  std::string   m_IdaDir;
-  std::string   m_IdaExe;
-  std::string   m_IdaExe64;
+  TUniqueFiles* files_;
+  std::string in_path_;
+  std::string out_path_;
+  std::string ida_dir_;
+  std::string ida_exe_;
+  std::string ida_exe64_;
 };
 
-CExporterThread::CExporterThread(const std::string& inPath,
-                                 const std::string& outPath,
-                                 const std::string& idaDir,
-                                 const std::string& idaExe,
-                                 const std::string& idaExe64,
-                                 TUniqueFiles* files)
-  : m_Files(files)
-  , m_InPath(inPath)
-  , m_OutPath(outPath)
-  , m_IdaDir(idaDir)
-  , m_IdaExe(idaExe)
-  , m_IdaExe64(idaExe64) {
-}
-
-void CExporterThread::operator()() {
+void ExporterThread::operator()() {
   for (;;) {
     boost::timer timer;
     std::string file;
     {
-      boost::mutex::scoped_lock lock(g_QueueMutex);
-      if (m_Files->empty()) {
+      boost::mutex::scoped_lock lock(g_queue_mutex);
+      if (files_->empty()) {
         return;
       }
-      file = *m_Files->begin();
-      m_Files->erase(m_Files->begin());
+      file = *files_->begin();
+      files_->erase(files_->begin());
     }
 
-    const boost::filesystem::path inPath(m_InPath);
-    const boost::filesystem::path outPath(m_OutPath);
+    const fs::path in_path(in_path_);
+    const fs::path out_path(out_path_);
 
     // @bug: what if we have the same base name but as .idb _and_ .i64?
     bool ida64 = false;
-    boost::filesystem::path inFile(inPath / (file + ".idb"));
-    if (!boost::filesystem::exists(inFile)) {
-      inFile = (inPath / (file + ".i64"));
-      if (!boost::filesystem::exists(inFile)) {
+    fs::path inFile(in_path / (file + ".idb"));
+    if (!fs::exists(inFile)) {
+      inFile = (in_path / (file + ".i64"));
+      if (!fs::exists(inFile)) {
         LOG(INFO) << "\"" << inFile << "\" not found";
         continue;
       }
@@ -328,13 +331,13 @@ void CExporterThread::operator()() {
     // fully expand it first.
     std::string status_message;
     std::vector<std::string> args;
-    args.push_back(m_IdaDir + "/" + (!ida64 ? m_IdaExe : m_IdaExe64));
+    args.push_back(ida_dir_ + "/" + (!ida64 ? ida_exe_ : ida_exe64_));
     args.push_back("-A");
-    args.push_back("-OExporterModule:" + outPath.string());
+    args.push_back("-OExporterModule:" + out_path.string());
 #ifdef UNIX_COMPILE
-    args.push_back("-S" + (outPath / "runIda.idc").string());
+    args.push_back("-S" + (out_path / "runIda.idc").string());
 #else
-    args.push_back("-S\"" + (outPath / "runIda.idc").string() + "\"");
+    args.push_back("-S\"" + (out_path / "runIda.idc").string() + "\"");
 #endif
     args.push_back(inFile.string());
     if (!SpawnProcess(args, true /* Wait */, &status_message)) {
@@ -345,42 +348,43 @@ void CExporterThread::operator()() {
     }
 
     LOG(INFO) << std::fixed << std::setprecision(2) << timer.elapsed() << "\t"
-              << boost::filesystem::file_size(inFile) << "\t" << file;
+              << fs::file_size(inFile) << "\t" << file;
 
-    if (g_WantsToQuit) {
+    if (g_wants_to_quit) {
       return;
     }
   }
 }
 
-void createIdaScript(const std::string& outPath) {
-  boost::filesystem::path path(outPath);
+void CreateIdaScript(const std::string& out_path) {
+  fs::path path(out_path);
   std::ofstream file((path / "runIda.idc").c_str());
   if (!file) {
     throw std::runtime_error(
-        ("Could not create idc script at \"" + outPath + "\"").c_str());
+        ("Could not create idc script at \"" + out_path + "\"").c_str());
   }
-  file
-      << "#include <idc.idc>\n" << "static main()\n" << "{\n"
-      << "\tBatch(0);\n" << "\tWait();\n"
-      << "\tExit( 1 - RunPlugin(\"zynamics_binexport_"
-      << kBinExportVersion << "\", 2 ));\n"
-      << "}\n";
+  file << "#include <idc.idc>\n"
+       << "static main()\n"
+       << "{\n"
+       << "\tBatch(0);\n"
+       << "\tWait();\n"
+       << "\tExit( 1 - RunPlugin(\"zynamics_binexport_" << kBinExportVersion
+       << "\", 2 ));\n"
+       << "}\n";
 }
 
-void deleteIdaScript(const std::string& outPath) {
-  boost::filesystem::path path(outPath);
-  boost::filesystem::remove(path / "runIda.idc");
+void DeleteIdaScript(const std::string& out_path) {
+  fs::path path(out_path);
+  fs::remove(path / "runIda.idc");
 }
 
-void listFiles(const std::string & path) {
+void ListFiles(const std::string& path) {
   TUniqueFiles files;
-  boost::filesystem::path inPath(path.c_str());
-  for (boost::filesystem::directory_iterator i(inPath),
-      end = boost::filesystem::directory_iterator(); i != end; ++i) {
+  fs::path in_path(path.c_str());
+  for (fs::directory_iterator i(in_path), end = fs::directory_iterator();
+       i != end; ++i) {
     try {
-      if (boost::algorithm::to_lower_copy(boost::filesystem::extension(*i)) ==
-          ".binexport") {
+      if (boost::algorithm::to_lower_copy(fs::extension(*i)) == ".binexport") {
         std::ifstream file(i->path().c_str(), std::ios_base::binary);
         google::protobuf::io::IstreamInputStream stream(&file);
         BinExportHeader header(&file);
@@ -388,420 +392,369 @@ void listFiles(const std::string & path) {
         metaInformation.ParseFromBoundedZeroCopyStream(
             &stream, header.call_graph_offset - header.meta_offset);
         LOG(INFO) << EncodeHex(metaInformation.input_hash()) << " ("
-                 << metaInformation.input_binary() << ")";
+                  << metaInformation.input_binary() << ")";
       }
-    } catch(const std::runtime_error& error) {
+    } catch (const std::runtime_error& error) {
       LOG(INFO) << error.what() << " " << i->path();
     }
   }
 }
 
-void batchDiff(const std::string& path, const std::string& referenceFile,
-               const std::string& outPath,
-               const boost::program_options::variables_map& options) {
-  // collect idb files to diff
-  TUniqueFiles idbFiles;
-  TUniqueFiles diffFiles;
-  boost::filesystem::path inPath(path.c_str());
-  for (boost::filesystem::directory_iterator i(inPath),
-      end = boost::filesystem::directory_iterator(); i != end; ++i) {
-    // export all idbs in directory
-    if (boost::algorithm::to_lower_copy(boost::filesystem::extension(*i)) ==
-        ".idb" || boost::algorithm::to_lower_copy(
-            boost::filesystem::extension(*i)) == ".i64") {
-      if (boost::filesystem::file_size(*i))
-        idbFiles.insert(boost::filesystem::basename(*i));
-      else
+void BatchDiff(const std::string& path, const std::string& reference_file,
+               const std::string& out_path) {
+  // Collect idb files to diff.
+  TUniqueFiles idb_files;
+  TUniqueFiles diff_files;
+  fs::path in_path(path.c_str());
+  for (fs::directory_iterator i(in_path), end = fs::directory_iterator();
+       i != end; ++i) {
+    // Export all idbs in directory.
+    std::string extension(boost::algorithm::to_lower_copy(fs::extension(*i)));
+    if (extension == ".idb" || extension == ".i64") {
+      if (fs::file_size(*i)) {
+        idb_files.insert(fs::basename(*i));
+      } else {
         LOG(INFO) << "Warning: skipping empty file " << *i;
-    } else if (boost::algorithm::to_lower_copy(
-          boost::filesystem::extension(*i)) == ".binexport") {
-      diffFiles.insert(boost::filesystem::basename(*i));
+      }
+    } else if (boost::algorithm::to_lower_copy(fs::extension(*i)) ==
+               ".binexport") {
+      diff_files.insert(fs::basename(*i));
     }
   }
 
-  // remove all idbs that have already been exported from export todo list
-  // @bug: this won't work if outdir != indir
-  // @bug: this also doesn't work with the new exporter that prepends a
-  //       directory name to the .BinExport filename
-  // TUniqueFiles temp;
-  // std::set_difference( idbFiles.begin(), idbFiles.end(), diffFiles.begin(),
-  //     diffFiles.end(), std::inserter( temp, temp.begin()));
-  // add all .callGraph files to todo list
-  diffFiles.insert(idbFiles.begin(), idbFiles.end());
-  // temp.swap( idbFiles );
+  // TODO(soerenme): Remove all idbs that have already been exported from export
+  // todo list.
+  diff_files.insert(idb_files.begin(), idb_files.end());
 
-  // create todo list of file pairs
+  // Create todo list of file pairs.
   TFiles files;
-  for (TUniqueFiles::const_iterator i = diffFiles.begin(),
-      end = diffFiles.end(); i != end; ++i) {
-    for (TUniqueFiles::const_iterator j = diffFiles.begin(); j != end; ++j) {
+  for (auto i = diff_files.cbegin(), end = diff_files.cend(); i != end; ++i) {
+    for (auto j = diff_files.cbegin(); j != end; ++j) {
       if (i != j) {
-        if (referenceFile.empty() || referenceFile == *i) {
+        if (reference_file.empty() || reference_file == *i) {
           files.push_back(std::make_pair(*i, *j));
         }
       }
     }
   }
 
-  // @note: @bug: remove. this makes the code intentionally inefficient for
-  //              benchmarking purposes
-  // std::vector< TFiles::value_type > shuffle( files.begin(), files.end());
-  // std::random_shuffle( shuffle.begin(), shuffle.end());
-  // files.assign( shuffle.begin(), shuffle.end());
-
-  const size_t nrOfIdbs = idbFiles.size();
-  const size_t nrOfDiffs = files.size();
-  const unsigned nrOfHardwareThreads = boost::thread::hardware_concurrency();
+  const size_t num_idbs = idb_files.size();
+  const size_t num_diffs = files.size();
+  const unsigned num_hardware_threads = boost::thread::hardware_concurrency();
   XmlConfig config(XmlConfig::GetDefaultFilename(), "BinDiffDeluxe");
-  const unsigned nrOfThreads =
-      config.ReadInt("/BinDiffDeluxe/Threads/@use", nrOfHardwareThreads);
-  const std::string idaDir =
+  const unsigned num_threads =
+      config.ReadInt("/BinDiffDeluxe/Threads/@use", num_hardware_threads);
+  const std::string ida_dir =
       config.ReadString("/BinDiffDeluxe/Ida/@directory", "");
-  const std::string idaExe =
+  const std::string ida_exe =
       config.ReadString("/BinDiffDeluxe/Ida/@executable", "");
-  const std::string idaExe64 =
+  const std::string ida_exe64 =
       config.ReadString("/BinDiffDeluxe/Ida/@executable64", "");
   boost::timer timer;
-  { // export
-    if (!idbFiles.empty())
-      createIdaScript(outPath);
+  {  // Export
+    if (!idb_files.empty()) {
+      CreateIdaScript(out_path);
+    }
     boost::thread_group threads;
-    for (unsigned i = 0; i < nrOfThreads; ++i) {
-      threads.create_thread(CExporterThread(
-          inPath.string(), outPath, idaDir, idaExe, idaExe64, &idbFiles));
+    for (unsigned i = 0; i < num_threads; ++i) {
+      threads.create_thread(ExporterThread(in_path.string(), out_path, ida_dir,
+                                           ida_exe, ida_exe64, &idb_files));
     }
     threads.join_all();
   }
   const double exportTime = timer.elapsed();
 
   timer.restart();
-  if (!options.count("export")) {   // perform diff
+  if (!FLAGS_export) {  // perform diff
     boost::thread_group threads;
-    for (unsigned i = 0; i < nrOfThreads; ++i)
-      threads.create_thread(CDifferThread(outPath, outPath, options, &files));
+    for (unsigned i = 0; i < num_threads; ++i) {
+      threads.create_thread(DifferThread(out_path, out_path, &files));
+    }
     threads.join_all();
   }
   const double diffTime = timer.elapsed();
-  deleteIdaScript(outPath);
+  DeleteIdaScript(out_path);
 
-  LOG(INFO)
-      << nrOfIdbs << " files exported in " << std::fixed << std::setprecision(2)
-      << exportTime << " seconds, "
-      << (nrOfDiffs * (1 - options.count("export"))) << " pairs diffed in "
-      << std::fixed << std::setprecision(2) << diffTime << " seconds";
+  LOG(INFO) << num_idbs << " files exported in " << std::fixed
+            << std::setprecision(2) << exportTime << " seconds, "
+            << (num_diffs * (1 - FLAGS_export)) << " pairs diffed in "
+            << std::fixed << std::setprecision(2) << diffTime << " seconds";
 }
 
-void dumpMdIndices(const CallGraph& callGraph, const FlowGraphs& flowGraphs) {
-  std::cout << "\n" << callGraph.GetFilename() << "\n"
-      << callGraph.GetMdIndex();
-  for (FlowGraphs::const_iterator i = flowGraphs.begin(),
-      end = flowGraphs.end(); i != end; ++i) {
+void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
+  std::cout << "\n" << call_graph.GetFilename() << "\n"
+            << call_graph.GetMdIndex();
+  for (auto i = flow_graphs.cbegin(), end = flow_graphs.cend(); i != end; ++i) {
     std::cout << "\n" << (*i)->IsLibrary() << "\t" << std::fixed
-        << std::setprecision(12) << (*i)->GetMdIndex();
+              << std::setprecision(12) << (*i)->GetMdIndex();
   }
   std::cout << std::endl;
 }
 
-void batchDumpMdIndices(const std::string& path) {
-  boost::filesystem::path inPath(path.c_str());
-  for (boost::filesystem::directory_iterator i(inPath),
-      end = boost::filesystem::directory_iterator(); i != end; ++i) {
-    if (boost::filesystem::extension(*i) != ".callGraph")
+void BatchDumpMdIndices(const std::string& path) {
+  fs::path in_path(path.c_str());
+  for (fs::directory_iterator i(in_path), end = fs::directory_iterator();
+       i != end; ++i) {
+    if (fs::extension(*i) != ".call_graph") {
       continue;
+    }
 
-    CallGraph callGraph;
-    FlowGraphs flowGraphs;
-    Instruction::Cache instructionCache;
-    ScopedCleanup cleanup(&flowGraphs, 0, &instructionCache);
+    CallGraph call_graph;
+    FlowGraphs flow_graphs;
+    Instruction::Cache instruction_cache;
+    ScopedCleanup cleanup(&flow_graphs, 0, &instruction_cache);
     FlowGraphInfos infos;
-    Read(i->path().string(), callGraph, flowGraphs, infos, &instructionCache);
-    dumpMdIndices(callGraph, flowGraphs);
+    Read(i->path().string(), call_graph, flow_graphs, infos,
+         &instruction_cache);
+    DumpMdIndices(call_graph, flow_graphs);
   }
 }
 
-void signalHandler(int code) {
+void SignalHandler(int code) {
   switch (code) {
 #ifndef UNIX_COMPILE
     case SIGBREAK:  // Ctrl-Break, not available on Unix
 #endif
-    case SIGINT:    // Ctrl-C
-      LOG(INFO) << "Please wait, initiating orderly shutdown after current "
-          "operations finish.";
-      g_WantsToQuit = true;
+    case SIGINT:  // Ctrl-C
+      LOG(INFO) << "Gracefully shutting down after current operations finish.";
+      g_wants_to_quit = true;
       break;
   }
 }
 
-int main(int nrOfArguments, char** arguments) {
+int main(int argc, char** argv) {
 #ifndef UNIX_COMPILE
-  signal(SIGBREAK, signalHandler);
+  signal(SIGBREAK, SignalHandler);
 #endif
-  signal(SIGINT, signalHandler);
+  signal(SIGINT, SignalHandler);
 
-  XmlConfig::SetDefaultFilename(
-    boost::filesystem::exists(
-      GetDirectory(PATH_APPDATA, "BinDiff", false) + "BinDiffDeluxe.xml")
-        ? GetDirectory(PATH_APPDATA, "BinDiff", false) + "BinDiffDeluxe.xml"
-        : GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) + "BinDiffDeluxe.xml");
+  const std::string app_data_dir(GetDirectory(PATH_APPDATA, "BinDiff", false));
+  const std::string default_config_file(
+      fs::exists(app_data_dir + "BinDiffDeluxe.xml")
+          ? app_data_dir + "BinDiffDeluxe.xml"
+          : GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) +
+                "BinDiffDeluxe.xml");
+  const std::string current_path(fs::current_path().string());
 
-  int returnCode(0);
+  google::SetCommandLineOptionWithMode("config", default_config_file.c_str(),
+                                       google::SET_FLAGS_DEFAULT);
+  google::SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
+                                       google::SET_FLAGS_DEFAULT);
+  int exit_code = 0;
 
   try {
     XmlConfig config;
-    try {
-      config.Init(XmlConfig::GetDefaultFilename(), "BinDiffDeluxe");
-    } catch(const std::runtime_error&) {
-    }  // we ignore config file not found at this point because it may still be
-       // set via the command line
 
-  LOG(INFO) << kProgramVersion << " (" << __DATE__
+    std::string usage(
+        "Finds similarities in binary code.\n"
+        "Usage:\n");
+    usage +=
+        "  " + std::string(argv[0]) +
+        " --primary=PRIMARY [--secondary=SECONDARY]\n\n"
+        "Example command line to diff all files in a directory against each"
+        " other:\n" +
+        "  " + std::string(argv[0]) +
+        " \\\n"
+        "    --primary=/tmp --output_dirc=/tmp/result\n"
+        "Note that if the directory contains IDA Pro databases these will \n"
+        "automatically be exported first.\n"
+        "For a single diff:\n" +
+        "  " + std::string(argv[0]) +
+        " \\\n"
+        "    --primary=/tmp/file1.BinExport "
+        "--secondary=/tmp/file2.BinExport \\\n"
+        "    --output_dir=/tmp/result";
+    google::SetUsageMessage(usage);
+    google::ParseCommandLineFlags(&argc, &argv, true /* Remove flags */);
+
+    LOG(INFO) << kProgramVersion << " (" << __DATE__
 #ifdef _DEBUG
-           << ", debug build"
+              << ", debug build"
 #endif
-           << ") - (c)2004-2014 Google Inc.";
+              << ") - (c)2004-2014 Google Inc.";
 
     // echo original command line to log file
     std::string commandline;
-    for (int i = 0; i < nrOfArguments; ++i)
-      commandline += *(arguments + i) + std::string(" ");
+    for (int i = 0; i < argc; ++i) {
+      commandline += *(argv + i) + std::string(" ");
+    }
     LOG(INFO) << commandline;
 
     boost::timer timer;
+    bool done_something = false;
 
-    boost::program_options::options_description description(
-        "command line parameters");
-    description.add_options()
-        ("help,h", "shows available command line options")
-        ("sourcepath1,i", boost::program_options::value<std::string>(),
-            "primary input file (or path in batch mode)")
-        ("sourcepath2,j", boost::program_options::value<std::string>(),
-            "secondary input file (optional)")
-        ("outpath,o", boost::program_options::value<std::string>(),
-            "output path (optional)")
-        ("log,l", "write results in log file format")
-        ("knox,k", "write results in fortknox file format")
-        ("bin,b", "write results in binary file format (can be loaded by "
-            "DifferDeluxe IDA plugin or BinDiff GUI)")
-        ("mdindex,m", "dump md indices (will not diff anything)")
-        ("export,e", "batch export idb files from input directory to "
-            "*.BinExport")
-        ("ls", "list hash/filenames for all .BinExport files in input "
-            "directory")
-        ("config,c", boost::program_options::value<std::string>(),
-            "specify config file name (defaults to user home directory "
-            "BinDiffDeluxe.xml)");
-
-    boost::program_options::variables_map variables;
-    store(boost::program_options::command_line_parser(nrOfArguments, arguments).
-        options(description).run(), variables);
-    notify(variables);
-    bool doneSomething = false;
-
-    if (variables.count("config")) {
-      XmlConfig::SetDefaultFilename(variables["config"].as<std::string>());
-      config.Init(XmlConfig::GetDefaultFilename(), "BinDiffDeluxe");
-    }
-    if (!config.GetDocument())
+    config.Init(FLAGS_config, "BinDiffDeluxe");
+    if (!config.GetDocument()) {
       throw std::runtime_error("config file invalid or not found");
+    }
 
-    // this initializes static variables before the threads get to them
-    if (GetDefaultMatchingSteps().empty()
-        || GetDefaultMatchingStepsBasicBlock().empty()) {
+    // This initializes static variables before the threads get to them
+    if (GetDefaultMatchingSteps().empty() ||
+        GetDefaultMatchingStepsBasicBlock().empty()) {
       throw std::runtime_error("config file invalid");
     }
 
-    std::unique_ptr<CallGraph> callGraph1;
-    std::unique_ptr<CallGraph> callGraph2;
-    Instruction::Cache instructionCache;
-    FlowGraphs flowGraphs1, flowGraphs2;
-    ScopedCleanup cleanup(&flowGraphs1, &flowGraphs2, &instructionCache);
+    std::unique_ptr<CallGraph> call_graph1;
+    std::unique_ptr<CallGraph> call_graph2;
+    Instruction::Cache instruction_cache;
+    FlowGraphs flow_graphs1, flow_graphs2;
+    ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
 
-    std::string outPath(boost::filesystem::current_path().string());
-    if (variables.count("outpath"))
-      outPath = variables["outpath"].as<std::string> ();
-    else if (variables.count("sourcepath1")
-        && boost::filesystem::is_directory(
-            variables["sourcepath1"].as<std::string>())) {
-      outPath = variables["sourcepath1"].as<std::string>();
+    if (FLAGS_primary.empty()) {
+      throw std::runtime_error("Need primary input (--primary)");
     }
 
-    if (!boost::filesystem::is_directory(outPath)) {
+    if (FLAGS_output_dir == current_path /* Defaulted */ &&
+        fs::is_directory(FLAGS_primary)) {
+      FLAGS_output_dir = FLAGS_primary;
+    }
+
+    if (!fs::is_directory(FLAGS_output_dir)) {
       throw std::runtime_error(
-          "outpath parameter (-o) must be a directory and writeable! Supplied "
-          "value: \"" + outPath + "\"");
+          "Output parameter (--output_dir) must be a writeable directory! "
+          "Supplied value: \"" +
+          FLAGS_output_dir + "\"");
     }
 
 #ifdef REASONTREE
-    std::ofstream reasoningFile((outPath + "/differDeluxe.reason").c_str());
+    std::ofstream reasoningFile(
+        (FLAGS_output_dir + "/differDeluxe.reason").c_str());
     CReasoningTree::getInstance().setTarget(&reasoningFile);
 #endif
 
-    if (variables.count("sourcepath1")
-        && boost::filesystem::is_regular_file(
-            variables["sourcepath1"].as<std::string>())) {
-      // primary from filesystem
+    if (fs::is_regular_file(FLAGS_primary)) {
+      // Primary from file system.
       FlowGraphInfos infos;
-      callGraph1.reset(new CallGraph());
-      Read(variables["sourcepath1"].as<std::string>(), *callGraph1,
-          flowGraphs1, infos, &instructionCache);
+      call_graph1.reset(new CallGraph());
+      Read(FLAGS_primary, *call_graph1, flow_graphs1, infos,
+           &instruction_cache);
     }
 
-    if (variables.count("sourcepath1")
-        && boost::filesystem::is_directory(
-            variables["sourcepath1"].as<std::string>())) {
-      // file system batch diff
-      if (variables.count("ls")) {
-        listFiles(variables["sourcepath1"].as<std::string>());
-      } else if (!variables.count("mdindex")) {
-        batchDiff(variables["sourcepath1"].as<std::string>(),
-                  variables.count("sourcepath2")
-                      ? variables["sourcepath2"].as<std::string> ()
-                      : "",
-                  outPath, variables);
+    if (fs::is_directory(FLAGS_primary)) {
+      // File system batch diff.
+      if (FLAGS_ls) {
+        ListFiles(FLAGS_primary);
+      } else if (!FLAGS_md_index) {
+        BatchDiff(FLAGS_primary, FLAGS_secondary, FLAGS_output_dir);
       } else {
-        batchDumpMdIndices(variables["sourcepath1"].as<std::string>());
+        BatchDumpMdIndices(FLAGS_primary);
       }
-      doneSomething = true;
+      done_something = true;
     }
 
-    if (variables.count("mdindex") && callGraph1.get()) {
-      dumpMdIndices(*callGraph1, flowGraphs1);
-      doneSomething = true;
+    if (FLAGS_md_index && call_graph1 != nullptr) {
+      DumpMdIndices(*call_graph1, flow_graphs1);
+      done_something = true;
     }
 
-    if (variables.count("sourcepath2") &&
-        boost::filesystem::is_regular_file(
-            variables["sourcepath2"].as<std::string>())) {
+    if (!FLAGS_secondary.empty() && fs::is_regular_file(FLAGS_secondary)) {
       // secondary from filesystem
       FlowGraphInfos infos;
-      callGraph2.reset(new CallGraph());
-      Read(variables["sourcepath2"].as<std::string> (), *callGraph2,
-          flowGraphs2, infos, &instructionCache);
+      call_graph2.reset(new CallGraph());
+      Read(FLAGS_secondary, *call_graph2, flow_graphs2, infos,
+           &instruction_cache);
     }
 
-    if (!doneSomething &&
-        ((variables.count("sourcepath1") &&
-          (!boost::filesystem::is_regular_file(
-               variables["sourcepath1"].as<std::string>()) &&
-           !boost::filesystem::is_directory(
-               variables["sourcepath1"].as<std::string>()))) ||
-         (variables.count("sourcepath2") &&
-          (!boost::filesystem::is_regular_file(
-               variables["sourcepath2"].as<std::string>()) &&
-           !boost::filesystem::is_directory(
-               variables["sourcepath2"].as<std::string>()))))) {
+    if (!done_something &&
+        ((!fs::is_regular_file(FLAGS_primary) &&
+          !fs::is_directory(FLAGS_primary)) ||
+         (!FLAGS_secondary.empty() && (!fs::is_regular_file(FLAGS_secondary) &&
+                                       !fs::is_directory(FLAGS_secondary))))) {
       throw std::runtime_error(
-          "Invalid inputs. Please make sure -i and -j "
+          "Invalid inputs. Please make sure --primary and --secondary "
           "point to valid files/directories.");
     }
 
-    if (callGraph1.get() && callGraph2.get()) {
-      const int edges1 = num_edges(callGraph1->GetGraph());
-      const int vertices1 = num_vertices(callGraph1->GetGraph());
-      const int edges2 = num_edges(callGraph2->GetGraph());
-      const int vertices2 = num_vertices(callGraph2->GetGraph());
-      LOG(INFO)
-          << "setup: " << timer.elapsed() << " sec. "
-          << callGraph1->GetFilename() << " has " << vertices1
-          << " functions and " << edges1 << " calls. "
-          << callGraph2->GetFilename() << " has " << vertices2
-          << " functions and " << edges2 << " calls.";
+    if (call_graph1.get() && call_graph2.get()) {
+      const int edges1 = num_edges(call_graph1->GetGraph());
+      const int vertices1 = num_vertices(call_graph1->GetGraph());
+      const int edges2 = num_edges(call_graph2->GetGraph());
+      const int vertices2 = num_vertices(call_graph2->GetGraph());
+      LOG(INFO) << "setup: " << timer.elapsed() << " sec. "
+                << call_graph1->GetFilename() << " has " << vertices1
+                << " functions and " << edges1 << " calls. "
+                << call_graph2->GetFilename() << " has " << vertices2
+                << " functions and " << edges2 << " calls.";
       timer.restart();
 
       const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
       const MatchingStepsFlowGraph default_basicblock_steps(
           GetDefaultMatchingStepsBasicBlock());
-      FixedPoints fixedPoints;
-      MatchingContext context(
-          *callGraph1, *callGraph2, flowGraphs1, flowGraphs2, fixedPoints);
+      FixedPoints fixed_points;
+      MatchingContext context(*call_graph1, *call_graph2, flow_graphs1,
+                              flow_graphs2, fixed_points);
       Diff(&context, default_callgraph_steps, default_basicblock_steps);
 
       Histogram histogram;
       Counts counts;
-      GetCountsAndHistogram(
-          flowGraphs1, flowGraphs2, fixedPoints, &histogram, &counts);
+      GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points,
+                            &histogram, &counts);
       Confidences confidences;
       const double confidence = GetConfidence(histogram, &confidences);
-      const double similarity = GetSimilarityScore(
-          *callGraph1, *callGraph2, histogram, counts);
+      const double similarity =
+          GetSimilarityScore(*call_graph1, *call_graph2, histogram, counts);
 
       LOG(INFO) << "matching: " << timer.elapsed() << " sec.";
       timer.restart();
 
-      LOG(INFO)
-          << "matched " << fixedPoints.size() << " of "
-          << flowGraphs1.size() << "/" << flowGraphs2.size() << " ("
-          << counts.find("functions primary (non-library)")->second << "/"
-          << counts.find("functions secondary (non-library)")->second << ")";
-      LOG(INFO)
-          << "callGraph1 MD index " << std::dec << std::setprecision(16)
-          << callGraph1->GetMdIndex() << "\tcallGraph2 MD index " << std::dec
-          << std::setprecision(16) << callGraph2->GetMdIndex();
-      LOG(INFO)
-          << "similarity: " << std::setfill(' ') << std::setw(5)
-          << std::setprecision(4) << (similarity * 100.0) << "%"
-          << "\tconfidence: " << std::setfill(' ') << std::setw(5)
-          << std::setprecision(4) << (confidence * 100.0) << "%";
+      LOG(INFO) << "matched " << fixed_points.size() << " of "
+                << flow_graphs1.size() << "/" << flow_graphs2.size() << " ("
+                << counts.find("functions primary (non-library)")->second << "/"
+                << counts.find("functions secondary (non-library)")->second
+                << ")";
+      LOG(INFO) << "call_graph1 MD index " << std::dec << std::setprecision(16)
+                << call_graph1->GetMdIndex() << "\tcall_graph2 MD index "
+                << std::dec << std::setprecision(16)
+                << call_graph2->GetMdIndex();
+      LOG(INFO) << "similarity: " << std::setfill(' ') << std::setw(5)
+                << std::setprecision(4) << (similarity * 100.0) << "%"
+                << "\tconfidence: " << std::setfill(' ') << std::setw(5)
+                << std::setprecision(4) << (confidence * 100.0) << "%";
 
       ChainWriter writer;
-      if (variables.count("log")) {
-        writer.Add(boost::shared_ptr<Writer>(new ResultsLogWriter(
-            getTruncatedFilename(
-                outPath + "/",
-                callGraph1->GetFilename(),
-                "_vs_",
-                callGraph2->GetFilename(),
-                ".results"))));
+      if (FLAGS_log_format) {
+        writer.Add(
+            boost::shared_ptr<Writer>(new ResultsLogWriter(GetTruncatedFilename(
+                FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
+                call_graph2->GetFilename(), ".results"))));
       }
-      if (variables.count("bin") ||
-          (writer.IsEmpty() && variables.count("outpath"))) {
-        writer.Add(boost::shared_ptr<Writer>(new DatabaseWriter(
-            getTruncatedFilename(
-                outPath + "/",
-                callGraph1->GetFilename(),
-                "_vs_",
-                callGraph2->GetFilename(),
-                ".BinDiff"))));
+      if (FLAGS_bin_format || writer.IsEmpty()) {
+        writer.Add(
+            boost::shared_ptr<Writer>(new DatabaseWriter(GetTruncatedFilename(
+                FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
+                call_graph2->GetFilename(), ".BinDiff"))));
       }
 
       if (!writer.IsEmpty()) {
-        writer.Write(
-            *callGraph1, *callGraph2, flowGraphs1, flowGraphs2, fixedPoints);
-        LOG(INFO)
-            << "writing results: " << std::setprecision(3) << timer.elapsed()
-            << " sec." << std::endl;
+        writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
+                     fixed_points);
+        LOG(INFO) << "writing results: " << std::setprecision(3)
+                  << timer.elapsed() << " sec." << std::endl;
       }
       timer.restart();
-      doneSomething = true;
+      done_something = true;
     }
 
-    if (variables.count("help") || !doneSomething) {
-      std::cout << description << std::endl;
-      std::cout
-        << "example command line to diff all files in a directory against each "
-           "other:\nBinDiff_Deluxe -iC:/temp -oC:/temp/result\nnote that if the"
-           " directory contains idbs these will automatically\nbe exported "
-           "first.\nfor a single diff:\nBinDiff_Deluxe "
-           "-iC:/temp/file1.BinExport -jC:/temp/file2.BinExport "
-           "-oC:/temp/result" << std::endl;
+    if (!done_something) {
+      google::ShowUsageWithFlags(argv[0]);
     }
-  } catch(const std::bad_alloc&) {
-      LOG(INFO)
-          << "Out-of-memory. Please try again with more memory available. Some "
-             "extremely large binaries\nmay require a 64bit version of BinDiff "
-             "- please contact zynamics to request one.";
-    returnCode = 3;
-  } catch(const std::exception& error) {
+  } catch (const std::bad_alloc&) {
+    LOG(INFO)
+        << "Out-of-memory. Please try again with more memory available. Some "
+           "extremely large binaries\nmay require a 64bit version of BinDiff "
+           "- please contact zynamics to request one.";
+    exit_code = 3;
+  } catch (const std::exception& error) {
     LOG(INFO) << "an error occurred: " << error.what();
-    returnCode = 1;
-  } catch(...) {
+    exit_code = 1;
+  } catch (...) {
     LOG(INFO) << "an unknown error occurred";
-    returnCode = 2;
+    exit_code = 2;
   }
 
   // Need to explicitly shutdown logging, otherwise the logging thread will stay
   // active
   ShutdownLogging();
-  return returnCode;
+  return exit_code;
 }
 
