@@ -1,5 +1,7 @@
 #include "third_party/zynamics/bindiff/prime_signature.h"
 
+#include <cassert>
+
 namespace bindiff {
 namespace {
 

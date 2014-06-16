@@ -17,11 +17,9 @@
 #include <vector>
 
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/assign/list_of.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/operations.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/lexical_cast.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/program_options.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/scoped_array.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/scoped_ptr.hpp"
@@ -335,12 +333,15 @@ void CExporterThread::operator()() {
     // @bug: if outpath is a relative path like "." IDA won't work. We need to
     //       fully expand it first
     std::string status_message;
-    if (!SpawnProcess(boost::assign::list_of
-        (m_IdaDir + "/" + (!ida64 ? m_IdaExe : m_IdaExe64))
-        ("-A")
-        ("-OExporterModule:"+ outPath.string())
-        ("-S" + (outPath / "runIda.idc").string())
-        (inFile.string()), env, true, true, &status_message)) {
+    std::vector<string> args;
+    args.push_back(m_IdaDir + "/" + (!ida64 ? m_IdaExe : m_IdaExe64));
+    args.push_back("-A");
+    args.push_back("-OExporterModule:"+ outPath.string());
+    args.push_back("-S" + (outPath / "runIda.idc").string());
+    args.push_back(inFile.string());
+    if (!SpawnProcess(args,
+
+                      , env, true, true, &status_message)) {
       LOG(INFO) << "failed to spawn IDA export process: " 
                << GetLastWindowsError();
       LOG(INFO) << status_message;
