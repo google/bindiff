@@ -19,8 +19,15 @@
 
 #ifdef GOOGLE
 #include "base/commandlineflags.h"
+#include "base/init_google.h"
 #else
 #include <gflags/gflags.h>
+
+using google::ParseCommandLineFlags;
+using google::SET_FLAGS_DEFAULT;
+using google::SetCommandLineOptionWithMode;
+using google::SetUsageMessage;
+using google::ShowUsageWithFlags;
 #endif  // GOOGLE
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
@@ -43,7 +50,6 @@
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 
-#include <google/protobuf/io/zero_copy_stream_impl.h>
 #undef min
 #undef max
 
@@ -386,11 +392,11 @@ void ListFiles(const std::string& path) {
     try {
       if (boost::algorithm::to_lower_copy(fs::extension(*i)) == ".binexport") {
         std::ifstream file(i->path().c_str(), std::ios_base::binary);
-        google::protobuf::io::IstreamInputStream stream(&file);
         BinExportHeader header(&file);
         BinExport::Meta metaInformation;
-        metaInformation.ParseFromBoundedZeroCopyStream(
-            &stream, header.call_graph_offset - header.meta_offset);
+        std::string buffer(header.call_graph_offset - header.meta_offset, '\0');
+        file.read(&buffer[0], buffer.size());
+        metaInformation.ParseFromString(buffer);
         LOG(INFO) << EncodeHex(metaInformation.input_hash()) << " ("
                   << metaInformation.input_binary() << ")";
       }
@@ -528,23 +534,13 @@ int main(int argc, char** argv) {
 #endif
   signal(SIGINT, SignalHandler);
 
-  const std::string app_data_dir(GetDirectory(PATH_APPDATA, "BinDiff", false));
-  const std::string default_config_file(
-      fs::exists(app_data_dir + "BinDiffDeluxe.xml")
-          ? app_data_dir + "BinDiffDeluxe.xml"
-          : GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) +
-                "BinDiffDeluxe.xml");
   const std::string current_path(fs::current_path().string());
+  SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
+                               SET_FLAGS_DEFAULT);
+  SetCommandLineOptionWithMode("alsologtostderr", "true", SET_FLAGS_DEFAULT);
 
-  google::SetCommandLineOptionWithMode("config", default_config_file.c_str(),
-                                       google::SET_FLAGS_DEFAULT);
-  google::SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
-                                       google::SET_FLAGS_DEFAULT);
   int exit_code = 0;
-
   try {
-    XmlConfig config;
-
     std::string usage(
         "Finds similarities in binary code.\n"
         "Usage:\n");
@@ -564,14 +560,40 @@ int main(int argc, char** argv) {
         "    --primary=/tmp/file1.BinExport "
         "--secondary=/tmp/file2.BinExport \\\n"
         "    --output_dir=/tmp/result";
-    google::SetUsageMessage(usage);
-    google::ParseCommandLineFlags(&argc, &argv, true /* Remove flags */);
+#ifdef GOOGLE
+    InitGoogle(usage.c_str(), &argc, &argv, true /* Remove flags */);
+#else
+    SetUsageMessage(usage);
+    ParseCommandLineFlags(&argc, &argv, true /* Remove flags */);
+#endif
 
     LOG(INFO) << kProgramVersion << " (" << __DATE__
 #ifdef _DEBUG
               << ", debug build"
 #endif
               << ") - (c)2004-2014 Google Inc.";
+
+    const auto user_app_data =
+        GetDirectory(PATH_APPDATA, "BinDiff", false) + "BinDiffDeluxe.xml";
+    const auto common_app_data =
+        GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) +
+        "BinDiffDeluxe.xml";
+    if (!FLAGS_config.empty()) {
+      XmlConfig::SetDefaultFilename(FLAGS_config);
+    } else if (boost::filesystem::exists(user_app_data)) {
+      XmlConfig::SetDefaultFilename(user_app_data);
+    } else if (boost::filesystem::exists(common_app_data)) {
+      XmlConfig::SetDefaultFilename(common_app_data);
+    }
+    const XmlConfig& config(GetConfig());
+    if (!config.GetDocument()) {
+      throw std::runtime_error("config file invalid or not found");
+    }
+    // This initializes static variables before the threads get to them.
+    if (GetDefaultMatchingSteps().empty() ||
+        GetDefaultMatchingStepsBasicBlock().empty()) {
+      throw std::runtime_error("config file invalid");
+    }
 
     // echo original command line to log file
     std::string commandline;
@@ -582,17 +604,6 @@ int main(int argc, char** argv) {
 
     boost::timer timer;
     bool done_something = false;
-
-    config.Init(FLAGS_config, "BinDiffDeluxe");
-    if (!config.GetDocument()) {
-      throw std::runtime_error("config file invalid or not found");
-    }
-
-    // This initializes static variables before the threads get to them
-    if (GetDefaultMatchingSteps().empty() ||
-        GetDefaultMatchingStepsBasicBlock().empty()) {
-      throw std::runtime_error("config file invalid");
-    }
 
     std::unique_ptr<CallGraph> call_graph1;
     std::unique_ptr<CallGraph> call_graph2;
@@ -605,11 +616,11 @@ int main(int argc, char** argv) {
     }
 
     if (FLAGS_output_dir == current_path /* Defaulted */ &&
-        fs::is_directory(FLAGS_primary)) {
+        fs::is_directory(FLAGS_primary.c_str())) {
       FLAGS_output_dir = FLAGS_primary;
     }
 
-    if (!fs::is_directory(FLAGS_output_dir)) {
+    if (!fs::is_directory(FLAGS_output_dir.c_str())) {
       throw std::runtime_error(
           "Output parameter (--output_dir) must be a writeable directory! "
           "Supplied value: \"" +
@@ -622,7 +633,7 @@ int main(int argc, char** argv) {
     CReasoningTree::getInstance().setTarget(&reasoningFile);
 #endif
 
-    if (fs::is_regular_file(FLAGS_primary)) {
+    if (fs::is_regular_file(FLAGS_primary.c_str())) {
       // Primary from file system.
       FlowGraphInfos infos;
       call_graph1.reset(new CallGraph());
@@ -630,7 +641,7 @@ int main(int argc, char** argv) {
            &instruction_cache);
     }
 
-    if (fs::is_directory(FLAGS_primary)) {
+    if (fs::is_directory(FLAGS_primary.c_str())) {
       // File system batch diff.
       if (FLAGS_ls) {
         ListFiles(FLAGS_primary);
@@ -647,7 +658,8 @@ int main(int argc, char** argv) {
       done_something = true;
     }
 
-    if (!FLAGS_secondary.empty() && fs::is_regular_file(FLAGS_secondary)) {
+    if (!FLAGS_secondary.empty() &&
+        fs::is_regular_file(FLAGS_secondary.c_str())) {
       // secondary from filesystem
       FlowGraphInfos infos;
       call_graph2.reset(new CallGraph());
@@ -655,11 +667,11 @@ int main(int argc, char** argv) {
            &instruction_cache);
     }
 
-    if (!done_something &&
-        ((!fs::is_regular_file(FLAGS_primary) &&
-          !fs::is_directory(FLAGS_primary)) ||
-         (!FLAGS_secondary.empty() && (!fs::is_regular_file(FLAGS_secondary) &&
-                                       !fs::is_directory(FLAGS_secondary))))) {
+    if (!done_something && ((!fs::is_regular_file(FLAGS_primary.c_str()) &&
+                             !fs::is_directory(FLAGS_primary.c_str())) ||
+                            (!FLAGS_secondary.empty() &&
+                             (!fs::is_regular_file(FLAGS_secondary.c_str()) &&
+                              !fs::is_directory(FLAGS_secondary.c_str()))))) {
       throw std::runtime_error(
           "Invalid inputs. Please make sure --primary and --secondary "
           "point to valid files/directories.");
@@ -736,7 +748,7 @@ int main(int argc, char** argv) {
     }
 
     if (!done_something) {
-      google::ShowUsageWithFlags(argv[0]);
+      ShowUsageWithFlags(argv[0]);
     }
   } catch (const std::bad_alloc&) {
     LOG(INFO)
@@ -757,4 +769,3 @@ int main(int argc, char** argv) {
   ShutdownLogging();
   return exit_code;
 }
-
