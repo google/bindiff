@@ -256,7 +256,9 @@ void DifferThread::operator()() {
       last_file1 = file1;
       last_file2 = file2;
 
-      if (g_wants_to_quit) break;
+      if (g_wants_to_quit) {
+        break;
+      }
     } catch (const std::bad_alloc&) {
       LOG(INFO) << file1 << " vs " << file2;
 #ifdef _WIN32
@@ -517,13 +519,20 @@ void BatchDumpMdIndices(const std::string& path) {
 }
 
 void SignalHandler(int code) {
+  static int signal_count = 0;
   switch (code) {
 #ifndef UNIX_COMPILE
     case SIGBREAK:  // Ctrl-Break, not available on Unix
 #endif
     case SIGINT:  // Ctrl-C
-      LOG(INFO) << "Gracefully shutting down after current operations finish.";
-      g_wants_to_quit = true;
+      if (++signal_count < 3) {
+        LOG(INFO)
+            << "Gracefully shutting down after current operations finish.";
+        g_wants_to_quit = true;
+      } else {
+        LOG(INFO) << "Forcefully terminating process.";
+        exit(1);
+      }
       break;
   }
 }
