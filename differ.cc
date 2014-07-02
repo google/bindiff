@@ -224,11 +224,11 @@ void Read(const std::string& filename, CallGraph& call_graph,
     throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
   BinExportHeader header(&file);
   google::protobuf::io::IstreamInputStream stream(&file);
-  google::protobuf::io::CodedInputStream coded_stream(&stream);
-  coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 1,  // 1GB
-                                  -1);  // no warning
   google::protobuf::io::CodedInputStream::Limit limit;
   {
+    google::protobuf::io::CodedInputStream coded_stream(&stream);
+    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 1,  // 1GB
+                                    -1);                     // no warning
     BinExport::Meta meta_information;
     limit = coded_stream.PushLimit(
         header.call_graph_offset - header.meta_offset);
@@ -251,6 +251,15 @@ void Read(const std::string& filename, CallGraph& call_graph,
 
   BinExport::Flowgraph flow_graph_proto;
   for (uint32_t i = 0; i < header.num_flow_graphs; ++i) {
+    // It may seem strange to recreate the input stream per protocol message.
+    // However, it turned out that this is required for very large streams. Even
+    // if I set the total bytes limit to >1GB we'd terminate if we had read an
+    // aggregate message size of ~1GB (individual messages are way smaller!).
+    // The current solution is efficient and was proposed here:
+    // https://groups.google.com/d/msg/protobuf/ZKB5EePJDNU/NbDd2tctgVYJ
+    google::protobuf::io::CodedInputStream coded_stream(&stream);
+    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 1,  // 1GB
+                                    -1);                     // no warning
     // Note the +1 index is safe because we add an artificial
     // entry into the header flow graph table.
     limit = coded_stream.PushLimit(header.flow_graph_offsets[i + 1].offset -
@@ -260,7 +269,7 @@ void Read(const std::string& filename, CallGraph& call_graph,
     }
     coded_stream.PopLimit(limit);
     FlowGraph* flow_graph = new FlowGraph(
-        &call_graph, static_cast<Address> (flow_graph_proto.address()));
+        &call_graph, static_cast<Address>(flow_graph_proto.address()));
     flow_graph->Read(flow_graph_proto, instruction_cache);
     CHECK(flow_graphs.insert(flow_graph).second);
 
@@ -278,6 +287,7 @@ void Read(const std::string& filename, CallGraph& call_graph,
         counts["instructions (library)"] + counts["instructions (non-library)"];
     flow_graph_infos[info.address] = info;
   }
+
   AddSubsToCallGraph(&call_graph, &flow_graphs);
 }
 
@@ -709,4 +719,3 @@ double GetSimilarityScore(const CallGraph& call_graph1,
   similarity *= GetConfidence(histogram, &confidences);
   return similarity;
 }
-
