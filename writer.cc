@@ -1,5 +1,7 @@
 #include "third_party/zynamics/bindiff/writer.h"
 
+Writer::Writer() {}
+
 Writer::~Writer() {}
 
 void ChainWriter::Write(const CallGraph& call_graph1,
@@ -7,13 +9,13 @@ void ChainWriter::Write(const CallGraph& call_graph1,
                         const FlowGraphs& flow_graphs1,
                         const FlowGraphs& flow_graphs2,
                         const FixedPoints& fixed_points) {
-  for (auto i = writers_.begin(), end = writers_.end(); i != end; ++i) {
-    (*i)->Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                fixed_points);
+  for (auto& writer : writers_) {
+    writer->Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                  fixed_points);
   }
 }
 
-void ChainWriter::Add(boost::shared_ptr<Writer> writer) {
+void ChainWriter::Add(std::shared_ptr<Writer> writer) {
   writers_.push_back(writer);
 }
 

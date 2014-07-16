@@ -2,16 +2,16 @@
 #define SRC_SQLITE_H_
 
 #include <cstdint>
+#include <memory>
 
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/noncopyable.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/shared_ptr.hpp"
+#include "base/macros.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
 struct sqlite3;
 struct sqlite3_stmt;
 class SqliteStatement;
 
-class SqliteDatabase : private boost::noncopyable {
+class SqliteDatabase {
  public:
   friend class SqliteStatement;
 
@@ -26,13 +26,15 @@ class SqliteDatabase : private boost::noncopyable {
   void Commit();
   void Rollback();
 
-  boost::shared_ptr<SqliteStatement> Statement(const char* statement);
+  std::shared_ptr<SqliteStatement> Statement(const char* statement);
 
  private:
   sqlite3* database_;
+
+  DISALLOW_COPY_AND_ASSIGN(SqliteDatabase);
 };
 
-class SqliteStatement : private boost::noncopyable {
+class SqliteStatement {
  public:
   explicit SqliteStatement(SqliteDatabase* database, const char* statement);
   ~SqliteStatement();
@@ -43,11 +45,11 @@ class SqliteStatement : private boost::noncopyable {
   SqliteStatement& BindText(const char * value, int length = -1);
   SqliteStatement& BindNull();
 
-  SqliteStatement& Into(int* value, bool* is_null = 0);
-  SqliteStatement& Into(int64_t* value, bool* is_null = 0);
-  SqliteStatement& Into(Address* value, bool* is_null = 0);
-  SqliteStatement& Into(double* value, bool* is_null = 0);
-  SqliteStatement& Into(std::string* value, bool* is_null = 0);
+  SqliteStatement& Into(int* value, bool* is_null = nullptr);
+  SqliteStatement& Into(int64_t* value, bool* is_null = nullptr);
+  SqliteStatement& Into(Address* value, bool* is_null = nullptr);
+  SqliteStatement& Into(double* value, bool* is_null = nullptr);
+  SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
 
   SqliteStatement& Execute();
   SqliteStatement& Reset();
@@ -59,6 +61,8 @@ class SqliteStatement : private boost::noncopyable {
   int parameter_;
   int column_;
   bool got_data_;
+
+  DISALLOW_COPY_AND_ASSIGN(SqliteStatement);
 };
 
 #endif  // SRC_SQLITE_H_

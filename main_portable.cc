@@ -227,16 +227,14 @@ void DifferThread::operator()() {
       {
         ChainWriter writer;
         if (FLAGS_log_format) {
-          writer.Add(boost::shared_ptr<Writer>(
-              new ResultsLogWriter(GetTruncatedFilename(
-                  out_path_ + "/", call_graph1.GetFilename(), "_vs_",
-                  call_graph2.GetFilename(), ".results"))));
+          writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
+              out_path_ + "/", call_graph1.GetFilename(), "_vs_",
+              call_graph2.GetFilename(), ".results")));
         }
         if (FLAGS_bin_format || writer.IsEmpty()) {
-          writer.Add(
-              boost::shared_ptr<Writer>(new DatabaseWriter(GetTruncatedFilename(
-                  out_path_ + "/", call_graph1.GetFilename(), "_vs_",
-                  call_graph2.GetFilename(), ".BinDiff"))));
+          writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
+              out_path_ + "/", call_graph1.GetFilename(), "_vs_",
+              call_graph2.GetFilename(), ".BinDiff")));
         }
 
         writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
@@ -734,16 +732,14 @@ int main(int argc, char** argv) {
 
       ChainWriter writer;
       if (FLAGS_log_format) {
-        writer.Add(
-            boost::shared_ptr<Writer>(new ResultsLogWriter(GetTruncatedFilename(
-                FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
-                call_graph2->GetFilename(), ".results"))));
+        writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
+            FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
+            call_graph2->GetFilename(), ".results")));
       }
       if (FLAGS_bin_format || writer.IsEmpty()) {
-        writer.Add(
-            boost::shared_ptr<Writer>(new DatabaseWriter(GetTruncatedFilename(
-                FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
-                call_graph2->GetFilename(), ".BinDiff"))));
+        writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
+            FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
+            call_graph2->GetFilename(), ".BinDiff")));
       }
 
       if (!writer.IsEmpty()) {
@@ -774,7 +770,7 @@ int main(int argc, char** argv) {
   }
 
   // Need to explicitly shutdown logging, otherwise the logging thread will stay
-  // active
+  // active.
   ShutdownLogging();
   return exit_code;
 }

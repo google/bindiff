@@ -6,11 +6,11 @@
 #include "third_party/sqlite/v3_7_13/sqlite3.h"
 
 SqliteDatabase::SqliteDatabase()
-    : database_(0) {
+    : database_(nullptr) {
 }
 
 SqliteDatabase::SqliteDatabase(const char* filename)
-    : database_(0) {
+    : database_(nullptr) {
   Connect(filename);
 }
 
@@ -19,13 +19,14 @@ SqliteDatabase::~SqliteDatabase() {
 }
 
 void SqliteDatabase::Connect(const char* filename) {
-  if (database_)
+  if (database_) {
     throw std::runtime_error("database already open");
+  }
 
   if (sqlite3_open(filename, &database_) != SQLITE_OK) {
     const std::string error(sqlite3_errmsg(database_));
     sqlite3_close(database_);
-    database_ = 0;
+    database_ = nullptr;
     throw std::runtime_error(("failed opening database: '" + error
         + "', filename: '" + std::string(filename) + "'").c_str());
   }
@@ -36,17 +37,17 @@ void SqliteDatabase::Connect(const char* filename) {
 }
 
 void SqliteDatabase::Disconnect() {
-  if (!database_)
+  if (!database_) {
     return;
+  }
 
   sqlite3_close(database_);
-  database_ = 0;
+  database_ = nullptr;
 }
 
-boost::shared_ptr<SqliteStatement> SqliteDatabase::Statement(
+std::shared_ptr<SqliteStatement> SqliteDatabase::Statement(
     const char* statement) {
-  return boost::shared_ptr<SqliteStatement>(
-      new SqliteStatement(this, statement));
+  return std::make_shared<SqliteStatement>(this, statement);
 }
 
 void SqliteDatabase::Begin() {
@@ -64,16 +65,15 @@ void SqliteDatabase::Rollback() {
 SqliteStatement::SqliteStatement(SqliteDatabase* database,
                                  const char* statement)
     : database_(database->database_),
-      statement_(0),
+      statement_(nullptr),
       parameter_(0),
       column_(0),
       got_data_(false) {
-  if (sqlite3_prepare_v2(
-      database_, statement, strlen(statement), &statement_, 0) !=
-          SQLITE_OK) {
+  if (sqlite3_prepare_v2(database_, statement, strlen(statement), &statement_,
+                         nullptr) != SQLITE_OK) {
     const std::string error(sqlite3_errmsg(database_));
-    throw std::runtime_error((std::string("error preparing statement '")
-      + statement + "', '" + error + "'").c_str());
+    throw std::runtime_error((std::string("error preparing statement '") +
+                              statement + "', '" + error + "'").c_str());
   }
 }
 
