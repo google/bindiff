@@ -227,8 +227,8 @@ void Read(const std::string& filename, CallGraph& call_graph,
   google::protobuf::io::CodedInputStream::Limit limit;
   {
     google::protobuf::io::CodedInputStream coded_stream(&stream);
-    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 1,  // 1GB
-                                    -1);                     // no warning
+    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 64,  // 64GB
+                                    -1);                      // no warning
     BinExport::Meta meta_information;
     limit = coded_stream.PushLimit(
         header.call_graph_offset - header.meta_offset);
@@ -258,8 +258,8 @@ void Read(const std::string& filename, CallGraph& call_graph,
     // The current solution is efficient and was proposed here:
     // https://groups.google.com/d/msg/protobuf/ZKB5EePJDNU/NbDd2tctgVYJ
     google::protobuf::io::CodedInputStream coded_stream(&stream);
-    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 1,  // 1GB
-                                    -1);                     // no warning
+    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 64,  // 64GB
+                                    -1);                      // no warning
     // Note the +1 index is safe because we add an artificial
     // entry into the header flow graph table.
     limit = coded_stream.PushLimit(header.flow_graph_offsets[i + 1].offset -
