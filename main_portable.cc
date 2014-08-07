@@ -341,9 +341,9 @@ void ExporterThread::operator()() {
     args.push_back("-A");
     args.push_back("-OExporterModule:" + out_path.string());
 #ifdef UNIX_COMPILE
-    args.push_back("-S" + (out_path / "runIda.idc").string());
+    args.push_back("-S" + (out_path / "run_ida.idc").string());
 #else
-    args.push_back("-S\"" + (out_path / "runIda.idc").string() + "\"");
+    args.push_back("-S\"" + (out_path / "run_ida.idc").string() + "\"");
 #endif
     args.push_back(inFile.string());
     if (!SpawnProcess(args, true /* Wait */, &status_message)) {
@@ -364,7 +364,7 @@ void ExporterThread::operator()() {
 
 void CreateIdaScript(const std::string& out_path) {
   fs::path path(out_path);
-  std::ofstream file((path / "runIda.idc").c_str());
+  std::ofstream file((path / "run_ida.idc").c_str());
   if (!file) {
     throw std::runtime_error(
         ("Could not create idc script at \"" + out_path + "\"").c_str());
@@ -381,7 +381,7 @@ void CreateIdaScript(const std::string& out_path) {
 
 void DeleteIdaScript(const std::string& out_path) {
   fs::path path(out_path);
-  fs::remove(path / "runIda.idc");
+  fs::remove(path / "run_ida.idc");
 }
 
 void ListFiles(const std::string& path) {
@@ -581,10 +581,9 @@ int main(int argc, char** argv) {
               << ") - (c)2004-2014 Google Inc.";
 
     const auto user_app_data =
-        GetDirectory(PATH_APPDATA, "BinDiff", false) + "BinDiffDeluxe.xml";
+        GetDirectory(PATH_APPDATA, "BinDiff", false) + "bindiff.xml";
     const auto common_app_data =
-        GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) +
-        "BinDiffDeluxe.xml";
+        GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) + "bindiff.xml";
     if (!FLAGS_config.empty()) {
       XmlConfig::SetDefaultFilename(FLAGS_config);
     } else if (boost::filesystem::exists(user_app_data)) {
