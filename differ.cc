@@ -218,22 +218,27 @@ void Read(const std::string& filename, CallGraph& call_graph,
           Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+  enum {
+    kBytesLimit = 2147483647 /* 2GiB less one byte */
+  };
+
   call_graph.Reset();
   std::ifstream file(filename.c_str(), std::ios_base::binary);
-  if (!file)
+  if (!file) {
     throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
+  }
   BinExportHeader header(&file);
   google::protobuf::io::IstreamInputStream stream(&file);
   google::protobuf::io::CodedInputStream::Limit limit;
   {
     google::protobuf::io::CodedInputStream coded_stream(&stream);
-    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 64,  // 64GB
-                                    -1);                      // no warning
+    coded_stream.SetTotalBytesLimit(kBytesLimit, -1 /* No warning */);
     BinExport::Meta meta_information;
     limit = coded_stream.PushLimit(
         header.call_graph_offset - header.meta_offset);
     if (!meta_information.ParseFromCodedStream(&coded_stream)) {
-      throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
+      throw std::runtime_error(
+          ("failed to parse meta data in \"" + filename + "\"").c_str());
     }
     coded_stream.PopLimit(limit);
     call_graph.SetExeFilename(meta_information.input_binary());
@@ -243,7 +248,8 @@ void Read(const std::string& filename, CallGraph& call_graph,
     limit = coded_stream.PushLimit(
         header.flow_graph_offsets[0].offset - header.call_graph_offset);
     if (!call_graph_proto.ParseFromCodedStream(&coded_stream)) {
-      throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
+      throw std::runtime_error(
+          ("failed to parse call graph data in \"" + filename + "\"").c_str());
     }
     coded_stream.PopLimit(limit);
     call_graph.Read(call_graph_proto, filename);
@@ -258,8 +264,7 @@ void Read(const std::string& filename, CallGraph& call_graph,
     // The current solution is efficient and was proposed here:
     // https://groups.google.com/d/msg/protobuf/ZKB5EePJDNU/NbDd2tctgVYJ
     google::protobuf::io::CodedInputStream coded_stream(&stream);
-    coded_stream.SetTotalBytesLimit(1024 * 1024 * 1024 * 64,  // 64GB
-                                    -1);                      // no warning
+    coded_stream.SetTotalBytesLimit(kBytesLimit, -1 /* No warning */);
     // Note the +1 index is safe because we add an artificial
     // entry into the header flow graph table.
     limit = coded_stream.PushLimit(header.flow_graph_offsets[i + 1].offset -
