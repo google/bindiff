@@ -21,6 +21,7 @@
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
 #else
+#define GFLAGS_DLL_DECL
 #include <gflags/gflags.h>
 
 using google::ParseCommandLineFlags;
