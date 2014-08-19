@@ -12,6 +12,7 @@
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
+#include "file/base/filesystem.h"
 #include "net/proto2/io/public/coded_stream.h"
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
 #include "third_party/zynamics/bindetego/binexport.pb.h"
@@ -28,6 +29,8 @@ namespace google {
 #include "file/base/file.h"
 #include "net/proto2/util/public/google_file_stream.h"
 #include "third_party/zynamics/bindetego/binexport2.pb.h"
+#include "util/task/canonical_errors.h"
+#include "util/task/status.h"
 #else
 #include "third_party/zynamics/bindetego/binexport.pb.h"
 #include <google/protobuf/io/coded_stream.h>
@@ -114,7 +117,7 @@ bool ReadGoogle2(const std::string& filename,
 
   FileCloser file(File::Open(filename.c_str(), "r"));
   if (!file.get()) {
-    if (!File::Exists(filename)) {
+    if (util::IsNotFound(file::Exists(filename, file::Defaults()))) {
       LOG(ERROR) << "Error opening '" << filename << "', file doesn't exist.";
     } else {
       LOG(ERROR) << "Error opening '" << filename << "'.";
@@ -147,7 +150,7 @@ bool ReadGoogle(const std::string& filename,
   call_graph.Reset();
   FileCloser file(File::Open(filename.c_str(), "r"));
   if (!file.get()) {
-    if (!File::Exists(filename)) {
+    if (util::IsNotFound(file::Exists(filename, file::Defaults()))) {
       LOG(ERROR) << "Error opening '" << filename << "', file doesn't exist.";
     } else {
       LOG(ERROR) << "Error opening '" << filename << "'.";
