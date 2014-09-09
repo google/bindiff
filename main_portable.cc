@@ -492,8 +492,10 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
   std::cout << "\n" << call_graph.GetFilename() << "\n"
             << call_graph.GetMdIndex();
   for (auto i = flow_graphs.cbegin(), end = flow_graphs.cend(); i != end; ++i) {
-    std::cout << "\n" << (*i)->IsLibrary() << "\t" << std::fixed
-              << std::setprecision(12) << (*i)->GetMdIndex();
+    std::cout << "\n" << std::hex << std::setfill('0') << std::setw(16)
+              << (*i)->GetEntryPointAddress() << "\t"
+              << std::fixed << std::setprecision(12) << (*i)->GetMdIndex()
+              << "\t" << ((*i)->IsLibrary() ? "Library" : "Non-library");
   }
   std::cout << std::endl;
 }
