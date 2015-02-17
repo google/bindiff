@@ -226,5 +226,5 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
 
   // Shrink-to-fit idiom: This reduces the capacity of the vector to the
   // required minimum.
-  InstructionMatches(matches).swap(matches);
+  matches.shrink_to_fit();
 }
