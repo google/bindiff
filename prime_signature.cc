@@ -11420,7 +11420,7 @@ size_t GetPrimeTableSize() {
   // There are 100008 primes in the table, the largest prime < 100008 is 100003.
   // 100003 is at index 9592.
   // return sizeof(kPrimes) / sizeof(kPrimes[0]);
-  assert(100003 <= sizeof(kPrimes) / sizeof(kPrimes[0]));
+  static_assert(100003 <= sizeof(kPrimes) / sizeof(kPrimes[0]), "");
   return 100003;
 }
 
