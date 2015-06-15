@@ -3,7 +3,7 @@
 #include <cstring>
 #include <stdexcept>
 
-#include "third_party/sqlite/v3_7_13/sqlite3.h"
+#include "third_party/sqlite/src/sqlite3.h"
 
 SqliteDatabase::SqliteDatabase()
     : database_(nullptr) {
