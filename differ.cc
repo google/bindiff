@@ -13,6 +13,7 @@
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
 #include "file/base/filesystem.h"
+#include "file/base/helpers.h"
 #include "net/proto2/io/public/coded_stream.h"
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
 #include "third_party/zynamics/bindetego/binexport.pb.h"
@@ -162,7 +163,9 @@ bool ReadGoogle(const std::string& filename,
     const uint32_t size = header.call_graph_offset - header.meta_offset;
     CHECK_LT(size, 500000000) << filename;
     string buffer(size, '\0');
-    CHECK_EQ(file->Read(&buffer[0], size), size) << filename;
+    CHECK_OK(file::ReadToBuffer(file.get(), &buffer[0], size, nullptr,
+                                file::Defaults()))
+        << filename;
     BinExport::Meta meta_information;
     CHECK(meta_information.ParseFromString(buffer)) << filename;
     call_graph.SetExeFilename(meta_information.input_binary());
@@ -174,7 +177,9 @@ bool ReadGoogle(const std::string& filename,
         header.flow_graph_offsets[0].offset - header.call_graph_offset;
     CHECK_LT(size, 500000000) << filename;
     string buffer(size, '\0');
-    CHECK_EQ(file->Read(&buffer[0], size), size) << filename;
+    CHECK_OK(file::ReadToBuffer(file.get(), &buffer[0], size, nullptr,
+                                file::Defaults()))
+        << filename;
     BinExport::Callgraph call_graph_proto;
     CHECK(call_graph_proto.ParseFromString(buffer)) << filename;
     call_graph.Read(call_graph_proto, filename);
@@ -188,7 +193,9 @@ bool ReadGoogle(const std::string& filename,
         header.flow_graph_offsets[i].offset;
     CHECK_LT(size, 500000000) << filename;
     buffer.resize(size);
-    CHECK_EQ(file->Read(&buffer[0], size), size) << filename;
+    CHECK_OK(file::ReadToBuffer(file.get(), &buffer[0], size, nullptr,
+                                file::Defaults()))
+        << filename;
     BinExport::Flowgraph flow_graph_proto;
     CHECK(flow_graph_proto.ParseFromString(buffer)) << filename;
     FlowGraph* flow_graph = new FlowGraph(
