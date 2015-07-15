@@ -25,36 +25,36 @@ TEST(InstructionTest, Instruction) {
 TEST(InstructionTest, Instructions) {
   Instruction::Cache cache;
   Instructions instructions;
-  instructions.push_back(Instruction(&cache, 0x1000000010000000, "one",
-                                     1234, "47, 11"));
-  instructions.push_back(Instruction(&cache, 0x1000000010000001, "two",
-                                     1235, "47, 11"));
-  instructions.push_back(Instruction(&cache, 0x1000000010000005, "three",
-                                     1236, "47, 11"));
-  EXPECT_EQ(0x1000000010000001, GetInstruction(
-      instructions, 0x1000000010000001)->GetAddress());
-  EXPECT_STREQ("three", GetInstruction(
-      instructions, 0x1000000010000005)->GetMnemonic(&cache).c_str());
+  instructions.emplace_back(&cache, 0x1000000010000000, "one",
+                            1234, "47, 11");
+  instructions.emplace_back(&cache, 0x1000000010000001, "two",
+                            1235, "47, 11");
+  instructions.emplace_back(&cache, 0x1000000010000005, "three",
+                            1236, "47, 11");
+  EXPECT_EQ(0x1000000010000001,
+            GetInstruction(instructions, 0x1000000010000001)->GetAddress());
+  EXPECT_STREQ("three", GetInstruction(instructions, 0x1000000010000005)
+                            ->GetMnemonic(&cache)
+                            .c_str());
 
   Instructions instructions2;
-  instructions2.push_back(Instruction(&cache, 0x1000000010012000, "one",
-                                      1232, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010012302, "one",
-                                      1234, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010033300, "one",
-                                      1237, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010112334, "two",
-                                      1235, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010234205, "three",
-                                      1236, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010234206, "three",
-                                      1237, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010234207, "three",
-                                      1236, "47, 11"));
+  instructions2.emplace_back(&cache, 0x1000000010012000, "one",
+                             1232, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010012302, "one",
+                             1234, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010033300, "one",
+                             1237, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010112334, "two",
+                             1235, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010234205, "three",
+                             1236, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010234206, "three",
+                             1237, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010234207, "three",
+                             1236, "47, 11");
   InstructionMatches matches;
   ComputeLcs(instructions.begin(), instructions.end(),
-             instructions2.begin(), instructions2.end(),
-             matches);
+             instructions2.begin(), instructions2.end(), matches);
   EXPECT_EQ(3, matches.size());
   EXPECT_EQ(0x1000000010000000, matches[0].first->GetAddress());
   EXPECT_EQ(0x1000000010012302, matches[0].second->GetAddress());
@@ -70,50 +70,43 @@ TEST(InstructionTest, LcsEmpty) {
   Instructions instructions2;
   InstructionMatches matches;
   ComputeLcs(instructions1.begin(), instructions1.end(),
-             instructions2.begin(), instructions2.end(),
-             matches);
+             instructions2.begin(), instructions2.end(), matches);
   EXPECT_EQ(0, matches.size());
 }
 
 TEST(InstructionTest, LcsEmptyOneSided) {
   Instructions instructions1;
   Instruction::Cache cache;
-  instructions1.push_back(Instruction(&cache, 0x1000000010000000, "one",
-                                      1234, "47, 11"));
-  instructions1.push_back(Instruction(&cache, 0x1000000010000001, "two",
-                                      1235, "47, 11"));
-  instructions1.push_back(Instruction(&cache, 0x1000000010000005, "three",
-                                      1236, "47, 11"));
+  instructions1.emplace_back(&cache, 0x1000000010000000, "one",
+                             1234, "47, 11");
+  instructions1.emplace_back(&cache, 0x1000000010000001, "two",
+                             1235, "47, 11");
+  instructions1.emplace_back(&cache, 0x1000000010000005, "three",
+                             1236, "47, 11");
 
   Instructions instructions2;
   InstructionMatches matches;
   ComputeLcs(instructions1.begin(), instructions1.end(),
-             instructions2.begin(), instructions2.end(),
-             matches);
+             instructions2.begin(), instructions2.end(), matches);
   EXPECT_EQ(0, matches.size());
 }
 
 TEST(InstructionTest, CommonPrefix) {
   Instructions instructions1;
   Instruction::Cache cache;
-  instructions1.push_back(Instruction(&cache, 0x1000000010000000, "one",
-                                      1234, "47, 11"));
-  instructions1.push_back(Instruction(&cache, 0x1000000010000001, "two",
-                                      1235, "47, 11"));
-  instructions1.push_back(Instruction(&cache, 0x1000000010000005, "three",
-                                      1236, "47, 11"));
+  instructions1.emplace_back(&cache, 0x1000000010000000, "one", 1234, "47, 11");
+  instructions1.emplace_back(&cache, 0x1000000010000001, "two", 1235, "47, 11");
+  instructions1.emplace_back(&cache, 0x1000000010000005, "three", 1236,
+                             "47, 11");
 
   Instructions instructions2;
-  instructions2.push_back(Instruction(&cache, 0x1000000010000000, "one",
-                                      1234, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010000001, "two",
-                                      1235, "47, 11"));
-  instructions2.push_back(Instruction(&cache, 0x1000000010000005, "unmatched",
-                                      7777, "47, 11"));
+  instructions2.emplace_back(&cache, 0x1000000010000000, "one", 1234, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010000001, "two", 1235, "47, 11");
+  instructions2.emplace_back(&cache, 0x1000000010000005, "unmatched", 7777,
+                             "47, 11");
   InstructionMatches matches;
   ComputeLcs(instructions1.begin(), instructions1.end(),
-             instructions2.begin(), instructions2.end(),
-             matches);
+             instructions2.begin(), instructions2.end(), matches);
   EXPECT_EQ(2, matches.size());
   EXPECT_EQ(0x1000000010000000, matches[0].first->GetAddress());
   EXPECT_EQ(0x1000000010000000, matches[0].second->GetAddress());
