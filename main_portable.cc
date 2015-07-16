@@ -1,9 +1,4 @@
 // Command-line version of BinDiff.
-//
-// Define this (globally in project settings!!) to write a huge callstack
-// logfile to outDir. This is useful for understanding algorithm performance
-// and why fixedpoints have been assigned.
-// #define REASONTREE
 
 #include <cassert>
 #include <fstream>
@@ -47,7 +42,6 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/logwriter.h"
 #include "third_party/zynamics/bindiff/matching.h"
-#include "third_party/zynamics/bindiff/reasontree.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 
@@ -635,12 +629,6 @@ int main(int argc, char** argv) {
           "Supplied value: \"" +
           FLAGS_output_dir + "\"");
     }
-
-#ifdef REASONTREE
-    std::ofstream reasoningFile(
-        (FLAGS_output_dir + "/differDeluxe.reason").c_str());
-    CReasoningTree::getInstance().setTarget(&reasoningFile);
-#endif
 
     if (fs::is_regular_file(FLAGS_primary.c_str())) {
       // Primary from file system.

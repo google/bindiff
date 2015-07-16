@@ -8,7 +8,6 @@
 #include "third_party/zynamics/bindiff/callgraphmatching.h"
 #include "third_party/zynamics/bindiff/flowgraphmatching.h"
 #include "third_party/zynamics/bindiff/log.h"
-#include "third_party/zynamics/bindiff/reasontree.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
@@ -381,13 +380,10 @@ void Diff(MatchingContext* context,
                              i->GetSecondary()->GetEntryPointAddress(),
                              &secondary_children);
         if (!primary_children.empty() && !secondary_children.empty()) {
-          REASONTREE_PUSH("propagating children",
-                          i->GetPrimary()->GetEntryPointAddress());
           more_fixed_points_discovered |= step->FindFixedPoints(
               i->GetPrimary(), i->GetSecondary(), primary_children,
               secondary_children, *context, matching_steps,
               default_basic_block_steps);
-          REASONTREE_POP();
         }
       }
 
@@ -403,13 +399,10 @@ void Diff(MatchingContext* context,
                             i->GetSecondary()->GetEntryPointAddress(),
                             &secondary_parents);
         if (!primary_parents.empty() && !secondary_parents.empty()) {
-          REASONTREE_PUSH("propagating parents",
-              i->GetPrimary()->GetEntryPointAddress());
           more_fixed_points_discovered |= step->FindFixedPoints(
               i->GetPrimary(), i->GetSecondary(), primary_parents,
               secondary_parents, *context, matching_steps,
               default_basic_block_steps);
-          REASONTREE_POP();
         }
       }
     } while (more_fixed_points_discovered);
