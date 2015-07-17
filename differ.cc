@@ -19,12 +19,12 @@
 // Google3 uses different namespaces than the open source proto version. This is
 // a hack to make them compatible.
 namespace google {
-  namespace protobuf {
-    namespace io {
-      using ::proto2::io::IstreamInputStream;
-      using ::proto2::io::CodedInputStream;
-    }  // namespace io
-  }  // namespace protobuf
+namespace protobuf {
+namespace io {
+using ::proto2::io::IstreamInputStream;
+using ::proto2::io::CodedInputStream;
+}  // namespace io
+}  // namespace protobuf
 }  // namespace google
 #include "file/base/file.h"
 #include "net/proto2/util/public/google_file_stream.h"
