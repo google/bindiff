@@ -70,7 +70,7 @@ DEFINE_bool(ls, false /* Default */,
             "List hash/filenames for all .BinExport files in input directory");
 DEFINE_string(config, "" /* Default */, "Specify config file name");
 
-static const char kBinExportVersion[] = "7";  // Exporter version to use.
+static const char kBinExportVersion[] = "8";  // Exporter version to use.
 
 boost::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
@@ -575,7 +575,7 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG
               << ", debug build"
 #endif
-              << ") - (c)2004-2014 Google Inc.";
+              << "), (c)2004-2011 zynamics GmbH, (c)2011-2015 Google Inc.";
 
     const auto user_app_data =
         GetDirectory(PATH_APPDATA, "BinDiff", false) + "bindiff.xml";
