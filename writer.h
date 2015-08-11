@@ -1,5 +1,5 @@
-#ifndef SRC_WRITER_H_
-#define SRC_WRITER_H_
+#ifndef WRITER_H_
+#define WRITER_H_
 
 #include <list>
 #include <memory>
@@ -38,4 +38,4 @@ class ChainWriter : public Writer {
   Writers writers_;
 };
 
-#endif  // SRC_WRITER_H_
+#endif  // WRITER_H_

@@ -1,5 +1,5 @@
-#ifndef SRC_INSTRUCTION_H_
-#define SRC_INSTRUCTION_H_
+#ifndef INSTRUCTION_H_
+#define INSTRUCTION_H_
 
 // TODO(cblichmann): Migrate to std::unordered_map, which is supported in the
 //                   environments we care about.
@@ -99,4 +99,4 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
                 const Instructions::const_iterator& instructions2_end,
                 InstructionMatches& matches);
 
-#endif  // SRC_INSTRUCTION_H_
+#endif  // INSTRUCTION_H_

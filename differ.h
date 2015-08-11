@@ -1,5 +1,5 @@
-#ifndef SRC_DIFFER_H_
-#define SRC_DIFFER_H_
+#ifndef DIFFER_H_
+#define DIFFER_H_
 
 #include <iostream>
 #include <map>
@@ -83,4 +83,4 @@ void Count(const FlowGraphs& flow_graphs, Counts* counts);
 void Count(const FlowGraph& flow_graph, Counts* counts);
 void Count(const FixedPoint& fixed_point, Counts* counts, Histogram* histogram);
 
-#endif  // SRC_DIFFER_H_
+#endif  // DIFFER_H_

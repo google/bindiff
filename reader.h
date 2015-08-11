@@ -1,5 +1,5 @@
-#ifndef SRC_READER_H_
-#define SRC_READER_H_
+#ifndef READER_H_
+#define READER_H_
 
 #include "third_party/zynamics/bindiff/fixedpoints.h"
 #include "third_party/zynamics/bindiff/graphutility.h"
@@ -51,4 +51,4 @@ class Reader : private boost::noncopyable {
   double confidence_;
 };
 
-#endif  // SRC_READER_H_
+#endif  // READER_H_

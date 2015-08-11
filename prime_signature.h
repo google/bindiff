@@ -1,5 +1,5 @@
-#ifndef SRC_PRIME_SIGNATURE_H_
-#define SRC_PRIME_SIGNATURE_H_
+#ifndef PRIME_SIGNATURE_H_
+#define PRIME_SIGNATURE_H_
 
 #include <cstdint>
 #include <string>
@@ -10,4 +10,4 @@ uint32_t GetPrime(const std::string& mnemonic);
 
 }  // namespace bindiff
 
-#endif  // SRC_PRIME_SIGNATURE_H_
+#endif  // PRIME_SIGNATURE_H_

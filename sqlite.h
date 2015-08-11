@@ -1,5 +1,5 @@
-#ifndef SRC_SQLITE_H_
-#define SRC_SQLITE_H_
+#ifndef SQLITE_H_
+#define SQLITE_H_
 
 #include <cstdint>
 #include <memory>
@@ -65,4 +65,4 @@ class SqliteStatement {
   DISALLOW_COPY_AND_ASSIGN(SqliteStatement);
 };
 
-#endif  // SRC_SQLITE_H_
+#endif  // SQLITE_H_

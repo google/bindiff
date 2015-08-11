@@ -1,5 +1,5 @@
-#ifndef SRC_COMMENTS_H_
-#define SRC_COMMENTS_H_
+#ifndef COMMENTS_H_
+#define COMMENTS_H_
 
 #include <map>
 #include <string>
@@ -9,15 +9,15 @@
 class Comment {
  public:
   enum Type {
-    REGULAR         = 0,
-    ENUM            = 1,
-    ANTERIOR        = 2,
-    POSTERIOR       = 3,
-    FUNCTION        = 4,
-    LOCATION        = 5,
+    REGULAR = 0,
+    ENUM = 1,
+    ANTERIOR = 2,
+    POSTERIOR = 3,
+    FUNCTION = 4,
+    LOCATION = 5,
     GLOBALREFERENCE = 6,
-    LOCALREFERENCE  = 7,
-    STRUCTURE       = 8,
+    LOCALREFERENCE = 7,
+    STRUCTURE = 8,
   };
 
   explicit Comment(const std::string& comment = "", Type type = REGULAR,
@@ -31,4 +31,4 @@ class Comment {
 typedef std::pair<Address, int> OperatorId;
 typedef std::map<OperatorId, Comment> Comments;
 
-#endif  // SRC_COMMENTS_H_
+#endif  // COMMENTS_H_
