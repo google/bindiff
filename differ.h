@@ -45,17 +45,15 @@ void ResetMatches(FlowGraphs* flow_graphs);
 void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs);
 
 // Load a .BinExport file into the internal data structures.
-void Read(const std::string& filename, CallGraph& call_graph,
-          FlowGraphs& flow_graphs, FlowGraphInfos& flow_graph_infos,
+void Read(const std::string& filename, CallGraph* call_graph,
+          FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache);
 #ifdef GOOGLE
-// Same as the above read() function, but using Google3 File for reading.
-bool ReadGoogle(const std::string& filename, CallGraph& call_graph,
-                FlowGraphs& flow_graphs, FlowGraphInfos& flow_graph_infos,
+// Same as the above Read() function, but using Google3 File for reading. In
+// addition, this function supports .BinExport2 files as well.
+bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
+                FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache);
-bool ReadGoogle2(const std::string& filename, CallGraph& call_graph,
-                 FlowGraphs& flow_graphs, FlowGraphInfos& flow_graph_infos,
-                 Instruction::Cache* instruction_cache);
 #endif
 
 // Get the similarity score for two full binaries.

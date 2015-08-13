@@ -4,7 +4,7 @@
 #include <iomanip>
 
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
-#include "third_party/zynamics/bindiff/binexport_header.h"
+#include "third_party/zynamics/bindetego/binexport_header.h"
 #include "third_party/zynamics/bindiff/callgraphmatching.h"
 #include "third_party/zynamics/bindiff/flowgraphmatching.h"
 #include "third_party/zynamics/bindiff/log.h"
@@ -27,7 +27,9 @@ using ::proto2::io::CodedInputStream;
 }  // namespace protobuf
 }  // namespace google
 #include "file/base/file.h"
+#include "file/base/path.h"
 #include "net/proto2/util/public/google_file_stream.h"
+#include "strings/case.h"
 #include "third_party/zynamics/bindetego/binexport2.pb.h"
 #include "util/task/canonical_errors.h"
 #include "util/task/status.h"
@@ -105,83 +107,62 @@ void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
 }
 
 #ifdef GOOGLE
-bool ReadGoogle2(const std::string& filename,
-                 CallGraph& call_graph,
-                 FlowGraphs& flow_graphs,
-                 FlowGraphInfos& flow_graph_infos,
-                 Instruction::Cache* instruction_cache) {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-  call_graph.Reset();
-  DeleteFlowGraphs(&flow_graphs);
-  flow_graph_infos.clear();
+bool ReadBinExport2Google(File* file, CallGraph* call_graph,
+                          FlowGraphs* flow_graphs,
+                          FlowGraphInfos* flow_graph_infos,
+                          Instruction::Cache* instruction_cache) {
+  DeleteFlowGraphs(flow_graphs);
+  flow_graph_infos->clear();
 
-  FileCloser file(File::Open(filename.c_str(), "r"));
-  if (!file.get()) {
-    if (util::IsNotFound(file::Exists(filename, file::Defaults()))) {
-      LOG(ERROR) << "Error opening '" << filename << "', file doesn't exist.";
-    } else {
-      LOG(ERROR) << "Error opening '" << filename << "'.";
-    }
-    return false;
-  }
-  proto2::util::GoogleFileInputStream stream(file.get());
+  proto2::util::GoogleFileInputStream stream(file);
   BinExport::BinExport proto;
   if (!proto.ParseFromZeroCopyStream(&stream)) {
     return false;
   }
 
-  call_graph.Read(proto, filename);
+  call_graph->Read(proto, file->filename());
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     FlowGraph* flow_graph = new FlowGraph();
-    flow_graph->Read(proto, proto_flow_graph, &call_graph, instruction_cache);
-    flow_graphs.insert(flow_graph);
+    flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
+    flow_graphs->insert(flow_graph);
   }
 
-  AddSubsToCallGraph(&call_graph, &flow_graphs);
+  AddSubsToCallGraph(call_graph, flow_graphs);
   return true;
 }
 
-bool ReadGoogle(const std::string& filename,
-                CallGraph& call_graph,
-                FlowGraphs& flow_graphs,
-                FlowGraphInfos& flow_graph_infos,
-                Instruction::Cache* instruction_cache) {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-  call_graph.Reset();
-  FileCloser file(File::Open(filename.c_str(), "r"));
-  if (!file.get()) {
-    if (util::IsNotFound(file::Exists(filename, file::Defaults()))) {
-      LOG(ERROR) << "Error opening '" << filename << "', file doesn't exist.";
-    } else {
-      LOG(ERROR) << "Error opening '" << filename << "'.";
-    }
+bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
+                         FlowGraphs* flow_graphs,
+                         FlowGraphInfos* flow_graph_infos,
+                         Instruction::Cache* instruction_cache) {
+  auto status_or(BinExportHeader::ParseFromFile(file));
+  if (!status_or.ok()) {
     return false;
   }
-  BinExportHeader header(file.get());
+  auto header(status_or.ConsumeValueOrDie());
   {
     const uint32_t size = header.call_graph_offset - header.meta_offset;
-    CHECK_LT(size, 500000000) << filename;
+    QCHECK_LT(size, 500000000) << file->filename();
     string buffer(size, '\0');
-    CHECK_OK(file::ReadToBuffer(file.get(), &buffer[0], size, nullptr,
-                                file::Defaults()))
-        << filename;
+    QCHECK_OK(
+        file::ReadToBuffer(file, &buffer[0], size, nullptr, file::Defaults()))
+        << file->filename();
     BinExport::Meta meta_information;
-    CHECK(meta_information.ParseFromString(buffer)) << filename;
-    call_graph.SetExeFilename(meta_information.input_binary());
-    call_graph.SetExeHash(meta_information.input_hash());
+    QCHECK(meta_information.ParseFromString(buffer)) << file->filename();
+    call_graph->SetExeFilename(meta_information.input_binary());
+    call_graph->SetExeHash(meta_information.input_hash());
   }
-
   {
     const uint32_t size =
         header.flow_graph_offsets[0].offset - header.call_graph_offset;
-    CHECK_LT(size, 500000000) << filename;
+    QCHECK_LT(size, 500000000) << file->filename();
     string buffer(size, '\0');
-    CHECK_OK(file::ReadToBuffer(file.get(), &buffer[0], size, nullptr,
-                                file::Defaults()))
-        << filename;
+    CHECK_OK(
+        file::ReadToBuffer(file, &buffer[0], size, nullptr, file::Defaults()))
+        << file->filename();
     BinExport::Callgraph call_graph_proto;
-    CHECK(call_graph_proto.ParseFromString(buffer)) << filename;
-    call_graph.Read(call_graph_proto, filename);
+    QCHECK(call_graph_proto.ParseFromString(buffer)) << file->filename();
+    call_graph->Read(call_graph_proto, file->filename());
   }
 
   string buffer;
@@ -190,17 +171,17 @@ bool ReadGoogle(const std::string& filename,
     // entry into the header flow graph table.
     const uint32_t size = header.flow_graph_offsets[i + 1].offset -
         header.flow_graph_offsets[i].offset;
-    CHECK_LT(size, 500000000) << filename;
+    QCHECK_LT(size, 500000000) << file->filename();
     buffer.resize(size);
-    CHECK_OK(file::ReadToBuffer(file.get(), &buffer[0], size, nullptr,
-                                file::Defaults()))
-        << filename;
+    QCHECK_OK(
+        file::ReadToBuffer(file, &buffer[0], size, nullptr, file::Defaults()))
+        << file->filename();
     BinExport::Flowgraph flow_graph_proto;
-    CHECK(flow_graph_proto.ParseFromString(buffer)) << filename;
-    FlowGraph* flow_graph = new FlowGraph(
-        &call_graph, static_cast<Address>(flow_graph_proto.address()));
+    QCHECK(flow_graph_proto.ParseFromString(buffer)) << file->filename();
+    auto* flow_graph = new FlowGraph(
+        call_graph, static_cast<Address>(flow_graph_proto.address()));
     flow_graph->Read(flow_graph_proto, instruction_cache);
-    CHECK(flow_graphs.insert(flow_graph).second);
+    QCHECK(flow_graphs->insert(flow_graph).second) << file->filename();
 
     Counts counts;
     Count(*flow_graph, &counts);
@@ -215,28 +196,74 @@ bool ReadGoogle(const std::string& filename,
         + counts["edges (non-library)"];
     info.instruction_count = counts["instructions (library)"]
         + counts["instructions (non-library)"];
-    flow_graph_infos[info.address] = info;
+    (*flow_graph_infos)[info.address] = info;
   }
-  AddSubsToCallGraph(&call_graph, &flow_graphs);
+  AddSubsToCallGraph(call_graph, flow_graphs);
+  return true;
+}
+
+bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
+                FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
+                Instruction::Cache* instruction_cache) {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+  call_graph->Reset();
+
+  FileCloser file(File::Open(filename.c_str(), "r"));
+  if (!file.get()) {
+    if (util::IsNotFound(file::Exists(filename, file::Defaults()))) {
+      LOG(ERROR) << "Error opening '" << filename << "', file doesn't exist.";
+    } else {
+      LOG(ERROR) << "Error opening '" << filename << "'.";
+    }
+    return false;
+  }
+
+  if (!ReadBinExport2Google(file.get(), call_graph, flow_graphs,
+                            flow_graph_infos, instruction_cache)) {
+    file->Seek(0 /* Position */, file::Defaults()).IgnoreError();
+    return ReadBinExportGoogle(file.get(), call_graph, flow_graphs,
+                               flow_graph_infos, instruction_cache);
+  }
   return true;
 }
 #endif  // GOOGLE
 
-void Read(const std::string& filename, CallGraph& call_graph,
-          FlowGraphs& flow_graphs, FlowGraphInfos& flow_graph_infos,
-          Instruction::Cache* instruction_cache) {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
+bool ReadBinExport2(const std::string& filename, CallGraph* call_graph,
+                    FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
+                    Instruction::Cache* instruction_cache) {
+  DeleteFlowGraphs(flow_graphs);
+  flow_graph_infos->clear();
 
+  std::ifstream stream(filename, std::ios::binary);
+  BinExport::BinExport proto;
+  if (!proto.ParseFromIstream(&stream)) {
+    return false;
+  }
+
+  call_graph->Read(proto, filename);
+  for (const auto& proto_flow_graph : proto.flow_graph()) {
+    FlowGraph* flow_graph = new FlowGraph();
+    flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
+    flow_graphs->insert(flow_graph);
+  }
+
+  AddSubsToCallGraph(call_graph, flow_graphs);
+  return true;
+}
+
+void ReadBinExport(const std::string& filename, CallGraph* call_graph,
+                   FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
+                   Instruction::Cache* instruction_cache) {
   enum {
     kBytesLimit = 2147483647 /* 2GiB less one byte */
   };
 
-  call_graph.Reset();
+  call_graph->Reset();
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
     throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
   }
-  BinExportHeader header(&file);
+  auto header(BinExportHeader::ParseFromStream(&file));
   google::protobuf::io::IstreamInputStream stream(&file);
   google::protobuf::io::CodedInputStream::Limit limit;
   {
@@ -250,9 +277,8 @@ void Read(const std::string& filename, CallGraph& call_graph,
           ("failed to parse meta data in \"" + filename + "\"").c_str());
     }
     coded_stream.PopLimit(limit);
-    call_graph.SetExeFilename(meta_information.input_binary());
-    call_graph.SetExeHash(meta_information.input_hash());
-
+    call_graph->SetExeFilename(meta_information.input_binary());
+    call_graph->SetExeHash(meta_information.input_hash());
     BinExport::Callgraph call_graph_proto;
     limit = coded_stream.PushLimit(
         header.flow_graph_offsets[0].offset - header.call_graph_offset);
@@ -261,7 +287,7 @@ void Read(const std::string& filename, CallGraph& call_graph,
           ("failed to parse call graph data in \"" + filename + "\"").c_str());
     }
     coded_stream.PopLimit(limit);
-    call_graph.Read(call_graph_proto, filename);
+    call_graph->Read(call_graph_proto, filename);
   }
 
   BinExport::Flowgraph flow_graph_proto;
@@ -283,9 +309,9 @@ void Read(const std::string& filename, CallGraph& call_graph,
     }
     coded_stream.PopLimit(limit);
     FlowGraph* flow_graph = new FlowGraph(
-        &call_graph, static_cast<Address>(flow_graph_proto.address()));
+        call_graph, static_cast<Address>(flow_graph_proto.address()));
     flow_graph->Read(flow_graph_proto, instruction_cache);
-    CHECK(flow_graphs.insert(flow_graph).second);
+    CHECK(flow_graphs->insert(flow_graph).second);
 
     Counts counts;
     Count(*flow_graph, &counts);
@@ -299,10 +325,22 @@ void Read(const std::string& filename, CallGraph& call_graph,
     info.edge_count = counts["edges (library)"] + counts["edges (non-library)"];
     info.instruction_count =
         counts["instructions (library)"] + counts["instructions (non-library)"];
-    flow_graph_infos[info.address] = info;
+    (*flow_graph_infos)[info.address] = info;
   }
 
-  AddSubsToCallGraph(&call_graph, &flow_graphs);
+  AddSubsToCallGraph(call_graph, flow_graphs);
+}
+
+void Read(const std::string& filename, CallGraph* call_graph,
+          FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
+          Instruction::Cache* instruction_cache) {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+  call_graph->Reset();
+  if (!ReadBinExport2(filename, call_graph, flow_graphs, flow_graph_infos,
+                      instruction_cache)) {
+    ReadBinExport(filename, call_graph, flow_graphs, flow_graph_infos,
+                  instruction_cache);
+  }
 }
 
 void DeleteFlowGraphs(FlowGraphs* flow_graphs) {
@@ -320,19 +358,19 @@ ScopedCleanup::ScopedCleanup(FlowGraphs* flow_graphs1, FlowGraphs* flow_graphs2,
                              Instruction::Cache* instruction_cache)
     : flow_graphs1_(flow_graphs1),
       flow_graphs2_(flow_graphs2),
-      instruction_cache_(instruction_cache) {
-}
+      instruction_cache_(instruction_cache) {}
 
 ScopedCleanup::~ScopedCleanup() {
   DeleteFlowGraphs(flow_graphs1_);
   DeleteFlowGraphs(flow_graphs2_);
-  if (instruction_cache_)
+  if (instruction_cache_) {
     instruction_cache_->Clear();
+  }
 }
 
 void ResetMatches(FlowGraphs* flow_graphs) {
-  for (auto it = flow_graphs->begin(); it != flow_graphs->end(); ++it) {
-    (*it)->ResetMatches();
+  for (auto* flow_graph : *flow_graphs) {
+    flow_graph->ResetMatches();
   }
 }
 
@@ -350,13 +388,10 @@ void Diff(MatchingContext* context,
     MatchingSteps matching_steps = matching_steps_for_current_level;
     MatchingStep* step = matching_steps.front();
     boost::timer timer;
-    step->FindFixedPoints(0,  // primary_parent
-                          0,  // secondary_parent
+    step->FindFixedPoints(0 /* primary_parent */, 0 /* secondary_parent */,
                           context->primary_flow_graphs_,
-                          context->secondary_flow_graphs_,
-                          *context,
-                          matching_steps,
-                          default_basic_block_steps);
+                          context->secondary_flow_graphs_, *context,
+                          matching_steps, default_basic_block_steps);
     matching_steps = matching_steps_for_current_level;
 
     bool more_fixed_points_discovered = false;
