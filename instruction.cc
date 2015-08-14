@@ -164,9 +164,12 @@ Instruction::Instruction(Cache* cache, Address address,
   Cache::PrimeToMnemonic::const_iterator i =
       cache->prime_to_mnemonic_.find(prime);
   if (i != cache->prime_to_mnemonic_.end()) {
-    if (!i->second.empty() && i->second != mnemonic) {
-      LOG(INFO) << "prime collision detected! mnemonics '" << i->second
-                << "' and '" << mnemonic << "'";
+    if (!i->second.empty() && !mnemonic.empty() && i->second != mnemonic) {
+      // Test for empty mnemonics as one of the VxClass space optimizations is
+      // to omit the actual mnemonic strings. If you then diff a file containing
+      // strings against one that doesnt, you'll get spurious warnings.
+      LOG(INFO) << "Hash collision detected! Mnemonics '" << i->second
+                << "' and '" << mnemonic << "', hash: " << prime;
     }
   } else {
     cache->prime_to_mnemonic_[prime] = mnemonic;
