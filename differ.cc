@@ -11,11 +11,18 @@
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
+#include "file/base/file.h"
 #include "file/base/filesystem.h"
 #include "file/base/helpers.h"
+#include "file/base/path.h"
 #include "net/proto2/io/public/coded_stream.h"
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
+#include "net/proto2/util/public/google_file_stream.h"
+#include "strings/case.h"
+#include "util/task/canonical_errors.h"
+#include "util/task/status.h"
 #include "third_party/zynamics/bindetego/binexport.pb.h"
+#include "third_party/zynamics/bindetego/binexport2.pb.h"
 // Google3 uses different namespaces than the open source proto version. This is
 // a hack to make them compatible.
 namespace google {
@@ -26,15 +33,9 @@ using ::proto2::io::CodedInputStream;
 }  // namespace io
 }  // namespace protobuf
 }  // namespace google
-#include "file/base/file.h"
-#include "file/base/path.h"
-#include "net/proto2/util/public/google_file_stream.h"
-#include "strings/case.h"
-#include "third_party/zynamics/bindetego/binexport2.pb.h"
-#include "util/task/canonical_errors.h"
-#include "util/task/status.h"
 #else
 #include "third_party/zynamics/bindetego/binexport.pb.h"
+#include "third_party/zynamics/bindetego/binexport2.pb.h"
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #endif
