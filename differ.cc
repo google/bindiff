@@ -2,6 +2,7 @@
 
 #include <exception>
 #include <iomanip>
+#include <memory>
 
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
 #include "third_party/zynamics/bindetego/binexport_header.h"
@@ -19,10 +20,11 @@
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
 #include "net/proto2/util/public/google_file_stream.h"
 #include "strings/case.h"
-#include "util/task/canonical_errors.h"
-#include "util/task/status.h"
 #include "third_party/zynamics/bindetego/binexport.pb.h"
 #include "third_party/zynamics/bindetego/binexport2.pb.h"
+#include "util/gtl/ptr_util.h"
+#include "util/task/canonical_errors.h"
+#include "util/task/status.h"
 // Google3 uses different namespaces than the open source proto version. This is
 // a hack to make them compatible.
 namespace google {
@@ -46,7 +48,7 @@ void GetUnmatchedChildren(const CallGraph& call_graph, Address address,
                           FlowGraphs* children) {
   CallGraph::OutEdgeIterator edge_it, edge_it_end;
   for (boost::tie(edge_it, edge_it_end) = boost::out_edges(
-       call_graph.GetVertex(address), call_graph.GetGraph());
+           call_graph.GetVertex(address), call_graph.GetGraph());
        edge_it != edge_it_end; ++edge_it) {
     if (call_graph.IsDuplicate(*edge_it)) {
       continue;
@@ -70,7 +72,7 @@ void GetUnmatchedParents(const CallGraph& call_graph, Address address,
                          FlowGraphs* parents) {
   CallGraph::InEdgeIterator edge_it, edge_it_end;
   for (boost::tie(edge_it, edge_it_end) = boost::in_edges(
-       call_graph.GetVertex(address), call_graph.GetGraph());
+           call_graph.GetVertex(address), call_graph.GetGraph());
        edge_it != edge_it_end; ++edge_it) {
     if (call_graph.IsDuplicate(*edge_it)) {
       continue;
@@ -91,8 +93,8 @@ void GetUnmatchedParents(const CallGraph& call_graph, Address address,
 // This adds empty flow graphs for functions imported from dlls.
 void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
   CallGraph::VertexIterator i, end;
-  for (boost::tie(i, end) = boost::vertices(call_graph->GetGraph());
-       i != end; ++i) {
+  for (boost::tie(i, end) = boost::vertices(call_graph->GetGraph()); i != end;
+       ++i) {
     const CallGraph::Vertex vertex = *i;
     const Address address = call_graph->GetAddress(vertex);
     FlowGraph* flow_graph = call_graph->GetFlowGraph(vertex);
@@ -112,6 +114,7 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
                           FlowGraphs* flow_graphs,
                           FlowGraphInfos* flow_graph_infos,
                           Instruction::Cache* instruction_cache) {
+  call_graph->Reset();
   DeleteFlowGraphs(flow_graphs);
   flow_graph_infos->clear();
 
@@ -123,9 +126,9 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
 
   call_graph->Read(proto, file->filename());
   for (const auto& proto_flow_graph : proto.flow_graph()) {
-    FlowGraph* flow_graph = new FlowGraph();
+    auto flow_graph = ::util::gtl::MakeUnique<FlowGraph>();
     flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
-    flow_graphs->insert(flow_graph);
+    flow_graphs->insert(flow_graph.release());
   }
 
   AddSubsToCallGraph(call_graph, flow_graphs);
@@ -136,6 +139,10 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
                          FlowGraphs* flow_graphs,
                          FlowGraphInfos* flow_graph_infos,
                          Instruction::Cache* instruction_cache) {
+  call_graph->Reset();
+  DeleteFlowGraphs(flow_graphs);
+  flow_graph_infos->clear();
+
   auto status_or(BinExportHeader::ParseFromFile(file));
   if (!status_or.ok()) {
     return false;
@@ -171,7 +178,7 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
     // Note the +1 index is safe because we add an artificial
     // entry into the header flow graph table.
     const uint32_t size = header.flow_graph_offsets[i + 1].offset -
-        header.flow_graph_offsets[i].offset;
+                          header.flow_graph_offsets[i].offset;
     QCHECK_LT(size, 500000000) << file->filename();
     buffer.resize(size);
     QCHECK_OK(
@@ -179,10 +186,12 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
         << file->filename();
     BinExport::Flowgraph flow_graph_proto;
     QCHECK(flow_graph_proto.ParseFromString(buffer)) << file->filename();
-    auto* flow_graph = new FlowGraph(
+    auto flow_graph_owner = ::util::gtl::MakeUnique<FlowGraph>(
         call_graph, static_cast<Address>(flow_graph_proto.address()));
-    flow_graph->Read(flow_graph_proto, instruction_cache);
-    QCHECK(flow_graphs->insert(flow_graph).second) << file->filename();
+    auto flow_graph = flow_graph_owner.get();
+    flow_graph_owner->Read(flow_graph_proto, instruction_cache);
+    QCHECK(flow_graphs->insert(flow_graph_owner.release()).second)
+        << file->filename();
 
     Counts counts;
     Count(*flow_graph, &counts);
@@ -191,12 +200,11 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
     info.file_offset = header.flow_graph_offsets[i].offset;
     info.name = &flow_graph->GetName();
     info.demangled_name = &flow_graph->GetDemangledName();
-    info.basic_block_count = counts["basicBlocks (library)"]
-        + counts["basicBlocks (non-library)"];
-    info.edge_count = counts["edges (library)"]
-        + counts["edges (non-library)"];
-    info.instruction_count = counts["instructions (library)"]
-        + counts["instructions (non-library)"];
+    info.basic_block_count =
+        counts["basicBlocks (library)"] + counts["basicBlocks (non-library)"];
+    info.edge_count = counts["edges (library)"] + counts["edges (non-library)"];
+    info.instruction_count =
+        counts["instructions (library)"] + counts["instructions (non-library)"];
     (*flow_graph_infos)[info.address] = info;
   }
   AddSubsToCallGraph(call_graph, flow_graphs);
@@ -207,7 +215,6 @@ bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
-  call_graph->Reset();
 
   FileCloser file(File::Open(filename.c_str(), "r"));
   if (!file.get()) {
@@ -232,6 +239,7 @@ bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
 bool ReadBinExport2(const std::string& filename, CallGraph* call_graph,
                     FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                     Instruction::Cache* instruction_cache) {
+  call_graph->Reset();
   DeleteFlowGraphs(flow_graphs);
   flow_graph_infos->clear();
 
@@ -243,9 +251,9 @@ bool ReadBinExport2(const std::string& filename, CallGraph* call_graph,
 
   call_graph->Read(proto, filename);
   for (const auto& proto_flow_graph : proto.flow_graph()) {
-    FlowGraph* flow_graph = new FlowGraph();
+    std::unique_ptr<FlowGraph> flow_graph(new FlowGraph());
     flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
-    flow_graphs->insert(flow_graph);
+    flow_graphs->insert(flow_graph.release());
   }
 
   AddSubsToCallGraph(call_graph, flow_graphs);
@@ -255,11 +263,14 @@ bool ReadBinExport2(const std::string& filename, CallGraph* call_graph,
 void ReadBinExport(const std::string& filename, CallGraph* call_graph,
                    FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                    Instruction::Cache* instruction_cache) {
+  call_graph->Reset();
+  DeleteFlowGraphs(flow_graphs);
+  flow_graph_infos->clear();
+
   enum {
     kBytesLimit = 2147483647 /* 2GiB less one byte */
   };
 
-  call_graph->Reset();
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
     throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
@@ -271,8 +282,8 @@ void ReadBinExport(const std::string& filename, CallGraph* call_graph,
     google::protobuf::io::CodedInputStream coded_stream(&stream);
     coded_stream.SetTotalBytesLimit(kBytesLimit, -1 /* No warning */);
     BinExport::Meta meta_information;
-    limit = coded_stream.PushLimit(
-        header.call_graph_offset - header.meta_offset);
+    limit =
+        coded_stream.PushLimit(header.call_graph_offset - header.meta_offset);
     if (!meta_information.ParseFromCodedStream(&coded_stream)) {
       throw std::runtime_error(
           ("failed to parse meta data in \"" + filename + "\"").c_str());
@@ -281,8 +292,8 @@ void ReadBinExport(const std::string& filename, CallGraph* call_graph,
     call_graph->SetExeFilename(meta_information.input_binary());
     call_graph->SetExeHash(meta_information.input_hash());
     BinExport::Callgraph call_graph_proto;
-    limit = coded_stream.PushLimit(
-        header.flow_graph_offsets[0].offset - header.call_graph_offset);
+    limit = coded_stream.PushLimit(header.flow_graph_offsets[0].offset -
+                                   header.call_graph_offset);
     if (!call_graph_proto.ParseFromCodedStream(&coded_stream)) {
       throw std::runtime_error(
           ("failed to parse call graph data in \"" + filename + "\"").c_str());
@@ -309,10 +320,11 @@ void ReadBinExport(const std::string& filename, CallGraph* call_graph,
       throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
     }
     coded_stream.PopLimit(limit);
-    FlowGraph* flow_graph = new FlowGraph(
-        call_graph, static_cast<Address>(flow_graph_proto.address()));
+    std::unique_ptr<FlowGraph> flow_graph_owner(new FlowGraph(
+        call_graph, static_cast<Address>(flow_graph_proto.address())));
+    auto* flow_graph = flow_graph_owner.get();
     flow_graph->Read(flow_graph_proto, instruction_cache);
-    CHECK(flow_graphs->insert(flow_graph).second);
+    CHECK(flow_graphs->insert(flow_graph_owner.release()).second);
 
     Counts counts;
     Count(*flow_graph, &counts);
@@ -336,7 +348,6 @@ void Read(const std::string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
-  call_graph->Reset();
   if (!ReadBinExport2(filename, call_graph, flow_graphs, flow_graph_infos,
                       instruction_cache)) {
     ReadBinExport(filename, call_graph, flow_graphs, flow_graph_infos,
@@ -382,7 +393,8 @@ void Diff(MatchingContext* context,
   // inner loop tries to resolve ambiguities by drilling down the matchingSteps
   // lists.
   for (MatchingSteps matching_steps_for_current_level =
-       default_call_graph_steps; !matching_steps_for_current_level.empty();
+           default_call_graph_steps;
+       !matching_steps_for_current_level.empty();
        matching_steps_for_current_level.pop_front()) {
     context->new_fixed_points_.clear();
 
@@ -481,8 +493,8 @@ void Count(const FlowGraphs& flow_graphs, Counts* counts) {
     num_lib_functions += flow_graph->IsLibrary();
 
     FlowGraph::VertexIterator j, end;
-    for (boost::tie(j, end) = boost::vertices(flow_graph->GetGraph());
-         j != end; ++j) {
+    for (boost::tie(j, end) = boost::vertices(flow_graph->GetGraph()); j != end;
+         ++j) {
       ++basic_blocks;
       instructions += flow_graph->GetInstructionCount(*j);
     }
@@ -538,24 +550,28 @@ void Count(const FixedPoint& fixed_point, Counts* counts,
   FlowGraph::EdgeIterator j, jend;
   for (boost::tie(j, jend) = boost::edges(primary->GetGraph()); j != jend;
        ++j) {
-    const Address source1 = primary->GetAddress(
-        boost::source(*j, primary->GetGraph()));
-    const Address target1 = primary->GetAddress(
-        boost::target(*j, primary->GetGraph()));
-    const Address source2 = primary->GetFixedPoint(source1)
-        ? primary->GetFixedPoint(source1)->GetSecondaryAddress() : 0;
-    const Address target2 = primary->GetFixedPoint(target1)
-        ? primary->GetFixedPoint(target1)->GetSecondaryAddress() : 0;
+    const Address source1 =
+        primary->GetAddress(boost::source(*j, primary->GetGraph()));
+    const Address target1 =
+        primary->GetAddress(boost::target(*j, primary->GetGraph()));
+    const Address source2 =
+        primary->GetFixedPoint(source1)
+            ? primary->GetFixedPoint(source1)->GetSecondaryAddress()
+            : 0;
+    const Address target2 =
+        primary->GetFixedPoint(target1)
+            ? primary->GetFixedPoint(target1)->GetSecondaryAddress()
+            : 0;
     // Source and target basic blocks are matched, check whether there's an
     // edge connecting the two.
     if (source2 && target2 && source1 && target1) {
       // Both are in secondary graph as well.
       FlowGraph::OutEdgeIterator k, kend;
-      for (boost::tie(k, kend) = boost::out_edges(
-               secondary->GetVertex(source2), secondary->GetGraph());
+      for (boost::tie(k, kend) = boost::out_edges(secondary->GetVertex(source2),
+                                                  secondary->GetGraph());
            k != kend; ++k) {
-        if (secondary->GetAddress(
-            boost::target(*k, secondary->GetGraph())) == target2) {
+        if (secondary->GetAddress(boost::target(*k, secondary->GetGraph())) ==
+            target2) {
           ++edges;
           break;
         }
@@ -588,8 +604,8 @@ double GetConfidence(const Histogram& histogram, Confidences* confidences) {
   }
   // sigmoid squashing function
   return match_count
-      ? 1.0 / (1.0 + exp(-(confidence / match_count - 0.5) * 10.0))
-      : 0.0;
+             ? 1.0 / (1.0 + exp(-(confidence / match_count - 0.5) * 10.0))
+             : 0.0;
 }
 
 void GetCountsAndHistogram(const FlowGraphs& flow_graphs1,
