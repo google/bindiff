@@ -119,8 +119,15 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
   flow_graph_infos->clear();
 
   proto2::util::GoogleFileInputStream stream(file);
+  // We explicitly instantiate our own decoder instead of using the proto's
+  // convenience methods in order to be able to set the bytes limit thresholds.
+  // Our protos are typically very large, and the default limit warns at 32MB.
+  proto2::io::CodedInputStream decoder(&stream);
+  decoder.SetTotalBytesLimit(std::numeric_limits<int32_t>::max(),
+                             std::numeric_limits<int32_t>::max());
   BinExport::BinExport proto;
-  if (!proto.ParseFromZeroCopyStream(&stream)) {
+  if (!proto.ParseFromCodedStream(&decoder) ||
+      !decoder.ConsumedEntireMessage()) {
     return false;
   }
 
