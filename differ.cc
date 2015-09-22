@@ -4,7 +4,6 @@
 #include <iomanip>
 #include <memory>
 
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
 #include "third_party/zynamics/bindetego/binexport_header.h"
 #include "third_party/zynamics/bindiff/callgraphmatching.h"
 #include "third_party/zynamics/bindiff/flowgraphmatching.h"
@@ -404,10 +403,8 @@ void Diff(MatchingContext* context,
        !matching_steps_for_current_level.empty();
        matching_steps_for_current_level.pop_front()) {
     context->new_fixed_points_.clear();
-
     MatchingSteps matching_steps = matching_steps_for_current_level;
     MatchingStep* step = matching_steps.front();
-    boost::timer timer;
     step->FindFixedPoints(0 /* primary_parent */, 0 /* secondary_parent */,
                           context->primary_flow_graphs_,
                           context->secondary_flow_graphs_, *context,
