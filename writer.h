@@ -6,6 +6,7 @@
 
 #include "base/macros.h"
 #include "third_party/zynamics/bindiff/fixedpoints.h"
+#include "third_party/zynamics/bindiff/flowgraph.h"
 #include "third_party/zynamics/bindiff/graphutility.h"
 
 class Writer {
