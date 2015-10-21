@@ -43,11 +43,11 @@ using ::proto2::io::CodedInputStream;
 
 // Return the immediate children of the call graph node denoted by
 // address. Skip nodes that have already been matched.
-void GetUnmatchedChildren(const CallGraph& call_graph, Address address,
+void GetUnmatchedChildren(const CallGraph& call_graph, CallGraph::Vertex vertex,
                           FlowGraphs* children) {
   CallGraph::OutEdgeIterator edge_it, edge_it_end;
-  for (boost::tie(edge_it, edge_it_end) = boost::out_edges(
-           call_graph.GetVertex(address), call_graph.GetGraph());
+  for (boost::tie(edge_it, edge_it_end) =
+           boost::out_edges(vertex, call_graph.GetGraph());
        edge_it != edge_it_end; ++edge_it) {
     if (call_graph.IsDuplicate(*edge_it)) {
       continue;
@@ -67,11 +67,11 @@ void GetUnmatchedChildren(const CallGraph& call_graph, Address address,
 
 // Return the immediate parents of the call graph node denoted by
 // address. Skip nodes that have already been matched.
-void GetUnmatchedParents(const CallGraph& call_graph, Address address,
+void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
                          FlowGraphs* parents) {
   CallGraph::InEdgeIterator edge_it, edge_it_end;
-  for (boost::tie(edge_it, edge_it_end) = boost::in_edges(
-           call_graph.GetVertex(address), call_graph.GetGraph());
+  for (boost::tie(edge_it, edge_it_end) =
+           boost::in_edges(vertex, call_graph.GetGraph());
        edge_it != edge_it_end; ++edge_it) {
     if (call_graph.IsDuplicate(*edge_it)) {
       continue;
@@ -132,6 +132,10 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
 
   call_graph->Read(proto, file->filename());
   for (const auto& proto_flow_graph : proto.flow_graph()) {
+    if (proto_flow_graph.basic_block_index_size() == 0) {
+      LOG(WARNING) << "Skipping empty flow graph!";
+      continue;
+    }
     auto flow_graph = ::util::gtl::MakeUnique<FlowGraph>();
     flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
     flow_graphs->insert(flow_graph.release());
@@ -192,6 +196,11 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
         << file->filename();
     BinExport::Flowgraph flow_graph_proto;
     QCHECK(flow_graph_proto.ParseFromString(buffer)) << file->filename();
+    if (flow_graph_proto.vertices_size() == 0) {
+      LOG(WARNING) << "Skipping empty flow graph! " << std::hex
+                   << flow_graph_proto.address();
+      continue;
+    }
     auto flow_graph_owner = ::util::gtl::MakeUnique<FlowGraph>(
         call_graph, static_cast<Address>(flow_graph_proto.address()));
     auto flow_graph = flow_graph_owner.get();
@@ -366,8 +375,8 @@ void DeleteFlowGraphs(FlowGraphs* flow_graphs) {
     return;
   }
 
-  for (auto i = flow_graphs->begin(); i != flow_graphs->end(); ++i) {
-    delete *i;
+  for (auto* flow_graph : *flow_graphs) {
+    delete flow_graph;
   }
   flow_graphs->clear();
 }
@@ -405,10 +414,10 @@ void Diff(MatchingContext* context,
     context->new_fixed_points_.clear();
     MatchingSteps matching_steps = matching_steps_for_current_level;
     MatchingStep* step = matching_steps.front();
-    step->FindFixedPoints(0 /* primary_parent */, 0 /* secondary_parent */,
-                          context->primary_flow_graphs_,
-                          context->secondary_flow_graphs_, *context,
-                          matching_steps, default_basic_block_steps);
+    step->FindFixedPoints(
+        nullptr /* primary_parent */, nullptr /* secondary_parent */,
+        context->primary_flow_graphs_, context->secondary_flow_graphs_,
+        *context, matching_steps, default_basic_block_steps);
     matching_steps = matching_steps_for_current_level;
 
     bool more_fixed_points_discovered = false;
@@ -421,39 +430,37 @@ void Diff(MatchingContext* context,
       // matched. This is expensive and we may want to iterate new fixed points
       // only instead?
       // Propagate down to the children of the new fixed points.
-      for (FixedPoints::iterator i = context->fixed_points_.begin();
-           i != context->fixed_points_.end(); ++i) {
+      for (const auto& fixed_point : context->fixed_points_) {
         matching_steps = matching_steps_for_current_level;
         FlowGraphs primary_children, secondary_children;
         GetUnmatchedChildren(context->primary_call_graph_,
-                             i->GetPrimary()->GetEntryPointAddress(),
+                             fixed_point.GetPrimary()->GetCallGraphVertex(),
                              &primary_children);
         GetUnmatchedChildren(context->secondary_call_graph_,
-                             i->GetSecondary()->GetEntryPointAddress(),
+                             fixed_point.GetSecondary()->GetCallGraphVertex(),
                              &secondary_children);
         if (!primary_children.empty() && !secondary_children.empty()) {
           more_fixed_points_discovered |= step->FindFixedPoints(
-              i->GetPrimary(), i->GetSecondary(), primary_children,
-              secondary_children, *context, matching_steps,
+              fixed_point.GetPrimary(), fixed_point.GetSecondary(),
+              primary_children, secondary_children, *context, matching_steps,
               default_basic_block_steps);
         }
       }
 
       // Propagate up to the parents of the new fixed points.
-      for (FixedPoints::iterator i = context->fixed_points_.begin();
-           i != context->fixed_points_.end(); ++i) {
+      for (const auto& fixed_point : context->fixed_points_) {
         matching_steps = matching_steps_for_current_level;
         FlowGraphs primary_parents, secondary_parents;
         GetUnmatchedParents(context->primary_call_graph_,
-                            i->GetPrimary()->GetEntryPointAddress(),
+                            fixed_point.GetPrimary()->GetCallGraphVertex(),
                             &primary_parents);
         GetUnmatchedParents(context->secondary_call_graph_,
-                            i->GetSecondary()->GetEntryPointAddress(),
+                            fixed_point.GetSecondary()->GetCallGraphVertex(),
                             &secondary_parents);
         if (!primary_parents.empty() && !secondary_parents.empty()) {
           more_fixed_points_discovered |= step->FindFixedPoints(
-              i->GetPrimary(), i->GetSecondary(), primary_parents,
-              secondary_parents, *context, matching_steps,
+              fixed_point.GetPrimary(), fixed_point.GetSecondary(),
+              primary_parents, secondary_parents, *context, matching_steps,
               default_basic_block_steps);
         }
       }
@@ -461,10 +468,9 @@ void Diff(MatchingContext* context,
 
     // After collecting initial fixed points for this step: iterate over all of
     // them and find call reference fixed points.
-    for (auto i = context->new_fixed_points_.cbegin(),
-              end = context->new_fixed_points_.cend();
-         i != end; ++i) {
-      FindCallReferenceFixedPoints(*i, context, default_basic_block_steps);
+    for (auto* fixed_point : context->new_fixed_points_) {
+      FindCallReferenceFixedPoints(fixed_point, context,
+                                   default_basic_block_steps);
     }
   }
   ClassifyChanges(context);
@@ -485,8 +491,7 @@ void Count(const FlowGraphs& flow_graphs, Counts* counts) {
   Counts::mapped_type num_lib_basic_blocks = 0;
   Counts::mapped_type num_lib_instructions = 0;
   Counts::mapped_type num_lib_edges = 0;
-  for (auto it = flow_graphs.cbegin(); it != flow_graphs.cend(); ++it) {
-    const FlowGraph* flow_graph = *it;
+  for (const FlowGraph* flow_graph : flow_graphs) {
     Counts::mapped_type& basic_blocks =
         flow_graph->IsLibrary() ? num_lib_basic_blocks : num_basic_blocks;
     Counts::mapped_type& instructions =
@@ -554,28 +559,21 @@ void Count(const FixedPoint& fixed_point, Counts* counts,
   FlowGraph::EdgeIterator j, jend;
   for (boost::tie(j, jend) = boost::edges(primary->GetGraph()); j != jend;
        ++j) {
-    const Address source1 =
-        primary->GetAddress(boost::source(*j, primary->GetGraph()));
-    const Address target1 =
-        primary->GetAddress(boost::target(*j, primary->GetGraph()));
-    const Address source2 =
-        primary->GetFixedPoint(source1)
-            ? primary->GetFixedPoint(source1)->GetSecondaryAddress()
-            : 0;
-    const Address target2 =
-        primary->GetFixedPoint(target1)
-            ? primary->GetFixedPoint(target1)->GetSecondaryAddress()
-            : 0;
+    const auto source1 = boost::source(*j, primary->GetGraph());
+    const auto target1 = boost::target(*j, primary->GetGraph());
     // Source and target basic blocks are matched, check whether there's an
     // edge connecting the two.
-    if (source2 && target2 && source1 && target1) {
+    if (primary->GetFixedPoint(source1) && primary->GetFixedPoint(target1)) {
+      const auto source2 =
+          primary->GetFixedPoint(source1)->GetSecondaryVertex();
+      const Address target2 =
+          primary->GetFixedPoint(target1)->GetSecondaryVertex();
       // Both are in secondary graph as well.
       FlowGraph::OutEdgeIterator k, kend;
-      for (boost::tie(k, kend) = boost::out_edges(secondary->GetVertex(source2),
-                                                  secondary->GetGraph());
+      for (boost::tie(k, kend) =
+               boost::out_edges(source2, secondary->GetGraph());
            k != kend; ++k) {
-        if (secondary->GetAddress(boost::target(*k, secondary->GetGraph())) ==
-            target2) {
+        if (boost::target(*k, secondary->GetGraph()) == target2) {
           ++edges;
           break;
         }
