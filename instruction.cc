@@ -133,43 +133,48 @@ struct ProjectPrime : public std::unary_function<Instruction, size_t> {
 
 }  // namespace
 
-CacheEntry::CacheEntry(size_t prime, const std::string& operands)
-    : operands_(operands), prime_(prime) {}
+void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
+                const Instructions::const_iterator& instructions1_end,
+                const Instructions::const_iterator& instructions2_begin,
+                const Instructions::const_iterator& instructions2_end,
+                InstructionMatches& matches) {
+  typedef std::list<size_t> List;
+  List matches1, matches2;
+  typedef boost::transform_iterator<ProjectPrime, Instructions::const_iterator>
+      Iterator;
+  ComputeLcs(Iterator(instructions1_begin, ProjectPrime()),
+             Iterator(instructions1_end, ProjectPrime()),
+             Iterator(instructions2_begin, ProjectPrime()),
+             Iterator(instructions2_end, ProjectPrime()),
+             std::back_inserter(matches1), std::back_inserter(matches2));
 
-bool operator<(const CacheEntry& left, const CacheEntry& right) {
-  return left.prime_ == right.prime_ ? left.operands_ < right.operands_
-                                     : left.prime_ < right.prime_;
-}
-
-bool operator==(const CacheEntry& one, const CacheEntry& two) {
-  return one.prime_ == two.prime_ && one.operands_ == two.operands_;
+  for (auto i = matches1.begin(), j = matches2.begin();
+       i != matches1.end() && j != matches2.end(); ++i, ++j) {
+    matches.emplace_back(&*(instructions1_begin + *i),
+                         &*(instructions2_begin + *j));
+  }
+  matches.shrink_to_fit();
 }
 
 // Cache must have a lifetime longer than instruction, otherwise cache_entry_
 // will point to invalid memory.
 Instruction::Instruction(Cache* cache, Address address,
-                         const std::string& mnemonic, uint32_t prime,
-                         const std::string& operands)
-    : cache_entry_(0), address_(address) {
+                         const std::string& mnemonic, uint32_t prime)
+    : address_(address), prime_(prime) {
   // The differ standalone version is multi threaded so be careful with static
   // variables and the like.
   CHECK(cache != nullptr);
 
-  CacheEntry entry(prime, operands);
-  if (cache->cache_.find(entry) == cache->cache_.end()) {
-    CHECK(cache->cache_.insert(entry).second);
-  }
-  cache_entry_ = &(*cache->cache_.find(entry));
-
-  Cache::PrimeToMnemonic::const_iterator i =
-      cache->prime_to_mnemonic_.find(prime);
-  if (i != cache->prime_to_mnemonic_.end()) {
-    if (!i->second.empty() && !mnemonic.empty() && i->second != mnemonic) {
+  auto prime_to_mnemonic = cache->prime_to_mnemonic_.find(prime);
+  if (prime_to_mnemonic != cache->prime_to_mnemonic_.end()) {
+    if (!prime_to_mnemonic->second.empty() && !mnemonic.empty() &&
+        prime_to_mnemonic->second != mnemonic) {
       // Test for empty mnemonics as one of the VxClass space optimizations is
       // to omit the actual mnemonic strings. If you then diff a file containing
       // strings against one that doesnt, you'll get spurious warnings.
-      LOG(INFO) << "Hash collision detected! Mnemonics '" << i->second
-                << "' and '" << mnemonic << "', hash: " << prime;
+      LOG(INFO) << "Hash collision detected! Mnemonics '"
+                << prime_to_mnemonic->second << "' and '" << mnemonic
+                << "', hash: " << prime;
     }
   } else {
     cache->prime_to_mnemonic_[prime] = mnemonic;
@@ -178,56 +183,8 @@ Instruction::Instruction(Cache* cache, Address address,
 
 Address Instruction::GetAddress() const { return address_; }
 
-uint32_t Instruction::GetPrime() const { return cache_entry_->prime_; }
-
-std::string Instruction::GetOperandString() const {
-  return cache_entry_->operands_;
-}
+uint32_t Instruction::GetPrime() const { return prime_; }
 
 std::string Instruction::GetMnemonic(const Cache* cache) const {
-  Cache::PrimeToMnemonic::const_iterator i =
-      cache->prime_to_mnemonic_.find(GetPrime());
-  assert(i != cache->prime_to_mnemonic_.end());
-  return i->second;
-}
-
-// TODO(soerenme) Try a binary search first as addresses should normally be
-//     sorted in ascending order if that search fails fall back to linear scan.
-const Instruction* GetInstruction(
-    const Instructions& instructions, const Address instruction_address) {
-  for (Instructions::const_iterator i = instructions.begin(),
-       end = instructions.end(); i != end; ++i) {
-    const Instruction* instruction = &*i;
-    if (instruction->GetAddress() == instruction_address)
-      return instruction;
-  }
-  assert(false && "this should never happen");
-  return 0;
-}
-
-void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
-                const Instructions::const_iterator& instructions1_end,
-                const Instructions::const_iterator& instructions2_begin,
-                const Instructions::const_iterator& instructions2_end,
-                InstructionMatches& matches) {
-  typedef std::list<size_t> List;
-  List matches1, matches2;
-  typedef boost::transform_iterator<
-      ProjectPrime, Instructions::const_iterator> Iterator;
-  ComputeLcs(Iterator(instructions1_begin, ProjectPrime()),
-             Iterator(instructions1_end, ProjectPrime()),
-             Iterator(instructions2_begin, ProjectPrime()),
-             Iterator(instructions2_end, ProjectPrime()),
-             std::back_inserter(matches1),
-             std::back_inserter(matches2));
-
-  for (List::const_iterator i = matches1.begin(), j = matches2.begin();
-       i != matches1.end() && j != matches2.end(); ++i, ++j) {
-    matches.push_back(std::make_pair(
-        &*(instructions1_begin + *i), &*(instructions2_begin + *j)));
-  }
-
-  // Shrink-to-fit idiom: This reduces the capacity of the vector to the
-  // required minimum.
-  matches.shrink_to_fit();
+  return cache->prime_to_mnemonic_.find(GetPrime())->second;
 }
