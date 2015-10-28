@@ -363,6 +363,7 @@ void Read(const std::string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
+  LOG(INFO) << "Reading: " << filename;
   if (!ReadBinExport2(filename, call_graph, flow_graphs, flow_graph_infos,
                       instruction_cache)) {
     ReadBinExport(filename, call_graph, flow_graphs, flow_graph_infos,
