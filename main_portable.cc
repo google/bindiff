@@ -30,9 +30,6 @@ using google::ShowUsageWithFlags;
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/operations.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
-#include "third_party/zynamics/bindetego/binexport.pb.h"
-#include "third_party/zynamics/bindetego/binexport2.pb.h"
-#include "third_party/zynamics/bindetego/binexport_header.h"
 #include "third_party/zynamics/bindiff/callgraph.h"
 #include "third_party/zynamics/bindiff/callgraphmatching.h"
 #include "third_party/zynamics/bindiff/databasewriter.h"
@@ -42,6 +39,9 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/logwriter.h"
 #include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/binexport/binexport.pb.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport_header.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 
@@ -380,7 +380,7 @@ void ListFiles(const std::string& path) {
       continue;
     }
     std::ifstream file(it->path().c_str(), std::ios_base::binary);
-    BinExport::BinExport proto;
+    BinExport2 proto;
     if (proto.ParseFromIstream(&file)) {
       const auto& meta_information = proto.meta_information();
       LOG(INFO) << meta_information.executable_id() << " ("

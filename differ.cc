@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <memory>
 
-#include "third_party/zynamics/bindetego/binexport_header.h"
+#include "third_party/zynamics/binexport/binexport_header.h"
 #include "third_party/zynamics/bindiff/callgraphmatching.h"
 #include "third_party/zynamics/bindiff/flowgraphmatching.h"
 #include "third_party/zynamics/bindiff/log.h"
@@ -19,8 +19,8 @@
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
 #include "net/proto2/util/public/google_file_stream.h"
 #include "strings/case.h"
-#include "third_party/zynamics/bindetego/binexport.pb.h"
-#include "third_party/zynamics/bindetego/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport.pb.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "util/gtl/ptr_util.h"
 #include "util/task/canonical_errors.h"
 #include "util/task/status.h"
@@ -35,8 +35,8 @@ using ::proto2::io::CodedInputStream;
 }  // namespace protobuf
 }  // namespace google
 #else
-#include "third_party/zynamics/bindetego/binexport.pb.h"
-#include "third_party/zynamics/bindetego/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport.pb.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #endif
@@ -124,7 +124,7 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
   proto2::io::CodedInputStream decoder(&stream);
   decoder.SetTotalBytesLimit(std::numeric_limits<int32_t>::max(),
                              std::numeric_limits<int32_t>::max());
-  BinExport::BinExport proto;
+  BinExport2 proto;
   if (!proto.ParseFromCodedStream(&decoder) ||
       !decoder.ConsumedEntireMessage()) {
     return false;
@@ -259,7 +259,7 @@ bool ReadBinExport2(const std::string& filename, CallGraph* call_graph,
   flow_graph_infos->clear();
 
   std::ifstream stream(filename, std::ios::binary);
-  BinExport::BinExport proto;
+  BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
     return false;
   }
