@@ -2,87 +2,6 @@ syntax = "proto2";
 
 package BinDiff;
 
-option java_outer_classname = "BinDiff";
-
-// A BinDiff result as written to the VxClass Bigtable.
-message Result {
-  // This concatenates the two input hashes putting the smaller one first.
-  // The idea is to normalize ids so we consider a pair diffed if either
-  // diff(A, B) or diff(B, A) has been calculated.
-  // Note that the differ is _not_ symmetric so diff(A, B) == diff(B, A)
-  // does not necessarily hold. It will usually be within a small epsilon.
-  // The id is optional because this message type will be stored in a bigtable
-  // and the id used as the row identifier. Thus it would be redundant and
-  // duplicated in the message payload itself.
-  optional string id = 4;
-
-  // The id is concat(smaller_hash, larger_hash). If smaller_hash ==
-  // hash(secondary diff input) then we actually diffed the items in reverse
-  // order and note that in this flag.
-  optional bool reverse_order = 3;
-
-  // The calculated similarity score between [0..1].
-  required double similarity = 1;
-
-  // The calculated confidence score between [0..1]. Note that confidence
-  // factors into the similarity value. It is a measure of how good the
-  // algorithms for finding the matches are. Matching by hash/mdindex/name
-  // produces high confidence matches while matching by e.g. call sequence/
-  // loopcount produce low confidence matches.
-  required double confidence = 2;
-
-  // Only counting non-library functions:
-  optional int32 num_instruction_matches = 5;
-  optional int32 num_function_matches = 6;
-  optional int32 num_basicblock_matches = 7;
-  optional int32 num_edge_matches = 8;
-}
-
-message FullResult {
-  // Optionally store the full .BinDiff result file with this diff. It is
-  // optional because it may be quite a big blob and not needed for all clients.
-  // The .BinDiff is a SQLite database containing detailed information about
-  // the match (matched functions, basic blocks, instructions).
-  optional bytes result = 1;
-}
-
-// This is the proto message stored in taskmaster. It identifies a WorkPackage
-// as stored in todo_queue Bigtable.
-message WorkPackageId {
-  required bytes id = 1;
-}
-
-// An entry in our todo Bigtable. These contain a list of item pairs to diff.
-// Do not make these too large as they represent a single unit of work to a
-// differ thread.
-message WorkPackage {
-  message Pair {
-    required string primary_item_id = 1;
-    required string secondary_item_id = 2;
-  }
-
-  repeated Pair pairs_to_diff = 1;
-}
-
-// Optionally stored along with a workpackage to indicate special options
-// overriding the defaults.
-// Saved to vxclass.proto:StageInput->options
-message WorkPackageOptions {
-  // Store full SQLite result database in Bigtable? The signature generator
-  // needs this for a select few diffs.
-  optional bool store_full_result = 1;
-
-  // Note: Ids 2, 3 and 4 have been consumed by now obsolete fields.
-
-  // BinDiff workers will split work packages that exceed a timeout into smaller
-  // packages. This increases concurrency for long running packages and usually
-  // improves their chances of being completed. On the other hand it makes it
-  // more difficult for down stream stages (e.g. the signature generator) to
-  // tell whether all of their requested diffs have been completed. Hence this
-  // flag to disable the splitting of tasks (b/13721177).
-  optional bool allow_package_splits = 5 [default=true];
-}
-
 // Used as input to the Fortknox differ tests.
 message TestPackage {
   message Test {
@@ -93,25 +12,4 @@ message TestPackage {
   }
 
   repeated Test test = 1;
-}
-
-message Log {
-  optional string item_id_primary = 1;
-  optional string item_id_secondary = 2;
-  optional double time_load_primary = 3;
-  optional double time_load_secondary = 4;
-  optional double time_diff = 5;
-  optional double time_result_write = 6;
-  optional double similarity = 7;
-  optional double confidence = 8;
-  optional double md_index_primary = 9;
-  optional double md_index_secondary = 10;
-  optional int32 functions_matched = 11;
-  optional int32 functions_primary = 12;
-  optional int32 functions_secondary = 13;
-  optional string error = 14;
-  optional bool full_result = 15;
-  optional int64 timestamp = 16;
-  optional string host = 17;
-  optional int64 thread_id = 18;
 }
