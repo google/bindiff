@@ -4,9 +4,9 @@
 #include <iostream>
 #include <map>
 
-#include "third_party/zynamics/bindiff/callgraph.h"
-#include "third_party/zynamics/bindiff/fixedpoints.h"
-#include "third_party/zynamics/bindiff/flowgraph.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/reader.h"
 

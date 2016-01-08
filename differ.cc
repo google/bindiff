@@ -5,8 +5,8 @@
 #include <memory>
 
 #include "third_party/zynamics/binexport/binexport_header.h"
-#include "third_party/zynamics/bindiff/callgraphmatching.h"
-#include "third_party/zynamics/bindiff/flowgraphmatching.h"
+#include "third_party/zynamics/bindiff/call_graph_matching.h"
+#include "third_party/zynamics/bindiff/flow_graph_matching.h"
 #include "third_party/zynamics/bindiff/log.h"
 
 #ifdef GOOGLE

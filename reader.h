@@ -1,8 +1,8 @@
 #ifndef READER_H_
 #define READER_H_
 
-#include "third_party/zynamics/bindiff/fixedpoints.h"
-#include "third_party/zynamics/bindiff/graphutility.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/graph_util.h"
 
 struct FlowGraphInfo {
   Address address;

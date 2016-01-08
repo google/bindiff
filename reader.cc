@@ -1,7 +1,7 @@
 #include "third_party/zynamics/bindiff/reader.h"
-#include "third_party/zynamics/bindiff/callgraph.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/differ.h"
-#include "third_party/zynamics/bindiff/flowgraph.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 
 bool operator<(const FixedPointInfo& one, const FixedPointInfo& two) {
   return one.primary < two.primary;

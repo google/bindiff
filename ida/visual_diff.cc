@@ -21,7 +21,7 @@
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread/thread.hpp"  // For sleep
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/tokenizer.hpp"
 #include "third_party/zynamics/bindiff/differ.h"
-#include "third_party/zynamics/bindiff/flowgraph.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"

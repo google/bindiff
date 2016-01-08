@@ -20,9 +20,9 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "strings/human_readable.h"
 #include "strings/substitute.h"
 #include "third_party/zynamics/bindiff/bindiff.proto.h"
-#include "third_party/zynamics/bindiff/callgraphmatching.h"
+#include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/differ.h"
-#include "third_party/zynamics/bindiff/flowgraphmatching.h"
+#include "third_party/zynamics/bindiff/flow_graph_matching.h"
 #include "util/task/status.h"
 
 DEFINE_FLAG(string, data_path,
