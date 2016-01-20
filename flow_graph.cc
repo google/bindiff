@@ -17,12 +17,11 @@
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
+#include "third_party/zynamics/binexport/hash.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
 #endif
-#include "third_party/zynamics/binexport/prime_signature.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 namespace {
 

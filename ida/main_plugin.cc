@@ -41,6 +41,7 @@
 #include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 
@@ -1723,7 +1724,7 @@ class ExporterThread {
       ida_exe += "\\idaq.exe";
     }
 
-    // Note: We only support IDA 6.5 or higher. The current quoting behavior
+    // Note: We only support IDA 6.8 or higher. The current quoting behavior
     //       on Windows was introduced in IDA 6.1. Previously, we did not need
     //       the quotes.
     s_param = "-S\"" + idc_file_.string() + "\"";
@@ -3340,7 +3341,7 @@ void idaapi PluginRun(int /*arg*/) {
           "\n\n") +
       kProgramVersion + std::string(
                             "\nCopyright (c)2004-2011 zynamics GmbH\n"
-                            "\nCopyright (c)2011-2015 Google Inc.\n"
+                            "Copyright (c)2011-2016 Google Inc.\n"
                             "ENDHELP\n") +
       kProgramVersion + std::string(
                             "\n\n"
