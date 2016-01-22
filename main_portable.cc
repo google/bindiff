@@ -572,7 +572,7 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG
               << ", debug build"
 #endif
-              << "), (c)2004-2011 zynamics GmbH, (c)2011-2015 Google Inc.";
+              << "), (c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
 
     const auto user_app_data =
         GetDirectory(PATH_APPDATA, "BinDiff", false) + "bindiff.xml";
