@@ -48,7 +48,7 @@ void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
   if (nx == 0) {         // all done
   } else if (nx == 1) {  // single item in x range.
     // If it's in the yrange, mark its position in the LCS.
-    const Iterator pos = find(ylo, yhi, *xlo);
+    const Iterator pos = std::find(ylo, yhi, *xlo);
     if (pos != yhi) {
       *xout++ = distance(xo, xlo);
       *yout++ = distance(yo, pos);
