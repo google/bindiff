@@ -251,10 +251,9 @@ void DifferThread::operator()() {
     } catch (const std::bad_alloc&) {
       LOG(INFO) << file1 << " vs " << file2;
 #ifdef _WIN32
-      LOG(INFO)
-          << "Out-of-memory. Please try again with more memory available. "
-             "Some extremely large binaries\nmay require a 64-bit version of "
-             "BinDiff - please contact zynamics to request one.";
+      LOG(INFO) << "Out-of-memory. Please try again with more memory "
+                   "available.\nSome extremely large binaries may require to "
+                   "use the 64-bit\ncommand-line version of BinDiff.";
 #else
       LOG(INFO)
           << "Out-of-memory. Please try again with more memory available.";
