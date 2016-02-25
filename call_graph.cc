@@ -12,6 +12,7 @@
 #endif
 #include "third_party/zynamics/binexport/binexport.pb.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/hex_codec.h"
 
 namespace {
 

@@ -42,6 +42,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/binexport.pb.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/binexport_header.h"
+#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 
