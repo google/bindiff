@@ -3100,6 +3100,7 @@ bool DoLoadResults() {
     DatabaseReader reader(database, file, temp_dir.string());
     g_results->Read(reader);
 
+    // See b/27371897.
     const std::string hash(EncodeHex(Sha1(GetDataForHash())));
     if (boost::algorithm::to_lower_copy(hash) !=
         boost::algorithm::to_lower_copy(g_results->call_graph1_.GetExeHash())) {
