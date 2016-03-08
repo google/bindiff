@@ -1,0 +1,13 @@
+# Editor backup files
+*~
+.*.swp
+.*.swo
+
+# Prevent to add IDA SDK accidentally
+third_party/idasdk/*
+third_party/idasdk*.zip
+
+# Auto-generated
+*.pb.cc
+*.pb.h
+version.h

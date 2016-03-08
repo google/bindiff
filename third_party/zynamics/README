@@ -1,0 +1,2 @@
+This directory will contain a symlink (directory junction on Windows) to the
+root of the source tree. This is to make Google-style includes work.
