@@ -41,7 +41,7 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/statistics_writer.h"
-#include "third_party/zynamics/binexport/version.h"
+#include <version.h>  // NOLINT
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
 std::string GetArgument(const char* name) {

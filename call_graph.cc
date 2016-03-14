@@ -106,7 +106,7 @@ CallGraph::CallGraph(const CallGraph& graph)
   ++instance_count_;
 }
 
-const CallGraph& CallGraph::operator=(const CallGraph& graph) {
+CallGraph& CallGraph::operator=(const CallGraph& graph) {
   functions_ = graph.functions_;
   edges_ = graph.edges_;
   comments_ = graph.comments_;

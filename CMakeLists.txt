@@ -19,7 +19,8 @@ project(binexport C CXX)
 # change is made (usually when a new BinDiff or BinNavi version is released.
 set(RELEASE 9)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+set(CMAKE_FIND_ROOT_PATH ${PROJECT_SOURCE_DIR}/third_party)
 
 # Use a copy of a subset of Boost that we ship
 set(Boost_NO_SYSTEM_PATHS, ON)

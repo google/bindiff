@@ -19,21 +19,13 @@
 #include <iostream>  // NOLINT(readability/streams)
 #include <vector>
 
-#ifdef GOOGLE
-#include "util/task/statusor.h"
-#endif
-
-class File;
-
 // A custom header written as a prefix to every .BinExport file. See
-// binexport.proto for an explanation. Please note that this file is supposed to
-// be portable.
+// binexport.proto for an explanation.
 struct BinExportHeader {
   explicit BinExportHeader(uint32_t num_flow_graphs);
   BinExportHeader();
 
-  // Load the header of a .BinExport file from a regular std::istream. This is
-  // needed for compatibility with the rest of the zynamics codebase.
+  // Load the header of a .BinExport file from a regular std::istream.
   static BinExportHeader ParseFromStream(std::istream* file);
 
   // Write the header to a regular std::ostream. Throws on error.

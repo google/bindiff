@@ -53,7 +53,7 @@ class CallGraph {
   CallGraph();
   ~CallGraph();
   CallGraph(const CallGraph& graph);
-  const CallGraph& operator = (const CallGraph& graph);
+  CallGraph& operator=(const CallGraph& graph);
   void AddFunction(Address address);
   FunctionEntryPoints& GetFunctions();
   const FunctionEntryPoints& GetFunctions() const;

@@ -77,7 +77,7 @@ class Instruction {
   explicit Instruction(Address address, Address next_instruction = 0,
                        uint16_t size = 0, const std::string& mnemonic = "",
                        const Operands& operands = Operands());
-  const Instruction& operator=(const Instruction&);
+  Instruction& operator=(const Instruction&);
   Instruction(const Instruction&);
   ~Instruction();
 

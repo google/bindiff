@@ -385,7 +385,7 @@ Instruction::Instruction(Address address, Address next_instruction,
   }
 }
 
-const Instruction& Instruction::operator=(const Instruction& one) {
+Instruction& Instruction::operator=(const Instruction& one) {
   mnemonic_ = one.mnemonic_;
   address_ = one.address_;
   operand_index_ = one.operand_index_;
