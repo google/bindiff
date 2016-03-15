@@ -3,16 +3,10 @@
 #include <cassert>
 #include <iomanip>
 
+#include "base/logging.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/log.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
-
-#ifdef GOOGLE
-#define GOOGLE_PROTOBUF_VERIFY_VERSION
-#endif
-#include "third_party/zynamics/binexport/binexport.pb.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
+#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 namespace {
 

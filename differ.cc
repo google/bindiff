@@ -4,10 +4,10 @@
 #include <iomanip>
 #include <memory>
 
-#include "third_party/zynamics/binexport/binexport_header.h"
+#include "base/logging.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
-#include "third_party/zynamics/bindiff/log.h"
+#include "third_party/zynamics/binexport/binexport_header.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION

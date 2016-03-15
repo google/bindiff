@@ -2,9 +2,9 @@
 
 #include <functional>
 
+#include "base/logging.h"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/iterator/transform_iterator.hpp"
-#include "third_party/zynamics/bindiff/log.h"
 
 namespace {
 

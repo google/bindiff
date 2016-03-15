@@ -1,7 +1,7 @@
+#include "base/logging.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/matching.h"
 
 std::vector<std::string> InitStringPool() {

@@ -5,6 +5,23 @@
 #include <memory>
 #include <sstream>
 
+#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
+#include <bytes.h>                                           // NOLINT
+#include <diskio.h>                                          // NOLINT
+#include <enum.h>                                            // NOLINT
+#include <expr.h>                                            // NOLINT
+#include <frame.h>                                           // NOLINT
+#include <funcs.h>                                           // NOLINT
+#include <ida.h>                                             // NOLINT
+#include <idp.h>                                             // NOLINT
+#include <kernwin.h>                                         // NOLINT
+#include <loader.h>                                          // NOLINT
+#include <nalt.h>                                            // NOLINT
+#include <name.h>                                            // NOLINT
+#include <struct.h>                                          // NOLINT
+#include <ua.h>                                              // NOLINT
+#include <xref.h>                                            // NOLINT
+
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
@@ -12,25 +29,6 @@
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/path.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
-// The genereated Protobuf headers must come before any IDA headers because of
-// name clashes with the IDA SDK (uint128).
-#include "third_party/zynamics/binexport/binexport.pb.h"  // NOLINT
-#include "third_party/zynamics/binexport/binexport2.pb.h"  // NOLINT
-#include "third_party/idasdk/compat/bytes.h"
-#include "third_party/idasdk/compat/diskio.h"
-#include "third_party/idasdk/compat/enum.h"
-#include "third_party/idasdk/compat/expr.h"
-#include "third_party/idasdk/compat/frame.h"
-#include "third_party/idasdk/compat/funcs.h"
-#include "third_party/idasdk/compat/ida.h"
-#include "third_party/idasdk/compat/idp.h"
-#include "third_party/idasdk/compat/kernwin.h"
-#include "third_party/idasdk/compat/loader.h"
-#include "third_party/idasdk/compat/nalt.h"
-#include "third_party/idasdk/compat/name.h"
-#include "third_party/idasdk/compat/struct.h"
-#include "third_party/idasdk/compat/ua.h"
-#include "third_party/idasdk/compat/xref.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -38,9 +36,10 @@
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
 #include "third_party/zynamics/bindiff/fortknox_writer.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
-#include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/binexport/binexport.pb.h"   // NOLINT
+#include "third_party/zynamics/binexport/binexport2.pb.h"  // NOLINT
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
@@ -67,11 +66,13 @@ using google::protobuf::io::IstreamInputStream;
 #define ADDRESS_OUT std::hex << std::setfill('0') << std::setw(16)
 #endif
 
-static const char kBinExportVersion[] = "8";    // Exporter version to use.
+static const char kBinExportVersion[] = "9";    // Exporter version to use.
 static const char kMenuName[] = "BinDiff 4.3";  // Name in menu
 static const char kComment[] =
     "Structural comparison of executable objects";  // Status line
 static const char kHotKey[] = "CTRL-6";
+static const char kCopyright[] =
+    "(c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
 
 // Default constructed XmlConfig.
 XmlConfig g_config;
@@ -3263,14 +3264,13 @@ int idaapi PluginInit() {
 #ifdef _DEBUG
             << ", debug build"
 #endif
-            << "), (c)2004-2011 zynamics GmbH, (c)2011-2015 Google Inc.";
+            << "), " << kCopyright;
 
-  if (!hook_to_notification_point(HT_IDP, ProcessorHook, nullptr)) {
+  if (!hook_to_notification_point(HT_IDP, ProcessorHook,
+                                  nullptr /* User data */) ||
+      !hook_to_notification_point(HT_UI, UiHook, nullptr /* User data */)) {
     LOG(INFO) << "hook_to_notification_point error";
-  }
-
-  if (!hook_to_notification_point(HT_UI, UiHook, nullptr)) {
-    LOG(INFO) << "hook_to_notification_point error";
+    return PLUGIN_SKIP;
   }
 
   try {
@@ -3300,10 +3300,9 @@ void TermMenus() {
 }
 
 void idaapi PluginTerminate() {
-  // These must be unhooked in any case, even if the init procedure didn't run
-  // to completion.
-  unhook_from_notification_point(HT_UI, UiHook, nullptr);
-  unhook_from_notification_point(HT_IDP, ProcessorHook, nullptr);
+  unhook_from_notification_point(HT_UI, UiHook, nullptr /* User data */);
+  unhook_from_notification_point(HT_IDP, ProcessorHook,
+                                 nullptr /* User data */);
 
   if (!g_init_done) {
     ShutdownLogging();
@@ -3339,11 +3338,7 @@ void idaapi PluginRun(int /*arg*/) {
           "\n\n"
           "'Load Results...' load a previously saved diff result. The primary "
           "idb used in that diff must already be open in IDA."
-          "\n\n") +
-      kProgramVersion + std::string(
-                            "\nCopyright (c)2004-2011 zynamics GmbH\n"
-                            "Copyright (c)2011-2016 Google Inc.\n"
-                            "ENDHELP\n") +
+          "ENDHELP\n") +
       kProgramVersion + std::string(
                             "\n\n"
                             "<~D~iff Database...:B:1:30::>\n"
@@ -3460,14 +3455,15 @@ void idaapi PluginRun(int /*arg*/) {
 extern "C" {
 
 plugin_t PLUGIN = {
-    IDP_INTERFACE_VERSION, PLUGIN_FIX,
-    PluginInit,       // initialize
-    PluginTerminate,  // terminate. this pointer may be nullptr.
-    PluginRun,        // invoke plugin
-    kComment,         // long comment about the plugin (statusline or hint)
-    nullptr,          // multiline help about the plugin
-    kMenuName,        // the preferred short name of the plugin
-    kHotKey           // the preferred hotkey to run the plugin
+    IDP_INTERFACE_VERSION,
+    PLUGIN_FIX,       // Flags
+    PluginInit,       // Initialize
+    PluginTerminate,  // Terminate
+    PluginRun,        // Invoke plugin
+    kComment,         // Statusline text
+    nullptr,          // Multiline help about the plugin, unused
+    kMenuName,        // The preferred short name of the plugin
+    kHotKey           // The preferred hotkey to run the plugin
 };
 
 }  // extern "C"

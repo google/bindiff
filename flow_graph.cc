@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "base/logging.h"
 #ifdef GOOGLE
 #include "third_party/boost/allowed/graph/breadth_first_search.hpp"
 #include "third_party/boost/allowed/graph/dominator_tree.hpp"
@@ -15,13 +16,8 @@
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
-#include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
 #include "third_party/zynamics/binexport/hash.h"
-
-#ifdef GOOGLE
-#define GOOGLE_PROTOBUF_VERIFY_VERSION
-#endif
 
 namespace {
 

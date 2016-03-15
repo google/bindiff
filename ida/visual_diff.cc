@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 
+#include "base/logging.h"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/asio.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time/posix_time/posix_time_types.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem.hpp"
@@ -22,7 +23,6 @@
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/tokenizer.hpp"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 #include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"

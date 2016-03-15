@@ -24,6 +24,7 @@ using google::SetCommandLineOptionWithMode;
 using google::SetUsageMessage;
 using google::ShowUsageWithFlags;
 #endif  // GOOGLE
+#include "base/logging.h"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
 #include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
@@ -36,7 +37,6 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
-#include "third_party/zynamics/bindiff/log.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/binexport/binexport.pb.h"
@@ -759,8 +759,5 @@ int main(int argc, char** argv) {
     exit_code = 2;
   }
 
-  // Need to explicitly shutdown logging, otherwise the logging thread will stay
-  // active.
-  ShutdownLogging();
   return exit_code;
 }
