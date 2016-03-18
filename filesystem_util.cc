@@ -108,10 +108,10 @@ std::string ReplaceFileExtension(StringPiece path, StringPiece new_extension) {
   auto path_copy(path.ToString());
   StringPiece filename = basename(&path_copy[0]);
   auto pos = filename.find_last_of(".");
-  if (pos != StringPiece::npos) {
-    ++pos;
+  if (pos == StringPiece::npos) {
+    pos = filename.size();
   }
-  return StrCat(filename.substr(pos), new_extension);
+  return StrCat(filename.substr(0, pos), new_extension);
 #endif  // WIN32
 }
 

@@ -98,6 +98,8 @@ Option                           | Description
 `-OExporterLogFile:<FILE>`       | Log messages to a file
 `-OExporterAlsoLogToStdErr:TRUE` | If specified, also log to standard error
 
+Note that these options must come before any files.
+
 ## How to build
 
 ### Preparing the build environment

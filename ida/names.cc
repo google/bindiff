@@ -466,11 +466,11 @@ std::string GetDemangledName(Address address) {
   return "";
 }
 
-std::string GetRegisterName(size_t index, size_t segmentSize) {
+std::string GetRegisterName(size_t index, size_t segment_size) {
   enum { kBufferSize = MAXSTR };
   char buffer[kBufferSize];
   memset(buffer, 0, kBufferSize);
-  if (get_reg_name(index, segmentSize, buffer, kBufferSize) != -1) {
+  if (get_reg_name(index, segment_size, buffer, kBufferSize) != -1) {
     return buffer;
   }
   // Do not return empty string due to assertion fail in database_writer.cc
@@ -532,17 +532,17 @@ void AnalyzeFlow(const Address address, Instruction* instruction,
          ok = xref.next_from()) {
       flow_graph->AddEdge(
           FlowGraphEdge(address, xref.to, FlowGraphEdge::TYPE_SWITCH));
-      address_references->push_back(AddressReference(
+      address_references->emplace_back(
           address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-          TYPE_SWITCH));
+          TYPE_SWITCH);
       entry_point_adder->Add(xref.to, EntryPoint::Source::JUMP_TABLE);
       table_address = std::min(table_address, xref.to);
       handled = true;
     }
     // add a data reference to first address in switch table
-    address_references->push_back(AddressReference(
+    address_references->emplace_back(
         address, GetSourceExpressionId(*instruction, table_address),
-        table_address, TYPE_DATA));
+        table_address, TYPE_DATA);
   } else {  // normal xref
     for (bool ok = xref.first_from(address, XREF_ALL); ok && xref.iscode;
          ok = xref.next_from()) {
@@ -566,9 +566,9 @@ void AnalyzeFlow(const Address address, Instruction* instruction,
           entry_point_adder->Add(xref.to, EntryPoint::Source::CALL_TARGET);
         }
         instruction->SetFlag(FLAG_CALL, true);
-        address_references->push_back(AddressReference(
+        address_references->emplace_back(
             address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-            TYPE_CALL_DIRECT));
+            TYPE_CALL_DIRECT);
         handled = true;
       } else if (xref.type == fl_JN || xref.type == fl_JF) {
         // jump targets
@@ -584,9 +584,9 @@ void AnalyzeFlow(const Address address, Instruction* instruction,
         if (unconditional_jump) {
           flow_graph->AddEdge(FlowGraphEdge(source_address, xref.to,
                                             FlowGraphEdge::TYPE_UNCONDITIONAL));
-          address_references->push_back(AddressReference(
+          address_references->emplace_back(
               address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-              TYPE_UNCONDITIONAL));
+              TYPE_UNCONDITIONAL);
           handled = true;
         } else {
           Address next_address = instruction->GetNextInstruction();
@@ -602,12 +602,12 @@ void AnalyzeFlow(const Address address, Instruction* instruction,
                                             FlowGraphEdge::TYPE_FALSE));
           flow_graph->AddEdge(
               FlowGraphEdge(source_address, xref.to, FlowGraphEdge::TYPE_TRUE));
-          address_references->push_back(AddressReference(
+          address_references->emplace_back(
               address, GetSourceExpressionId(*instruction, next_address),
-              next_address, TYPE_FALSE));
-          address_references->push_back(AddressReference(
+              next_address, TYPE_FALSE);
+          address_references->emplace_back(
               address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-              TYPE_TRUE));
+              TYPE_TRUE);
           handled = true;
         }
         entry_point_adder->Add(xref.to, EntryPoint::Source::JUMP_DIRECT);
@@ -627,21 +627,21 @@ void AnalyzeFlow(const Address address, Instruction* instruction,
           entry_point_adder->Add(xref.to, EntryPoint::Source::CALL_TARGET);
         }
         instruction->SetFlag(FLAG_CALL, true);
-        address_references->push_back(AddressReference(
+        address_references->emplace_back(
             address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-            TYPE_CALL_INDIRECT));
+            TYPE_CALL_INDIRECT);
       }
     } else {  // assume data reference as in "push aValue"
       for (bool ok = xref.first_from(address, XREF_DATA); ok;
            ok = xref.next_from()) {
         if (!GetStringReference(address).empty()) {
-          address_references->push_back(AddressReference(
+          address_references->emplace_back(
               address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-              TYPE_DATA_STRING));
+              TYPE_DATA_STRING);
         } else {
-          address_references->push_back(AddressReference(
+          address_references->emplace_back(
               address, GetSourceExpressionId(*instruction, xref.to), xref.to,
-              TYPE_DATA));
+              TYPE_DATA);
         }
       }
     }

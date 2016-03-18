@@ -124,7 +124,7 @@ void WriteFlowgraphsToProto(const CallGraph& call_graph,
       if (full_export) {
         instruction_proto->set_mnemonic(instruction.GetMnemonic());
         instruction_proto->set_operands(
-          RenderOperands(instruction, flow_graph, true));
+            RenderOperands(instruction, flow_graph));
 
         const Comments::const_iterator end = call_graph.GetComments().end();
 

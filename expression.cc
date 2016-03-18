@@ -64,8 +64,6 @@ const Expression::ExpressionCache& Expression::GetExpressions() {
   return expression_cache_;
 }
 
-Expression::~Expression() {}
-
 bool Expression::IsSymbol() const { return type_ == TYPE_SYMBOL; }
 
 bool Expression::IsImmediate() const {

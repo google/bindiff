@@ -18,44 +18,38 @@
 #include <cstdint>
 #include <iosfwd>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
-
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
 
 #include "third_party/zynamics/binexport/types.h"
 
 #pragma pack(push, 1)
 class Expression {
  public:
-  typedef boost::unordered_map<std::string, Expression,
-                               boost::hash<std::string>,
-                               std::equal_to<std::string>> ExpressionCache;
-  typedef boost::unordered_set<std::string, boost::hash<std::string>,
-                               std::equal_to<std::string>> StringCache;
+  typedef std::unordered_map<std::string, Expression> ExpressionCache;
+  typedef std::unordered_set<std::string> StringCache;
 
-  // TODO(user) Use the enum type as soon as all our platforms support it.
-  //                Currently the gcc version used on Mac is too old.
-  enum Type /*: uint8_t*/ {
-    TYPE_MNEMONIC        = 0,
-    TYPE_SYMBOL          = 1,
-    TYPE_IMMEDIATE_INT   = 2,
+  enum Type : uint8_t {
+    TYPE_MNEMONIC = 0,
+    TYPE_SYMBOL = 1,
+    TYPE_IMMEDIATE_INT = 2,
     TYPE_IMMEDIATE_FLOAT = 3,
-    TYPE_OPERATOR        = 4,
-    TYPE_REGISTER        = 5,
-    TYPE_SIZEPREFIX      = 6,
-    TYPE_DEREFERENCE     = 7,
+    TYPE_OPERATOR = 4,
+    TYPE_REGISTER = 5,
+    TYPE_SIZEPREFIX = 6,
+    TYPE_DEREFERENCE = 7,
 
-    TYPE_NEWOPERAND      = 8,
-    TYPE_STACKVARIABLE   = 9,
-    TYPE_GLOBALVARIABLE  = 10,
-    TYPE_JUMPLABEL       = 11,
-    TYPE_FUNCTION        = 12,
+    TYPE_NEWOPERAND = 8,
+    TYPE_STACKVARIABLE = 9,
+    TYPE_GLOBALVARIABLE = 10,
+    TYPE_JUMPLABEL = 11,
+    TYPE_FUNCTION = 12,
 
-    TYPE_INVALID         = 255
+    TYPE_INVALID = 255
   };
 
-  ~Expression();
+  ~Expression() = default;
 
   bool IsSymbol() const;
   bool IsImmediate() const;
@@ -81,7 +75,7 @@ class Expression {
   // - We want to avoid creating duplicate expressions so we just
   //   refer to the expression_cache_ if someone tries (that way archiving
   //   compression/de-duping)
-  // TODO(user) What about copy & assignment?
+  // TODO(user): What about copy & assignment?
   Expression(Expression* parent, const std::string& symbol, int64_t immediate,
              Type type, uint16_t position);
   static const std::string* CacheString(const std::string& string);

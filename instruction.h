@@ -101,8 +101,7 @@ class Instruction {
   std::string GetBytes() const;
   uint16_t GetInDegree() const;
   void AddInEdge();
-  void Render(std::ostream* stream, const FlowGraph& flow_graph,
-              bool prefix_type = false) const;
+  void Render(std::ostream* stream, const FlowGraph& flow_graph) const;
 
   bool IsFlow() const;
   bool IsExported() const;
@@ -148,6 +147,6 @@ Instructions::iterator GetInstruction(detego::Instructions* instructions,
 Instructions::iterator GetNextInstruction(detego::Instructions* instructions,
                                           Instructions::iterator instruction);
 std::string RenderOperands(const Instruction& instruction,
-                           const FlowGraph& flow_graph, bool prefix_type);
+                           const FlowGraph& flow_graph);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INSTRUCTION_H_

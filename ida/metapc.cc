@@ -15,6 +15,7 @@
 #include "third_party/zynamics/binexport/ida/metapc.h"
 
 #include <cinttypes>
+#include <limits>
 #include <string>
 
 #include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
@@ -60,17 +61,21 @@ std::string GetSegmentSelector(const op_t& operand) {
 
 std::string GetExtendedRegisterName(const op_t& operand) {
   switch (operand.type) {
-    case o_trreg:  // test register
+    case o_trreg:  // Test register
       return "tr" + std::to_string(operand.reg);
-    case o_dbreg:  // debug register
+    case o_dbreg:  // Debug register
       return "dr" + std::to_string(operand.reg);
-    case o_crreg:  // control register
+    case o_crreg:  // Control register
       return "cr" + std::to_string(operand.reg);
-    case o_mmxreg:  // mmx register
+    case o_mmxreg:  // MMX register
       return "mm(" + std::to_string(operand.reg) + ")";
-    case o_xmmreg:  // sse register
+    case o_xmmreg:  // SSE register
       return "xmm" + std::to_string(operand.reg);
-    case o_fpreg:  // floating point register
+    case o_ymmreg:  // AVX register
+      return "ymm" + std::to_string(operand.reg);
+    case o_zmmreg:  // AVX-512 register
+      return "zmm" + std::to_string(operand.reg);
+    case o_fpreg:  // Floating point register
       return "st(" + std::to_string(operand.reg) + ")";
     default:
       throw std::runtime_error("invalid register in getExtendedRegisterName");
@@ -352,7 +357,8 @@ void HandleImmediate(const Address address, const op_t& operand,
     // Immediates are typically the last bytes of an instruction.
     operand_size = cmd.size - operand.offb;
     // Mask the last n bytes of the original immediate.
-    Address mask = (1 << (8 * operand_size)) - 1;
+    Address mask =
+        std::numeric_limits<Address>::max() >> (64 - 8 * operand_size);
     immediate &= mask;
   }
   Expression* expression = nullptr;
@@ -372,9 +378,7 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
                                 const Address address) {
   Operands operands;
   uint8_t skipped = 0;
-  for (uint8_t operand_position = 0;
-       operand_position < UA_MAXOP &&
-       cmd.Operands[operand_position].type != o_void;
+  for (uint8_t operand_position = 0; operand_position < UA_MAXOP;
        ++operand_position) {
     Expressions expressions;
     const insn_t& instruction = cmd;
@@ -389,14 +393,14 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
 
     Expression* expression = nullptr;
     switch (operand.type) {
-      case o_void:  // no operand
-        break;
-      case o_trreg:   // test register
-      case o_dbreg:   // debug register
-      case o_crreg:   // control register
-      case o_mmxreg:  // mmx register
-      case o_xmmreg:  // sse register
-      case o_fpreg:   // floating point register
+      case o_trreg:   // Test register
+      case o_dbreg:   // Debug register
+      case o_crreg:   // Control register
+      case o_mmxreg:  // MMX register
+      case o_xmmreg:  // SSE register
+      case o_ymmreg:  // AVX register
+      case o_zmmreg:  // AVX-512 register
+      case o_fpreg:   // Floating point register
       {
         expressions.push_back(expression = Expression::Create(
                                   expression,
@@ -405,9 +409,9 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
         expressions.push_back(expression = Expression::Create(
                                   expression, GetExtendedRegisterName(operand),
                                   0, Expression::TYPE_REGISTER, 0));
-      } break;
+        break;
+      }
       case o_reg:  // register
-      {
         expressions.push_back(expression = Expression::Create(
                                   expression,
                                   GetSizePrefix(GetOperandByteSize(operand)), 0,
@@ -417,7 +421,7 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
                 expression,
                 GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
                 Expression::TYPE_REGISTER, 0));
-      } break;
+        break;
       case o_mem:  // direct memory reference
         HandleMemoryExpression(address, instruction, operand,
                                operand_position - skipped, &expressions,
@@ -436,12 +440,12 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
                                      type_system);
         break;
 
-      case o_imm:  // immediate value
+      case o_imm:  // Immediate value
         HandleImmediate(address, operand, operand_position - skipped,
                         &expressions, type_system);
         break;
 
-      case o_far:   // immediate Far Address  (CODE)
+      case o_far:   // Immediate Far Address (CODE)
       case o_near:  // Immediate Near Address (CODE)
       {
         const Address immediate = operand.addr;
@@ -449,7 +453,7 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
             GetName(address, immediate, operand_position - skipped, true);
         if (name.empty()) {
           name.name = GetGlobalStructureName(address, immediate,
-                                               operand_position - skipped);
+                                             operand_position - skipped);
           name.type = Expression::TYPE_GLOBALVARIABLE;
         }
 
@@ -461,13 +465,14 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
                 expression, name.name, immediate,
                 name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type,
                 0));
-      } break;
+        break;
+      }
 
-      default: {
+      default:
         LOG(INFO) << StringPrintf(
             "warning: unknown operand type %d at %08" PRIx64,
             static_cast<int>(operand.type), address);
-      } break;
+        break;
     }
 
     operands.push_back(Operand::CreateOperand(expressions));

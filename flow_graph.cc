@@ -25,32 +25,16 @@
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
-namespace {
-
-bool TupleCompare(const std::tuple<Address, uint8_t, int>& one,
-                  const std::tuple<Address, uint8_t, int>& two) {
-  return std::get<0>(one) == std::get<0>(two)
-             ? (std::get<1>(one) == std::get<1>(two)
-                    ? std::get<2>(one) < std::get<2>(two)
-                    : std::get<1>(one) < std::get<1>(two))
-             : std::get<0>(one) < std::get<0>(two);
-}
-
-}  // namespace
-
-FlowGraph::FlowGraph() : substitutions_((OrderFunction)&TupleCompare) {}
-
 FlowGraph::~FlowGraph() {
-  for (auto it = functions_.cbegin(); it != functions_.cend(); ++it) {
-    delete it->second;
+  for (auto function : functions_) {
+    delete function.second;
   }
 }
 
 void FlowGraph::Render(std::ostream* stream,
                        const CallGraph& call_graph) const {
-  for (Functions::const_iterator i = GetFunctions().begin();
-       i != GetFunctions().end(); ++i) {
-    i->second->Render(stream, call_graph, *this);
+  for (const auto& function : functions_) {
+    function.second->Render(stream, call_graph, *this);
     *stream << std::endl;
   }
 }
@@ -82,17 +66,14 @@ void FlowGraph::MarkOrphanInstructions(Instructions* instructions) const {
     instruction.SetFlag(FLAG_INVALID, true);
   }
   // Second: Mark instructions that are still being referenced as valid.
-  for (Functions::const_iterator i = functions_.begin(); i != functions_.end();
-       ++i) {
-    const Function* function = i->second;
-    for (auto& j : function->GetBasicBlocks()) {
-      BasicBlock* basic_block = j;
+  for (auto& function : functions_) {
+    for (auto* basic_block : function.second->GetBasicBlocks()) {
       for (auto& instruction : *basic_block) {
         if (instruction.GetMnemonic().empty()) {
           LOG(WARNING) << StringPrintf(
               "%08" PRIx64 " is reachable from function %08" PRIx64
               " basic block %08" PRIx64 " but invalid!",
-              instruction.GetAddress(), function->GetEntryPoint(),
+              instruction.GetAddress(), function.second->GetEntryPoint(),
               basic_block->GetEntryPoint());
           continue;
         }

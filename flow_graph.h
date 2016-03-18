@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <map>
 #include <tuple>
+#include <unordered_set>
 
 #include "third_party/zynamics/binexport/edge.h"
 #include "third_party/zynamics/binexport/function.h"
@@ -27,14 +28,12 @@ class CallGraph;
 
 class FlowGraph {
  public:
-  // instruction address, operand number, expression id
+  // Instruction address, operand number, expression id
   typedef std::tuple<Address, uint8_t, int> Ref;
-  typedef std::pointer_to_binary_function<const Ref&, const Ref&, bool>
-      OrderFunction;
-  typedef std::map<Ref, const std::string*, OrderFunction> Substitutions;
+  typedef std::map<Ref, const std::string*> Substitutions;
   typedef std::vector<FlowGraphEdge> Edges;
 
-  FlowGraph();
+  FlowGraph() = default;
   ~FlowGraph();
 
   void AddEdge(const FlowGraphEdge& edge);
@@ -56,7 +55,7 @@ class FlowGraph {
   void Render(std::ostream* stream, const CallGraph& call_graph) const;
 
  private:
-  typedef boost::unordered_set<std::string> StringCache;
+  typedef std::unordered_set<std::string> StringCache;
 
   FlowGraph(const FlowGraph& graph) = delete;
   const FlowGraph& operator=(const FlowGraph& graph) = delete;
