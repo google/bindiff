@@ -136,7 +136,7 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
       LOG(WARNING) << "Skipping empty flow graph!";
       continue;
     }
-    auto flow_graph = ::util::gtl::MakeUnique<FlowGraph>();
+    auto flow_graph = ::gtl::MakeUnique<FlowGraph>();
     flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
     flow_graphs->insert(flow_graph.release());
   }
@@ -201,7 +201,7 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
                    << flow_graph_proto.address();
       continue;
     }
-    auto flow_graph_owner = ::util::gtl::MakeUnique<FlowGraph>(
+    auto flow_graph_owner = ::gtl::MakeUnique<FlowGraph>(
         call_graph, static_cast<Address>(flow_graph_proto.address()));
     auto flow_graph = flow_graph_owner.get();
     flow_graph_owner->Read(flow_graph_proto, instruction_cache);
