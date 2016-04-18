@@ -12,6 +12,7 @@
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
 #include "file/base/file.h"
+#include "file/base/file_closer.h"
 #include "file/base/filesystem.h"
 #include "file/base/helpers.h"
 #include "file/base/path.h"
