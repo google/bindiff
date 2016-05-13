@@ -829,7 +829,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
       function.SetModuleName(module);
     }
     if (function.GetType(true) == Function::TYPE_NONE ||
-        function.GetType() == Function::TYPE_STANDARD) {
+        function.GetType(false) == Function::TYPE_STANDARD) {
       if (function.GetBasicBlocks().empty()) {
         function.SetType(Function::TYPE_IMPORTED);
       } else {

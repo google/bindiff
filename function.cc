@@ -218,7 +218,7 @@ int Function::GetBasicBlockIndexForAddress(Address address) const {
   return basic_blocks_.size();
 }
 
-bool Function::IsImported() const { return GetType() == TYPE_IMPORTED; }
+bool Function::IsImported() const { return GetType(false) == TYPE_IMPORTED; }
 
 std::string Function::GetModuleName() const {
   return module_name_ ? *module_name_ : "";

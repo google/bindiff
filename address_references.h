@@ -71,8 +71,5 @@ typedef std::vector<AddressReference> AddressReferences;
 
 bool operator<(const AddressReference& one, const AddressReference& two);
 bool operator==(const AddressReference& one, const AddressReference& two);
-AddressReferences::const_iterator FindBySource(
-    const AddressReferences& address_references, Address address_start,
-    Address address_end);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_ADDRESS_REFERENCES_H_

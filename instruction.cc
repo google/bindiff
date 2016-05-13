@@ -117,7 +117,7 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
     case Expression::TYPE_IMMEDIATE_INT:
     case Expression::TYPE_IMMEDIATE_FLOAT: {
       if (expression_symbol.empty()) {
-        uint64_t expression_immediate = expression.GetImmediate();
+        int64_t expression_immediate = expression.GetImmediate();
         if ((Instruction::IsNegativeValue(expression_immediate) &&
              expression.GetParent() &&
              expression.GetParent()->GetSymbol() == "+") ||
@@ -190,15 +190,9 @@ std::string RenderOperands(const Instruction& instruction,
 
   Tree tree;
   std::stringstream stream;
-  int operand_num = 0;
-  for (auto instruction_it = instruction.GetFirstOperand(),
-            instruction_end = instruction.GetLastOperand();
-       instruction_it != instruction_end; ++operand_num) {
-    const Operand& operand = **instruction_it;
-    for (auto expr_it = operand.GetFirstExpression(),
-              expr_end = operand.GetLastExpression();
-         expr_it != expr_end; ++expr_it) {
-      const Expression* expression = *expr_it;
+  int operand_index = 0;
+  for (const auto* operand : instruction) {
+    for (const auto* expression : *operand) {
       tree.emplace_back(std::make_shared<TreeNode>(expression));
       for (auto it = tree.rbegin(), tree_end = tree.rend(); it != tree_end;
            ++it) {
@@ -213,15 +207,16 @@ std::string RenderOperands(const Instruction& instruction,
       std::string substitution;
       int expression_id = 0;
       subst_it =
-          GetSubstitution(instruction.GetAddress(), operand_num, subst_it,
+          GetSubstitution(instruction.GetAddress(), operand_index, subst_it,
                           subst_end, &substitution, &expression_id);
       RenderExpression(&stream, **tree.begin(), expression_id, substitution);
     }
     tree.clear();
 
-    if (++instruction_it != instruction_end) {
+    if (operand_index != instruction.GetOperandCount() - 1) {
       stream << ", ";
     }
+    ++operand_index;
   }
   return stream.str();
 }
@@ -412,12 +407,20 @@ void Instruction::AddInEdge() {
 
 uint8_t Instruction::GetOperandCount() const { return operand_count_; }
 
-Operands::const_iterator Instruction::GetFirstOperand() const {
+Operands::const_iterator Instruction::cbegin() const {
   return operands_.begin() + operand_index_;
 }
 
-Operands::const_iterator Instruction::GetLastOperand() const {
-  return GetFirstOperand() + GetOperandCount();
+Operands::const_iterator Instruction::cend() const {
+  return begin() + GetOperandCount();
+}
+
+Operands::iterator Instruction::begin() const {
+  return operands_.begin() + operand_index_;
+}
+
+Operands::iterator Instruction::end() const {
+  return begin() + GetOperandCount();
 }
 
 const Operand& Instruction::GetOperand(int index) const {

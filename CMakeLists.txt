@@ -101,7 +101,6 @@ elseif(WIN32)
 endif()
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS
-                      binexport.proto
                       binexport2.proto)
 
 add_ida_plugin(zynamics_binexport_9 EA64
@@ -138,13 +137,11 @@ add_ida_plugin(zynamics_binexport_9 EA64
                library_manager.cc
                operand.cc
                postgresql.cc
-               prime_signature.cc
                query_builder.cc
                statistics_writer.cc
                type_system.cc
                version.h
                virtual_memory.cc
-               writer.cc
                x86_nop.cc
                ${PROTO_SRCS} ${PROTO_HDRS})
 

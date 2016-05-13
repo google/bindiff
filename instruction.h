@@ -90,8 +90,10 @@ class Instruction {
   static bool IsNegativeValue(int64_t value);
 
   uint8_t GetOperandCount() const;
-  Operands::const_iterator GetFirstOperand() const;
-  Operands::const_iterator GetLastOperand() const;
+  Operands::iterator begin() const;
+  Operands::iterator end() const;
+  Operands::const_iterator cbegin() const;
+  Operands::const_iterator cend() const;
   const Operand& GetOperand(int operand_number) const;
   Address GetAddress() const;
   int GetSize() const;

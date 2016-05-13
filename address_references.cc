@@ -29,27 +29,3 @@ bool operator==(const AddressReference& one, const AddressReference& two) {
          one.source_expression_ == two.source_expression_ &&
          one.source_operand_ == two.source_operand_ && one.kind_ == two.kind_;
 }
-
-AddressReferences::const_iterator FindBySource(
-    const AddressReferences& address_references, Address address_start,
-    Address address_end) {
-  if (address_references.empty()) {
-    return address_references.end();
-  }
-
-  AddressReferences::size_type first = 0;
-  AddressReferences::size_type last = address_references.size();
-  AddressReferences::size_type mid;
-  do {
-    mid = (first + last) / 2;
-    if (address_references[mid].source_ >= address_start &&
-        address_references[mid].source_ < address_end) {
-      return address_references.begin() + mid;
-    } else if (address_references[mid].source_ >= address_end) {
-      last = mid - 1;
-    } else if (address_references[mid].source_ < address_start) {
-      first = mid + 1;
-    }
-  } while (first < last && mid != 0);
-  return address_references.end();
-}

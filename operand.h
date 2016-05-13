@@ -29,8 +29,10 @@ class Operand {
  public:
   typedef std::unordered_map<std::string, Operand> OperandCache;
 
-  Expressions::const_iterator GetFirstExpression() const;
-  Expressions::const_iterator GetLastExpression() const;
+  Expressions::iterator begin() const;
+  Expressions::iterator end() const;
+  Expressions::const_iterator cbegin() const;
+  Expressions::const_iterator cend() const;
   uint8_t GetExpressionCount() const;
   int GetId() const;
 
@@ -42,13 +44,13 @@ class Operand {
  private:
   explicit Operand(const Expressions& expressions);
 
-  int id_;
+  uint32_t id_;
   uint32_t expression_index_;
   uint8_t expression_count_;
 
   static Expressions expressions_;
   static OperandCache operand_cache_;
-  static int global_id_;
+  static uint32_t global_id_;
 };
 #pragma pack(pop)
 

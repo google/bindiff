@@ -1,3 +1,17 @@
+// Copyright 2011-2016 Google Inc. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // This file describes a compact representation for disassembled binaries. It is
 // loosely based on the PostgreSQL database schema used by BinNavi's
 // postgresql_tables.sql (https://git.io/vzlYw).
@@ -7,7 +21,7 @@
 // The VxClass malware classification pipeline stores 10s of millions of
 // instances of it so compactness and efficiency are primary concerns.
 // MOE:end_strip
-//
+
 // The representation is generic to accommodate various source architectures.
 // In particular 32 and 64 bit versions of x86, ARM, PowerPC and MIPS have been
 // tested.

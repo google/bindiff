@@ -69,7 +69,14 @@ class Function {
   Address GetEntryPoint() const;
 
   void SetType(FunctionType type);
-  FunctionType GetType(bool raw = false) const;
+
+  // Returns the function type (if assigned) as-is if raw is set to true. If
+  // raw is false or the function has not been assigned any type, extra
+  // heuristics are applied; returning TYPE_THUNK for functions with entry
+  // point address 0, THUNK_IMPORTED if it has no basic blocks and
+  // TYPE_STANDARD otherwise.
+  // TODO(cblichmann): Split into two functions: GetType() and GetRawType().
+  FunctionType GetType(bool raw) const;
 
   bool IsImported() const;
 

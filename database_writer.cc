@@ -26,9 +26,9 @@
 #include "base/logging.h"
 #include "base/stringprintf.h"
 #include "third_party/zynamics/binexport/base_types.h"
-#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
+#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/initialize_constraints_postgresql_sql.h"
 #include "third_party/zynamics/binexport/initialize_indices_postgresql_sql.h"
 #include "third_party/zynamics/binexport/initialize_tables_postgresql_sql.h"
@@ -320,7 +320,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
                                    ? database_.EscapeLiteral(demangled_name)
                                    : "null")
                            << "," << (function.HasRealName() ? "true" : "false")
-                           << ", " << function.GetType() << ","
+                           << ", " << function.GetType(false) << ","
                            << database_.EscapeLiteral(module_name) << ","
                            << GetFrameTypeId(type_system, function) << ","
                            << GetFunctionPrototypeId(type_system, function)
@@ -365,16 +365,14 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
               << ")," << kFlushQuery;
 
           int operand_sequence = 0;
-          for (auto operand_it = instruction.GetFirstOperand(),
-                    operand_end = instruction.GetLastOperand();
-               operand_it != operand_end; ++operand_it, ++operand_sequence) {
+          for (const auto* operand : instruction) {
             operands_query << "("
                            << static_cast<int64_t>(instruction.GetAddress())
-                           << "," << (*operand_it)->GetId() << ","
-                           << operand_sequence << ")," << kFlushQuery;
+                           << "," << operand->GetId() << "," << operand_sequence
+                           << ")," << kFlushQuery;
+            ++operand_sequence;
           }
         }
-
         ++instruction_sequence;
       }
     }
@@ -484,18 +482,10 @@ void DatabaseWriter::InsertExpressions() {
     query << "insert into \"ex_" << module_id_
           << "_expression_tree_nodes\" values ";
     QueryBuilder expression_tree_query(&database_, query.str(), query_size_);
-    for (Operand::OperandCache::const_iterator i =
-             Operand::GetOperands().begin(),
-                                               end =
-                                                   Operand::GetOperands().end();
-         i != end; ++i) {
-      const Operand& operand = i->second;
-      for (Expressions::const_iterator j = operand.GetFirstExpression(),
-                                       jend = operand.GetLastExpression();
-           j != jend; ++j) {
-        const Expression& expression = **j;
-        expression_tree_query << "(" << operand.GetId() << ","
-                              << expression.GetId() << ")," << kFlushQuery;
+    for (const auto& operand : Operand::GetOperands()) {
+      for (const auto* expression : operand.second) {
+        expression_tree_query << "(" << operand.second.GetId() << ","
+                              << expression->GetId() << ")," << kFlushQuery;
       }
     }
     expression_tree_query.Execute();
@@ -519,8 +509,8 @@ void DatabaseWriter::InsertTypes(const TypeSystem& type_system,
         << base_type->GetSize() << ","
         << (base_type->GetPointer() == nullptr
                 ? "null"
-                : std::to_string(base_type->GetPointer()->GetId())) << ","
-        << (base_type->IsSigned() ? "true" : "false") << ","
+                : std::to_string(base_type->GetPointer()->GetId()))
+        << "," << (base_type->IsSigned() ? "true" : "false") << ","
         << database_.EscapeLiteral(base_type->GetCategoryString()) << "),"
         << kFlushQuery;
   }
@@ -542,17 +532,17 @@ void DatabaseWriter::InsertTypes(const TypeSystem& type_system,
         << type_member->type->GetId() << ","
         << (type_member->parent_type == nullptr
                 ? "null"
-                : std::to_string(type_member->parent_type->GetId())) << ","
-        << (type_member->offset == MemberType::DB_NULL_VALUE
-                ? "null"
-                : std::to_string(type_member->offset)) << ","
-        << (type_member->argument == MemberType::DB_NULL_VALUE
-                ? "null"
-                : std::to_string(type_member->argument)) << ","
-        << (type_member->num_elements == MemberType::DB_NULL_VALUE
-                ? "null"
-                : std::to_string(type_member->num_elements)) << "),"
-        << kFlushQuery;
+                : std::to_string(type_member->parent_type->GetId()))
+        << "," << (type_member->offset == MemberType::DB_NULL_VALUE
+                       ? "null"
+                       : std::to_string(type_member->offset))
+        << "," << (type_member->argument == MemberType::DB_NULL_VALUE
+                       ? "null"
+                       : std::to_string(type_member->argument))
+        << "," << (type_member->num_elements == MemberType::DB_NULL_VALUE
+                       ? "null"
+                       : std::to_string(type_member->num_elements))
+        << ")," << kFlushQuery;
   }
   compound_types_builder.Execute();
 
@@ -649,27 +639,21 @@ void DatabaseWriter::InsertExpressionSubstitutions(
       for (auto& instruction : *basic_block) {
         if (instruction.IsExported()) continue;
         instruction.SetExported(true);
-
         int operand_num = -1;
-
-        for (auto operand_it = instruction.GetFirstOperand(),
-                  operand_end = instruction.GetLastOperand();
-             operand_it != operand_end; ++operand_it) {
-          const Operand& operand = **operand_it;
-
-          for (auto expression_it = operand.GetFirstExpression(),
-                    expression_end = operand.GetLastExpression();
-               expression_it != expression_end; ++expression_it) {
-            const Expression& expression = **expression_it;
-            if (!expression.GetParent()) ++operand_num;
-            if (expression.IsImmediate() && !expression.GetSymbol().empty()) {
-              std::string replacement = expression.GetSymbol();
+        for (const auto* operand : instruction) {
+          for (const auto* expression : *operand) {
+            if (!expression->GetParent()) {
+              ++operand_num;
+            }
+            if (expression->IsImmediate() && !expression->GetSymbol().empty()) {
+              std::string replacement = expression->GetSymbol();
               query_builder
                   << "(" << static_cast<int64_t>(instruction.GetAddress())
-                  << "," << operand_num << "," << expression.GetId() << ","
+                  << "," << operand_num << "," << expression->GetId() << ","
                   << database_.EscapeLiteral(replacement) << "),"
                   << kFlushQuery;
             }
+            ++operand_num;
           }
         }
       }

@@ -59,8 +59,8 @@ void CallGraph::Render(std::ostream* stream,
     const Function* function = flow_graph.GetFunction(function_address);
     *stream << std::hex << std::setfill('0') << std::uppercase << std::setw(8)
             << function_address << " " << std::setfill(' ') << std::setw(8)
-            << (function->GetType() != Function::TYPE_STANDARD
-                    ? Function::GetTypeName(function->GetType())
+            << (function->GetType(false) != Function::TYPE_STANDARD
+                    ? Function::GetTypeName(function->GetType(false))
                     : "")
             << " " << function->GetModuleName()
             << (function->GetModuleName().empty() ? "" : ".")
@@ -153,7 +153,7 @@ int CallGraph::DeleteInvalidFunctions(FlowGraph* flow_graph) {
           [&flow_graph](const EdgeInfo& edge) {
             // The source function must exist and be valid.
             const Function* source = edge.function_;
-            if (!source || source->GetType() == Function::TYPE_INVALID) {
+            if (!source || source->GetType(false) == Function::TYPE_INVALID) {
               return true;
             }
 
@@ -161,14 +161,14 @@ int CallGraph::DeleteInvalidFunctions(FlowGraph* flow_graph) {
             // exist" case covers calls into imported functions such as
             // operating system dlls.
             const Function* target = flow_graph->GetFunction(edge.target_);
-            return target && target->GetType() == Function::TYPE_INVALID;
+            return target && target->GetType(false) == Function::TYPE_INVALID;
           }),
       edges_.end());
 
   int num_invalid_functions = 0;
   for (auto function = flow_graph->GetFunctions().begin();
        function != flow_graph->GetFunctions().end();) {
-    if (function->second->GetType() == Function::TYPE_INVALID) {
+    if (function->second->GetType(false) == Function::TYPE_INVALID) {
       auto zombie = function++;
       functions_.erase(zombie->first);
       delete zombie->second;

@@ -130,63 +130,55 @@ std::ostream& operator<<(std::ostream& stream, const Expression& expression) {
 std::pair<int, int> GetSourceExpressionId(const Instruction& instruction,
                                           Address target) {
   // Try an exact immediate match in any operand's expression first.
-  int operand_num = 0;
-  for (Operands::const_iterator j = instruction.GetFirstOperand(),
-                                jend = instruction.GetLastOperand();
-       j != jend; ++j, ++operand_num) {
-    const Operand& operand = **j;
-    for (Expressions::const_iterator i = operand.GetFirstExpression(),
-                                     end = operand.GetLastExpression();
-         i != end; ++i) {
-      const Expression* expression = *i;
+  int operand_index = 0;
+  for (const auto* operand : instruction) {
+    int expression_index = 0;
+    for (const auto* expression : *operand) {
       if (expression->IsImmediate() &&
           (Address)expression->GetImmediate() == target) {
-        return std::make_pair(operand_num, expression->GetId());
+        return {operand_index, expression_index};
       }
+      ++expression_index;
     }
+    ++operand_index;
   }
 
   // Try a memory dereference in any operand's expression second.
-  operand_num = 0;
-  for (Operands::const_iterator j = instruction.GetFirstOperand(),
-                                jend = instruction.GetLastOperand();
-       j != jend; ++j, ++operand_num) {
-    const Operand& operand = **j;
-    for (Expressions::const_iterator i = operand.GetFirstExpression(),
-                                     end = operand.GetLastExpression();
-         i != end; ++i) {
-      const Expression* expression = *i;
+  operand_index = 0;
+  for (const auto* operand : instruction) {
+    int expression_index = 0;
+    for (const auto* expression : *operand) {
       if (expression->GetParent() &&
           expression->GetParent()->IsDereferenceOperator()) {
-        return std::make_pair(operand_num,
-                              expression->IsImmediate()
-                                  ? expression->GetId()
-                                  : expression->GetParent()->GetId());
+        // Use the parent expression index if the expression is not an
+        // immediate.
+        return {operand_index, expression->IsImmediate()
+                                   ? expression_index
+                                   : expression_index - 1};
       }
+      ++expression_index;
     }
+    ++operand_index;
   }
 
   // If we only have a single operand return that.
   if (instruction.GetOperandCount() == 1) {
-    const Operand& operand = **instruction.GetFirstOperand();
-    return std::make_pair(0, (*operand.GetFirstExpression())->GetId());
+    return {0, 0};
   }
 
   // Return any immediate expression we can find.
-  operand_num = 0;
-  for (Operands::const_iterator j = instruction.GetFirstOperand(),
-                                jend = instruction.GetLastOperand();
-       j != jend; ++j, ++operand_num) {
-    const Operand& operand = **j;
-    for (Expressions::const_iterator i = operand.GetFirstExpression(),
-                                     end = operand.GetLastExpression();
-         i != end; ++i) {
-      const Expression* expression = *i;
-      if (expression->IsImmediate())
-        return std::make_pair(operand_num, expression->GetId());
+  operand_index = 0;
+  for (const auto* operand : instruction) {
+    int expression_index = 0;
+    for (const auto* expression : *operand) {
+      if (expression->IsImmediate()) {
+        return {operand_index, expression_index};
+      }
+      ++expression_index;
     }
+    ++operand_index;
   }
 
   // Give up.
-  return std::make_pair(-1, -1);
+  return {-1, -1};
 }
