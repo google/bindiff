@@ -134,7 +134,7 @@ bool ReadBinExport2Google(File* file, CallGraph* call_graph,
   call_graph->Read(proto, file->filename());
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     if (proto_flow_graph.basic_block_index_size() == 0) {
-      LOG(WARNING) << "Skipping empty flow graph!";
+      VLOG(1) << "Skipping empty flow graph!";
       continue;
     }
     auto flow_graph = ::gtl::MakeUnique<FlowGraph>();
@@ -198,8 +198,8 @@ bool ReadBinExportGoogle(File* file, CallGraph* call_graph,
     BinExport::Flowgraph flow_graph_proto;
     QCHECK(flow_graph_proto.ParseFromString(buffer)) << file->filename();
     if (flow_graph_proto.vertices_size() == 0) {
-      LOG(WARNING) << "Skipping empty flow graph! " << std::hex
-                   << flow_graph_proto.address();
+      VLOG(1) << "Skipping empty flow graph! " << std::hex
+              << flow_graph_proto.address();
       continue;
     }
     auto flow_graph_owner = ::gtl::MakeUnique<FlowGraph>(
