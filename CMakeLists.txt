@@ -79,7 +79,6 @@ if(NOT {CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif()
 
 if(UNIX)
-  #set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
   add_compile_options(--std=c++11 -Wno-deprecated)
 elseif(WIN32)
   # TODO(cblichmann): Configure compiler warnings for Windows
@@ -102,6 +101,8 @@ endif()
 
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS
                       binexport2.proto)
+
+add_subdirectory(tools)
 
 add_ida_plugin(zynamics_binexport_9 EA64
                address_references.cc
