@@ -3,15 +3,10 @@
 
 #include <queue>
 
-#ifdef GOOGLE
-#include "third_party/boost/allowed/graph/adjacency_list.hpp"
-#include "third_party/boost/allowed/graph/breadth_first_search.hpp"
-#include "third_party/boost/allowed/graph/compressed_sparse_row_graph.hpp"
-#else
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/adjacency_list.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/breadth_first_search.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/compressed_sparse_row_graph.hpp"
-#endif
+#include <boost/graph/adjacency_list.hpp>        // NOLINT(readability/boost)
+#include <boost/graph/breadth_first_search.hpp>  // NOLINT(readability/boost)
+#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
+
 #include "third_party/zynamics/bindiff/utility.h"
 
 class FlowGraph;

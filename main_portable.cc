@@ -12,6 +12,14 @@
 #include <utility>
 #include <vector>
 
+// TODO(cblichmann): Replace these
+#include <boost/algorithm/string.hpp>        // NOLINT(readability/boost)
+#include <boost/date_time.hpp>               // NOLINT(readability/boost)
+#include <boost/filesystem/convenience.hpp>  // NOLINT(readability/boost)
+#include <boost/filesystem/operations.hpp>   // NOLINT(readability/boost)
+#include <boost/thread.hpp>                  // NOLINT(readability/boost)
+#include <boost/timer.hpp>                   // NOLINT(readability/boost)
+
 #ifdef GOOGLE
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
@@ -25,12 +33,7 @@ using google::SetUsageMessage;
 using google::ShowUsageWithFlags;
 #endif  // GOOGLE
 #include "base/logging.h"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/operations.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
+
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/database_writer.h"

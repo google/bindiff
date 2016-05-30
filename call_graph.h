@@ -1,11 +1,8 @@
 #ifndef CALL_GRAPH_H_
 #define CALL_GRAPH_H_
 
-#ifdef GOOGLE
-#include "third_party/boost/allowed/graph/compressed_sparse_row_graph.hpp"
-#else
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/compressed_sparse_row_graph.hpp"
-#endif  // GOOGLE
+#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
+
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/utility.h"

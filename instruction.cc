@@ -2,9 +2,11 @@
 
 #include <functional>
 
+// TODO(cblichmann): Replace this
+#include <boost/algorithm/string.hpp>             // NOLINT(readability/boost)
+#include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
+
 #include "base/logging.h"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/iterator/transform_iterator.hpp"
 
 namespace {
 

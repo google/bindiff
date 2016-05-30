@@ -3,7 +3,9 @@
 #include <iomanip>
 #include <memory>
 
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/iterator/transform_iterator.hpp"
+// TODO(cblichmann): Replace this
+#include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
+
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 

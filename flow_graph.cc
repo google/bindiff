@@ -8,9 +8,9 @@
 #include "third_party/boost/allowed/graph/dominator_tree.hpp"
 #include "third_party/boost/allowed/graph/iteration_macros.hpp"
 #else
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/breadth_first_search.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/dominator_tree.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/graph/iteration_macros.hpp"
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/dominator_tree.hpp>
+#include <boost/graph/iteration_macros.hpp>
 #endif  // GOOGLE
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comments.h"

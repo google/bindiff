@@ -1,12 +1,13 @@
 #include "third_party/zynamics/bindiff/call_graph.h"
 
 #include <cassert>
+#include <cinttypes>
 #include <iomanip>
 
 #include "base/logging.h"
+#include "strings/strutil.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 namespace {
 
@@ -277,7 +278,7 @@ void CallGraph::DetachFlowGraph(FlowGraph* flow_graph) {
   auto vertex = GetVertex(entry_point_address);
   if (vertex == kInvalidVertex) {
     LOG(INFO) << "DetachFlowGraph: coudn't find call graph node for flow graph "
-              << std::hex << entry_point_address;
+              << StringPrintf("%08" PRIx64, entry_point_address);
   } else {
     graph_[vertex].flow_graph_ = nullptr;
   }
