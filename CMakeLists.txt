@@ -74,12 +74,17 @@ endif()
 
 configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
-if(NOT {CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-DNDEBUG)
 endif()
 
 if(UNIX)
   add_compile_options(--std=c++11 -Wno-deprecated)
+  set(CMAKE_SKIP_BUILD_RPATH TRUE)
+  if(NOT COMPILE_64BIT)
+    add_compile_options(-m32)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
+  endif()
 elseif(WIN32)
   # TODO(cblichmann): Configure compiler warnings for Windows
   if(MSVC)
@@ -99,73 +104,79 @@ elseif(WIN32)
   endif()
 endif()
 
+set(BinExport_Proto_SRCS binexport2.proto)
+if(EXISTS "binexport.proto")
+  list(APPEND BinExport_Proto_SRCS binexport.proto)
+endif()
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS
-                      binexport2.proto)
+                      ${BinExport_Proto_SRCS})
+add_library(binexport_proto STATIC ${PROTO_SRCS})
 
 add_subdirectory(tools)
 
-add_ida_plugin(zynamics_binexport_9 EA64
-               address_references.cc
-               base_types.cc
-               basic_block.cc
-               binexport2_writer.cc
-               call_graph.cc
-               chain_writer.cc
-               comment.cc
-               database_writer.cc
-               dump_writer.cc
-               edge.cc
-               entry_point.cc
-               expression.cc
-               filesystem_util.cc
-               flow_analyzer.cc
-               flow_graph.cc
-               function.cc
-               hash.cc
-               hex_codec.cc
-               ida/arm.cc
-               ida/dalvik.cc
-               ida/digest.cc
-               ida/generic.cc
-               ida/log.cc
-               ida/main_plugin.cc
-               ida/metapc.cc
-               ida/mips.cc
-               ida/names.cc
-               ida/ppc.cc
-               ida/types_container.cc
-               instruction.cc
-               library_manager.cc
-               operand.cc
-               postgresql.cc
-               query_builder.cc
-               statistics_writer.cc
-               type_system.cc
-               version.h
-               virtual_memory.cc
-               x86_nop.cc
-               ${PROTO_SRCS} ${PROTO_HDRS})
+if(NOT COMPILE_64BIT)
+  add_ida_plugin(zynamics_binexport_9 EA64
+                 address_references.cc
+                 base_types.cc
+                 basic_block.cc
+                 binexport2_writer.cc
+                 call_graph.cc
+                 chain_writer.cc
+                 comment.cc
+                 database_writer.cc
+                 dump_writer.cc
+                 edge.cc
+                 entry_point.cc
+                 expression.cc
+                 filesystem_util.cc
+                 flow_analyzer.cc
+                 flow_graph.cc
+                 function.cc
+                 hash.cc
+                 hex_codec.cc
+                 ida/arm.cc
+                 ida/dalvik.cc
+                 ida/digest.cc
+                 ida/generic.cc
+                 ida/log.cc
+                 ida/main_plugin.cc
+                 ida/metapc.cc
+                 ida/mips.cc
+                 ida/names.cc
+                 ida/ppc.cc
+                 ida/types_container.cc
+                 instruction.cc
+                 library_manager.cc
+                 operand.cc
+                 postgresql.cc
+                 query_builder.cc
+                 statistics_writer.cc
+                 type_system.cc
+                 version.h
+                 virtual_memory.cc
+                 x86_nop.cc)
 
-set(BinExport_LIBRARIES ${IdaSdk_LIBRARIES}
-                        ${PROTOBUF_LIBRARIES})
-if(APPLE)
-  list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY}
-                                  krb5
-                                  ldap
-                                  ${OPENSSL_LIBRARIES})
-  target_link_libraries(zynamics_binexport_9.pmc ${BinExport_LIBRARIES})
-  target_link_libraries(zynamics_binexport_9.pmc64 ${BinExport_LIBRARIES})
-elseif(UNIX)
-  list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY}
-                                  ${OPENSSL_LIBRARIES})
-  target_link_libraries(zynamics_binexport_9.plx ${BinExport_LIBRARIES})
-  target_link_libraries(zynamics_binexport_9.plx64 ${BinExport_LIBRARIES})
-elseif(WIN32)
-  list(APPEND BinExport_LIBRARIES shlwapi.lib
-                                  ${OPENSSL_LIBRARIES}
-                                  # Work around bug in FindPostgreSQL.cmake
-                                  ${PostgreSQL_LIBRARY_DIR}/libpq.lib
-                                  ${PostgreSQL_LIBRARY_DIR}/intl.lib)
-  target_link_libraries(zynamics_binexport_9.plw ${BinExport_LIBRARIES})
-  target_link_libraries(zynamics_binexport_9.p64 ${BinExport_LIBRARIES})
+  set(BinExport_LIBRARIES ${IdaSdk_LIBRARIES}
+                          binexport_proto
+                          ${OPENSSL_LIBRARIES}
+                          ${PROTOBUF_LIBRARIES})
+  if(APPLE)
+    list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY}
+                                    krb5
+                                    ldap
+                                    ${OPENSSL_LIBRARIES})
+    target_link_libraries(zynamics_binexport_9.pmc ${BinExport_LIBRARIES})
+    target_link_libraries(zynamics_binexport_9.pmc64 ${BinExport_LIBRARIES})
+  elseif(UNIX)
+    list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY_DIR/libpq.a})
+    target_link_libraries(zynamics_binexport_9.plx ${BinExport_LIBRARIES})
+    target_link_libraries(zynamics_binexport_9.plx64 ${BinExport_LIBRARIES})
+  elseif(WIN32)
+    list(APPEND BinExport_LIBRARIES shlwapi.lib
+                                    # Work around bug in FindPostgreSQL.cmake
+                                    ${PostgreSQL_LIBRARY_DIR}/libpq.lib
+                                    ${PostgreSQL_LIBRARY_DIR}/intl.lib)
+    target_link_libraries(zynamics_binexport_9.plw ${BinExport_LIBRARIES})
+    target_link_libraries(zynamics_binexport_9.p64 ${BinExport_LIBRARIES})
+  endif()
 endif()

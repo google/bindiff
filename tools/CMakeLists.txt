@@ -15,11 +15,5 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(tools CXX)
 
-add_executable(binexport2dump binexport2dump.cc
-               ${PROTO_SRCS} ${PROTO_HDRS})
-if(UNIX)
-  target_compile_options(binexport2dump PUBLIC -m32)
-  target_link_libraries(binexport2dump -m32 ${PROTOBUF_LIBRARIES})
-elseif(WIN32)
-  target_link_libraries(binexport2dump ${PROTOBUF_LIBRARIES})
-endif()
+add_executable(binexport2dump binexport2dump.cc)
+target_link_libraries(binexport2dump binexport_proto ${PROTOBUF_LIBRARIES})

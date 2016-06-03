@@ -64,7 +64,7 @@ void CallGraph::Render(std::ostream* stream,
                     : "")
             << " " << function->GetModuleName()
             << (function->GetModuleName().empty() ? "" : ".")
-            << (function ? function->GetName(Function::DEMANGLED) : "");
+            << function->GetName(Function::DEMANGLED);
     int library_index = function->GetLibraryIndex();
     if (library_index != -1) {
       const auto& library = library_manager_.GetKnownLibrary(library_index);

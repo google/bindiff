@@ -1,0 +1,76 @@
+language: cpp
+
+cache:
+  directories:
+    - $HOME/protobuf
+    - $HOME/postgresql
+
+os:
+  - linux
+
+addons:
+  apt:
+    sources:
+      - george-edison55-precise-backports
+      - ubuntu-toolchain-r-test
+    packages:
+      - cmake
+      - cmake-data
+      - g++-4.8
+      - lib32stdc++-4.8-dev
+      - libssl-dev:i386
+
+sudo: false
+
+before_install:
+  - export CXX=g++-4.8 CC=gcc-4.8
+
+  # IDA SDK
+  - openssl aes-256-cbc -k "$idasdk_secret" -in third_party/idasdk.zip.enc
+    -out third_party/idasdk.zip -d
+  - unzip -q third_party/idasdk.zip -d third_party/
+
+  # Cached PostgreSQL client libraries
+  - test ! -f "$HOME/postgresql/CACHED" && true || export C_POSTGRES=1
+  - test -n "$C_POSTGRES" && true ||
+    wget https://ftp.postgresql.org/pub/source/v9.5.3/postgresql-9.5.3.tar.bz2
+  - test -n "$C_POSTGRES" && true || tar xaf postgresql-9.5.3.tar.bz2
+  - test -n "$C_POSTGRES" && true || cd postgresql-9.5.3
+  - test -n "$C_POSTGRES" && true ||
+    ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32
+    --prefix=$HOME/postgresql --disable-debug --disable-profiling
+    --disable-coverage --without-tcl --without-perl --without-python
+    --without-gssapi --without-ldap --without-bonjour --without-readline
+  - test -n "$C_POSTGRES" && true || make -is -C src/include install
+  - test -n "$C_POSTGRES" && true || make -s -C src/interfaces install
+  - test -n "$C_POSTGRES" && true || touch "$HOME/postgresql/CACHED"
+  - test -n "$C_POSTGRES" && true || cd ..
+
+  # Cached Protocol Buffers
+  - test ! -f "$HOME/protobuf/CACHED" && true || export C_PROTOBUF=1
+  - test -n "$C_PROTOBUF" && true || cd third_party/protobuf
+  - test -n "$C_PROTOBUF" && true || ./autogen.sh
+  - test -n "$C_PROTOBUF" && true ||
+    ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32 --prefix=${HOME}/protobuf
+    --disable-dependency-tracking --disable-maintainer-mode
+    --enable-silent-rules
+  - test -n "$C_PROTOBUF" && true || make -s
+  - test -n "$C_PROTOBUF" && true || make install
+  - test -n "$C_PROTOBUF" && true || touch "$HOME/protobuf/CACHED"
+  - test -n "$C_PROTOBUF" && true || cd ../..
+
+script:
+  - ./configure
+    -DOPENSSL_ROOT_DIR=$PWD/third_party/openssl
+    -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.a
+    -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.a
+    -DPostgreSQL_ROOT=$HOME/postgresql
+    -DPROTOBUF_ROOT_FOLDER=$HOME/protobuf
+    -DPROTOBUF_INCLUDE_DIR=$HOME/protobuf/include
+    -DPROTOBUF_PROTOC_EXECUTABLE=$HOME/protobuf/bin/protoc
+    -DPROTOBUF_LIBRARY=$HOME/protobuf/lib/libprotobuf.a
+  - make
+
+env:
+  global:
+    - secure: Dz7DLm6tkwOurtQxcBLiZ/HsTfvGxJ+f8r2oJNTYX3oDKpF7cyhyx/TVgc02H2f/Y77Ja5p33dp5GK3u4iAqzm9QIB7J4nXRlzZfR4Z8zdZrSm94emWNhx6YfEk7Lzp3zw+W5W8jHuKOKoK3b3z7kXROUhGc4ZtHdAF9rj9YMOdJga8f37/2IxDJFX5oK3+uzBSg1VbFdSP3Xf5xNEwAIkkuH6a+3AyIc1qWmy5xXN7/moEabVY8Ui8xJzshvkPz6dtFwuJ0pQA63Tlj910Sd0vt8/5Cl0KmPxXIL0Tt0ss4zI8piMQuVSZfGpvjBUN7NILlFU8AOMcKeoVNWnxMMtEYwTEM4BoqVb6+9ET5qQMlMPYPs0Iydo/9+v7BKGwFFQEBSYo5kxKEYULQ7S5kFMxHosjCLDZ+cPORKGbGmFxsLeI1Ov9aGlpuJhpkALlupvOWKYMgwotf4eg9kPJz0mkIFQHSnTB/7ix4oyPNI3g8n5KhP9xl/yV2k8LH0s2js6ucISD+ZcCQLghjef6ylu3pmfqUTXd7Yn4pXviF1b/y1kg4Q7bw1LZVjzlO4sQqTAiXQ6Uifq2OVPOeOl6M2tX1DUVqj4B52+CnHn45x7opi/87+H3wlPjDfs0Aggg+fL5QOSzGx4dmVgAXtdHjnP8MKGEIy/j7myiimAMjzAs=
