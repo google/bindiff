@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BINARY_OARCHIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -32,7 +32,7 @@ namespace archive {
 // do not derive from this class.  If you want to extend this functionality
 // via inhertance, derived from binary_oarchive_impl instead.  This will
 // preserve correct static polymorphism.
-class binary_oarchive : 
+class BOOST_SYMBOL_VISIBLE binary_oarchive : 
     public binary_oarchive_impl<
         binary_oarchive, std::ostream::char_type, std::ostream::traits_type
     >
@@ -49,8 +49,6 @@ public:
         >(bsb, flags)
     {}
 };
-
-typedef binary_oarchive naked_binary_oarchive;
 
 } // namespace archive
 } // namespace boost

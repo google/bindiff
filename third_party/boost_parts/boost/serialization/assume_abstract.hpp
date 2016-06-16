@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_ASSUME_ABSTRACT_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -19,6 +19,7 @@
 // this is useful for compilers which don't support the boost::is_abstract
 
 #include <boost/type_traits/is_abstract.hpp>
+#include <boost/mpl/bool_fwd.hpp>
 
 #ifndef BOOST_NO_IS_ABSTRACT
 

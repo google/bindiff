@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_COLLECTION_TRAITS_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -23,7 +23,7 @@
 // exists for archives to be non-portable if class information for primitive
 // types is included.  This is addressed by the following macros.
 #include <boost/config.hpp>
-#include <boost/mpl/integral_c.hpp>
+//#include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/integral_c_tag.hpp>
 
 #include <boost/cstdint.hpp>

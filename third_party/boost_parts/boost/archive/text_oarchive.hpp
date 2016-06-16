@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_TEXT_OARCHIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -42,18 +42,22 @@ namespace std{
 namespace boost { 
 namespace archive {
 
+namespace detail {
+    template<class Archive> class interface_oarchive;
+} // namespace detail
+
 template<class Archive>
-class text_oarchive_impl : 
+class BOOST_SYMBOL_VISIBLE text_oarchive_impl :
      /* protected ? */ public basic_text_oprimitive<std::ostream>,
      public basic_text_oarchive<Archive>
 {
 #ifdef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
 public:
 #else
+protected:
     friend class detail::interface_oarchive<Archive>;
     friend class basic_text_oarchive<Archive>;
     friend class save_access;
-protected:
 #endif
     template<class T>
     void save(const T & t){
@@ -66,32 +70,32 @@ protected:
     void save(const boost::serialization::item_version_type & t){
         save(static_cast<const unsigned int>(t));
     }
-    BOOST_ARCHIVE_DECL(void) 
+    BOOST_ARCHIVE_DECL void 
     save(const char * t);
     #ifndef BOOST_NO_INTRINSIC_WCHAR_T
-    BOOST_ARCHIVE_DECL(void) 
+    BOOST_ARCHIVE_DECL void 
     save(const wchar_t * t);
     #endif
-    BOOST_ARCHIVE_DECL(void) 
+    BOOST_ARCHIVE_DECL void 
     save(const std::string &s);
     #ifndef BOOST_NO_STD_WSTRING
-    BOOST_ARCHIVE_DECL(void) 
+    BOOST_ARCHIVE_DECL void 
     save(const std::wstring &ws);
     #endif
-    BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) 
+    BOOST_ARCHIVE_DECL 
     text_oarchive_impl(std::ostream & os, unsigned int flags);
     // don't import inline definitions! leave this as a reminder.
-    //BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) 
+    //BOOST_ARCHIVE_DECL 
     ~text_oarchive_impl(){};
 public:
-    BOOST_ARCHIVE_DECL(void) 
+    BOOST_ARCHIVE_DECL void 
     save_binary(const void *address, std::size_t count);
 };
 
 // do not derive from this class.  If you want to extend this functionality
 // via inhertance, derived from text_oarchive_impl instead.  This will
 // preserve correct static polymorphism.
-class text_oarchive : 
+class BOOST_SYMBOL_VISIBLE text_oarchive : 
     public text_oarchive_impl<text_oarchive>
 {
 public:
@@ -101,8 +105,6 @@ public:
     {}
     ~text_oarchive(){}
 };
-
-typedef text_oarchive naked_text_oarchive;
 
 } // namespace archive
 } // namespace boost

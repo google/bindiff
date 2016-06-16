@@ -17,11 +17,11 @@
 #define BOOST_SERIALIZATION_IS_BITWISE_SERIALIZABLE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
-#include <boost/mpl/bool.hpp>
+#include <boost/mpl/bool_fwd.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
 
 namespace boost {

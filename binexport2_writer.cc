@@ -530,9 +530,10 @@ void WriteStrings(const AddressReferences& address_references,
                   const vector<pair<Address, int32>>& instruction_indices,
                   BinExport2* proto) {
   std::map<Address, const AddressReference*> string_address_to_reference;
-  std::map<StringPiece, int> string_to_string_index;
+  std::map<string, int> string_to_string_index;
   for (const auto& reference : address_references) {
-    if (reference.kind_ != TYPE_DATA_STRING) {
+    if (reference.kind_ != TYPE_DATA_STRING &&
+        reference.kind_ != TYPE_DATA_WIDE_STRING) {
       continue;
     }
     // String length must be > 0.
@@ -548,11 +549,18 @@ void WriteStrings(const AddressReferences& address_references,
         instruction->first != reference.source_) {
       continue;
     }
-    auto referenced_string = StringPiece(
-        reinterpret_cast<const char*>(&address_space[reference.target_]),
-        reference.size_);
-    auto it = string_to_string_index.emplace(referenced_string,
-                                             proto->string_table_size());
+
+    string content;
+    // TODO(timkornau): Add support for UTF16 strings.
+    if (reference.kind_ != TYPE_DATA_STRING) {
+      continue;
+    }
+    content =
+        string(reinterpret_cast<const char*>(&address_space[reference.target_]),
+               reference.size_);
+
+    auto it =
+        string_to_string_index.emplace(content, proto->string_table_size());
     // Deduplicate strings.
     if (it.second != false) {
       proto->add_string_table(it.first->first);
@@ -664,14 +672,10 @@ util::Status BinExport2Writer::WriteToProto(
   meta_information->set_executable_name(executable_filename_);
   meta_information->set_executable_id(executable_hash_);
   meta_information->set_architecture_name(architecture_);
-#ifdef GOOGLE
-  const auto timestamp = ToUnixSeconds(base::Now());
-#else
   const auto timestamp =
       std::chrono::duration_cast<std::chrono::seconds>(
           std::chrono::system_clock::now().time_since_epoch())
           .count();
-#endif
   meta_information->set_timestamp(timestamp);
 
   WriteExpressions(proto);

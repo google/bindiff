@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_ITERATORS_XML_ESCAPE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -17,10 +17,6 @@
 //  See http://www.boost.org for updates, documentation, and revision history.
 
 #include <boost/assert.hpp>
-
-#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
-#include <boost/serialization/pfto.hpp>
-
 #include <boost/archive/iterators/escape.hpp>
 
 namespace boost { 
@@ -43,8 +39,8 @@ public:
     wchar_t fill(const wchar_t * & bstart, const wchar_t * & bend);
 
     template<class T>
-    xml_escape(BOOST_PFTO_WRAPPER(T) start) :
-        super_t(Base(BOOST_MAKE_PFTO_WRAPPER(static_cast< T >(start))))
+    xml_escape(T start) :
+        super_t(Base(static_cast< T >(start)))
     {}
     // intel 7.1 doesn't like default copy constructor
     xml_escape(const xml_escape & rhs) : 

@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_BINARY_IARCHIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -25,7 +25,6 @@
 
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
-#include <boost/serialization/pfto.hpp>
 
 #include <boost/archive/basic_archive.hpp>
 #include <boost/archive/detail/common_iarchive.hpp>
@@ -44,21 +43,27 @@
 namespace boost { 
 namespace archive {
 
+namespace detail {
+    template<class Archive> class interface_iarchive;
+} // namespace detail
+
 /////////////////////////////////////////////////////////////////////////
 // class basic_binary_iarchive - read serialized objects from a input binary stream
 template<class Archive>
-class basic_binary_iarchive : 
+class BOOST_SYMBOL_VISIBLE basic_binary_iarchive : 
     public detail::common_iarchive<Archive>
 {
-protected:
-#if BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
+#ifdef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
 public:
-#elif defined(BOOST_MSVC)
-    // for some inexplicable reason insertion of "class" generates compile erro
-    // on msvc 7.1
-    friend detail::interface_iarchive<Archive>;
 #else
-    friend class detail::interface_iarchive<Archive>;
+protected:
+    #if BOOST_WORKAROUND(BOOST_MSVC, < 1500)
+        // for some inexplicable reason insertion of "class" generates compile erro
+        // on msvc 7.1
+        friend detail::interface_iarchive<Archive>;
+    #else
+        friend class detail::interface_iarchive<Archive>;
+    #endif
 #endif
     // intermediate level to support override of operators
     // fot templates in the absence of partial function 
@@ -66,8 +71,8 @@ public:
     // note extra nonsense to sneak it pass the borland compiers
     typedef detail::common_iarchive<Archive> detail_common_iarchive;
     template<class T>
-    void load_override(T & t, BOOST_PFTO int version){
-      this->detail_common_iarchive::load_override(t, static_cast<int>(version));
+    void load_override(T & t){
+      this->detail_common_iarchive::load_override(t);
     }
 
     // include these to trap a change in binary format which
@@ -80,7 +85,7 @@ public:
     BOOST_STATIC_ASSERT(sizeof(object_reference_type) == sizeof(uint_least32_t));
 
     // binary files don't include the optional information 
-    void load_override(class_id_optional_type & /* t */, int){}
+    void load_override(class_id_optional_type & /* t */){}
 
     void load_override(tracking_type & t, int /*version*/){
         library_version_type lvt = this->get_library_version();
@@ -95,10 +100,10 @@ public:
             t = boost::archive::tracking_type(x);
         }
     }
-    void load_override(class_id_type & t, int version){
+    void load_override(class_id_type & t){
         library_version_type lvt = this->get_library_version();
         if(boost::archive::library_version_type(7) < lvt){
-            this->detail_common_iarchive::load_override(t, version);
+            this->detail_common_iarchive::load_override(t);
         }
         else
         if(boost::archive::library_version_type(6) < lvt){
@@ -112,37 +117,14 @@ public:
             t = boost::archive::class_id_type(x);
         }
     }
-    void load_override(class_id_reference_type & t, int version){
-        load_override(static_cast<class_id_type &>(t), version);
+    void load_override(class_id_reference_type & t){
+        load_override(static_cast<class_id_type &>(t));
     }
-#if 0
-    void load_override(class_id_reference_type & t, int version){
-        library_version_type lvt = this->get_library_version();
-        if(boost::archive::library_version_type(7) < lvt){
-            this->detail_common_iarchive::load_override(t, version);
-        }
-        else
-        if(boost::archive::library_version_type(6) < lvt){
-            int_least16_t x=0;
-            * this->This() >> x;
-            t = boost::archive::class_id_reference_type(
-                boost::archive::class_id_type(x)
-            );
-        }
-        else{
-            int x=0;
-            * this->This() >> x;
-            t = boost::archive::class_id_reference_type(
-                boost::archive::class_id_type(x)
-            );
-        }
-    }
-#endif
 
-    void load_override(version_type & t, int version){
+    void load_override(version_type & t){
         library_version_type lvt = this->get_library_version();
         if(boost::archive::library_version_type(7) < lvt){
-            this->detail_common_iarchive::load_override(t, version);
+            this->detail_common_iarchive::load_override(t);
         }
         else
         if(boost::archive::library_version_type(6) < lvt){
@@ -170,11 +152,11 @@ public:
         }
     }
 
-    void load_override(boost::serialization::item_version_type & t, int version){
+    void load_override(boost::serialization::item_version_type & t){
         library_version_type lvt = this->get_library_version();
 //        if(boost::archive::library_version_type(7) < lvt){
         if(boost::archive::library_version_type(6) < lvt){
-            this->detail_common_iarchive::load_override(t, version);
+            this->detail_common_iarchive::load_override(t);
         }
         else
         if(boost::archive::library_version_type(6) < lvt){
@@ -189,9 +171,9 @@ public:
         }
     }
 
-    void load_override(serialization::collection_size_type & t, int version){
+    void load_override(serialization::collection_size_type & t){
         if(boost::archive::library_version_type(5) < this->get_library_version()){
-            this->detail_common_iarchive::load_override(t, version);
+            this->detail_common_iarchive::load_override(t);
         }
         else{
             unsigned int x=0;
@@ -200,9 +182,9 @@ public:
         } 
     }
 
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
-    load_override(class_name_type & t, int);
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
+    load_override(class_name_type & t);
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
     init();
    
     basic_binary_iarchive(unsigned int flags) :

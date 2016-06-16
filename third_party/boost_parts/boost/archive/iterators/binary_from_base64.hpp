@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_ITERATORS_BINARY_FROM_BASE64_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -18,9 +18,7 @@
 
 #include <boost/assert.hpp>
 
-#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
 #include <boost/serialization/throw_exception.hpp>
-#include <boost/serialization/pfto.hpp>
 #include <boost/static_assert.hpp>
 
 #include <boost/iterator/transform_iterator.hpp>
@@ -67,7 +65,7 @@ struct to_6_bit {
 } // namespace detail
 
 // note: what we would like to do is
-// template<class Base, class CharType = BOOST_DEDUCED_TYPENAME Base::value_type>
+// template<class Base, class CharType = typename Base::value_type>
 //  typedef transform_iterator<
 //      from_6_bit<CharType>,
 //      transform_width<Base, 6, sizeof(Base::value_type) * 8, CharType>
@@ -81,7 +79,7 @@ struct to_6_bit {
 
 template<
     class Base, 
-    class CharType = BOOST_DEDUCED_TYPENAME boost::iterator_value<Base>::type
+    class CharType = typename boost::iterator_value<Base>::type
 >
 class binary_from_base64 : public
     transform_iterator<
@@ -97,9 +95,9 @@ class binary_from_base64 : public
 public:
     // make composible buy using templated constructor
     template<class T>
-    binary_from_base64(BOOST_PFTO_WRAPPER(T)  start) :
+    binary_from_base64(T  start) :
         super_t(
-            Base(BOOST_MAKE_PFTO_WRAPPER(static_cast< T >(start))), 
+            Base(static_cast< T >(start)),
             detail::to_6_bit<CharType>()
         )
     {}

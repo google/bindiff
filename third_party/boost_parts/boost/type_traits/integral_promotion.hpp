@@ -7,17 +7,11 @@
 #define FILE_boost_type_traits_integral_promotion_hpp_INCLUDED
 
 #include <boost/config.hpp>
-
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/identity.hpp>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_enum.hpp>
 #include <boost/type_traits/is_volatile.hpp>
 #include <boost/type_traits/remove_cv.hpp>
-
-// Should be the last #include
-#include <boost/type_traits/detail/type_trait_def.hpp>
 
 namespace boost {
 
@@ -43,8 +37,7 @@ template<> struct need_promotion<unsigned short int> : public true_type {};
 
 // Same set of integral types as in boost/type_traits/is_integral.hpp.
 // Please, keep in sync.
-#if (defined(BOOST_MSVC) && (BOOST_MSVC < 1300)) \
-    || (defined(BOOST_INTEL_CXX_VERSION) && defined(_MSC_VER) && (BOOST_INTEL_CXX_VERSION <= 600)) \
+#if (defined(BOOST_INTEL_CXX_VERSION) && defined(_MSC_VER) && (BOOST_INTEL_CXX_VERSION <= 600)) \
     || (defined(__BORLANDC__) && (__BORLANDC__ == 0x600) && (_MSC_VER < 1300))
 // TODO: common macro for this #if. Or better yet, PP SEQ of non-standard types.
 BOOST_TT_AUX_PROMOTE_NONSTANDARD_TYPE(__int8          )
@@ -169,27 +162,20 @@ struct integral_promotion_impl
       >::type type;
 };
 
-template<class T>
-struct integral_promotion
-  : public boost::mpl::eval_if<
-        need_promotion<BOOST_DEDUCED_TYPENAME remove_cv<T>::type>
-      , integral_promotion_impl<T>
-      , boost::mpl::identity<T>
-      >
-{
-};
+template<class T, bool b> struct integral_promotion { typedef T type; };
+template<class T> struct integral_promotion<T, true> : public integral_promotion_impl<T>{};
 
 } }
 
-BOOST_TT_AUX_TYPE_TRAIT_DEF1(
-      integral_promotion
-    , T
-    , BOOST_DEDUCED_TYPENAME
-        boost::type_traits::detail::integral_promotion<T>::type
-    )
-}
+template <class T> struct integral_promotion
+{
+private:
+   typedef boost::type_traits::detail::need_promotion<typename remove_cv<T>::type> tag_type;
+public:
+   typedef typename boost::type_traits::detail::integral_promotion<T, tag_type::value>::type type;
+};
 
-#include <boost/type_traits/detail/type_trait_undef.hpp>
+}
 
 #endif // #ifndef FILE_boost_type_traits_integral_promotion_hpp_INCLUDED
 

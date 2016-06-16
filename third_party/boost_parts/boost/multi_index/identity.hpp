@@ -1,4 +1,4 @@
-/* Copyright 2003-2008 Joaquin M Lopez Munoz.
+/* Copyright 2003-2015 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -9,11 +9,12 @@
 #ifndef BOOST_MULTI_INDEX_IDENTITY_HPP
 #define BOOST_MULTI_INDEX_IDENTITY_HPP
 
-#if defined(_MSC_VER)&&(_MSC_VER>=1200)
+#if defined(_MSC_VER)
 #pragma once
 #endif
 
 #include <boost/config.hpp>
+#include <boost/detail/workaround.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/multi_index/identity_fwd.hpp>
 #include <boost/type_traits/is_const.hpp>
@@ -39,17 +40,7 @@ namespace detail{
  * mean a  type  P such that, given a p of type P
  *   *...n...*x is convertible to Type&, for some n>=1.
  * Examples of chained pointers are raw and smart pointers, iterators and
- * arbitrary combinations of these (vg. Type** or auto_ptr<Type*>.)
- */
-
-/* NB. Some overloads of operator() have an extra dummy parameter int=0.
- * This disambiguator serves several purposes:
- *  - Without it, MSVC++ 6.0 incorrectly regards some overloads as
- *    specializations of a previous member function template.
- *  - MSVC++ 6.0/7.0 seem to incorrectly treat some different memfuns
- *    as if they have the same signature.
- *  - If remove_const is broken due to lack of PTS, int=0 avoids the
- *    declaration of memfuns with identical signature.
+ * arbitrary combinations of these (vg. Type** or unique_ptr<Type*>.)
  */
 
 template<typename Type>
@@ -81,7 +72,14 @@ struct const_identity_base
   }
 
   Type& operator()(
-    const reference_wrapper<typename remove_const<Type>::type>& x,int=0)const
+    const reference_wrapper<typename remove_const<Type>::type>& x
+
+#if BOOST_WORKAROUND(BOOST_MSVC,==1310)
+/* http://lists.boost.org/Archives/boost/2015/10/226135.php */
+    ,int=0
+#endif
+
+  )const
   { 
     return x.get();
   }
@@ -108,7 +106,7 @@ struct non_const_identity_base
     return operator()(*x);
   }
 
-  const Type& operator()(const Type& x,int=0)const
+  const Type& operator()(const Type& x)const
   {
     return x;
   }
@@ -118,7 +116,7 @@ struct non_const_identity_base
     return x;
   }
 
-  const Type& operator()(const reference_wrapper<const Type>& x,int=0)const
+  const Type& operator()(const reference_wrapper<const Type>& x)const
   { 
     return x.get();
   }

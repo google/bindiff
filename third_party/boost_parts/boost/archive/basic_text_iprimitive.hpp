@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_TEXT_IPRIMITIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -24,7 +24,6 @@
 // in such cases.   So we can't use basic_ostream<IStream::char_type> but rather
 // use two template parameters
 
-#include <boost/assert.hpp>
 #include <locale>
 #include <cstddef> // size_t
 
@@ -38,17 +37,15 @@ namespace std{
 } // namespace std
 #endif
 
+#include <boost/io/ios_state.hpp>
+#include <boost/static_assert.hpp>
+
 #include <boost/detail/workaround.hpp>
 #if BOOST_WORKAROUND(BOOST_DINKUMWARE_STDLIB, == 1)
 #include <boost/archive/dinkumware.hpp>
 #endif
-
-#include <boost/limits.hpp>
-#include <boost/io/ios_state.hpp>
-#include <boost/scoped_ptr.hpp>
-#include <boost/static_assert.hpp>
-
 #include <boost/serialization/throw_exception.hpp>
+#include <boost/archive/codecvt_null.hpp>
 #include <boost/archive/archive_exception.hpp>
 #include <boost/archive/basic_streambuf_locale_saver.hpp>
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
@@ -64,32 +61,33 @@ namespace archive {
 #endif
 
 template<class IStream>
-class basic_text_iprimitive
-{
-#ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
+class BOOST_SYMBOL_VISIBLE basic_text_iprimitive {
 protected:
-#else
-public:
-#endif
     IStream &is;
     io::ios_flags_saver flags_saver;
     io::ios_precision_saver precision_saver;
 
     #ifndef BOOST_NO_STD_LOCALE
-    boost::scoped_ptr<std::locale> archive_locale;
-    basic_streambuf_locale_saver<
-        BOOST_DEDUCED_TYPENAME IStream::char_type, 
-        BOOST_DEDUCED_TYPENAME IStream::traits_type
+    // note order! - if you change this, libstd++ will fail!
+    // a) create new locale with new codecvt facet
+    // b) save current locale
+    // c) change locale to new one
+    // d) use stream buffer
+    // e) change locale back to original
+    // f) destroy new codecvt facet
+    boost::archive::codecvt_null<typename IStream::char_type> codecvt_null_facet;
+    std::locale archive_locale;
+    basic_istream_locale_saver<
+        typename IStream::char_type,
+        typename IStream::traits_type
     > locale_saver;
     #endif
 
     template<class T>
     void load(T & t)
     {
-        if(! is.fail()){
-            is >> t;
+        if(is >> t)
             return;
-        }
         boost::serialization::throw_exception(
             archive_exception(archive_exception::input_stream_error)
         );
@@ -123,12 +121,12 @@ public:
         t = i;
     }
     #endif
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL(BOOST_PP_EMPTY()) 
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL 
     basic_text_iprimitive(IStream  &is, bool no_codecvt);
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL(BOOST_PP_EMPTY()) 
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL 
     ~basic_text_iprimitive();
 public:
-    BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
+    BOOST_ARCHIVE_OR_WARCHIVE_DECL void
     load_binary(void *address, std::size_t count);
 };
 
