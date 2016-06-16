@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_XML_GRAMMAR_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -50,11 +50,6 @@
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
 
-// supress noise
-#if BOOST_WORKAROUND(BOOST_MSVC, <= 1200)
-#  pragma warning (disable : 4786) // too long name, harmless warning
-#endif
-
 #include <boost/spirit/include/classic_rule.hpp>
 #include <boost/spirit/include/classic_chset.hpp>
 
@@ -77,14 +72,14 @@ public:
     friend struct return_values;
     
 private:
-    typedef BOOST_DEDUCED_TYPENAME std::basic_istream<CharType> IStream;
-    typedef BOOST_DEDUCED_TYPENAME std::basic_string<CharType> StringType;
-    typedef BOOST_DEDUCED_TYPENAME boost::spirit::classic::chset<CharType> chset_t;
-    typedef BOOST_DEDUCED_TYPENAME boost::spirit::classic::chlit<CharType> chlit_t;
-    typedef BOOST_DEDUCED_TYPENAME boost::spirit::classic::scanner<
-        BOOST_DEDUCED_TYPENAME  std::basic_string<CharType>::iterator
+    typedef typename std::basic_istream<CharType> IStream;
+    typedef typename std::basic_string<CharType> StringType;
+    typedef typename boost::spirit::classic::chset<CharType> chset_t;
+    typedef typename boost::spirit::classic::chlit<CharType> chlit_t;
+    typedef typename boost::spirit::classic::scanner<
+        typename  std::basic_string<CharType>::iterator
     > scanner_t;
-    typedef BOOST_DEDUCED_TYPENAME boost::spirit::classic::rule<scanner_t> rule_t;
+    typedef typename boost::spirit::classic::rule<scanner_t> rule_t;
     // Start grammar definition
     rule_t    
         Reference,
@@ -168,7 +163,7 @@ public:
     bool parse_end_tag(IStream & is) const;
     bool parse_string(IStream & is, StringType & s) /*const*/;
     void init(IStream & is);
-    void windup(IStream & is);
+    bool windup(IStream & is);
     basic_xml_grammar();
 };
 

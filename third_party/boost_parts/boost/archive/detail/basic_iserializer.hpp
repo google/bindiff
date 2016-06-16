@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_DETAIL_BASIC_ISERIALIZER_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -39,23 +39,19 @@ namespace serialization {
 namespace archive {
 namespace detail {
 
-class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_iarchive;
-class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_pointer_iserializer;
+class basic_iarchive;
+class basic_pointer_iserializer;
 
-class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_iserializer : 
+class BOOST_SYMBOL_VISIBLE basic_iserializer : 
     public basic_serializer
 {
 private:
     basic_pointer_iserializer *m_bpis;
 protected:
-    explicit basic_iserializer(
+    explicit BOOST_ARCHIVE_DECL basic_iserializer(
         const boost::serialization::extended_type_info & type
     );
-    // account for bogus gcc warning
-    #if defined(__GNUC__)
-    virtual
-    #endif
-    ~basic_iserializer();
+    virtual BOOST_ARCHIVE_DECL ~basic_iserializer();
 public:
     bool serialized_as_pointer() const {
         return m_bpis != NULL;

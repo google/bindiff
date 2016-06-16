@@ -9,7 +9,7 @@
 #include <boost/serialization/traits.hpp>
 #include <boost/type_traits/is_base_and_derived.hpp>
 #include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/bool.hpp>
+#include <boost/mpl/bool_fwd.hpp>
 
 namespace boost { namespace serialization {
 
@@ -41,7 +41,7 @@ struct is_wrapper_impl :
 
 template<class T>
 struct is_wrapper {
-    typedef BOOST_DEDUCED_TYPENAME is_wrapper_impl<const T>::type type;
+    typedef typename is_wrapper_impl<const T>::type type;
 };
 
 } // serialization

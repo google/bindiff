@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_ARCHIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -15,7 +15,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 //  See http://www.boost.org for updates, documentation, and revision history.
-
+#include <cstring> // count
 #include <boost/assert.hpp>
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp> // size_t
@@ -69,7 +69,7 @@ public:
     }   
 };
 
-BOOST_ARCHIVE_DECL(library_version_type)
+BOOST_ARCHIVE_DECL library_version_type
 BOOST_ARCHIVE_VERSION();
 
 class version_type {
@@ -221,6 +221,9 @@ struct class_name_type :
     operator char * () {
         return t;
     }
+    std::size_t size() const {
+        return std::strlen(t);
+    }
     explicit class_name_type(const char *key_) 
     : t(const_cast<char *>(key_)){}
     explicit class_name_type(char *key_) 
@@ -239,7 +242,7 @@ enum archive_flags {
     flags_last = 8
 };
 
-BOOST_ARCHIVE_DECL(const char *)
+BOOST_ARCHIVE_DECL const char *
 BOOST_ARCHIVE_SIGNATURE();
 
 /* NOTE : Warning  : Warning : Warning : Warning : Warning

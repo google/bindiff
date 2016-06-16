@@ -53,11 +53,7 @@ struct register_base_of
     template <class Base>
     inline void operator()(Base*) const
     {
-# if !BOOST_WORKAROUND(BOOST_MSVC, == 1200)
         BOOST_MPL_ASSERT_NOT((is_same<Base,Derived>));
-# else
-        BOOST_STATIC_ASSERT(!(is_same<Base,Derived>::value));
-# endif 
         
         // Register the Base class
         register_dynamic_id<Base>();
@@ -168,7 +164,7 @@ struct class_metadata
     >::type held_type;
 
     // Determine if the object will be held by value
-    typedef is_convertible<held_type*,T*> use_value_holder;
+    typedef mpl::bool_<is_convertible<held_type*,T*>::value> use_value_holder;
     
     // Compute the "wrapped type", that is, if held_type is a smart
     // pointer, we're talking about the pointee.
@@ -179,10 +175,12 @@ struct class_metadata
     >::type wrapped;
 
     // Determine whether to use a "back-reference holder"
-    typedef mpl::or_<
-        has_back_reference<T>
-      , is_same<held_type_arg,T>
-      , is_base_and_derived<T,wrapped>
+    typedef mpl::bool_<
+        mpl::or_<
+            has_back_reference<T>
+          , is_same<held_type_arg,T>
+          , is_base_and_derived<T,wrapped>
+        >::value
     > use_back_reference;
 
     // Select the holder.

@@ -40,6 +40,7 @@
 #include <binexport2.pb.h>  // NOLINT
 
 #include "base/logging.h"
+#ifdef GOOGLE
 #include "strings/strutil.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
@@ -530,9 +531,10 @@ void WriteStrings(const AddressReferences& address_references,
                   const vector<pair<Address, int32>>& instruction_indices,
                   BinExport2* proto) {
   std::map<Address, const AddressReference*> string_address_to_reference;
-  std::map<StringPiece, int> string_to_string_index;
+  std::map<string, int> string_to_string_index;
   for (const auto& reference : address_references) {
-    if (reference.kind_ != TYPE_DATA_STRING) {
+    if (reference.kind_ != TYPE_DATA_STRING &&
+        reference.kind_ != TYPE_DATA_WIDE_STRING) {
       continue;
     }
     // String length must be > 0.
@@ -548,11 +550,18 @@ void WriteStrings(const AddressReferences& address_references,
         instruction->first != reference.source_) {
       continue;
     }
-    auto referenced_string = StringPiece(
-        reinterpret_cast<const char*>(&address_space[reference.target_]),
-        reference.size_);
-    auto it = string_to_string_index.emplace(referenced_string,
-                                             proto->string_table_size());
+
+    string content;
+    // TODO(timkornau): Add support for UTF16 strings.
+    if (reference.kind_ != TYPE_DATA_STRING) {
+      continue;
+    }
+    content =
+        string(reinterpret_cast<const char*>(&address_space[reference.target_]),
+               reference.size_);
+
+    auto it =
+        string_to_string_index.emplace(content, proto->string_table_size());
     // Deduplicate strings.
     if (it.second != false) {
       proto->add_string_table(it.first->first);

@@ -11,7 +11,7 @@
 #include <boost/assert.hpp>
 #include <cstring>
 
-#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
+#include <boost/config.hpp>
 #if defined(BOOST_NO_STDC_NAMESPACE)
 namespace std{ 
     using ::memcpy; 
@@ -27,7 +27,7 @@ namespace archive {
 // implementation of basic_text_oarchive
 
 template<class Archive>
-BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
+BOOST_ARCHIVE_OR_WARCHIVE_DECL void
 basic_text_oarchive<Archive>::newtoken()
 {
     switch(delimiter){
@@ -48,7 +48,7 @@ basic_text_oarchive<Archive>::newtoken()
 }
 
 template<class Archive>
-BOOST_ARCHIVE_OR_WARCHIVE_DECL(void)
+BOOST_ARCHIVE_OR_WARCHIVE_DECL void
 basic_text_oarchive<Archive>::init(){
     // write signature in an archive version independent manner
     const std::string file_signature(BOOST_ARCHIVE_SIGNATURE());

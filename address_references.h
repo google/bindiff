@@ -31,7 +31,8 @@ enum AddressReferenceType {
   TYPE_CALL_INDIRECT = 5,
   //  TYPE_CALL_INDIRECT_VIRTUAL  = 6,  // This is obsolete and unused.
   TYPE_DATA = 7,
-  TYPE_DATA_STRING = 8
+  TYPE_DATA_STRING = 8,
+  TYPE_DATA_WIDE_STRING = 9,
 };
 
 struct AddressReference {

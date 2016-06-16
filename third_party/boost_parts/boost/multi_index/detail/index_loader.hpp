@@ -1,4 +1,4 @@
-/* Copyright 2003-2008 Joaquin M Lopez Munoz.
+/* Copyright 2003-2015 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,7 @@
 #ifndef BOOST_MULTI_INDEX_DETAIL_INDEX_LOADER_HPP
 #define BOOST_MULTI_INDEX_DETAIL_INDEX_LOADER_HPP
 
-#if defined(_MSC_VER)&&(_MSC_VER>=1200)
+#if defined(_MSC_VER)
 #pragma once
 #endif
 
@@ -18,6 +18,7 @@
 #include <boost/archive/archive_exception.hpp>
 #include <boost/noncopyable.hpp>
 #include <boost/multi_index/detail/auto_space.hpp>
+#include <boost/multi_index/detail/raw_ptr.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/throw_exception.hpp> 
 #include <cstddef>
@@ -91,7 +92,7 @@ public:
   }
 
 private:
-  Node** entries()const{return &*spc.data();}
+  Node** entries()const{return raw_ptr<Node**>(spc.data());}
 
   /* We try to delay sorting as much as possible just in case it
    * is not necessary, hence this version of load_node.

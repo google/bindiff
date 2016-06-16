@@ -9,8 +9,6 @@
 #ifndef BOOST_MPI_DETAIL_FORWARD_SKELETON_OARCHIVE_HPP
 #define BOOST_MPI_DETAIL_FORWARD_SKELETON_OARCHIVE_HPP
 
-#include <boost/serialization/pfto.hpp>
-
 #include <boost/archive/detail/auto_link_archive.hpp>
 #include <boost/archive/detail/oserializer.hpp>
 #include <boost/archive/detail/interface_oarchive.hpp>
@@ -41,17 +39,14 @@ public:
 protected:
 #endif
 
-    // intermediate level to support override of operators
-    // for templates in the absence of partial function 
-    // template ordering
-    template<class T>
-    void save_override(T const& t, BOOST_PFTO int)
-    {
-        archive::save(* this->This(), t);
-    }
+  template<class T>
+  void save_override(T const& t)
+  {
+    archive::save(* this->This(), t);
+  }
 
 #define BOOST_ARCHIVE_FORWARD_IMPLEMENTATION(T) \
-    void save_override(T const & t , int)       \
+    void save_override(T const & t)             \
     {                                           \
       implementation_archive << t;              \
     }
@@ -66,9 +61,9 @@ BOOST_ARCHIVE_FORWARD_IMPLEMENTATION(archive::tracking_type)
 BOOST_ARCHIVE_FORWARD_IMPLEMENTATION(archive::class_name_type)
 BOOST_ARCHIVE_FORWARD_IMPLEMENTATION(serialization::collection_size_type)
 
-    void save_override(std::string const & t , int)    
+    void save_override(std::string const & t)    
     {                                          
-      save_override(serialization::collection_size_type(t.size()),0);       
+      save_override(serialization::collection_size_type(t.size()));       
     }
 
 
