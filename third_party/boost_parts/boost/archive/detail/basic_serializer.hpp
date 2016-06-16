@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_BASIC_SERIALIZER_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -41,9 +41,7 @@ protected:
         const boost::serialization::extended_type_info & eti
     ) : 
         m_eti(& eti)
-    {
-        BOOST_ASSERT(NULL != & eti);
-    }
+    {}
 public:
     inline bool 
     operator<(const basic_serializer & rhs) const {

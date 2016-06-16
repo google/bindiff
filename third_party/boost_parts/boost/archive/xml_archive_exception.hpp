@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_XML_ARCHIVE_EXCEPTION_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -20,7 +20,6 @@
 #include <boost/assert.hpp>
 
 #include <boost/config.hpp> 
-#include <boost/preprocessor/empty.hpp>
 #include <boost/archive/detail/decl.hpp>
 #include <boost/archive/archive_exception.hpp>
 
@@ -32,7 +31,7 @@ namespace archive {
 //////////////////////////////////////////////////////////////////////
 // exceptions thrown by xml archives
 //
-class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) xml_archive_exception : 
+class BOOST_SYMBOL_VISIBLE xml_archive_exception : 
     public virtual boost::archive::archive_exception
 {
 public:
@@ -41,11 +40,13 @@ public:
         xml_archive_tag_mismatch,
         xml_archive_tag_name_error
     } exception_code;
-    xml_archive_exception(
+    BOOST_ARCHIVE_DECL xml_archive_exception(
         exception_code c, 
         const char * e1 = NULL,
         const char * e2 = NULL
     );
+    BOOST_ARCHIVE_DECL xml_archive_exception(xml_archive_exception const &) ;
+    virtual BOOST_ARCHIVE_DECL ~xml_archive_exception() BOOST_NOEXCEPT_OR_NOTHROW ;
 };
 
 }// namespace archive

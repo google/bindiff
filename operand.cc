@@ -15,6 +15,7 @@
 #include "third_party/zynamics/binexport/operand.h"
 
 #pragma warning(push, 0)
+#include <iterator>
 #include <sstream>
 #pragma warning(pop)
 

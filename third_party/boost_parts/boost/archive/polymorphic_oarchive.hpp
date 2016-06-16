@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_POLYMORPHIC_OARCHIVE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -28,7 +28,6 @@ namespace std{
 #endif
 
 #include <boost/cstdint.hpp>
-#include <boost/serialization/pfto.hpp>
 #include <boost/archive/detail/oserializer.hpp>
 #include <boost/archive/detail/interface_oarchive.hpp>
 #include <boost/serialization/nvp.hpp>
@@ -38,20 +37,18 @@ namespace std{
 #include <boost/archive/detail/abi_prefix.hpp> // must be the last header
 
 namespace boost {
-template<class T>
-class shared_ptr;
 namespace serialization {
     class extended_type_info;
 } // namespace serialization
 namespace archive {
 namespace detail {
-    class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_oarchive;
-    class BOOST_ARCHIVE_DECL(BOOST_PP_EMPTY()) basic_oserializer;
+    class basic_oarchive;
+    class basic_oserializer;
 }
 
 class polymorphic_oarchive;
 
-class polymorphic_oarchive_impl :
+class BOOST_SYMBOL_VISIBLE polymorphic_oarchive_impl :
     public detail::interface_oarchive<polymorphic_oarchive>
 {
 #ifdef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
@@ -100,23 +97,21 @@ public:
     virtual void save_start(const char * name) = 0;
     virtual void save_end(const char * name) = 0;
     virtual void register_basic_serializer(const detail::basic_oserializer & bos) = 0;
+    virtual detail::helper_collection & get_helper_collection() = 0;
 
     virtual void end_preamble() = 0;
 
     // msvc and borland won't automatically pass these to the base class so
     // make it explicit here
     template<class T>
-    void save_override(T & t, BOOST_PFTO int)
+    void save_override(T & t)
     {
         archive::save(* this->This(), t);
     }
     // special treatment for name-value pairs.
     template<class T>
     void save_override(
-                #ifndef BOOST_NO_FUNCTION_TEMPLATE_ORDERING
-                const
-                #endif
-                ::boost::serialization::nvp< T > & t, int
+            const ::boost::serialization::nvp< T > & t
         ){
         save_start(t.name());
         archive::save(* this->This(), t.const_value());
@@ -141,7 +136,7 @@ public:
 };
 
 // note: preserve naming symmetry
-class polymorphic_oarchive : 
+class BOOST_SYMBOL_VISIBLE polymorphic_oarchive : 
     public polymorphic_oarchive_impl
 {
 public:

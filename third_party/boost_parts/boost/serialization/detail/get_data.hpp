@@ -9,7 +9,7 @@
 #define BOOST_SERIALIZATION_DETAIL_GET_DATA_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -54,8 +54,6 @@ const T* get_data(STD::valarray<T> const& v)
 } // serialization
 } // boost
 
-#if defined(__SGI_STL_PORT) || defined(_STLPORT_VERSION)
 #undef STD
-#endif
 
 #endif // BOOST_SERIALIZATION_DETAIL_GET_DATA_HPP

@@ -2,7 +2,7 @@
 #define BOOST_ARCHIVE_ITERATORS_REMOVE_WHITESPACE_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -18,16 +18,9 @@
 
 #include <boost/assert.hpp>
 
-#include <boost/config.hpp> // for BOOST_DEDUCED_TYPENAME
-
-#include <boost/serialization/pfto.hpp>
-
 #include <boost/iterator/iterator_adaptor.hpp>
 #include <boost/iterator/filter_iterator.hpp>
 #include <boost/iterator/iterator_traits.hpp>
-
-//#include <boost/detail/workaround.hpp>
-//#if ! BOOST_WORKAROUND(BOOST_MSVC, <=1300)
 
 // here is the default standard implementation of the functor used
 // by the filter iterator to remove spaces.  Unfortunately usage
@@ -52,8 +45,6 @@ namespace std{ using ::isspace; }
 #undef isspace
 #undef iswspace
 #endif
-
-//#endif // BOOST_WORKAROUND
 
 namespace { // anonymous
 
@@ -100,14 +91,14 @@ class filter_iterator
     >
 {
     friend class boost::iterator_core_access;
-    typedef BOOST_DEDUCED_TYPENAME boost::iterator_adaptor<
+    typedef typename boost::iterator_adaptor<
         filter_iterator<Predicate, Base>,
         Base,
         use_default,
         single_pass_traversal_tag
     > super_t;
     typedef filter_iterator<Predicate, Base> this_t;
-    typedef BOOST_DEDUCED_TYPENAME super_t::reference reference_type;
+    typedef typename super_t::reference reference_type;
 
     reference_type dereference_impl(){
         if(! m_full){
@@ -142,8 +133,8 @@ template<class Base>
 class remove_whitespace : 
     public filter_iterator<
         remove_whitespace_predicate<
-            BOOST_DEDUCED_TYPENAME boost::iterator_value<Base>::type
-            //BOOST_DEDUCED_TYPENAME Base::value_type
+            typename boost::iterator_value<Base>::type
+            //typename Base::value_type
         >,
         Base
     >
@@ -151,8 +142,8 @@ class remove_whitespace :
     friend class boost::iterator_core_access;
     typedef filter_iterator<
         remove_whitespace_predicate<
-            BOOST_DEDUCED_TYPENAME boost::iterator_value<Base>::type
-            //BOOST_DEDUCED_TYPENAME Base::value_type
+            typename boost::iterator_value<Base>::type
+            //typename Base::value_type
         >,
         Base
     > super_t;
@@ -160,8 +151,8 @@ public:
 //    remove_whitespace(){} // why is this needed?
     // make composible buy using templated constructor
     template<class T>
-    remove_whitespace(BOOST_PFTO_WRAPPER(T) start) :
-        super_t(Base(BOOST_MAKE_PFTO_WRAPPER(static_cast< T >(start))))
+    remove_whitespace(T start) :
+        super_t(Base(static_cast< T >(start)))
     {}
     // intel 7.1 doesn't like default copy constructor
     remove_whitespace(const remove_whitespace & rhs) : 

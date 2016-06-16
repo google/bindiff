@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_VECTOR_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -21,14 +21,21 @@
 
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
-#include <boost/type_traits/is_arithmetic.hpp> 
+
+#include <boost/archive/detail/basic_iarchive.hpp>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/collection_size_type.hpp>
+#include <boost/serialization/item_version_type.hpp>
 
 #include <boost/serialization/collections_save_imp.hpp>
 #include <boost/serialization/collections_load_imp.hpp>
 #include <boost/serialization/split_free.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/serialization/detail/get_data.hpp>
-#include <boost/mpl/bool.hpp>
+#include <boost/serialization/detail/stack_constructor.hpp>
+#include <boost/mpl/bool_fwd.hpp>
+#include <boost/mpl/if.hpp>
 
 // default is being compatible with version 1.34.1 files, not 1.35 files
 #ifndef BOOST_SERIALIZATION_VECTOR_VERSIONED
@@ -70,14 +77,18 @@ inline void load(
     const unsigned int /* file_version */,
     mpl::false_
 ){
-    boost::serialization::stl::load_collection<
-        Archive,
-        std::vector<U, Allocator>,
-        boost::serialization::stl::archive_input_seq<
-            Archive, STD::vector<U, Allocator> 
-        >,
-        boost::serialization::stl::reserve_imp<STD::vector<U, Allocator> >
-    >(ar, t);
+    const boost::archive::library_version_type library_version(
+        ar.get_library_version()
+    );
+    // retrieve number of elements
+    item_version_type item_version(0);
+    collection_size_type count;
+    ar >> BOOST_SERIALIZATION_NVP(count);
+    if(boost::archive::library_version_type(3) < library_version){
+        ar >> BOOST_SERIALIZATION_NVP(item_version);
+    }
+    t.reserve(count);
+    stl::collection_load_impl(ar, t, count, item_version);
 }
 
 // the optimized versions
@@ -92,7 +103,7 @@ inline void save(
     const collection_size_type count(t.size());
     ar << BOOST_SERIALIZATION_NVP(count);
     if (!t.empty())
-        ar << make_array(detail::get_data(t),t.size());
+        ar << boost::serialization::make_array(detail::get_data(t),t.size());
 }
 
 template<class Archive, class U, class Allocator>
@@ -110,7 +121,7 @@ inline void load(
         ar >> BOOST_SERIALIZATION_NVP(item_version);
     }
     if (!t.empty())
-        ar >> make_array(detail::get_data(t),t.size());
+        ar >> boost::serialization::make_array(detail::get_data(t),t.size());
   }
 
 // dispatch to either default or optimized versions
@@ -121,9 +132,9 @@ inline void save(
     const std::vector<U, Allocator> &t,
     const unsigned int file_version
 ){
-    typedef BOOST_DEDUCED_TYPENAME 
+    typedef typename 
     boost::serialization::use_array_optimization<Archive>::template apply<
-        BOOST_DEDUCED_TYPENAME remove_const<U>::type 
+        typename remove_const<U>::type 
     >::type use_optimized;
     save(ar,t,file_version, use_optimized());
 }
@@ -141,9 +152,9 @@ inline void load(
       return;
     }
 #endif
-    typedef BOOST_DEDUCED_TYPENAME 
+    typedef typename 
     boost::serialization::use_array_optimization<Archive>::template apply<
-        BOOST_DEDUCED_TYPENAME remove_const<U>::type 
+        typename remove_const<U>::type 
     >::type use_optimized;
     load(ar,t,file_version, use_optimized());
 }
@@ -158,8 +169,6 @@ inline void serialize(
 ){
     boost::serialization::split_free(ar, t, file_version);
 }
-
-#if ! BOOST_WORKAROUND(BOOST_MSVC, <= 1300)
 
 /////////1/////////2/////////3/////////4/////////5/////////6/////////7/////////8
 // vector<bool>
@@ -188,11 +197,11 @@ inline void load(
     // retrieve number of elements
     collection_size_type count;
     ar >> BOOST_SERIALIZATION_NVP(count);
-    t.clear();
-    while(count-- > 0){
-        bool i;
-        ar >> boost::serialization::make_nvp("item", i);
-        t.push_back(i);
+    t.resize(count);
+    for(collection_size_type i = collection_size_type(0); i < count; ++i){
+        bool b;
+        ar >> boost::serialization::make_nvp("item", b);
+        t[i] = b;
     }
 }
 
@@ -206,8 +215,6 @@ inline void serialize(
 ){
     boost::serialization::split_free(ar, t, file_version);
 }
-
-#endif // BOOST_WORKAROUND
 
 } // serialization
 } // namespace boost

@@ -2,7 +2,7 @@
 #define BOOST_SERIALIZATION_BASE_OBJECT_HPP
 
 // MS compatible compilers support #pragma once
-#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+#if defined(_MSC_VER)
 # pragma once
 #endif
 
@@ -25,7 +25,6 @@
 
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/int.hpp>
-#include <boost/mpl/bool.hpp>
 #include <boost/mpl/identity.hpp>
 
 #include <boost/type_traits/is_base_and_derived.hpp>
@@ -48,7 +47,7 @@ namespace detail
     template<class B, class D>
     struct base_cast
     {
-        typedef BOOST_DEDUCED_TYPENAME
+        typedef typename
         mpl::if_<
             is_const<D>,
             const B,
@@ -74,7 +73,7 @@ namespace detail
             }
         };
         static void const * invoke(){
-            typedef BOOST_DEDUCED_TYPENAME mpl::eval_if<
+            typedef typename mpl::eval_if<
                 is_polymorphic<Base>,
                 mpl::identity<polymorphic>,
                 mpl::identity<non_polymorphic>
@@ -84,27 +83,16 @@ namespace detail
     };
 
 } // namespace detail
-#if defined(__BORLANDC__) && __BORLANDC__ < 0x610
 template<class Base, class Derived>
-const Base & 
-base_object(const Derived & d)
-{
-    BOOST_STATIC_ASSERT(! is_pointer<Derived>::value);
-    detail::base_register<Base, Derived>::invoke();
-    return access::cast_reference<const Base, Derived>(d);
-}
-#else
-template<class Base, class Derived>
-BOOST_DEDUCED_TYPENAME detail::base_cast<Base, Derived>::type & 
+typename detail::base_cast<Base, Derived>::type & 
 base_object(Derived &d)
 {
     BOOST_STATIC_ASSERT(( is_base_and_derived<Base,Derived>::value));
     BOOST_STATIC_ASSERT(! is_pointer<Derived>::value);
-    typedef BOOST_DEDUCED_TYPENAME detail::base_cast<Base, Derived>::type type;
+    typedef typename detail::base_cast<Base, Derived>::type type;
     detail::base_register<type, Derived>::invoke();
     return access::cast_reference<type, Derived>(d);
 }
-#endif
 
 } // namespace serialization
 } // namespace boost

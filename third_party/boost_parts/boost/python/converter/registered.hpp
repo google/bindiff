@@ -14,6 +14,11 @@
 # include <boost/python/type_id.hpp>
 # include <boost/type.hpp>
 
+#if defined(BOOST_PYTHON_TRACE_REGISTRY) \
+ || defined(BOOST_PYTHON_CONVERTER_REGISTRY_APPLE_MACH_WORKAROUND)
+# include <iostream>
+#endif
+
 namespace boost {
 
 // You'll see shared_ptr mentioned in this header because we need to
@@ -44,8 +49,7 @@ struct registered
 {
 };
 
-# if !defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION) \
-    && !BOOST_WORKAROUND(BOOST_MSVC, BOOST_TESTED_AT(1310))
+# if !BOOST_WORKAROUND(BOOST_MSVC, BOOST_TESTED_AT(1310))
 // collapses a few more types to the same static instance.  MSVC7.1
 // fails to strip cv-qualification from array types in typeid.  For
 // some reason we can't use this collapse there or array converters

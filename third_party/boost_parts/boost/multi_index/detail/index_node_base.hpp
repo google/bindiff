@@ -1,4 +1,4 @@
-/* Copyright 2003-2008 Joaquin M Lopez Munoz.
+/* Copyright 2003-2015 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -9,7 +9,7 @@
 #ifndef BOOST_MULTI_INDEX_DETAIL_INDEX_NODE_BASE_HPP
 #define BOOST_MULTI_INDEX_DETAIL_INDEX_NODE_BASE_HPP
 
-#if defined(_MSC_VER)&&(_MSC_VER>=1200)
+#if defined(_MSC_VER)
 #pragma once
 #endif
 
@@ -51,14 +51,12 @@ struct index_node_base:private pod_value_holder<Value>
 
   value_type& value()
   {
-    return *static_cast<value_type*>(
-      static_cast<void*>(&this->space));
+    return *reinterpret_cast<value_type*>(&this->space);
   }
 
   const value_type& value()const
   {
-    return *static_cast<const value_type*>(
-      static_cast<const void*>(&this->space));
+    return *reinterpret_cast<const value_type*>(&this->space);
   }
 
   static index_node_base* from_value(const value_type* p)
@@ -85,9 +83,7 @@ private:
 };
 
 template<typename Node,typename Value>
-Node* node_from_value(
-  const Value* p
-  BOOST_APPEND_EXPLICIT_TEMPLATE_TYPE(Node))
+Node* node_from_value(const Value* p)
 {
   typedef typename Node::allocator_type allocator_type;
   return static_cast<Node*>(
