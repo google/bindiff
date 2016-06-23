@@ -9,10 +9,12 @@ set(PROJECT_VERSION_MINOR 3)
 set(PROJECT_VERSION_PATCH 0)
 
 set(BinExport_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../binexport)
+set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
+set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}
                               ${BinExport_SOURCE_DIR})
-set(CMAKE_FIND_ROOT_PATH ${PROJECT_SOURCE_DIR}/third_party
-                         ${BinExport_SOURCE_DIR}/third_party)
+set(CMAKE_FIND_ROOT_PATH ${BinExport_SOURCE_DIR}/third_party)
 
 # Use a copy of a subset of Boost that ships with BinExport
 set(Boost_NO_SYSTEM_PATHS, ON)
@@ -43,7 +45,10 @@ include_directories(${PROJECT_SOURCE_DIR}
                     ${Boost_INCLUDE_DIR}
                     ${IdaSdk_INCLUDE_DIRS}
                     ${PROTOBUF_INCLUDE_DIRS}
-                    ${PROTOBUF_SRC_ROOT_FOLDER})
+                    ${PROTOBUF_SRC_ROOT_FOLDER}
+                    ${Google3_DIR})
+
+link_directories(${BinExport_SOURCE_DIR}) # Use BinExport infrastructure
 
 configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
@@ -52,7 +57,7 @@ if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 if(UNIX)
-  add_compile_options(--std=c++11 -Wno-deprecated)
+  add_compile_options(--std=c++11 -Wno-deprecated -Wno-deprecated-declarations)
   if(NOT COMPILE_64BIT)
     add_compile_options(-m32)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
@@ -76,46 +81,73 @@ elseif(WIN32)
   endif()
 endif()
 
-# Sources shared by the differ and the IDA plugin.
-set(Shared_SRCS call_graph.cc
-# TODO(cblichmann): Work in progress
-#                call_graph_matching.cc
-#                change_classifier.cc
-#                comments.cc
-#                database_writer.cc
-#                differ.cc
-#                fixed_points.cc
-#                flow_graph.cc
-#                flow_graph_matching.cc
-#                fortknox_writer.cc
-#                instruction.cc
-#                log.cc
-#                log_writer.cc
-#                matching.cc
-#                prime_signature.cc
-#                reader.cc
-#                sqlite.cc
-#                utility.cc
-#                writer.cc
-                ${BinExport_SOURCE_DIR}/binexport.pb.h
-                ${BinExport_SOURCE_DIR}/binexport2.pb.h
-)
+add_library(tinyxpath STATIC ${ThirdParty_DIR}/tinyxpath/action_store.cpp
+                             ${ThirdParty_DIR}/tinyxpath/htmlutil.cpp
+                             ${ThirdParty_DIR}/tinyxpath/lex_util.cpp
+                             ${ThirdParty_DIR}/tinyxpath/main.cpp
+                             ${ThirdParty_DIR}/tinyxpath/node_set.cpp
+                             ${ThirdParty_DIR}/tinyxpath/tinystr.cpp
+                             ${ThirdParty_DIR}/tinyxpath/tinyxml.cpp
+                             ${ThirdParty_DIR}/tinyxpath/tinyxmlerror.cpp
+                             ${ThirdParty_DIR}/tinyxpath/tinyxmlparser.cpp
+                             ${ThirdParty_DIR}/tinyxpath/tokenlist.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xml_util.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xpath_expression.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xpath_processor.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xpath_stack.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xpath_static.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xpath_stream.cpp
+                             ${ThirdParty_DIR}/tinyxpath/xpath_syntax.cpp)
 
+add_library(sqlite STATIC ${ThirdParty_DIR}/sqlite/src/sqlite3.c)
+
+# Sources shared by the differ and the IDA plugin.
+add_library(bindiff STATIC call_graph.cc
+                           call_graph_matching.cc
+                           change_classifier.cc
+                           comments.cc
+                           database_writer.cc
+                           differ.cc
+                           fixed_points.cc
+                           flow_graph.cc
+                           flow_graph_matching.cc
+                           fortknox_writer.cc
+                           instruction.cc
+                           log_writer.cc
+                           matching.cc
+                           prime_signature.cc
+                           reader.cc
+                           sqlite.cc
+                           utility.cc
+                           writer.cc
+                           xmlconfig.cc)
+
+set(BinDiff_LIBRARIES bindiff
+                      ${PROTOBUF_LIBRARIES}
+                      binexport_proto
+                      binexport_shared
+                      binexport_plugin_shared
+                      sqlite
+                      tinyxpath)
 if(NOT COMPILE_64BIT)
   add_ida_plugin(zynamics_bindiff_4_3 EA64
-                 ${Shared_SRCS})
+                 ida/main_plugin.cc
+                 ida/visual_diff.cc)
 
-  set(BinDiff_LIBRARIES ${IdaSdk_LIBRARIES}
-                        ${PROTOBUF_LIBRARIES})
+  set(Plugin_LIBRARIES ${BinDiff_LIBRARIES}
+                       ${IdaSdk_LIBRARIES})
   if(APPLE)
-    target_link_libraries(zynamics_bindiff_4_3.pmc ${BinDiff_LIBRARIES})
-    target_link_libraries(zynamics_bindiff_4_3.pmc64 ${BinDiff_LIBRARIES})
+    target_link_libraries(zynamics_bindiff_4_3.pmc ${Plugin_LIBRARIES})
+    target_link_libraries(zynamics_bindiff_4_3.pmc64 ${Plugin_LIBRARIES})
   elseif(UNIX)
-    target_link_libraries(zynamics_bindiff_4_3.plx ${BinDiff_LIBRARIES})
-    target_link_libraries(zynamics_bindiff_4_3.plx64 ${BinDiff_LIBRARIES})
+    target_link_libraries(zynamics_bindiff_4_3.plx ${Plugin_LIBRARIES})
+    target_link_libraries(zynamics_bindiff_4_3.plx64 ${Plugin_LIBRARIES})
   elseif(WIN32)
-    list(APPEND BinDiff_LIBRARIES shlwapi.lib)
-    target_link_libraries(zynamics_bindiff_4_3.plw ${BinDiff_LIBRARIES})
-    target_link_libraries(zynamics_bindiff_4_3.p64 ${BinDiff_LIBRARIES})
+    list(APPEND Plugin_LIBRARIES shlwapi.lib)
+    target_link_libraries(zynamics_bindiff_4_3.plw ${Plugin_LIBRARIES})
+    target_link_libraries(zynamics_bindiff_4_3.p64 ${Plugin_LIBRARIES})
   endif()
 endif()
+
+add_executable(differ main_portable.cc)
+target_link_libraries(differ ${BinDiff_LIBRARIES})

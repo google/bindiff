@@ -22,6 +22,7 @@ using ::proto2::io::IstreamInputStream;
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
+#include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
@@ -106,8 +107,8 @@ DatabaseWriter::DatabaseWriter(const std::string& filename, bool recreate)
       function_steps_(),
       database_(),
       filename_(filename) {
-  const std::string temp_dir(GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true) +
-                             filename);
+  const auto temp_dir(GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true) +
+                      filename);
   filename_ = temp_dir;
   if (recreate) {
     remove(temp_dir.c_str());

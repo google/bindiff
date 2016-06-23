@@ -4,7 +4,6 @@
 #include <list>
 #include <memory>
 
-#include "base/macros.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
@@ -17,11 +16,11 @@ class Writer {
                      const FixedPoints& fixed_points) = 0;
   virtual ~Writer();
 
+  Writer(const Writer&) = delete;
+  Writer& operator=(const Writer&) = delete;
+
  protected:
   Writer();
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(Writer);
 };
 
 class ChainWriter : public Writer {

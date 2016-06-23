@@ -1,34 +1,36 @@
+#include <chrono>  // NOLINT
 #include <cstdint>
 #include <fstream>
 #include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
+#include <thread>
 
 #include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <bytes.h>                                           // NOLINT
-#include <diskio.h>                                          // NOLINT
-#include <enum.h>                                            // NOLINT
-#include <expr.h>                                            // NOLINT
-#include <frame.h>                                           // NOLINT
-#include <funcs.h>                                           // NOLINT
-#include <ida.h>                                             // NOLINT
-#include <idp.h>                                             // NOLINT
-#include <kernwin.h>                                         // NOLINT
-#include <loader.h>                                          // NOLINT
-#include <nalt.h>                                            // NOLINT
-#include <name.h>                                            // NOLINT
-#include <struct.h>                                          // NOLINT
-#include <ua.h>                                              // NOLINT
-#include <xref.h>                                            // NOLINT
+#include <bytes.hpp>                                         // NOLINT
+#include <diskio.hpp>                                        // NOLINT
+#include <enum.hpp>                                          // NOLINT
+#include <expr.hpp>                                          // NOLINT
+#include <frame.hpp>                                         // NOLINT
+#include <funcs.hpp>                                         // NOLINT
+#include <ida.hpp>                                           // NOLINT
+#include <idp.hpp>                                           // NOLINT
+#include <kernwin.hpp>                                       // NOLINT
+#include <loader.hpp>                                        // NOLINT
+#include <nalt.hpp>                                          // NOLINT
+#include <name.hpp>                                          // NOLINT
+#include <struct.hpp>                                        // NOLINT
+#include <ua.hpp>                                            // NOLINT
+#include <xref.hpp>                                          // NOLINT
 
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/algorithm/string.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/convenience.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/operations.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/path.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/timer.hpp"
+#include "base/logging.h"
+#include "base/stringprintf.h"
+#include "strings/strutil.h"
+#include <boost/algorithm/string.hpp>        // NOLINT
+#include <boost/filesystem/convenience.hpp>  // NOLINT
+#include <boost/filesystem/operations.hpp>   // NOLINT
+#include <boost/filesystem/path.hpp>         // NOLINT
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -38,14 +40,17 @@
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport.pb.h"   // NOLINT
 #include "third_party/zynamics/binexport/binexport2.pb.h"  // NOLINT
+#include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
+#include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
-#include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>
-#ifdef _WIN32
+#ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
 #include <Windows.h>
@@ -60,10 +65,8 @@ using google::protobuf::io::IstreamInputStream;
 
 #ifndef __EA64__
 #define HEX_ADDRESS "%08X"
-#define ADDRESS_OUT std::hex << std::setfill('0') << std::setw(8)
 #else
 #define HEX_ADDRESS "%016llX"
-#define ADDRESS_OUT std::hex << std::setfill('0') << std::setw(16)
 #endif
 
 static const char kBinExportVersion[] = "9";    // Exporter version to use.
@@ -350,7 +353,7 @@ bool Results::IncrementalDiff() {
     incomplete_results_ = false;
   }
 
-  boost::timer timer;
+  auto time_start(std::chrono::system_clock::now());
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
                           flow_graphs2_, fixed_points_);
 
@@ -435,9 +438,10 @@ bool Results::IncrementalDiff() {
     fixed_point_infos_.insert(info);
   }
 
-  LOG(INFO) << std::fixed << std::setprecision(3) << timer.elapsed()
+  std::chrono::duration<double> processing_time(
+      std::chrono::system_clock::now() - time_start);
+  LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
             << " seconds for incremental matching.";
-  timer.restart();
 
   SetDirty();
   return true;
@@ -1073,9 +1077,11 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   message_stream << "<BinDiffMatch>\n"
                  << "\t<Type value=\"callgraph\" />\n"
                  << "\t<Database path=\"" << database_file << "\" />\n"
-                 << "\t<Match primary=\"" << ADDRESS_OUT
-                 << fixed_point_info.primary << "\" secondary=\"" << ADDRESS_OUT
-                 << fixed_point_info.secondary << "\" />\n"
+                 << "\t<Match primary=\""
+                 << StringPrintf(HEX_ADDRESS, fixed_point_info.primary)
+                 << "\" secondary=\""
+                 << StringPrintf(HEX_ADDRESS, fixed_point_info.secondary)
+                 << "\" />\n"
                  << "\t<Primary path=\"" << call_graph1_.GetFilename()
                  << "\" />\n"
                  << "\t<Secondary path=\"" << call_graph2_.GetFilename()
@@ -1368,7 +1374,7 @@ int Results::ConfirmMatch(int index) {
 }
 
 void CopyToClipboard(const std::string& data) {
-#ifdef _WIN32
+#ifdef WIN32
   if (!OpenClipboard(0)) {
     throw std::runtime_error(GetLastWindowsError().c_str());
   }
@@ -1687,7 +1693,7 @@ class ExporterThread {
         secondary_temp_dir(temp_dir / "secondary"),
         idc_file_(temp_dir / "run_secondary.idc") {
     boost::filesystem::remove_all(secondary_temp_dir);
-    CreateDirectories(secondary_temp_dir.string());
+    CreateDirectories(StringPiece(secondary_temp_dir.string()));
 
     {
       std::ofstream file(idc_file_.c_str());
@@ -1706,8 +1712,7 @@ class ExporterThread {
   void operator()() {
     std::string ida_exe(idadir(0));
     const bool is_64bit =
-        boost::algorithm::to_lower_copy(
-            boost::filesystem::extension(secondary_idb_path_)) == ".i64";
+        StringPiece(ToUpper(secondary_idb_path_.string())).ends_with(".I64");
 
     std::string s_param;
 // We only support the Qt version.
@@ -1753,8 +1758,7 @@ class ExporterThread {
 };
 
 bool ExportIdbs() {
-  const boost::filesystem::path temp_dir(
-      GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true));
+  const boost::filesystem::path temp_dir(GetTempDirectory("BinDiff", true));
 
   const char* secondary_idb = askfile_c(0, "*.idb;*.i64", "Select Database");
   if (!secondary_idb) {
@@ -1790,12 +1794,12 @@ bool ExportIdbs() {
   delete g_results;
   g_results = 0;
 
-  LOG(INFO) << "diffing " << primary_idb_path.filename() << " vs "
-            << secondary_idb_path.filename();
+  LOG(INFO) << "diffing " << primary_idb_path.filename().string() << " vs "
+            << secondary_idb_path.filename().string();
   WaitBox wait_box("HIDECANCEL\nExporting idbs...");
   {
     ExporterThread exporter(temp_dir, secondary_idb_path);
-    boost::thread thread(boost::ref(exporter));
+    std::thread thread(std::ref(exporter));
 
     boost::filesystem::path primary_temp_dir(temp_dir / "primary");
     boost::filesystem::remove_all(primary_temp_dir);
@@ -2006,8 +2010,9 @@ size_t SetComments(Address source, Address target, const Comments& comments,
       } break;
       default:
         LOG(INFO) << "Unknown comment type " << comment.type_ << ": "
-                  << ADDRESS_OUT << source << " -> " << ADDRESS_OUT << target
-                  << " " << i->second.comment_;
+                  << StringPrintf(HEX_ADDRESS, source) << " -> "
+                  << StringPrintf(HEX_ADDRESS, target) << " "
+                  << i->second.comment_;
         break;
     }
   }
@@ -2457,7 +2462,7 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
 
       add_chooser_command("Matched Functions", "Confirm Match", &ConfirmMatch,
                           -1, -1, CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
-#ifdef _WIN32
+#ifdef WIN32
       add_chooser_command("Matched Functions", "Copy Primary Address",
                           &CopyPrimaryAddress, -1, -1, CHOOSER_POPUP_MENU);
       add_chooser_command("Matched Functions", "Copy Secondary Address",
@@ -2512,7 +2517,7 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
 
       add_chooser_command("Primary Unmatched", "Add Match", &AddMatchPrimary,
                           -1, -1, CHOOSER_POPUP_MENU);
-#ifdef _WIN32
+#ifdef WIN32
       add_chooser_command("Primary Unmatched", "Copy Address",
                           &CopyPrimaryAddressUnmatched, -1, -1,
                           CHOOSER_POPUP_MENU);
@@ -2543,7 +2548,7 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
 
       add_chooser_command("Secondary Unmatched", "Add Match",
                           &AddMatchSecondary, -1, -1, CHOOSER_POPUP_MENU);
-#ifdef _WIN32
+#ifdef WIN32
       add_chooser_command("Secondary Unmatched", "Copy Address",
                           &CopySecondaryAddressUnmatched, -1, -1,
                           CHOOSER_POPUP_MENU);
@@ -2596,7 +2601,7 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
 
 bool diff(ea_t start_address_source, ea_t end_address_source,
           ea_t start_address_target, ea_t end_address_target) {
-  boost::timer timer;
+  auto time_start(std::chrono::system_clock::now());
   try {
     if (!ExportIdbs()) {
       return false;
@@ -2607,14 +2612,17 @@ bool diff(ea_t start_address_source, ea_t end_address_source,
     throw;
   }
 
-  LOG(INFO) << std::fixed << std::setprecision(3) << timer.elapsed()
+  std::chrono::duration<double> processing_time(
+      std::chrono::system_clock::now() - time_start);
+  LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
             << " seconds for exports...";
-  LOG(INFO) << "Diffing address range primary(" << ADDRESS_OUT
-            << start_address_source << " - " << ADDRESS_OUT
-            << end_address_source << ") vs secondary(" << ADDRESS_OUT
-            << start_address_target << " - " << ADDRESS_OUT
-            << end_address_target << ").";
-  timer.restart();
+  LOG(INFO) << "Diffing address range primary("
+            << StringPrintf(HEX_ADDRESS, start_address_source) << " - "
+            << StringPrintf(HEX_ADDRESS, end_address_source)
+            << ") vs secondary("
+            << StringPrintf(HEX_ADDRESS, start_address_target) << " - "
+            << StringPrintf(HEX_ADDRESS, end_address_target) << ").";
+  time_start = std::chrono::system_clock::now();
 
   WaitBox wait_box("HIDECANCEL\nPerforming diff...");
   g_results = new Results();
@@ -2648,9 +2656,9 @@ bool diff(ea_t start_address_source, ea_t end_address_source,
   const MatchingStepsFlowGraph default_basicblock_steps(
       GetDefaultMatchingStepsBasicBlock());
   Diff(&context, default_callgraph_steps, default_basicblock_steps);
-  LOG(INFO) << std::fixed << std::setprecision(3) << timer.elapsed()
+  processing_time = std::chrono::system_clock::now() - time_start;
+  LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
             << " seconds for matching.";
-  timer.restart();
 
   ShowResults(g_results);
   g_results->SetDirty();
@@ -2811,7 +2819,7 @@ bool DoPortComments() {
       return false;
     }
 
-    boost::timer timer;
+    auto time_start(std::chrono::system_clock::now());
     const double min_confidence = std::stod(buffer1);
     const double min_similarity = std::stod(buffer2);
     g_results->PortComments(start_address_source, end_address_source,
@@ -2819,7 +2827,9 @@ bool DoPortComments() {
                             min_confidence, min_similarity);
     refresh_chooser("Matched Functions");
     refresh_chooser("Primary Unmatched");
-    LOG(INFO) << std::fixed << std::setprecision(3) << timer.elapsed()
+    std::chrono::duration<double> processing_time(
+        std::chrono::system_clock::now() - time_start);
+    LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
               << " seconds for comment porting.";
     return true;
   } catch (const std::bad_alloc&) {
@@ -2861,7 +2871,7 @@ bool WriteResults(boost::filesystem::path path) {
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
-  boost::timer timer;
+  auto time_start(std::chrono::system_clock::now());
   LOG(INFO) << "Writing results...";
   {
     boost::filesystem::path export1;
@@ -2907,7 +2917,9 @@ bool WriteResults(boost::filesystem::path path) {
     }
   }
 
-  LOG(INFO) << "done (" << std::fixed << std::setprecision(3) << timer.elapsed()
+  std::chrono::duration<double> processing_time(
+      std::chrono::system_clock::now() - time_start);
+  LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
             << ").";
   return true;
 }
@@ -2937,11 +2949,13 @@ bool DoSaveResultsLog() {
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
-  boost::timer timer;
+  auto time_start(std::chrono::system_clock::now());
   LOG(INFO) << "Writing to log...";
   ResultsLogWriter writer(filename);
   g_results->Write(writer);
-  LOG(INFO) << "done (" << std::fixed << std::setprecision(3) << timer.elapsed()
+  std::chrono::duration<double> processing_time(
+      std::chrono::system_clock::now() - time_start);
+  LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
             << ").";
 
   return true;
@@ -2969,13 +2983,15 @@ bool DoSaveResultsFortknox() {
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
-  boost::timer timer;
+  auto time_start(std::chrono::system_clock::now());
   LOG(INFO) << "Writing to Fortknox ground truth file...";
   FortknoxWriter writer(filename, g_results->fixed_point_infos_,
                         g_results->flow_graph_infos1_,
                         g_results->flow_graph_infos2_);
   g_results->Write(writer);
-  LOG(INFO) << "done (" << std::fixed << std::setprecision(3) << timer.elapsed()
+  std::chrono::duration<double> processing_time(
+      std::chrono::system_clock::now() - time_start);
+  LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
             << ").";
 
   return true;
@@ -3089,7 +3105,7 @@ bool DoLoadResults() {
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("HIDECANCEL\nLoading results...");
-    boost::timer timer;
+    auto time_start(std::chrono::system_clock::now());
 
     delete g_results;
     g_results = new Results();
@@ -3116,8 +3132,10 @@ bool DoLoadResults() {
 
     ShowResults(g_results);
 
-    LOG(INFO) << "done (" << std::fixed << std::setprecision(3)
-              << timer.elapsed() << ").";
+    std::chrono::duration<double> processing_time(
+        std::chrono::system_clock::now() - time_start);
+    LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
+              << ").";
     return true;
   } catch (const std::bad_alloc&) {
     LOG(INFO)

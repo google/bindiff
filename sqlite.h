@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <memory>
 
-#include "base/macros.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
 struct sqlite3;
@@ -19,6 +18,9 @@ class SqliteDatabase {
   explicit SqliteDatabase(const char* filename);
   ~SqliteDatabase();
 
+  SqliteDatabase(const SqliteDatabase&) = delete;
+  SqliteDatabase& operator=(const SqliteDatabase&) = delete;
+
   void Connect(const char* filename);
   void Disconnect();
 
@@ -30,14 +32,15 @@ class SqliteDatabase {
 
  private:
   sqlite3* database_;
-
-  DISALLOW_COPY_AND_ASSIGN(SqliteDatabase);
 };
 
 class SqliteStatement {
  public:
   explicit SqliteStatement(SqliteDatabase* database, const char* statement);
   ~SqliteStatement();
+
+  SqliteStatement(const SqliteStatement&) = delete;
+  SqliteStatement& operator=(const SqliteStatement&) = delete;
 
   SqliteStatement& BindInt(int value);
   SqliteStatement& BindInt64(int64_t value);
@@ -61,8 +64,6 @@ class SqliteStatement {
   int parameter_;
   int column_;
   bool got_data_;
-
-  DISALLOW_COPY_AND_ASSIGN(SqliteStatement);
 };
 
 #endif  // SQLITE_H_

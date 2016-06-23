@@ -1,5 +1,6 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 
+#include <cinttypes>
 #include <sstream>
 
 #include "base/logging.h"
@@ -8,10 +9,11 @@
 #include "third_party/boost/allowed/graph/dominator_tree.hpp"
 #include "third_party/boost/allowed/graph/iteration_macros.hpp"
 #else
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/dominator_tree.hpp>
-#include <boost/graph/iteration_macros.hpp>
+#include <boost/graph/breadth_first_search.hpp>  // NOLINT
+#include <boost/graph/dominator_tree.hpp>        // NOLINT
+#include <boost/graph/iteration_macros.hpp>      // NOLINT
 #endif  // GOOGLE
+#include "strings/strutil.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
@@ -112,7 +114,8 @@ FlowGraph::Vertex FindVertex(const std::vector<Address>& addresses,
                              Address address) {
   auto it = std::lower_bound(addresses.begin(), addresses.end(), address);
   if (it == addresses.end() || *it != address) {
-    LOG(ERROR) << "Could not find basic block: " << std::hex << address;
+    LOG(ERROR) << StrCat("Could not find basic block: ",
+                         strings::Hex(address, strings::ZERO_PAD_8));
     it = addresses.begin();
   }
   return FlowGraph::Vertex(std::distance(addresses.begin(), it));
@@ -309,13 +312,11 @@ void FlowGraph::Read(const BinExport2& proto,
   if (instructions_.size() >= kMaxFunctionInstructions ||
       edges.size() >= kMaxFunctionEdges ||
       temp_addresses.size() >= kMaxFunctionBasicBlocks) {
-    LOG(WARNING) << "Function " << std::hex << entry_point_address_
-                 << " is excessively large: " << std::dec
-                 << temp_addresses.size() << " basic blocks, " << edges.size()
-                 << " edges, " << instructions_.size()
-                 << " instructions. Larger than allowed "
-                 << kMaxFunctionBasicBlocks << ", " << kMaxFunctionEdges << ", "
-                 << kMaxFunctionInstructions << ". Discarding it.";
+    LOG(WARNING) << StrCat(
+        "Function ", strings::Hex(entry_point_address_, strings::ZERO_PAD_8),
+        " is excessively large: ", temp_addresses.size(), ", basic blocks, ",
+        edges.size(), " edges, ", instructions_.size(),
+        " instructions. Discarding.");
   } else {
     Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                      edges.end(), edge_properties.begin(),
@@ -432,13 +433,11 @@ void FlowGraph::Read(const BinExport::Flowgraph& proto,
   if (instructions_.size() >= kMaxFunctionInstructions ||
       edges.size() >= kMaxFunctionEdges ||
       temp_addresses.size() >= kMaxFunctionBasicBlocks) {
-    LOG(WARNING) << "Function " << std::hex << entry_point_address_
-                 << " is excessively large: " << std::dec
-                 << temp_addresses.size() << " basic blocks, " << edges.size()
-                 << " edges, " << instructions_.size()
-                 << " instructions. Larger than allowed "
-                 << kMaxFunctionBasicBlocks << ", " << kMaxFunctionEdges << ", "
-                 << kMaxFunctionInstructions << ". Discarding it.";
+    LOG(WARNING) << StrCat(
+        "Function ", strings::Hex(entry_point_address_, strings::ZERO_PAD_8),
+        " is excessively large: ", temp_addresses.size(), ", basic blocks, ",
+        edges.size(), " edges, ", instructions_.size(),
+        " instructions. Discarding.");
   } else {
     Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                      edges.end(), edge_properties.begin(),

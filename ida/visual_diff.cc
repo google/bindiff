@@ -1,5 +1,5 @@
 // Note: Strange include order due to winsock headers.
-#ifndef UNIX_COMPILE
+#ifdef WIN32
 // The asio headers require this, 0x0500 is Windows 2000.
 #define _WIN32_WINNT 0x0500
 #include <direct.h>
@@ -8,30 +8,31 @@
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 
 #include <algorithm>
+#include <chrono>  // NOLINT
 #include <iomanip>
 #include <iterator>
 #include <map>
 #include <sstream>
 #include <string>
+#include <thread>
 
 #include "base/logging.h"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/asio.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/date_time/posix_time/posix_time_types.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/filesystem/path.hpp"
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/thread/thread.hpp"  // For sleep
-#include "third_party/boost/do_not_include_from_google3_only_third_party/boost/boost/tokenizer.hpp"
+#include <boost/asio.hpp>                                   // NOLINT
+#include <boost/date_time/posix_time/posix_time_types.hpp>  // NOLINT
+#include <boost/filesystem.hpp>                             // NOLINT
+#include <boost/filesystem/path.hpp>                        // NOLINT
+#include <boost/tokenizer.hpp>       // NOLINT
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
-#include "third_party/zynamics/zylibcpp/utility/xmlconfig.h"
 #undef min
 #undef max
 
 static const char kGuiJarName[] = "bindiff.jar";
 
-#ifndef UNIX_COMPILE
+#ifdef WIN32
 // The JRE's registry key under HKEY_LOCAL_MACHINE
 static const char kRegkeyHklmJreRoot[] =
     "SOFTWARE\\JavaSoft\\Java Runtime Environment";
@@ -137,12 +138,7 @@ void DoStartGui(const std::string& gui_dir) {
   if (!java_binary.empty()) {
     argv.push_back(java_binary);
   } else {
-#ifdef UNIX_COMPILE
-    // TODO(cblichmann): Check if we need to find the real binary path by
-    //                   using readlink(). On some machines that seems to be
-    //                   necessary to be able to start the Java binary.
-    argv.push_back("java");
-#else
+#ifdef WIN32
     boost::filesystem::path java_exe(GetJavaHomeDir());
     if (!java_exe.empty()) {
       java_exe /= "bin";
@@ -150,6 +146,11 @@ void DoStartGui(const std::string& gui_dir) {
     java_exe /= "javaw.exe";
 
     argv.push_back(java_exe.string());
+#else
+    // TODO(cblichmann): Check if we need to find the real binary path by
+    //                   using readlink(). On some machines that seems to be
+    //                   necessary to be able to start the Java binary.
+    argv.push_back("java");
 #endif
   }
   argv.push_back("-Xms128m");
@@ -208,7 +209,7 @@ bool SendGuiMessage(const int retries, const std::string& gui_dir,
       return true;
     }
 
-    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     if (progress_callback) {
       progress_callback();
     }
