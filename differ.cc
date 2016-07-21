@@ -232,21 +232,19 @@ bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
                 Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  FileCloser file(File::Open(filename.c_str(), "r"));
-  if (!file.get()) {
-    if (util::IsNotFound(file::Exists(filename, file::Defaults()))) {
-      LOG(ERROR) << "Error opening '" << filename << "', file doesn't exist.";
-    } else {
-      LOG(ERROR) << "Error opening '" << filename << "'.";
-    }
+  File* file = nullptr;
+  auto status(file::Open(filename, "r", &file, file::Defaults()));
+  if (!status.ok()) {
+    LOG(ERROR) << "Error opening '" << filename << "': " << status;
     return false;
   }
+  FileCloser cleanup(file);
 
-  if (!ReadBinExport2Google(file.get(), call_graph, flow_graphs,
-                            flow_graph_infos, instruction_cache)) {
+  if (!ReadBinExport2Google(file, call_graph, flow_graphs, flow_graph_infos,
+                            instruction_cache)) {
     file->Seek(0 /* Position */, file::Defaults()).IgnoreError();
-    return ReadBinExportGoogle(file.get(), call_graph, flow_graphs,
-                               flow_graph_infos, instruction_cache);
+    return ReadBinExportGoogle(file, call_graph, flow_graphs, flow_graph_infos,
+                               instruction_cache);
   }
   return true;
 }

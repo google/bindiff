@@ -54,6 +54,8 @@ using google::ShowUsageWithFlags;
 
 namespace fs = boost::filesystem;
 
+// Note: We cannot use new-style flags here because gflags does not support the
+//       new syntax.
 DEFINE_string(primary, "" /* Default */,
               "Primary input file or path in batch mode");
 DEFINE_string(secondary, "" /* Default */, "Secondary input file (optional)");
@@ -334,7 +336,7 @@ void ExporterThread::operator()() {
     args.push_back(ida_dir_ + "/" + (!ida64 ? ida_exe_ : ida_exe64_));
     args.push_back("-A");
     args.push_back("-OExporterModule:" + out_path.string());
-#ifdef UNIX_COMPILE
+#ifndef WIN32
     args.push_back("-S" + (out_path / "run_ida.idc").string());
 #else
     args.push_back("-S\"" + (out_path / "run_ida.idc").string() + "\"");
@@ -516,7 +518,7 @@ void BatchDumpMdIndices(const std::string& path) {
 void SignalHandler(int code) {
   static int signal_count = 0;
   switch (code) {
-#ifndef UNIX_COMPILE
+#ifdef WIN32
     case SIGBREAK:  // Ctrl-Break, not available on Unix
 #endif
     case SIGINT:  // Ctrl-C
@@ -533,7 +535,7 @@ void SignalHandler(int code) {
 }
 
 int main(int argc, char** argv) {
-#ifndef UNIX_COMPILE
+#ifdef WIN32
   signal(SIGBREAK, SignalHandler);
 #endif
   signal(SIGINT, SignalHandler);

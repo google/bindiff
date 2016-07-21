@@ -1715,8 +1715,8 @@ class ExporterThread {
         StringPiece(ToUpper(secondary_idb_path_.string())).ends_with(".I64");
 
     std::string s_param;
-// We only support the Qt version.
-#ifdef UNIX_COMPILE
+    // We only support the Qt version.
+#ifndef WIN32
     if (is_64bit) {
       ida_exe += "/idaq64";
     } else {
