@@ -1,0 +1,28 @@
+image: Visual Studio 2015
+
+shallow_clone: true
+
+clone_depth: 10
+
+environment:
+  idasdk_secret:
+    secure: e8rrgX8BRIaH59lHhkE56P7z9XjkkoN59li6krpEUOE=
+
+matrix:
+  fast_finish: true
+
+# TODO(cblichmann): Cache
+# cache:
+
+install:
+  - git submodule update --init --recursive
+  - mkdir build_msvc
+
+  # IDA SDK
+  - C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -k "%idasdk_secret%"
+    -in third_party\idasdk.zip.enc -out third_party\idasdk.zip
+  - 7z x third_party\idasdk.zip
+
+on_finish:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+

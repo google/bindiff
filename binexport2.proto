@@ -115,6 +115,10 @@ message BinExport2 {
 
       // If this is a library function, what is its index in library arrays.
       optional int32 library_index = 5;
+
+      // If module name, such as class name for DEX files, is present - index in
+      // module table.
+      optional int32 module_index = 6;
     }
 
     message Edge {
@@ -307,6 +311,11 @@ message BinExport2 {
     optional string name = 3;
   }
 
+  message Module {
+    // Name, such as Java class name. Platform-dependent.
+    optional string name = 1;
+  }
+
   optional Meta meta_information = 1;
   repeated Expression expression = 2;
   repeated Operand operand = 3;
@@ -324,6 +333,7 @@ message BinExport2 {
 
   repeated Library library = 14;
   repeated DataReference data_reference = 15;
+  repeated Module module = 16;
 
   // Allow for future extensions.
   extensions 100000000 to max;

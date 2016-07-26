@@ -40,7 +40,6 @@
 #include <binexport2.pb.h>  // NOLINT
 
 #include "base/logging.h"
-#ifdef GOOGLE
 #include "strings/strutil.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
@@ -476,6 +475,7 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
 
   // Used for verifying that functions are sorted by address.
   uint64 previous_entry_point_address = 0;
+  map<string, int32> module_index;
   for (const auto& function_it : flow_graph.GetFunctions()) {
     const Function& function(*function_it.second);
     QCHECK_GE(function.GetEntryPoint(), previous_entry_point_address);
@@ -504,6 +504,24 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
       // We serialize use index, not library index (as the latter refers to the
       // array of all known libraries).
       proto_function->set_library_index(use_index[library_index]);
+    }
+    const string& module = function.GetModuleName();
+    if (!module.empty()) {
+      auto it = module_index.emplace(module, module_index.size());
+      proto_function->set_module_index(it.first->second);
+    }
+  }
+
+  if (module_index.size() > 0) {
+    proto->mutable_module()->Reserve(module_index.size());
+    // We are O(N^2) here by number of classes, shouldn't be a big deal.
+    for (int i = 0; i < module_index.size(); ++i) {
+      auto* module = proto->add_module();
+      module->set_name(std::find_if(
+          module_index.begin(), module_index.end(),
+          [i] (const std::pair<string, int32>& kv) -> bool {
+            return kv.second == i;
+          })->first);
     }
   }
 
@@ -673,14 +691,10 @@ util::Status BinExport2Writer::WriteToProto(
   meta_information->set_executable_name(executable_filename_);
   meta_information->set_executable_id(executable_hash_);
   meta_information->set_architecture_name(architecture_);
-#ifdef GOOGLE
-  const auto timestamp = ToUnixSeconds(base::Now());
-#else
   const auto timestamp =
       std::chrono::duration_cast<std::chrono::seconds>(
           std::chrono::system_clock::now().time_since_epoch())
           .count();
-#endif
   meta_information->set_timestamp(timestamp);
 
   WriteExpressions(proto);
