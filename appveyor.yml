@@ -7,10 +7,11 @@ environment:
 matrix:
   fast_finish: true
 
-# TODO(cblichmann): Cache
-# cache:
+cache:
+  - C:\projects\binexport\build_msvc\postgresql
 
 install:
+  - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
   - set
 
   - git submodule update --init --recursive
@@ -22,9 +23,29 @@ install:
   #- 7z x -bt -mmt2 idasdk.zip
   - unzip -q third_party\idasdk.zip -d third_party
 
-  # PostgreSQL client libraries
-  - cd third_party
-  - curl -fsS -o postgresql-9.5.3.tar.bz2
+  # Cached PostgreSQL client libraries
+  - if not exist build_msvc\postgresql\CACHED verify > nul else set C_POSTGRES=1
+  - if not "%C_POSTGRES%" == "1" cd third_party
+  - if not "%C_POSTGRES%" == "1"
+    curl -fsS -o postgresql-9.5.3.tar.bz2
     https://ftp.postgresql.org/pub/source/v9.5.3/postgresql-9.5.3.tar.bz2
-  - tar xaf postgresql-9.5.3.tar.bz2
-  - dir
+  - if not "%C_POSTGRES%" == "1" tar xaf postgresql-9.5.3.tar.bz2
+  - if not "%C_POSTGRES%" == "1" cd postgresql-9.5.3\src\tools\msvc
+  - if not "%C_POSTGRES%" == "1"
+    echo $config-^>{openssl} = '..\..\build_msvc\openssl'; > config.pl
+  - if not "%C_POSTGRES%" == "1"
+    sed -i "s/MultiThreadedDLL/MultiThreaded/" MSBuildProject.pm
+  - if not "%C_POSTGRES%" == "1" perl mkvcbuild.pl
+  - if not "%C_POSTGRES%" == "1" cd ..\..\..
+  - if not "%C_POSTGRES%" == "1"
+    msbuild pgsql.sln /t:interfaces\libpq
+    /p:Configuration="Release"
+    /p:ConfigurationType=StaticLibrary
+  - if not "%C_POSTGRES%" == "1" perl -e "use lib 'src/tools/msvc';use Install;Install::CopyIncludeFiles('..\..\build_msvc\postgresql')"
+  - if not "%C_POSTGRES%" == "1" mkdir ..\..\build_msvc\postgresql\lib
+  - if not "%C_POSTGRES%" == "1"
+    copy Release\libpgport\libpgport.lib ..\..\build_msvc\postgresql\lib
+  - if not "%C_POSTGRES%" == "1"
+    copy Release\libpq\libpq.lib ..\..\build_msvc\postgresql\lib
+  - if not "%C_POSTGRES%" == "1" echo ..\..\build_msvc\postgresql\CACHED
+  - if not "%C_POSTGRES%" == "1" cd ..\..
