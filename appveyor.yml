@@ -1,9 +1,5 @@
 image: Visual Studio 2015
 
-shallow_clone: true
-
-clone_depth: 10
-
 environment:
   idasdk_secret:
     secure: e8rrgX8BRIaH59lHhkE56P7z9XjkkoN59li6krpEUOE=
