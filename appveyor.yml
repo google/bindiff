@@ -24,7 +24,7 @@ install:
   - unzip -q third_party\idasdk.zip -d third_party
 
   # Cached PostgreSQL client libraries
-  - if not exist build_msvc\postgresql\CACHED verify > nul else set C_POSTGRES=1
+  - if exist build_msvc\postgresql\CACHED set C_POSTGRES=1
   - if not "%C_POSTGRES%" == "1" cd third_party
   - if not "%C_POSTGRES%" == "1"
     curl -fsS -o postgresql-9.5.3.tar.bz2
