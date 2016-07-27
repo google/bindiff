@@ -29,7 +29,21 @@ find_package(Boost 1.55 REQUIRED)
 
 find_package(Git)
 find_package(IdaSdk REQUIRED)
-find_package(OpenSSL 1.0.1 REQUIRED)
+
+# Workaround for FindOpenSSL.cmake which sometimes ignores OPENSSL_ROOT_DIR
+if(OPENSSL_ROOT_DIR)
+  set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/openssl/include)
+  find_library(OPENSSL_SSL_LIBRARY NAMES crypto
+                                         libeay32
+                                   HINTS ${OPENSSL_ROOT_DIR}/lib)
+  find_library(OPENSSL_CRYPTO_LIBRARY NAMES ssl
+                                            ssleay32
+                                      HINTS ${OPENSSL_ROOT_DIR}/lib)
+  set(OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
+  set(OPENSSL_USE_STATIC_LIBS ${DOPENSSL_USE_STATIC_LIBS})  # Ignore
+else()
+  find_package(OpenSSL 1.0.1 REQUIRED)
+endif()
 
 set(PostgreSQL_TYPE_INCLUDE_DIR "none")  # We're not using the server-side API
 find_package(PostgreSQL 9.3 REQUIRED)

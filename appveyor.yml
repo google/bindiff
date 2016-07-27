@@ -94,5 +94,5 @@ before_build:
     -DPROTOBUF_LIBRARY="%cd%\protobuf\libprotobuf.lib"
     ..
 
-build:
-  project: build_msvc\binexport.sln
+build_script:
+  - msbuild binexport.sln /p:Configuration=Release
