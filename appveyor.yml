@@ -8,9 +8,9 @@ matrix:
   fast_finish: true
 
 cache:
-  - C:\projects\binexport\build_msvc\openssl
-  - C:\projects\binexport\build_msvc\postgresql
-  - C:\projects\binexport\build_msvc\protobuf
+  - build_msvc\openssl
+  - build_msvc\postgresql
+  - build_msvc\protobuf
 
 install:
   - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
@@ -85,6 +85,7 @@ before_build:
   - mklink /J third_party\zynamics\binexport .
   - cd build_msvc
   - cmake
+    -DCMAKE_PREFIX_PATH=""
     -DOPENSSL_ROOT_DIR="%cd%\openssl"
     -DOPENSSL_USE_STATIC_LIBS=TRUE
     -DPostgreSQL_ROOT="%cd%\postgresql"
@@ -92,3 +93,6 @@ before_build:
     -DPROTOBUF_PROTOC_EXECUTABLE="%cd%\protobuf\protoc.exe"
     -DPROTOBUF_LIBRARY="%cd%\protobuf\libprotobuf.lib"
     ..
+
+build:
+  project: build_msvc\binexport.sln
