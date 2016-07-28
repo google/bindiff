@@ -57,8 +57,8 @@ before_install:
     --without-readline
   - test -n "$C_POSTGRES" && true || make -is -C src/include install
   - test -n "$C_POSTGRES" && true || make -s -C src/interfaces install
+  - test -n "$C_POSTGRES" && true || cd ../..
   - test -n "$C_POSTGRES" && true || touch "build_linux/postgresql/CACHED"
-  - test -n "$C_POSTGRES" && true || cd ..
 
   # Cached Protocol Buffers
   - test ! -f "build_linux/protobuf/CACHED" && true || export C_PROTOBUF=1

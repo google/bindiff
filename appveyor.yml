@@ -88,6 +88,8 @@ before_build:
     -DCMAKE_FIND_ROOT_PATH="%cd%"
     -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
     -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+    -DPostgreSQL_INCLUDE_DIR="%cd%\postgresql\include"
+    -DPostgreSQL_LIBRARY="%cd%\postgresql\lib\libpq.lib"
     -DPROTOBUF_PROTOC_EXECUTABLE="%cd%\protobuf\protoc.exe"
     -DPROTOBUF_LIBRARY="%cd%\protobuf\libprotobuf.lib"
     ..
