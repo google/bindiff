@@ -14,7 +14,6 @@ cache:
 
 install:
   - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
-  - set
 
   - git submodule update --init --recursive
   - mkdir build_msvc

@@ -249,9 +249,9 @@ With all prerequisites in place, configure and build BinExport:
 Note: If you chose to use the distribution packages of OpenSSL, add the
 additional flags mentioned above.
 
-If all went well, the source tree should contain two IDA plugin binaries
-`zynamics_binexport_9.plx` and `zynamics_binexport_9.plx64` for use with
-`idaq` and `idaq64`, respectively.
+If all went well, the `build_linux` directory should contain two IDA plugin
+binaries `zynamics_binexport_9.plx` and `zynamics_binexport_9.plx64` for use
+with `idaq` and `idaq64`, respectively.
 
 ### macOS
 
