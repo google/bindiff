@@ -164,8 +164,10 @@ are for IDA 6.9:
 Configure and build 32-bit static libraries of OpenSSL:
 
     cd third_party/openssl
-    ./Configure no-asm no-dso no-krb5 no-shared no-zlib linux-generic32 -m32
-    make -s -j$(nproc)
+    ./Configure no-asm no-dso no-krb5 no-shared no-zlib linux-generic32 -m32 \
+        --prefix=${PWD}/../../build_linux/openssl
+    make -s
+    make install
     cd ../..
 
 ##### Using the distribution packages of OpenSSL
@@ -220,8 +222,10 @@ also build the compiler, `protoc`:
     ./autogen.sh && ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32 \
         --disable-dependency-tracking \
         --disable-maintainer-mode \
-        --enable-silent-rules
+        --enable-silent-rules \
+        --prefix=${PWD}/../../build_linux/protobuf
     make -s -j$(nproc)
+    make -s install
     cd ../..
 
 Note that this will download Google Mock if not already present in
@@ -231,9 +235,15 @@ Note that this will download Google Mock if not already present in
 
 With all prerequisites in place, configure and build BinExport:
 
-    ./configure \
-        -DOPENSSL_ROOT_DIR=${PWD}/third_party/openssl \
-        -DPostgreSQL_ROOT=${PWD}/build_linux/postgresql
+    ln -sf ../.. third_party/zynamics/binexport
+    cd build_linux
+    cmake \
+        -DCMAKE_FIND_ROOT_PATH=${PWD} \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DOPENSSL_ROOT_DIR=${PWD}/openssl \
+        -DPostgreSQL_ROOT=${PWD}/postgresql \
+        ..
     make
 
 Note: If you chose to use the distribution packages of OpenSSL, add the
@@ -476,7 +486,7 @@ Configure and build static libraries:
         /p:Configuration="Release" ^
         /p:ConfigurationType=StaticLibrary
 
-Now copy include files:
+Now copy include files and libraries:
 
     perl -e "use lib 'src/tools/msvc';use Install;Install::CopyIncludeFiles('..\..\build_msvc\postgresql')"
     mkdir ..\..\build_msvc\postgresql\lib
@@ -507,14 +517,11 @@ With all prerequisites in place, configure and build BinExport:
     mklink /J third_party\zynamics\binexport .
     cd build_msvc
     cmake ^
-        -DCMAKE_BUILD_TYPE=Release ^
-        -DGIT_EXECUTABLE="%ProgramFiles%\Git\bin\git.exe" ^
-        -DOPENSSL_ROOT_DIR="%cd%\openssl" ^
-        -DOPENSSL_USE_STATIC_LIBS=TRUE ^
-        -DPostgreSQL_ROOT="%cd%\postgresql" ^
-        -DPostgreSQL_LIBRARY_DIR="%cd%\postgresql\lib" ^
+        -DCMAKE_FIND_ROOT_PATH="%cd%" ^
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY ^
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY ^
         ..
-    msbuild binexport.sln /p:Platform=Win32 /p:Configuration=Release
+    msbuild binexport.sln /p:Configuration=Release
 
 If all went well, the `build_msvc` directory should contain two IDA plugin
 binaries `zynamics_binexport_9.plw` and `zynamics_binexport_9.p64` for use with

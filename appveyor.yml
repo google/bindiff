@@ -28,14 +28,12 @@ install:
   # Cached static OpenSSL library
   - if exist build_msvc\openssl\CACHED set C_OPENSSL=1
   - if "%C_OPENSSL%" neq "1" cd third_party\openssl
-  - if "%C_OPENSSL%" neq "1" perl Configure VC-WIN32 no-asm
-  - if "%C_OPENSSL%" neq "1" call ms\do_ms
   - if "%C_OPENSSL%" neq "1"
-    nmake /f ms\nt.mak
-    INSTALLTOP=..\..\build_msvc\openssl
-    OPENSSLDIR=..\..\build_msvc\openssl install
-  - if "%C_OPENSSL%" neq "1" echo. > ..\..\build_msvc\openssl\CACHED
+    perl Configure VC-WIN32 no-asm --prefix=..\..\build_msvc\openssl
+  - if "%C_OPENSSL%" neq "1" call ms\do_ms
+  - if "%C_OPENSSL%" neq "1" nmake /f ms\nt.mak install
   - if "%C_OPENSSL%" neq "1" cd ..\..
+  - if "%C_OPENSSL%" neq "1" echo. > build_msvc\openssl\CACHED
 
   # Cached PostgreSQL client libraries
   - if exist build_msvc\postgresql\CACHED set C_POSTGRES=1
@@ -61,8 +59,8 @@ install:
     copy Release\libpgport\libpgport.lib ..\..\build_msvc\postgresql\lib
   - if "%C_POSTGRES%" neq "1"
     copy Release\libpq\libpq.lib ..\..\build_msvc\postgresql\lib
-  - if "%C_POSTGRES%" neq "1" echo. > ..\..\build_msvc\postgresql\CACHED
   - if "%C_POSTGRES%" neq "1" cd ..\..
+  - if "%C_POSTGRES%" neq "1" echo. > build_msvc\postgresql\CACHED
 
   # Cached Protocol Buffers
   - if exist build_msvc\protobuf\CACHED set C_PROTOBUF=1
@@ -78,18 +76,16 @@ install:
     msbuild protobuf.sln /p:Platform=Win32 /p:Configuration=Release
   - if "%C_PROTOBUF%" neq "1" mkdir ..\..\..\build_msvc\protobuf
   - if "%C_PROTOBUF%" neq "1" copy Release\* ..\..\..\build_msvc\protobuf
-  - if "%C_PROTOBUF%" neq "1" echo. > ..\..\..\build_msvc\protobuf\CACHED
   - if "%C_PROTOBUF%" neq "1" cd ..\..\..
+  - if "%C_PROTOBUF%" neq "1" echo. > build_msvc\protobuf\CACHED
 
 before_build:
   - mklink /J third_party\zynamics\binexport .
   - cd build_msvc
   - cmake
-    -DCMAKE_PREFIX_PATH=""
-    -DOPENSSL_ROOT_DIR="%cd%\openssl"
-    -DOPENSSL_USE_STATIC_LIBS=TRUE
-    -DPostgreSQL_ROOT="%cd%\postgresql"
-    -DPostgreSQL_LIBRARY_DIR="%cd%\postgresql\lib"
+    -DCMAKE_FIND_ROOT_PATH="%cd%"
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
     -DPROTOBUF_PROTOC_EXECUTABLE="%cd%\protobuf\protoc.exe"
     -DPROTOBUF_LIBRARY="%cd%\protobuf\libprotobuf.lib"
     ..

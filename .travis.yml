@@ -2,8 +2,9 @@ language: cpp
 
 cache:
   directories:
-    - $HOME/protobuf
-    - $HOME/postgresql
+    - build_linux/openssl
+    - build_linux/protobuf
+    - build_linux/postgresql
 
 os:
   - linux
@@ -30,47 +31,61 @@ before_install:
     -out third_party/idasdk.zip -d
   - unzip -q third_party/idasdk.zip -d third_party/
 
+  # Cached static OpenSSL library
+  - test ! -f "build_linux/openssl/CACHED" && true || export C_OPENSSL=1
+  - test -n "$C_OPENSSL" && true || cd third_party/openssl
+  - test -n "$C_OPENSSL" && true ||
+    ./Configure no-asm no-dso no-krb5 no-shared no-zlib linux-generic32 -m32
+    --prefix=${PWD}/../../build_linux/openssl
+  - test -n "$C_OPENSSL" && true || make -s
+  - test -n "$C_OPENSSL" && true || make install
+  - test -n "$C_OPENSSL" && true || cd ..\..
+  - test -n "$C_OPENSSL" && true || touch "build_linux/openssl/CACHED"
+
   # Cached PostgreSQL client libraries
-  - test ! -f "$HOME/postgresql/CACHED" && true || export C_POSTGRES=1
+  - test ! -f "build_linux/postgresql/CACHED" && true || export C_POSTGRES=1
+  - test -n "$C_POSTGRES" && true || cd third_party
   - test -n "$C_POSTGRES" && true ||
     wget https://ftp.postgresql.org/pub/source/v9.5.3/postgresql-9.5.3.tar.bz2
   - test -n "$C_POSTGRES" && true || tar xaf postgresql-9.5.3.tar.bz2
   - test -n "$C_POSTGRES" && true || cd postgresql-9.5.3
   - test -n "$C_POSTGRES" && true ||
     ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32
-    --prefix=$HOME/postgresql --disable-debug --disable-profiling
-    --disable-coverage --without-tcl --without-perl --without-python
-    --without-gssapi --without-ldap --without-bonjour --without-readline
+    --prefix=${PWD}/../../build_linux/postgresql --disable-debug
+    --disable-profiling --disable-coverage --without-tcl --without-perl
+    --without-python --without-gssapi --without-ldap --without-bonjour
+    --without-readline
   - test -n "$C_POSTGRES" && true || make -is -C src/include install
   - test -n "$C_POSTGRES" && true || make -s -C src/interfaces install
-  - test -n "$C_POSTGRES" && true || touch "$HOME/postgresql/CACHED"
+  - test -n "$C_POSTGRES" && true || touch "build_linux/postgresql/CACHED"
   - test -n "$C_POSTGRES" && true || cd ..
 
   # Cached Protocol Buffers
-  - test ! -f "$HOME/protobuf/CACHED" && true || export C_PROTOBUF=1
+  - test ! -f "build_linux/protobuf/CACHED" && true || export C_PROTOBUF=1
   - test -n "$C_PROTOBUF" && true || cd third_party/protobuf
   - test -n "$C_PROTOBUF" && true || ./autogen.sh
   - test -n "$C_PROTOBUF" && true ||
-    ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32 --prefix=${HOME}/protobuf
+    ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32
+    --prefix=${PWD}/../../build_linux/protobuf
     --disable-dependency-tracking --disable-maintainer-mode
     --enable-silent-rules
   - test -n "$C_PROTOBUF" && true || make -s
   - test -n "$C_PROTOBUF" && true || make install
-  - test -n "$C_PROTOBUF" && true || touch "$HOME/protobuf/CACHED"
   - test -n "$C_PROTOBUF" && true || cd ../..
+  - test -n "$C_PROTOBUF" && true || touch "build_linux/protobuf/CACHED"
 
 script:
-  - ./configure
-    -DOPENSSL_ROOT_DIR=$PWD/third_party/openssl
-    -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.a
-    -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.a
-    -DPostgreSQL_ROOT=$HOME/postgresql
-    -DPROTOBUF_ROOT_FOLDER=$HOME/protobuf
-    -DPROTOBUF_INCLUDE_DIR=$HOME/protobuf/include
-    -DPROTOBUF_PROTOC_EXECUTABLE=$HOME/protobuf/bin/protoc
-    -DPROTOBUF_LIBRARY=$HOME/protobuf/lib/libprotobuf.a
+  - ln -sf ../.. third_party/zynamics/binexport
+  - cd build_linux
+  - cmake
+    -DCMAKE_FIND_ROOT_PATH=${PWD}
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+    -DOPENSSL_ROOT_DIR=${PWD}/openssl
+    -DPostgreSQL_ROOT=${PWD}/postgresql
+    ..
   - make
 
 env:
   global:
-    - secure: Dz7DLm6tkwOurtQxcBLiZ/HsTfvGxJ+f8r2oJNTYX3oDKpF7cyhyx/TVgc02H2f/Y77Ja5p33dp5GK3u4iAqzm9QIB7J4nXRlzZfR4Z8zdZrSm94emWNhx6YfEk7Lzp3zw+W5W8jHuKOKoK3b3z7kXROUhGc4ZtHdAF9rj9YMOdJga8f37/2IxDJFX5oK3+uzBSg1VbFdSP3Xf5xNEwAIkkuH6a+3AyIc1qWmy5xXN7/moEabVY8Ui8xJzshvkPz6dtFwuJ0pQA63Tlj910Sd0vt8/5Cl0KmPxXIL0Tt0ss4zI8piMQuVSZfGpvjBUN7NILlFU8AOMcKeoVNWnxMMtEYwTEM4BoqVb6+9ET5qQMlMPYPs0Iydo/9+v7BKGwFFQEBSYo5kxKEYULQ7S5kFMxHosjCLDZ+cPORKGbGmFxsLeI1Ov9aGlpuJhpkALlupvOWKYMgwotf4eg9kPJz0mkIFQHSnTB/7ix4oyPNI3g8n5KhP9xl/yV2k8LH0s2js6ucISD+ZcCQLghjef6ylu3pmfqUTXd7Yn4pXviF1b/y1kg4Q7bw1LZVjzlO4sQqTAiXQ6Uifq2OVPOeOl6M2tX1DUVqj4B52+CnHn45x7opi/87+H3wlPjDfs0Aggg+fL5QOSzGx4dmVgAXtdHjnP8MKGEIy/j7myiimAMjzAs=
+    - secure: U69GqsmS5MdXdACYjNZN3TVxU6nBYDjvBSRR2Ae/nPHdAfaGEZFbhJlQwcsFdOAA8b5h5AUUaFh2PCTXHTt/6HkNcpu8tvFLTJFih3jE4jomEwb9K2N9Q0qpJzOSiy05LylhHq4O9NF7mErm+M5Mijq9kI0oWc4a72/eV8a9TyC80WoDMqLzrTW2X1CAMIqGogcEvyCmyXPaohknolyv7H07W395ddr3mr+j50gHWGNwoPncj2LfU5qEALRmtLuOxFGghnB8Zs+pekAMMg/k7r52cyUyE9wiaujYmq0bdkz3a2Hb8EYuHbtPomQFb7Fd18ACWW2Pvrv7iN8BEQIGsBJZk3tGUyIj9Nh2F8W5r0nxLmTyGcnU8LO5nWaQhatGgLTCi7amhERVAqCiytT1DC6gw0hEN5H2sDFZfnEpn+RURMqiL6Is8xpmK2o5Hc4/mmLm+VGr6ixIxie7qqnpkrTvlVWtuh61qk8K6U6CQaIe11oNZnkRrGa87/u3nHhDX9XFt0T8QFmiWObmV+sa9AIoazGK+2OHp6M42TX9p6eKg8pSJyMEJiCRTw4uS65H+0GDR/tIzMDVdOOWN35mhLPwILJX5ns8krei4y6lbiGoOKGWm5vSXkt/lI16/laUa3DAImFXgth2QlcunJT6yBs0aE/mQWX30XMDNXVKH0I=

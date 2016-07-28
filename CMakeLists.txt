@@ -20,7 +20,7 @@ project(binexport C CXX)
 set(RELEASE 9)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-set(CMAKE_FIND_ROOT_PATH ${PROJECT_SOURCE_DIR}/third_party)
+list(APPEND CMAKE_FIND_ROOT_PATH ${PROJECT_SOURCE_DIR}/third_party)
 
 # Use a copy of a subset of Boost that we ship
 set(Boost_NO_SYSTEM_PATHS, ON)
@@ -30,20 +30,8 @@ find_package(Boost 1.55 REQUIRED)
 find_package(Git)
 find_package(IdaSdk REQUIRED)
 
-# Workaround for FindOpenSSL.cmake which sometimes ignores OPENSSL_ROOT_DIR
-if(OPENSSL_ROOT_DIR)
-  set(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/openssl/include)
-  find_library(OPENSSL_SSL_LIBRARY NAMES crypto
-                                         libeay32
-                                   HINTS ${OPENSSL_ROOT_DIR}/lib)
-  find_library(OPENSSL_CRYPTO_LIBRARY NAMES ssl
-                                            ssleay32
-                                      HINTS ${OPENSSL_ROOT_DIR}/lib)
-  set(OPENSSL_LIBRARIES ${OPENSSL_SSL_LIBRARY} ${OPENSSL_CRYPTO_LIBRARY})
-  set(OPENSSL_USE_STATIC_LIBS ${DOPENSSL_USE_STATIC_LIBS})  # Ignore
-else()
-  find_package(OpenSSL 1.0.1 REQUIRED)
-endif()
+set(OPENSSL_USE_STATIC_LIBS ON)
+find_package(OpenSSL 1.0.1 REQUIRED)
 
 set(PostgreSQL_TYPE_INCLUDE_DIR "none")  # We're not using the server-side API
 find_package(PostgreSQL 9.3 REQUIRED)
@@ -61,7 +49,6 @@ else()
   set(PROTOBUF_LIBRARY
       ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/libprotobuf.lib)
 endif()
-set(PROTOBUF_LIBRARY_DEBUG ${PROTOBUF_LIBRARY})
 find_package(Protobuf 3.0 REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}
@@ -72,25 +59,6 @@ include_directories(${PROJECT_SOURCE_DIR}
                     ${PostgreSQL_INCLUDE_DIRS}
                     ${PROTOBUF_INCLUDE_DIRS}
                     ${PROTOBUF_SRC_ROOT_FOLDER})
-
-# Find the Git revision number, if applicable
-set(REVISION unknown)
-if(GIT_FOUND)
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
-                  OUTPUT_VARIABLE REVISION
-                  ERROR_QUIET)
-  if(NOT ${REVISION} STREQUAL "")
-    string(STRIP ${REVISION} REVISION)
-  else()
-    set(REVISION internal)
-  endif()
-endif()
-
-configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DNDEBUG)
-endif()
 
 if(UNIX)
   add_compile_options(--std=c++11 -Wno-deprecated)
@@ -117,6 +85,25 @@ elseif(WIN32)
     endforeach(flag_var)
   endif()
 endif()
+
+if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions(-DNDEBUG)
+endif()
+
+# Find the Git revision number, if applicable
+set(REVISION unknown)
+if(GIT_FOUND)
+  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+                  OUTPUT_VARIABLE REVISION
+                  ERROR_QUIET)
+  if(NOT ${REVISION} STREQUAL "")
+    string(STRIP ${REVISION} REVISION)
+  else()
+    set(REVISION internal)
+  endif()
+endif()
+
+configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
 set(BinExport_Proto_SRCS binexport2.proto)
 if(EXISTS "binexport.proto")

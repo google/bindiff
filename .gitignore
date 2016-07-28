@@ -3,9 +3,19 @@
 .*.swp
 .*.swo
 
-# Prevent to add IDA SDK accidentally
+# Prevent to accidentally add IDA SDK
 third_party/idasdk/*
 third_party/idasdk*.zip
+
+# Ignore changes in submodules and code
+third_party/openssl/*
+third_party/postgresql/*
+third_party/protobuf/*
+
+# Build artifacts
+build_linux/*
+build_msvc/*
+third_party/zynamics/binexport
 
 # Auto-generated
 *.pb.cc
