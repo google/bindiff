@@ -31,7 +31,7 @@ install:
   - if "%C_OPENSSL%" neq "1"
     perl Configure VC-WIN32 no-asm --prefix=..\..\build_msvc\openssl
   - if "%C_OPENSSL%" neq "1" call ms\do_ms
-  - if "%C_OPENSSL%" neq "1" nmake /f ms\nt.mak install
+  - if "%C_OPENSSL%" neq "1" nmake /f ms\nt.mak /s install
   - if "%C_OPENSSL%" neq "1" cd ..\..
   - if "%C_OPENSSL%" neq "1" echo. > build_msvc\openssl\CACHED
 
@@ -82,6 +82,8 @@ install:
 before_build:
   - mklink /J third_party\zynamics\binexport .
   - cd build_msvc
+  - dir
+  - dir postgresql\lib
   - cmake
     -DCMAKE_FIND_ROOT_PATH="%cd%"
     -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY

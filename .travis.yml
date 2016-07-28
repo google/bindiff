@@ -39,7 +39,7 @@ before_install:
     --prefix=${PWD}/../../build_linux/openssl
   - test -n "$C_OPENSSL" && true || make -s
   - test -n "$C_OPENSSL" && true || make install
-  - test -n "$C_OPENSSL" && true || cd ..\..
+  - test -n "$C_OPENSSL" && true || cd ../..
   - test -n "$C_OPENSSL" && true || touch "build_linux/openssl/CACHED"
 
   # Cached PostgreSQL client libraries
