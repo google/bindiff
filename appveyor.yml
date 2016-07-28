@@ -16,12 +16,11 @@ install:
   - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
 
   - git submodule update --init --recursive
-  - mkdir build_msvc
+  - if not exist build_msvc mkdir build_msvc
 
   # IDA SDK
   - C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -k "%idasdk_secret%"
     -in third_party\idasdk.zip.enc -out third_party\idasdk.zip -d
-  #- 7z x -bt -mmt2 idasdk.zip
   - unzip -q third_party\idasdk.zip -d third_party
 
   # Cached static OpenSSL library
