@@ -19,9 +19,10 @@
 #include <memory>
 #include <string>
 
+#include <binexport2.pb.h>  // NOLINT
+
 #include "base/logging.h"
 #include "strings/strutil.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
 Address GetInstructionAddress(const BinExport2& proto, int index) {

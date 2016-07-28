@@ -2,8 +2,9 @@ language: cpp
 
 cache:
   directories:
-    - $HOME/protobuf
-    - $HOME/postgresql
+    - build_linux/openssl
+    - build_linux/protobuf
+    - build_linux/postgresql
 
 os:
   - linux
@@ -30,45 +31,59 @@ before_install:
     -out third_party/idasdk.zip -d
   - unzip -q third_party/idasdk.zip -d third_party/
 
+  # Cached static OpenSSL library
+  - test ! -f "build_linux/openssl/CACHED" && true || export C_OPENSSL=1
+  - test -n "$C_OPENSSL" && true || cd third_party/openssl
+  - test -n "$C_OPENSSL" && true ||
+    ./Configure no-asm no-dso no-krb5 no-shared no-zlib linux-generic32 -m32
+    --prefix=${PWD}/../../build_linux/openssl
+  - test -n "$C_OPENSSL" && true || make -s
+  - test -n "$C_OPENSSL" && true || make install
+  - test -n "$C_OPENSSL" && true || cd ../..
+  - test -n "$C_OPENSSL" && true || touch "build_linux/openssl/CACHED"
+
   # Cached PostgreSQL client libraries
-  - test ! -f "$HOME/postgresql/CACHED" && true || export C_POSTGRES=1
+  - test ! -f "build_linux/postgresql/CACHED" && true || export C_POSTGRES=1
+  - test -n "$C_POSTGRES" && true || cd third_party
   - test -n "$C_POSTGRES" && true ||
     wget https://ftp.postgresql.org/pub/source/v9.5.3/postgresql-9.5.3.tar.bz2
   - test -n "$C_POSTGRES" && true || tar xaf postgresql-9.5.3.tar.bz2
   - test -n "$C_POSTGRES" && true || cd postgresql-9.5.3
   - test -n "$C_POSTGRES" && true ||
     ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32
-    --prefix=$HOME/postgresql --disable-debug --disable-profiling
-    --disable-coverage --without-tcl --without-perl --without-python
-    --without-gssapi --without-ldap --without-bonjour --without-readline
+    --prefix=${PWD}/../../build_linux/postgresql --disable-debug
+    --disable-profiling --disable-coverage --without-tcl --without-perl
+    --without-python --without-gssapi --without-ldap --without-bonjour
+    --without-readline
   - test -n "$C_POSTGRES" && true || make -is -C src/include install
   - test -n "$C_POSTGRES" && true || make -s -C src/interfaces install
-  - test -n "$C_POSTGRES" && true || touch "$HOME/postgresql/CACHED"
-  - test -n "$C_POSTGRES" && true || cd ..
+  - test -n "$C_POSTGRES" && true || cd ../..
+  - test -n "$C_POSTGRES" && true || touch "build_linux/postgresql/CACHED"
 
   # Cached Protocol Buffers
-  - test ! -f "$HOME/protobuf/CACHED" && true || export C_PROTOBUF=1
+  - test ! -f "build_linux/protobuf/CACHED" && true || export C_PROTOBUF=1
   - test -n "$C_PROTOBUF" && true || cd third_party/protobuf
   - test -n "$C_PROTOBUF" && true || ./autogen.sh
   - test -n "$C_PROTOBUF" && true ||
-    ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32 --prefix=${HOME}/protobuf
+    ./configure CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32
+    --prefix=${PWD}/../../build_linux/protobuf
     --disable-dependency-tracking --disable-maintainer-mode
     --enable-silent-rules
   - test -n "$C_PROTOBUF" && true || make -s
   - test -n "$C_PROTOBUF" && true || make install
-  - test -n "$C_PROTOBUF" && true || touch "$HOME/protobuf/CACHED"
   - test -n "$C_PROTOBUF" && true || cd ../..
+  - test -n "$C_PROTOBUF" && true || touch "build_linux/protobuf/CACHED"
 
 script:
-  - ./configure
-    -DOPENSSL_ROOT_DIR=$PWD/third_party/openssl
-    -DOPENSSL_CRYPTO_LIBRARY=/usr/lib/i386-linux-gnu/libcrypto.a
-    -DOPENSSL_SSL_LIBRARY=/usr/lib/i386-linux-gnu/libssl.a
-    -DPostgreSQL_ROOT=$HOME/postgresql
-    -DPROTOBUF_ROOT_FOLDER=$HOME/protobuf
-    -DPROTOBUF_INCLUDE_DIR=$HOME/protobuf/include
-    -DPROTOBUF_PROTOC_EXECUTABLE=$HOME/protobuf/bin/protoc
-    -DPROTOBUF_LIBRARY=$HOME/protobuf/lib/libprotobuf.a
+  - ln -sf ../.. third_party/zynamics/binexport
+  - cd build_linux
+  - cmake
+    -DCMAKE_FIND_ROOT_PATH=${PWD}
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+    -DOPENSSL_ROOT_DIR=${PWD}/openssl
+    -DPostgreSQL_ROOT=${PWD}/postgresql
+    ..
   - make
 
 env:

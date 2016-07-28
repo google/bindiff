@@ -1,0 +1,97 @@
+image: Visual Studio 2015
+
+environment:
+  idasdk_secret:
+    secure: e8rrgX8BRIaH59lHhkE56P7z9XjkkoN59li6krpEUOE=
+
+matrix:
+  fast_finish: true
+
+cache:
+  - build_msvc\openssl
+  - build_msvc\postgresql
+  - build_msvc\protobuf
+
+install:
+  - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
+
+  - git submodule update --init --recursive
+  - mkdir build_msvc
+
+  # IDA SDK
+  - C:\OpenSSL-Win32\bin\openssl.exe aes-256-cbc -k "%idasdk_secret%"
+    -in third_party\idasdk.zip.enc -out third_party\idasdk.zip -d
+  #- 7z x -bt -mmt2 idasdk.zip
+  - unzip -q third_party\idasdk.zip -d third_party
+
+  # Cached static OpenSSL library
+  - if exist build_msvc\openssl\CACHED set C_OPENSSL=1
+  - if "%C_OPENSSL%" neq "1" cd third_party\openssl
+  - if "%C_OPENSSL%" neq "1"
+    perl Configure VC-WIN32 no-asm --prefix=..\..\build_msvc\openssl
+  - if "%C_OPENSSL%" neq "1" call ms\do_ms
+  - if "%C_OPENSSL%" neq "1" nmake /f ms\nt.mak /s install
+  - if "%C_OPENSSL%" neq "1" cd ..\..
+  - if "%C_OPENSSL%" neq "1" echo. > build_msvc\openssl\CACHED
+
+  # Cached PostgreSQL client libraries
+  - if exist build_msvc\postgresql\CACHED set C_POSTGRES=1
+  - if "%C_POSTGRES%" neq "1" cd third_party
+  - if "%C_POSTGRES%" neq "1"
+    curl -fsS -o postgresql-9.5.3.tar.bz2
+    https://ftp.postgresql.org/pub/source/v9.5.3/postgresql-9.5.3.tar.bz2
+  - if "%C_POSTGRES%" neq "1" tar xaf postgresql-9.5.3.tar.bz2
+  - if "%C_POSTGRES%" neq "1" cd postgresql-9.5.3\src\tools\msvc
+  - if "%C_POSTGRES%" neq "1"
+    echo $config-^>{openssl} = '..\..\build_msvc\openssl'; > config.pl
+  - if "%C_POSTGRES%" neq "1"
+    sed -i "s/MultiThreadedDLL/MultiThreaded/" MSBuildProject.pm
+  - if "%C_POSTGRES%" neq "1" perl mkvcbuild.pl
+  - if "%C_POSTGRES%" neq "1" cd ..\..\..
+  - if "%C_POSTGRES%" neq "1"
+    msbuild pgsql.sln /t:interfaces\libpq
+    /p:Configuration="Release"
+    /p:ConfigurationType=StaticLibrary
+  - if "%C_POSTGRES%" neq "1" perl -e "use lib 'src/tools/msvc';use Install;Install::CopyIncludeFiles('..\..\build_msvc\postgresql')"
+  - if "%C_POSTGRES%" neq "1" mkdir ..\..\build_msvc\postgresql\lib
+  - if "%C_POSTGRES%" neq "1"
+    copy Release\libpgport\libpgport.lib ..\..\build_msvc\postgresql\lib
+  - if "%C_POSTGRES%" neq "1"
+    copy Release\libpq\libpq.lib ..\..\build_msvc\postgresql\lib
+  - if "%C_POSTGRES%" neq "1" cd ..\..
+  - if "%C_POSTGRES%" neq "1" echo. > build_msvc\postgresql\CACHED
+
+  # Cached Protocol Buffers
+  - if exist build_msvc\protobuf\CACHED set C_PROTOBUF=1
+  - if "%C_PROTOBUF%" neq "1" cd third_party\protobuf
+  - if "%C_PROTOBUF%" neq "1" mkdir build_msvc
+  - if "%C_PROTOBUF%" neq "1" cd build_msvc
+  - if "%C_PROTOBUF%" neq "1"
+    cmake -G "Visual Studio 14 2015"
+    -Dprotobuf_BUILD_SHARED_LIBS=OFF
+    -Dprotobuf_BUILD_TESTS=OFF
+    ..\cmake
+  - if "%C_PROTOBUF%" neq "1"
+    msbuild protobuf.sln /p:Platform=Win32 /p:Configuration=Release
+  - if "%C_PROTOBUF%" neq "1" mkdir ..\..\..\build_msvc\protobuf
+  - if "%C_PROTOBUF%" neq "1" copy Release\* ..\..\..\build_msvc\protobuf
+  - if "%C_PROTOBUF%" neq "1" cd ..\..\..
+  - if "%C_PROTOBUF%" neq "1" echo. > build_msvc\protobuf\CACHED
+
+before_build:
+  - mklink /J third_party\zynamics\binexport .
+  - cd build_msvc
+  - dir
+  - dir postgresql\lib
+  - cmake
+    -DCMAKE_FIND_ROOT_PATH="%cd%"
+    -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY
+    -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY
+    -DPostgreSQL_INCLUDE_DIR="%cd%\postgresql\include"
+    -DPostgreSQL_LIBRARY="%cd%\postgresql\lib\libpq.lib"
+    -DPROTOBUF_PROTOC_EXECUTABLE="%cd%\protobuf\protoc.exe"
+    -DPROTOBUF_LIBRARY="%cd%\protobuf\libprotobuf.lib"
+    ..
+
+build_script:
+  - msbuild binexport.sln /p:Configuration=Release
