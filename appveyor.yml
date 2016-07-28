@@ -95,3 +95,9 @@ before_build:
 
 build_script:
   - msbuild binexport.sln /p:Configuration=Release
+  - msbuild tools/tools.sln /p:Configuration=Release
+
+artifacts:
+  - path: build_msvc\Release\zynamics_binexport_9.plw
+  - path: build_msvc\Release\zynamics_binexport_9.p64
+  - path: build_msvc\tools\Release\binexport2dump.exe

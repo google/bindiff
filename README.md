@@ -1,4 +1,4 @@
-# BinExport [![Build Status](https://api.travis-ci.org/google/binexport.svg?branch=master)](https://travis-ci.org/google/binexport) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8977/badge.svg)](https://scan.coverity.com/projects/google-binexport)
+# BinExport [![Build Status](https://api.travis-ci.org/google/binexport.svg?branch=master)](https://travis-ci.org/google/binexport) [![Build status](https://ci.appveyor.com/api/projects/status/g0wjkl0x7ecdxdt6?svg=true)](https://ci.appveyor.com/project/cblichmann/binexport-wvf6q) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8977/badge.svg)](https://scan.coverity.com/projects/google-binexport)
 
 Copyright 2011-2016 Google Inc.
 
