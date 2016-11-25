@@ -70,6 +70,8 @@ bool SortByAddressLevel(const std::pair<Address, FlowGraph::Level>& one,
   return one.first < two.first;
 }
 
+}  // namespace
+
 // Returns an instruction's address. Either the instruction has an address
 // stored directly or we keep iterating previous instructions until we find one
 // that does, adding the correct offset. Assumes that we'll always find a
@@ -88,8 +90,6 @@ Address GetInstructionAddress(const BinExport2& proto, int index) {
   CHECK(false && "invalid instruction index");
   return 0;  // Should never be reached.
 }
-
-}  // anonymous namespace
 
 // Returns true iff the addresses are in strictly increasing order.
 bool IsSorted(const std::vector<Address>& addresses) {
@@ -331,129 +331,6 @@ void FlowGraph::Read(const BinExport2& proto,
     }
   }
 
-  Init();
-}
-
-// TODO(soerenme) Fully deprecate and remove the old protocol buffer format once
-// we have migrated all of VxClass' data. b/23673004
-void FlowGraph::Read(const BinExport::Flowgraph& proto,
-                     Instruction::Cache* instruction_cache) {
-  string_references_ = 1;
-  byte_hash_ = 1;
-  prime_ = 0;
-
-  entry_point_address_ = static_cast<Address>(proto.address());
-  std::vector<VertexInfo> temp_vertices(proto.vertices_size());
-  std::vector<Address> temp_addresses(proto.vertices_size());
-  std::string function_bytes;
-  for (int i = 0; i < proto.vertices_size(); ++i) {
-    const BinExport::Flowgraph::Vertex& vertex_proto = proto.vertices(i);
-    VertexInfo& vertex_info = temp_vertices[i];
-    vertex_info.instruction_start_ = vertex_proto.instructions_size()
-                                         ? instructions_.size()
-                                         : std::numeric_limits<uint32_t>::max();
-    instructions_.reserve(vertex_proto.instructions_size() +
-                          instructions_.size());
-    uint32_t string_references_hash = 1;
-    std::string basic_block_bytes;
-    const size_t first_basic_block_instruction = instructions_.size();
-    for (int j = 0; j < vertex_proto.instructions_size(); ++j) {
-      const BinExport::Flowgraph::Vertex::Instruction& instruction_proto =
-          vertex_proto.instructions(j);
-      if (instruction_proto.string_reference()) {
-        string_references_hash *=
-            string_references_hash +
-            static_cast<uint32_t>(instruction_proto.string_reference());
-      }
-
-      // TODO(soerenme) This might not be stable since it depends on instruction
-      //     order... sort by address instead.
-      basic_block_bytes += instruction_proto.raw_bytes();
-
-      // TODO(soerenme) The standalone binary has no use for comments, disable
-      //     them somehow.
-      for (int k = 0; k < instruction_proto.comments_size(); ++k) {
-        const BinExport::Flowgraph::Vertex::Instruction::Comment&
-            comment_proto = instruction_proto.comments(k);
-        const uint32_t flags = comment_proto.flags();
-
-        const Comment::Type type = Comment::Type((flags >> 1) & 0xF);
-        const size_t operand_id = (flags >> 16) & 0xFFFF;
-        const bool repeatable = (flags & 1) != 0;
-        GetCallGraph()->GetComments()[std::make_pair(
-            instruction_proto.address(), operand_id)] =
-            Comment(comment_proto.comment(), type, repeatable);
-      }
-
-      for (int k = 0; k < instruction_proto.call_targets_size(); ++k) {
-        if (vertex_info.call_target_start_ ==
-            std::numeric_limits<uint32_t>::max()) {
-          vertex_info.call_target_start_ = call_targets_.size();
-        }
-        call_targets_.push_back(
-            static_cast<Address>(instruction_proto.call_targets(k)));
-      }
-
-      instructions_.emplace_back(
-          instruction_cache, static_cast<Address>(instruction_proto.address()),
-          instruction_proto.mnemonic(), instruction_proto.prime());
-    }
-
-    temp_addresses[i] =
-        instructions_[first_basic_block_instruction].GetAddress();
-    vertex_info.prime_ = vertex_proto.prime();
-    vertex_info.fixed_point_ = 0;
-    vertex_info.string_hash_ = string_references_hash;
-    vertex_info.basic_block_hash_ = GetSdbmHash(basic_block_bytes);
-    prime_ += vertex_proto.prime();  // will overflow/wrap a lot!
-    // order invariant combination of hashes
-    string_references_ *= string_references_hash;
-    function_bytes += basic_block_bytes;
-  }
-
-  if (!IsSorted(temp_addresses)) {
-    throw std::runtime_error("basic blocks not sorted by address!");
-  }
-
-  typedef std::pair<Graph::edges_size_type, Graph::edges_size_type>
-      TEdgeDescriptor;
-  std::vector<TEdgeDescriptor> edges(proto.edges_size());
-  std::vector<EdgeInfo> edge_properties(proto.edges_size());
-  for (int i = 0; i < proto.edges_size(); ++i) {
-    const BinExport::Flowgraph::Edge& edge_proto = proto.edges(i);
-    edges[i] = TEdgeDescriptor(
-        FindVertex(temp_addresses, edge_proto.source_address()),
-        FindVertex(temp_addresses, edge_proto.target_address()));
-    edge_properties[i].flags_ = TranslateEdge(edge_proto.type());
-  }
-
-  // This leaves prime, byte hash etc unaffected. It's debatable whether that is
-  // good or bad. It doesn't reflect the current reality of the loaded graph
-  // after truncation, but it does reflect the actual disassembly.
-  if (instructions_.size() >= kMaxFunctionInstructions ||
-      edges.size() >= kMaxFunctionEdges ||
-      temp_addresses.size() >= kMaxFunctionBasicBlocks) {
-    LOG(WARNING) << StrCat(
-        "Function ", strings::Hex(entry_point_address_, strings::ZERO_PAD_8),
-        " is excessively large: ", temp_addresses.size(), ", basic blocks, ",
-        edges.size(), " edges, ", instructions_.size(),
-        " instructions. Discarding.");
-  } else {
-    Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
-                     edges.end(), edge_properties.begin(),
-                     temp_addresses.size());
-    std::swap(graph_, temp_graph);
-
-    {
-      VertexIterator i, end;
-      int j = 0;
-      for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i, ++j) {
-        graph_[*i] = temp_vertices[j];
-      }
-    }
-  }
-
-  byte_hash_ = GetSdbmHash(function_bytes);
   Init();
 }
 

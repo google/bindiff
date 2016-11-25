@@ -7,7 +7,7 @@
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
-#include "third_party/zynamics/binexport/binexport.pb.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 namespace google {
 namespace protobuf {
 namespace io {
@@ -16,7 +16,7 @@ using ::proto2::io::IstreamInputStream;
 }  // namespace protobuf
 }  // namespace google
 #else
-#include "third_party/zynamics/binexport/binexport.pb.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include <google/protobuf/io/zero_copy_stream_impl.h>
 #endif  // GOOGLE
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
@@ -45,52 +45,40 @@ void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
 
 void ReadInfos(const std::string& filename, CallGraph& call_graph,
                FlowGraphInfos& flow_graph_infos) {
+  LOG(QFATAL) << "ReadInfos(" << filename << ", , )!!!";
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
     throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
   }
-  auto header(BinExportHeader::ParseFromStream(&file));
-  google::protobuf::io::IstreamInputStream stream(&file);
-  {
-    BinExport::Meta meta_information;
-    meta_information.ParseFromBoundedZeroCopyStream(&stream,
-        header.call_graph_offset - header.meta_offset);
-    call_graph.SetExeFilename(meta_information.input_binary());
-    call_graph.SetExeHash(meta_information.input_hash());
-
-    BinExport::Callgraph proto;
-    proto.ParseFromBoundedZeroCopyStream(&stream,
-        header.flow_graph_offsets[0].offset - header.call_graph_offset);
-    call_graph.Read(proto, filename);
+  BinExport2 proto;
+  if (!proto.ParseFromIstream(&file)) {
+    throw std::runtime_error("failed parsing protocol buffer");
   }
 
+  const auto& meta_information = proto.meta_information();
+  call_graph.SetExeFilename(meta_information.executable_name());
+  call_graph.SetExeHash(meta_information.executable_id());
+  call_graph.Read(proto, filename);
+
   Instruction::Cache instruction_cache;
-  BinExport::Flowgraph flow_graph_proto;
-  for (uint32_t i = 0; i < header.num_flow_graphs; ++i) {
-    // Note the +1 index is safe because we add an artificial entry into the
-    // header flow graph table.
-    flow_graph_proto.ParseFromBoundedZeroCopyStream(&stream,
-        header.flow_graph_offsets[i + 1].offset -
-        header.flow_graph_offsets[i].offset);
-    std::unique_ptr<FlowGraph> flow_graph(new FlowGraph(
-        &call_graph, static_cast<Address>(flow_graph_proto.address())));
-    flow_graph->Read(flow_graph_proto, &instruction_cache);
+  for (const auto& flow_graph_proto : proto.flow_graph()) {
+    // Create an ephemeral FlowGraph instance to update the instruction cache
+    // and to use it to parse the BinExport2 information.
+    FlowGraph flow_graph;
+    flow_graph.Read(proto, flow_graph_proto, &call_graph, &instruction_cache);
 
     Counts counts;
-    ::Count(*flow_graph, &counts);
-    FlowGraphInfo info;
-    memset(&info, 0, sizeof(info));
-    info.address = flow_graph->GetEntryPointAddress();
-    info.file_offset = header.flow_graph_offsets[i].offset;
-    info.name = &flow_graph->GetName();
-    info.demangled_name = &flow_graph->GetDemangledName();
-    info.basic_block_count = counts["basicBlocks (library)"] +
-        counts["basicBlocks (non-library)"];
-    info.edge_count = counts["edges (library)"] +
-        counts["edges (non-library)"];
-    info.instruction_count = counts["instructions (library)"] +
-        counts["instructions (non-library)"];
-    flow_graph_infos[info.address] = info;
+    ::Count(flow_graph, &counts);
+    auto address = flow_graph.GetEntryPointAddress();
+    FlowGraphInfo& info = flow_graph_infos[address];
+    info.address = address;
+    info.name = &flow_graph.GetName();
+    info.demangled_name = &flow_graph.GetDemangledName();
+    info.basic_block_count =
+        counts["basicBlocks (library)"] + counts["basicBlocks (non-library)"];
+    info.edge_count = counts["edges (library)"] + counts["edges (non-library)"];
+    info.instruction_count =
+        counts["instructions (library)"] + counts["instructions (non-library)"];
   }
 }
 
@@ -792,4 +780,3 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
   ReadInfos((path_ + (secondary_filename_ + ".BinExport")),
             call_graph2, flow_graphs2);
 }
-

@@ -10,7 +10,6 @@
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include "third_party/zynamics/binexport/binexport.pb.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 
 class FixedPoint;
@@ -89,8 +88,6 @@ class FlowGraph {
   // Read and initialize flow graph from given proto message. The instruction
   // cache should be shared between flow graphs and stores mnemonic strings and
   // operand trees.
-  void Read(const BinExport::Flowgraph& proto,
-            Instruction::Cache* instruction_cache);
   void Read(const BinExport2& proto,
             const BinExport2::FlowGraph& proto_flow_graph,
             CallGraph* call_graph, Instruction::Cache* instruction_cache);

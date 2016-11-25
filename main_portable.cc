@@ -43,9 +43,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/binexport.pb.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/binexport_header.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/zylibcpp/utility/utility.h"
 
@@ -391,17 +389,6 @@ void ListFiles(const std::string& path) {
       LOG(INFO) << meta_information.executable_id() << " ("
                 << meta_information.executable_name() << ")";
       continue;
-    }
-    try {
-      auto header(BinExportHeader::ParseFromStream(&file));
-      BinExport::Meta meta_information;
-      std::string buffer(header.call_graph_offset - header.meta_offset, '\0');
-      file.read(&buffer[0], buffer.size());
-      meta_information.ParseFromString(buffer);
-      LOG(INFO) << EncodeHex(meta_information.input_hash()) << " ("
-                << meta_information.input_binary() << ")";
-    } catch (const std::runtime_error& error) {
-      LOG(INFO) << error.what() << " " << it->path();
     }
   }
 }

@@ -41,7 +41,6 @@
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/binexport.pb.h"   // NOLINT
 #include "third_party/zynamics/binexport/binexport2.pb.h"  // NOLINT
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
@@ -60,8 +59,6 @@
 #if _MSC_VER
 #define snprintf _snprintf
 #endif  // _MSC_VER
-
-using google::protobuf::io::IstreamInputStream;
 
 #ifndef __EA64__
 #define HEX_ADDRESS "%08X"
@@ -972,49 +969,51 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   }
 }
 
+void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
+                            const FlowGraphInfos& flow_graph_infos,
+                            CallGraph* call_graph, FlowGraph* flow_graph) {
+  auto info = flow_graph_infos.find(fixed_point_info.primary);
+  if (info == flow_graph_infos.end()) {
+    throw std::runtime_error("error: flow graph not found for fixed point");
+  }
+  std::ifstream file(call_graph->GetFilePath().c_str(), std::ios_base::binary);
+  BinExport2 proto;
+  if (!proto.ParseFromIstream(&stream)) {
+    throw std::runtime_error("failed parsing protocol buffer");
+  }
+  for (const auto& proto_flow_graph : proto.flow_graph()) {
+    // Entry point address is always set.
+    const auto address =
+        proto
+            .instruction(
+                proto.basic_block(proto_flow_graph.entry_basic_block_index())
+                    .instruction_index(0)
+                    .begin_index())
+            .address();
+    if (address == info->address) {
+      flow_graph->SetCallGraph(call_graph);
+      flow_graph->Read(proto, flow_graph_proto, call_graph, &instruction_cache);
+      return;
+    }
+  }
+  throw std::runtime_error("error: flow graph data not found");
+}
+
 void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
                                        FlowGraph& primary, FlowGraph& secondary,
                                        FixedPoint& fixed_point,
                                        bool create_instruction_matches) {
   instruction_cache_.Clear();
   try {
-    std::ifstream file(call_graph1_.GetFilePath().c_str(),
-                       std::ios_base::binary);
-    FlowGraphInfos::const_iterator info =
-        flow_graph_infos1_.find(fixed_point_info.primary);
-    const std::istream::pos_type offset = info->second.file_offset;
-    const int size = ++info != flow_graph_infos1_.end()
-                         ? static_cast<int>(info->second.file_offset - offset)
-                         : std::numeric_limits<int>::max();
-    file.seekg(offset);
-    IstreamInputStream stream(&file);
-    BinExport::Flowgraph flowgraphProto;
-    if (!flowgraphProto.ParseFromBoundedZeroCopyStream(&stream, size)) {
-      throw std::runtime_error("Failed parsing protocol buffer.");
-    }
-    primary.SetCallGraph(&call_graph1_);
-    primary.Read(flowgraphProto, &instruction_cache_);
+    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_, call_graph1_,
+                           &primary);
   } catch (...) {
     throw std::runtime_error(
         ("error reading: " + call_graph1_.GetFilePath()).c_str());
   }
   try {
-    std::ifstream file(call_graph2_.GetFilePath().c_str(),
-                       std::ios_base::binary);
-    FlowGraphInfos::const_iterator info =
-        flow_graph_infos2_.find(fixed_point_info.secondary);
-    const std::istream::pos_type offset = info->second.file_offset;
-    const int size = ++info != flow_graph_infos2_.end()
-                         ? static_cast<int>(info->second.file_offset - offset)
-                         : std::numeric_limits<int>::max();
-    file.seekg(offset);
-    IstreamInputStream stream(&file);
-    BinExport::Flowgraph flowgraphProto;
-    if (!flowgraphProto.ParseFromBoundedZeroCopyStream(&stream, size)) {
-      throw std::runtime_error("Failed parsing protocol buffer.");
-    }
-    secondary.SetCallGraph(&call_graph2_);
-    secondary.Read(flowgraphProto, &instruction_cache_);
+    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_, call_graph2_,
+                           &secondary);
   } catch (...) {
     throw std::runtime_error(
         ("error reading: " + call_graph2_.GetFilePath()).c_str());

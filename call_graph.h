@@ -6,7 +6,6 @@
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include "third_party/zynamics/binexport/binexport.pb.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 
 class FlowGraph;
@@ -74,10 +73,9 @@ class CallGraph {
   // Constructs an empty call graph.
   CallGraph();
 
-  // read and initialize the call graph from "proto". "filename" is passed in
+  // Reads and initializes the call graph from "proto". "filename" is passed in
   // and remembered for informational purposes only (we want to be able to
   // construct default save filenames with it for example).
-  void Read(const BinExport::Callgraph& proto, const std::string& filename);
   void Read(const BinExport2& proto, const std::string& filename);
 
   // Get just the filename part (without path or extension) passed into read().

@@ -8,12 +8,11 @@ struct FlowGraphInfo {
   Address address;
   const std::string* name;
   const std::string* demangled_name;
-  std::istream::pos_type file_offset;
   int basic_block_count;
   int edge_count;
   int instruction_count;
 };
-typedef std::map<Address, FlowGraphInfo> FlowGraphInfos;
+using FlowGraphInfos = std::map<Address, FlowGraphInfo>;
 
 struct FixedPointInfo {
   Address primary;
@@ -30,14 +29,17 @@ struct FixedPointInfo {
 
   bool IsManual() const;
 };
-typedef std::set<FixedPointInfo> FixedPointInfos;
+using FixedPointInfos = std::set<FixedPointInfo>;
 
-bool operator <(const FixedPointInfo& one, const FixedPointInfo& two);
+bool operator<(const FixedPointInfo& one, const FixedPointInfo& two);
 
-class Reader : private boost::noncopyable {
+class Reader {
  public:
   explicit Reader();
-  virtual ~Reader() {}
+  virtual ~Reader() = default;
+
+  Reader(const Reader&) = delete;
+  Reader& operator=(const Reader&) = delete;
 
   virtual void Read(CallGraph& call_graph1, CallGraph& call_graph2,
                     FlowGraphInfos& flow_graphs1, FlowGraphInfos& flow_graphs2,
