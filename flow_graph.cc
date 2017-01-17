@@ -14,6 +14,7 @@
 #include <boost/graph/iteration_macros.hpp>      // NOLINT
 #endif  // GOOGLE
 #include "strings/strutil.h"
+#include "third_party/abcl/strings/util.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
