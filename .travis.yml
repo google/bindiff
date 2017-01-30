@@ -14,6 +14,7 @@ addons:
     packages:
       - g++-4.8-multilib
       - lib32stdc++-4.8-dev
+      - linux-libc-dev:i386
 
 dist: trusty
 sudo: false
