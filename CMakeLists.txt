@@ -1,4 +1,4 @@
-# Copyright 2011-2016 Google Inc. All Rights Reserved.
+# Copyright 2011-2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,80 +15,56 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(binexport C CXX)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+include(ExternalProject)
+include(ExternalOpenSSL)
+include(ExternalPostgreSQL)
+include(ExternalProtobuf)
+include(CompileOptions)
+
 # BinExport release number. Increase every time any backwards incompatible
 # change is made (usually when a new BinDiff or BinNavi version is released.
 set(RELEASE 9)
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-list(APPEND CMAKE_FIND_ROOT_PATH ${PROJECT_SOURCE_DIR}/third_party)
-
 # Use a copy of a subset of Boost that we ship
-set(Boost_NO_SYSTEM_PATHS, ON)
+set(Boost_NO_SYSTEM_PATHS ON)
 set(BOOST_ROOT ${PROJECT_SOURCE_DIR}/third_party/boost_parts)
 find_package(Boost 1.55 REQUIRED)
 
 find_package(Git)
+
+# Find and configure the IDA SDK. Copying allins.hpp to ins/pc.hpp is a
+# workaround to make intel.hpp compile (changed in the 6.95 SDK).
 find_package(IdaSdk REQUIRED)
+file(COPY ${IdaSdk_DIR}/include/allins.hpp
+     DESTINATION ${PROJECT_BINARY_DIR}/ins)
+file(RENAME ${PROJECT_BINARY_DIR}/ins/allins.hpp
+            ${PROJECT_BINARY_DIR}/ins/pc.hpp)
 
-set(OPENSSL_USE_STATIC_LIBS ON)
-find_package(OpenSSL 1.0.1 REQUIRED)
-
-set(PostgreSQL_TYPE_INCLUDE_DIR "none")  # We're not using the server-side API
-find_package(PostgreSQL 9.3 REQUIRED)
-
-# We ship Protocol Buffers as a sub-module and expect it to be built before
-set(PROTOBUF_ROOT_FOLDER ${PROJECT_SOURCE_DIR}/third_party/protobuf)
-set(PROTOBUF_SRC_ROOT_FOLDER ${PROTOBUF_ROOT_FOLDER}/src)
-set(PROTOBUF_INCLUDE_DIR ${PROTOBUF_SRC_ROOT_FOLDER})
+# Make Google-style includes work
 if(UNIX)
-  set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_SRC_ROOT_FOLDER}/protoc)
-  set(PROTOBUF_LIBRARY ${PROTOBUF_SRC_ROOT_FOLDER}/.libs/libprotobuf.a)
-else()
-  set(PROTOBUF_PROTOC_EXECUTABLE
-      ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/protoc.exe)
-  set(PROTOBUF_LIBRARY
-      ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/libprotobuf.lib)
+  execute_process(COMMAND
+    ${CMAKE_COMMAND} -E create_symlink ../..
+    ${PROJECT_SOURCE_DIR}/third_party/zynamics/binexport)
+elseif(WIN32)
+  file(TO_NATIVE_PATH
+    ${PROJECT_SOURCE_DIR}/third_party/zynamics/binexport _from)
+  file(TO_NATIVE_PATH ${PROJECT_SOURCE_DIR} _to)
+  execute_process(COMMAND $ENV{ComSpec} /c mklink /J ${_from} ${_to}
+    ERROR_QUIET)
 endif()
-find_package(Protobuf 3.0 REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_BINARY_DIR}  # To find generated protobufs
+                    ${BinExport_EXTRA_INCLUDE_DIR}
                     ${Boost_INCLUDE_DIR}
                     ${IdaSdk_INCLUDE_DIRS}
                     ${OPENSSL_INCLUDE_DIR}
-                    ${PostgreSQL_INCLUDE_DIRS}
+                    ${PostgreSQL_INCLUDE_DIR}
                     ${PROTOBUF_INCLUDE_DIRS}
-                    ${PROTOBUF_SRC_ROOT_FOLDER})
-
-if(UNIX)
-  add_compile_options(--std=c++11 -Wno-deprecated)
-  set(CMAKE_SKIP_BUILD_RPATH TRUE)
-  if(NOT COMPILE_64BIT)
-    add_compile_options(-m32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
-  endif()
-elseif(WIN32)
-  # TODO(cblichmann): Configure compiler warnings for Windows
-  if(MSVC)
-    # Use the static runtime
-    foreach(flag_var CMAKE_CXX_FLAGS
-                     CMAKE_CXX_FLAGS_DEBUG
-                     CMAKE_CXX_FLAGS_RELEASE
-                     CMAKE_CXX_FLAGS_MINSIZEREL
-                     CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-      if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-      endif()
-      if(${flag_var} MATCHES "/MDd")
-        string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-      endif()
-    endforeach(flag_var)
-  endif()
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DNDEBUG)
-endif()
+                    # Add the Protobuf source tree itself, as we use its
+                    # infrastructure for things like StringPiece etc.
+                    ${PROTOBUF_SOURCE_DIR}/src)
 
 # Find the Git revision number, if applicable
 set(REVISION unknown)
@@ -106,14 +82,9 @@ endif()
 configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
 set(BinExport_Proto_SRCS binexport2.proto)
-if(EXISTS "binexport.proto")
-  list(APPEND BinExport_Proto_SRCS binexport.proto)
-endif()
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${BinExport_Proto_SRCS})
-if(EXISTS "binexport_header.cc")
-  set(BinExport_Header_SRCS binexport_header.cc)
-endif()
-add_library(binexport_proto STATIC ${PROTO_SRCS} ${BinExport_Header_SRCS})
+add_library(binexport_proto STATIC ${PROTO_SRCS})
+add_dependencies(binexport_proto ${PROTOBUF_LIBRARIES})
 
 add_library(binexport_shared STATIC filesystem_util.cc)
 
@@ -121,6 +92,8 @@ add_library(binexport_plugin_shared STATIC hash.cc
                                            hex_codec.cc
                                            ida/digest.cc
                                            ida/log.cc)
+add_dependencies(binexport_plugin_shared ${OPENSSL_LIBRARIES}
+                                         ${PROTOBUF_LIBRARIES})
 target_compile_definitions(binexport_plugin_shared PUBLIC
                            ${IdaSdk_PLATFORM}
                            __IDP__
@@ -171,22 +144,15 @@ if(NOT COMPILE_64BIT)
                           binexport_shared
                           binexport_plugin_shared
                           ${OPENSSL_LIBRARIES}
+                          ${PostgreSQL_LIBRARIES}
                           ${PROTOBUF_LIBRARIES})
-  if(APPLE)
-    list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY}
-                                    krb5
-                                    ldap
-                                    ${OPENSSL_LIBRARIES})
-  elseif(UNIX)
-    list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY_DIR}/libpq.a)
-  elseif(WIN32)
+  if(WIN32)
     list(APPEND BinExport_LIBRARIES crypt32.lib
                                     secur32.lib
                                     shlwapi.lib
                                     ws2_32.lib
                                     wldap32.lib
-                                    ${PostgreSQL_LIBRARY}
-                                    ${PostgreSQL_LIBRARY_DIR}/libpgport.lib)
+                                    ${PostgreSQL_LIBRARIES})
   endif()
   target_link_libraries(zynamics_binexport_9${_plx} ${BinExport_LIBRARIES})
   target_link_libraries(zynamics_binexport_9${_plx64} ${BinExport_LIBRARIES})

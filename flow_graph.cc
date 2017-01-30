@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -381,7 +381,7 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
   enum {
     kMaxFunctionBasicBlocks = 5000,
     kMaxFunctionEdges = 5000,
-    kMaxFunctionInstructions = 10000
+    kMaxFunctionInstructions = 20000
   };
 
   // We now have a global "soup" of basic blocks and edges. Next we need to
