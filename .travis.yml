@@ -9,18 +9,6 @@ cache:
 os:
   - linux
 
-addons:
-  apt:
-    sources:
-      - george-edison55-precise-backports
-      - ubuntu-toolchain-r-test
-    packages:
-      - cmake
-      - cmake-data
-      - g++-4.8
-      - lib32stdc++-4.8-dev
-      - libssl-dev:i386
-
 dist: trusty
 sudo: false
 
