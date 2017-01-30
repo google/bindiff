@@ -9,6 +9,12 @@ cache:
 os:
   - linux
 
+addons:
+  apt:
+    packages:
+      - g++-4.8-multilib
+      - lib32stdc++-4.8-dev
+
 dist: trusty
 sudo: false
 

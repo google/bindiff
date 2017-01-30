@@ -15,7 +15,6 @@ cache:
 install:
   - call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x86
 
-  - git submodule update --init --recursive
   - mkdir build_msvc
 
   # IDA SDK
@@ -26,7 +25,7 @@ install:
 
 before_build:
   - cd build_msvc
-  - cmake ..
+  - cmake .. -DCMAKE_BUILD_TYPE=Release
 
 build_script:
   - msbuild binexport.sln /p:Configuration=Release /m
