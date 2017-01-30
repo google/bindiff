@@ -21,6 +21,7 @@ addons:
       - lib32stdc++-4.8-dev
       - libssl-dev:i386
 
+dist: trusty
 sudo: false
 
 before_install:
