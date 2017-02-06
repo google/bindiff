@@ -90,6 +90,16 @@ function:
 Use the plugin options listed below to setup the database connection in that
 case. See also the `CBinExportImporter` class in BinNavi.
 
+#### IDAPython
+
+The option flags are the same as IDC (listed above).
+
+```python
+import idaapi
+idc_lang = idaapi.find_extlang_by_name("idc")
+idaapi.run_statements("BinExport2Sql9(\"host\", 5342, \"database\", \"public\", \"user\", \"pass\")", idc_lang)
+```
+
 ### Plugin Options
 
 BinExport defines the following plugin options, that can be specified on IDA's
