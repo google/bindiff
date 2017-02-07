@@ -1,5 +1,6 @@
 #include <chrono>  // NOLINT
 #include <cstdint>
+#include <cstdio>
 #include <fstream>
 #include <limits>
 #include <map>
@@ -27,10 +28,9 @@
 #include "base/logging.h"
 #include "base/stringprintf.h"
 #include "strings/strutil.h"
-#include <boost/algorithm/string.hpp>        // NOLINT
-#include <boost/filesystem/convenience.hpp>  // NOLINT
-#include <boost/filesystem/operations.hpp>   // NOLINT
-#include <boost/filesystem/path.hpp>         // NOLINT
+#ifdef GOOGLE
+#include "third_party/absl/strings/case.h"
+#endif
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -40,15 +40,15 @@
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"  // NOLINT
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
-#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
@@ -97,6 +97,57 @@ class WaitBox {
   ~WaitBox() { hide_wait_box(); }
 };
 
+void HsvToRgb(double h, double s, double v,
+              unsigned char& r,  // NOLINT(runtime/references)
+              unsigned char& g,  // NOLINT(runtime/references)
+              unsigned char& b   // NOLINT(runtime/references)
+              ) {
+  if (static_cast<int>(s) == 0) {  // achromatic (gray)
+    r = g = b = static_cast<unsigned char>(v * 255.0);
+    return;
+  }
+
+  h /= 60.0;
+  const int i = static_cast<int>(floor(h));
+  const double f = h - i;
+  const double p = v * (1 - s);
+  const double q = v * (1 - s * f);
+  const double t = v * (1 - s * (1 - f));
+
+  switch (i) {
+    case 0:
+      r = static_cast<unsigned char>(v * 255);
+      g = static_cast<unsigned char>(t * 255);
+      b = static_cast<unsigned char>(p * 255);
+      break;
+    case 1:
+      r = static_cast<unsigned char>(q * 255);
+      g = static_cast<unsigned char>(v * 255);
+      b = static_cast<unsigned char>(p * 255);
+      break;
+    case 2:
+      r = static_cast<unsigned char>(p * 255);
+      g = static_cast<unsigned char>(v * 255);
+      b = static_cast<unsigned char>(t * 255);
+      break;
+    case 3:
+      r = static_cast<unsigned char>(p * 255);
+      g = static_cast<unsigned char>(q * 255);
+      b = static_cast<unsigned char>(v * 255);
+      break;
+    case 4:
+      r = static_cast<unsigned char>(t * 255);
+      g = static_cast<unsigned char>(p * 255);
+      b = static_cast<unsigned char>(v * 255);
+      break;
+    default:  // case 5:
+      r = static_cast<unsigned char>(v * 255);
+      g = static_cast<unsigned char>(p * 255);
+      b = static_cast<unsigned char>(q * 255);
+      break;
+  }
+}
+
 size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
                    Address start_source, Address end_source,
                    Address start_target, Address end_target,
@@ -125,6 +176,13 @@ std::string GetDataForHash() {
     }
   }
   return data;
+}
+
+void CopyFile(const std::string& from, const std::string& to) {
+  std::ifstream input(from.c_str(), std::ios_base::in | std::ios_base::binary);
+  std::ofstream output(to.c_str(), std::ios_base::out | std::ios_base::trunc |
+                                       std::ios_base::binary);
+  output << input.rdbuf();
 }
 
 // Sort by: similarity desc, confidence desc, address asc.
@@ -251,8 +309,7 @@ void Results::DeleteTemporaryFiles() {
   // Extremely dangerous, make very sure GetDirectory _never_ returns something
   // like "C:".
   try {
-    boost::filesystem::remove_all(
-        GetDirectory(PATH_TEMPUNIQUE, "BinDiff", false));
+    RemoveAll(GetTempDirectory("BinDiff", /* create = */ false));
   } catch (...) {  // We don't care if it failed-only litters the temp dir a bit
   }
 }
@@ -325,19 +382,18 @@ bool Results::IncrementalDiff() {
   WaitBox wait_box("HIDECANCEL\nPerforming incremental diff...");
 
   if (IsInComplete()) {
-    const boost::filesystem::path temp_dir(
-        GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true));
+    const std::string temp_dir(
+        GetTempDirectory("BinDiff", /* create = */ true));
     {
       ::Read(call_graph1_.GetFilePath(), &call_graph1_, &flow_graphs1_,
              &flow_graph_infos1_, &instruction_cache_);
       ::Read(call_graph2_.GetFilePath(), &call_graph2_, &flow_graphs2_,
              &flow_graph_infos2_, &instruction_cache_);
 
-      boost::filesystem::copy_file(input_filename_,
-                                   temp_dir / "incremental.BinDiff");
+      CopyFile(input_filename_, JoinPath(temp_dir, "incremental.BinDiff"));
 
       SqliteDatabase database(
-          (temp_dir / "incremental.BinDiff").string().c_str());
+          JoinPath(temp_dir, "incremental.BinDiff").c_str());
       DatabaseTransmuter writer(database, fixed_point_infos_);
       Write(writer);
 
@@ -346,7 +402,7 @@ bool Results::IncrementalDiff() {
                                       &fixed_points_);
     }
 
-    boost::filesystem::remove(temp_dir / "incremental.BinDiff");
+    std::remove(JoinPath(temp_dir, "incremental.BinDiff").c_str());
     incomplete_results_ = false;
   }
 
@@ -971,12 +1027,14 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
 
 void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
                             const FlowGraphInfos& flow_graph_infos,
-                            CallGraph* call_graph, FlowGraph* flow_graph) {
+                            CallGraph* call_graph, FlowGraph* flow_graph,
+                            Instruction::Cache* instruction_cache) {
   auto info = flow_graph_infos.find(fixed_point_info.primary);
   if (info == flow_graph_infos.end()) {
     throw std::runtime_error("error: flow graph not found for fixed point");
   }
-  std::ifstream file(call_graph->GetFilePath().c_str(), std::ios_base::binary);
+  std::ifstream stream(call_graph->GetFilePath().c_str(),
+                       std::ios_base::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
     throw std::runtime_error("failed parsing protocol buffer");
@@ -990,9 +1048,9 @@ void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
                     .instruction_index(0)
                     .begin_index())
             .address();
-    if (address == info->address) {
+    if (address == info->second.address) {
       flow_graph->SetCallGraph(call_graph);
-      flow_graph->Read(proto, flow_graph_proto, call_graph, &instruction_cache);
+      flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
       return;
     }
   }
@@ -1005,15 +1063,15 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
                                        bool create_instruction_matches) {
   instruction_cache_.Clear();
   try {
-    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_, call_graph1_,
-                           &primary);
+    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_, &call_graph1_,
+                           &primary, &instruction_cache_);
   } catch (...) {
     throw std::runtime_error(
         ("error reading: " + call_graph1_.GetFilePath()).c_str());
   }
   try {
-    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_, call_graph2_,
-                           &secondary);
+    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_, &call_graph2_,
+                           &secondary, &instruction_cache_);
   } catch (...) {
     throw std::runtime_error(
         ("error reading: " + call_graph2_.GetFilePath()).c_str());
@@ -1147,13 +1205,11 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
       << "<BinDiffMatch>\n"
       << "\t<Type value=\"flowgraph\" />\n"
       << "\t<Database path=\"" << databaseFile << "\" />\n"
-      << "\t<Primary path=\"" << call_graph1_.GetFilePath() << "\" offset=\""
-      << flow_graph_infos1_[fixed_point.GetPrimary()->GetEntryPointAddress()]
-             .file_offset
+      << "\t<Primary path=\"" << call_graph1_.GetFilePath() << "\" address=\""
+      << fixed_point.GetPrimary()->GetEntryPointAddress()
       << "\" />\n"
-      << "\t<Secondary path=\"" << call_graph2_.GetFilePath() << "\" offset=\""
-      << flow_graph_infos2_[fixed_point.GetSecondary()->GetEntryPointAddress()]
-             .file_offset
+      << "\t<Secondary path=\"" << call_graph2_.GetFilePath() << "\" address=\""
+      << fixed_point.GetSecondary()->GetEntryPointAddress()
       << "\" />\n"
       << "</BinDiffMatch>\n";
   *message = message_stream.str();
@@ -1201,13 +1257,11 @@ void Results::Read(Reader& reader) {
   Count();
   similarity_ = reader.GetSimilarity();
   confidence_ = reader.GetConfidence();
-  boost::filesystem::path input(input_filename_);
-  input.remove_leaf();
   dirty_ = false;
 
   // TODO(soerenme): Iterate over all fixedpoints that have been added manually
-  //                 by the Java UI and evaluate them (add
-  //                 basic block/instruction matches).
+  //                 by the Java UI and evaluate them (add basic
+  //                 block/instruction matches).
 }
 
 void Results::Write(Writer& writer) {
@@ -1662,38 +1716,27 @@ void Results::Count() {
 
 Results* g_results = 0;
 
-std::string FindFile(const boost::filesystem::path& path,
-                     const std::string& extension) {
-  boost::filesystem::directory_iterator end;
-  for (boost::filesystem::directory_iterator i(path); i != end; ++i) {
-    if (boost::filesystem::extension(*i) == extension) {
-      const std::string baseName = boost::filesystem::basename(*i);
-      boost::filesystem::path returnPath = i->path();
-      returnPath.remove_leaf();
-      return (returnPath / baseName).string();
+std::string FindFile(const std::string& path, const std::string& extension) {
+  std::vector<std::string> entries;
+  GetDirectoryEntries(path, &entries);
+  for (const auto& entry : entries) {
+    if (GetFileExtension(entry) == extension) {
+      return JoinPath(path, Basename(entry));
     }
   }
   return "";
 }
 
-std::string removeExtension(boost::filesystem::path inputPath) {
-  const std::string baseName = boost::filesystem::basename(inputPath);
-  boost::filesystem::path path = inputPath;
-  path.remove_leaf();
-  return path.string() + baseName;
-}
-
 class ExporterThread {
  public:
-  explicit ExporterThread(const boost::filesystem::path& temp_dir,
-                          const boost::filesystem::path& idbPath)
+  explicit ExporterThread(const std::string& temp_dir,
+                          const std::string& idbPath)
       : success_(false),
         secondary_idb_path_(idbPath),
-        secondary_temp_dir(temp_dir / "secondary"),
-        idc_file_(temp_dir / "run_secondary.idc") {
-    boost::filesystem::remove_all(secondary_temp_dir);
-    CreateDirectories(StringPiece(secondary_temp_dir.string()));
-
+        secondary_temp_dir(JoinPath(temp_dir, "secondary")),
+        idc_file_(JoinPath(temp_dir, "run_secondary.idc")) {
+    RemoveAll(secondary_temp_dir);
+    CreateDirectories(secondary_temp_dir);
     {
       std::ofstream file(idc_file_.c_str());
       file << "#include <idc.idc>\n"
@@ -1711,18 +1754,11 @@ class ExporterThread {
   void operator()() {
     std::string ida_exe(idadir(0));
     const bool is_64bit =
-        StringPiece(ToUpper(secondary_idb_path_.string())).ends_with(".I64");
+        StringPiece(ToUpper(secondary_idb_path_)).ends_with(".I64");
 
     std::string s_param;
     // We only support the Qt version.
-#ifndef WIN32
-    if (is_64bit) {
-      ida_exe += "/idaq64";
-    } else {
-      ida_exe += "/idaq";
-    }
-    s_param = "-S" + idc_file_.string();
-#else
+#ifdef WIN32
     if (is_64bit) {
       ida_exe += "\\idaq64.exe";
     } else {
@@ -1730,16 +1766,23 @@ class ExporterThread {
     }
 
     // Note: We only support IDA 6.8 or higher. The current quoting behavior
-    //       on Windows was introduced in IDA 6.1. Previously, we did not need
-    //       the quotes.
-    s_param = "-S\"" + idc_file_.string() + "\"";
+    //       on Windows was introduced in IDA 6.1. Previously, the quotes were
+    //       not needed.
+    s_param = "-S\"" + idc_file_ + "\"";
+#else
+    if (is_64bit) {
+      ida_exe += "/idaq64";
+    } else {
+      ida_exe += "/idaq";
+    }
+    s_param = "-S" + idc_file_;
 #endif
     std::vector<std::string> argv;
     argv.push_back(ida_exe);
     argv.push_back("-A");
-    argv.push_back("-OExporterModule:" + secondary_temp_dir.string());
+    argv.push_back("-OExporterModule:" + secondary_temp_dir);
     argv.push_back(s_param);
-    argv.push_back(secondary_idb_path_.string());
+    argv.push_back(secondary_idb_path_);
 
     success_ = SpawnProcess(argv, true /* Wait */, &status_message_);
   }
@@ -1751,61 +1794,59 @@ class ExporterThread {
  private:
   volatile bool success_;
   std::string status_message_;
-  boost::filesystem::path secondary_idb_path_;
-  boost::filesystem::path secondary_temp_dir;
-  boost::filesystem::path idc_file_;
+  std::string secondary_idb_path_;
+  std::string secondary_temp_dir;
+  std::string idc_file_;
 };
 
 bool ExportIdbs() {
-  const boost::filesystem::path temp_dir(GetTempDirectory("BinDiff", true));
+  const std::string temp_dir(GetTempDirectory("BinDiff", /* create = */ true));
 
   const char* secondary_idb = askfile_c(0, "*.idb;*.i64", "Select Database");
   if (!secondary_idb) {
     return false;
   }
 
-  const boost::filesystem::path primary_idb_path(
-      database_idb /* IDA global variable */);
-  boost::filesystem::path secondary_idb_path(secondary_idb);
+  const std::string primary_idb_path(database_idb /* IDA global variable */);
+  std::string secondary_idb_path(secondary_idb);
   if (primary_idb_path == secondary_idb_path) {
     throw std::runtime_error(
         "You cannot open the same IDB file twice. Please copy and rename one if"
         " you want to diff against self.");
-  } else if (removeExtension(primary_idb_path) ==
-             removeExtension(secondary_idb_path)) {
+  } else if (ReplaceFileExtension(primary_idb_path, "") ==
+             ReplaceFileExtension(secondary_idb_path, "")) {
     throw std::runtime_error(
         "You cannot open an idb and an i64 with the same base filename in the "
         "same directory. Please rename or move one of the files.");
-  } else if (extension(primary_idb_path) == ".idb" &&
-             extension(secondary_idb_path) == ".i64") {
-    if (askyn_c(
-            0,
-            "Warning: you are trying to diff a 32bit binary vs a 64bit "
-            "binary.\n"
-            "If the 64bit binary contains addresses outside the 32bit range "
-            "they will be truncated.\n"
-            "To fix this problem please start ida64 and diff the other way "
-            "around, i.e. 64bit vs 32bit.\n"
-            "Continue anyways?") != 1) {
+  } else if (GetFileExtension(primary_idb_path) == ".idb" &&
+             GetFileExtension(secondary_idb_path) == ".i64") {
+    if (askyn_c(0,
+                "Warning: you are trying to diff a 32-bit binary vs. a 64-bit "
+                "binary.\n"
+                "If the 64-bit binary contains addresses outside the 32-bit "
+                "range they will be truncated.\n"
+                "To fix this problem please start 64-bit aware IDA and diff "
+                "the other way around, i.e. 64-bit vs. 32-bit.\n"
+                "Continue anyways?") != 1) {
       return false;
     }
   }
   delete g_results;
   g_results = 0;
 
-  LOG(INFO) << "diffing " << primary_idb_path.filename().string() << " vs "
-            << secondary_idb_path.filename().string();
+  LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
+            << Basename(secondary_idb_path);
   WaitBox wait_box("HIDECANCEL\nExporting idbs...");
   {
     ExporterThread exporter(temp_dir, secondary_idb_path);
     std::thread thread(std::ref(exporter));
 
-    boost::filesystem::path primary_temp_dir(temp_dir / "primary");
-    boost::filesystem::remove_all(primary_temp_dir);
-    boost::filesystem::create_directory(primary_temp_dir);
+    std::string primary_temp_dir(JoinPath(temp_dir, "primary"));
+    RemoveAll(primary_temp_dir);
+    CreateDirectories(primary_temp_dir);
 
     char errbuf[MAXSTR];
-    idc_value_t arg(primary_temp_dir.string().c_str());
+    idc_value_t arg(primary_temp_dir.c_str());
     if (!Run((std::string("BinExport2Diff") + kBinExportVersion).c_str(),
              1 /* Number of arguments */, &arg, nullptr /* Result */, errbuf,
              MAXSTR - 1)) {
@@ -2625,12 +2666,11 @@ bool diff(ea_t start_address_source, ea_t end_address_source,
 
   WaitBox wait_box("HIDECANCEL\nPerforming diff...");
   g_results = new Results();
-  const boost::filesystem::path temp_dir =
-      GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true);
+  const std::string temp_dir = GetTempDirectory("BinDiff", /* create = */ true);
   const std::string filename1 =
-      FindFile(temp_dir / "primary", ".BinExport") + ".BinExport";
+      FindFile(JoinPath(temp_dir, "primary"), ".BinExport") + ".BinExport";
   const std::string filename2 =
-      FindFile(temp_dir / "secondary", ".BinExport") + ".BinExport";
+      FindFile(JoinPath(temp_dir, "secondary"), ".BinExport") + ".BinExport";
   if (filename1 == ".BinExport" || filename2 == ".BinExport") {
     throw std::runtime_error(
         "Export failed. Is the secondary idb opened in another IDA instance? "
@@ -2861,10 +2901,10 @@ void idaapi ButtonPortCommentsCallback(TView* fields[], int) {
   }
 }
 
-bool WriteResults(boost::filesystem::path path) {
-  if (boost::filesystem::exists(path)) {
+bool WriteResults(const std::string& path) {
+  if (FileExists(path)) {
     if (askyn_c(0, "File\n'%s'\nalready exists - overwrite?",
-                path.string().c_str()) != 1) {
+                path.c_str()) != 1) {
       return false;
     }
   }
@@ -2872,48 +2912,39 @@ bool WriteResults(boost::filesystem::path path) {
   WaitBox wait_box("HIDECANCEL\nWriting results...");
   auto time_start(std::chrono::system_clock::now());
   LOG(INFO) << "Writing results...";
-  {
-    boost::filesystem::path export1;
-    boost::filesystem::path export2;
-    const std::string temp_dir = GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true);
+  std::string export1(g_results->call_graph1_.GetFilePath());
+  std::string export2(g_results->call_graph2_.GetFilePath());
+  const std::string temp_dir =
+      GetTempDirectory("BinDiff", /* create = */ true);
+  const std::string out_dir(Dirname(path));
 
-    if (!g_results->IsInComplete()) {
-      DatabaseWriter writer(path.string());
+  if (!g_results->IsInComplete()) {
+    DatabaseWriter writer(path);
+    g_results->Write(writer);
+  } else {
+    // results are incomplete (have been loaded)
+    // copy original result file to temp dir first, so we can overwrite the
+    // original if required
+    std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
+    CopyFile(g_results->input_filename_, JoinPath(temp_dir, "input.BinDiff"));
+    {
+      SqliteDatabase database(JoinPath(temp_dir, "input.BinDiff").c_str());
+      DatabaseTransmuter writer(database, g_results->fixed_point_infos_);
       g_results->Write(writer);
-      path.remove_leaf();
-
-      export1 = g_results->call_graph1_.GetFilePath();
-      export2 = g_results->call_graph2_.GetFilePath();
-    } else {
-      // results are incomplete (have been loaded)
-      // copy original result file to temp dir first, so we can overwrite the
-      // original if required
-      boost::filesystem::remove(temp_dir + "/input.BinDiff");
-      boost::filesystem::copy_file(g_results->input_filename_,
-                                   temp_dir + "/input.BinDiff");
-      {
-        SqliteDatabase database((temp_dir + "/input.BinDiff").c_str());
-        DatabaseTransmuter writer(database, g_results->fixed_point_infos_);
-        g_results->Write(writer);
-      }
-      boost::filesystem::remove(path);
-      boost::filesystem::copy_file(temp_dir + "/input.BinDiff", path);
-      boost::filesystem::remove(temp_dir + "/input.BinDiff");
-
-      boost::filesystem::path input(g_results->input_filename_);
-      input.remove_leaf();
-      path.remove_leaf();
-      export1 = g_results->call_graph1_.GetFilePath();
-      export2 = g_results->call_graph2_.GetFilePath();
     }
-    if (export1 != path / export1.leaf()) {
-      boost::filesystem::remove(path / export1.leaf());
-      boost::filesystem::copy_file(export1, path / export1.leaf());
-    }
-    if (export2 != path / export2.leaf()) {
-      boost::filesystem::remove(path / export2.leaf());
-      boost::filesystem::copy_file(export2, path / export2.leaf());
-    }
+    std::remove(path.c_str());
+    CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
+    std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
+  }
+  std::string new_export1(JoinPath(out_dir, Basename(export1)));
+  if (export1 != new_export1) {
+    std::remove(new_export1.c_str());
+    CopyFile(export1, new_export1);
+  }
+  std::string new_export2(JoinPath(out_dir, Basename(export2)));
+  if (export2 != new_export2) {
+    std::remove(new_export2.c_str());
+    CopyFile(export2, new_export2);
   }
 
   std::chrono::duration<double> processing_time(
@@ -2941,10 +2972,8 @@ bool DoSaveResultsLog() {
     return false;
   }
 
-  if (boost::filesystem::exists(boost::filesystem::path(filename))) {
-    if (askyn_c(0, "File exists - overwrite?") != 1) {
-      return false;
-    }
+  if (FileExists(filename) && (askyn_c(0, "File exists - overwrite?") != 1)) {
+    return false;
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
@@ -2973,12 +3002,12 @@ bool DoSaveResultsFortknox() {
       g_results->call_graph2_.GetFilename() + ".truth");
   const char* filename = askfile_c(1 /* save file */, default_filename.c_str(),
                                    "Save Groundtruth As");
-  if (!filename) return false;
+  if (!filename) {
+    return false;
+  }
 
-  if (boost::filesystem::exists(boost::filesystem::path(filename))) {
-    if (askyn_c(0, "File exists - overwrite?") != 1) {
-      return false;
-    }
+  if (FileExists(filename) && (askyn_c(0, "File exists - overwrite?") != 1)) {
+    return false;
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
@@ -3000,51 +3029,6 @@ void idaapi ButtonSaveResultsFortknoxCallback(TView* [], int) {
   DoSaveResultsFortknox();
 }
 
-bool doCreateHtmlReport(const std::string& name) {
-  if (!g_results) {
-    vinfo("Please perform a diff first", 0);
-    return false;
-  }
-
-  try {
-    const std::string default_filename(
-        g_results->call_graph1_.GetFilename() + "_vs_" +
-        g_results->call_graph2_.GetFilename() + " " + name + ".html");
-    const char* filename =
-        askfile_c(1, default_filename.c_str(), "Save Report As");
-    if (!filename) return false;
-
-    boost::filesystem::path path(filename);
-    path.remove_leaf();
-    const std::string resultFileName(
-        g_results->call_graph1_.GetFilename() + "_vs_" +
-        g_results->call_graph2_.GetFilename() + ".BinDiff");
-    if (!WriteResults(path / resultFileName)) return false;
-
-    std::stringstream message;
-    message << path.string() << ";" << filename << ";" << resultFileName << ";"
-            << name << ";";
-    LOG(INFO) << "Sending result to BinDiff GUI...";
-    SendGuiMessage(
-        g_config.ReadInt("/BinDiffDeluxe/Gui/@retries", 20),
-        g_config.ReadString("/BinDiffDeluxe/Gui/@directory",
-                            "C:\\Program Files\\zynamics\\BinDiff 4.2\\bin"),
-        g_config.ReadString("/BinDiffDeluxe/Gui/@server", "127.0.0.1"),
-        static_cast<unsigned short>(
-            g_config.ReadInt("/BinDiffDeluxe/Gui/@port", 2000)),
-        message.str(), nullptr);
-
-    return true;
-  } catch (const std::exception& error) {
-    LOG(INFO) << "Error writing report: " << error.what();
-    warning("Error writing report:\n %s\n", error.what());
-  } catch (...) {
-    LOG(INFO) << "Error writing report.";
-    warning("Error writing report.\n");
-  }
-  return false;
-}
-
 bool DoSaveResults() {
   if (!g_results) {
     vinfo("Please perform a diff first.", 0);
@@ -3062,10 +3046,11 @@ bool DoSaveResults() {
         g_results->call_graph2_.GetFilename() + ".BinDiff");
     const char* filename =
         askfile_c(1, default_filename.c_str(), "Save Results As");
-    if (!filename) return false;
+    if (!filename) {
+      return false;
+    }
 
-    boost::filesystem::path path(filename);
-    WriteResults(path);
+    WriteResults(filename);
 
     return true;
   } catch (...) {
@@ -3099,8 +3084,7 @@ bool DoLoadResults() {
       return false;
     }
 
-    boost::filesystem::path path(file);
-    path.remove_leaf();
+    std::string path(Dirname(file));
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("HIDECANCEL\nLoading results...");
@@ -3109,17 +3093,16 @@ bool DoLoadResults() {
     delete g_results;
     g_results = new Results();
 
-    const boost::filesystem::path temp_dir(
-        GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true));
+    const std::string temp_dir(
+        GetTempDirectory("BinDiff", /* create = */ true));
 
     SqliteDatabase database(file);
-    DatabaseReader reader(database, file, temp_dir.string());
+    DatabaseReader reader(database, file, temp_dir);
     g_results->Read(reader);
 
     // See b/27371897.
     const std::string hash(EncodeHex(Sha1(GetDataForHash())));
-    if (boost::algorithm::to_lower_copy(hash) !=
-        boost::algorithm::to_lower_copy(g_results->call_graph1_.GetExeHash())) {
+    if (ToUpper(hash) != ToUpper(g_results->call_graph1_.GetExeHash())) {
       LOG(INFO) << "Warning: currently loaded IDBs input file MD5 differs from "
                    "result file primary graph. Please load IDB for: "
                 << g_results->call_graph1_.GetExeFilename();
@@ -3171,10 +3154,12 @@ void idaapi ButtonLoadResultsCallback(TView* fields[], int /* unused */) {
 void InitConfig() {
   const std::string config_filename("bindiff.xml");
 
-  const boost::filesystem::path user_path(
-      GetDirectory(PATH_APPDATA, "BinDiff", true) + config_filename);
-  const boost::filesystem::path common_path(
-      GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) + config_filename);
+  const std::string user_path(
+      GetDirectory(PATH_APPDATA, "BinDiff", /* create = */ true) +
+      config_filename);
+  const std::string common_path(
+      GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /* create = */ false) +
+      config_filename);
 
   bool have_user_config;
   bool have_common_config;
@@ -3183,7 +3168,7 @@ void InitConfig() {
 
   // Try to read user's local config
   try {
-    user_config.Init(user_path.string(), std::string("BinDiffDeluxe"));
+    user_config.Init(user_path, std::string("BinDiffDeluxe"));
     user_config.SetSaveFileName("");  // Prevent saving in destructor
     have_user_config = true;
   } catch (const std::runtime_error&) {
@@ -3192,7 +3177,7 @@ void InitConfig() {
 
   // Try to read machine config
   try {
-    common_config.Init(common_path.string(), std::string("BinDiffDeluxe"));
+    common_config.Init(common_path, std::string("BinDiffDeluxe"));
     common_config.SetSaveFileName("");  // Prevent saving in destructor
     have_common_config = true;
   } catch (const std::runtime_error&) {
@@ -3212,23 +3197,23 @@ void InitConfig() {
 
   try {
     if (use_common_config) {
-      XmlConfig::SetDefaultFilename(common_path.string());
-      g_config.Init(common_path.string(), "BinDiffDeluxe");
-      boost::filesystem::remove(user_path);
-      g_config.SetSaveFileName(user_path.string());
+      XmlConfig::SetDefaultFilename(common_path);
+      g_config.Init(common_path, "BinDiffDeluxe");
+      std::remove(user_path.c_str());
+      g_config.SetSaveFileName(user_path);
     } else {
-      XmlConfig::SetDefaultFilename(user_path.string());
-      g_config.Init(user_path.string(), "BinDiffDeluxe");
+      XmlConfig::SetDefaultFilename(user_path);
+      g_config.Init(user_path, "BinDiffDeluxe");
     }
   } catch (const std::runtime_error&) {
     // Try module directory as last resort
     // Note: - The product_name parameter is ignored here
     //       - Not assigning directly to default filename, because
-    //         XmlConfig::init() may throw.
-    const boost::filesystem::path config_path(
-        GetDirectory(PATH_MODULE, "", false) + config_filename);
-    XmlConfig::SetDefaultFilename(config_path.string());
-    g_config.Init(config_path.string(), "BinDiffDeluxe");
+    //         XmlConfig::Init() may throw.
+    const std::string config_path(GetDirectory(PATH_MODULE, "", false) +
+                                  config_filename);
+    XmlConfig::SetDefaultFilename(config_path);
+    g_config.Init(config_path, "BinDiffDeluxe");
   }
 }
 
@@ -3434,8 +3419,7 @@ void idaapi PluginRun(int /*arg*/) {
     // We may have to unload a previous result if the input IDB has changed in
     // the meantime
     const std::string hash(EncodeHex(Sha1(GetDataForHash())));
-    if (boost::algorithm::to_lower_copy(hash) !=
-        boost::algorithm::to_lower_copy(g_results->call_graph1_.GetExeHash())) {
+    if (ToUpper(hash) != ToUpper(g_results->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
 
       delete g_results;
@@ -3460,12 +3444,7 @@ void idaapi PluginRun(int /*arg*/) {
 #ifdef _DEBUG
         ButtonSaveResultsFortknoxCallback, ButtonSaveResultsLogCallback,
 #endif
-        ButtonPortCommentsCallback  //,
-        // TODO(cblichmann): Uncomment once implemented again
-        // ButtonCreateHtmlSimilarityReportCallback,
-        // ButtonCreateHtmlDifferenceReportCallback,
-        // ButtonCreateHtmlAdvancedReportCallback
-        );
+        ButtonPortCommentsCallback);
   }
 }
 

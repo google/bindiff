@@ -3,27 +3,11 @@
 #include <memory>
 #include <string>
 
-#include "third_party/zynamics/binexport/binexport_header.h"
-#ifdef GOOGLE
-#define GOOGLE_PROTOBUF_VERIFY_VERSION
-#include "net/proto2/io/public/zero_copy_stream_impl.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
-namespace google {
-namespace protobuf {
-namespace io {
-using ::proto2::io::IstreamInputStream;
-}  // namespace io
-}  // namespace protobuf
-}  // namespace google
-#else
-#include "third_party/zynamics/binexport/binexport2.pb.h"
-#include <google/protobuf/io/zero_copy_stream_impl.h>
-#endif  // GOOGLE
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
                int& instructions) {
@@ -45,7 +29,6 @@ void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
 
 void ReadInfos(const std::string& filename, CallGraph& call_graph,
                FlowGraphInfos& flow_graph_infos) {
-  LOG(QFATAL) << "ReadInfos(" << filename << ", , )!!!";
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
     throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
@@ -82,27 +65,19 @@ void ReadInfos(const std::string& filename, CallGraph& call_graph,
   }
 }
 
-DatabaseWriter::DatabaseWriter(const std::string& filename)
-    : basic_block_steps_(),
-      function_steps_(),
-      database_(filename.c_str()),
-      filename_(filename) {
+DatabaseWriter::DatabaseWriter(const std::string& path)
+    : database_(path.c_str()), filename_(path) {
   PrepareDatabase();
 }
 
-DatabaseWriter::DatabaseWriter(const std::string& filename, bool recreate)
-    : basic_block_steps_(),
-      function_steps_(),
-      database_(),
-      filename_(filename) {
-  const auto temp_dir(GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true) +
-                      filename);
-  filename_ = temp_dir;
+DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
+  filename_ = JoinPath(GetTempDirectory("BinDiff", /* create = */ true),
+                       Basename(path));
   if (recreate) {
-    remove(temp_dir.c_str());
+    remove(filename_.c_str());
   }
-  const bool needs_init = !FileExists(temp_dir);
-  database_.Connect(temp_dir.c_str());
+  const bool needs_init = !FileExists(filename_);
+  database_.Connect(filename_.c_str());
   if (needs_init) {
     PrepareDatabase();
     WriteAlgorithms();
@@ -523,7 +498,8 @@ void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
 }
 
 std::string DatabaseTransmuter::GetTempFile() {
-  return GetDirectory(PATH_TEMPUNIQUE, "BinDiff", true) + "temporary.database";
+  return JoinPath(GetTempDirectory("BinDiff", /* create = */ true),
+                  "temporary.database");
 }
 
 void DatabaseTransmuter::DeleteTempFile() {
@@ -558,7 +534,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
                               "select address1, address2 from \"function\"");
     statement.Execute();
     for (; statement.GotData(); statement.Execute()) {
-      boost::int64_t primary, secondary;
+      int64_t primary;
+      int64_t secondary;
       statement.Into(&primary).Into(&secondary);
       current_fixed_points.insert(std::make_pair(
           static_cast<Address>(primary), static_cast<Address>(secondary)));

@@ -1,30 +1,34 @@
 // Command-line version of BinDiff.
 
+#include <inttypes.h>
+#include <signal.h>
+
 #include <cassert>
+#include <chrono>  // NOLINT
 #include <fstream>
 #include <functional>
-#include <memory>
 #include <iomanip>
-#include <iostream>
-#include <signal.h>
-#include <sstream>
+#include <iostream>  // NOLINT
+#include <memory>
+#include <mutex>    // NOLINT
+#include <sstream>  // NOLINT
 #include <string>
+#include <thread>  // NOLINT
 #include <utility>
 #include <vector>
 
 // TODO(cblichmann): Replace these
-#include <boost/algorithm/string.hpp>        // NOLINT(readability/boost)
-#include <boost/date_time.hpp>               // NOLINT(readability/boost)
-#include <boost/filesystem/convenience.hpp>  // NOLINT(readability/boost)
-#include <boost/filesystem/operations.hpp>   // NOLINT(readability/boost)
-#include <boost/thread.hpp>                  // NOLINT(readability/boost)
-#include <boost/timer.hpp>                   // NOLINT(readability/boost)
+#include <boost/timer.hpp>  // NOLINT
 
 #ifdef GOOGLE
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
+#include "third_party/absl/strings/case.h"
+
+using strings::ToUpper;
 #else
 #include <gflags/gflags.h>
+#include "strings/strutil.h"
 
 using google::ParseCommandLineFlags;
 using google::SET_FLAGS_DEFAULT;
@@ -33,7 +37,7 @@ using google::SetUsageMessage;
 using google::ShowUsageWithFlags;
 #endif  // GOOGLE
 #include "base/logging.h"
-
+#include "base/stringprintf.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -44,16 +48,14 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 #undef min
 #undef max
 
-namespace fs = boost::filesystem;
-
-// Note: We cannot use new-style flags here because gflags does not support the
-//       new syntax.
+// Note: We cannot use new-style flags here because third-party gflags does not
+//       support the new syntax yet.
 DEFINE_string(primary, "" /* Default */,
               "Primary input file or path in batch mode");
 DEFINE_string(secondary, "" /* Default */, "Secondary input file (optional)");
@@ -76,7 +78,7 @@ DEFINE_string(config, "" /* Default */, "Specify config file name");
 
 static const char kBinExportVersion[] = "8";  // Exporter version to use.
 
-boost::mutex g_queue_mutex;
+std::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
 
 typedef std::list<std::pair<std::string, std::string>> TFiles;
@@ -169,7 +171,7 @@ void DifferThread::operator()() {
       boost::timer timer;
       {
         // Pop pair from todo queue.
-        boost::mutex::scoped_lock lock(g_queue_mutex);
+        std::lock_guard<std::mutex> lock(g_queue_mutex);
         if (file_queue_->empty()) {
           break;
         }
@@ -190,8 +192,8 @@ void DifferThread::operator()() {
         LOG(INFO) << "reading " << file1;
         DeleteFlowGraphs(&flow_graphs1);
         FlowGraphInfos infos;
-        Read(path_ + "/" + file1 + ".BinExport", &call_graph1, &flow_graphs1,
-             &infos, &instruction_cache);
+        Read(JoinPath(path_, file1 + ".BinExport"), &call_graph1,
+             &flow_graphs1, &infos, &instruction_cache);
       } else {
         ResetMatches(&flow_graphs1);
       }
@@ -239,11 +241,10 @@ void DifferThread::operator()() {
         writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
 
-        LOG(INFO) << file1 << " vs " << file2 << " ( " << std::fixed
-                  << std::setprecision(3) << timer.elapsed() << " sec ) :"
-                  << "\tsimilarity:\t" << std::fixed << std::setprecision(6)
-                  << similarity << "\tconfidence:\t" << std::fixed
-                  << std::setprecision(6) << confidence;
+        LOG(INFO) << StringPrintf(
+            "%s vs %s ( %.3f sec ) :\tsimilarity:\t%fconfidence:\t%f",
+            file1.c_str(), file2.c_str(), timer.elapsed(), similarity,
+            confidence);
         for (Counts::const_iterator i = counts.begin(), end = counts.end();
              i != end; ++i) {
           LOG(INFO) << "\n\t" << i->first << ":\t" << i->second;
@@ -253,16 +254,7 @@ void DifferThread::operator()() {
       last_file1 = file1;
       last_file2 = file2;
     } catch (const std::bad_alloc&) {
-      LOG(INFO) << file1 << " vs " << file2;
-#ifdef _WIN32
-      LOG(INFO) << "Out-of-memory. Please try again with more memory "
-                   "available.\nSome extremely large binaries may require to "
-                   "use the 64-bit\ncommand-line version of BinDiff.";
-#else
-      LOG(INFO)
-          << "Out-of-memory. Please try again with more memory available.";
-#endif
-
+      LOG(INFO) << "Out of memory diffing " << file1 << " vs " << file2;
       last_file1.clear();
       last_file2.clear();
     } catch (const std::exception& error) {
@@ -304,7 +296,7 @@ void ExporterThread::operator()() {
     boost::timer timer;
     std::string file;
     {
-      boost::mutex::scoped_lock lock(g_queue_mutex);
+      std::lock_guard<std::mutex> lock(g_queue_mutex);
       if (files_->empty()) {
         return;
       }
@@ -312,15 +304,12 @@ void ExporterThread::operator()() {
       files_->erase(files_->begin());
     }
 
-    const fs::path in_path(in_path_);
-    const fs::path out_path(out_path_);
-
     // @bug: what if we have the same base name but as .idb _and_ .i64?
     bool ida64 = false;
-    fs::path in_file(in_path / (file + ".idb"));
-    if (!fs::exists(in_file)) {
-      in_file = (in_path / (file + ".i64"));
-      if (!fs::exists(in_file)) {
+    auto in_file(JoinPath(in_path_, file + ".idb"));
+    if (!FileExists(in_file)) {
+      in_file = JoinPath(in_path_, file + ".i64");
+      if (!FileExists(in_file)) {
         LOG(INFO) << "\"" << in_file << "\" not found";
         continue;
       }
@@ -331,15 +320,15 @@ void ExporterThread::operator()() {
     // fully expand it first.
     std::string status_message;
     std::vector<std::string> args;
-    args.push_back(ida_dir_ + "/" + (!ida64 ? ida_exe_ : ida_exe64_));
+    args.push_back(JoinPath(ida_dir_, !ida64 ? ida_exe_ : ida_exe64_));
     args.push_back("-A");
-    args.push_back("-OExporterModule:" + out_path.string());
+    args.push_back("-OExporterModule:" + out_path_);
 #ifndef WIN32
-    args.push_back("-S" + (out_path / "run_ida.idc").string());
+    args.push_back("-S" + JoinPath(out_path_, "run_ida.idc"));
 #else
-    args.push_back("-S\"" + (out_path / "run_ida.idc").string() + "\"");
+    args.push_back("-S\"" + JoinPath(out_path_, "run_ida.idc") + "\"");
 #endif
-    args.push_back(in_file.string());
+    args.push_back(in_file);
     if (!SpawnProcess(args, true /* Wait */, &status_message)) {
       LOG(INFO) << "failed to spawn IDA export process: "
                 << GetLastWindowsError();
@@ -347,14 +336,14 @@ void ExporterThread::operator()() {
       return;
     }
 
-    LOG(INFO) << std::fixed << std::setprecision(2) << timer.elapsed() << "\t"
-              << fs::file_size(in_file) << "\t" << file;
+    LOG(INFO) << StringPrintf("%.2f\t%" PRIu64 "\t%s", timer.elapsed(),
+                              GetFileSize(in_file), file.c_str());
   } while (!g_wants_to_quit);
 }
 
 void CreateIdaScript(const std::string& out_path) {
-  fs::path path(out_path);
-  std::ofstream file((path / "run_ida.idc").c_str());
+  std::string path(JoinPath(out_path, "run_ida.idc"));
+  std::ofstream file(path);
   if (!file) {
     throw std::runtime_error(
         ("Could not create idc script at \"" + out_path + "\"").c_str());
@@ -370,19 +359,25 @@ void CreateIdaScript(const std::string& out_path) {
 }
 
 void DeleteIdaScript(const std::string& out_path) {
-  fs::path path(out_path);
-  fs::remove(path / "run_ida.idc");
+  std::string path(JoinPath(out_path, "run_ida.idc"));
+  std::remove(path.c_str());
 }
 
 void ListFiles(const std::string& path) {
+  std::vector<std::string> entries;
+  GetDirectoryEntries(path, &entries);
+
   TUniqueFiles files;
-  fs::path in_path(path.c_str());
-  for (fs::directory_iterator it(in_path), end = fs::directory_iterator();
-       it != end; ++it) {
-    if (boost::algorithm::to_lower_copy(fs::extension(*it)) != ".binexport") {
+  for (const auto& entry : entries) {
+    const auto file_path(JoinPath(path, entry));
+    if (IsDirectory(file_path)) {
       continue;
     }
-    std::ifstream file(it->path().c_str(), std::ios_base::binary);
+    const auto extension(ToUpper(GetFileExtension(file_path)));
+    if (extension != ".BINEXPORT") {
+      continue;
+    }
+    std::ifstream file(file_path, std::ios_base::binary);
     BinExport2 proto;
     if (proto.ParseFromIstream(&file)) {
       const auto& meta_information = proto.meta_information();
@@ -396,21 +391,25 @@ void ListFiles(const std::string& path) {
 void BatchDiff(const std::string& path, const std::string& reference_file,
                const std::string& out_path) {
   // Collect idb files to diff.
+  std::vector<std::string> entries;
+  GetDirectoryEntries(path, &entries);
   TUniqueFiles idb_files;
   TUniqueFiles diff_files;
-  fs::path in_path(path.c_str());
-  for (fs::directory_iterator it(in_path), end = fs::directory_iterator();
-       it != end; ++it) {
+  for (const auto& entry : entries) {
+    auto file_path(JoinPath(path, entry));
+    if (IsDirectory(file_path)) {
+      continue;
+    }
     // Export all idbs in directory.
-    std::string extension(boost::algorithm::to_lower_copy(fs::extension(*it)));
-    if (extension == ".idb" || extension == ".i64") {
-      if (fs::file_size(*it)) {
-        idb_files.insert(fs::basename(*it));
+    const auto extension(ToUpper(GetFileExtension(file_path)));
+    if (extension == ".IDB" || extension == ".I64") {
+      if (GetFileSize(file_path) > 0) {
+        idb_files.insert(Basename(file_path));
       } else {
-        LOG(INFO) << "Warning: skipping empty file " << *it;
+        LOG(INFO) << "Warning: skipping empty file " << file_path;
       }
-    } else if (extension == ".binexport") {
-      diff_files.insert(fs::basename(*it));
+    } else if (extension == ".BINEXPORT") {
+      diff_files.insert(Basename(file_path));
     }
   }
 
@@ -430,7 +429,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
 
   const size_t num_idbs = idb_files.size();
   const size_t num_diffs = files.size();
-  const unsigned num_hardware_threads = boost::thread::hardware_concurrency();
+  const unsigned num_hardware_threads = std::thread::hardware_concurrency();
   XmlConfig config(XmlConfig::GetDefaultFilename(), "BinDiffDeluxe");
   const unsigned num_threads =
       config.ReadInt("/BinDiffDeluxe/Threads/@use", num_hardware_threads);
@@ -445,30 +444,34 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
     if (!idb_files.empty()) {
       CreateIdaScript(out_path);
     }
-    boost::thread_group threads;
+    std::vector<std::thread> threads;
     for (unsigned i = 0; i < num_threads; ++i) {
-      threads.create_thread(ExporterThread(in_path.string(), out_path, ida_dir,
-                                           ida_exe, ida_exe64, &idb_files));
+      threads.emplace_back(ExporterThread(path, out_path, ida_dir, ida_exe,
+                                          ida_exe64, &idb_files));
     }
-    threads.join_all();
+    for (auto& thread : threads) {
+      thread.join();
+    }
   }
   const double export_time = timer.elapsed();
 
   timer.restart();
   if (!FLAGS_export) {  // Perform diff
-    boost::thread_group threads;
+    std::vector<std::thread> threads;
     for (unsigned i = 0; i < num_threads; ++i) {
-      threads.create_thread(DifferThread(out_path, out_path, &files));
+      threads.emplace_back(DifferThread(out_path, out_path, &files));
     }
-    threads.join_all();
+    for (auto& thread : threads) {
+      thread.join();
+    }
   }
   const double diffTime = timer.elapsed();
   DeleteIdaScript(out_path);
 
-  LOG(INFO) << num_idbs << " files exported in " << std::fixed
-            << std::setprecision(2) << export_time << " seconds, "
-            << (num_diffs * (1 - FLAGS_export)) << " pairs diffed in "
-            << std::fixed << std::setprecision(2) << diffTime << " seconds";
+  LOG(INFO) << StringPrintf(
+      "%" PRIuMAX " files exported in %2f seconds, %" PRIuMAX
+      " pairs diffed in %2f seconds",
+      num_idbs, export_time, num_diffs * (1 - FLAGS_export), diffTime);
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
@@ -484,10 +487,15 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
 }
 
 void BatchDumpMdIndices(const std::string& path) {
-  fs::path in_path(path.c_str());
-  for (fs::directory_iterator i(in_path), end = fs::directory_iterator();
-       i != end; ++i) {
-    if (fs::extension(*i) != ".call_graph") {
+  std::vector<std::string> entries;
+  GetDirectoryEntries(path, &entries);
+  for (const auto& entry : entries) {
+    auto file_path(JoinPath(path, entry));
+    if (IsDirectory(file_path)) {
+      continue;
+    }
+    auto extension(ToUpper(GetFileExtension(file_path)));
+    if (extension != ".CALL_GRAPH") {
       continue;
     }
 
@@ -496,8 +504,7 @@ void BatchDumpMdIndices(const std::string& path) {
     Instruction::Cache instruction_cache;
     ScopedCleanup cleanup(&flow_graphs, 0, &instruction_cache);
     FlowGraphInfos infos;
-    Read(i->path().string(), &call_graph, &flow_graphs, &infos,
-         &instruction_cache);
+    Read(file_path, &call_graph, &flow_graphs, &infos, &instruction_cache);
     DumpMdIndices(call_graph, flow_graphs);
   }
 }
@@ -527,28 +534,29 @@ int main(int argc, char** argv) {
 #endif
   signal(SIGINT, SignalHandler);
 
-  const std::string current_path(fs::current_path().string());
+  const std::string current_path(GetCurrentDirectory());
   SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
                                SET_FLAGS_DEFAULT);
   SetCommandLineOptionWithMode("alsologtostderr", "true", SET_FLAGS_DEFAULT);
 
   int exit_code = 0;
   try {
+    std::string binary_name(Basename(argv[0]));
     std::string usage(
         "Finds similarities in binary code.\n"
         "Usage:\n");
     usage +=
-        "  " + std::string(argv[0]) +
+        "  " + binary_name +
         " --primary=PRIMARY [--secondary=SECONDARY]\n\n"
         "Example command line to diff all files in a directory against each"
         " other:\n" +
-        "  " + std::string(argv[0]) +
+        "  " + binary_name +
         " \\\n"
-        "    --primary=/tmp --output_dirc=/tmp/result\n"
+        "    --primary=/tmp --output_dir=/tmp/result\n"
         "Note that if the directory contains IDA Pro databases these will \n"
         "automatically be exported first.\n"
         "For a single diff:\n" +
-        "  " + std::string(argv[0]) +
+        "  " + binary_name +
         " \\\n"
         "    --primary=/tmp/file1.BinExport "
         "--secondary=/tmp/file2.BinExport \\\n"
@@ -572,9 +580,9 @@ int main(int argc, char** argv) {
         GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) + "bindiff.xml";
     if (!FLAGS_config.empty()) {
       XmlConfig::SetDefaultFilename(FLAGS_config);
-    } else if (boost::filesystem::exists(user_app_data)) {
+    } else if (FileExists(user_app_data)) {
       XmlConfig::SetDefaultFilename(user_app_data);
-    } else if (boost::filesystem::exists(common_app_data)) {
+    } else if (FileExists(common_app_data)) {
       XmlConfig::SetDefaultFilename(common_app_data);
     }
     const XmlConfig& config(GetConfig());
@@ -611,18 +619,18 @@ int main(int argc, char** argv) {
     }
 
     if (FLAGS_output_dir == current_path /* Defaulted */ &&
-        fs::is_directory(FLAGS_primary.c_str())) {
+        IsDirectory(FLAGS_primary.c_str())) {
       FLAGS_output_dir = FLAGS_primary;
     }
 
-    if (!fs::is_directory(FLAGS_output_dir.c_str())) {
+    if (!IsDirectory(FLAGS_output_dir.c_str())) {
       throw std::runtime_error(
           "Output parameter (--output_dir) must be a writeable directory! "
           "Supplied value: \"" +
           FLAGS_output_dir + "\"");
     }
 
-    if (fs::is_regular_file(FLAGS_primary.c_str())) {
+    if (FileExists(FLAGS_primary.c_str())) {
       // Primary from file system.
       FlowGraphInfos infos;
       call_graph1.reset(new CallGraph());
@@ -630,7 +638,7 @@ int main(int argc, char** argv) {
            &instruction_cache);
     }
 
-    if (fs::is_directory(FLAGS_primary.c_str())) {
+    if (IsDirectory(FLAGS_primary.c_str())) {
       // File system batch diff.
       if (FLAGS_ls) {
         ListFiles(FLAGS_primary);
@@ -648,7 +656,7 @@ int main(int argc, char** argv) {
     }
 
     if (!FLAGS_secondary.empty() &&
-        fs::is_regular_file(FLAGS_secondary.c_str())) {
+        FileExists(FLAGS_secondary.c_str())) {
       // secondary from filesystem
       FlowGraphInfos infos;
       call_graph2.reset(new CallGraph());
@@ -656,11 +664,11 @@ int main(int argc, char** argv) {
            &instruction_cache);
     }
 
-    if (!done_something && ((!fs::is_regular_file(FLAGS_primary.c_str()) &&
-                             !fs::is_directory(FLAGS_primary.c_str())) ||
+    if (!done_something && ((!FileExists(FLAGS_primary.c_str()) &&
+                             !IsDirectory(FLAGS_primary.c_str())) ||
                             (!FLAGS_secondary.empty() &&
-                             (!fs::is_regular_file(FLAGS_secondary.c_str()) &&
-                              !fs::is_directory(FLAGS_secondary.c_str()))))) {
+                             (!FileExists(FLAGS_secondary.c_str()) &&
+                              !IsDirectory(FLAGS_secondary.c_str()))))) {
       throw std::runtime_error(
           "Invalid inputs. Please make sure --primary and --secondary "
           "point to valid files/directories.");
@@ -703,14 +711,11 @@ int main(int argc, char** argv) {
                 << counts.find("functions primary (non-library)")->second << "/"
                 << counts.find("functions secondary (non-library)")->second
                 << ")";
-      LOG(INFO) << "call_graph1 MD index " << std::dec << std::setprecision(16)
-                << call_graph1->GetMdIndex() << "\tcall_graph2 MD index "
-                << std::dec << std::setprecision(16)
-                << call_graph2->GetMdIndex();
-      LOG(INFO) << "similarity: " << std::setfill(' ') << std::setw(5)
-                << std::setprecision(4) << (similarity * 100.0) << "%"
-                << "\tconfidence: " << std::setfill(' ') << std::setw(5)
-                << std::setprecision(4) << (confidence * 100.0) << "%";
+      LOG(INFO) << StringPrintf(
+          "call_graph1 MD index %16f\tcall_graph2 MD index %16f",
+          call_graph1->GetMdIndex(), call_graph2->GetMdIndex());
+      LOG(INFO) << StringPrintf("similarity: %5.4f%%\tconfidence: %5.4f%%",
+                                similarity * 100.0, confidence * 100.0);
 
       ChainWriter writer;
       if (FLAGS_log_format) {
@@ -727,8 +732,8 @@ int main(int argc, char** argv) {
       if (!writer.IsEmpty()) {
         writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
-        LOG(INFO) << "writing results: " << std::setprecision(3)
-                  << timer.elapsed() << " sec." << std::endl;
+        LOG(INFO) << StringPrintf("writing results: %.3f sec.",
+                                  timer.elapsed());
       }
       timer.restart();
       done_something = true;
@@ -738,10 +743,7 @@ int main(int argc, char** argv) {
       ShowUsageWithFlags(argv[0]);
     }
   } catch (const std::bad_alloc&) {
-    LOG(INFO)
-        << "Out-of-memory. Please try again with more memory available. Some "
-           "extremely large binaries\nmay require a 64bit version of BinDiff "
-           "- please contact zynamics to request one.";
+    LOG(INFO) << "Out of memory";
     exit_code = 3;
   } catch (const std::exception& error) {
     LOG(INFO) << "an error occurred: " << error.what();

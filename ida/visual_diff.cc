@@ -1,10 +1,3 @@
-// Note: Strange include order due to winsock headers.
-#ifdef WIN32
-// The asio headers require this, 0x0500 is Windows 2000.
-#define _WIN32_WINNT 0x0500
-#include <direct.h>
-#endif
-
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 
 #include <algorithm>
@@ -13,20 +6,23 @@
 #include <iterator>
 #include <map>
 #include <sstream>
-#include <string>
-#include <thread>
+#include <thread>  // NOLINT
+
+#ifdef WIN32
+#define _WIN32_WINNT 0x0501
+#include <direct.h>
+#else
+#include <sys/sysinfo.h>
+#endif
 
 #include "base/logging.h"
-#include <boost/asio.hpp>                                   // NOLINT
-#include <boost/date_time/posix_time/posix_time_types.hpp>  // NOLINT
-#include <boost/filesystem.hpp>                             // NOLINT
-#include <boost/filesystem/path.hpp>                        // NOLINT
-#include <boost/tokenizer.hpp>       // NOLINT
+#include "strings/strutil.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
+#include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/filesystem_util.h"
 #undef min
 #undef max
 
@@ -60,8 +56,7 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
                          &size) == ERROR_SUCCESS;
 }
 
-boost::filesystem::path GetJavaHomeDir() {
-  boost::filesystem::path result;
+std::string GetJavaHomeDir() {
   HKEY key = 0;
   int wow64_flag = KEY_WOW64_64KEY;
 
@@ -83,10 +78,11 @@ boost::filesystem::path GetJavaHomeDir() {
     if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, kRegkeyHklmJreRoot, 0,
                      KEY_READ | wow64_flag, &key) != ERROR_SUCCESS) {
       // Still not found, return empty path
-      return result;
+      return "";
     }
   }
 
+  std::string result;
   char buffer[MAX_PATH];
   if (RegQueryStringValue(key, "CurrentVersion", buffer, MAX_PATH)) {
     const double cur_var(strtod(buffer, 0));
@@ -95,7 +91,7 @@ boost::filesystem::path GetJavaHomeDir() {
         RegOpenKeyEx(key, buffer, 0, KEY_READ | wow64_flag, &subkey) ==
             ERROR_SUCCESS) {
       if (RegQueryStringValue(subkey, "JavaHome", buffer, MAX_PATH)) {
-        result = buffer;
+        result = std::string(buffer);
       }
       RegCloseKey(subkey);
     }
@@ -106,8 +102,30 @@ boost::filesystem::path GetJavaHomeDir() {
 }
 #endif
 
+uint64_t GetPhysicalMemSize() {
+#if defined(WIN32)
+  MEMORYSTATUSEX mi;
+  mi.dwLength = sizeof(MEMORYSTATUSEX);
+  GlobalMemoryStatusEx(&mi);
+  return mi.ullTotalPhys;
+#elif defined(__APPLE__)
+  uint64_t result;
+  int param[2];
+  param[0] = CTL_HW;
+  param[1] = HW_MEMSIZE;
+  size_t length = sizeof(uint64_t);
+  sysctl(param, 2, &result, &length, nullptr, 0);
+  return result;
+#else
+  struct sysinfo mi;
+  sysinfo(&mi);
+  return static_cast<uint64_t>(mi.totalram) * mi.mem_unit;
+#endif
+}
+
 bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
                          const std::string& arguments) {
+#if 0
   // TODO(soerenme): Allow "server" to contain a hostname as well.
   boost::asio::ip::tcp::endpoint endpoint(
       boost::asio::ip::address_v4::from_string(server), port);
@@ -125,6 +143,11 @@ bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
                      boost::asio::buffer(packet),
                      boost::asio::transfer_all(), error);
   return !error;
+#else
+  // TODO(cblichmann): Implement the above using simple direct socket
+  //                   programming.
+  return false;
+#endif
 }
 
 void DoStartGui(const std::string& gui_dir) {
@@ -139,13 +162,12 @@ void DoStartGui(const std::string& gui_dir) {
     argv.push_back(java_binary);
   } else {
 #ifdef WIN32
-    boost::filesystem::path java_exe(GetJavaHomeDir());
+    std::string java_exe(GetJavaHomeDir());
     if (!java_exe.empty()) {
-      java_exe /= "bin";
+      StrAppend(&java_exe, kPathSeparator, "bin");
     }
-    java_exe /= "javaw.exe";
-
-    argv.push_back(java_exe.string());
+    StrAppend(&java_exe, kPathSeparator, "javaw.exe");
+    argv.push_back(java_exe);
 #else
     // TODO(cblichmann): Check if we need to find the real binary path by
     //                   using readlink(). On some machines that seems to be
@@ -174,13 +196,14 @@ void DoStartGui(const std::string& gui_dir) {
   argv.push_back("-Xmx" + std::to_string(max_heap_mb) + "m");
 
   argv.push_back("-jar");
-  boost::filesystem::path jar_dir(boost::filesystem::path(gui_dir) / "bin");
-  if (!boost::filesystem::exists(jar_dir / kGuiJarName)) {
+  std::string jar_file(JoinPath(gui_dir, "bin", kGuiJarName));
+  if (!FileExists(jar_file)) {
     throw std::runtime_error(
-        ("Cannot launch BinDiff user interface (JAR file '" +
-         (jar_dir / kGuiJarName).string() + "' missing).").c_str());
+        StrCat("Cannot launch BinDiff user interface (JAR file '", jar_file,
+               "' missing).")
+            .c_str());
   }
-  argv.push_back((jar_dir / kGuiJarName).string());
+  argv.push_back(jar_file);
 
   std::string status_message;
   if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
@@ -216,4 +239,3 @@ bool SendGuiMessage(const int retries, const std::string& gui_dir,
   }
   return false;
 }
-

@@ -8,8 +8,8 @@
 #include <string>
 
 #include "third_party/tinyxpath/xpath_static.h"
+#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/zylibcpp/utility/utility.h"
 
 namespace {
 
@@ -43,9 +43,7 @@ const std::string& XmlConfig::GetDefaultFilename() {
 
 XmlConfig::XmlConfig(const std::string& filename,
                      const std::string& root_element)
-    : document_(0),
-      filename_(filename),
-      modified_(false) {
+    : document_(0), filename_(filename), modified_(false) {
   Init(filename, root_element);
 }
 

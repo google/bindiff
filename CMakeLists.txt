@@ -3,103 +3,70 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(bindiff C CXX)
 
+set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
+set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
+set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
+include(ExternalProject)
+include(CompileOptions)
+include(ExternalGFlags)
+include(ExternalGTest)
+include(ExternalOpenSSL)
+include(ExternalProtobuf)
+include(ExternalSQLite)
+include(ExternalTinyXPath)
+
 # BinDiff version number
 set(PROJECT_VERSION_MAJOR 4)
 set(PROJECT_VERSION_MINOR 3)
 set(PROJECT_VERSION_PATCH 0)
 
-set(BinExport_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../binexport)
-set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
-set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
-
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}
-                              ${BinExport_SOURCE_DIR})
-set(CMAKE_FIND_ROOT_PATH ${BinExport_SOURCE_DIR}/third_party)
-
 # Use a copy of a subset of Boost that ships with BinExport
-set(Boost_NO_SYSTEM_PATHS, ON)
-set(BOOST_ROOT ${BinExport_SOURCE_DIR}/third_party/boost_parts)
+set(Boost_NO_SYSTEM_PATHS ON)
+set(BOOST_ROOT ${BinExport_DIR}/third_party/boost_parts)
 find_package(Boost 1.55 REQUIRED)
 
 find_package(IdaSdk REQUIRED)
 
-# BinExport ships with Protocol Buffers as a sub-module and we expect it to
-# be built before
-set(PROTOBUF_ROOT_FOLDER ${BinExport_SOURCE_DIR}/third_party/protobuf)
-set(PROTOBUF_SRC_ROOT_FOLDER ${PROTOBUF_ROOT_FOLDER}/src)
-set(PROTOBUF_INCLUDE_DIR ${PROTOBUF_SRC_ROOT_FOLDER})
+# Make Google-style includes work
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/third_party/zynamics/binexport)
 if(UNIX)
-  set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_SRC_ROOT_FOLDER}/protoc)
-  set(PROTOBUF_LIBRARY ${PROTOBUF_SRC_ROOT_FOLDER}/.libs/libprotobuf.a)
-else()
-  set(PROTOBUF_PROTOC_EXECUTABLE
-      ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/protoc.exe)
-  set(PROTOBUF_LIBRARY
-      ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/libprotobuf.lib)
+  execute_process(COMMAND
+    ${CMAKE_COMMAND} -E create_symlink ../../..
+    ${PROJECT_BINARY_DIR}/third_party/zynamics/bindiff)
+elseif(WIN32)
+  file(TO_NATIVE_PATH
+    ${PROJECT_SOURCE_DIR}/third_party/zynamics/bindiff _bd_from)
+  file(TO_NATIVE_PATH ${PROJECT_BINARY_DIR} _bd_to)
+  execute_process(COMMAND $ENV{ComSpec} /c mklink /J ${_bd_from} ${_bd_to}
+    ERROR_QUIET)
 endif()
-set(PROTOBUF_LIBRARY_DEBUG ${PROTOBUF_LIBRARY})
-find_package(Protobuf 3.0 REQUIRED)
 
 include_directories(${PROJECT_SOURCE_DIR}
-                    ${BinExport_SOURCE_DIR} # Use BinExport infrastructure
+                    ${PROJECT_BINARY_DIR}  # To find generated protobufs
+                    ${BinExport_DIR}       # Use BinExport infrastructure
                     ${Boost_INCLUDE_DIR}
+                    ${GFLAGS_INCLUDE_DIRS}
                     ${IdaSdk_INCLUDE_DIRS}
+                    ${OPENSSL_INCLUDE_DIR}
                     ${PROTOBUF_INCLUDE_DIRS}
                     ${PROTOBUF_SRC_ROOT_FOLDER}
                     ${Google3_DIR})
 
-link_directories(${BinExport_SOURCE_DIR}) # Use BinExport infrastructure
-
 configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DNDEBUG)
-endif()
-
-if(UNIX)
-  add_compile_options(--std=c++11 -Wno-deprecated -Wno-deprecated-declarations)
-  if(NOT COMPILE_64BIT)
-    add_compile_options(-m32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
-  endif()
-elseif(WIN32)
-  # TODO(cblichmann): Configure compiler warnings for Windows
-  if(MSVC)
-    # Use the static runtime
-    foreach(flag_var CMAKE_CXX_FLAGS
-                     CMAKE_CXX_FLAGS_DEBUG
-                     CMAKE_CXX_FLAGS_RELEASE
-                     CMAKE_CXX_FLAGS_MINSIZEREL
-                     CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-      if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-      endif()
-      if(${flag_var} MATCHES "/MDd")
-        string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-      endif()
-    endforeach(flag_var)
-  endif()
-endif()
-
-add_library(tinyxpath STATIC ${ThirdParty_DIR}/tinyxpath/action_store.cpp
-                             ${ThirdParty_DIR}/tinyxpath/htmlutil.cpp
-                             ${ThirdParty_DIR}/tinyxpath/lex_util.cpp
-                             ${ThirdParty_DIR}/tinyxpath/main.cpp
-                             ${ThirdParty_DIR}/tinyxpath/node_set.cpp
-                             ${ThirdParty_DIR}/tinyxpath/tinystr.cpp
-                             ${ThirdParty_DIR}/tinyxpath/tinyxml.cpp
-                             ${ThirdParty_DIR}/tinyxpath/tinyxmlerror.cpp
-                             ${ThirdParty_DIR}/tinyxpath/tinyxmlparser.cpp
-                             ${ThirdParty_DIR}/tinyxpath/tokenlist.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xml_util.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xpath_expression.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xpath_processor.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xpath_stack.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xpath_static.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xpath_stream.cpp
-                             ${ThirdParty_DIR}/tinyxpath/xpath_syntax.cpp)
-
-add_library(sqlite STATIC ${ThirdParty_DIR}/sqlite/src/sqlite3.c)
+set(BinExport_Proto_SRCS ${BinExport_DIR}/binexport2.proto)
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${BinExport_Proto_SRCS})
+add_library(binexport_shared STATIC ${PROTO_SRCS}
+                                    ${BinExport_DIR}/filesystem_util.cc
+                                    ${BinExport_DIR}/hash.cc
+                                    ${BinExport_DIR}/hex_codec.cc)
+target_link_libraries(binexport_shared ${OPENSSL_LIBRARIES}
+                                       ${PROTOBUF_LIBRARIES})
+add_custom_command(TARGET binexport_shared POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/binexport2.pb.h
+  ${PROJECT_BINARY_DIR}/third_party/zynamics/binexport/binexport2.pb.h)
 
 # Sources shared by the differ and the IDA plugin.
 add_library(bindiff STATIC call_graph.cc
@@ -121,33 +88,41 @@ add_library(bindiff STATIC call_graph.cc
                            utility.cc
                            writer.cc
                            xmlconfig.cc)
+target_link_libraries(bindiff binexport_shared
+                              sqlite
+                              tinyxpath)
 
-set(BinDiff_LIBRARIES bindiff
-                      ${PROTOBUF_LIBRARIES}
-                      binexport_proto
-                      binexport_shared
-                      binexport_plugin_shared
-                      sqlite
-                      tinyxpath)
 if(NOT COMPILE_64BIT)
-  add_ida_plugin(zynamics_bindiff_4_3 EA64
+  add_library(binexport_plugin_shared STATIC ${BinExport_DIR}/ida/digest.cc
+                                             ${BinExport_DIR}/ida/log.cc)
+  target_compile_definitions(binexport_plugin_shared PUBLIC
+                             ${IdaSdk_PLATFORM}
+                             __IDP__
+                             USE_DANGEROUS_FUNCTIONS
+                             USE_STANDARD_FILE_FUNCTIONS)
+  target_link_libraries(binexport_plugin_shared ${OPENSSL_LIBRARIES}
+                                                ${PROTOBUF_LIBRARIES})
+
+  set(_bd_plugin_name
+    zynamics_bindiff_${PROJECT_VERSION_MAJOR}_${PROJECT_VERSION_MINOR})
+  add_ida_plugin(${_bd_plugin_name} EA64
                  ida/main_plugin.cc
                  ida/visual_diff.cc)
 
-  set(Plugin_LIBRARIES ${BinDiff_LIBRARIES}
+  set(Plugin_LIBRARIES binexport_plugin_shared
+                       bindiff
                        ${IdaSdk_LIBRARIES})
-  if(APPLE)
-    target_link_libraries(zynamics_bindiff_4_3.pmc ${Plugin_LIBRARIES})
-    target_link_libraries(zynamics_bindiff_4_3.pmc64 ${Plugin_LIBRARIES})
-  elseif(UNIX)
-    target_link_libraries(zynamics_bindiff_4_3.plx ${Plugin_LIBRARIES})
-    target_link_libraries(zynamics_bindiff_4_3.plx64 ${Plugin_LIBRARIES})
-  elseif(WIN32)
-    list(APPEND Plugin_LIBRARIES shlwapi.lib)
-    target_link_libraries(zynamics_bindiff_4_3.plw ${Plugin_LIBRARIES})
-    target_link_libraries(zynamics_bindiff_4_3.p64 ${Plugin_LIBRARIES})
-  endif()
+  target_link_libraries(${_bd_plugin_name}${_plx} ${Plugin_LIBRARIES})
+  target_link_libraries(${_bd_plugin_name}${_plx64} ${Plugin_LIBRARIES})
 endif()
 
 add_executable(differ main_portable.cc)
+set(BinDiff_LIBRARIES bindiff
+                      ${GFLAGS_LIBRARIES})
+if(WIN32)
+  list(APPEND BinDiff_LIBRARIES shlwapi.lib)
+else()
+  list(APPEND BinDiff_LIBRARIES pthread
+                                dl)
+endif()
 target_link_libraries(differ ${BinDiff_LIBRARIES})

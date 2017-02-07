@@ -8,10 +8,10 @@
 class DatabaseWriter : public Writer {
  public:
   // Regular constructor for creating result databases.
-  explicit DatabaseWriter(const std::string& filename);
+  explicit DatabaseWriter(const std::string& path);
 
   // Special constructor for creating the temporary database.
-  explicit DatabaseWriter(const std::string& filename, bool recreate);
+  explicit DatabaseWriter(const std::string& path, bool recreate);
   virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
                      const FlowGraphs& flow_graphs1,
                      const FlowGraphs& flow_graphs2,
