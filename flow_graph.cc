@@ -5,6 +5,7 @@
 
 #include "base/logging.h"
 #ifdef GOOGLE
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/boost/allowed/graph/breadth_first_search.hpp"
 #include "third_party/boost/allowed/graph/dominator_tree.hpp"
 #include "third_party/boost/allowed/graph/iteration_macros.hpp"
@@ -12,9 +13,8 @@
 #include <boost/graph/breadth_first_search.hpp>  // NOLINT
 #include <boost/graph/dominator_tree.hpp>        // NOLINT
 #include <boost/graph/iteration_macros.hpp>      // NOLINT
-#endif  // GOOGLE
 #include "strings/strutil.h"
-#include "third_party/abcl/strings/util.h"
+#endif  // GOOGLE
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"

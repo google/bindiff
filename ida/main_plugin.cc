@@ -1,4 +1,3 @@
-#include <chrono>  // NOLINT
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
@@ -47,6 +46,7 @@
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
+#include "third_party/zynamics/binexport/timer.h"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 #ifdef WIN32
@@ -72,7 +72,7 @@ static const char kComment[] =
     "Structural comparison of executable objects";  // Status line
 static const char kHotKey[] = "CTRL-6";
 static const char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.";
 
 // Default constructed XmlConfig.
 XmlConfig g_config;
@@ -248,7 +248,7 @@ class Results {
   FlowGraphInfos flow_graph_infos2_;
 
  private:
-  friend bool diff(ea_t, ea_t, ea_t, ea_t);
+  friend bool Diff(ea_t, ea_t, ea_t, ea_t);
 
   typedef std::vector<FlowGraphInfo*> IndexedFlowGraphs;
   typedef std::vector<FixedPointInfo*> IndexedFixedPoints;
@@ -406,7 +406,7 @@ bool Results::IncrementalDiff() {
     incomplete_results_ = false;
   }
 
-  auto time_start(std::chrono::system_clock::now());
+  Timer<> timer;
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
                           flow_graphs2_, fixed_points_);
 
@@ -491,9 +491,7 @@ bool Results::IncrementalDiff() {
     fixed_point_infos_.insert(info);
   }
 
-  std::chrono::duration<double> processing_time(
-      std::chrono::system_clock::now() - time_start);
-  LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
+  LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
             << " seconds for incremental matching.";
 
   SetDirty();
@@ -1067,14 +1065,14 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
                            &primary, &instruction_cache_);
   } catch (...) {
     throw std::runtime_error(
-        ("error reading: " + call_graph1_.GetFilePath()).c_str());
+        StrCat("error reading: ", call_graph1_.GetFilePath()));
   }
   try {
     ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_, &call_graph2_,
                            &secondary, &instruction_cache_);
   } catch (...) {
     throw std::runtime_error(
-        ("error reading: " + call_graph2_.GetFilePath()).c_str());
+        StrCat("error reading: ", call_graph2_.GetFilePath()));
   }
   fixed_point.Create(&primary, &secondary);
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
@@ -1429,14 +1427,14 @@ int Results::ConfirmMatch(int index) {
 void CopyToClipboard(const std::string& data) {
 #ifdef WIN32
   if (!OpenClipboard(0)) {
-    throw std::runtime_error(GetLastWindowsError().c_str());
+    throw std::runtime_error(GetLastOsError());
   }
   struct ClipboardCloser {
     ~ClipboardCloser() { CloseClipboard(); }
   } deleter;
 
   if (!EmptyClipboard()) {
-    throw std::runtime_error(GetLastWindowsError().c_str());
+    throw std::runtime_error(GetLastOsError());
   }
 
   // std::strings are not required to be zero terminated, thus we add an extra
@@ -1444,7 +1442,7 @@ void CopyToClipboard(const std::string& data) {
   HGLOBAL buffer_handle =
       GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size() + 1);
   if (!buffer_handle) {
-    throw std::runtime_error(GetLastWindowsError().c_str());
+    throw std::runtime_error(GetLastOsError());
   }
 
   bool fail = true;
@@ -1459,10 +1457,10 @@ void CopyToClipboard(const std::string& data) {
   if (fail) {
     // Only free on failure, as SetClipboardData() takes ownership.
     GlobalFree(buffer_handle);
-    throw std::runtime_error(GetLastWindowsError().c_str());
+    throw std::runtime_error(GetLastOsError());
   }
 #else
-  // TODO(cblichmann): Implement for Linux/OS X
+  // TODO(cblichmann): Implement copy to clipbard for Linux/macOS.
 #endif
 }
 
@@ -1545,7 +1543,7 @@ void Results::GetUnmatchedDescription(const IndexedFlowGraphs& flow_graphs,
   }
 
   const FlowGraphInfo& flow_graph_info = *flow_graphs[index - 1];
-  // The primary idb is loaded in IDA and the function name might have been
+  // The primary IDB is loaded in IDA and the function name might have been
   // changed manually, thus we need to propagate that information.
   if (&flow_graphs == &indexed_flow_graphs1_) {
     UpdateName(const_cast<CallGraph*>(&call_graph1_), flow_graph_info.address);
@@ -1847,20 +1845,17 @@ bool ExportIdbs() {
 
     char errbuf[MAXSTR];
     idc_value_t arg(primary_temp_dir.c_str());
-    if (!Run((std::string("BinExport2Diff") + kBinExportVersion).c_str(),
+    if (!Run(StrCat("BinExport2Diff", kBinExportVersion).c_str(),
              1 /* Number of arguments */, &arg, nullptr /* Result */, errbuf,
              MAXSTR - 1)) {
       throw std::runtime_error(
-          (std::string("Error: Export of the current database failed: ") +
-           errbuf)
-              .c_str());
+          StrCat("Error: Export of the current database failed: ", errbuf));
     }
 
     thread.join();
     if (!exporter.success()) {
       throw std::runtime_error(
-          ("Failed to spawn second IDA instance: " + exporter.status())
-              .c_str());
+          StrCat("Failed to spawn second IDA instance: ", exporter.status()));
     }
   }
 
@@ -2639,9 +2634,9 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
   call_graph->DeleteVertices(start, end);
 }
 
-bool diff(ea_t start_address_source, ea_t end_address_source,
+bool Diff(ea_t start_address_source, ea_t end_address_source,
           ea_t start_address_target, ea_t end_address_target) {
-  auto time_start(std::chrono::system_clock::now());
+  Timer<> timer;
   try {
     if (!ExportIdbs()) {
       return false;
@@ -2652,9 +2647,7 @@ bool diff(ea_t start_address_source, ea_t end_address_source,
     throw;
   }
 
-  std::chrono::duration<double> processing_time(
-      std::chrono::system_clock::now() - time_start);
-  LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
+  LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
             << " seconds for exports...";
   LOG(INFO) << "Diffing address range primary("
             << StringPrintf(HEX_ADDRESS, start_address_source) << " - "
@@ -2662,7 +2655,7 @@ bool diff(ea_t start_address_source, ea_t end_address_source,
             << ") vs secondary("
             << StringPrintf(HEX_ADDRESS, start_address_target) << " - "
             << StringPrintf(HEX_ADDRESS, end_address_target) << ").";
-  time_start = std::chrono::system_clock::now();
+  timer.restart();
 
   WaitBox wait_box("HIDECANCEL\nPerforming diff...");
   g_results = new Results();
@@ -2695,8 +2688,7 @@ bool diff(ea_t start_address_source, ea_t end_address_source,
   const MatchingStepsFlowGraph default_basicblock_steps(
       GetDefaultMatchingStepsBasicBlock());
   Diff(&context, default_callgraph_steps, default_basicblock_steps);
-  processing_time = std::chrono::system_clock::now() - time_start;
-  LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
+  LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
             << " seconds for matching.";
 
   ShowResults(g_results);
@@ -2772,7 +2764,7 @@ bool DoDiffDatabase(bool filtered) {
         return false;
       }
     }
-    return diff(start_address_source, end_address_source, start_address_target,
+    return Diff(start_address_source, end_address_source, start_address_target,
                 end_address_target);
   } catch (const std::bad_alloc&) {
     LOG(INFO)
@@ -2858,7 +2850,7 @@ bool DoPortComments() {
       return false;
     }
 
-    auto time_start(std::chrono::system_clock::now());
+    Timer<> timer;
     const double min_confidence = std::stod(buffer1);
     const double min_similarity = std::stod(buffer2);
     g_results->PortComments(start_address_source, end_address_source,
@@ -2866,9 +2858,7 @@ bool DoPortComments() {
                             min_confidence, min_similarity);
     refresh_chooser("Matched Functions");
     refresh_chooser("Primary Unmatched");
-    std::chrono::duration<double> processing_time(
-        std::chrono::system_clock::now() - time_start);
-    LOG(INFO) << StringPrintf("%.2fs", processing_time.count())
+    LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
               << " seconds for comment porting.";
     return true;
   } catch (const std::bad_alloc&) {
@@ -2910,7 +2900,7 @@ bool WriteResults(const std::string& path) {
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
-  auto time_start(std::chrono::system_clock::now());
+  Timer<> timer;
   LOG(INFO) << "Writing results...";
   std::string export1(g_results->call_graph1_.GetFilePath());
   std::string export2(g_results->call_graph2_.GetFilePath());
@@ -2947,9 +2937,7 @@ bool WriteResults(const std::string& path) {
     CopyFile(export2, new_export2);
   }
 
-  std::chrono::duration<double> processing_time(
-      std::chrono::system_clock::now() - time_start);
-  LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
+  LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed())
             << ").";
   return true;
 }
@@ -2977,14 +2965,11 @@ bool DoSaveResultsLog() {
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
-  auto time_start(std::chrono::system_clock::now());
+  Timer<> timer;
   LOG(INFO) << "Writing to log...";
   ResultsLogWriter writer(filename);
   g_results->Write(writer);
-  std::chrono::duration<double> processing_time(
-      std::chrono::system_clock::now() - time_start);
-  LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
-            << ").";
+  LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
 
   return true;
 }
@@ -3011,16 +2996,13 @@ bool DoSaveResultsFortknox() {
   }
 
   WaitBox wait_box("HIDECANCEL\nWriting results...");
-  auto time_start(std::chrono::system_clock::now());
+  Timer<> timer;
   LOG(INFO) << "Writing to Fortknox ground truth file...";
   FortknoxWriter writer(filename, g_results->fixed_point_infos_,
                         g_results->flow_graph_infos1_,
                         g_results->flow_graph_infos2_);
   g_results->Write(writer);
-  std::chrono::duration<double> processing_time(
-      std::chrono::system_clock::now() - time_start);
-  LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
-            << ").";
+  LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
 
   return true;
 }
@@ -3088,7 +3070,7 @@ bool DoLoadResults() {
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("HIDECANCEL\nLoading results...");
-    auto time_start(std::chrono::system_clock::now());
+    Timer<> timer;
 
     delete g_results;
     g_results = new Results();
@@ -3106,28 +3088,24 @@ bool DoLoadResults() {
       LOG(INFO) << "Warning: currently loaded IDBs input file MD5 differs from "
                    "result file primary graph. Please load IDB for: "
                 << g_results->call_graph1_.GetExeFilename();
-      throw std::runtime_error(
+      throw std::runtime_error(StrCat(
           "loaded IDB must match primary graph in results file. Please load "
-          "IDB for: " +
-          g_results->call_graph1_.GetExeFilename());
+          "IDB for: ",
+          g_results->call_graph1_.GetExeFilename()));
     }
 
     ShowResults(g_results);
 
-    std::chrono::duration<double> processing_time(
-        std::chrono::system_clock::now() - time_start);
-    LOG(INFO) << "done (" << StringPrintf("%.2fs", processing_time.count())
-              << ").";
+    LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
     return true;
   } catch (const std::bad_alloc&) {
-    LOG(INFO)
-        << "Out-of-memory. Please try again with more memory available. Some "
-           "extremely large binaries may require a 64bit version of BinDiff -"
-           " please contact zynamics to request one.";
+    LOG(INFO) << "Out-of-memory. Please try again with more memory available. "
+                 "Some extremely large binaries may require the 64-bit "
+                 "command-line version of BinDiff";
     warning(
-        "\nOut-of-memory. Please try again with more memory available. Some"
-        " extremely large binaries\nmay require a 64bit version of BinDiff - "
-        "please contact zynamics to request one.");
+        "\nOut-of-memory. Please try again with more memory available.\nSome "
+        "extremely large binaries may require the 64-bit command-line version "
+        "of BinDiff");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error loading results: " << message.what();
     warning("Error loading results: %s\n", message.what());
@@ -3195,25 +3173,14 @@ void InitConfig() {
     use_common_config = true;
   }
 
-  try {
-    if (use_common_config) {
-      XmlConfig::SetDefaultFilename(common_path);
-      g_config.Init(common_path, "BinDiffDeluxe");
-      std::remove(user_path.c_str());
-      g_config.SetSaveFileName(user_path);
-    } else {
-      XmlConfig::SetDefaultFilename(user_path);
-      g_config.Init(user_path, "BinDiffDeluxe");
-    }
-  } catch (const std::runtime_error&) {
-    // Try module directory as last resort
-    // Note: - The product_name parameter is ignored here
-    //       - Not assigning directly to default filename, because
-    //         XmlConfig::Init() may throw.
-    const std::string config_path(GetDirectory(PATH_MODULE, "", false) +
-                                  config_filename);
-    XmlConfig::SetDefaultFilename(config_path);
-    g_config.Init(config_path, "BinDiffDeluxe");
+  if (use_common_config) {
+    XmlConfig::SetDefaultFilename(common_path);
+    g_config.Init(common_path, "BinDiffDeluxe");
+    std::remove(user_path.c_str());
+    g_config.SetSaveFileName(user_path);
+  } else {
+    XmlConfig::SetDefaultFilename(user_path);
+    g_config.Init(user_path, "BinDiffDeluxe");
   }
 }
 
@@ -3262,11 +3229,11 @@ void InitMenus() {
 }
 
 int idaapi PluginInit() {
-  LOG(INFO) << kProgramVersion << " (" << __DATE__
+  LOG(INFO) << kProgramVersion
 #ifdef _DEBUG
             << ", debug build"
 #endif
-            << "), " << kCopyright;
+            << ", " << kCopyright;
 
   if (!hook_to_notification_point(HT_IDP, ProcessorHook,
                                   nullptr /* User data */) ||
@@ -3320,100 +3287,78 @@ void idaapi PluginTerminate() {
 }
 
 void idaapi PluginRun(int /*arg*/) {
-  static const std::string kDialogBase =
-      std::string(
-          "STARTITEM 0\n"
-          "BUTTON YES Close\n"  // This is actually the OK button
-          "BUTTON CANCEL NONE\n"
-          "HELP\n"
-          "'Diff Database...' diff the currently open idb against another one "
-          "chosen via a file chooser dialog. Please note that the secondary "
-          "idb "
-          "file must be readable for the BinDiff plugin, i.e. it must not be "
-          "opened in another instance of IDA."
-          "\n\n"
-          "'Diff Database Filtered...' diff specific address ranges of "
-          "the selected databases. You must manually specify a section of the "
-          "primary idb to compare against a section of the secondary idb. This "
-          "is "
-          "useful for comparing only the non library parts of two executables."
-          "\n\n"
-          "'Load Results...' load a previously saved diff result. The primary "
-          "idb used in that diff must already be open in IDA."
-          "ENDHELP\n") +
-      kProgramVersion + std::string(
-                            "\n\n"
-                            "<~D~iff Database...:B:1:30::>\n"
-                            "<D~i~ff Database Filtered...:B:1:30::>\n\n"
-                            "<L~o~ad Results...:B:1:30::>\n");
+  static const std::string kDialogBase = StrCat(
+      "STARTITEM 0\n"
+      "BUTTON YES Close\n"  // This is actually the OK button
+      "BUTTON CANCEL NONE\n"
+      "HELP\n"
+      "'Diff Database...' diff the currently open IDB against another one "
+      "chosen via a file chooser dialog. Please note that the secondary IDB "
+      "file must be readable for the BinDiff plugin, i.e. it must not be "
+      "opened in another instance of IDA."
+      "\n\n"
+      "'Diff Database Filtered...' diff specific address ranges of the "
+      "selected databases. You must manually specify a section of the primary "
+      "IDB to compare against a section of the secondary IDB. This is useful "
+      "for comparing only the non library parts of two executables."
+      "\n\n"
+      "'Load Results...' load a previously saved diff result. The primary IDB "
+      "used in that diff must already be open in IDA."
+      "ENDHELP\n",
+      kProgramVersion,
+      "\n\n"
+      "<~D~iff Database...:B:1:30::>\n"
+      "<D~i~ff Database Filtered...:B:1:30::>\n\n"
+      "<L~o~ad Results...:B:1:30::>\n\n");
 
-  static const std::string kDialogResultsAvailable =
-      std::string(
-          "STARTITEM 0\n"
-          "BUTTON YES Close\n"  // This is actually the OK button
-          "BUTTON CANCEL NONE\n"
-          "HELP\n"
-          "'Diff Database...' diff the currently open idb against another one "
-          "chosen via a file chooser dialog. Please note that the secondary "
-          "idb "
-          "file must be readable for the BinDiff plugin, i.e. it must not be "
-          "opened in another instance of IDA."
-          "\n\n"
-          "'Diff Database Filtered...' diff specific address ranges of "
-          "the selected databases. You must manually specify a section of the "
-          "primary idb to compare against a section of the secondary idb. This "
-          "is "
-          "useful for comparing only the non library parts of two executables."
-          "\n\n"
-          "'Diff Database Incrementally' keep manually confirmed matches "
-          "(blue matches with algorithm = 'manual') in the current result and "
-          "re-match all others. Thus allowing a partially automated workflow "
-          "of "
-          "continuously improving the diff results."
-          "\n\n"
-          "'Load Results...' load a previously saved diff result. The primary "
-          "idb used in that diff must already be open in IDA."
-          "\n\n"
-          "'Save Results...' save the current BinDiff matching to a .BinDiff "
-          "result file."
-          "\n\n"
-          "'Import Symbols and Comments...' copy function names, symbols "
-          "and comments from the secondary idb into the primary idb for all "
-          "matched functions. It is possible to specify a filter so only data "
-          "for "
-          "matches meeting a certain quality threshold or in a certain address "
-          "range will be ported."
-          // TODO(cblichmann): Uncomment once implemented again
-          // "\n\n"
-          // "'HTML Similarity Report...'\n"
-          // "'HTML Difference Report...'\n"
-          // "'HTML Advanced Report...'\n"
-          // "Generate human readable, nicely formatted reports of matched
-          // functions, "
-          // "unmatched functions and user defined functions respectively."
-          "\n\n") +
-      kProgramVersion + std::string(
-                            "\nCopyright (c)2004-2011 zynamics GmbH\n"
-                            "\nCopyright (c)2011-2015 Google Inc.\n"
-                            "ENDHELP\n") +
-      kProgramVersion +
-      std::string(
-          "\n\n"
-          "<~D~iff Database...:B:1:30::>\n"
-          "<D~i~ff Database Filtered...:B:1:30::>\n"
-          "<Diff Database Incrementally:B:1:30::>\n\n"
-          "<L~o~ad Results...:B:1:30::>\n"
-          "<~S~ave Results...:B:1:30::>\n"
+  static const std::string kDialogResultsAvailable = StrCat(
+      "STARTITEM 0\n"
+      "BUTTON YES Close\n"  // This is actually the OK button
+      "BUTTON CANCEL NONE\n"
+      "HELP\n"
+      "'Diff Database...' diff the currently open IDB against another one "
+      "chosen via a file chooser dialog. Please note that the secondary IDB "
+      "file must be readable for the BinDiff plugin, i.e. it must not be "
+      "opened in another instance of IDA."
+      "\n\n"
+      "'Diff Database Filtered...' diff specific address ranges of the "
+      "selected databases. You must manually specify a section of the primary "
+      "IDB to compare against a section of the secondary IDB. This is useful "
+      "for comparing only the non library parts of two executables."
+      "\n\n"
+      "'Diff Database Incrementally' keep manually confirmed matches (blue "
+      "matches with algorithm = 'manual') in the current result and re-match "
+      "all others. Thus allowing a partially automated workflow of "
+      "continuously improving the diff results."
+      "\n\n"
+      "'Load Results...' load a previously saved diff result. The primary IDB "
+      "used in that diff must already be open in IDA."
+      "\n\n"
+      "'Save Results...' save the current BinDiff matching to a .BinDiff "
+      "result file."
+      "\n\n"
+      "'Import Symbols and Comments...' copy function names, symbols and "
+      "comments from the secondary IDB into the primary IDB for all matched "
+      "functions. It is possible to specify a filter so only data for matches "
+      "meeting a certain quality threshold or in a certain address range will "
+      "be ported."
+      "\n\n",
+      kProgramVersion,
+      "\nCopyright (c)2004-2011 zynamics GmbH\n"
+      "\nCopyright (c)2011-2017 Google Inc.\n"
+      "ENDHELP\n",
+      kProgramVersion,
+      "\n\n"
+      "<~D~iff Database...:B:1:30::>\n"
+      "<D~i~ff Database Filtered...:B:1:30::>\n"
+      "<Diff Database Incrementally:B:1:30::>\n\n"
+      "<L~o~ad Results...:B:1:30::>\n"
+      "<~S~ave Results...:B:1:30::>\n"
 #ifdef _DEBUG
-          "<Save Results ~F~ortknox...:B:1:30::>\n"
-          "<Save Results ~L~og...:B:1:30::>\n"
+      "<Save Results ~F~ortknox...:B:1:30::>\n"
+      "<Save Results ~L~og...:B:1:30::>\n"
 #endif
-          "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n"
-          // TODO(cblichmann): Uncomment once implemented again
-          // "<HTML Similarity Report...:B:1:30::>\n"
-          // "<HTML Difference Report...:B:1:30::>\n"
-          // "<HTML Advanced Report...:B:1:30::>\n"
-          );
+      "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n");
 
   if (g_results) {
     // We may have to unload a previous result if the input IDB has changed in
@@ -3433,12 +3378,12 @@ void idaapi PluginRun(int /*arg*/) {
   }
 
   if (!g_results) {
-    AskUsingForm_c((kDialogBase + "\n").c_str(), ButtonDiffDatabaseCallback,
+    AskUsingForm_c(kDialogBase.c_str(), ButtonDiffDatabaseCallback,
                    ButtonDiffDatabaseFilteredCallback,
                    ButtonLoadResultsCallback);
   } else {
     AskUsingForm_c(
-        (kDialogResultsAvailable + "\n").c_str(), ButtonDiffDatabaseCallback,
+        kDialogResultsAvailable.c_str(), ButtonDiffDatabaseCallback,
         ButtonDiffDatabaseFilteredCallback, ButtonRediffDatabaseCallback,
         ButtonLoadResultsCallback, ButtonSaveResultsCallback,
 #ifdef _DEBUG

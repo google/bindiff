@@ -4,7 +4,6 @@
 #include <signal.h>
 
 #include <cassert>
-#include <chrono>  // NOLINT
 #include <fstream>
 #include <functional>
 #include <iomanip>
@@ -16,9 +15,6 @@
 #include <thread>  // NOLINT
 #include <utility>
 #include <vector>
-
-// TODO(cblichmann): Replace these
-#include <boost/timer.hpp>  // NOLINT
 
 #ifdef GOOGLE
 #include "base/commandlineflags.h"
@@ -50,33 +46,28 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
+#include "third_party/zynamics/binexport/timer.h"
 
 #undef min
 #undef max
 
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
-DEFINE_string(primary, "" /* Default */,
-              "Primary input file or path in batch mode");
-DEFINE_string(secondary, "" /* Default */, "Secondary input file (optional)");
-DEFINE_string(output_dir, "" /* Default */,
-              "Output path, defaults to current directory");
-DEFINE_bool(log_format, false /* Default */,
-            "Write results in log file format");
-DEFINE_bool(knox_format, false /* Default */,
-            "Write results in FortKnox format");
-DEFINE_bool(bin_format, false /* Default */,
+DEFINE_string(primary, "", "Primary input file or path in batch mode");
+DEFINE_string(secondary, "", "Secondary input file (optional)");
+DEFINE_string(output_dir, "", "Output path, defaults to current directory");
+DEFINE_bool(log_format, false, "Write results in log file format");
+DEFINE_bool(bin_format, false,
             "Write results in binary file format that can be loaded by the "
             "BinDiff IDA plugin or the GUI");
-DEFINE_bool(md_index, false /* Default */,
-            "Dump MD indices (will not diff anything)");
-DEFINE_bool(export, false /* Default */,
+DEFINE_bool(md_index, false, "Dump MD indices (will not diff anything)");
+DEFINE_bool(export, false,
             "Batch export .idb files from input directory to BinExport format");
-DEFINE_bool(ls, false /* Default */,
+DEFINE_bool(ls, false,
             "List hash/filenames for all .BinExport files in input directory");
-DEFINE_string(config, "" /* Default */, "Specify config file name");
+DEFINE_string(config, "", "Specify config file name");
 
-static const char kBinExportVersion[] = "8";  // Exporter version to use.
+static const char kBinExportVersion[] = "9";  // Exporter version to use.
 
 std::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
@@ -168,7 +159,7 @@ void DifferThread::operator()() {
     std::string file1;
     std::string file2;
     try {
-      boost::timer timer;
+      Timer<> timer;
       {
         // Pop pair from todo queue.
         std::lock_guard<std::mutex> lock(g_queue_mutex);
@@ -292,8 +283,10 @@ class ExporterThread {
 };
 
 void ExporterThread::operator()() {
+  // TODO(cblichmann): Do we want to keep the export functionality in the
+  //                   command-line differ?
   do {
-    boost::timer timer;
+    Timer<> timer;
     std::string file;
     {
       std::lock_guard<std::mutex> lock(g_queue_mutex);
@@ -304,7 +297,8 @@ void ExporterThread::operator()() {
       files_->erase(files_->begin());
     }
 
-    // @bug: what if we have the same base name but as .idb _and_ .i64?
+    // TODO(cblichmann): Bug: What if we have the same basename but as .idb
+    //                   _and_ .i64?
     bool ida64 = false;
     auto in_file(JoinPath(in_path_, file + ".idb"));
     if (!FileExists(in_file)) {
@@ -316,8 +310,8 @@ void ExporterThread::operator()() {
       ida64 = true;
     }
 
-    // @bug: If outpath is a relative path like "." IDA won't work. We need to
-    // fully expand it first.
+    // TODO(cblichmann): Bug: If outpath is a relative path like "." IDA won't
+    //                   work. We need to fully expand it first.
     std::string status_message;
     std::vector<std::string> args;
     args.push_back(JoinPath(ida_dir_, !ida64 ? ida_exe_ : ida_exe64_));
@@ -330,8 +324,7 @@ void ExporterThread::operator()() {
 #endif
     args.push_back(in_file);
     if (!SpawnProcess(args, true /* Wait */, &status_message)) {
-      LOG(INFO) << "failed to spawn IDA export process: "
-                << GetLastWindowsError();
+      LOG(INFO) << "failed to spawn IDA export process: " << GetLastOsError();
       LOG(INFO) << status_message;
       return;
     }
@@ -439,7 +432,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       config.ReadString("/BinDiffDeluxe/Ida/@executable", "");
   const std::string ida_exe64 =
       config.ReadString("/BinDiffDeluxe/Ida/@executable64", "");
-  boost::timer timer;
+  Timer<> timer;
   {  // Export
     if (!idb_files.empty()) {
       CreateIdaScript(out_path);
@@ -453,9 +446,9 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       thread.join();
     }
   }
-  const double export_time = timer.elapsed();
-
+  const auto export_time = timer.elapsed();
   timer.restart();
+
   if (!FLAGS_export) {  // Perform diff
     std::vector<std::thread> threads;
     for (unsigned i = 0; i < num_threads; ++i) {
@@ -465,23 +458,25 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       thread.join();
     }
   }
-  const double diffTime = timer.elapsed();
+  const auto diff_time = timer.elapsed();
   DeleteIdaScript(out_path);
 
   LOG(INFO) << StringPrintf(
       "%" PRIuMAX " files exported in %2f seconds, %" PRIuMAX
       " pairs diffed in %2f seconds",
-      num_idbs, export_time, num_diffs * (1 - FLAGS_export), diffTime);
+      num_idbs, export_time, num_diffs * (1 - FLAGS_export), diff_time);
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
-  std::cout << "\n" << call_graph.GetFilename() << "\n"
+  std::cout << "\n"
+            << call_graph.GetFilename() << "\n"
             << call_graph.GetMdIndex();
   for (auto i = flow_graphs.cbegin(), end = flow_graphs.cend(); i != end; ++i) {
-    std::cout << "\n" << std::hex << std::setfill('0') << std::setw(16)
-              << (*i)->GetEntryPointAddress() << "\t"
-              << std::fixed << std::setprecision(12) << (*i)->GetMdIndex()
-              << "\t" << ((*i)->IsLibrary() ? "Library" : "Non-library");
+    std::cout << "\n"
+              << std::hex << std::setfill('0') << std::setw(16)
+              << (*i)->GetEntryPointAddress() << "\t" << std::fixed
+              << std::setprecision(12) << (*i)->GetMdIndex() << "\t"
+              << ((*i)->IsLibrary() ? "Library" : "Non-library");
   }
   std::cout << std::endl;
 }
@@ -537,7 +532,6 @@ int main(int argc, char** argv) {
   const std::string current_path(GetCurrentDirectory());
   SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
                                SET_FLAGS_DEFAULT);
-  SetCommandLineOptionWithMode("alsologtostderr", "true", SET_FLAGS_DEFAULT);
 
   int exit_code = 0;
   try {
@@ -568,11 +562,11 @@ int main(int argc, char** argv) {
     ParseCommandLineFlags(&argc, &argv, true /* Remove flags */);
 #endif
 
-    LOG(INFO) << kProgramVersion << " (" << __DATE__
+    LOG(INFO) << kProgramVersion
 #ifdef _DEBUG
               << ", debug build"
 #endif
-              << "), (c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
+              << ", (c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
 
     const auto user_app_data =
         GetDirectory(PATH_APPDATA, "BinDiff", false) + "bindiff.xml";
@@ -604,7 +598,7 @@ int main(int argc, char** argv) {
     }
 #endif
 
-    boost::timer timer;
+    Timer<> timer;
     bool done_something = false;
 
     std::unique_ptr<CallGraph> call_graph1;
@@ -625,7 +619,7 @@ int main(int argc, char** argv) {
 
     if (!IsDirectory(FLAGS_output_dir.c_str())) {
       throw std::runtime_error(
-          "Output parameter (--output_dir) must be a writeable directory! "
+          "Output parameter (--output_dir) must be a writable directory! "
           "Supplied value: \"" +
           FLAGS_output_dir + "\"");
     }
@@ -642,10 +636,10 @@ int main(int argc, char** argv) {
       // File system batch diff.
       if (FLAGS_ls) {
         ListFiles(FLAGS_primary);
-      } else if (!FLAGS_md_index) {
-        BatchDiff(FLAGS_primary, FLAGS_secondary, FLAGS_output_dir);
-      } else {
+      } else if (FLAGS_md_index) {
         BatchDumpMdIndices(FLAGS_primary);
+      } else {
+        BatchDiff(FLAGS_primary, FLAGS_secondary, FLAGS_output_dir);
       }
       done_something = true;
     }
@@ -742,9 +736,6 @@ int main(int argc, char** argv) {
     if (!done_something) {
       ShowUsageWithFlags(argv[0]);
     }
-  } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out of memory";
-    exit_code = 3;
   } catch (const std::exception& error) {
     LOG(INFO) << "an error occurred: " << error.what();
     exit_code = 1;

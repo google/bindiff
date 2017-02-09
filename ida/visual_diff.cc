@@ -1,5 +1,21 @@
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#define _WIN32_WINNT 0x0501
+#include <windows.h>  // NOLINT
+#include <stdio.h>
+#include <stdlib.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <netdb.h>
+#include <sys/socket.h>
+#include <sys/sysinfo.h>  // For sysinfo struct
+#include <sys/types.h>
+#include <unistd.h>
+#endif
+
 #include <algorithm>
 #include <chrono>  // NOLINT
 #include <iomanip>
@@ -7,13 +23,6 @@
 #include <map>
 #include <sstream>
 #include <thread>  // NOLINT
-
-#ifdef WIN32
-#define _WIN32_WINNT 0x0501
-#include <direct.h>
-#else
-#include <sys/sysinfo.h>
-#endif
 
 #include "base/logging.h"
 #include "strings/strutil.h"
@@ -125,29 +134,61 @@ uint64_t GetPhysicalMemSize() {
 
 bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
                          const std::string& arguments) {
-#if 0
-  // TODO(soerenme): Allow "server" to contain a hostname as well.
-  boost::asio::ip::tcp::endpoint endpoint(
-      boost::asio::ip::address_v4::from_string(server), port);
+#ifdef WIN32
+  static int winsock_status = []() -> int {
+    WSADATA wsa_data;
+    return WSAStartup(MAKEWORD(2, 2), &wsa_data);
+  }();
+  if (winsock_status != 0) {
+    return false;
+  }
 
-  boost::asio::io_service io_service;
-  boost::asio::ip::tcp::socket io_socket(io_service);
-  boost::system::error_code error = boost::asio::error::host_not_found;
-  io_socket.connect(endpoint, error);
+  int (__stdcall *close)(SOCKET) = closesocket;
+#endif
 
   uint32_t packet_size(arguments.size());
   std::string packet(reinterpret_cast<const uint8_t*>(&packet_size),
                      reinterpret_cast<const uint8_t*>(&packet_size) + 4);
   packet.append(arguments);
-  boost::asio::write(io_socket,
-                     boost::asio::buffer(packet),
-                     boost::asio::transfer_all(), error);
-  return !error;
-#else
-  // TODO(cblichmann): Implement the above using simple direct socket
-  //                   programming.
-  return false;
-#endif
+
+  struct addrinfo hints = {0};
+  hints.ai_family = AF_UNSPEC;  // IPv4 or IPv6
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_NUMERICSERV;
+  hints.ai_protocol = IPPROTO_TCP;
+  struct addrinfo* address_info = nullptr;
+  auto err = getaddrinfo(server.c_str(), std::to_string(port).c_str(), &hints,
+                         &address_info);
+  if (err != 0) {
+    // TODO(cblichmann): This function should return a util::Status and use
+    //                   gai_strerror(err).
+    cerr << gai_strerror(err) << endl;
+    return false;
+  }
+  std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)>
+      address_info_deleter(address_info, freeaddrinfo);
+
+  int socket_fd = 0;
+  bool connected = false;
+  for (auto* r = address_info; r != nullptr; r = r->ai_next) {
+    socket_fd = socket(r->ai_family, r->ai_socktype, r->ai_protocol);
+    if (socket_fd == -1) {
+      continue;
+    }
+    connected = connect(socket_fd, r->ai_addr, r->ai_addrlen) != -1;
+    if (connected) {
+      break;
+    }
+    close(socket_fd);
+  }
+  if (!connected) {
+    return false;
+  }
+
+  bool success =
+      write(socket_fd, packet.data(), packet.size()) == packet.size();
+  close(socket_fd);
+  return success;
 }
 
 void DoStartGui(const std::string& gui_dir) {
