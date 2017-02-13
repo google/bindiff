@@ -94,7 +94,8 @@ target_link_libraries(bindiff binexport_shared
 
 if(NOT COMPILE_64BIT)
   add_library(binexport_plugin_shared STATIC ${BinExport_DIR}/ida/digest.cc
-                                             ${BinExport_DIR}/ida/log.cc)
+                                             ${BinExport_DIR}/ida/log.cc
+                                             ${BinExport_DIR}/ida/ui.cc)
   target_compile_definitions(binexport_plugin_shared PUBLIC
                              ${IdaSdk_PLATFORM}
                              __IDP__

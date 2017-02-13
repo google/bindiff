@@ -46,6 +46,7 @@
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
+#include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/timer.h"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
@@ -84,17 +85,6 @@ enum ResultFlags {
   kResultsShowPrimaryUnmatched = 1 << 2,
   kResultsShowSecondaryUnmatched = 1 << 3,
   kResultsShowAll = 0xffffffff
-};
-
-// TODO(cblichmann): Merge with BinDetego's version of CWaitBox.
-//                   This one should be the authoritative one.
-class WaitBox {
- public:
-  explicit WaitBox(const std::string& message) {
-    show_wait_box("%s", message.c_str());
-  }
-
-  ~WaitBox() { hide_wait_box(); }
 };
 
 void HsvToRgb(double h, double s, double v,
@@ -379,7 +369,7 @@ size_t Results::GetNumStatistics() const {
 }
 
 bool Results::IncrementalDiff() {
-  WaitBox wait_box("HIDECANCEL\nPerforming incremental diff...");
+  WaitBox wait_box("Performing incremental diff...");
 
   if (IsInComplete()) {
     const std::string temp_dir(
@@ -1834,7 +1824,7 @@ bool ExportIdbs() {
 
   LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
             << Basename(secondary_idb_path);
-  WaitBox wait_box("HIDECANCEL\nExporting idbs...");
+  WaitBox wait_box("Exporting idbs...");
   {
     ExporterThread exporter(temp_dir, secondary_idb_path);
     std::thread thread(std::ref(exporter));
@@ -2320,7 +2310,7 @@ uint32_t idaapi AddMatchPrimary(void* /* unused */, uint32_t index) {
   if (!g_results) return 0;
 
   try {
-    WaitBox wait_box("HIDECANCEL\nPerforming basicblock diff...");
+    WaitBox wait_box("Performing basicblock diff...");
     return g_results->AddMatchPrimary(index);
   } catch (const std::exception& message) {
     LOG(INFO) << "Error: " << message.what();
@@ -2336,7 +2326,7 @@ uint32_t idaapi AddMatchSecondary(void* /* unused */, uint32_t index) {
   if (!g_results) return 0;
 
   try {
-    WaitBox wait_box("HIDECANCEL\nPerforming basicblock diff...");
+    WaitBox wait_box("Performing basicblock diff...");
     return g_results->AddMatchSecondary(index);
   } catch (const std::exception& message) {
     LOG(INFO) << "Error: " << message.what();
@@ -2657,7 +2647,7 @@ bool Diff(ea_t start_address_source, ea_t end_address_source,
             << StringPrintf(HEX_ADDRESS, end_address_target) << ").";
   timer.restart();
 
-  WaitBox wait_box("HIDECANCEL\nPerforming diff...");
+  WaitBox wait_box("Performing diff...");
   g_results = new Results();
   const std::string temp_dir = GetTempDirectory("BinDiff", /* create = */ true);
   const std::string filename1 =
@@ -2899,7 +2889,7 @@ bool WriteResults(const std::string& path) {
     }
   }
 
-  WaitBox wait_box("HIDECANCEL\nWriting results...");
+  WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing results...";
   std::string export1(g_results->call_graph1_.GetFilePath());
@@ -2964,7 +2954,7 @@ bool DoSaveResultsLog() {
     return false;
   }
 
-  WaitBox wait_box("HIDECANCEL\nWriting results...");
+  WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing to log...";
   ResultsLogWriter writer(filename);
@@ -2995,7 +2985,7 @@ bool DoSaveResultsFortknox() {
     return false;
   }
 
-  WaitBox wait_box("HIDECANCEL\nWriting results...");
+  WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing to Fortknox ground truth file...";
   FortknoxWriter writer(filename, g_results->fixed_point_infos_,
@@ -3069,7 +3059,7 @@ bool DoLoadResults() {
     std::string path(Dirname(file));
 
     LOG(INFO) << "Loading results...";
-    WaitBox wait_box("HIDECANCEL\nLoading results...");
+    WaitBox wait_box("Loading results...");
     Timer<> timer;
 
     delete g_results;
