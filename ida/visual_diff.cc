@@ -11,9 +11,13 @@
 #else
 #include <netdb.h>
 #include <sys/socket.h>
-#include <sys/sysinfo.h>  // For sysinfo struct
 #include <sys/types.h>
 #include <unistd.h>
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#else
+#include <sys/sysinfo.h>  // For sysinfo struct
+#endif
 #endif
 
 #include <algorithm>

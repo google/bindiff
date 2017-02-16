@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
@@ -40,6 +41,7 @@
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/utility.h"
+#include <version.h>  // NOLINT
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
@@ -53,10 +55,9 @@
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #define VC_EXTRALEAN
-#include <Windows.h>
+#define NOMINMAX
+#include <windows.h>
 #endif
-#undef max
-#undef min
 #if _MSC_VER
 #define snprintf _snprintf
 #endif  // _MSC_VER
@@ -68,7 +69,7 @@
 #endif
 
 static const char kBinExportVersion[] = "9";    // Exporter version to use.
-static const char kMenuName[] = "BinDiff 4.3";  // Name in menu
+static const char kName[] = "BinDiff 4.3";
 static const char kComment[] =
     "Structural comparison of executable objects";  // Status line
 static const char kHotKey[] = "CTRL-6";
@@ -92,7 +93,8 @@ void HsvToRgb(double h, double s, double v,
               unsigned char& g,  // NOLINT(runtime/references)
               unsigned char& b   // NOLINT(runtime/references)
               ) {
-  if (static_cast<int>(s) == 0) {  // achromatic (gray)
+  if (std::fabs(s) <=
+      std::numeric_limits<double>::epsilon()) {  // achromatic (gray)
     r = g = b = static_cast<unsigned char>(v * 255.0);
     return;
   }
@@ -136,6 +138,11 @@ void HsvToRgb(double h, double s, double v,
       b = static_cast<unsigned char>(q * 255);
       break;
   }
+}
+
+std::string GetArgument(const char* name) {
+  const char* option = get_plugin_options(StrCat("BinDiff", name).c_str());
+  return option ? option : "";
 }
 
 size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
@@ -316,7 +323,9 @@ uint32_t Results::GetColor(uint32_t index) const {
     return (230 << 16) | (200 << 8) | 150;
   }
   // Choose hue for automatic matches according to similarity score.
-  unsigned char r, g, b;
+  uint8_t r = 0;
+  uint8_t g = 0;
+  uint8_t b = 0;
   HsvToRgb(360 * 0.31 * fixed_point.similarity, 0.3, 0.9, r, g, b);
   return (b << 16) | (g << 8) | r;
 }
@@ -1718,25 +1727,24 @@ std::string FindFile(const std::string& path, const std::string& extension) {
 class ExporterThread {
  public:
   explicit ExporterThread(const std::string& temp_dir,
-                          const std::string& idbPath)
+                          const std::string& idb_path)
       : success_(false),
-        secondary_idb_path_(idbPath),
+        secondary_idb_path_(idb_path),
         secondary_temp_dir(JoinPath(temp_dir, "secondary")),
         idc_file_(JoinPath(temp_dir, "run_secondary.idc")) {
     RemoveAll(secondary_temp_dir);
     CreateDirectories(secondary_temp_dir);
-    {
-      std::ofstream file(idc_file_.c_str());
-      file << "#include <idc.idc>\n"
-           << "static main()\n"
-           << "{\n"
-           << "\tBatch(0);\n"
-           << "\tWait();\n"
-           << "\tRunPlugin(\"zynamics_binexport_" << kBinExportVersion
-           << "\", 2 );\n"
-           << "\tExit(0);\n"
-           << "}\n";
-    }
+
+    std::ofstream file(idc_file_.c_str());
+    file << "#include <idc.idc>\n"
+         << "static main()\n"
+         << "{\n"
+         << "\tBatch(0);\n"
+         << "\tWait();\n"
+         << "\tRunPlugin(\"zynamics_binexport_" << kBinExportVersion
+         << "\", 2);\n"
+         << "\tExit(0);\n"
+         << "}\n";
   }
 
   void operator()() {
@@ -1790,7 +1798,10 @@ class ExporterThread {
 bool ExportIdbs() {
   const std::string temp_dir(GetTempDirectory("BinDiff", /* create = */ true));
 
-  const char* secondary_idb = askfile_c(0, "*.idb;*.i64", "Select Database");
+  const char* secondary_idb = askfile2_c(
+      /* forsave = */ false, "*.idb;*.i64",
+      StrCat("IDA Databases|*.idb;*.i64|All files|", kAllFilesFilter).c_str(),
+      "Select Database");
   if (!secondary_idb) {
     return false;
   }
@@ -1836,7 +1847,7 @@ bool ExportIdbs() {
     char errbuf[MAXSTR];
     idc_value_t arg(primary_temp_dir.c_str());
     if (!Run(StrCat("BinExport2Diff", kBinExportVersion).c_str(),
-             1 /* Number of arguments */, &arg, nullptr /* Result */, errbuf,
+             /* argsnum = */ 1, &arg, /* result = */ nullptr, errbuf,
              MAXSTR - 1)) {
       throw std::runtime_error(
           StrCat("Error: Export of the current database failed: ", errbuf));
@@ -2649,12 +2660,10 @@ bool Diff(ea_t start_address_source, ea_t end_address_source,
 
   WaitBox wait_box("Performing diff...");
   g_results = new Results();
-  const std::string temp_dir = GetTempDirectory("BinDiff", /* create = */ true);
-  const std::string filename1 =
-      FindFile(JoinPath(temp_dir, "primary"), ".BinExport") + ".BinExport";
-  const std::string filename2 =
-      FindFile(JoinPath(temp_dir, "secondary"), ".BinExport") + ".BinExport";
-  if (filename1 == ".BinExport" || filename2 == ".BinExport") {
+  const auto temp_dir(GetTempDirectory("BinDiff", /* create = */ true));
+  const auto filename1(FindFile(JoinPath(temp_dir, "primary"), ".BinExport"));
+  const auto filename2(FindFile(JoinPath(temp_dir, "secondary"), ".BinExport"));
+  if (filename1.empty() || filename2.empty()) {
     throw std::runtime_error(
         "Export failed. Is the secondary idb opened in another IDA instance? "
         "Please close all other IDA instances and try again.");
@@ -2777,22 +2786,22 @@ bool DoDiffDatabase(bool filtered) {
 
 bool idaapi MenuItemDiffDatabaseFilteredCallback(void* /* unused */) {
   // Refresh screen on successful diff
-  return DoDiffDatabase(true);
+  return DoDiffDatabase(/* filtered = */ true);
 }
 
 void idaapi ButtonDiffDatabaseFilteredCallback(TView* fields[], int) {
-  if (DoDiffDatabase(true)) {
+  if (DoDiffDatabase(/* filtered = */ true)) {
     close_form(fields, 1);
   }
 }
 
 bool idaapi MenuItemDiffDatabaseCallback(void* /* unused */) {
   // Refresh screen on successful diff
-  return DoDiffDatabase(false);
+  return DoDiffDatabase(/* filtered = */ false);
 }
 
 void idaapi ButtonDiffDatabaseCallback(TView* fields[], int) {
-  if (DoDiffDatabase(false)) {
+  if (DoDiffDatabase(/* filtered = */ false)) {
     close_form(fields, 1);
   }
 }
@@ -2945,7 +2954,11 @@ bool DoSaveResultsLog() {
   const std::string default_filename(
       g_results->call_graph1_.GetFilename() + "_vs_" +
       g_results->call_graph2_.GetFilename() + ".results");
-  const char* filename = askfile_c(1, default_filename.c_str(), "Save Log As");
+  const char* filename = askfile2_c(
+      /* forsave = */ true, default_filename.c_str(),
+      StrCat("BinDiff Result Log files|*.results|All files", kAllFilesFilter)
+          .c_str(),
+      "Save Log As");
   if (!filename) {
     return false;
   }
@@ -2966,7 +2979,7 @@ bool DoSaveResultsLog() {
 
 void idaapi ButtonSaveResultsLogCallback(TView* [], int) { DoSaveResultsLog(); }
 
-bool DoSaveResultsFortknox() {
+bool DoSaveResultsDebug() {
   if (!g_results) {
     vinfo("Please perform a diff first", 0);
     return false;
@@ -2975,8 +2988,10 @@ bool DoSaveResultsFortknox() {
   const std::string default_filename(
       g_results->call_graph1_.GetFilename() + "_vs_" +
       g_results->call_graph2_.GetFilename() + ".truth");
-  const char* filename = askfile_c(1 /* save file */, default_filename.c_str(),
-                                   "Save Groundtruth As");
+  const char* filename = askfile2_c(
+      /* forsave = */ true, default_filename.c_str(),
+      StrCat("Groundtruth files|*.truth|All files|", kAllFilesFilter).c_str(),
+      "Save Groundtruth As");
   if (!filename) {
     return false;
   }
@@ -2987,7 +3002,7 @@ bool DoSaveResultsFortknox() {
 
   WaitBox wait_box("Writing results...");
   Timer<> timer;
-  LOG(INFO) << "Writing to Fortknox ground truth file...";
+  LOG(INFO) << "Writing to debug ground truth file...";
   FortknoxWriter writer(filename, g_results->fixed_point_infos_,
                         g_results->flow_graph_infos1_,
                         g_results->flow_graph_infos2_);
@@ -2997,8 +3012,8 @@ bool DoSaveResultsFortknox() {
   return true;
 }
 
-void idaapi ButtonSaveResultsFortknoxCallback(TView* [], int) {
-  DoSaveResultsFortknox();
+void idaapi ButtonSaveResultsDebugCallback(TView* [], int) {
+  DoSaveResultsDebug();
 }
 
 bool DoSaveResults() {
@@ -3016,8 +3031,11 @@ bool DoSaveResults() {
     std::string default_filename(
         g_results->call_graph1_.GetFilename() + "_vs_" +
         g_results->call_graph2_.GetFilename() + ".BinDiff");
-    const char* filename =
-        askfile_c(1, default_filename.c_str(), "Save Results As");
+    const char* filename = askfile2_c(
+        /* forsave = */ true, default_filename.c_str(),
+        StrCat("BinDiff Result files|*.BinDiff|All files", kAllFilesFilter)
+            .c_str(),
+        "Save Results As");
     if (!filename) {
       return false;
     }
@@ -3051,12 +3069,16 @@ bool DoLoadResults() {
       }
     }
 
-    const char* file = askfile_c(0, "*.BinDiff", "Load Results");
-    if (!file) {
+    const char* filename = askfile2_c(
+        /* forsave = */ false, "*.BinDiff",
+        StrCat("BinDiff Result files|*.BinDiff|All files|", kAllFilesFilter)
+            .c_str(),
+        "Load Results");
+    if (!filename) {
       return false;
     }
 
-    std::string path(Dirname(file));
+    std::string path(Dirname(filename));
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("Loading results...");
@@ -3068,8 +3090,8 @@ bool DoLoadResults() {
     const std::string temp_dir(
         GetTempDirectory("BinDiff", /* create = */ true));
 
-    SqliteDatabase database(file);
-    DatabaseReader reader(database, file, temp_dir);
+    SqliteDatabase database(filename);
+    DatabaseReader reader(database, filename, temp_dir);
     g_results->Read(reader);
 
     // See b/27371897.
@@ -3219,11 +3241,30 @@ void InitMenus() {
 }
 
 int idaapi PluginInit() {
-  LOG(INFO) << kProgramVersion
+  LoggingOptions options;
+  options.set_alsologtostderr(ToUpper(GetArgument("AlsoLogToStdErr")) ==
+                              "TRUE");
+  options.set_log_filename(GetArgument("LogFile"));
+  if (!InitLogging(options)) {
+    LOG(INFO) << "Error initializing logging, skipping BinDiff plugin";
+    return PLUGIN_SKIP;
+  }
+
+  LOG(INFO) << kProgramVersion << " (" << __DATE__
 #ifdef _DEBUG
             << ", debug build"
 #endif
-            << ", " << kCopyright;
+            << "), " << kCopyright;
+
+  addon_info_t addon_info;
+  addon_info.cb = sizeof(addon_info_t);
+  addon_info.id = "com.google.bindiff";
+  addon_info.name = kName;
+  addon_info.producer = "Google";
+  addon_info.version = BINDIFF_MAJOR "." BINDIFF_MINOR "." BINDIFF_PATCH;
+  addon_info.url = "https://zynamics.com/bindiff.html";
+  addon_info.freeform = kCopyright;
+  register_addon(&addon_info);
 
   if (!hook_to_notification_point(HT_IDP, ProcessorHook,
                                   nullptr /* User data */) ||
@@ -3271,12 +3312,10 @@ void idaapi PluginTerminate() {
   TermMenus();
   SaveAndDiscardResults();
 
-  // Need to explicitly shutdown logging, otherwise the logger thread may stay
-  // active.
   ShutdownLogging();
 }
 
-void idaapi PluginRun(int /*arg*/) {
+void idaapi PluginRun(int /* arg */) {
   static const std::string kDialogBase = StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
@@ -3377,7 +3416,7 @@ void idaapi PluginRun(int /*arg*/) {
         ButtonDiffDatabaseFilteredCallback, ButtonRediffDatabaseCallback,
         ButtonLoadResultsCallback, ButtonSaveResultsCallback,
 #ifdef _DEBUG
-        ButtonSaveResultsFortknoxCallback, ButtonSaveResultsLogCallback,
+        ButtonSaveResultsDebugCallback, ButtonSaveResultsLogCallback,
 #endif
         ButtonPortCommentsCallback);
   }
@@ -3393,7 +3432,7 @@ plugin_t PLUGIN = {
     PluginRun,        // Invoke plugin
     kComment,         // Statusline text
     nullptr,          // Multiline help about the plugin, unused
-    kMenuName,        // The preferred short name of the plugin
+    kName,            // The preferred short name of the plugin
     kHotKey           // The preferred hotkey to run the plugin
 };
 

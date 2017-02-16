@@ -313,11 +313,10 @@ void FlowGraph::Read(const BinExport2& proto,
   if (instructions_.size() >= kMaxFunctionInstructions ||
       edges.size() >= kMaxFunctionEdges ||
       temp_addresses.size() >= kMaxFunctionBasicBlocks) {
-    LOG(WARNING) << StrCat(
-        "Function ", strings::Hex(entry_point_address_, strings::ZERO_PAD_8),
-        " is excessively large: ", temp_addresses.size(), ", basic blocks, ",
-        edges.size(), " edges, ", instructions_.size(),
-        " instructions. Discarding.");
+    LOG(WARNING) << StringPrintf(
+        "Function %08X is excessively large: %zu basic blocks, %zu edges, %zu "
+        "instructions. Discarding.", entry_point_address_,
+        temp_addresses.size(), edges.size(), instructions_.size());
   } else {
     Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                      edges.end(), edge_properties.begin(),
