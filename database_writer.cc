@@ -648,25 +648,29 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
                                      FlowGraphs* /*flow_graphs2*/,
                                      FixedPoints* fixed_points) {
   SqliteStatement statement(database,
-      "select "
-      "  function.address1, function.address2, functionalgorithm.name, "
-      "  function.similarity, function.confidence, "
-      "  basicblock.address1, basicblock.address2, basicblockalgorithm.name "
-      "from function "
-      "inner join functionalgorithm "
-      "  on functionalgorithm.id = function.algorithm "
-      "left join basicblock "
-      "  on basicblock.functionid = function.id "
-      "left join basicblockalgorithm "
-      "  on basicblockalgorithm.id = basicblock.algorithm "
-      "order by function.address1, basicblock.address1");
-  FixedPoint* fixed_point = 0;
+      "SELECT "
+      " function.address1, function.address2, functionalgorithm.name, "
+      " function.similarity, function.confidence, "
+      " basicblock.address1, basicblock.address2, basicblockalgorithm.name "
+      "FROM function "
+      "INNER JOIN functionalgorithm "
+      " ON functionalgorithm.id = function.algorithm "
+      "LEFT JOIN basicblock "
+      " ON basicblock.functionid = function.id "
+      "LEFT JOIN basicblockalgorithm "
+      " ON basicblockalgorithm.id = basicblock.algorithm "
+      "ORDER BY function.address1, basicblock.address1");
   for (statement.Execute(); statement.GotData(); statement.Execute()) {
-    Address function1, function2;
-    Address basic_block1, basic_block2;
-    std::string function_algorithm, basic_block_algorithm;
-    double similarity, confidence;
-    bool basic_block_is_null;
+    FixedPoint* fixed_point = 0;
+    Address function1 = 0;
+    Address function2 = 0;
+    Address basic_block1 = 0;
+    Address basic_block2 = 0;
+    std::string function_algorithm;
+    std::string basic_block_algorithm;
+    double similarity = 0.0;
+    double confidence = 0.0;
+    bool basic_block_is_null = false;
     statement
         .Into(&function1)
         .Into(&function2)
@@ -676,9 +680,9 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
         .Into(&basic_block1, &basic_block_is_null)
         .Into(&basic_block2)
         .Into(&basic_block_algorithm);
-    FlowGraph* flow_graph1 = call_graph1->GetFlowGraph(function1);
+    auto* flow_graph1 = call_graph1->GetFlowGraph(function1);
     if (!fixed_point || flow_graph1 != fixed_point->GetPrimary()) {
-      FlowGraph* flow_graph2 = call_graph2->GetFlowGraph(function2);
+      auto* flow_graph2 = call_graph2->GetFlowGraph(function2);
       FixedPoint new_fixed_point;
       new_fixed_point.Create(flow_graph1, flow_graph2);
       new_fixed_point.SetMatchingStep(function_algorithm);
@@ -690,6 +694,12 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
       flow_graph2->SetFixedPoint(fixed_point);
     }
     if (!basic_block_is_null) {
+      // TODO(cblichmann): b/35456354: This truncates all 64-bit addresses.
+      //                   FlowGraph::Graph should really use 64-bit
+      //                   vertices/edges. We cannot just fix it without proper
+      //                   testing in place, though. Also, almost all "normal"
+      //                   64-bit binaries will still work fine, as long as
+      //                   there is less than 4G of code/address space used.
       fixed_point->Add(basic_block1, basic_block2, basic_block_algorithm);
     }
   }

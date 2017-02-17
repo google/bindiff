@@ -57,7 +57,7 @@ class FlowGraph {
       VertexInfo,          // vertex properties
       EdgeInfo,            // edge properties
       boost::no_property,  // graph properties
-      uint32_t,            // index type for vertices
+      uint32_t,            // index type for vertices (see b/35456354)
       uint32_t             // index type for edges
       > Graph;
 

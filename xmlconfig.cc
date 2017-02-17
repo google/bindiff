@@ -50,7 +50,7 @@ XmlConfig::XmlConfig(const std::string& filename,
 XmlConfig::XmlConfig(std::istream& file)
     : document_(0), filename_(""), modified_(false) {
   file.seekg(0, std::ios_base::end);
-  const std::streamsize size(file.tellg());
+  const size_t size = static_cast<size_t>(file.tellg());
   file.seekg(0, std::ios_base::beg);
   if (!size) {
     throw std::runtime_error("Config file not found");

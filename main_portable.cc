@@ -48,9 +48,6 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/timer.h"
 
-#undef min
-#undef max
-
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
 DEFINE_string(primary, "", "Primary input file or path in batch mode");
@@ -566,12 +563,14 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG
               << ", debug build"
 #endif
-              << ", (c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
+              << ", (c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.";
 
     const auto user_app_data =
-        GetDirectory(PATH_APPDATA, "BinDiff", false) + "bindiff.xml";
+        GetDirectory(PATH_APPDATA, "BinDiff", /* create = */ false) +
+        "bindiff.xml";
     const auto common_app_data =
-        GetDirectory(PATH_COMMONAPPDATA, "BinDiff", false) + "bindiff.xml";
+        GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /* create = */ false) +
+        "bindiff.xml";
     if (!FLAGS_config.empty()) {
       XmlConfig::SetDefaultFilename(FLAGS_config);
     } else if (FileExists(user_app_data)) {
