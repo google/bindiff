@@ -62,8 +62,12 @@ add_library(binexport_shared STATIC ${PROTO_SRCS}
                                     ${BinExport_DIR}/filesystem_util.cc
                                     ${BinExport_DIR}/hash.cc
                                     ${BinExport_DIR}/hex_codec.cc)
-target_link_libraries(binexport_shared ${OPENSSL_LIBRARIES}
-                                       ${PROTOBUF_LIBRARIES})
+set(binexport_shared_LIBRARIES ${OPENSSL_LIBRARIES}
+                               ${PROTOBUF_LIBRARIES})
+if(WIN32)
+  list(APPEND binexport_shared_LIBRARIES shlwapi.lib)
+endif()
+target_link_libraries(binexport_shared ${binexport_shared_LIBRARIES})
 add_custom_command(TARGET binexport_shared POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/binexport2.pb.h
   ${PROJECT_BINARY_DIR}/third_party/zynamics/binexport/binexport2.pb.h)
@@ -109,10 +113,12 @@ if(NOT COMPILE_64BIT)
   add_ida_plugin(${_bd_plugin_name} EA64
                  ida/main_plugin.cc
                  ida/visual_diff.cc)
-
   set(Plugin_LIBRARIES binexport_plugin_shared
                        bindiff
                        ${IdaSdk_LIBRARIES})
+  if(WIN32)
+    list(APPEND Plugin_LIBRARIES ws2_32.lib)
+  endif()
   target_link_libraries(${_bd_plugin_name}${_plx} ${Plugin_LIBRARIES})
   target_link_libraries(${_bd_plugin_name}${_plx64} ${Plugin_LIBRARIES})
 endif()
@@ -120,9 +126,7 @@ endif()
 add_executable(differ main_portable.cc)
 set(BinDiff_LIBRARIES bindiff
                       ${GFLAGS_LIBRARIES})
-if(WIN32)
-  list(APPEND BinDiff_LIBRARIES shlwapi.lib)
-else()
+if(UNIX)
   list(APPEND BinDiff_LIBRARIES pthread
                                 dl)
 endif()

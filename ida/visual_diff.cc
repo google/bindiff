@@ -147,7 +147,11 @@ bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
     return false;
   }
 
+  // Use the original BSD names for these.
   int (__stdcall *close)(SOCKET) = closesocket;
+  auto write = [](SOCKET socket, const char* buf, int len) -> int {
+    return send(socket, buf, len, /* flags = */ 0);
+  };
 #endif
 
   uint32_t packet_size(arguments.size());
@@ -166,7 +170,6 @@ bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
   if (err != 0) {
     // TODO(cblichmann): This function should return a util::Status and use
     //                   gai_strerror(err).
-    cerr << gai_strerror(err) << endl;
     return false;
   }
   std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)>

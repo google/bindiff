@@ -5,6 +5,7 @@
 #include <iomanip>
 
 #include "base/logging.h"
+#include "base/stringprintf.h"
 #include "strings/strutil.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/hex_codec.h"

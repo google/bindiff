@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "base/logging.h"
+#include "base/stringprintf.h"
 #ifdef GOOGLE
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/boost/allowed/graph/breadth_first_search.hpp"

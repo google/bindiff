@@ -8,29 +8,26 @@
 #include <sstream>
 #include <thread>
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <bytes.hpp>                                         // NOLINT
-#include <diskio.hpp>                                        // NOLINT
-#include <enum.hpp>                                          // NOLINT
-#include <expr.hpp>                                          // NOLINT
-#include <frame.hpp>                                         // NOLINT
-#include <funcs.hpp>                                         // NOLINT
-#include <ida.hpp>                                           // NOLINT
-#include <idp.hpp>                                           // NOLINT
-#include <kernwin.hpp>                                       // NOLINT
-#include <loader.hpp>                                        // NOLINT
-#include <nalt.hpp>                                          // NOLINT
-#include <name.hpp>                                          // NOLINT
-#include <struct.hpp>                                        // NOLINT
-#include <ua.hpp>                                            // NOLINT
-#include <xref.hpp>                                          // NOLINT
+#include <pro.h>        // NOLINT
+#include <bytes.hpp>    // NOLINT
+#include <diskio.hpp>   // NOLINT
+#include <enum.hpp>     // NOLINT
+#include <expr.hpp>     // NOLINT
+#include <frame.hpp>    // NOLINT
+#include <funcs.hpp>    // NOLINT
+#include <ida.hpp>      // NOLINT
+#include <idp.hpp>      // NOLINT
+#include <kernwin.hpp>  // NOLINT
+#include <loader.hpp>   // NOLINT
+#include <nalt.hpp>     // NOLINT
+#include <name.hpp>     // NOLINT
+#include <struct.hpp>   // NOLINT
+#include <ua.hpp>       // NOLINT
+#include <xref.hpp>     // NOLINT
 
 #include "base/logging.h"
 #include "base/stringprintf.h"
 #include "strings/strutil.h"
-#ifdef GOOGLE
-#include "third_party/absl/strings/case.h"
-#endif
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -54,7 +51,6 @@
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
-#define VC_EXTRALEAN
 #define NOMINMAX
 #include <windows.h>
 #endif
@@ -68,7 +64,7 @@
 #define HEX_ADDRESS "%016llX"
 #endif
 
-static const char kBinExportVersion[] = "9";    // Exporter version to use.
+static const char kBinExportVersion[] = "9";  // Exporter version to use.
 static const char kName[] = "BinDiff 4.3";
 static const char kComment[] =
     "Structural comparison of executable objects";  // Status line
@@ -1111,8 +1107,8 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   }
 
   const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
-  std::stringstream name;
-  name << "visualDiff" << ++diff_database_id_ << ".database";
+  diff_database_id_++;
+  std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
   std::string database_file;
   // TODO(soerenme): Bug: if matches have been manually modified in the meantime
   //                 we are hosed!
@@ -1121,28 +1117,23 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   } else {
     // TODO(soerenme): This is insanely inefficient: every single call graph
     //                 diff recreates the full result.
-    DatabaseWriter writer(name.str(), true);
+    DatabaseWriter writer(name, true);
     writer.Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
                  fixed_points_);
     database_file = writer.GetFilename();
   }
 
-  std::stringstream message_stream;
-  message_stream << "<BinDiffMatch>\n"
-                 << "\t<Type value=\"callgraph\" />\n"
-                 << "\t<Database path=\"" << database_file << "\" />\n"
-                 << "\t<Match primary=\""
-                 << StringPrintf(HEX_ADDRESS, fixed_point_info.primary)
-                 << "\" secondary=\""
-                 << StringPrintf(HEX_ADDRESS, fixed_point_info.secondary)
-                 << "\" />\n"
-                 << "\t<Primary path=\"" << call_graph1_.GetFilename()
-                 << "\" />\n"
-                 << "\t<Secondary path=\"" << call_graph2_.GetFilename()
-                 << "\" />\n"
-                 << "</BinDiffMatch>\n";
-  *message = message_stream.str();
-
+  *message = StringPrintf(
+      "<BinDiffMatch>\n"
+      "\t<Type value=\"callgraph\" />\n"
+      "\t<Database path=\"%s\" />\n"
+      "\t<Match primary=\"%zu\" secondary=\"%zu\" />\n"
+      "\t<Primary path=\"%s\" />\n"
+      "\t<Secondary path=\"%s\" />\n"
+      "</BinDiffMatch>\n",
+      database_file.c_str(), fixed_point_info.primary,
+      fixed_point_info.secondary, call_graph1_.GetFilename().c_str(),
+      call_graph2_.GetFilename().c_str());
   return true;
 }
 
@@ -1190,26 +1181,24 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   flow_graphs2.insert(fixed_point.GetSecondary());
   fixed_points.insert(fixed_point);
 
-  std::stringstream name;
-  name << "visualDiff" << ++diff_database_id_ << ".database";
-  DatabaseWriter writer(name.str(), true);
+  diff_database_id_++;
+  std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
+  DatabaseWriter writer(name, true);
   writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
                fixed_points);
-  const std::string databaseFile = writer.GetFilename();
+  const std::string database_file = writer.GetFilename();
 
-  std::stringstream message_stream;
-  message_stream
-      << "<BinDiffMatch>\n"
-      << "\t<Type value=\"flowgraph\" />\n"
-      << "\t<Database path=\"" << databaseFile << "\" />\n"
-      << "\t<Primary path=\"" << call_graph1_.GetFilePath() << "\" address=\""
-      << fixed_point.GetPrimary()->GetEntryPointAddress()
-      << "\" />\n"
-      << "\t<Secondary path=\"" << call_graph2_.GetFilePath() << "\" address=\""
-      << fixed_point.GetSecondary()->GetEntryPointAddress()
-      << "\" />\n"
-      << "</BinDiffMatch>\n";
-  *message = message_stream.str();
+  *message = StringPrintf(
+      "<BinDiffMatch>\n"
+      "\t<Type value=\"flowgraph\" />\n"
+      "\t<Database path=\"%s\" />\n"
+      "\t<Primary path=\"%s\" address=\"%zu\" />\n"
+      "\t<Secondary path=\"%s\" address=\"%zu\" />\n"
+      "</BinDiffMatch>\n",
+      database_file.c_str(), call_graph1_.GetFilename().c_str(),
+      fixed_point.GetPrimary()->GetEntryPointAddress(),
+      call_graph2_.GetFilename().c_str(),
+      fixed_point.GetSecondary()->GetEntryPointAddress());
 
   if (IsInComplete()) {
     DeleteTemporaryFlowGraphs();
@@ -2147,7 +2136,7 @@ void DoVisualDiff(void*, uint32_t index, bool call_graph_diff) {
     SendGuiMessage(
         g_config.ReadInt("/BinDiffDeluxe/Gui/@retries", 20),
         g_config.ReadString("/BinDiffDeluxe/Gui/@directory",
-                            "C:\\Program Files\\zynamics\\BinDiff 4.2\\bin"),
+                            "C:\\Program Files\\zynamics\\BinDiff 4.3\\bin"),
         g_config.ReadString("/BinDiffDeluxe/Gui/@server", "127.0.0.1"),
         static_cast<unsigned short>(
             g_config.ReadInt("/BinDiffDeluxe/Gui/@port", 2000)),
