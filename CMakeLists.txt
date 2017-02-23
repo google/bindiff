@@ -27,7 +27,9 @@ set(Boost_NO_SYSTEM_PATHS ON)
 set(BOOST_ROOT ${BinExport_DIR}/third_party/boost_parts)
 find_package(Boost 1.55 REQUIRED)
 
-find_package(IdaSdk REQUIRED)
+if(NOT COMPILE_64BIT)
+  find_package(IdaSdk REQUIRED)
+endif()
 
 # Make Google-style includes work
 file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/third_party/zynamics/binexport)
