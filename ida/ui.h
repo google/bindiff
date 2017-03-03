@@ -15,7 +15,7 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
 
-#include "third_party/absl/strings/string_view.h"
+#include "strings/stringpiece.h"
 
 // Small RAII class that displays an wait message for long-running actions.
 class WaitBox {
