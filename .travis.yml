@@ -2,6 +2,7 @@ language: cpp
 
 cache:
   directories:
+    - build_linux/gtest
     - build_linux/openssl
     - build_linux/protobuf
     - build_linux/postgresql
