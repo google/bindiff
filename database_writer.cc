@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -805,7 +805,7 @@ util::Status DatabaseWriter::Write(const CallGraph& call_graph,
 
   const Functions& functions = flow_graph.GetFunctions();
   if (functions.empty()) {
-    return util::Status::OK;
+    return ::util::OkStatus();
   }
 
   {
@@ -849,5 +849,5 @@ util::Status DatabaseWriter::Write(const CallGraph& call_graph,
     database_.Execute("DEALLOCATE ALL");  // Release all prepared statements.
   }
   ExecuteInternalStatement(MAINTENANCE, std::to_string(module_id_));
-  return util::Status::OK;
+  return ::util::OkStatus();
 }

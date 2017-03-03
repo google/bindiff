@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -104,5 +104,5 @@ util::Status StatisticsWriter::Write(const CallGraph& call_graph,
             << std::setfill(' ') << i->second << std::endl;
   }
 
-  return util::Status::OK;
+  return ::util::OkStatus();
 }

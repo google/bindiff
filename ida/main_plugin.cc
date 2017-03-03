@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>  // NOLINT
 #include <iomanip>
 #include <sstream>
 
@@ -39,8 +38,10 @@
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/names.h"
+#include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/statistics_writer.h"
+#include "third_party/zynamics/binexport/timer.h"
 #include <version.h>  // NOLINT
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
@@ -56,21 +57,12 @@ static const char kBinExportStatistics[] =
     "BinExport2Statistics" BINEXPORT_RELEASE;
 static const char kName[] = "BinExport " BINEXPORT_RELEASE;
 static const char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2016 Google Inc.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.";
 static const char kComment[] =
     "Export to SQL RE-DB, BinDiff binary or text dump";
 static const char kHotKey[] = "";
 
 enum ExportMode { kDatabase = 1, kBinary = 2, kText = 3, kStatistics = 4 };
-
-class WaitBox {
- public:
-  explicit WaitBox(const std::string& message) {
-    show_wait_box("%s", message.c_str());
-  }
-
-  ~WaitBox() { hide_wait_box(); }
-};
 
 std::string GetDataForHash() {
   std::string data;
@@ -102,14 +94,17 @@ std::string GetDefaultName(ExportMode mode) {
     case ExportMode::kStatistics:
       new_extension = ".statistics";
       break;
+    case ExportMode::kDatabase:
+      // No extension for database export.
+      break;
   }
   return ReplaceFileExtension(GetModuleName(), new_extension);
 }
 
 void ExportDatabase(ChainWriter& writer) {
   LOG(INFO) << GetModuleName() << ": starting export";
-  WaitBox waitBox("HIDECANCEL\nexporting database...");
-  auto time_start(std::chrono::system_clock::now());
+  WaitBox wait_box("exporting database...");
+  Timer<> timer;
   EntryPoints entry_points;
   {
     EntryPointAdder entry_point_adder(&entry_points, "function chunks");
@@ -139,12 +134,10 @@ void ExportDatabase(ChainWriter& writer) {
   AnalyzeFlowIda(&entry_points, &modules, &writer, &instructions, &flow_graph,
                  &call_graph);
 
-  std::chrono::duration<double> processing_time(
-      std::chrono::system_clock::now() - time_start);
   LOG(INFO) << GetModuleName() << ": exported "
             << flow_graph.GetFunctions().size() << " functions with "
             << instructions.size() << " instructions in "
-            << StringPrintf("%.2fs", processing_time.count());
+            << StringPrintf("%.2fs", timer.elapsed());
 }
 
 int ExportDatabase(const std::string& schema_name,
@@ -183,8 +176,7 @@ int ExportBinary(const std::string& filename) {
     const std::string hash(Sha1(GetDataForHash()));
     ChainWriter writer;
     writer.AddWriter(std::make_shared<BinExport2Writer>(
-        ReplaceFileExtension(filename, ""), GetModuleName(), EncodeHex(hash),
-        GetArchitectureName()));
+        filename, GetModuleName(), EncodeHex(hash), GetArchitectureName()));
     ExportDatabase(writer);
   } catch (const std::exception& error) {
     LOG(INFO) << "Error exporting: " << error.what();
@@ -199,9 +191,12 @@ int ExportBinary(const std::string& filename) {
 }
 
 void idaapi ButtonBinaryExport(TView** /* fields */, int) {
-  std::string name = GetDefaultName(ExportMode::kBinary);
-  const char* filename =
-      askfile_c(true, name.c_str(), "Please specify result filename");
+  const auto name(GetDefaultName(ExportMode::kBinary));
+  const char* filename = askfile2_c(
+      /* forsave = */ true, name.c_str(),
+      StrCat("BinExport v2 files|*.BinExport|All files|", kAllFilesFilter)
+          .c_str(),
+      "Export to BinExport v2");
   if (!filename) {
     return;
   }
@@ -233,9 +228,11 @@ int ExportText(const std::string& filename) {
 }
 
 void idaapi ButtonTextExport(TView** /* fields */, int) {
-  std::string name = GetDefaultName(ExportMode::kText);
-  const char* filename =
-      askfile_c(true, name.c_str(), "Please specify result filename");
+  const auto name(GetDefaultName(ExportMode::kText));
+  const char* filename = askfile2_c(
+      /* forsave = */ true, name.c_str(),
+      StrCat("Text files|*.txt|All files|", kAllFilesFilter).c_str(),
+      "Export to Text");
   if (!filename) {
     return;
   }
@@ -267,9 +264,12 @@ int ExportStatistics(const std::string& filename) {
 }
 
 void idaapi ButtonStatisticsExport(TView** /* fields */, int) {
-  std::string name = GetDefaultName(ExportMode::kStatistics);
-  const char* filename =
-      askfile_c(true, name.c_str(), "Please specify result filename");
+  const auto name(GetDefaultName(ExportMode::kStatistics));
+  const char* filename = askfile2_c(
+      /* forsave = */ true, name.c_str(),
+      StrCat("BinExport Statistics|*.statistics|All files|", kAllFilesFilter)
+          .c_str(),
+      "Export Statistics");
   if (!filename) {
     return;
   }
@@ -304,11 +304,11 @@ int DoExport(ExportMode mode, std::string name,
     try {
       name = GetTempDirectory("BinExport", true);
     } catch (...) {
-      name = "./";
+      name = StrCat(".", kPathSeparator);
     }
   }
   if (IsDirectory(name) && connection_string.empty()) {
-    name += "/" + GetDefaultName(mode);
+    name += kPathSeparator + GetDefaultName(mode);
   }
 
   Instruction::SetBitness(GetArchitectureBitness());
@@ -330,19 +330,19 @@ int DoExport(ExportMode mode, std::string name,
 static const char kBinExport2DiffIdcArgs[] = {VT_STR2, 0};
 error_t idaapi IdcBinExport2Diff(idc_value_t* argument, idc_value_t*) {
   return DoExport(ExportMode::kBinary, std::string(argument[0].c_str()),
-                  "" /* Connection string */);
+                  /* connection_string */ "");
 }
 
 static const char kBinExport2TextIdcArgs[] = {VT_STR2, 0};
 error_t idaapi IdcBinExport2Text(idc_value_t* argument, idc_value_t*) {
   return DoExport(ExportMode::kText, std::string(argument[0].c_str()),
-                  "" /* Connection string */);
+                  /* connection_string */ "");
 }
 
 static const char kBinExport2StatisticsIdcArgs[] = {VT_STR2, 0};
 error_t idaapi IdcBinExport2Statistics(idc_value_t* argument, idc_value_t*) {
   return DoExport(ExportMode::kStatistics, std::string(argument[0].c_str()),
-                  "" /* Connection string */);
+                  /* connection_string */ "");
 }
 
 static const char kBinExport2SqlIdcArgs[] = {VT_STR2 /* Host */,

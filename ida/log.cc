@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,15 +47,15 @@ class IdaExecutor : public exec_request_t {
   std::function<void()> callback_;
 };
 
-char LogLevelToChar(google::protobuf::LogLevel level) {
+char LogLevelToChar(LogLevel level) {
   switch (level) {
-    case LOGLEVEL_INFO:
+    case LogLevel::LOGLEVEL_INFO:
       return 'I';
-    case LOGLEVEL_WARNING:
+    case LogLevel::LOGLEVEL_WARNING:
       return 'W';
-    case LOGLEVEL_ERROR:
+    case LogLevel::LOGLEVEL_ERROR:
       return 'E';
-    case LOGLEVEL_FATAL:
+    case LogLevel::LOGLEVEL_FATAL:
       return 'F';
     default:
       return '?';
@@ -63,8 +63,8 @@ char LogLevelToChar(google::protobuf::LogLevel level) {
 }
 
 // Logs a single log message. Should be executed on the IDA main thread.
-void LogLine(google::protobuf::LogLevel level, const char* filename,
-                   int line, const std::string& message) {
+void LogLine(LogLevel level, const char* filename, int line,
+             const std::string& message) {
   if (g_logging_options.alsologtostderr() || g_log_file != nullptr) {
     auto now = std::chrono::system_clock::now();
     auto now_time = std::chrono::system_clock::to_time_t(now);

@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,7 +72,8 @@ class Instruction {
  public:
   typedef std::string (*GetBytesCallback)(const Instruction& instruction);
   typedef boost::unordered_set<std::string, boost::hash<std::string>,
-                               std::equal_to<std::string>> StringCache;
+                               std::equal_to<std::string>>
+      StringCache;
 
   explicit Instruction(Address address, Address next_instruction = 0,
                        uint16_t size = 0, const std::string& mnemonic = "",
@@ -95,6 +96,10 @@ class Instruction {
   Operands::const_iterator cbegin() const;
   Operands::const_iterator cend() const;
   const Operand& GetOperand(int operand_number) const;
+  const Operand& GetFirstOperand() const;
+  const Operand& GetSecondOperand() const;
+  const Operand& GetThirdOperand() const;
+
   Address GetAddress() const;
   int GetSize() const;
   Address GetNextInstruction() const;

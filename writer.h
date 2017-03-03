@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ class TypeSystem;
 class Writer {
  public:
   Writer() = default;
+  Writer(const Writer&) = delete;
+  const Writer& operator=(const Writer&) = delete;
+
   virtual ~Writer() = default;
 
   virtual util::Status Write(const CallGraph& call_graph,
@@ -35,10 +38,6 @@ class Writer {
                              const AddressReferences& address_references,
                              const TypeSystem* type_system,
                              const AddressSpace& address_space) = 0;
-
- private:
-  Writer(const Writer&) = delete;
-  const Writer& operator=(const Writer&) = delete;
 };
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_WRITER_H_

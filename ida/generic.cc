@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
 
-Instruction ParseInstructionIdaGeneric(CallGraph& /* call_graph */,
-                                       FlowGraph& /* flow_graph */,
-                                       TypeSystem* /* type_system */,
-                                       const Address address) {
+Instruction ParseInstructionIdaGeneric(Address address,
+                                       CallGraph* /* call_graph */,
+                                       FlowGraph* /* flow_graph */,
+                                       TypeSystem* /* type_system */) {
   if (!IsCode(address) || !decode_insn(static_cast<ea_t>(address))) {
     return Instruction(address);
   }

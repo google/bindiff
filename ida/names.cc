@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 #include "third_party/zynamics/binexport/ida/names.h"
 
-#include <chrono>  // NOLINT
 #include <cinttypes>
 #include <iomanip>
 #include <sstream>
@@ -48,6 +47,7 @@
 #include "third_party/zynamics/binexport/ida/mips.h"
 #include "third_party/zynamics/binexport/ida/ppc.h"
 #include "third_party/zynamics/binexport/ida/types_container.h"
+#include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/writer.h"
@@ -143,7 +143,7 @@ int GetArchitectureBitness() { return inf.is_64bit() ? 64 : 32; }
 std::string GetModuleName() {
   char path_buffer[QMAXPATH] = {0};
   get_input_file_path(path_buffer, QMAXPATH);
-  return GetFilename(path_buffer);
+  return Basename(path_buffer);
 }
 
 // we have an unconditional jump
@@ -686,7 +686,7 @@ int GetPermissions(const segment_t* ida_segment) {
 void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
                     Writer* writer, detego::Instructions* instructions,
                     FlowGraph* flow_graph, CallGraph* call_graph) {
-  auto time_start(std::chrono::system_clock::now());
+  Timer<> timer;
   AddressReferences address_references;
 
   // Add initial entry points as functions.
@@ -719,31 +719,29 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   Instruction::SetBitness(GetArchitectureBitness());
   Instruction::SetGetBytesCallback(&GetBytes);
   Instruction::SetMemoryFlags(&flags);
-  typedef Instruction (*InstructionParser)(CallGraph&, FlowGraph&,
-                                           TypeSystem* /*type_system*/,
-                                           const Address /*address*/);
-  InstructionParser ParseInstruction = nullptr;
+  std::function<Instruction(Address, CallGraph*, FlowGraph*, TypeSystem*)>
+      parse_instruction = nullptr;
   bool mark_x86_nops = false;
   switch (GetArchitecture()) {
     case kX86:
-      ParseInstruction = &ParseInstructionIdaMetaPc;
+      parse_instruction = ParseInstructionIdaMetaPc;
       mark_x86_nops = true;
       break;
     case kArm:
-      ParseInstruction = &ParseInstructionIdaArm;
+      parse_instruction = ParseInstructionIdaArm;
       break;
     case kPpc:
-      ParseInstruction = &ParseInstructionIdaPpc;
+      parse_instruction = ParseInstructionIdaPpc;
       break;
     case kMips:
-      ParseInstruction = &ParseInstructionIdaMips;
+      parse_instruction = ParseInstructionIdaMips;
       break;
     case kDalvik:
-      ParseInstruction = &ParseInstructionIdaDalvik;
+      parse_instruction = ParseInstructionIdaDalvik;
       break;
     case kGeneric:
     default:
-      ParseInstruction = &ParseInstructionIdaGeneric;
+      parse_instruction = ParseInstructionIdaGeneric;
       break;
   }
 
@@ -759,7 +757,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
     flags[address] |= FLAG_VISITED;
 
     Instruction new_instruction =
-        ParseInstruction(*call_graph, *flow_graph, &type_system, address);
+        parse_instruction(address, call_graph, flow_graph, &type_system);
     if (new_instruction.HasFlag(FLAG_INVALID)) {
       continue;
     }
@@ -839,9 +837,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
     types.CreateFunctionPrototype(function);
   }
 
-  auto time_now = std::chrono::system_clock::now();
-  std::chrono::duration<double> processing_time(time_now - time_start);
-  time_start = time_now;
+  const auto processing_time = timer.elapsed();
+  timer.restart();
 
   LOG(INFO) << "writing...";
   writer->Write(*call_graph, *flow_graph, *instructions, address_references,
@@ -850,12 +847,10 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   Operand::EmptyCache();
   Expression::EmptyCache();
 
-  std::chrono::duration<double> writing_time(std::chrono::system_clock::now() -
-                                             time_start);
-
+  const auto writing_time = timer.elapsed();
   LOG(INFO) << GetModuleName()
             << StringPrintf(": %.2fs processing, %.2fs writing",
-                            processing_time.count(), writing_time.count());
+                            processing_time, writing_time);
 }
 
 void GetRegularComments(Address address, Comments* comments) {

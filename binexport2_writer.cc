@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 
 #include <cinttypes>
+#include <string>
+using ::std::string;
 #include <chrono>  // NOLINT
 #include <fstream>
 
@@ -39,8 +41,11 @@
 // the IDA SDK.
 #include <binexport2.pb.h>  // NOLINT
 
+#include "base/integral_types.h"
 #include "base/logging.h"
+#include "base/stringprintf.h"
 #include "strings/strutil.h"
+#include "strings/stringpiece.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/function.h"
@@ -59,8 +64,8 @@ bool SortMnemonicsByOccurrenceCount(const std::pair<StringPiece, int32>& one,
 }
 
 // Sort by mnemonic string.
-bool SortMnemonicsAlphabetically(const pair<StringPiece, int32>& one,
-                                 const pair<StringPiece, int32>& two) {
+bool SortMnemonicsAlphabetically(const std::pair<StringPiece, int32>& one,
+                                 const std::pair<StringPiece, int32>& two) {
   return one.first < two.first;
 }
 
@@ -134,7 +139,7 @@ bool SortExpressionsById(const Expression* one, const Expression* two) {
 
 // Stores expression trees.
 void WriteExpressions(BinExport2* proto) {
-  vector<const Expression*> expressions;
+  std::vector<const Expression*> expressions;
   expressions.reserve(Expression::GetExpressions().size());
   for (const auto& expression_cache_entry : Expression::GetExpressions()) {
     expressions.push_back(&expression_cache_entry.second);
@@ -170,7 +175,7 @@ bool SortOperandsById(const Operand* one, const Operand* two) {
 
 // Stores per operand expression trees.
 void WriteOperands(BinExport2* proto) {
-  vector<const Operand*> operands;
+  std::vector<const Operand*> operands;
   operands.reserve(Operand::GetOperands().size());
   for (const auto& operand_cache_entry : Operand::GetOperands()) {
     operands.push_back(&operand_cache_entry.second);
@@ -273,9 +278,10 @@ void WriteInstructions(
   std::sort(instruction_indices->begin(), instruction_indices->end());
 }
 
-void WriteBasicBlocks(const Instructions& instructions,
-                      const vector<pair<Address, int32>>& instruction_indices,
-                      BinExport2* proto) {
+void WriteBasicBlocks(
+    const Instructions& instructions,
+    const std::vector<std::pair<Address, int32>>& instruction_indices,
+    BinExport2* proto) {
   CHECK((instruction_indices.empty() && BasicBlock::blocks().empty()) ||
         (!instruction_indices.empty() && !BasicBlock::blocks().empty()));
   proto->mutable_basic_block()->Reserve(BasicBlock::blocks().size());
@@ -475,7 +481,7 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
 
   // Used for verifying that functions are sorted by address.
   uint64 previous_entry_point_address = 0;
-  map<string, int32> module_index;
+  std::map<string, int32> module_index;
   for (const auto& function_it : flow_graph.GetFunctions()) {
     const Function& function(*function_it.second);
     QCHECK_GE(function.GetEntryPoint(), previous_entry_point_address);
@@ -512,7 +518,7 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
     }
   }
 
-  if (module_index.size() > 0) {
+  if (!module_index.empty()) {
     proto->mutable_module()->Reserve(module_index.size());
     // We are O(N^2) here by number of classes, shouldn't be a big deal.
     for (int i = 0; i < module_index.size(); ++i) {
@@ -544,10 +550,11 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
   }
 }
 
-void WriteStrings(const AddressReferences& address_references,
-                  const AddressSpace& address_space,
-                  const vector<pair<Address, int32>>& instruction_indices,
-                  BinExport2* proto) {
+void WriteStrings(
+    const AddressReferences& address_references,
+    const AddressSpace& address_space,
+    const std::vector<std::pair<Address, int32>>& instruction_indices,
+    BinExport2* proto) {
   std::map<Address, const AddressReference*> string_address_to_reference;
   std::map<string, int> string_to_string_index;
   for (const auto& reference : address_references) {
@@ -597,7 +604,7 @@ void WriteStrings(const AddressReferences& address_references,
 void WriteDataReferences(
     const AddressReferences& address_references,
     const AddressSpace& address_space,
-    const vector<pair<Address, int32>>& instruction_indices,
+    const std::vector<std::pair<Address, int32>>& instruction_indices,
     BinExport2* proto) {
   // Cache address -> instruction mapping.
   std::map<Address, int32> address_to_index;
@@ -625,9 +632,10 @@ void WriteDataReferences(
   }
 }
 
-void WriteComments(const CallGraph& call_graph,
-                   const vector<pair<Address, int32>>& instruction_indices,
-                   BinExport2* proto) {
+void WriteComments(
+    const CallGraph& call_graph,
+    const std::vector<std::pair<Address, int32>>& instruction_indices,
+    BinExport2* proto) {
   std::map<const std::string*, int> comment_to_index;
   for (const Comment& comment : call_graph.GetComments()) {
     const auto new_comment = comment_to_index.insert(
@@ -668,7 +676,7 @@ util::Status WriteProtoToFile(const string& filename, BinExport2* proto) {
     return util::Status(util::error::UNKNOWN,
                         StrCat("Error serializing data to: '", filename, "'."));
   }
-  return util::Status::OK;
+        return ::util::OkStatus();
 }
 
 }  // namespace
@@ -700,9 +708,9 @@ util::Status BinExport2Writer::WriteToProto(
   WriteExpressions(proto);
   WriteOperands(proto);
   {
-    vector<pair<StringPiece, int32>> mnemonics;
+    std::vector<std::pair<StringPiece, int32>> mnemonics;
     WriteMnemonics(instructions, &mnemonics, proto);
-    vector<pair<Address, int32>> instruction_indices;
+    std::vector<std::pair<Address, int32>> instruction_indices;
     WriteInstructions(flow_graph, instructions, mnemonics, address_references,
                       &instruction_indices, proto);
     WriteBasicBlocks(instructions, instruction_indices, proto);
@@ -715,7 +723,7 @@ util::Status BinExport2Writer::WriteToProto(
   WriteCallGraph(call_graph, flow_graph, proto);
   WriteSections(address_space, proto);
 
-  return util::Status::OK;
+  return ::util::OkStatus();
 }
 
 util::Status BinExport2Writer::Write(

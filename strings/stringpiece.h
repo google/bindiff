@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 
 #include <google/protobuf/stubs/stringpiece.h>
 
-// Map the namespace from the Protocol Buffers stubs to the global namespace.
-using namespace google::protobuf;  // NOLINT(build/namespaces)
+// Map names from the Protocol Buffers stubs into the global namespace.
+using ::google::protobuf::StringPiece;
+using ::google::protobuf::hash;
+using ::google::protobuf::hash_map;
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_STRINGS_STRINGPIECE_H_

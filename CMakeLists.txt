@@ -1,4 +1,4 @@
-# Copyright 2011-2016 Google Inc. All Rights Reserved.
+# Copyright 2011-2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,80 +15,57 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(binexport C CXX)
 
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
+include(ExternalProject)
+include(CompileOptions)
+include(ExternalGTest)
+include(ExternalOpenSSL)
+include(ExternalPostgreSQL)
+include(ExternalProtobuf)
+
 # BinExport release number. Increase every time any backwards incompatible
 # change is made (usually when a new BinDiff or BinNavi version is released.
 set(RELEASE 9)
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-list(APPEND CMAKE_FIND_ROOT_PATH ${PROJECT_SOURCE_DIR}/third_party)
-
 # Use a copy of a subset of Boost that we ship
-set(Boost_NO_SYSTEM_PATHS, ON)
+set(Boost_NO_SYSTEM_PATHS ON)
 set(BOOST_ROOT ${PROJECT_SOURCE_DIR}/third_party/boost_parts)
 find_package(Boost 1.55 REQUIRED)
 
 find_package(Git)
+
+# Find and configure the IDA SDK. Copying allins.hpp to ins/pc.hpp is a
+# workaround to make intel.hpp compile (changed in the 6.95 SDK).
 find_package(IdaSdk REQUIRED)
+file(COPY ${IdaSdk_DIR}/include/allins.hpp
+     DESTINATION ${PROJECT_BINARY_DIR}/ins)
+file(RENAME ${PROJECT_BINARY_DIR}/ins/allins.hpp
+            ${PROJECT_BINARY_DIR}/ins/pc.hpp)
 
-set(OPENSSL_USE_STATIC_LIBS ON)
-find_package(OpenSSL 1.0.1 REQUIRED)
-
-set(PostgreSQL_TYPE_INCLUDE_DIR "none")  # We're not using the server-side API
-find_package(PostgreSQL 9.3 REQUIRED)
-
-# We ship Protocol Buffers as a sub-module and expect it to be built before
-set(PROTOBUF_ROOT_FOLDER ${PROJECT_SOURCE_DIR}/third_party/protobuf)
-set(PROTOBUF_SRC_ROOT_FOLDER ${PROTOBUF_ROOT_FOLDER}/src)
-set(PROTOBUF_INCLUDE_DIR ${PROTOBUF_SRC_ROOT_FOLDER})
+# Make Google-style includes work
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/third_party/zynamics)
 if(UNIX)
-  set(PROTOBUF_PROTOC_EXECUTABLE ${PROTOBUF_SRC_ROOT_FOLDER}/protoc)
-  set(PROTOBUF_LIBRARY ${PROTOBUF_SRC_ROOT_FOLDER}/.libs/libprotobuf.a)
-else()
-  set(PROTOBUF_PROTOC_EXECUTABLE
-      ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/protoc.exe)
-  set(PROTOBUF_LIBRARY
-      ${PROTOBUF_ROOT_FOLDER}/build_msvc/Release/libprotobuf.lib)
+  execute_process(COMMAND
+    ${CMAKE_COMMAND} -E create_symlink ../../..
+    ${PROJECT_BINARY_DIR}/third_party/zynamics/binexport)
+elseif(WIN32)
+  file(TO_NATIVE_PATH
+    ${PROJECT_SOURCE_DIR}/third_party/zynamics/binexport _be_from)
+  file(TO_NATIVE_PATH ${PROJECT_BINARY_DIR} _be_to)
+  execute_process(COMMAND $ENV{ComSpec} /c mklink /J ${_be_from} ${_be_to}
+    ERROR_QUIET)
 endif()
-find_package(Protobuf 3.0 REQUIRED)
+
+enable_testing()
 
 include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_BINARY_DIR}  # To find generated protobufs
+                    ${BinExport_EXTRA_INCLUDE_DIR}
                     ${Boost_INCLUDE_DIR}
-                    ${IdaSdk_INCLUDE_DIRS}
+                    ${GTEST_INCLUDE_DIRS}
                     ${OPENSSL_INCLUDE_DIR}
-                    ${PostgreSQL_INCLUDE_DIRS}
-                    ${PROTOBUF_INCLUDE_DIRS}
-                    ${PROTOBUF_SRC_ROOT_FOLDER})
-
-if(UNIX)
-  add_compile_options(--std=c++11 -Wno-deprecated)
-  set(CMAKE_SKIP_BUILD_RPATH TRUE)
-  if(NOT COMPILE_64BIT)
-    add_compile_options(-m32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -m32")
-  endif()
-elseif(WIN32)
-  # TODO(cblichmann): Configure compiler warnings for Windows
-  if(MSVC)
-    # Use the static runtime
-    foreach(flag_var CMAKE_CXX_FLAGS
-                     CMAKE_CXX_FLAGS_DEBUG
-                     CMAKE_CXX_FLAGS_RELEASE
-                     CMAKE_CXX_FLAGS_MINSIZEREL
-                     CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-      if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-      endif()
-      if(${flag_var} MATCHES "/MDd")
-        string(REGEX REPLACE "/MDd" "/MTd" ${flag_var} "${${flag_var}}")
-      endif()
-    endforeach(flag_var)
-  endif()
-endif()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DNDEBUG)
-endif()
+                    ${PostgreSQL_INCLUDE_DIR}
+                    ${PROTOBUF_INCLUDE_DIRS})
 
 # Find the Git revision number, if applicable
 set(REVISION unknown)
@@ -106,88 +83,130 @@ endif()
 configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
 set(BinExport_Proto_SRCS binexport2.proto)
-if(EXISTS "binexport.proto")
-  list(APPEND BinExport_Proto_SRCS binexport.proto)
-endif()
 PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${BinExport_Proto_SRCS})
-if(EXISTS "binexport_header.cc")
-  set(BinExport_Header_SRCS binexport_header.cc)
-endif()
-add_library(binexport_proto STATIC ${PROTO_SRCS} ${BinExport_Header_SRCS})
+add_library(binexport_proto STATIC ${PROTO_SRCS})
+add_dependencies(binexport_proto ${PROTOBUF_LIBRARIES})
 
 add_library(binexport_shared STATIC filesystem_util.cc)
-
-add_library(binexport_plugin_shared STATIC hash.cc
-                                           hex_codec.cc
-                                           ida/digest.cc
-                                           ida/log.cc)
-target_compile_definitions(binexport_plugin_shared PUBLIC
-                           ${IdaSdk_PLATFORM}
-                           __IDP__
-                           USE_DANGEROUS_FUNCTIONS
-                           USE_STANDARD_FILE_FUNCTIONS)
+add_dependencies(binexport_shared ${PROTOBUF_LIBRARIES})
+add_executable(binexport_shared_test filesystem_util_test.cc
+                                     timer_test.cc)
+set(binexport_shared_test_LIBRARIES binexport_shared
+                                    ${GTEST_BOTH_LIBRARIES}
+                                    ${PROTOBUF_LIBRARIES})
+if(WIN32)
+  list(APPEND binexport_shared_test_LIBRARIES shlwapi.lib)
+endif()
+target_link_libraries(binexport_shared_test ${binexport_shared_test_LIBRARIES})
+add_test(AllTestsInBinExportShared binexport_shared_test)
 
 add_subdirectory(tools)
 
 if(NOT COMPILE_64BIT)
-  add_ida_plugin(zynamics_binexport_9 EA64
-                 address_references.cc
-                 base_types.cc
-                 basic_block.cc
-                 binexport2_writer.cc
-                 call_graph.cc
-                 chain_writer.cc
-                 comment.cc
-                 database_writer.cc
-                 dump_writer.cc
-                 edge.cc
-                 entry_point.cc
-                 expression.cc
-                 flow_analyzer.cc
-                 flow_graph.cc
-                 function.cc
-                 ida/arm.cc
-                 ida/dalvik.cc
-                 ida/generic.cc
-                 ida/main_plugin.cc
-                 ida/metapc.cc
-                 ida/mips.cc
-                 ida/names.cc
-                 ida/ppc.cc
-                 ida/types_container.cc
-                 instruction.cc
-                 library_manager.cc
-                 operand.cc
-                 postgresql.cc
-                 query_builder.cc
-                 statistics_writer.cc
-                 type_system.cc
-                 version.h
-                 virtual_memory.cc
-                 x86_nop.cc)
+  add_library(binexport_plugin_shared STATIC hash.cc
+                                             hash.h
+                                             hex_codec.cc
+                                             hex_codec.h
+                                             ida/digest.cc
+                                             ida/digest.h
+                                             ida/log.cc
+                                             ida/log.h)
+  add_dependencies(binexport_plugin_shared ${OPENSSL_LIBRARIES}
+                                           ${PROTOBUF_LIBRARIES})
+  target_compile_definitions(binexport_plugin_shared PUBLIC
+                             ${IdaSdk_PLATFORM}
+                             __IDP__
+                             USE_DANGEROUS_FUNCTIONS
+                             USE_STANDARD_FILE_FUNCTIONS)
+
+  set(_be_plugin_name zynamics_binexport_${RELEASE})
+  add_ida_plugin(${_be_plugin_name} EA64 address_references.cc
+                                         address_references.h
+                                         base_types.cc
+                                         base_types.h
+                                         basic_block.cc
+                                         basic_block.h
+                                         binexport2_writer.cc
+                                         binexport2_writer.h
+                                         call_graph.cc
+                                         call_graph.h
+                                         chain_writer.cc
+                                         chain_writer.h
+                                         comment.cc
+                                         comment.h
+                                         database_writer.cc
+                                         database_writer.h
+                                         dump_writer.cc
+                                         dump_writer.h
+                                         edge.cc
+                                         edge.h
+                                         entry_point.cc
+                                         entry_point.h
+                                         expression.cc
+                                         expression.h
+                                         flow_analyzer.cc
+                                         flow_analyzer.h
+                                         flow_graph.cc
+                                         flow_graph.h
+                                         function.cc
+                                         function.h
+                                         ida/arm.cc
+                                         ida/arm.h
+                                         ida/dalvik.cc
+                                         ida/dalvik.h
+                                         ida/generic.cc
+                                         ida/generic.h
+                                         ida/main_plugin.cc
+                                         ida/metapc.cc
+                                         ida/metapc.h
+                                         ida/mips.cc
+                                         ida/mips.h
+                                         ida/names.cc
+                                         ida/names.h
+                                         ida/ppc.cc
+                                         ida/ppc.h
+                                         ida/types_container.cc
+                                         ida/types_container.h
+                                         ida/ui.cc
+                                         ida/ui.h
+                                         instruction.cc
+                                         instruction.h
+                                         library_manager.cc
+                                         library_manager.h
+                                         operand.cc
+                                         operand.h
+                                         postgresql.cc
+                                         postgresql.h
+                                         query_builder.cc
+                                         query_builder.h
+                                         statistics_writer.cc
+                                         statistics_writer.h
+                                         type_system.cc
+                                         type_system.h
+                                         version.h
+                                         virtual_memory.cc
+                                         virtual_memory.h
+                                         x86_nop.cc
+                                         x86_nop.h)
+  target_include_directories(${_be_plugin_name}${_plx} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+  target_include_directories(${_be_plugin_name}${_plx64} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+  target_include_directories(binexport_plugin_shared PUBLIC ${IdaSdk_INCLUDE_DIRS})
 
   set(BinExport_LIBRARIES ${IdaSdk_LIBRARIES}
                           binexport_proto
                           binexport_shared
                           binexport_plugin_shared
-                          ${OPENSSL_LIBRARIES}
-                          ${PROTOBUF_LIBRARIES})
-  if(APPLE)
-    list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY}
-                                    krb5
-                                    ldap
-                                    ${OPENSSL_LIBRARIES})
-  elseif(UNIX)
-    list(APPEND BinExport_LIBRARIES ${PostgreSQL_LIBRARY_DIR}/libpq.a)
-  elseif(WIN32)
+                          ${PostgreSQL_LIBRARIES}
+                          ${PROTOBUF_LIBRARIES}
+                          # OpenSSL must come after PostgreSQL
+                          ${OPENSSL_LIBRARIES})
+  if(WIN32)
     list(APPEND BinExport_LIBRARIES crypt32.lib
                                     secur32.lib
                                     shlwapi.lib
                                     ws2_32.lib
-                                    wldap32.lib
-                                    ${PostgreSQL_LIBRARY}
-                                    ${PostgreSQL_LIBRARY_DIR}/libpgport.lib)
+                                    wldap32.lib)
   endif()
-  target_link_libraries(zynamics_binexport_9${_plx} ${BinExport_LIBRARIES})
-  target_link_libraries(zynamics_binexport_9${_plx64} ${BinExport_LIBRARIES})
+  target_link_libraries(${_be_plugin_name}${_plx} ${BinExport_LIBRARIES})
+  target_link_libraries(${_be_plugin_name}${_plx64} ${BinExport_LIBRARIES})
 endif()

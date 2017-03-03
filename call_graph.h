@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,8 @@
 
 #include <iosfwd>
 #include <set>
-
-// TODO(cblichmann): Migrate to std::unordered_XXX
-#include <boost/unordered_map.hpp>
-#include <boost/unordered_set.hpp>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/library_manager.h"
@@ -31,24 +29,19 @@ class Function;
 
 struct EdgeInfo {
   explicit EdgeInfo(Function* function, Address source, Address target)
-      : function_(function),
-        source_(source),
-        target_(target),
-        source_basic_block_id_(-1) {
-  }
+      : function_(function), source_(source), target_(target) {}
 
   Function* function_;
   Address source_;
   Address target_;
-  int source_basic_block_id_;
+  int source_basic_block_id_ = -1;
 };
 
 class CallGraph {
  public:
-  typedef std::set<Address> FunctionEntryPoints;
-  typedef std::vector<EdgeInfo> Edges;
-  typedef boost::unordered_map<Address, size_t, boost::hash<Address>,
-                               std::equal_to<Address>> StringReferences;
+  using FunctionEntryPoints = std::set<Address>;
+  using Edges = std::vector<EdgeInfo>;
+  using StringReferences = std::unordered_map<Address, size_t>;
 
   CallGraph();
   ~CallGraph();
@@ -85,7 +78,7 @@ class CallGraph {
   const LibraryManager& GetLibraryManager() const { return library_manager_; }
 
  private:
-  typedef boost::unordered_set<std::string> StringCache;
+  using StringCache = std::unordered_set<std::string>;
   void FoldComments();
 
   FunctionEntryPoints functions_;
@@ -100,6 +93,5 @@ class CallGraph {
 
 bool operator<(const EdgeInfo& one, const EdgeInfo& two);
 bool operator==(const EdgeInfo& one, const EdgeInfo& two);
-
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_CALLGRAPH_H_

@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -467,11 +467,10 @@ Operands DecodeOperandsArm(const Address address) {
   return operands;
 }
 
-Instruction ParseInstructionIdaArm(CallGraph& /*call_graph*/,
-                                   FlowGraph& /*flow_graph*/,
-                                   TypeSystem* /*type_system*/,
-                                   const Address address) {
-  // part of this code comes directly from support@hex-rays.com (Igor).
+Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
+                                   FlowGraph* /* flow_graph */,
+                                   TypeSystem* /* type_system */) {
+  // Part of this code comes directly from support@hex-rays.com (Igor).
   // It was changed according to our needs but reflects basically what IDA
   // does.
 

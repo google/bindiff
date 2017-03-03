@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ bool AreDuplicateRegularComments(const Comment& lhs, const Comment& rhs) {
 int CallGraph::instance_count_ = 0;
 CallGraph::StringCache CallGraph::string_cache_;
 
-// Attention: do _not_ use m_SourceBasicBlockId for sorting!
-// We change that after putting edgeinfos in a set!
+// Attention: do _not_ use source_basic_block_id for sorting!
+// We change that after putting EdgeInfos in a set!
 bool operator<(const EdgeInfo& one, const EdgeInfo& two) {
   if (one.source_ != two.source_) {
     return one.source_ < two.source_;

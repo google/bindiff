@@ -1,4 +1,4 @@
-# Copyright 2011-2016 Google Inc. All Rights Reserved.
+# Copyright 2011-2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,9 +35,21 @@
 #   add_ida_loader(ldr EA64 myloader.cc)
 
 include(CMakeParseArguments)
+include(FindPackageHandleStandardArgs)
 
-set(IdaSdk_DIR ${CMAKE_CURRENT_LIST_DIR}/third_party/idasdk)
+find_path(IdaSdk_DIR NAMES include/pro.h
+                     HINTS ${IdaSdk_ROOT_DIR} ENV IDASDK_ROOT
+                     PATHS ${CMAKE_CURRENT_LIST_DIR}/third_party/idasdk
+                     PATH_SUFFIXES idasdk
+                     DOC "Location of the IDA SDK"
+                     NO_DEFAULT_PATH)
 set(IdaSdk_INCLUDE_DIRS ${IdaSdk_DIR}/include)
+
+find_package_handle_standard_args(
+  IdaSdk FOUND_VAR IdaSdk_FOUND
+         REQUIRED_VARS IdaSdk_DIR
+                       IdaSdk_INCLUDE_DIRS
+         FAIL_MESSAGE "IDA SDK not found, try setting IdaSdk_ROOT_DIR")
 
 # Define some platform specific variables for later use.
 if(APPLE)
@@ -84,14 +96,15 @@ function(_ida_plugin name ea64 link_script)  # ARGN contains sources
     # Always build a 32-bit executable and use the linker script needed for IDA.
     target_compile_options(${name} PUBLIC -m32)
     if(APPLE)
-      set(CMAKE_OSX_ARCHITECTURES "i386")
-      set(dynamic_lookup -Wl,-flat_namespace
-                         -Wl,-undefined,warning
-                         -Wl,-exported_symbol,_PLUGIN)
+      target_link_libraries(${name} -m32
+                                    -Wl,-flat_namespace
+                                    -Wl,-undefined,warning
+                                    -Wl,-exported_symbol,_PLUGIN)
     else()
-      set(script_flag -Wl,--version-script ${IdaSdk_DIR}/${link_script})
+      set(script_flag )
+      target_link_libraries(${name}
+        -m32 -Wl,--version-script ${IdaSdk_DIR}/${link_script})
     endif()
-    target_link_libraries(${name} -m32 ${script_flag} ${dynamic_lookup})
 
     # For qrefcnt_obj_t in ida.hpp
     target_compile_options(${name} PUBLIC -Wno-non-virtual-dtor)

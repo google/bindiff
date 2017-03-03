@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 // Adapted from the optimized version at http://www.cse.yorku.ca/~oz/hash.html
 uint32_t GetSdbmHash(const std::string& data) {
   uint32_t hash = 0;
-  for (auto i = 0; i < data.size(); ++i) {
+  for (size_t i = 0; i < data.size(); ++i) {
     hash = data[i] + (hash << 6) + (hash << 16) - hash;
   }
   return hash;

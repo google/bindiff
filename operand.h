@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ class Operand {
   static void EmptyCache();
   static const OperandCache& GetOperands();
   static void PurgeCache(const std::set<int>& ids_to_keep);
+  const Expression& GetExpression(int index) const;
+  const Expression& GetLastExpression() const;
 
  private:
   explicit Operand(const Expressions& expressions);

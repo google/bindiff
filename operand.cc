@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
 #include <iterator>
 #include <sstream>
 #pragma warning(pop)
+
+#include "base/logging.h"
 
 Expressions Operand::expressions_;
 Operand::OperandCache Operand::operand_cache_;
@@ -96,4 +98,13 @@ Expressions::iterator Operand::end() const {
 
 uint8_t Operand::GetExpressionCount() const {
   return expression_count_;
+}
+
+const Expression& Operand::GetExpression(int index) const {
+  CHECK(index >= 0 && index < GetExpressionCount());
+  return *expressions_[expression_index_ + index];
+}
+
+const Expression& Operand::GetLastExpression() const {
+  return GetExpression(GetExpressionCount() - 1);
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,9 +22,8 @@ class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
-Instruction ParseInstructionIdaMetaPc(CallGraph& callGraph,
-                                      FlowGraph& flowGraph,
-                                      TypeSystem* type_system,
-                                      const Address address);
+Instruction ParseInstructionIdaMetaPc(Address address, CallGraph* call_graph,
+                                      FlowGraph* flow_graph,
+                                      TypeSystem* type_system);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_METAPC_H_

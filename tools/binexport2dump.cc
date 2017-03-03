@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,12 +16,16 @@
 
 #include <stdio.h>  // fileno()
 #include <ctime>
+#include <map>
 #include <memory>
 #include <string>
+using ::std::string;
+#include <vector>
 
 #include <binexport2.pb.h>  // NOLINT
 
 #include "base/logging.h"
+#include "strings/stringpiece.h"
 #include "strings/strutil.h"
 #include "third_party/zynamics/binexport/types.h"
 
@@ -48,7 +52,7 @@ void RenderExpression(const BinExport2& proto,
   const auto& symbol = expression.symbol();
   switch (expression.type()) {
     case BinExport2::Expression::OPERATOR: {
-      vector<int> children;
+      std::vector<int> children;
       children.reserve(4);  // Default maximum on x86
       for (int i = index + 1;
            i < operand.expression_index_size() &&
@@ -235,4 +239,3 @@ int main(int argc, char* argv[]) {
   DumpBinExport2(proto);
   return EXIT_SUCCESS;
 }
-

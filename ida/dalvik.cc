@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -149,8 +149,8 @@ std::string GetTypeNameByIndex(size_t index) {
   return GetDexString(str_off);
 }
 
-Operands ParseOperandsIdaDalvik(CallGraph& /*call_graph*/,
-                                FlowGraph& flow_graph, const Address address) {
+Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
+                                FlowGraph* flow_graph) {
   Operands operands;
 
   for (uint8_t i = 0; i < UA_MAXOP && cmd.Operands[i].type != o_void; ++i) {
@@ -196,8 +196,8 @@ Operands ParseOperandsIdaDalvik(CallGraph& /*call_graph*/,
         regvar_t* rv(find_regvar(get_func(static_cast<ea_t>(address)),
                                  static_cast<ea_t>(address), regName.c_str()));
         if (rv != 0)
-          flow_graph.AddExpressionSubstitution(address, static_cast<uint8_t>(i),
-                                              expr->GetId(), rv->user);
+          flow_graph->AddExpressionSubstitution(
+              address, static_cast<uint8_t>(i), expr->GetId(), rv->user);
         break;
       }
       case dex_o_imm: {
@@ -311,10 +311,9 @@ Operands ParseOperandsIdaDalvik(CallGraph& /*call_graph*/,
   return operands;
 }
 
-Instruction ParseInstructionIdaDalvik(CallGraph& call_graph,
-                                      FlowGraph& flow_graph,
-                                      TypeSystem* /*type_system*/,
-                                      const Address address) {
+Instruction ParseInstructionIdaDalvik(Address address, CallGraph* call_graph,
+                                      FlowGraph* flow_graph,
+                                      TypeSystem* /* type_system */) {
   // If the address contains no code of if the text representation could not
   // be generated, return an empty instruction. Do the same if the mnemonic
   // is empty.
@@ -344,5 +343,5 @@ Instruction ParseInstructionIdaDalvik(CallGraph& call_graph,
   }
 
   return Instruction(address, nextInstruction, cmd.size, mnemonic,
-                     ParseOperandsIdaDalvik(call_graph, flow_graph, address));
+                     ParseOperandsIdaDalvik(address, call_graph, flow_graph));
 }

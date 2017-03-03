@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -373,9 +373,9 @@ void HandleImmediate(const Address address, const op_t& operand,
                                   immediate, GetInstanceName);
 }
 
-Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
-                                FlowGraph& flow_graph, TypeSystem* type_system,
-                                const Address address) {
+Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
+                                FlowGraph* flow_graph,
+                                TypeSystem* type_system) {
   Operands operands;
   uint8_t skipped = 0;
   for (uint8_t operand_position = 0; operand_position < UA_MAXOP;
@@ -425,11 +425,11 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
       case o_mem:  // direct memory reference
         HandleMemoryExpression(address, instruction, operand,
                                operand_position - skipped, &expressions,
-                               &flow_graph, type_system);
+                               flow_graph, type_system);
         break;
 
       case o_phrase:  // Memory Ref [Base Reg + Index Reg]    phrase
-        HandlePhraseExpression(&expressions, &flow_graph, type_system, address,
+        HandlePhraseExpression(&expressions, flow_graph, type_system, address,
                                instruction, operand,
                                operand_position - skipped);
         break;
@@ -482,10 +482,9 @@ Operands ParseOperandsIdaMetaPc(CallGraph& /*call_graph*/,
   return operands;
 }
 
-Instruction ParseInstructionIdaMetaPc(CallGraph& call_graph,
-                                      FlowGraph& flow_graph,
-                                      TypeSystem* type_system,
-                                      const Address address) {
+Instruction ParseInstructionIdaMetaPc(Address address, CallGraph* call_graph,
+                                      FlowGraph* flow_graph,
+                                      TypeSystem* type_system) {
   char buffer[128];
   memset(buffer, 0, sizeof(buffer));
   if (!IsCode(address) ||
@@ -544,5 +543,5 @@ Instruction ParseInstructionIdaMetaPc(CallGraph& call_graph,
 
   return Instruction(
       address, isFlow(next_flags) ? next_instruction : 0, cmd.size, mnemonic,
-      ParseOperandsIdaMetaPc(call_graph, flow_graph, type_system, address));
+      ParseOperandsIdaMetaPc(address, call_graph, flow_graph, type_system));
 }

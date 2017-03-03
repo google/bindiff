@@ -1,4 +1,4 @@
-// Copyright 2011-2016 Google Inc. All Rights Reserved.
+// Copyright 2011-2017 Google Inc. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@
 #include <stdexcept>
 
 #include "base/logging.h"
-#include "strings/strutil.h"
 
 #include <libpq-fe.h>
+#include "strings/stringpiece.h"
+#include "strings/strutil.h"
 
 namespace {
 
