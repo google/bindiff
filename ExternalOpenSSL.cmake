@@ -35,26 +35,41 @@ else()
   if(WIN32)
     file(TO_NATIVE_PATH ${OPENSSL_SOURCE_DIR} _src)
     file(TO_NATIVE_PATH ${OPENSSL_ROOT_DIR} _inst)
+    if(NOT COMPILE_64BIT)
+      set(_os_flags VC-WIN32 no-asm)
+      set(_os_prep ms\\do_ms.bat)
+    else()
+      set(_os_flags VC-WIN64A no-asm)
+      set(_os_prep ms\\do_win64a.bat)
+    endif()
     set(OPENSSL_CONFIGURE_COMMAND cd /d "${_src}"
-      COMMAND perl Configure VC-WIN32 no-asm "--prefix=${_inst}")
+      COMMAND perl Configure ${_os_flags} "--prefix=${_inst}")
     set(OPENSSL_BUILD_COMMAND cd /d "${_src}"
-      COMMAND ms\\do_ms.bat)
+      COMMAND ${_os_prep})
     set(OPENSSL_INSTALL_COMMAND cd /d "${_src}"
       COMMAND nmake /nologo /f ms\\nt.mak /s install)
   elseif(UNIX)
-    if(APPLE)
-      set(OPENSSL_CONFIGURE_COMMAND
-        cd "${OPENSSL_SOURCE_DIR}" &&
-        "${OPENSSL_SOURCE_DIR}/Configure" no-asm no-zlib darwin-i386-cc
-                                          "--prefix=${OPENSSL_ROOT_DIR}")
+    if(NOT COMPILE_64BIT)
+      if(APPLE)
+        set(_os_flags no-asm no-shared no-engines no-dso no-hw no-zlib
+                      darwin-i386-cc)
+      else()
+        set(_os_flags no-asm no-dso no-shared no-zlib linux-generic32 -m32)
+      endif()
     else()
-      set(OPENSSL_CONFIGURE_COMMAND
-        cd "${OPENSSL_SOURCE_DIR}" &&
-        "${OPENSSL_SOURCE_DIR}/Configure" no-asm no-dso no-shared no-zlib linux-generic32 -m32
-                                          "--prefix=${OPENSSL_ROOT_DIR}")
+      if(APPLE)
+        set(_os_flags no-asm no-shared no-engines no-dso no-hw no-zlib
+                      darwin64-x86_64-cc)
+      else()
+        set(_os_flags no-asm no-dso no-engine shared no-zlib linux-generic64)
+      endif()
     endif()
+    set(OPENSSL_CONFIGURE_COMMAND
+      cd "${OPENSSL_SOURCE_DIR}" &&
+      "${OPENSSL_SOURCE_DIR}/Configure" ${_os_flags}
+                                        "--prefix=${OPENSSL_ROOT_DIR}")
     set(OPENSSL_BUILD_COMMAND
-      $(MAKE) -sC "${OPENSSL_SOURCE_DIR}" build_libs build_apps)
+      $(MAKE) -sC "${OPENSSL_SOURCE_DIR}" depend build_libs build_apps)
     set(OPENSSL_INSTALL_COMMAND
       $(MAKE) -sC "${OPENSSL_SOURCE_DIR}" install_sw)
   endif()

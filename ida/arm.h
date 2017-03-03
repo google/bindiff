@@ -22,8 +22,8 @@ class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
-Instruction ParseInstructionIdaArm(CallGraph& callGraph, FlowGraph& flowGraph,
-                                   TypeSystem* type_system,
-                                   const Address address);
+Instruction ParseInstructionIdaArm(Address address, CallGraph* call_graph,
+                                   FlowGraph* flow_graph,
+                                   TypeSystem* type_system);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_ARM_H_

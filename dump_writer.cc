@@ -37,5 +37,5 @@ util::Status DumpWriter::Write(const CallGraph& call_graph,
   stream_ << std::endl;
   flow_graph.Render(&stream_, call_graph);
   stream_ << std::endl;
-  return util::Status::OK;
+  return ::util::OkStatus();
 }

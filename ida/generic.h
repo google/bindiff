@@ -22,9 +22,8 @@ class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
-Instruction ParseInstructionIdaGeneric(CallGraph& callGraph,
-                                       FlowGraph& flowGraph,
-                                       TypeSystem* type_system,
-                                       const Address address);
+Instruction ParseInstructionIdaGeneric(Address address, CallGraph* call_graph,
+                                       FlowGraph* flow_graph,
+                                       TypeSystem* type_system);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_GENERIC_H_

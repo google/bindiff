@@ -17,7 +17,9 @@
 
 #include <google/protobuf/stubs/stringpiece.h>
 
-// Map the namespace from the Protocol Buffers stubs to the global namespace.
-using namespace google::protobuf;  // NOLINT(build/namespaces)
+// Map names from the Protocol Buffers stubs into the global namespace.
+using ::google::protobuf::StringPiece;
+using ::google::protobuf::hash;
+using ::google::protobuf::hash_map;
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_STRINGS_STRINGPIECE_H_

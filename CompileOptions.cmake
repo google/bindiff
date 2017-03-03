@@ -13,7 +13,8 @@
 # limitations under the License.
 
 if(UNIX)
-  add_compile_options(--std=c++11 -Wno-deprecated)
+  add_compile_options(-Wno-deprecated)
+  list(APPEND CMAKE_CXX_FLAGS --std=c++11)
   set(CMAKE_SKIP_BUILD_RPATH TRUE)
   if(NOT COMPILE_64BIT)
     add_compile_options(-m32)
@@ -24,11 +25,11 @@ elseif(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
     # Use the static runtime
-    foreach(flag_var CMAKE_CXX_FLAGS
-                     CMAKE_CXX_FLAGS_DEBUG
-                     CMAKE_CXX_FLAGS_RELEASE
-                     CMAKE_CXX_FLAGS_MINSIZEREL
-                     CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    foreach(flag_var CMAKE_C_FLAGS CMAKE_CXX_FLAGS
+                     CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG
+                     CMAKE_C_FLAGS_RELEASE CMAKE_CXX_FLAGS_RELEASE
+                     CMAKE_C_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_MINSIZEREL
+                     CMAKE_C_FLAGS_RELWITHDEBINFO CMAKE_CXX_FLAGS_RELWITHDEBINFO)
       if(${flag_var} MATCHES "/MD")
         string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
       endif()
@@ -51,7 +52,3 @@ foreach(out_config ${CMAKE_CONFIGURATION_TYPES})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${out_config} ${CMAKE_BINARY_DIR})
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${out_config} ${CMAKE_BINARY_DIR})
 endforeach()
-
-if(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DNDEBUG)
-endif()

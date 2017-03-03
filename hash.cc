@@ -17,7 +17,7 @@
 // Adapted from the optimized version at http://www.cse.yorku.ca/~oz/hash.html
 uint32_t GetSdbmHash(const std::string& data) {
   uint32_t hash = 0;
-  for (auto i = 0; i < data.size(); ++i) {
+  for (size_t i = 0; i < data.size(); ++i) {
     hash = data[i] + (hash << 6) + (hash << 16) - hash;
   }
   return hash;

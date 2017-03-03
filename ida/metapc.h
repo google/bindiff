@@ -22,9 +22,8 @@ class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
-Instruction ParseInstructionIdaMetaPc(CallGraph& callGraph,
-                                      FlowGraph& flowGraph,
-                                      TypeSystem* type_system,
-                                      const Address address);
+Instruction ParseInstructionIdaMetaPc(Address address, CallGraph* call_graph,
+                                      FlowGraph* flow_graph,
+                                      TypeSystem* type_system);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_METAPC_H_

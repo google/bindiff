@@ -21,6 +21,7 @@
 #include "base/logging.h"
 
 #include <libpq-fe.h>
+#include "strings/stringpiece.h"
 #include "strings/strutil.h"
 
 namespace {

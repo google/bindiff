@@ -104,5 +104,5 @@ util::Status StatisticsWriter::Write(const CallGraph& call_graph,
             << std::setfill(' ') << i->second << std::endl;
   }
 
-  return util::Status::OK;
+  return ::util::OkStatus();
 }

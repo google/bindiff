@@ -32,6 +32,8 @@
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 
 #include <cinttypes>
+#include <string>
+using ::std::string;
 #include <chrono>  // NOLINT
 #include <fstream>
 
@@ -39,8 +41,11 @@
 // the IDA SDK.
 #include <binexport2.pb.h>  // NOLINT
 
+#include "base/integral_types.h"
 #include "base/logging.h"
+#include "base/stringprintf.h"
 #include "strings/strutil.h"
+#include "strings/stringpiece.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/function.h"
@@ -671,7 +676,7 @@ util::Status WriteProtoToFile(const string& filename, BinExport2* proto) {
     return util::Status(util::error::UNKNOWN,
                         StrCat("Error serializing data to: '", filename, "'."));
   }
-  return util::Status::OK;
+        return ::util::OkStatus();
 }
 
 }  // namespace
@@ -718,7 +723,7 @@ util::Status BinExport2Writer::WriteToProto(
   WriteCallGraph(call_graph, flow_graph, proto);
   WriteSections(address_space, proto);
 
-  return util::Status::OK;
+  return ::util::OkStatus();
 }
 
 util::Status BinExport2Writer::Write(

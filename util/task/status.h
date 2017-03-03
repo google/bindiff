@@ -17,7 +17,17 @@
 
 #include <google/protobuf/stubs/status.h>
 
+namespace google {
+namespace protobuf {
+namespace util {
+
+inline Status OkStatus() { return Status(); }
+
+}  // namespace util
+}  // namespace protobuf
+}  // namespace google
+
 // Map the namespace from the Protocol Buffers stubs to the global namespace.
-using namespace google::protobuf;  // NOLINT(build/namespaces)
+namespace util = ::google::protobuf::util;  // NOLINT(build/namespaces)
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_TASK_STATUS_H_

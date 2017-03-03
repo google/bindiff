@@ -388,7 +388,7 @@ std::string GetSpecialPurposeRegisterName(const Address /*address*/,
 
 typedef std::list<const std::string*> TOperandStrings;
 
-Operands DecodeOperandsPpc(const std::string& /*mnemonic*/,
+Operands DecodeOperandsPpc(const std::string& /* mnemonic */,
                            const Address address) {
   Operands operands;
   for (uint8_t operand_position = 0;
@@ -521,7 +521,7 @@ Operands DecodeOperandsPpc(const std::string& /*mnemonic*/,
             expression,
             GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
             Expression::TYPE_REGISTER, 0));
-        // @note: IDA returns what is really two operands in a single op. That's
+        // Note: IDA returns what is really two operands in a single op. That's
         // why we start a new one here
         operands.push_back(Operand::CreateOperand(expressions));
         expression = 0;
@@ -624,10 +624,9 @@ Operands DecodeOperandsPpc(const std::string& /*mnemonic*/,
   return operands;
 }
 
-Instruction ParseInstructionIdaPpc(CallGraph& /*call_graph*/,
-                                   FlowGraph& /*flow_graph*/,
-                                   TypeSystem* /*type_system*/,
-                                   const Address address) {
+Instruction ParseInstructionIdaPpc(Address address, CallGraph* /* call_graph */,
+                                   FlowGraph* /* flow_graph */,
+                                   TypeSystem* /* type_system */) {
   char buffer[128];
   memset(buffer, 0, sizeof(buffer));
   if (!IsCode(address) ||

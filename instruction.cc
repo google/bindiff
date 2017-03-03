@@ -427,6 +427,9 @@ const Operand& Instruction::GetOperand(int index) const {
   CHECK(index >= 0 && index < GetOperandCount());
   return *operands_[operand_index_ + index];
 }
+const Operand& Instruction::GetFirstOperand() const { return GetOperand(0); }
+const Operand& Instruction::GetSecondOperand() const { return GetOperand(1); }
+const Operand& Instruction::GetThirdOperand() const { return GetOperand(2); }
 
 bool Instruction::IsFlow() const {
   return ((*flags_)[address_] & FLAG_FLOW) != 0;

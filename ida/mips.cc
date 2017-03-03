@@ -274,10 +274,10 @@ Operands DecodeOperandsMips(const Address address) {
   return operands;
 }
 
-Instruction ParseInstructionIdaMips(CallGraph& /*call_graph*/,
-                                    FlowGraph& /*flow_graph*/,
-                                    TypeSystem* /*type_system*/,
-                                    const Address address) {
+Instruction ParseInstructionIdaMips(Address address,
+                                    CallGraph* /* call_graph */,
+                                    FlowGraph* /* flow_graph */,
+                                    TypeSystem* /* type_system */) {
   char buffer[128];
   memset(buffer, 0, sizeof(buffer));
   if (!IsCode(address) ||

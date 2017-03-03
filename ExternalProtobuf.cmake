@@ -31,9 +31,9 @@ else()
     SHA256=82b124816eb8e9e99e8312b6c751c68ec690e2b1eaef7fa2c20743152367ec80)
   set(PROTOBUF_ROOT_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf)
 
-  if(UNIX)
-    set(_flags -DCMAKE_C_FLAGS=-m32
-               -DCMAKE_CXX_FLAGS=-m32)
+  if(UNIX AND NOT COMPILE_64BIT)
+    set(_pb_flags -DCMAKE_C_FLAGS=-m32
+                  -DCMAKE_CXX_FLAGS=-m32)
   endif()
 
   ExternalProject_Add(external-protobuf
@@ -46,11 +46,12 @@ else()
     # CMAKE_ARGS ...
     CONFIGURE_COMMAND cd "<BINARY_DIR>" &&
       "${CMAKE_COMMAND}" "<SOURCE_DIR>/cmake"
+      -G "${CMAKE_GENERATOR}"
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
       "-DCMAKE_INSTALL_PREFIX=${PROTOBUF_ROOT_DIR}"
       -DCMAKE_INSTALL_LIBDIR=lib
       -DCMAKE_RULE_MESSAGES=OFF
-      ${_flags}
+      ${_pb_flags}
       -Dprotobuf_BUILD_TESTS=OFF
       -Dprotobuf_BUILD_SHARED_LIBS=OFF
       -Dprotobuf_WITH_ZLIB=OFF

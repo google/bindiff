@@ -25,10 +25,10 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
 
-Instruction ParseInstructionIdaGeneric(CallGraph& /* call_graph */,
-                                       FlowGraph& /* flow_graph */,
-                                       TypeSystem* /* type_system */,
-                                       const Address address) {
+Instruction ParseInstructionIdaGeneric(Address address,
+                                       CallGraph* /* call_graph */,
+                                       FlowGraph* /* flow_graph */,
+                                       TypeSystem* /* type_system */) {
   if (!IsCode(address) || !decode_insn(static_cast<ea_t>(address))) {
     return Instruction(address);
   }

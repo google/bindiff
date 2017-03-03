@@ -19,6 +19,8 @@
 #include <sstream>
 #pragma warning(pop)
 
+#include "base/logging.h"
+
 Expressions Operand::expressions_;
 Operand::OperandCache Operand::operand_cache_;
 uint32_t Operand::global_id_ = 0;
@@ -96,4 +98,13 @@ Expressions::iterator Operand::end() const {
 
 uint8_t Operand::GetExpressionCount() const {
   return expression_count_;
+}
+
+const Expression& Operand::GetExpression(int index) const {
+  CHECK(index >= 0 && index < GetExpressionCount());
+  return *expressions_[expression_index_ + index];
+}
+
+const Expression& Operand::GetLastExpression() const {
+  return GetExpression(GetExpressionCount() - 1);
 }

@@ -40,6 +40,8 @@ class Operand {
   static void EmptyCache();
   static const OperandCache& GetOperands();
   static void PurgeCache(const std::set<int>& ids_to_keep);
+  const Expression& GetExpression(int index) const;
+  const Expression& GetLastExpression() const;
 
  private:
   explicit Operand(const Expressions& expressions);

@@ -36,7 +36,7 @@ util::Status ChainWriter::Write(const CallGraph& call_graph,
       success = false;
     }
   }
-  return success ? util::Status::OK
+  return success ? ::util::OkStatus()
                  : util::Status(util::error::UNKNOWN,
                                 "At least one of the chained writers failed.");
 }
