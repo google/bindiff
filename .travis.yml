@@ -17,7 +17,7 @@ before_install:
   - sudo dpkg --add-architecture i386
   - sudo apt-get update -qq
   - sudo apt-get install -y g++-4.8-multilib lib32stdc++-4.8-dev
-    linux-libc-dev:i386
+    linux-libc-dev:i386 xutils-dev
 
   - export CXX=g++-4.8 CC=gcc-4.8
 
