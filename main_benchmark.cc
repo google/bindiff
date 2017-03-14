@@ -29,7 +29,7 @@ DEFINE_FLAG(string, data_path,
             "/google_src/files/head/depot/google3/third_party/zynamics/bindiff/"
             "fixtures",
             "Path of the BinDiff text fixtures to use (should contain a "
-            "fortknox_tests.list text proto file).");
+            "groundtruth_tests.list text proto file).");
 
 namespace {
 
@@ -105,7 +105,7 @@ void RunAllDiffs() {
   // TODO(soerenme) Add a set of DEX files to the test. DEX seems to have unique
   //     performance issues.
   BinDiff::TestPackage tests;
-  QCHECK_OK(file::GetTextProto(file::JoinPath(path, "fortknox_tests.list"),
+  QCHECK_OK(file::GetTextProto(file::JoinPath(path, "groundtruth_tests.list"),
                                &tests, file::Defaults()));
 
   WallTimer timer;

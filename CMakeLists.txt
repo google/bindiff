@@ -96,8 +96,8 @@ add_library(bindiff STATIC call_graph.cc
                            flow_graph.h
                            flow_graph_matching.cc
                            flow_graph_matching.h
-                           fortknox_writer.cc
-                           fortknox_writer.h
+                           groundtruth_writer.cc
+                           groundtruth_writer.h
                            instruction.cc
                            instruction.h
                            log_writer.cc

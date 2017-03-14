@@ -31,7 +31,7 @@
 #include "third_party/zynamics/bindiff/database_writer.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
-#include "third_party/zynamics/bindiff/fortknox_writer.h"
+#include "third_party/zynamics/bindiff/groundtruth_writer.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
@@ -1132,9 +1132,9 @@ bool DoSaveResultsDebug() {
   WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing to debug ground truth file...";
-  FortknoxWriter writer(filename, g_results->fixed_point_infos_,
-                        g_results->flow_graph_infos1_,
-                        g_results->flow_graph_infos2_);
+  GroundtruthWriter writer(filename, g_results->fixed_point_infos_,
+                           g_results->flow_graph_infos1_,
+                           g_results->flow_graph_infos2_);
   g_results->Write(&writer);
   LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
 
