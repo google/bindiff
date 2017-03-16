@@ -6,7 +6,9 @@
 
 #include "base/logging.h"
 #include "base/stringprintf.h"
+#ifndef GOOGLE  // MOE:strip_line
 #include "strings/strutil.h"
+#endif  // MOE:strip_line
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
 

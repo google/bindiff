@@ -23,9 +23,12 @@
 #include <ua.hpp>       // NOLINT
 #include <xref.hpp>     // NOLINT
 
+#include <version.h>  // NOLINT
 #include "base/logging.h"
 #include "base/stringprintf.h"
+#ifndef GOOGLE  // MOE:strip_line
 #include "strings/strutil.h"
+#endif  // MOE:strip_line
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -37,7 +40,6 @@
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include <version.h>  // NOLINT
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
