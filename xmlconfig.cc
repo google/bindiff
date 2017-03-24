@@ -1,6 +1,7 @@
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <locale>
 #include <sstream>
@@ -19,14 +20,26 @@ bool EqualsIgnoreCase(std::string one, std::string two) {
     return false;
   }
 
-  for (size_t i(0); i < one.size(); ++i) {
+  for (size_t i = 0; i < one.size(); ++i) {
     if (std::tolower(one[i], std::locale()) !=
         std::tolower(two[i], std::locale())) {
       return false;
     }
   }
-
   return true;
+}
+
+std::string ReadFileToString(const std::string& filename) {
+  std::ifstream stream(filename);
+  stream.seekg(0, std::ios_base::end);
+  const auto size = static_cast<size_t>(stream.tellg());
+  stream.seekg(0, std::ios_base::beg);
+  if (!size) {
+    throw std::runtime_error("Config file is empty");
+  }
+  std::string data(size, '\0');
+  stream.read(&data[0], size);
+  return data;
 }
 
 }  // namespace
@@ -42,31 +55,13 @@ const std::string& XmlConfig::GetDefaultFilename() {
 }
 
 XmlConfig::XmlConfig(const std::string& filename,
-                     const std::string& root_element)
-    : document_(0), filename_(filename), modified_(false) {
+                     const std::string& root_element) {
   Init(filename, root_element);
 }
 
-XmlConfig::XmlConfig(std::istream& file)
-    : document_(0), filename_(""), modified_(false) {
-  file.seekg(0, std::ios_base::end);
-  const size_t size = static_cast<size_t>(file.tellg());
-  file.seekg(0, std::ios_base::beg);
-  if (!size) {
-    throw std::runtime_error("Config file not found");
-  }
-  std::vector<char> data(size);
-  file.read(&data[0], size);
-  document_ = new TiXmlDocument();
-  document_->Parse(&data[0]);
-}
-
-XmlConfig::XmlConfig(const char* data)
-    : document_(new TiXmlDocument()), filename_(""), modified_(false) {
+XmlConfig::XmlConfig(const char* data) : document_(new TiXmlDocument()) {
   document_->Parse(data);
 }
-
-XmlConfig::XmlConfig() : document_(0), filename_(""), modified_(false) {}
 
 XmlConfig::~XmlConfig() {
   try {
@@ -75,7 +70,7 @@ XmlConfig::~XmlConfig() {
     // Do not let exception escape destructor.
   }
   delete document_;
-  document_ = 0;
+  document_ = nullptr;
 }
 
 TiXmlDocument* XmlConfig::GetDocument() {
@@ -93,17 +88,17 @@ void XmlConfig::SetData(const char* data) {
   modified_ = false;
   document_->Parse(data);
 
-  for (auto i = int_cache_.begin(); i != int_cache_.end(); ++i) {
-    i->second.second = false;
+  for (auto& entry : int_cache_) {
+    entry.second.second = false;
   }
-  for (auto i = double_cache_.begin(); i != double_cache_.end(); ++i) {
-    i->second.second = false;
+  for (auto& entry : double_cache_) {
+    entry.second.second = false;
   }
-  for (auto i = bool_cache_.begin(); i != bool_cache_.end(); ++i) {
-    i->second.second = false;
+  for (auto& entry : bool_cache_) {
+    entry.second.second = false;
   }
-  for (auto i = string_cache_.begin(); i != string_cache_.end(); ++i) {
-    i->second.second = false;
+  for (auto& entry : string_cache_) {
+    entry.second.second = false;
   }
 }
 
@@ -112,40 +107,25 @@ void XmlConfig::Init(const std::string& filename, const std::string&) {
     throw std::runtime_error(
         (std::string("File not found: ") + filename).c_str());
   }
-
+  SetData(ReadFileToString(filename).c_str());
   filename_ = filename;
-  delete document_;
-  document_ = new TiXmlDocument(filename.c_str());
-  if (!document_->LoadFile()) {
-    const std::string msg(
-        __FUNCTION__ + std::string(": ") + document_->ErrorDesc() + " '"
-            + filename + "'");
-    delete document_;
-    document_ = 0;
-    throw std::runtime_error(msg.c_str());
-  }
-  for (IntCache::iterator i(int_cache_.begin()); i != int_cache_.end(); ++i) {
-    i->second.second = false;
-  }
-  for (DoubleCache::iterator i(double_cache_.begin()); i != double_cache_.end();
-       ++i) {
-    i->second.second = false;
-  }
-  for (BoolCache::iterator i(bool_cache_.begin()); i != bool_cache_.end();
-       ++i) {
-    i->second.second = false;
-  }
-  for (StringCache::iterator i(string_cache_.begin()); i != string_cache_.end();
-       ++i) {
-    i->second.second = false;
-  }
 }
 
 void XmlConfig::SetSaveFileName(const std::string& filename) {
-  if (filename_ == filename)
+  if (filename_ == filename) {
     return;
+  }
   filename_ = filename;
   modified_ = true;
+}
+
+template <typename CacheT, typename WriteT>
+void SaveCacheContents(CacheT* cache, WriteT write_func) {
+  for (const auto& entry : *cache) {
+    if (entry.second.second) {
+      write_func(entry.first, entry.second.first);
+    }
+  }
 }
 
 void XmlConfig::Save() {
@@ -153,26 +133,16 @@ void XmlConfig::Save() {
     return;
   }
   try {
-    for (auto i = int_cache_.begin(); i != int_cache_.end(); ++i) {
-      if (i->second.second) {
-        WriteInt(i->first, i->second.first);
-      }
-    }
-    for (auto i = double_cache_.begin(); i != double_cache_.end(); ++i) {
-      if (i->second.second) {
-        WriteDouble(i->first, i->second.first);
-      }
-    }
-    for (auto i = bool_cache_.begin(); i != bool_cache_.end(); ++i) {
-      if (i->second.second) {
-        WriteBool(i->first, i->second.first);
-      }
-    }
-    for (auto i = string_cache_.begin(); i != string_cache_.end(); ++i) {
-      if (i->second.second) {
-        WriteString(i->first, i->second.first);
-      }
-    }
+    using std::placeholders::_1;
+    using std::placeholders::_2;
+    SaveCacheContents(&int_cache_,
+                      std::bind(&XmlConfig::WriteInt, this, _1, _2));
+    SaveCacheContents(&double_cache_,
+                      std::bind(&XmlConfig::WriteDouble, this, _1, _2));
+    SaveCacheContents(&bool_cache_,
+                      std::bind(&XmlConfig::WriteBool, this, _1, _2));
+    SaveCacheContents(&string_cache_,
+                      std::bind(&XmlConfig::WriteString, this, _1, _2));
     document_->SaveFile(filename_.c_str());
   } catch (...) {
     throw std::runtime_error(std::string("Error saving config file to ") +
@@ -180,104 +150,63 @@ void XmlConfig::Save() {
   }
 }
 
-const int& XmlConfig::ReadInt(const std::string& key,
-                              const int& default_value) {
-  auto i = int_cache_.find(key);
-  if (i != int_cache_.end() && i->second.second) {
+template <typename CacheT, typename ConvertT>
+typename CacheT::mapped_type::first_type ReadValue(
+    CacheT* cache, TiXmlDocument* document, const std::string& key,
+    ConvertT convert_func,
+    const typename CacheT::mapped_type::first_type& default_value) {
+  auto i = cache->find(key);
+  if (i != cache->end() && i->second.second) {
     return i->second.first;
   }
 
-  if (!document_) {
+  if (!document) {
     return default_value;
   }
-
+  auto& cache_entry = (*cache)[key];
   try {
-    TinyXPath::xpath_processor processor(document_->RootElement(), key.c_str());
+    TinyXPath::xpath_processor processor(document->RootElement(), key.c_str());
     const std::string temp(processor.S_compute_xpath().c_str());
-    if (temp.empty()) {
-      int_cache_[key] = std::make_pair(default_value, true);
-    } else {
-      int_cache_[key] = std::make_pair(std::stoul(temp), true);
-    }
+    cache_entry = {temp.empty() ? default_value : convert_func(temp), true};
   } catch (...) {
-    int_cache_[key] = std::make_pair(default_value, true);
+    cache_entry = {default_value, true};
   }
-  return int_cache_[key].first;
+  return cache_entry.first;
 }
 
-const double& XmlConfig::ReadDouble(const std::string& key,
-                                    const double& default_value) {
-  auto i = double_cache_.find(key);
-  if (i != double_cache_.end() && i->second.second) {
-    return i->second.first;
-  }
-
-  if (!document_) {
-    return default_value;
-  }
-
-  try {
-    TinyXPath::xpath_processor processor(document_->RootElement(), key.c_str());
-    const std::string temp(processor.S_compute_xpath().c_str());
-    if (temp.empty()) {
-      double_cache_[key] = std::make_pair(default_value, true);
-    } else {
-      double_cache_[key] = std::make_pair(std::stod(temp), true);
-    }
-  } catch(...) {
-    double_cache_[key] = std::make_pair(default_value, true);
-  }
-  return double_cache_[key].first;
+int XmlConfig::ReadInt(const std::string& key, const int& default_value) {
+  return ReadValue(
+      &int_cache_, document_, key,
+      [](const std::string& value) -> int { return std::stoi(value); },
+      default_value);
 }
 
-const std::string& XmlConfig::ReadString(const std::string& key,
-                                         const std::string& default_value) {
-  auto i = string_cache_.find(key);
-  if (i != string_cache_.end()) {
-    return i->second.first;
-  }
-
-  if (!document_) {
-    return default_value;
-  }
-
-  try {
-    // TODO(soerenme) This is broken, we cannot tell the difference between an
-    //     empty string result and an error (no) result.
-    TinyXPath::xpath_processor processor(document_->RootElement(), key.c_str());
-    const std::string temp(processor.S_compute_xpath().c_str());
-    if (temp.empty()) {
-      string_cache_[key] = std::make_pair(default_value, true);
-    } else {
-      string_cache_[key] = std::make_pair(temp, true);
-    }
-  } catch(...) {
-    string_cache_[key] = std::make_pair(default_value, true);
-  }
-  return string_cache_[key].first;
+double XmlConfig::ReadDouble(const std::string& key,
+                             const double& default_value) {
+  return ReadValue(
+      &double_cache_, document_, key,
+      [](const std::string& value) -> double { return std::stod(value); },
+      default_value);
 }
 
-const bool& XmlConfig::ReadBool(const std::string& key,
-                                const bool& default_value) {
-  auto i = bool_cache_.find(key);
-  if (i != bool_cache_.end()) {
-    return i->second.first;
-  }
+std::string XmlConfig::ReadString(const std::string& key,
+                                  const std::string& default_value) {
+  // TODO(cblichmann): This is broken, we cannot tell the difference between an
+  //                   empty string result and an error (no) result.
+  return ReadValue(
+      &string_cache_, document_, key,
+      [](const std::string& value) -> const std::string& { return value; },
+      default_value);
+}
 
-  if (!document_) {
-    return default_value;
-  }
-
-  try {
-    // TODO(soerenme) This is broken, we cannot tell the difference between an
-    //     empty string result and an error (no) result.
-    TinyXPath::xpath_processor processor(document_->RootElement(), key.c_str());
-    const std::string temp(processor.S_compute_xpath().c_str());
-    bool_cache_[key] = std::make_pair(EqualsIgnoreCase(temp, "true"), true);
-  } catch(...) {
-    bool_cache_[key] = std::make_pair(default_value, true);
-  }
-  return bool_cache_[key].first;
+bool XmlConfig::ReadBool(const std::string& key, const bool& default_value) {
+  // Note: An empty string in the config file for this setting will always
+  // result in the default value to be returned.
+  return ReadValue(&bool_cache_, document_, key,
+                   [](const std::string& value) -> bool {
+                     return EqualsIgnoreCase(value, "true");
+                   },
+                   default_value);
 }
 
 void XmlConfig::WriteNode(const std::string& key, const std::string& value) {
@@ -312,16 +241,12 @@ void XmlConfig::WriteString(const std::string& key, const std::string& value) {
 }
 
 void XmlConfig::WriteDouble(const std::string& key, double value) {
-  std::ostringstream stream;
-  stream << value;
-  WriteNode(key, stream.str());
+  WriteNode(key, std::to_string(value));
   double_cache_[key] = std::make_pair(value, true);
 }
 
 void XmlConfig::WriteInt(const std::string& key, int value) {
-  std::ostringstream stream;
-  stream << value;
-  WriteNode(key, stream.str());
+  WriteNode(key, std::to_string(value));
   int_cache_[key] = std::make_pair(value, true);
 }
 

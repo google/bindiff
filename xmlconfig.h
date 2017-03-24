@@ -10,17 +10,20 @@ class TiXmlDocument;
 
 class XmlConfig {
  public:
-  XmlConfig();
+  XmlConfig() = default;
   XmlConfig(const std::string& filename, const std::string& root_element);
-  explicit XmlConfig(std::istream& file);
   explicit XmlConfig(const char* data);
+
+  XmlConfig(const XmlConfig&) = delete;
+  const XmlConfig& operator=(const XmlConfig&) = delete;
+
   virtual ~XmlConfig();
 
-  const double& ReadDouble(const std::string& key, const double& default_value);
-  const int& ReadInt(const std::string& key, const int& default_value);
-  const std::string& ReadString(const std::string& key,
-                                const std::string& default_value);
-  const bool& ReadBool(const std::string& key, const bool& default_value);
+  double ReadDouble(const std::string& key, const double& default_value);
+  int ReadInt(const std::string& key, const int& default_value);
+  std::string ReadString(const std::string& key,
+                         const std::string& default_value);
+  bool ReadBool(const std::string& key, const bool& default_value);
 
   void WriteDouble(const std::string& key, double value);
   void WriteInt(const std::string& key, int value);
@@ -41,25 +44,21 @@ class XmlConfig {
   static const std::string& GetDefaultFilename();
 
  private:
-  typedef std::map<std::string, std::pair<double, bool>> DoubleCache;
-  typedef std::map<std::string, std::pair<int, bool>> IntCache;
-  typedef std::map<std::string, std::pair<std::string, bool>> StringCache;
-  typedef std::map<std::string, std::pair<bool, bool>> BoolCache;
+  using DoubleCache = std::map<std::string, std::pair<double, bool>>;
+  using IntCache = std::map<std::string, std::pair<int, bool>>;
+  using StringCache = std::map<std::string, std::pair<std::string, bool>>;
+  using BoolCache = std::map<std::string, std::pair<bool, bool>>;
 
   static std::string default_filename_;
-  TiXmlDocument* document_;
+  TiXmlDocument* document_ = nullptr;
   std::string filename_;
-  bool modified_;
+  bool modified_ = false;
   DoubleCache double_cache_;
   IntCache int_cache_;
   StringCache string_cache_;
   BoolCache bool_cache_;
 
   void WriteNode(const std::string& key, const std::string& value);
-
-  // Don't allow copies.
-  const XmlConfig& operator=(const XmlConfig&);
-  XmlConfig(const XmlConfig&);
 };
 
 #endif  // XMLCONFIG_H_

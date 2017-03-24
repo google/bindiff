@@ -45,12 +45,14 @@ elseif(WIN32)
     ERROR_QUIET)
 endif()
 
+enable_testing()
+
 include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_BINARY_DIR}  # To find generated protobufs
                     ${BinExport_DIR}       # Use BinExport infrastructure
                     ${Boost_INCLUDE_DIR}
                     ${GFLAGS_INCLUDE_DIRS}
-                    ${IdaSdk_INCLUDE_DIRS}
+                    ${GTEST_INCLUDE_DIRS}
                     ${OPENSSL_INCLUDE_DIR}
                     ${PROTOBUF_INCLUDE_DIRS}
                     ${PROTOBUF_SRC_ROOT_FOLDER}
@@ -76,6 +78,17 @@ target_link_libraries(binexport_shared ${binexport_shared_LIBRARIES})
 add_custom_command(TARGET binexport_shared POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/binexport2.pb.h
   ${PROJECT_BINARY_DIR}/third_party/zynamics/binexport/binexport2.pb.h)
+
+# XML configuration library
+add_library(xmlconfig STATIC xmlconfig.cc
+                             xmlconfig.h)
+target_link_libraries(xmlconfig binexport_shared
+                                tinyxpath)
+
+add_executable(xmlconfig_test xmlconfig_test.cc)
+target_link_libraries(xmlconfig_test xmlconfig
+                                     ${GTEST_BOTH_LIBRARIES})
+add_test(AllTestsInXmlConfig xmlconfig_test)
 
 # Sources shared by the differ and the IDA plugin.
 add_library(bindiff STATIC call_graph.cc
@@ -113,12 +126,10 @@ add_library(bindiff STATIC call_graph.cc
                            utility.cc
                            utility.h
                            writer.cc
-                           writer.h
-                           xmlconfig.cc
-                           xmlconfig.h)
+                           writer.h)
 target_link_libraries(bindiff binexport_shared
                               sqlite
-                              tinyxpath)
+                              xmlconfig)
 
 if(NOT COMPILE_64BIT)
   add_library(binexport_plugin_shared STATIC ${BinExport_DIR}/ida/digest.cc
@@ -146,6 +157,10 @@ if(NOT COMPILE_64BIT)
                                          ida/ui.h
                                          ida/visual_diff.cc
                                          ida/visual_diff.h)
+  target_include_directories(${_bd_plugin_name}${_plx} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+  target_include_directories(${_bd_plugin_name}${_plx64} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+  target_include_directories(binexport_plugin_shared PUBLIC ${IdaSdk_INCLUDE_DIRS})
+
   set(Plugin_LIBRARIES binexport_plugin_shared
                        bindiff
                        ${IdaSdk_LIBRARIES})
