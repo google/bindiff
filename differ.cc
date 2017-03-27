@@ -28,7 +28,6 @@
 namespace google {
 namespace protobuf {
 namespace io {
-using ::proto2::io::IstreamInputStream;
 using ::proto2::io::CodedInputStream;
 }  // namespace io
 }  // namespace protobuf
@@ -106,6 +105,38 @@ void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
   }
 }
 
+void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
+                          CallGraph* call_graph, FlowGraphs* flow_graphs,
+                          FlowGraphInfos* flow_graph_infos,
+                          Instruction::Cache* instruction_cache) {
+  call_graph->Read(proto, filename);
+  for (const auto& proto_flow_graph : proto.flow_graph()) {
+    if (proto_flow_graph.basic_block_index_size() == 0) {
+      continue;
+    }
+    std::unique_ptr<FlowGraph> flow_graph(new FlowGraph());
+    flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
+
+    Counts counts;
+    Count(*flow_graph, &counts);
+
+    const auto address = flow_graph->GetEntryPointAddress();
+    auto& info = (*flow_graph_infos)[address];
+    info.address = address;
+    info.name = &flow_graph->GetName();
+    info.demangled_name = &flow_graph->GetDemangledName();
+    info.basic_block_count =
+        counts["basicBlocks (library)"] + counts["basicBlocks (non-library)"];
+    info.edge_count = counts["edges (library)"] + counts["edges (non-library)"];
+    info.instruction_count =
+        counts["instructions (library)"] + counts["instructions (non-library)"];
+
+    flow_graphs->insert(flow_graph.release());
+  }
+
+  AddSubsToCallGraph(call_graph, flow_graphs);
+}
+
 #ifdef GOOGLE
 bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
@@ -136,19 +167,8 @@ bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
       !decoder.ConsumedEntireMessage()) {
     return false;
   }
-
-  call_graph->Read(proto, file->filename());
-  for (const auto& proto_flow_graph : proto.flow_graph()) {
-    if (proto_flow_graph.basic_block_index_size() == 0) {
-      VLOG(1) << "Skipping empty flow graph!";
-      continue;
-    }
-    auto flow_graph = ::gtl::MakeUnique<FlowGraph>();
-    flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
-    flow_graphs->insert(flow_graph.release());
-  }
-
-  AddSubsToCallGraph(call_graph, flow_graphs);
+  SetupGraphsFromProto(proto, file->filename(), call_graph, flow_graphs,
+                       flow_graph_infos, instruction_cache);
   return true;
 }
 #endif  // GOOGLE
@@ -166,17 +186,11 @@ void Read(const std::string& filename, CallGraph* call_graph,
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
     // TODO(cblichmann): Make this function return an error.
+    LOG(ERROR) << "Parsing failed for exported file: " << filename;
     return;
   }
-
-  call_graph->Read(proto, filename);
-  for (const auto& proto_flow_graph : proto.flow_graph()) {
-    std::unique_ptr<FlowGraph> flow_graph(new FlowGraph());
-    flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
-    flow_graphs->insert(flow_graph.release());
-  }
-
-  AddSubsToCallGraph(call_graph, flow_graphs);
+  SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
+                       flow_graph_infos, instruction_cache);
 }
 
 void DeleteFlowGraphs(FlowGraphs* flow_graphs) {

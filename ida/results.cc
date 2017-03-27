@@ -317,6 +317,22 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
   return counts;
 }
 
+std::string VisualDiffMessage(bool call_graph_match,
+                              const std::string& database,
+                              const std::string& primary_path,
+                              Address primary_address,
+                              const std::string& secondary_path,
+                              Address secondary_address) {
+  return StringPrintf(R"raw(<BinDiffMatch type="%s">
+  <Database path="%s"/>
+  <Primary path="%s" address="%zu"/>
+  <Secondary path="%s" address="%zu"/>
+</BinDiffMatch>)raw",
+                      call_graph_match ? "call_graph" : "flow_graph",
+                      database.c_str(), primary_path.c_str(), primary_address,
+                      secondary_path.c_str(), secondary_address);
+}
+
 }  // namespace
 
 Results::Results()
@@ -891,24 +907,24 @@ int Results::AddMatchSecondary(size_t index) {
 void Results::GetMatchDescription(size_t index, char* const* line) const {
   // the target buffers are promised to be MAXSTR == 1024 characters long...
   if (!index) {
-    snprintf(line[0], MAXSTR, "similarity");
-    snprintf(line[1], MAXSTR, "confidence");
-    snprintf(line[2], MAXSTR, "change");
-    snprintf(line[3], MAXSTR, "EA primary");
-    snprintf(line[4], MAXSTR, "name primary");
-    snprintf(line[5], MAXSTR, "EA secondary");
-    snprintf(line[6], MAXSTR, "name secondary");
-    snprintf(line[7], MAXSTR, "comments ported");
-    snprintf(line[8], MAXSTR, "algorithm");
-    snprintf(line[9], MAXSTR, "matched basicblocks");
-    snprintf(line[10], MAXSTR, "basicblocks primary");
-    snprintf(line[11], MAXSTR, "basicblocks secondary");
-    snprintf(line[12], MAXSTR, "matched instructions");
-    snprintf(line[13], MAXSTR, "instructions primary");
-    snprintf(line[14], MAXSTR, "instructions secondary");
-    snprintf(line[15], MAXSTR, "matched edges");
-    snprintf(line[16], MAXSTR, "edges primary");
-    snprintf(line[17], MAXSTR, "edges secondary");
+    snprintf(line[0], MAXSTR, "Similarity");
+    snprintf(line[1], MAXSTR, "Confidence");
+    snprintf(line[2], MAXSTR, "Change");
+    snprintf(line[3], MAXSTR, "EA Primary");
+    snprintf(line[4], MAXSTR, "Name Primary");
+    snprintf(line[5], MAXSTR, "EA Secondary");
+    snprintf(line[6], MAXSTR, "Name Secondary");
+    snprintf(line[7], MAXSTR, "Comments Ported");
+    snprintf(line[8], MAXSTR, "Algorithm");
+    snprintf(line[9], MAXSTR, "Matched Basic Blocks");
+    snprintf(line[10], MAXSTR, "Basic Blocks Primary");
+    snprintf(line[11], MAXSTR, "Basic Blocks Secondary");
+    snprintf(line[12], MAXSTR, "Matched Instructions");
+    snprintf(line[13], MAXSTR, "Instructions Primary");
+    snprintf(line[14], MAXSTR, "Instructions Secondary");
+    snprintf(line[15], MAXSTR, "Matched Edges");
+    snprintf(line[16], MAXSTR, "Edges Primary");
+    snprintf(line[17], MAXSTR, "Edges Secondary");
     return;
   }
 
@@ -919,8 +935,7 @@ void Results::GetMatchDescription(size_t index, char* const* line) const {
   const FixedPointInfo& fixed_point(*indexed_fixed_points_[index - 1]);
   UpdateName(const_cast<CallGraph*>(&call_graph1_), fixed_point.primary);
 
-  FlowGraphInfo empty;
-  memset(&empty, 0, sizeof(empty));
+  FlowGraphInfo empty{0};
   const FlowGraphInfo& primary(
       flow_graph_infos1_.find(fixed_point.primary) != flow_graph_infos1_.end()
           ? flow_graph_infos1_.find(fixed_point.primary)->second
@@ -1088,30 +1103,23 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   diff_database_id_++;
   std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
   std::string database_file;
-  // TODO(soerenme): Bug: if matches have been manually modified in the meantime
-  //                 we are hosed!
+  // TODO(cblichmann): Bug: if matches have been manually modified in the
+  //                   meantime we are hosed!
   if (IsInComplete()) {
     database_file = input_filename_;
   } else {
-    // TODO(soerenme): This is insanely inefficient: every single call graph
-    //                 diff recreates the full result.
+    // TODO(cblichmann): This is insanely inefficient: every single call graph
+    //                   diff recreates the full result.
     DatabaseWriter writer(name, true);
     writer.Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
                  fixed_points_);
     database_file = writer.GetFilename();
   }
 
-  *message = StringPrintf(
-      "<BinDiffMatch>\n"
-      "\t<Type value=\"callgraph\" />\n"
-      "\t<Database path=\"%s\" />\n"
-      "\t<Match primary=\"%zu\" secondary=\"%zu\" />\n"
-      "\t<Primary path=\"%s\" />\n"
-      "\t<Secondary path=\"%s\" />\n"
-      "</BinDiffMatch>\n",
-      database_file.c_str(), fixed_point_info.primary,
-      fixed_point_info.secondary, call_graph1_.GetFilename().c_str(),
-      call_graph2_.GetFilename().c_str());
+  *message = VisualDiffMessage(
+      /* call_graph_match */ true, database_file, call_graph1_.GetFilename(),
+      fixed_point_info.primary, call_graph2_.GetFilename(),
+      fixed_point_info.secondary);
   return true;
 }
 
@@ -1122,8 +1130,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 
   const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
 
-  FlowGraphInfo empty;
-  memset(&empty, 0, sizeof(empty));
+  FlowGraphInfo empty{0};
   const FlowGraphInfo& primary_info(
       flow_graph_infos1_.find(fixed_point_info.primary) !=
               flow_graph_infos1_.end()
@@ -1161,23 +1168,18 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 
   diff_database_id_++;
   std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
+  // TODO(cblichmann): This should not recreate the full matches database every
+  //                   time.
   DatabaseWriter writer(name, true);
   writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
                fixed_points);
-  const std::string database_file = writer.GetFilename();
+  const std::string& database_file = writer.GetFilename();
 
-  *message = StringPrintf(
-      "<BinDiffMatch>\n"
-      "\t<Type value=\"flowgraph\" />\n"
-      "\t<Database path=\"%s\" />\n"
-      "\t<Primary path=\"%s\" address=\"%zu\" />\n"
-      "\t<Secondary path=\"%s\" address=\"%zu\" />\n"
-      "</BinDiffMatch>\n",
-      database_file.c_str(), call_graph1_.GetFilename().c_str(),
+  *message = VisualDiffMessage(
+      /* call_graph_match */ false, database_file, call_graph1_.GetFilename(),
       fixed_point.GetPrimary()->GetEntryPointAddress(),
-      call_graph2_.GetFilename().c_str(),
+      call_graph2_.GetFilename(),
       fixed_point.GetSecondary()->GetEntryPointAddress());
-
   if (IsInComplete()) {
     DeleteTemporaryFlowGraphs();
   }
@@ -1185,7 +1187,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 }
 
 FixedPoint* Results::FindFixedPoint(const FixedPointInfo& fixed_point_info) {
-  // TODO(soerenme): Use tree search.
+  // TODO(cblichmann): Use binary search.
   for (const auto& fixed_point : fixed_points_) {
     CHECK(fixed_point.GetPrimary() && fixed_point.GetSecondary());
     if (fixed_point.GetPrimary()->GetEntryPointAddress() ==
@@ -1489,60 +1491,54 @@ void Results::GetUnmatchedDescription(const IndexedFlowGraphs& flow_graphs,
 }
 
 void Results::InitializeIndexedVectors() {
-  std::set<Address> matched_primaries, matched_secondaries;
-  for (auto i = fixed_point_infos_.begin(), end = fixed_point_infos_.end();
-       i != end; ++i) {
-    matched_primaries.insert(i->primary);
-    matched_secondaries.insert(i->secondary);
-    indexed_fixed_points_.push_back(const_cast<FixedPointInfo*>(&*i));
+  std::set<Address> matched_primaries;
+  std::set<Address> matched_secondaries;
+  for (const auto& fixed_point : fixed_point_infos_) {
+    matched_primaries.insert(fixed_point.primary);
+    matched_secondaries.insert(fixed_point.secondary);
+    // TODO(cblichmann): Get rid of the const_cast
+    indexed_fixed_points_.push_back(const_cast<FixedPointInfo*>(&fixed_point));
   }
   std::sort(indexed_fixed_points_.begin(), indexed_fixed_points_.end(),
             &SortBySimilarity);
 
-  for (auto i = flow_graph_infos1_.begin(), end = flow_graph_infos1_.end();
-       i != end; ++i) {
-    if (matched_primaries.find(i->first) == matched_primaries.end()) {
-      indexed_flow_graphs1_.push_back(&i->second);
+  for (auto& info : flow_graph_infos1_) {
+    if (matched_primaries.find(info.first) == matched_primaries.end()) {
+      indexed_flow_graphs1_.push_back(&info.second);
     }
   }
-  for (auto i = flow_graph_infos2_.begin(), end = flow_graph_infos2_.end();
-       i != end; ++i) {
-    if (matched_secondaries.find(i->first) == matched_secondaries.end()) {
-      indexed_flow_graphs2_.push_back(&i->second);
+  for (auto& info : flow_graph_infos2_) {
+    if (matched_secondaries.find(info.first) == matched_secondaries.end()) {
+      indexed_flow_graphs2_.push_back(&info.second);
     }
   }
 
-  FlowGraphInfo empty;
-  memset(&empty, 0, sizeof(empty));
-  {
-    CallGraph::VertexIterator i, end;
-    for (boost::tie(i, end) = boost::vertices(call_graph1_.GetGraph());
-         i != end; ++i) {
-      const Address address = call_graph1_.GetAddress(*i);
-      if (flow_graph_infos1_.find(address) == flow_graph_infos1_.end()) {
-        empty.address = address;
-        empty.name = &call_graph1_.GetName(*i);
-        empty.demangled_name = &call_graph1_.GetDemangledName(*i);
-        flow_graph_infos1_[address] = empty;
-        if (matched_primaries.find(address) == matched_primaries.end()) {
-          indexed_flow_graphs1_.push_back(&flow_graph_infos1_[address]);
-        }
+  FlowGraphInfo empty{0};
+  CallGraph::VertexIterator i;
+  CallGraph::VertexIterator end;
+  for (boost::tie(i, end) = boost::vertices(call_graph1_.GetGraph()); i != end;
+       ++i) {
+    const Address address = call_graph1_.GetAddress(*i);
+    if (flow_graph_infos1_.find(address) == flow_graph_infos1_.end()) {
+      empty.address = address;
+      empty.name = &call_graph1_.GetName(*i);
+      empty.demangled_name = &call_graph1_.GetDemangledName(*i);
+      flow_graph_infos1_[address] = empty;
+      if (matched_primaries.find(address) == matched_primaries.end()) {
+        indexed_flow_graphs1_.push_back(&flow_graph_infos1_[address]);
       }
     }
   }
-  {
-    CallGraph::VertexIterator i, end;
-    for (boost::tie(i, end) = boost::vertices(call_graph2_.GetGraph());
-         i != end; ++i) {
-      const Address address = call_graph2_.GetAddress(*i);
-      if (flow_graph_infos2_.find(address) == flow_graph_infos2_.end()) {
-        empty.address = address;
-        empty.name = &call_graph2_.GetName(*i);
-        empty.demangled_name = &call_graph2_.GetDemangledName(*i);
-        flow_graph_infos2_[address] = empty;
-        if (matched_secondaries.find(address) == matched_secondaries.end()) {
-          indexed_flow_graphs2_.push_back(&flow_graph_infos2_[address]);
-        }
+  for (boost::tie(i, end) = boost::vertices(call_graph2_.GetGraph()); i != end;
+       ++i) {
+    const Address address = call_graph2_.GetAddress(*i);
+    if (flow_graph_infos2_.find(address) == flow_graph_infos2_.end()) {
+      empty.address = address;
+      empty.name = &call_graph2_.GetName(*i);
+      empty.demangled_name = &call_graph2_.GetDemangledName(*i);
+      flow_graph_infos2_[address] = empty;
+      if (matched_secondaries.find(address) == matched_secondaries.end()) {
+        indexed_flow_graphs2_.push_back(&flow_graph_infos2_[address]);
       }
     }
   }
