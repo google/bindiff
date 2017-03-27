@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include <iosfwd>
 #include <iostream>
 #include <locale>
 #include <sstream>
@@ -46,21 +47,27 @@ std::string ReadFileToString(const std::string& filename) {
 
 std::string XmlConfig::default_filename_;
 
+XmlConfig::XmlConfig() : document_(new TiXmlDocument()) {}
+
+std::unique_ptr<XmlConfig> XmlConfig::LoadFromString(const std::string& data) {
+  std::unique_ptr<XmlConfig> config(new XmlConfig());
+  config->document_->Parse(data.c_str());
+  return config;
+}
+
+std::unique_ptr<XmlConfig> XmlConfig::LoadFromFile(
+    const std::string& filename) {
+  std::unique_ptr<XmlConfig> config(new XmlConfig());
+  config->Init(filename);
+  return config;
+}
+
 const std::string& XmlConfig::SetDefaultFilename(const std::string& filename) {
   return default_filename_ = filename;
 }
 
 const std::string& XmlConfig::GetDefaultFilename() {
   return default_filename_;
-}
-
-XmlConfig::XmlConfig(const std::string& filename,
-                     const std::string& root_element) {
-  Init(filename, root_element);
-}
-
-XmlConfig::XmlConfig(const char* data) : document_(new TiXmlDocument()) {
-  document_->Parse(data);
 }
 
 XmlConfig::~XmlConfig() {
@@ -102,7 +109,7 @@ void XmlConfig::SetData(const char* data) {
   }
 }
 
-void XmlConfig::Init(const std::string& filename, const std::string&) {
+void XmlConfig::Init(const std::string& filename) {
   if (!FileExists(filename)) {
     throw std::runtime_error(
         (std::string("File not found: ") + filename).c_str());

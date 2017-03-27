@@ -204,9 +204,10 @@ void DoStartGui(const std::string& gui_dir) {
   // our config file. If we cannot reach it we launch BinDiff GUI locally...
   // This will be the most common setup by far, so I guess it's ok.
 
-  extern XmlConfig g_config;
+  extern XmlConfig* g_config;
   std::vector<std::string> argv;
-  std::string java_binary(g_config.ReadString("/BinDiffDeluxe/Gui/@java_binary", ""));
+  std::string java_binary(
+      g_config->ReadString("/BinDiff/Gui/@java_binary", ""));
   if (!java_binary.empty()) {
     argv.push_back(java_binary);
   } else {
@@ -230,7 +231,7 @@ void DoStartGui(const std::string& gui_dir) {
 #endif
 
   // Read default max heap size from configuration.
-  int config_max_heap_mb(g_config.ReadInt("/BinDiffDeluxe/Gui/@maxHeapSize", -1));
+  int config_max_heap_mb(g_config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1));
 
   // Set max heap size to 75% of available physical memory if unset. Note, when
   // using 32-bit Java on a 64-bit machine with more than 4GiB of RAM, the

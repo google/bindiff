@@ -1,8 +1,8 @@
 #ifndef XMLCONFIG_H_
 #define XMLCONFIG_H_
 
-#include <iosfwd>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -10,10 +10,6 @@ class TiXmlDocument;
 
 class XmlConfig {
  public:
-  XmlConfig() = default;
-  XmlConfig(const std::string& filename, const std::string& root_element);
-  explicit XmlConfig(const char* data);
-
   XmlConfig(const XmlConfig&) = delete;
   const XmlConfig& operator=(const XmlConfig&) = delete;
 
@@ -31,7 +27,6 @@ class XmlConfig {
   void WriteBool(const std::string& key, bool value);
 
   void Dump(const std::string& filename) const;
-  void Init(const std::string& filename, const std::string& root_element);
   void SetSaveFileName(const std::string& filename);
   void Save();
   TiXmlDocument* GetDocument();
@@ -39,6 +34,9 @@ class XmlConfig {
 
   // Re-initializes the config file with the given content.
   void SetData(const char* data);
+
+  static std::unique_ptr<XmlConfig> LoadFromString(const std::string& data);
+  static std::unique_ptr<XmlConfig> LoadFromFile(const std::string& filename);
 
   static const std::string& SetDefaultFilename(const std::string& filename);
   static const std::string& GetDefaultFilename();
@@ -49,8 +47,12 @@ class XmlConfig {
   using StringCache = std::map<std::string, std::pair<std::string, bool>>;
   using BoolCache = std::map<std::string, std::pair<bool, bool>>;
 
+  XmlConfig();
+  void Init(const std::string& filename);
+
   static std::string default_filename_;
-  TiXmlDocument* document_ = nullptr;
+
+  TiXmlDocument* document_;
   std::string filename_;
   bool modified_ = false;
   DoubleCache double_cache_;

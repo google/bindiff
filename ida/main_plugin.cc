@@ -62,8 +62,7 @@ static const char kHotKey[] = "CTRL-6";
 static const char kCopyright[] =
     "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.";
 
-// Default constructed XmlConfig.
-XmlConfig g_config;
+XmlConfig* g_config = nullptr;
 bool g_init_done = false;  // Used in PluginTerminate()
 
 Results* g_results = nullptr;
@@ -276,12 +275,12 @@ void DoVisualDiff(void*, uint32_t index, bool call_graph_diff) {
 
     LOG(INFO) << "Sending result to BinDiff GUI...";
     SendGuiMessage(
-        g_config.ReadInt("/BinDiffDeluxe/Gui/@retries", 20),
-        g_config.ReadString("/BinDiffDeluxe/Gui/@directory",
-                            "C:\\Program Files\\zynamics\\BinDiff 4.3\\bin"),
-        g_config.ReadString("/BinDiffDeluxe/Gui/@server", "127.0.0.1"),
+        g_config->ReadInt("/BinDiff/Gui/@retries", 20),
+        g_config->ReadString("/BinDiff/Gui/@directory",
+                             "C:\\Program Files\\zynamics\\BinDiff 4.3\\bin"),
+        g_config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
         static_cast<unsigned short>(
-            g_config.ReadInt("/BinDiffDeluxe/Gui/@port", 2000)),
+            g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
         message, nullptr);
   } catch (const std::bad_alloc&) {
     LOG(INFO)
@@ -1273,7 +1272,7 @@ void idaapi ButtonLoadResultsCallback(TView* fields[], int /* unused */) {
 }
 
 void InitConfig() {
-  const std::string config_filename("bindiff.xml");
+  const std::string config_filename("bindiff_core.xml");
 
   const std::string user_path(
       GetDirectory(PATH_APPDATA, "BinDiff", /* create = */ true) +
@@ -1284,13 +1283,13 @@ void InitConfig() {
 
   bool have_user_config;
   bool have_common_config;
-  XmlConfig user_config;
-  XmlConfig common_config;
+  std::unique_ptr<XmlConfig> user_config;
+  std::unique_ptr<XmlConfig> common_config;
 
   // Try to read user's local config
   try {
-    user_config.Init(user_path, std::string("BinDiffDeluxe"));
-    user_config.SetSaveFileName("");  // Prevent saving in destructor
+    user_config = XmlConfig::LoadFromFile(user_path);
+    user_config->SetSaveFileName("");  // Prevent saving in destructor
     have_user_config = true;
   } catch (const std::runtime_error&) {
     have_user_config = false;
@@ -1298,8 +1297,8 @@ void InitConfig() {
 
   // Try to read machine config
   try {
-    common_config.Init(common_path, std::string("BinDiffDeluxe"));
-    common_config.SetSaveFileName("");  // Prevent saving in destructor
+    common_config = XmlConfig::LoadFromFile(common_path);
+    common_config->SetSaveFileName("");  // Prevent saving in destructor
     have_common_config = true;
   } catch (const std::runtime_error&) {
     have_common_config = false;
@@ -1307,9 +1306,8 @@ void InitConfig() {
 
   bool use_common_config = false;
   if (have_user_config && have_common_config) {
-    use_common_config =
-        user_config.ReadInt("/BinDiffDeluxe/@configVersion", 0) <
-        common_config.ReadInt("/BinDiffDeluxe/@configVersion", 0);
+    use_common_config = user_config->ReadInt("/BinDiff/@configVersion", 0) <
+                        common_config->ReadInt("/BinDiff/@configVersion", 0);
   } else if (have_user_config) {
     use_common_config = false;
   } else if (have_common_config) {
@@ -1318,12 +1316,12 @@ void InitConfig() {
 
   if (use_common_config) {
     XmlConfig::SetDefaultFilename(common_path);
-    g_config.Init(common_path, "BinDiffDeluxe");
+    g_config = common_config.release();
     std::remove(user_path.c_str());
-    g_config.SetSaveFileName(user_path);
+    g_config->SetSaveFileName(user_path);
   } else {
     XmlConfig::SetDefaultFilename(user_path);
-    g_config.Init(user_path, "BinDiffDeluxe");
+    g_config = user_config.release();
   }
 }
 
@@ -1435,13 +1433,13 @@ void idaapi PluginTerminate() {
   unhook_from_notification_point(HT_IDP, ProcessorHook,
                                  nullptr /* User data */);
 
-  if (!g_init_done) {
-    ShutdownLogging();
-    return;
+  if (g_init_done) {
+    TermMenus();
+    SaveAndDiscardResults();
   }
 
-  TermMenus();
-  SaveAndDiscardResults();
+  delete g_config;  // Also saves the config
+  g_config = nullptr;
 
   ShutdownLogging();
 }
@@ -1515,7 +1513,7 @@ void idaapi PluginRun(int /* arg */) {
       "<L~o~ad Results...:B:1:30::>\n"
       "<~S~ave Results...:B:1:30::>\n"
 #ifdef _DEBUG
-      "<Save Results ~F~ortknox...:B:1:30::>\n"
+      "<Save ~G~round Truth results...:B:1:30::>\n"
       "<Save Results ~L~og...:B:1:30::>\n"
 #endif
       "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n");

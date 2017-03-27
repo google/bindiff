@@ -420,15 +420,15 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   const size_t num_idbs = idb_files.size();
   const size_t num_diffs = files.size();
   const unsigned num_hardware_threads = std::thread::hardware_concurrency();
-  XmlConfig config(XmlConfig::GetDefaultFilename(), "BinDiffDeluxe");
+  auto config(XmlConfig::LoadFromFile(XmlConfig::GetDefaultFilename()));
   const unsigned num_threads =
-      config.ReadInt("/BinDiffDeluxe/Threads/@use", num_hardware_threads);
+      config->ReadInt("/BinDiff/Threads/@use", num_hardware_threads);
   const std::string ida_dir =
-      config.ReadString("/BinDiffDeluxe/Ida/@directory", "");
+      config->ReadString("/BinDiff/Ida/@directory", "");
   const std::string ida_exe =
-      config.ReadString("/BinDiffDeluxe/Ida/@executable", "");
+      config->ReadString("/BinDiff/Ida/@executable", "");
   const std::string ida_exe64 =
-      config.ReadString("/BinDiffDeluxe/Ida/@executable64", "");
+      config->ReadString("/BinDiff/Ida/@executable64", "");
   Timer<> timer;
   {  // Export
     if (!idb_files.empty()) {
@@ -567,10 +567,10 @@ int main(int argc, char** argv) {
 
     const auto user_app_data =
         GetDirectory(PATH_APPDATA, "BinDiff", /* create = */ false) +
-        "bindiff.xml";
+        "bindiff_core.xml";
     const auto common_app_data =
         GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /* create = */ false) +
-        "bindiff.xml";
+        "bindiff_core.xml";
     if (!FLAGS_config.empty()) {
       XmlConfig::SetDefaultFilename(FLAGS_config);
     } else if (FileExists(user_app_data)) {
