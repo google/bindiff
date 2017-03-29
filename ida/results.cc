@@ -323,14 +323,16 @@ std::string VisualDiffMessage(bool call_graph_match,
                               Address primary_address,
                               const std::string& secondary_path,
                               Address secondary_address) {
-  return StringPrintf(R"raw(<BinDiffMatch type="%s">
-  <Database path="%s"/>
-  <Primary path="%s" address="%zu"/>
-  <Secondary path="%s" address="%zu"/>
-</BinDiffMatch>)raw",
-                      call_graph_match ? "call_graph" : "flow_graph",
-                      database.c_str(), primary_path.c_str(), primary_address,
-                      secondary_path.c_str(), secondary_address);
+  std::string result(StrCat("<BinDiffMatch type=\"",
+                            call_graph_match ? "call_graph" : "flow_graph",
+                            "\">"));
+  StrAppend(&result, "<Database path =\"", database);
+  StrAppend(&result, "\"/><Primary path=\"", primary_path, "\" address=\"",
+            primary_address);
+  StrAppend(&result, "\"/><Secondary path=\"", secondary_path, "\" address=\"",
+            secondary_address);
+  StrAppend(&result, "\"/></BinDiffMatch>");
+  return result;
 }
 
 }  // namespace
@@ -865,13 +867,15 @@ int Results::AddMatchPrimary(size_t index) {
   static const int widths[] = {10, 30, 5, 6, 5};
   static const char* popups[] = {0, 0, 0, 0};
   const int index2 = choose2(
-      CH_MODAL, -1, -1, -1, -1, reinterpret_cast<void*>(this),
-      sizeof(widths) / sizeof(widths[0]), widths, &::GetNumUnmatchedSecondary,
-      &::GetUnmatchedSecondaryDescription, "Secondary Unmatched", -1 /* Icon */,
-      1 /* Default */, 0 /* Delete callback */, 0 /* New callback */,
-      0 /* Update callback */, 0 /* Edit callback */, 0 /* Enter callback */,
-      0 /* Destroy callback */,
-      popups /* Popups (insert, delete, edit, refresh) */, 0);
+      CH_MODAL, /* x0 = */ -1, /* y0 = */ -1, /* x1 = */ -1, /* y1 = */ -1,
+      /* obj = */ reinterpret_cast<void*>(this),
+      sizeof(widths) / sizeof(widths[0]), widths,
+      /* sizer = */ &::GetNumUnmatchedSecondary,
+      /* getl = */ &::GetUnmatchedSecondaryDescription, "Secondary Unmatched",
+      /* icon = */ -1, /* deflt = */ 1, /* del = */ nullptr,
+      /* ins = */ nullptr, /* update = */ nullptr, /* edit = */ nullptr,
+      /* enter = */ nullptr, /* destroy = */ nullptr,
+      /* popup_names = */ popups, /* get_icon = */ nullptr);
   if (index2 > 0) {
     const Address primary = GetPrimaryAddress(index);
     const Address secondary = GetSecondaryAddress(index2);
@@ -884,18 +888,15 @@ int Results::AddMatchSecondary(size_t index) {
   static const int widths[] = {10, 30, 5, 6, 5};
   static const char* popups[] = {0, 0, 0, 0};
   const int index2 = choose2(
-      CH_MODAL, -1, -1, -1, -1, reinterpret_cast<void*>(this),
-      sizeof(widths) / sizeof(widths[0]), widths, &::GetNumUnmatchedPrimary,
-      &::GetUnmatchedPrimaryDescription, "Primary Unmatched", -1,  // icon
-      1,                                                           // default
-      0,       // delete callback
-      0,       // new callback
-      0,       // update callback
-      0,       // edit callback
-      0,       // enter callback
-      0,       // destroy callback
-      popups,  // popups (insert, delete, edit, refresh)
-      0);
+      CH_MODAL, /* x0 = */ -1, /* y0 = */ -1, /* x1 = */ -1, /* y1 = */ -1,
+      /* obj = */ reinterpret_cast<void*>(this),
+      sizeof(widths) / sizeof(widths[0]), widths,
+      /* sizer = */ &::GetNumUnmatchedPrimary,
+      /* getl = */ &::GetUnmatchedPrimaryDescription, "Primary Unmatched",
+      /* icon = */ -1, /* deflt = */ 1, /* del = */ nullptr,
+      /* ins = */ nullptr, /* update = */ nullptr, /* edit = */ nullptr,
+      /* enter = */ nullptr, /* destroy = */ nullptr,
+      /* popup_names = */ popups, /* get_icon = */ nullptr);
   if (index2 > 0) {
     const Address secondary = GetSecondaryAddress(index);
     const Address primary = GetPrimaryAddress(index2);
@@ -905,7 +906,7 @@ int Results::AddMatchSecondary(size_t index) {
 }
 
 void Results::GetMatchDescription(size_t index, char* const* line) const {
-  // the target buffers are promised to be MAXSTR == 1024 characters long...
+  // The target buffers are promised to be MAXSTR == 1024 characters long...
   if (!index) {
     snprintf(line[0], MAXSTR, "Similarity");
     snprintf(line[1], MAXSTR, "Confidence");
@@ -1117,8 +1118,8 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   }
 
   *message = VisualDiffMessage(
-      /* call_graph_match */ true, database_file, call_graph1_.GetFilename(),
-      fixed_point_info.primary, call_graph2_.GetFilename(),
+      /* call_graph_match */ true, database_file, call_graph1_.GetFilePath(),
+      fixed_point_info.primary, call_graph2_.GetFilePath(),
       fixed_point_info.secondary);
   return true;
 }
@@ -1158,7 +1159,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed_points.
     SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary, fixed_point,
-                             false);
+                             /* create_instruction_matches = */ false);
   } else {
     fixed_point = *FindFixedPoint(fixed_point_info);
   }
@@ -1168,17 +1169,15 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 
   diff_database_id_++;
   std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
-  // TODO(cblichmann): This should not recreate the full matches database every
-  //                   time.
   DatabaseWriter writer(name, true);
   writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
                fixed_points);
   const std::string& database_file = writer.GetFilename();
 
   *message = VisualDiffMessage(
-      /* call_graph_match */ false, database_file, call_graph1_.GetFilename(),
+      /* call_graph_match */ false, database_file, call_graph1_.GetFilePath(),
       fixed_point.GetPrimary()->GetEntryPointAddress(),
-      call_graph2_.GetFilename(),
+      call_graph2_.GetFilePath(),
       fixed_point.GetSecondary()->GetEntryPointAddress());
   if (IsInComplete()) {
     DeleteTemporaryFlowGraphs();

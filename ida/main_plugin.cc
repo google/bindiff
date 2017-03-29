@@ -257,7 +257,7 @@ uint32_t idaapi GetNumFixedPoints(void* /* unused */) {
   return g_results->GetNumFixedPoints();
 }
 
-void DoVisualDiff(void*, uint32_t index, bool call_graph_diff) {
+void DoVisualDiff(uint32_t index, bool call_graph_diff) {
   try {
     std::string message;
     if (!g_results) {
@@ -283,16 +283,13 @@ void DoVisualDiff(void*, uint32_t index, bool call_graph_diff) {
             g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
         message, nullptr);
   } catch (const std::bad_alloc&) {
-    LOG(INFO)
-        << "Out-of-memory. Please try again with more memory available. Some "
-           "extremely large binaries may require a 64bit version of BinDiff - "
-           "please contact zynamics to request one.";
+    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
+                 "use the 64-bit command-line version of BinDiff.";
     warning(
-        "Out-of-memory. Please try again with more memory available. Some "
-        "extremely large binaries\nmay require a 64bit version of BinDiff - "
-        "please contact zynamics to request one.");
+        "Out-of-memory. Some extremely large binaries may require to use the "
+        "64-bit command-line version of BinDiff.");
   } catch (const std::runtime_error& message) {
-    LOG(INFO) << "Error while calling BinDiff GUI:" << message.what();
+    LOG(INFO) << "Error while calling BinDiff GUI: " << message.what();
     warning("Error while calling BinDiff GUI: %s\n", message.what());
   } catch (...) {
     LOG(INFO) << "Unknown error while calling BinDiff GUI";
@@ -300,12 +297,12 @@ void DoVisualDiff(void*, uint32_t index, bool call_graph_diff) {
   }
 }
 
-void idaapi VisualDiffCallback(void*, uint32_t index) {
-  DoVisualDiff(nullptr, index, false /* No call graph diff */);
+void idaapi VisualDiffCallback(void* /* unused */, uint32_t index) {
+  DoVisualDiff(index, /* call_graph_diff = */ false);
 }
 
-void idaapi VisualCallGraphDiffCallback(void*, uint32_t index) {
-  DoVisualDiff(nullptr, index, false /* Call graph diff */);
+void idaapi VisualCallGraphDiffCallback(void* /* unused */, uint32_t index) {
+  DoVisualDiff(index, /* call_graph_diff = */ true);
 }
 
 uint32_t idaapi PortCommentsSelectionAsLib(void* /* unused */, uint32_t index) {
@@ -348,26 +345,30 @@ uint32_t idaapi ConfirmMatch(void* /* unused */, uint32_t index) {
 }
 
 uint32_t idaapi CopyPrimaryAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) return 0;
-
+  if (!g_results) {
+    return 0;
+  }
   return g_results->CopyPrimaryAddress(index);
 }
 
 uint32_t idaapi CopySecondaryAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) return 0;
-
+  if (!g_results) {
+    return 0;
+  }
   return g_results->CopySecondaryAddress(index);
 }
 
 uint32_t idaapi CopyPrimaryAddressUnmatched(void* /* unused */, uint32_t index) {
-  if (!g_results) return 0;
-
+  if (!g_results) {
+    return 0;
+  }
   return g_results->CopyPrimaryAddressUnmatched(index);
 }
 
 uint32_t idaapi CopySecondaryAddressUnmatched(void* /* unused */, uint32_t index) {
-  if (!g_results) return 0;
-
+  if (!g_results) {
+    return 0;
+  }
   return g_results->CopySecondaryAddressUnmatched(index);
 }
 
@@ -840,14 +841,11 @@ bool DoRediffDatabase() {
     ShowResults(g_results);
     return result;
   } catch (const std::bad_alloc&) {
-    LOG(INFO)
-        << "Out-of-memory. Please try again with more memory available. Some "
-           "extremely large binaries may require a 64bit version of BinDiff -"
-           " please contact zynamics to request one.";
+    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
+                 "use the 64-bit command-line version of BinDiff.";
     warning(
-        "Out-of-memory. Please try again with more memory available. Some "
-        "extremely large binaries\nmay require a 64bit version of BinDiff -"
-        " please contact zynamics to request one.");
+        "Out-of-memory. Some extremely large binaries may require to use the "
+        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while diffing: " << message.what();
     warning("Error while diffing: %s\n", message.what());
@@ -896,14 +894,11 @@ bool DoDiffDatabase(bool filtered) {
     return Diff(start_address_source, end_address_source, start_address_target,
                 end_address_target);
   } catch (const std::bad_alloc&) {
-    LOG(INFO)
-        << "Out-of-memory. Please try again with more memory available. Some "
-           "extremely large binaries may require a 64bit version of BinDiff -"
-           " please contact zynamics to request one.";
+    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
+                 "use the 64-bit command-line version of BinDiff.";
     warning(
-        "Out-of-memory. Please try again with more memory available. Some "
-        "extremely large binaries\nmay require a 64bit version of BinDiff -"
-        " please contact zynamics to request one.");
+        "Out-of-memory. Some extremely large binaries may require to use the "
+        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while diffing: " << message.what();
     warning("Error while diffing: %s\n", message.what());
@@ -991,14 +986,11 @@ bool DoPortComments() {
               << " seconds for comment porting.";
     return true;
   } catch (const std::bad_alloc&) {
-    LOG(INFO)
-        << "Out-of-memory. Please try again with more memory available. Some "
-           "extremely large binaries may require a 64bit version of BinDiff -"
-           " please contact zynamics to request one.";
+    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
+                 "use the 64-bit command-line version of BinDiff.";
     warning(
-        "Out-of-memory. Please try again with more memory available. Some "
-        "extremely large binaries\nmay require a 64bit version of BinDiff -"
-        " please contact zynamics to request one.");
+        "Out-of-memory. Some extremely large binaries may require to use the "
+        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while porting comments: " << message.what();
     warning("Error while porting comments: %s\n", message.what());
@@ -1241,13 +1233,11 @@ bool DoLoadResults() {
     LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
     return true;
   } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out-of-memory. Please try again with more memory available. "
-                 "Some extremely large binaries may require the 64-bit "
-                 "command-line version of BinDiff";
+    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
+                 "use the 64-bit command-line version of BinDiff.";
     warning(
-        "\nOut-of-memory. Please try again with more memory available.\nSome "
-        "extremely large binaries may require the 64-bit command-line version "
-        "of BinDiff");
+        "Out-of-memory. Some extremely large binaries may require to use the "
+        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error loading results: " << message.what();
     warning("Error loading results: %s\n", message.what());
