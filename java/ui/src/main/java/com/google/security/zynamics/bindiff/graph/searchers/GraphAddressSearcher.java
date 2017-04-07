@@ -1,0 +1,63 @@
+package com.google.security.zynamics.bindiff.graph.searchers;
+
+import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.graph.CombinedGraph;
+import com.google.security.zynamics.bindiff.graph.SingleGraph;
+import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
+import com.google.security.zynamics.bindiff.graph.nodes.CombinedViewNode;
+import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
+import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
+import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedFunction;
+import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
+import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
+import com.google.security.zynamics.bindiff.project.rawflowgraph.RawCombinedBasicBlock;
+import com.google.security.zynamics.zylib.disassembly.IAddress;
+
+public class GraphAddressSearcher {
+  public static CombinedDiffNode searchAddress(
+      final CombinedGraph graph, final ESide side, final IAddress addr) {
+    for (final CombinedDiffNode node : graph.getNodes()) {
+      final CombinedViewNode rawNode = node.getRawNode();
+
+      if (rawNode instanceof RawCombinedBasicBlock) {
+        final RawBasicBlock basicblock = ((RawCombinedBasicBlock) rawNode).getRawNode(side);
+
+        if (basicblock == null) {
+          continue;
+        }
+
+        if (basicblock.getInstruction(addr) != null) {
+          return node;
+        }
+      } else {
+        final RawFunction function = ((RawCombinedFunction) rawNode).getRawNode(side);
+
+        if (function == null) {
+          continue;
+        }
+
+        if (function.getAddress().equals(addr)) {
+          return node;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  public static SingleDiffNode searchAddress(final SingleGraph graph, final IAddress addr) {
+    for (final SingleDiffNode node : graph.getNodes()) {
+      final SingleViewNode rawNode = node.getRawNode();
+
+      if (rawNode instanceof RawBasicBlock) {
+        if (((RawBasicBlock) rawNode).getInstruction(addr) != null) {
+          return node;
+        }
+      } else if (node.getRawNode().getAddress().equals(addr)) {
+        return node;
+      }
+    }
+
+    return null;
+  }
+}

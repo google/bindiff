@@ -1,0 +1,92 @@
+// Copyright 2011 Google Inc. All Rights Reserved.
+
+package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states;
+
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.gui.zygraph.editmode.CStateChange;
+import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseState;
+import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseStateChange;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitBendsTransformer;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitEdgeLabelsTransformer;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitEdgesTransformer;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
+
+import y.view.Bend;
+import y.view.HitInfo;
+
+import java.awt.event.MouseEvent;
+
+public class CBendExitState implements IMouseState {
+  private final CStateFactory<?, ?> m_factory;
+
+  private final AbstractZyGraph<?, ?> m_graph;
+
+  private final Bend m_bend;
+
+  public CBendExitState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
+      final Bend bend) {
+    m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
+    m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
+    m_bend = Preconditions.checkNotNull(bend, "Error: bend argument can not be null");
+  }
+
+  public Bend getEdge() {
+    return m_bend;
+  }
+
+  public AbstractZyGraph<?, ?> getGraph() {
+    return m_graph;
+  }
+
+  @Override
+  public CStateFactory<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> getStateFactory() {
+    return m_factory;
+  }
+
+  @Override
+  public IMouseStateChange mouseDragged(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+    return new CStateChange(m_factory.createDefaultState(), true);
+  }
+
+  @Override
+  public IMouseStateChange mouseMoved(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+    final double x = m_graph.getEditMode().translateX(event.getX());
+    final double y = m_graph.getEditMode().translateY(event.getY());
+
+    final HitInfo hitInfo = m_graph.getGraph().getHitInfo(x, y);
+
+    if (hitInfo.hasHitNodes()) {
+      return CHitNodesTransformer.enterNode(m_factory, event, hitInfo);
+    } else if (hitInfo.hasHitNodeLabels()) {
+      throw new IllegalStateException();
+    } else if (hitInfo.hasHitEdges()) {
+      return CHitEdgesTransformer.enterEdge(m_factory, event, hitInfo);
+    } else if (hitInfo.hasHitEdgeLabels()) {
+      return CHitEdgeLabelsTransformer.enterEdgeLabel(m_factory, event, hitInfo);
+    } else if (hitInfo.hasHitBends()) {
+      return CHitBendsTransformer.enterBend(m_factory, event, hitInfo);
+    } else if (hitInfo.hasHitPorts()) {
+      return new CStateChange(this, true);
+    } else {
+      // We are in the exit state. All GUI changes have been undone and once
+      // again we are not hitting anything. That means we can now return to
+      // the default state.
+
+      return new CStateChange(m_factory.createDefaultState(), true);
+    }
+  }
+
+  @Override
+  public IMouseStateChange mousePressed(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+    return new CStateChange(m_factory.createDefaultState(), true);
+  }
+
+  @Override
+  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+    return new CStateChange(m_factory.createDefaultState(), true);
+  }
+}

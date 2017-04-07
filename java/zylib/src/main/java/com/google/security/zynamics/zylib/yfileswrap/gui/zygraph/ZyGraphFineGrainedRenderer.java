@@ -1,0 +1,91 @@
+// Copyright 2011 Google Inc. All Rights Reserved.
+
+package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
+
+import com.google.security.zynamics.zylib.gui.zygraph.IFineGrainedSloppyGraph2DView;
+
+import y.view.DefaultGraph2DRenderer;
+import y.view.EdgeRealizer;
+import y.view.Graph2D;
+import y.view.NodeRealizer;
+
+import java.awt.Graphics2D;
+
+public class ZyGraphFineGrainedRenderer<ViewType extends IFineGrainedSloppyGraph2DView> extends
+    DefaultGraph2DRenderer {
+  /**
+   * This class implements the more fine-grained rendering by overloading the regular "paint"
+   * methods for nodes & edges. Within this function, the decision on whether to paint the
+   * nodes/edges in sloppy or non-sloppy mode is then made.
+   */
+  protected ViewType m_view;
+  private boolean m_drawEdges = true;
+
+  public ZyGraphFineGrainedRenderer(final ViewType view) {
+    m_view = view;
+  }
+
+  @Override
+  protected void paint(final Graphics2D gfx, final EdgeRealizer er) {
+    if (!m_drawEdges) {
+      return;
+    }
+    if (m_view.isEdgeSloppyPaintMode()) {
+      er.paintSloppy(gfx);
+    } else {
+      er.paint(gfx);
+    }
+  }
+
+  @Override
+  protected void paint(final Graphics2D gfx, final NodeRealizer nr) {
+    if (m_view.isNodeSloppyPaintMode()) {
+      nr.paintSloppy(gfx);
+    } else {
+      nr.paint(gfx);
+    }
+  }
+
+  @Override
+  protected void paintLayered(final Graphics2D gfx, final int layer, final EdgeRealizer er) {
+    super.paintLayered(gfx, layer, er);
+  }
+
+  // Layered painting methods
+  @Override
+  protected void paintLayered(final Graphics2D gfx, final int layer, final NodeRealizer nr) {
+    super.paintLayered(gfx, layer, nr);
+  }
+
+  @Override
+  protected void paintSloppy(final Graphics2D gfx, final EdgeRealizer er) {
+    assert false : "The sloppy paint methods should not be called";
+  }
+
+  @Override
+  protected void paintSloppy(final Graphics2D gfx, final NodeRealizer nr) {
+    assert false : "The sloppy paint methods should not be called";
+  }
+
+  @Override
+  protected void paintSloppyLayered(final Graphics2D gfx, final int layer, final EdgeRealizer er) {
+    assert false : "The sloppy paint methods should not be called";
+  }
+
+  // Sloppy Layered painting methods. These shouldn't actually be reached any
+  // more due to the ZyGraph2DView deferring the sloppy/nonsloppy decision to
+  // this renderer.
+  @Override
+  protected void paintSloppyLayered(final Graphics2D gfx, final int layer, final NodeRealizer nr) {
+    assert false : "The sloppy paint methods should not be called";
+  }
+
+  // Regular painting methods
+  @Override
+  public void paint(final Graphics2D gfx, final Graph2D graph) {
+    // Get & cache these values in the local object to prevent excessive method
+    // invocation overhead when all the edges & nodes are drawn below
+    m_drawEdges = m_view.drawEdges();
+    super.paint(gfx, graph);
+  }
+}

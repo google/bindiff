@@ -1,0 +1,101 @@
+// Copyright 2011 Google Inc. All Rights Reserved.
+
+package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers;
+
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
+
+import y.layout.LabelLayoutConstants;
+import y.view.EdgeLabel;
+
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+
+/**
+ * Edge label class that is used to display edge comments.
+ */
+public class ZyEdgeLabel extends EdgeLabel {
+  private static final int SHADOW_SIZE = 5;
+
+  private static Color m_backGroundColor = new Color(250, 250, 255);
+  private static Color borderColor = Color.BLACK;
+
+  private final ZyLabelContent m_content;
+
+  private final int m_roundedHeight;
+
+  private final int m_roundedWidth;
+
+  private final double m_height;
+
+  private final double m_width;
+
+  public ZyEdgeLabel(final ZyLabelContent content) {
+    Preconditions.checkNotNull(content, "Internal Error: Content can't be null");
+
+    m_content = content;
+
+    setVisible(true);
+    setText("A"); // Dummy; don't remove
+
+    setModel(EdgeLabel.CENTERED);
+    setPreferredPlacement(LabelLayoutConstants.PLACE_ON_EDGE);
+    setPosition(EdgeLabel.CENTER);
+
+    m_height = getHeight();
+    m_width = getWidth();
+
+    m_roundedHeight = (int) m_height;
+    m_roundedWidth = (int) m_width;
+  }
+
+  @Override
+  protected void paintBox(final Graphics2D gfx, final double x, final double y,
+      final double width1, final double height2) {
+
+    // final Graph2D g = (Graph2D) this.getEdge().getGraph();
+
+    final int roundedX = (int) (x - (m_width / 2));
+    final int roundedY = (int) (y - (m_height / 2));
+
+    final BasicStroke oldStroke = (BasicStroke) gfx.getStroke();
+    gfx.setStroke(new BasicStroke(oldStroke.getLineWidth()));
+
+    gfx.setColor(m_backGroundColor);
+
+    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.80f));
+    gfx.fillRoundRect(roundedX, roundedY, m_roundedWidth, m_roundedHeight, 5, 5);
+    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.95f));
+
+    gfx.setColor(borderColor);
+    gfx.drawRoundRect(roundedX, roundedY, m_roundedWidth, m_roundedHeight, SHADOW_SIZE, SHADOW_SIZE);
+    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.00f));
+
+    gfx.setStroke(oldStroke);
+  }
+
+  @Override
+  protected void paintContent(final Graphics2D gfx, final double x, final double y,
+      final double width1, final double height1) {
+    final int roundedX = (int) (x - (m_width / 2));
+    final int roundedY = (int) (y - (m_height / 2));
+
+    m_content.draw(gfx, roundedX, roundedY);
+  }
+
+  @Override
+  public double getHeight() {
+    return m_content.getBounds().getHeight();
+  }
+
+  public ZyLabelContent getLabelContent() {
+    return m_content;
+  }
+
+  @Override
+  public double getWidth() {
+    return m_content.getBounds().getWidth();
+  }
+}
