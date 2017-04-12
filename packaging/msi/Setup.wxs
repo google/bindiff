@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
+     xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension">
+  <!-- Never change the UpgradeCode after release -->
+  <Product Id="*"
+           UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
+           Name="BinDiff 4.3"
+           Language="1033"
+           Version="4.3.0"
+           Manufacturer="Google Inc.">
+    <Package Id="*"
+             Keywords="Installer"
+             Platform="x64"
+             Comments="This Installer database contains the logic and data required to install [ProductName]."
+             Description="[ProductName] Installation package"
+             InstallerVersion="405"
+             InstallScope="perMachine"
+             Compressed="yes" />
+    <Media Id="1" Cabinet="bindiff.cab" EmbedCab="yes" />
+
+    <!-- Enable Windows Installer major upgrade functionality so users can
+         seamlessly install a new version of the product and have the old
+         version automatically uninstalled. See also: https://goo.gl/TfKVUa
+      -->
+    <Upgrade Id="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726">
+      <UpgradeVersion Minimum="4.3.0" IncludeMinimum="no"
+                      OnlyDetect="yes"
+                      Property="NEWERVERSIONDETECTED" />
+      <UpgradeVersion Minimum="3.0.0" IncludeMinimum="yes"
+                      Maximum="4.3.0" IncludeMaximum="no"
+                      IgnoreRemoveFailure="yes"
+                      Property="OLDERVERSIONBEINGUPGRADED" />
+    </Upgrade>
+
+    <!-- Prevent users from installing if a newer version of this product
+         is already installed. This is part of the Windows Installer major
+         upgrade functionality.
+      -->
+    <CustomAction Id="CA_BlockOlderVersionInstall"
+                  Error="A later version of [ProductName] is already installed." />
+
+    <CustomAction Id="CA_SetDefaultIdaDirectory"
+                  Property="IDADIRECTORY" Value="[ProgramFilesFolder]IDA\" />
+
+    <!-- Launch conditions -->
+    <Condition Message="[ProductName] can only be installed on Microsoft Windows Vista (x64) or higher.">
+      VersionNT64 >= 600
+    </Condition>
+    <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
+      Privileged
+    </Condition>
+    <Condition Message="[ProductName] requires a working Java Runtime Environment (JRE). Install JRE 1.8 or higher first.">
+      Installed OR
+      JREVERSION = "1.8" OR
+      JREVERSION = "1.9"
+    </Condition>
+
+    <!-- Properties -->
+    <Property Id="ARPPRODUCTICON" Value="Icons_BinDiff.ico" />
+    <Property Id="ARPHELPLINK" Value="https://www.zynamics.com/bindiff.htm" />
+    <Property Id="ARPURLINFOABOUT" Value="https://www.zynamics.com/" />
+
+    <Property Id="IDADIRECTORY">
+      <RegistrySearch Id="HexRaysIdaRegistry" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_is1"
+                      Name="InstallLocation" />
+      <RegistrySearch Id="HexRaysIdaRegistry695" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.95_is1"
+                      Name="InstallLocation" />
+      <RegistrySearch Id="HexRaysIdaRegistry69" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.9_is1"
+                      Name="InstallLocation" />
+    </Property>
+
+    <Property Id="JREVERSION">
+      <RegistrySearch Id="JavaSoftRegistry" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\JavaSoft\Java Runtime Environment"
+                      Name="CurrentVersion" />
+    </Property>
+
+    <!-- Installation sequence for administrative installations -->
+    <InstallExecuteSequence>
+      <Custom Action="CA_BlockOlderVersionInstall" After="FindRelatedProducts">
+        NEWERVERSIONDETECTED
+      </Custom>
+      <Custom Action="CA_SetDefaultIdaDirectory" After="FindRelatedProducts">
+        IDADIRECTORY = ""
+      </Custom>
+
+      <!-- Remove existing product early to allow upgrade of old machine
+           config files.
+        -->
+      <RemoveExistingProducts After="InstallInitialize" />
+
+      <LaunchConditions After="AppSearch"/>
+    </InstallExecuteSequence>
+
+    <!-- Default installation sequence -->
+    <InstallUISequence>
+      <Custom Action="CA_BlockOlderVersionInstall" After="FindRelatedProducts">
+        NEWERVERSIONDETECTED
+      </Custom>
+      <Custom Action="CA_SetDefaultIdaDirectory" After="FindRelatedProducts">
+        IDADIRECTORY = ""
+      </Custom>
+
+      <LaunchConditions After="AppSearch"/>
+    </InstallUISequence>
+
+    <!-- Directory structure -->
+    <Directory Id="TARGETDIR" Name="SourceDir" FileSource="$(var.ProjectDir)SourceDir">
+      <Directory Id="ProgramFiles64Folder" Name="ProgramFiles64">
+        <Directory Id="ProgramFiles64_zynamics" Name="zynamics">
+          <Directory Id="INSTALLDIR" Name="BinDiff 4.3">
+            <Component Id="BinDiff_License"
+                       Guid="44B24AA7-0897-47FD-AD43-11C260EB8982">
+              <File Name="license.rtf" KeyPath="yes">
+                <Shortcut Id="BinDiff_License"
+                          Directory="ProgramMenu_BinDiff"
+                          Name="BinDiff License"
+                          Advertise="yes"
+                          Icon="Icons_License.rtf"
+                          IconIndex="0" />
+              </File>
+            </Component>
+            <Component Id="BinDiff_FontLicense"
+                       Guid="D2EAA1F5-9A02-44C6-B53F-DA387EF4288D">
+              <File Name="font-license.txt" KeyPath="yes">
+                <Shortcut Id="BinDiff_FontLicense"
+                          Directory="ProgramMenu_BinDiff"
+                          Name="Roboto Mono Font License"
+                          Advertise="yes"
+                          Icon="Icons_License.txt"
+                          IconIndex="0" />
+              </File>
+            </Component>
+
+            <Directory Id="BinDiff_Bin" Name="bin">
+              <!-- Binaries -->
+              <Component Id="BinDiff_Bin_BindiffCMD"
+                         Guid="36CC130A-BB83-4A48-8BD2-33B4A4DF0F70">
+                <File Name="bindiff.cmd" KeyPath="yes">
+                  <Shortcut Id="bindiff.cmd"
+                            Directory="ProgramMenu_BinDiff"
+                            Name="BinDiff 4.3"
+                            Advertise="yes"
+                            Icon="Icons_BinDiff.ico"
+                            IconIndex="0" />
+                </File>
+              </Component>
+              <Component Id="BinDiff_Bin_BindiffJAR"
+                         Guid="B9BA7E8F-C08C-4068-8717-A7BA3AE61692">
+                <File Name="bindiff.jar" KeyPath="yes" />
+              </Component>
+              <Component Id="BinDiff_Bin_DifferEXE"
+                         Guid="C0B273E3-D49B-4BCB-88D3-53D83D854FB8">
+                <File Name="differ.exe" KeyPath="yes" />
+              </Component>
+              <Component Id="BinDiff_Bin_AddToSystemPath"
+                         Guid="02A7BB60-AF84-4FDD-980F-E187DCE57264">
+                <RegistryValue Root="HKLM"
+                               Key="SOFTWARE\[Manufacturer]\[ProductName]\EnvironmentVariable"
+                               Type="string" Value="1"
+                               KeyPath="yes" />
+                <Environment Id="UpdatePath" Name="PATH"
+                             Action="set" Permanent="no"
+                             System="yes" Part="last"
+                             Value="[INSTALLDIR]bin" />
+              </Component>
+              <Component Id="BinDiff_Bin_WindowsFirewallRule"
+                         Guid="D50B9F79-5930-4C8E-96AE-C5A1D586EBA5">
+                <RegistryValue Root="HKLM"
+                               Key="SOFTWARE\[Manufacturer]\[ProductName]\FirewallRule"
+                               Type="string" Value="1"
+                               KeyPath="yes" />
+                <fire:FirewallException Id="Firewall_BinDiffLocalTCP2000"
+                                        Name="[ProductName]"
+                                        Port="2000" Protocol="tcp"
+                                        Scope="localSubnet" />
+              </Component>
+            </Directory>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <!-- IDA Pro plugins -->
+      <Directory Id="ProgramFilesFolder" Name="ProgramFiles">
+        <Directory Id="IDADIRECTORY" Name="IDA Pro">
+          <Directory Id="Ida_Plugins" Name="plugins">
+            <Component Id="Ida_Plugins_BinDiff"
+                       Guid="7BD1AF5E-DE5F-4685-A191-495BF0F47D6D">
+              <File Name="zynamics_bindiff_4_3.plw" KeyPath="yes" />
+            </Component>
+            <Component Id="Ida_Plugins_BinDiff64"
+                       Guid="E5DDBB06-D7D3-444C-8981-C1C3DCD6AD75">
+              <File Name="zynamics_bindiff_4_3.p64" KeyPath="yes" />
+            </Component>
+            <Component Id="Ida_Plugins_BinExport"
+                       Guid="B654FF2F-DB27-4E34-BAB5-F2DD8D418665">
+              <File Name="zynamics_binexport_9.plw" KeyPath="yes" />
+            </Component>
+            <Component Id="Ida_Plugins_BinExport64"
+                       Guid="B7B2FBC1-8AE2-4863-82DE-3DBC894CAFD0">
+              <File Name="zynamics_binexport_9.p64" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <!-- Start Menu entries -->
+      <Directory Id="ProgramMenuFolder" Name="ProgramMenu">
+        <Directory Id="ProgramMenu_BinDiff" Name="BinDiff 4.3">
+          <Component Id="ProgramMenu_BinDiff_GoogleSecurityBlog"
+                     Guid="8FA2FFB8-14E8-4770-8CEA-21A8477960B8">
+            <RegistryValue Root="HKMU"
+                           Key="SOFTWARE\[Manufacturer]\[ProductName]\GoogleSecurityBlogShortCut"
+                           Type="string" Value="1"
+                           KeyPath="yes" />
+            <util:InternetShortcut Id="ProgramMenu_BinDiff_GoogleSecurityBlog"
+                                   Name="Google Security Blog"
+                                   Target="https://security.googleblog.com/"
+                                   Type="url" />
+          </Component>
+          <Component Id="ProgramMenu_BinDiff_ReportABug"
+                     Guid="4984E7EB-FAE8-480C-95C2-89FA9E41D4A7">
+            <RegistryValue Root="HKMU"
+                           Key="SOFTWARE\[Manufacturer]\[ProductName]\ReportABugShortCut"
+                           Type="string" Value="1"
+                           KeyPath="yes" />
+            <util:InternetShortcut Id="ProgramMenu_BinDiff_ReportABug"
+                                   Name="Report a bug"
+                                   Target="https://bugs.zynamics.com/bindiff"
+                                   Type="url" />
+          </Component>
+          <Component Id="ProgramMenu_BinDiff_UserDocumentation"
+                     Guid="3F923265-5B14-4A05-B79A-4DAA35DEF732">
+            <RegistryValue Root="HKMU"
+                           Key="SOFTWARE\[Manufacturer]\[ProductName]\UserDocumentationShortCut"
+                           Type="string" Value="1"
+                           KeyPath="yes" />
+            <util:InternetShortcut Id="ProgramMenu_BinDiff_UserDocumentation"
+                                   Name="User Documentation"
+                                   Target="https://www.zynamics.com/bindiff/manual/index.html"
+                                   Type="url" />
+          </Component>
+          <Component Id="ProgramMenu_BinDiff_ZynamicsHomePage"
+                     Guid="CA2F2AB5-1CE3-44AA-8C69-C2FC2614F66A">
+            <RegistryValue Root="HKMU"
+                           Key="SOFTWARE\[Manufacturer]\[ProductName]\ZynamicsHomePageShortCut"
+                           Type="string" Value="1"
+                           KeyPath="yes" />
+            <util:InternetShortcut Id="ProgramMenu_BinDiff_ZynamicsHomePage"
+                                   Name="zynamics Home Page"
+                                   Target="https://www.zynamics.com/"
+                                   Type="url" />
+          </Component>
+        </Directory>
+      </Directory>
+
+      <!-- Per-machine Configuration -->
+      <Directory Id="CommonAppDataFolder" Name="CommonAppData">
+        <Directory Id="CommonAppData_zynamics" Name="zynamics">
+          <Directory Id="CommonAppData_BinDiff" Name="BinDiff">
+            <Component Id="CommonAppData_BinDiff_CoreConfig"
+                       Guid="006BD9D8-503B-49FB-8628-6D2BD5BB01DD">
+              <File Name="bindiff_core.xml" KeyPath="yes" />
+              <util:XmlFile Id="BinDiffCoreConfigModifyGuiDir"
+                            Action="setValue"
+                            File="[CommonAppDataFolder]zynamics\BinDiff\bindiff_core.xml"
+                            ElementPath="/BinDiff/Gui"
+                            Name="directory" Value="[INSTALLDIR]"
+                            Sequence="1" />
+              <util:XmlFile Id="BinDiffCoreConfigModifyIdaDir"
+                            Action="setValue"
+                            File="[CommonAppDataFolder]zynamics\BinDiff\bindiff_core.xml"
+                            ElementPath="/BinDiff/Ida"
+                            Name="directory" Value="[IDADIRECTORY]"
+                            Sequence="2" />
+            </Component>
+            <Component Id="CommonAppData_BinDiff_UIConfig"
+                       Guid="11365585-3C98-48B6-9C2B-0FB6AF6E287C">
+              <File Name="bindiff_ui.xml" KeyPath="yes" />
+              <util:XmlFile Id="BinDiffUIConfigModifyIdaDir"
+                            Action="setValue"
+                            File="[CommonAppDataFolder]zynamics\BinDiff\bindiff_ui.xml"
+                            ElementPath="/BinDiff/Ida"
+                            Name="directory" Value="[IDADIRECTORY]"
+                            Sequence="1" />
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <!-- Roboto Mono font -->
+      <Directory Id="FontsFolder" Name="Fonts">
+        <Component Id="Fonts_RobotoMonoBoldTTF"
+                   Guid="32C69F59-7086-4F4D-A0E6-174BD9EF5CD0">
+          <File Name="RobotoMono-Bold.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoBoldItalicTTF"
+                   Guid="34701F47-2C78-4B01-94DE-723F3F28364F">
+          <File Name="RobotoMono-BoldItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoItalicTTF"
+                   Guid="3D995756-231B-4C8D-8F2F-2B4A68C5D69F">
+          <File Name="RobotoMono-Italic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoLightTTF"
+                   Guid="8C6FB3F2-3441-410A-BA4F-B3AF58DE569B">
+          <File Name="RobotoMono-Light.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoLightItalicTTF"
+                   Guid="36BF2B78-2E8A-4D41-B068-6EF39A626483">
+          <File Name="RobotoMono-LightItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoMediumTTF"
+                   Guid="79A06EAF-E28C-4BF0-9934-039CD8046E16">
+          <File Name="RobotoMono-Medium.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoMediumItalicTTF"
+                   Guid="2D0E018A-2991-4AF3-A919-E32CA75203C1">
+          <File Name="RobotoMono-MediumItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoRegularTTF"
+                   Guid="EB24ED46-371B-45FC-8D3F-32BFE5C16380">
+          <File Name="RobotoMono-Regular.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoThinTTF"
+                   Guid="7877D31D-6120-4CD5-8958-77B3D0E74B08">
+          <File Name="RobotoMono-Thin.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMonoThinItalicTTF"
+                   Guid="7D793174-E6C0-4D0C-B0B9-0F0F3EF8ECB1">
+          <File Name="RobotoMono-ThinItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+      </Directory>
+    </Directory>
+
+    <!-- Merge Modules for Visual Studio Runtime -->
+    <DirectoryRef Id="TARGETDIR" DiskId="1">
+      <!-- These will generate ICE82 warnings, which is expected. See
+           https://goo.gl/JNNPJF for details. -->
+      <Merge Id="CRTx86" Language="0"
+             SourceFile="$(var.ProjectDir)SourceDir\MergeModules\Microsoft_VC140_CRT_x86.msm" />
+      <Merge Id="CRTx64" Language="0"
+             SourceFile="$(var.ProjectDir)SourceDir\MergeModules\Microsoft_VC140_CRT_x64.msm" />
+    </DirectoryRef>
+
+    <!-- Start Menu entries -->
+    <DirectoryRef Id="ProgramMenu_BinDiff">
+      <Component Id="ProgramMenu_BinDiff"
+                 Guid="E76E8E63-DC7B-44F7-9D94-10AEA751B45F">
+        <RemoveFolder Id="ProgramMenu_BinDiff" On="uninstall" />
+        <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]"
+                       Type="string" Value="1" KeyPath="yes" />
+      </Component>
+    </DirectoryRef>
+
+    <!-- Features -->
+    <Feature Id="AppRootFeature"
+             ConfigurableDirectory="INSTALLDIR"
+             Title="BinDiff"
+             Description="BinDiff executables (required)."
+             Display="expand"
+             Absent="disallow"
+             AllowAdvertise="no">
+      <MergeRef Id="CRTx86" />
+      <MergeRef Id="CRTx64" />
+
+      <ComponentRef Id="ProgramMenu_BinDiff" />
+      <ComponentRef Id="BinDiff_License" />
+      <ComponentRef Id="BinDiff_Bin_BindiffCMD" />
+      <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
+      <ComponentRef Id="Ida_Plugins_BinDiff" />
+      <ComponentRef Id="Ida_Plugins_BinDiff64" />
+      <ComponentRef Id="Ida_Plugins_BinExport" />
+      <ComponentRef Id="Ida_Plugins_BinExport64" />
+      <ComponentRef Id="ProgramMenu_BinDiff_GoogleSecurityBlog" />
+      <ComponentRef Id="ProgramMenu_BinDiff_ReportABug" />
+      <ComponentRef Id="ProgramMenu_BinDiff_UserDocumentation" />
+      <ComponentRef Id="ProgramMenu_BinDiff_ZynamicsHomePage" />
+      <ComponentRef Id="CommonAppData_BinDiff_CoreConfig" />
+      <ComponentRef Id="CommonAppData_BinDiff_UIConfig" />
+
+      <Feature Id="BinDiffCmdLine"
+               Title="Standalone BinDiff"
+               Description="Installs a command line version of BinDiff to be used without a GUI."
+               Absent="disallow"
+               AllowAdvertise="no">
+        <ComponentRef Id="BinDiff_Bin_DifferEXE" />
+      </Feature>
+
+      <Feature Id="AddToSystemPath"
+               Level="1000"
+               Title="Entry in Path environment variable"
+               Description="Add the [ProductName] installation directory to the system path."
+               Absent="allow"
+               AllowAdvertise="no">
+        <ComponentRef Id="BinDiff_Bin_AddToSystemPath" />
+      </Feature>
+      <Feature Id="WindowsFirewallSetting"
+               Level="1000"
+               Title="Windows Firewall Rule"
+               Description="Adds an exception to the Windows Firewall configuration to allow [ProductName] to listen to port 2000 TCP on localhost."
+               Absent="allow"
+               AllowAdvertise="no">
+        <ComponentRef Id="BinDiff_Bin_WindowsFirewallRule" />
+      </Feature>
+
+      <Feature Id="RobotoMono"
+               Title="Roboto Mono Font"
+               Description="Roboto Mono is part of Google’s signature family of fonts, the default font on Android and Chrome OS."
+               Absent="allow"
+               AllowAdvertise="no">
+        <ComponentRef Id="BinDiff_FontLicense" />
+        <ComponentRef Id="Fonts_RobotoMonoBoldTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoBoldItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoLightTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoLightItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoMediumTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoMediumItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoRegularTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoThinTTF" />
+        <ComponentRef Id="Fonts_RobotoMonoThinItalicTTF" />
+      </Feature>
+    </Feature>
+
+    <Icon Id="Icons_BinDiff.ico"
+          SourceFile="$(var.ProjectDir)SourceDir\Icons\bindiff.ico" />
+    <Icon Id="Icons_License.rtf"
+          SourceFile="$(var.ProjectDir)SourceDir\Icons\license.rtf" />
+    <Icon Id="Icons_License.txt"
+          SourceFile="$(var.ProjectDir)SourceDir\Icons\license.txt" />
+
+    <WixVariable Id="WixUILicenseRtf"
+                 Value="$(var.ProjectDir)SourceDir\ProgramFiles64\zynamics\BinDiff 4.3\license.rtf" />
+    <WixVariable Id="WixUIBannerBmp"
+                 Value="$(var.ProjectDir)SourceDir\Graphics\banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp"
+                 Value="$(var.ProjectDir)SourceDir\Graphics\dialog.bmp" />
+
+    <!-- UI Flow
+         First-time install dialog sequence:
+          - WixUI_WelcomeDlg
+          - WixUI_LicenseAgreementDlg
+          - WixUI_CustomizeDlg
+          - WixUI_VerifyReadyDlg
+          - WixUI_DiskCostDlg
+          - WixUI_BrowseIdaDirectoryDlg
+
+         Maintenance dialog sequence:
+          - WixUI_MaintenanceWelcomeDlg
+          - WixUI_MaintenanceTypeDlg
+          - WixUI_CustomizeDlg
+          - WixUI_VerifyReadyDlg
+          - WixUI_BrowseIdaDirectoryDlg
+      -->
+    <UI Id="WixUI_FeatureTree">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="9" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Segoe UI" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Segoe UI" Size="11" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+      <Property Id="WixUI_Mode" Value="FeatureTree" />
+
+      <Property Id="WIXUI_INSTALLDIR" Value="IDADIRECTORY" />
+
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg">LicenseAccepted = "1"</Publish>
+
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="2">NOT Installed</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="BrowseIdaDirectoryDlg">1</Publish>
+
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">1</Publish>
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[WIXUI_INSTALLDIR_VALID <> "1"]]></Publish>
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID = "1"]]></Publish>
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+      <Publish Dialog="BrowseIdaDirectoryDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="BrowseIdaDirectoryDlg" Order="1">NOT Installed OR WixUI_InstallMode = "Change"</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="BrowseIdaDirectoryDlg" Order="2">Installed</Publish>
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="ChangeButton" Event="NewDialog" Value="CustomizeDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+
+      <Dialog Id="BrowseIdaDirectoryDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}BinDiff Plugin for IDA Pro" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Select your Hex-Rays IDA Pro installation directory." />
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+
+        <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30" NoPrefix="yes" Text="Please provide the full path to your IDA Pro installation directory:" />
+        <Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
+        <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.CustomizeDlgBrowse)" />
+      </Dialog>
+    </UI>
+
+    <UIRef Id="WixUI_Common" />
+  </Product>
+</Wix>
