@@ -54,6 +54,11 @@ void Read(const std::string& filename, CallGraph* call_graph,
 bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache);
+
+void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
+                          CallGraph* call_graph, FlowGraphs* flow_graphs,
+                          FlowGraphInfos* flow_graph_infos,
+                          Instruction::Cache* instruction_cache);
 #endif
 
 // Get the similarity score for two full binaries.
