@@ -1,0 +1,13 @@
+files/etc/opt/zynamics/BinDiff/bindiff_core.xml etc/opt/zynamics/BinDiff
+files/etc/opt/zynamics/BinDiff/bindiff_ui.xml etc/opt/zynamics/BinDiff
+files/opt/zynamics/BinDiff/bin/bindiff-256x256-rgba.png opt/zynamics/BinDiff/bin
+files/opt/zynamics/BinDiff/bin/bindiff.jar opt/zynamics/BinDiff/bin
+files/opt/zynamics/BinDiff/bin/bindiff.sh opt/zynamics/BinDiff/bin
+files/opt/zynamics/BinDiff/bin/differ opt/zynamics/BinDiff/bin
+files/opt/zynamics/BinDiff/LICENSE opt/zynamics/BinDiff
+files/opt/zynamics/BinDiff/plugins opt/zynamics/BinDiff
+files/opt/zynamics/BinDiff/plugins/zynamics_bindiff_4_3.plx opt/zynamics/BinDiff/plugins
+files/opt/zynamics/BinDiff/plugins/zynamics_bindiff_4_3.plx64 opt/zynamics/BinDiff/plugins
+files/opt/zynamics/BinDiff/plugins/zynamics_binexport_9.plx opt/zynamics/BinDiff/plugins
+files/opt/zynamics/BinDiff/plugins/zynamics_binexport_9.plx64 opt/zynamics/BinDiff/plugins
+files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications

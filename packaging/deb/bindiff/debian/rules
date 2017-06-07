@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_strip:
+	strip debian/bindiff/opt/zynamics/BinDiff/bin/differ \
+	    debian/bindiff/opt/zynamics/BinDiff/plugins/*.pl*
+	chrpath -d debian/bindiff/opt/zynamics/BinDiff/bin/differ \
+	    debian/bindiff/opt/zynamics/BinDiff/plugins/*.pl*
+
+override_dh_fixperms:
+	dh_fixperms
+	chmod +x debian/bindiff/opt/zynamics/BinDiff/bin/differ

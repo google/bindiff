@@ -1,0 +1,15 @@
+# This is a commercial package, so it should use the /opt hierarchy.
+bindiff: dir-or-file-in-opt
+bindiff: jar-not-in-usr-share
+
+# We need to link statically in order to run on multiple distributions.
+bindiff: embedded-library
+bindiff: shlib-with-non-pic-code
+
+# We need the user to accept the license agreement. The license is duplicated
+# in the program directory for convenience.
+bindiff: too-long-extended-description-in-templates
+bindiff: extra-license-file
+
+# US English only
+bindiff: untranslatable-debconf-templates

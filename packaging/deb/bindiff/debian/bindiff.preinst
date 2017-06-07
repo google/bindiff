@@ -1,0 +1,70 @@
+#!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+db_version 2.0
+db_capb backup
+
+errmsg()
+{
+    echo >&2 ''
+    echo >&2 "$@"
+    echo >&2 "try 'dpkg-reconfigure debconf' to select a frontend other than noninteractive"
+    echo >&2 ''
+}
+
+db_get bindiff/accepted-bindiff-license
+if [ "$RET" = "true" ]; then
+    echo "bindiff license has already been accepted" >&2
+    exit 0
+fi
+
+# facilitate backup capability per debconf-devel(7)
+STATE=1
+while true; do
+    case "$STATE" in
+    0)  # ensure going back from license presentment is harmless
+        STATE=1
+        continue
+        ;;
+    1)  # present license
+        db_fset bindiff/present-bindiff-license seen false
+        if ! db_input critical bindiff/present-bindiff-license ; then
+            errmsg "bindiff license could not be presented"
+        exit 2
+        fi
+        db_fset bindiff/accepted-bindiff-license seen false
+        if ! db_input critical bindiff/accepted-bindiff-license ; then
+            errmsg "bindiff license agree question could not be asked"
+        exit 2
+        fi
+        ;;
+    2)  # determine users' choice
+        db_get bindiff/accepted-bindiff-license
+        if [ "$RET" = "true" ]; then
+            # license accepted
+            exit 0
+        fi
+        # error on decline license (give user chance to back up)
+        db_input critical bindiff/error-bindiff-license
+        ;;
+    3)  # user has confirmed declining license
+        echo "user did not accept the bindiff license" >&2
+        exit 1
+        ;;
+    *)  # unknown state
+        echo "bindiff license state unknown: $STATE" >&2
+        exit 2
+        ;;
+    esac
+    if db_go; then
+        STATE=$(($STATE + 1))
+    else
+        STATE=$(($STATE - 1))
+    fi
+done
+
+#DEBHELPER#
+
+# proper exit (0 or 1) above
+errmsg "bindiff license could not be presented / was not accepted"
+exit 2

@@ -1,0 +1,14 @@
+BinDiff 4.3
+-----------
+
+BinDiff is a comparison tool for binary files that helps to quickly find
+differences and similarities in disassembled code. It is used by security
+researchers and engineers across the globe to identify and isolate fixes for
+vulnerabilities in vendor-supplied patches and to analyze multiple versions
+of the same binary. Another common use case is to transfer analysis results
+from one binary to another, helping to prevent duplicate analyses of, for
+example, malware binaries. This also helps to retain knowledge across teams
+of binary analysts where the individual workflows might vary from analyst to
+analyst.
+
+ -- Christian Blichmann <cblichmann@google.com>  Mon, 10 Apr 2017 13:28:00 +0200

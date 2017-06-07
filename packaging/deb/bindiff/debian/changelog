@@ -1,0 +1,84 @@
+bindiff (4.3.0) unstable; urgency=low
+
+  * Support for IDA 6.95
+  * Dramatic speed improvements in the core BinDiff engine
+  * New Google logo
+  * No OS X support for this version
+
+ -- Christian Blichmann <cblichmann@google.com>  Mon, 10 Apr 2017 13:35:24 +0200
+
+bindiff (4.2.0) unstable; urgency=low
+
+  * Support for IDA 6.8
+  * Support for ARM64
+  * Improvements to the core BinDiff engine
+  * No OS X support for this version
+
+ -- Christian Blichmann <cblichmann@google.com>  Tue, 21 Jul 2015 14:46:36 +0200
+
+bindiff (4.1.0) unstable; urgency=low
+
+  * Support for IDA 6.5 or higher
+  * Support for Windows 8 and 8.1
+  * Support for large operand sizes used by the AVX/AVX2 instructions
+  * Improvements to the core BinDiff engine
+  * No OS X support for this version
+
+ -- Christian Blichmann <cblichmann@google.com>  Thu, 07 Aug 2014 16:53:43 +0200
+
+bindiff (4.0.1) unstable; urgency=low
+
+  * Small bugfixes
+
+ -- Christian Blichmann <cblichmann@google.com>  Fri, 30 Apr 2012 15:21:00 +0200
+
+bindiff (4.0.0) unstable; urgency=low
+
+  * The user interface for visual diff has been rewritten
+  * Call graph views
+  * Proximity browsing in flowgraphs and callgraphs
+  * New "combined" view of flowgraphs
+  * Faster graph rendering and better rendering quality
+  * Improved instruction match representation
+  * Improved search functionality
+  * IDA comments are exported
+  * Selection history with undo and redo
+  * Copyable basic block and function node contents
+  * Multi-tab layout
+  * Organize multiple diffs in workspaces
+  * New exporter format based on Google Protocol Buffers
+  * Incremental diffing - manually confirm matches that will be kept in another
+  * diff iteration while reassiging others, allows to iteratively improve the
+  * result
+  * Auto-generated comments no longer get ported
+  * New column in Matched functions table allows to keep track of one's progress
+  * for comment porting
+  * Support for the Dalvik architecture (used by Android)
+
+ -- Christian Blichmann <cblichmann@google.com>  Wed, 07 Sep 2011 13:28:29 +0200
+
+bindiff (3.2.2) unstable; urgency=low
+
+  * First version from Google
+
+ -- Christian Blichmann <cblichmann@google.com>  Wed, 01 Jun 2011 12:03:38 +0200
+
+bindiff (3.2.1) unstable; urgency=low
+
+  * Includes latest fixes
+
+ -- Christian Blichmann <christian@christian.zynamics.local>  Mon, 29 Nov 2010 13:46:17 +0100
+
+bindiff (3.2.0) unstable; urgency=low
+
+  * Mac OS X support
+  * Support for IDA Pro 6.0 or higher (version 3.2.2 adds support for IDA Pro
+    6.2)
+
+ -- Christian Blichmann <christian.blichmann@zynamics.com>  Wed, 24 Feb 2010 16:37:00 +0100
+
+bindiff (3.0.1) unstable; urgency=low
+
+  * Initial release for zynamics BinDiff 3.0.1.
+
+ -- Christian Blichmann <christian.blichmann@zynamics.com>  Wed, 21 Oct 2009 10:58:00 +0100
