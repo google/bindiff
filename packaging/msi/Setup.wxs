@@ -12,8 +12,8 @@
     <Package Id="*"
              Keywords="Installer"
              Platform="x64"
-             Comments="This Installer database contains the logic and data required to install [ProductName]."
-             Description="[ProductName] Installation package"
+             Comments="This Installer database contains the logic and data required to install BinDiff."
+             Description="BinDiff 4.3 Installation package"
              InstallerVersion="405"
              InstallScope="perMachine"
              Compressed="yes" />
