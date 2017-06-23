@@ -13,6 +13,7 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "base/init_google.h"
 #include "base/logging.h"
 #include "base/sysinfo.h"
+#include "base/time.h"
 #include "base/timer.h"
 #include "file/base/helpers.h"
 #include "file/base/options.h"
@@ -51,16 +52,18 @@ void Diff(const string& primary_path, const string& secondary_path) {
                &instruction_cache);
     const double time_primary = timer.Get();
     LOG(INFO) << "primary:   "
-              << HumanReadableElapsedTime::ToShortString(time_primary) << " "
-              << primary_path;
+              << HumanReadableElapsedTime::ToShortString(
+                     base::Seconds(time_primary))
+              << " " << primary_path;
 
     timer.Restart();
     ReadGoogle(secondary_path, &call_graph2, &flow_graphs2, &flow_graph_infos2,
                &instruction_cache);
     const double time_secondary = timer.Get();
     LOG(INFO) << "secondary: "
-              << HumanReadableElapsedTime::ToShortString(time_secondary) << " "
-              << secondary_path;
+              << HumanReadableElapsedTime::ToShortString(
+                     base::Seconds(time_secondary))
+              << " " << secondary_path;
 
     timer.Restart();
     FixedPoints fixed_points;
@@ -82,9 +85,9 @@ void Diff(const string& primary_path, const string& secondary_path) {
     LOG(INFO) << strings::Substitute(
         "$0 diffing, similarity $1%, confidence $2%, matched $3 of $4/$5 "
         "($6/$7 non-library)",
-        HumanReadableElapsedTime::ToShortString(time_diff), similarity * 100.0,
-        confidence * 100.0, fixed_points.size(), flow_graphs1.size(),
-        flow_graphs2.size(),
+        HumanReadableElapsedTime::ToShortString(base::Seconds(time_diff)),
+        similarity * 100.0, confidence * 100.0, fixed_points.size(),
+        flow_graphs1.size(), flow_graphs2.size(),
         counts.find("functions primary (non-library)")->second,
         counts.find("functions secondary (non-library)")->second);
     LOG(INFO) << strings::Substitute(
@@ -119,7 +122,8 @@ void RunAllDiffs() {
   LOG(INFO) << "Memory usage: "
             << HumanReadableNumBytes::ToString(MemoryUsageForExport());
   LOG(INFO) << "Total time: "
-            << HumanReadableElapsedTime::ToShortString(timer.Get());
+            << HumanReadableElapsedTime::ToShortString(
+                   base::Seconds(timer.Get()));
 }
 
 }  // namespace
