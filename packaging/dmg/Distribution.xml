@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+  <allowed-os-versions>
+    <os-version min="10.10"/>
+  </allowed-os-versions>
+  <welcome file="welcome.rtf"/>
+  <background alignment="bottomleft" file="background.tiff" scaling="proportional"/>
+  <license file="license.rtf"/>
+  <options customize="never" hostArchitectures="x86_64" require-scripts="false"/>
+
+  <pkg-ref id="com.google.security.zynamics.bindiff"/>
+  <choices-outline>
+    <line choice="default">
+      <line choice="com.google.security.zynamics.bindiff"/>
+    </line>
+  </choices-outline>
+  <choice id="default"/>
+  <choice id="com.google.security.zynamics.bindiff" visible="false">
+    <pkg-ref id="com.google.security.zynamics.bindiff"/>
+  </choice>
+  <pkg-ref id="com.google.security.zynamics.bindiff" version="4.3.0" onConclusion="none">BinDiff.pkg</pkg-ref>
+</installer-gui-script>

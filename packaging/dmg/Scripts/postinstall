@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Kown temp file that contains a single line with the IDA plugins directory
+TMPFILE=/tmp/__38F74084-9DF1-4C5D-91E1-0E63780ADC57_zy__
+
+# Application directory
+APP_DIR="/Applications/BinDiff.app"
+
+# If the file does not exist, bail out
+[ ! -f "$TMPFILE" ] && exit 1
+
+# Schedule file to be removed at end of script
+trap "rm -f \"$TMPFILE\"" INT TERM EXIT
+set -e
+
+# If the application directory does not exist, exit
+[ ! -d "$APP_DIR" ] && exit 2
+
+# If the plugins directory does not exist, exit
+IDA_DIR=$(sed 's,/plugins$,,' $TMPFILE)
+IDA_PLUGINS_DIR=$(cat $TMPFILE)
+[ ! -d "$IDA_PLUGINS_DIR" ] && exit 3
+
+# Ensure the binaries are executable
+chmod +x "$APP_DIR/Contents/MacOS/bin/differ"
+
+# Create symlinks for the IDA Pro plugins/differ
+for plugin in \
+  zynamics_bindiff_4_3.pmc \
+  zynamics_bindiff_4_3.pmc64 \
+  zynamics_binexport_9.pmc \
+  zynamics_binexport_9.pmc64
+do
+  chmod +x "$APP_DIR/Contents/MacOS/plugins/$plugin"
+  ln -sf "$APP_DIR/Contents/MacOS/plugins/$plugin" "$IDA_PLUGINS_DIR/"
+done
+ln -sf "$APP_DIR/Contents/MacOS/bin/differ" /usr/local/bin/differ
+
+# Setup install location in config file.
+sed -i "" "s,BINDIFF_DIR,$APP_DIR/Contents/Java," \
+  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml
+
+escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
+sed -i "" "s/IDADIR/${escidadir}/" \
+  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml
+sed -i "" "s/IDADIR/${escidadir}/" \
+  /private/etc/opt/zynamics/BinDiff/bindiff_ui.xml
