@@ -38,10 +38,10 @@ ln -sf "$APP_DIR/Contents/MacOS/bin/differ" /usr/local/bin/differ
 
 # Setup install location in config file.
 sed -i "" "s,BINDIFF_DIR,$APP_DIR/Contents/Java," \
-  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml
+  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml \
+  /private/etc/opt/zynamics/BinDiff/bindiff_ui.xml
 
 escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
 sed -i "" "s/IDADIR/${escidadir}/" \
-  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml
-sed -i "" "s/IDADIR/${escidadir}/" \
+  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml \
   /private/etc/opt/zynamics/BinDiff/bindiff_ui.xml
