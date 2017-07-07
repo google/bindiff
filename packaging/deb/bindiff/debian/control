@@ -11,6 +11,7 @@ Pre-Depends: debconf
 Depends: jdk8-google-v7|openjdk-8-jre|openjdk-9-jre|java8-runtime|java9-runtime,
          xdg-utils,
          ${misc:Depends}
+Recommends: fonts-roboto
 Description: zynamics BinDiff
  BinDiff is a comparison tool for binary files that helps to quickly find
  differences and similarities in disassembled code. It is used by
