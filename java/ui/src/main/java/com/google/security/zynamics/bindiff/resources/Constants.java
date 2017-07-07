@@ -12,7 +12,6 @@ public final class Constants {
   public static final boolean SHOW_SUPERGRAPH = false;
 
   // Application Generals
-  public static final String COMPANY_NAME = "zynamics";
   public static final String PRODUCT_NAME = "BinDiff";
   public static final String PRODUCT_VERSION = "4.3.0";
   public static final String PRODUCT_NAME_VERSION = "BinDiff 4.3";

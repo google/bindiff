@@ -91,12 +91,7 @@ public class TabPanelFunctions {
     final Image appImage = BINDIFF_ABOUT_IMAGE.getImage();
     final CDialogAboutEx dlg =
         new CDialogAboutEx(
-            window,
-            new ImageIcon(appImage),
-            Constants.PRODUCT_NAME_VERSION,
-            message,
-            description,
-            urls);
+            window, new ImageIcon(appImage), Constants.PRODUCT_NAME, message, description, urls);
 
     dlg.setIconImage(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
 
