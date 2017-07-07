@@ -1,5 +1,6 @@
 package com.google.security.zynamics.bindiff.graph.backgroundrendering;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -11,6 +12,7 @@ import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
 import com.google.security.zynamics.bindiff.resources.Colors;
 
+import com.google.security.zynamics.zylib.disassembly.IAddress;
 import y.view.Graph2DView;
 
 import java.awt.Color;
@@ -53,45 +55,30 @@ public class BackgroundRendererManager {
   protected static String buildTitle(final ViewData viewData, final EGraph type) {
     if (viewData instanceof FlowGraphViewData) {
       final FlowGraphViewData data = (FlowGraphViewData) viewData;
-
+      IAddress address;
+      final Joiner joiner = Joiner.on(" ").skipNulls();
       switch (type) {
         case PRIMARY_GRAPH:
-          {
-            return data.getAddress(ESide.PRIMARY) == null
-                ? ""
-                : data.getAddress(ESide.PRIMARY) + "   " + data.getFunctionName(ESide.PRIMARY);
-          }
+          address = data.getAddress(ESide.PRIMARY);
+          return address == null ? "" : address + " " + data.getFunctionName(ESide.PRIMARY);
         case SECONDARY_GRAPH:
-          {
-            return data.getAddress(ESide.SECONDARY) == null
-                ? ""
-                : data.getFunctionName(ESide.SECONDARY) + "   " + data.getAddress(ESide.SECONDARY);
-          }
+          address = data.getAddress(ESide.SECONDARY);
+          return address == null ? "" : data.getFunctionName(ESide.SECONDARY) + " " + address;
         case COMBINED_GRAPH:
-          {
-            return String.format(
-                "%s%s%s%s%s",
-                data.getAddress(ESide.PRIMARY) == null
-                    ? ""
-                    : data.getAddress(ESide.PRIMARY) + "   ",
-                data.getFunctionName(ESide.PRIMARY) == null
-                    ? ""
-                    : data.getFunctionName(ESide.PRIMARY),
-                data.getAddress(ESide.PRIMARY) == null || data.getAddress(ESide.SECONDARY) == null
-                    ? ""
-                    : "   vs   ",
-                data.getAddress(ESide.SECONDARY) == null
-                    ? ""
-                    : data.getAddress(ESide.SECONDARY) + "   ",
-                data.getFunctionName(ESide.SECONDARY) == null
-                    ? ""
-                    : data.getFunctionName(ESide.SECONDARY));
-          }
+          final IAddress primaryAddress = data.getAddress(ESide.PRIMARY);
+          final String primaryName = data.getFunctionName(ESide.PRIMARY);
+          final IAddress secondaryAddress = data.getAddress(ESide.SECONDARY);
+          final String secondaryName = data.getFunctionName(ESide.SECONDARY);
+          return joiner.join(
+              primaryAddress,
+              primaryName,
+              primaryAddress == null || secondaryAddress == null ? "" : "   vs   ",
+              secondaryAddress,
+              secondaryName);
         default:
       }
     } else if (viewData instanceof CallGraphViewData) {
       final CallGraphViewData data = (CallGraphViewData) viewData;
-
       switch (type) {
         case PRIMARY_GRAPH:
           return data.getImageName(ESide.PRIMARY);
@@ -103,7 +90,6 @@ public class BackgroundRendererManager {
         default:
       }
     }
-
     return "";
   }
 

@@ -41,7 +41,7 @@ public abstract class ViewData {
     final IAddress priFunctionAddr = graphs.getPrimaryGraph().getFunctionAddress();
     final IAddress secFunctionAddr = graphs.getSecondaryGraph().getFunctionAddress();
 
-    String priName = diff.getMetaData().getImageName(ESide.PRIMARY);
+    String priName = diff.getMetaData().getDisplayName(ESide.PRIMARY);
     if (priFunctionAddr != null) {
       final RawFunction function = diff.getFunction(priFunctionAddr, ESide.PRIMARY);
       if (function != null) {
@@ -51,7 +51,7 @@ public abstract class ViewData {
       priName = null;
     }
 
-    String secName = diff.getMetaData().getImageName(ESide.SECONDARY);
+    String secName = diff.getMetaData().getDisplayName(ESide.SECONDARY);
     if (secFunctionAddr != null) {
       final RawFunction function = diff.getFunction(secFunctionAddr, ESide.SECONDARY);
       if (function != null) {

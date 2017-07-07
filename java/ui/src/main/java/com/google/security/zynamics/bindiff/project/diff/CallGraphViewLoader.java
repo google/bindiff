@@ -12,6 +12,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPa
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.builders.RawCombinedCallGraphBuilder;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedCallGraph;
 import com.google.security.zynamics.bindiff.project.userview.CallGraphViewData;
@@ -73,14 +74,15 @@ public class CallGraphViewLoader extends CEndlessHelperThread {
     final GraphsContainer graphs =
         ViewCallGraphBuilder.buildDiffCallgraphs(diff, combinedCallgraph);
 
+    final DiffMetaData meta = diff.getMetaData();
     final CallGraphViewData view =
         new CallGraphViewData(
             primaryCallgraph,
             secondaryCallgraph,
             graphs,
             FlowGraphViewData.getViewName(graphs),
-            diff.getMetaData().getImageName(ESide.PRIMARY),
-            diff.getMetaData().getImageName(ESide.SECONDARY),
+            meta.getDisplayName(ESide.PRIMARY),
+            meta.getDisplayName(ESide.SECONDARY),
             EViewType.FUNCTION_DIFF_VIEW);
 
     diff.getViewManager().addView(view);
