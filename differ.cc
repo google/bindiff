@@ -185,15 +185,15 @@ void Read(const std::string& filename, CallGraph* call_graph,
   enum { kMinFileSize = 8 };
   if (GetFileSize(filename) <= kMinFileSize) {
     // TODO(cblichmann): Make this function return an error instead of throwing.
-    throw std::runtime_error(("file too small: " + filename).c_str());
+    throw std::runtime_error(std::string("file too small: ") + filename);
   }
 
   std::ifstream stream(filename, std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
     // TODO(cblichmann): Make this function return an error instead of throwing.
-    throw std::runtime_error(
-        ("parsing failed for exported file: " + filename).c_str());
+    throw std::runtime_error(std::string("parsing failed for exported file: ") +
+                             filename);
   }
   SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
                        flow_graph_infos, instruction_cache);

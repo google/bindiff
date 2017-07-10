@@ -168,9 +168,9 @@ std::string GetTruncatedFilename(
   assert(one.size() == two.size());
   if (overflow / 2 >= one.size()) {
     throw std::runtime_error(
-        ("Cannot create a valid filename, please choose shorter input names "
-         "or directories! '" +
-         path + part1 + middle + part2 + extension + "'").c_str());
+        std::string("cannot create a valid filename, choose shorter input "
+                    "names or directories: '") +
+        path + part1 + middle + part2 + extension + "'");
   }
   return path + part1.substr(0, one.size() - overflow / 2) + middle +
          part2.substr(0, two.size() - overflow / 2) + extension;
@@ -386,8 +386,8 @@ void CreateIdaScript(const std::string& out_path) {
   std::string path(JoinPath(out_path, "run_ida.idc"));
   std::ofstream file(path);
   if (!file) {
-    throw std::runtime_error(
-        ("could not create IDC script: " + out_path).c_str());
+    throw std::runtime_error(std::string("could not create IDC script: ") +
+                             out_path);
   }
   file << "#include <idc.idc>\n"
        << "static main()\n"
@@ -663,9 +663,9 @@ int main(int argc, char** argv) {
     }
 
     if (!IsDirectory(FLAGS_output_dir.c_str())) {
-      throw std::runtime_error(
-          "output parameter (--output_dir) must be a writable directory: " +
-          FLAGS_output_dir);
+      throw std::runtime_error(std::string("output parameter (--output_dir) "
+                                           "must be a writable directory: ") +
+                               FLAGS_output_dir);
     }
 
     if (FileExists(FLAGS_primary.c_str())) {
