@@ -4,6 +4,7 @@
 #include <signal.h>
 
 #include <cassert>
+#include <cstdio>
 #include <fstream>
 #include <functional>
 #include <iomanip>
@@ -50,19 +51,20 @@ using google::ShowUsageWithFlags;
 
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
-DEFINE_string(primary, "", "Primary input file or path in batch mode");
-DEFINE_string(secondary, "", "Secondary input file (optional)");
-DEFINE_string(output_dir, "", "Output path, defaults to current directory");
-DEFINE_bool(log_format, false, "Write results in log file format");
+DEFINE_bool(nologo, false, "do not display version/copyright information");
+DEFINE_string(primary, "", "primary input file or path in batch mode");
+DEFINE_string(secondary, "", "secondary input file (optional)");
+DEFINE_string(output_dir, "", "output path, defaults to current directory");
+DEFINE_bool(log_format, false, "write results in log file format");
 DEFINE_bool(bin_format, false,
-            "Write results in binary file format that can be loaded by the "
+            "write results in binary file format that can be loaded by the "
             "BinDiff IDA plugin or the GUI");
-DEFINE_bool(md_index, false, "Dump MD indices (will not diff anything)");
+DEFINE_bool(md_index, false, "dump MD indices (will not diff anything)");
 DEFINE_bool(export, false,
-            "Batch export .idb files from input directory to BinExport format");
+            "batch export .idb files from input directory to BinExport format");
 DEFINE_bool(ls, false,
-            "List hash/filenames for all .BinExport files in input directory");
-DEFINE_string(config, "", "Specify config file name");
+            "list hash/filenames for all .BinExport files in input directory");
+DEFINE_string(config, "", "specify config file name");
 
 static const char kBinExportVersion[] = "9";  // Exporter version to use.
 
@@ -71,6 +73,57 @@ volatile bool g_wants_to_quit = false;
 
 typedef std::list<std::pair<std::string, std::string>> TFiles;
 typedef std::set<std::string> TUniqueFiles;
+
+void PrintMessage(StringPiece message) {
+  fwrite(message.data(), 1 /* Size */, message.size(), stdout);
+  fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
+#ifdef GOOGLE
+  // If writing to logfiles is enabled, log the message.
+  LOG_IF(INFO, base::GetFlag(FLAGS_logtostderr)) << message;
+#endif
+}
+
+void PrintErrorMessage(StringPiece message) {
+  fwrite(message.data(), 1 /* Size */, message.size(), stderr);
+  fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
+#ifdef GOOGLE
+  // If writing to logfiles is enabled, log the message.
+  LOG_IF(ERROR, base::GetFlag(FLAGS_logtostderr)) << message;
+#endif
+}
+
+void PrintMessageF(const char* format, ...) {
+#ifndef GOOGLE
+  using std::string;
+#endif
+  va_list ap;
+  va_start(ap, format);
+  string result;
+  StringAppendV(&result, format, ap);
+  va_end(ap);
+  PrintMessage(result);
+}
+
+void PrintErrorMessageF(const char* format, ...) {
+#ifndef GOOGLE
+  using std::string;
+#endif
+  va_list ap;
+  va_start(ap, format);
+  string result;
+  StringAppendV(&result, format, ap);
+  va_end(ap);
+  PrintErrorMessage(result);
+}
+
+#ifndef GOOGLE
+void UnprefixedLogHandler(google::protobuf::LogLevel level,
+                          const char* filename, int line,
+                          const std::string& message) {
+  fwrite(message.data(), 1 /* Size */, message.size(), stdout);
+  fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
+}
+#endif
 
 // This function will try and create a fully specified filename no longer than
 // 250 characters. It'll truncate part1 and part2, leaving all other fragments
@@ -177,26 +230,26 @@ void DifferThread::operator()() {
       // TODO(soerenme): Consider inverted pairs as well, i.e. file1 ==
       //                 last_file2.
       if (last_file1 != file1) {
-        LOG(INFO) << "reading " << file1;
+        PrintMessageF("reading %s", file1.c_str());
         DeleteFlowGraphs(&flow_graphs1);
         FlowGraphInfos infos;
-        Read(JoinPath(path_, file1 + ".BinExport"), &call_graph1,
-             &flow_graphs1, &infos, &instruction_cache);
+        Read(JoinPath(path_, file1 + ".BinExport"), &call_graph1, &flow_graphs1,
+             &infos, &instruction_cache);
       } else {
         ResetMatches(&flow_graphs1);
       }
 
       if (last_file2 != file2) {
-        LOG(INFO) << "reading " << file2;
+        PrintMessageF("reading %s", file2.c_str());
         DeleteFlowGraphs(&flow_graphs2);
         FlowGraphInfos infos;
-        Read(path_ + "/" + file2 + ".BinExport", &call_graph2, &flow_graphs2,
+        Read(JoinPath(path_, file2 + ".BinExport"), &call_graph2, &flow_graphs2,
              &infos, &instruction_cache);
       } else {
         ResetMatches(&flow_graphs2);
       }
 
-      LOG(INFO) << "diffing " << file1 << " vs " << file2;
+      PrintMessageF("diffing %s vs %s", file1.c_str(), file2.c_str());
 
       FixedPoints fixed_points;
       MatchingContext context(call_graph1, call_graph2, flow_graphs1,
@@ -212,41 +265,41 @@ void DifferThread::operator()() {
       Confidences confidences;
       const double confidence = GetConfidence(histogram, &confidences);
 
-      LOG(INFO) << "writing results";
+      PrintMessage("writing results");
       {
         ChainWriter writer;
         if (FLAGS_log_format) {
           writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
-              out_path_ + "/", call_graph1.GetFilename(), "_vs_",
+              out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
               call_graph2.GetFilename(), ".results")));
         }
         if (FLAGS_bin_format || writer.IsEmpty()) {
           writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
-              out_path_ + "/", call_graph1.GetFilename(), "_vs_",
+              out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
               call_graph2.GetFilename(), ".BinDiff")));
         }
 
         writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
 
-        LOG(INFO) << StringPrintf(
-            "%s vs %s ( %.3f sec ) :\tsimilarity:\t%fconfidence:\t%f",
-            file1.c_str(), file2.c_str(), timer.elapsed(), similarity,
-            confidence);
-        for (Counts::const_iterator i = counts.begin(), end = counts.end();
-             i != end; ++i) {
-          LOG(INFO) << "\n\t" << i->first << ":\t" << i->second;
+        PrintMessageF("%s vs %s (%.3f sec) :\tsimilarity:\t%fconfidence:\t%f",
+                      file1.c_str(), file2.c_str(), timer.elapsed(), similarity,
+                      confidence);
+        for (const auto& entry : counts) {
+          PrintMessageF("\n\t%s:\t%s", entry.first.c_str(), entry.second);
         }
       }
 
       last_file1 = file1;
       last_file2 = file2;
     } catch (const std::bad_alloc&) {
-      LOG(INFO) << "Out of memory diffing " << file1 << " vs " << file2;
+      PrintErrorMessageF("out of memory diffing %s vs %s", file1.c_str(),
+                         file2.c_str());
       last_file1.clear();
       last_file2.clear();
     } catch (const std::exception& error) {
-      LOG(INFO) << file1 << " vs " << file2 << " : " << error.what();
+      PrintErrorMessageF("while diffing %s vs %s: %s", file1.c_str(),
+                         file2.c_str(), error.what());
 
       last_file1.clear();
       last_file2.clear();
@@ -280,8 +333,6 @@ class ExporterThread {
 };
 
 void ExporterThread::operator()() {
-  // TODO(cblichmann): Do we want to keep the export functionality in the
-  //                   command-line differ?
   do {
     Timer<> timer;
     std::string file;
@@ -301,7 +352,7 @@ void ExporterThread::operator()() {
     if (!FileExists(in_file)) {
       in_file = JoinPath(in_path_, file + ".i64");
       if (!FileExists(in_file)) {
-        LOG(INFO) << "\"" << in_file << "\" not found";
+        PrintErrorMessageF("file not found: %s", in_file.c_str());
         continue;
       }
       ida64 = true;
@@ -321,13 +372,13 @@ void ExporterThread::operator()() {
 #endif
     args.push_back(in_file);
     if (!SpawnProcess(args, true /* Wait */, &status_message)) {
-      LOG(INFO) << "failed to spawn IDA export process: " << GetLastOsError();
-      LOG(INFO) << status_message;
+      PrintErrorMessageF("failed to spawn IDA export process: %s",
+                         GetLastOsError().c_str());
       return;
     }
 
-    LOG(INFO) << StringPrintf("%.2f\t%" PRIu64 "\t%s", timer.elapsed(),
-                              GetFileSize(in_file), file.c_str());
+    PrintMessageF("%.2f\t%" PRIu64 "\t%s", timer.elapsed(),
+                  GetFileSize(in_file), file.c_str());
   } while (!g_wants_to_quit);
 }
 
@@ -336,7 +387,7 @@ void CreateIdaScript(const std::string& out_path) {
   std::ofstream file(path);
   if (!file) {
     throw std::runtime_error(
-        ("Could not create idc script at \"" + out_path + "\"").c_str());
+        ("could not create IDC script: " + out_path).c_str());
   }
   file << "#include <idc.idc>\n"
        << "static main()\n"
@@ -371,8 +422,9 @@ void ListFiles(const std::string& path) {
     BinExport2 proto;
     if (proto.ParseFromIstream(&file)) {
       const auto& meta_information = proto.meta_information();
-      LOG(INFO) << meta_information.executable_id() << " ("
-                << meta_information.executable_name() << ")";
+      PrintErrorMessageF("%s: %s (%s)", file_path.c_str(),
+                         meta_information.executable_id().c_str(),
+                         meta_information.executable_name().c_str());
       continue;
     }
   }
@@ -396,7 +448,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       if (GetFileSize(file_path) > 0) {
         idb_files.insert(Basename(file_path));
       } else {
-        LOG(INFO) << "Warning: skipping empty file " << file_path;
+        PrintMessageF("warning: skipping empty file %s", file_path.c_str());
       }
     } else if (extension == ".BINEXPORT") {
       diff_files.insert(Basename(file_path));
@@ -458,10 +510,10 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   const auto diff_time = timer.elapsed();
   DeleteIdaScript(out_path);
 
-  LOG(INFO) << StringPrintf(
-      "%" PRIuMAX " files exported in %2f seconds, %" PRIuMAX
-      " pairs diffed in %2f seconds",
-      num_idbs, export_time, num_diffs * (1 - FLAGS_export), diff_time);
+  PrintMessageF("%" PRIuMAX " files exported in %2f seconds, %" PRIuMAX
+                " pairs diffed in %2f seconds",
+                num_idbs, export_time, num_diffs * (1 - FLAGS_export),
+                diff_time);
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
@@ -509,11 +561,10 @@ void SignalHandler(int code) {
 #endif
     case SIGINT:  // Ctrl-C
       if (++signal_count < 3) {
-        LOG(INFO)
-            << "Gracefully shutting down after current operations finish.";
+        PrintErrorMessage("shutting down after current operations finish");
         g_wants_to_quit = true;
       } else {
-        LOG(INFO) << "Forcefully terminating process.";
+        PrintErrorMessage("forcefully terminating process");
         exit(1);
       }
       break;
@@ -553,17 +604,21 @@ int main(int argc, char** argv) {
         "--secondary=/tmp/file2.BinExport \\\n"
         "    --output_dir=/tmp/result";
 #ifdef GOOGLE
-    InitGoogle(usage.c_str(), &argc, &argv, true /* Remove flags */);
+    InitGoogle(usage.c_str(), &argc, &argv, /* remove_flags = */ true);
 #else
     SetUsageMessage(usage);
-    ParseCommandLineFlags(&argc, &argv, true /* Remove flags */);
+    ParseCommandLineFlags(&argc, &argv, /* remove_flags = */ true);
+
+    SetLogHandler(&UnprefixedLogHandler);
 #endif
 
-    LOG(INFO) << kProgramVersion
+    if (!FLAGS_nologo) {
+      PrintMessageF("%s, %s", kProgramVersion,
 #ifdef _DEBUG
-              << ", debug build"
+                    "debug build, "
 #endif
-              << ", (c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.";
+                    "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.");
+    }
 
     const auto user_app_data =
         GetDirectory(PATH_APPDATA, "BinDiff", /* create = */ false) +
@@ -588,15 +643,6 @@ int main(int argc, char** argv) {
       throw std::runtime_error("config file invalid");
     }
 
-#ifndef GOOGLE
-    // Echo original command line to log file, the internal version does this in
-    // InitGoogle().
-    LOG(INFO) << "Command line arguments:";
-    for (int i = 0; i < argc; ++i) {
-      LOG(INFO) << "argv[" << i << "]: '" << *(argv + i) << "'";
-    }
-#endif
-
     Timer<> timer;
     bool done_something = false;
 
@@ -608,7 +654,7 @@ int main(int argc, char** argv) {
     ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
 
     if (FLAGS_primary.empty()) {
-      throw std::runtime_error("Need primary input (--primary)");
+      throw std::runtime_error("need primary input (--primary)");
     }
 
     if (FLAGS_output_dir == current_path /* Defaulted */ &&
@@ -618,9 +664,8 @@ int main(int argc, char** argv) {
 
     if (!IsDirectory(FLAGS_output_dir.c_str())) {
       throw std::runtime_error(
-          "Output parameter (--output_dir) must be a writable directory! "
-          "Supplied value: \"" +
-          FLAGS_output_dir + "\"");
+          "output parameter (--output_dir) must be a writable directory: " +
+          FLAGS_output_dir);
     }
 
     if (FileExists(FLAGS_primary.c_str())) {
@@ -663,8 +708,8 @@ int main(int argc, char** argv) {
                              (!FileExists(FLAGS_secondary.c_str()) &&
                               !IsDirectory(FLAGS_secondary.c_str()))))) {
       throw std::runtime_error(
-          "Invalid inputs. Please make sure --primary and --secondary "
-          "point to valid files/directories.");
+          "invalid inputs, --primary and --secondary must point to valid "
+          "files/directories.");
     }
 
     if (call_graph1.get() && call_graph2.get()) {
@@ -672,11 +717,11 @@ int main(int argc, char** argv) {
       const int vertices1 = num_vertices(call_graph1->GetGraph());
       const int edges2 = num_edges(call_graph2->GetGraph());
       const int vertices2 = num_vertices(call_graph2->GetGraph());
-      LOG(INFO) << "setup: " << timer.elapsed() << " sec. "
-                << call_graph1->GetFilename() << " has " << vertices1
-                << " functions and " << edges1 << " calls. "
-                << call_graph2->GetFilename() << " has " << vertices2
-                << " functions and " << edges2 << " calls.";
+      PrintMessageF("setup: %.2fs sec.", timer.elapsed());
+      PrintMessageF("primary:   %s: %d functions, %d calls",
+                    call_graph1->GetFilename().c_str(), vertices1, edges1);
+      PrintMessageF("secondary: %s: %d functions, %d calls",
+                    call_graph2->GetFilename().c_str(), vertices2, edges2);
       timer.restart();
 
       const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
@@ -696,37 +741,38 @@ int main(int argc, char** argv) {
       const double similarity =
           GetSimilarityScore(*call_graph1, *call_graph2, histogram, counts);
 
-      LOG(INFO) << "matching: " << timer.elapsed() << " sec.";
+      PrintMessageF("matching: %.2f sec.", timer.elapsed());
       timer.restart();
 
-      LOG(INFO) << "matched " << fixed_points.size() << " of "
-                << flow_graphs1.size() << "/" << flow_graphs2.size() << " ("
-                << counts.find("functions primary (non-library)")->second << "/"
-                << counts.find("functions secondary (non-library)")->second
-                << ")";
-      LOG(INFO) << StringPrintf(
-          "call_graph1 MD index %16f\tcall_graph2 MD index %16f",
-          call_graph1->GetMdIndex(), call_graph2->GetMdIndex());
-      LOG(INFO) << StringPrintf("similarity: %5.4f%%\tconfidence: %5.4f%%",
-                                similarity * 100.0, confidence * 100.0);
+      PrintMessageF(
+          "matched: %d of %d/%d (primary/secondary, %d/%d non-library)",
+          fixed_points.size(), flow_graphs1.size(), flow_graphs2.size(),
+          counts.find("functions primary (non-library)")->second,
+          counts.find("functions secondary (non-library)")->second);
+
+      PrintMessageF("call graph MD index: primary   %16f",
+                    call_graph1->GetMdIndex());
+      PrintMessageF("                     secondary %16f",
+                    call_graph2->GetMdIndex());
+      PrintMessageF("similarity: %5.4f%% (confidence: %5.4f%%)",
+                    similarity * 100.0, confidence * 100.0);
 
       ChainWriter writer;
       if (FLAGS_log_format) {
         writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
-            FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
-            call_graph2->GetFilename(), ".results")));
+            FLAGS_output_dir + kPathSeparator, call_graph1->GetFilename(),
+            "_vs_", call_graph2->GetFilename(), ".results")));
       }
       if (FLAGS_bin_format || writer.IsEmpty()) {
         writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
-            FLAGS_output_dir + "/", call_graph1->GetFilename(), "_vs_",
-            call_graph2->GetFilename(), ".BinDiff")));
+            FLAGS_output_dir + kPathSeparator, call_graph1->GetFilename(),
+            "_vs_", call_graph2->GetFilename(), ".BinDiff")));
       }
 
       if (!writer.IsEmpty()) {
         writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
-        LOG(INFO) << StringPrintf("writing results: %.3f sec.",
-                                  timer.elapsed());
+        PrintMessageF("writing results: %.3f sec.", timer.elapsed());
       }
       timer.restart();
       done_something = true;
@@ -736,10 +782,10 @@ int main(int argc, char** argv) {
       ShowUsageWithFlags(argv[0]);
     }
   } catch (const std::exception& error) {
-    LOG(INFO) << "an error occurred: " << error.what();
+    PrintErrorMessageF("error: %s", error.what());
     exit_code = 1;
   } catch (...) {
-    LOG(INFO) << "an unknown error occurred";
+    PrintErrorMessage("error: an unknown error occurred");
     exit_code = 2;
   }
 

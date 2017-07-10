@@ -7,6 +7,7 @@
 #include "base/logging.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
+#include "third_party/zynamics/binexport/filesystem_util.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
@@ -34,8 +35,8 @@ using ::proto2::io::CodedInputStream;
 }  // namespace google
 #else
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include <google/protobuf/io/coded_stream.h>
-#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/coded_stream.h>           // NOLINT
+#include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 #endif
 
 // Return the immediate children of the call graph node denoted by
@@ -177,17 +178,22 @@ void Read(const std::string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
-  LOG(INFO) << "Reading: " << filename;
   call_graph->Reset();
   DeleteFlowGraphs(flow_graphs);
   flow_graph_infos->clear();
 
+  enum { kMinFileSize = 8 };
+  if (GetFileSize(filename) <= kMinFileSize) {
+    // TODO(cblichmann): Make this function return an error instead of throwing.
+    throw std::runtime_error(("file too small: " + filename).c_str());
+  }
+
   std::ifstream stream(filename, std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
-    // TODO(cblichmann): Make this function return an error.
-    LOG(ERROR) << "Parsing failed for exported file: " << filename;
-    return;
+    // TODO(cblichmann): Make this function return an error instead of throwing.
+    throw std::runtime_error(
+        ("parsing failed for exported file: " + filename).c_str());
   }
   SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
                        flow_graph_infos, instruction_cache);
