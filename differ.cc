@@ -20,6 +20,7 @@
 #include "net/proto2/io/public/zero_copy_stream_impl.h"
 #include "net/proto2/util/public/google_file_stream.h"
 #include "strings/case.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "util/gtl/ptr_util.h"
 #include "util/task/canonical_errors.h"
@@ -34,6 +35,7 @@ using ::proto2::io::CodedInputStream;
 }  // namespace protobuf
 }  // namespace google
 #else
+#include "strings/strutil.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include <google/protobuf/io/coded_stream.h>           // NOLINT
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
@@ -185,15 +187,15 @@ void Read(const std::string& filename, CallGraph* call_graph,
   enum { kMinFileSize = 8 };
   if (GetFileSize(filename) <= kMinFileSize) {
     // TODO(cblichmann): Make this function return an error instead of throwing.
-    throw std::runtime_error(std::string("file too small: ") + filename);
+    throw std::runtime_error(StrCat("file too small: ", filename));
   }
 
   std::ifstream stream(filename, std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
     // TODO(cblichmann): Make this function return an error instead of throwing.
-    throw std::runtime_error(std::string("parsing failed for exported file: ") +
-                             filename);
+    throw std::runtime_error(
+        StrCat("parsing failed for exported file: ", filename));
   }
   SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
                        flow_graph_infos, instruction_cache);

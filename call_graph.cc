@@ -103,12 +103,15 @@ void CallGraph::Read(const BinExport2& proto,
   filename_ = filename;
   std::replace(filename_.begin(), filename_.end(), '\\', '/');
 
-  const BinExport2::CallGraph& call_graph(proto.call_graph());
+  const auto& meta = proto.meta_information();
+  exe_hash_ = meta.executable_id();
+  exe_filename_ = meta.executable_name();
+
+  const auto& call_graph = proto.call_graph();
   std::vector<VertexInfo> temp_vertices(call_graph.vertex_size());
   std::vector<Address> temp_addresses(call_graph.vertex_size());
   for (int i = 0; i < call_graph.vertex_size(); ++i) {
-    const BinExport2::CallGraph::Vertex& proto_vertex =
-        call_graph.vertex(i);
+    const auto& proto_vertex = call_graph.vertex(i);
     VertexInfo& vertex = temp_vertices[i];
     vertex.address_ = proto_vertex.address();
     temp_addresses[i] = vertex.address_;
@@ -124,6 +127,7 @@ void CallGraph::Read(const BinExport2& proto,
     }
     if (!(vertex.flags_ & VERTEX_NAME)) {
       // Provide a dummy name for display.
+      // TODO(cblichmann): Use StrCat() and strings::Hex(ZERO_PAD_XX) here.
       std::stringstream name;
       name << "sub_" << std::hex << std::setfill('0') << std::uppercase
            << vertex.address_;

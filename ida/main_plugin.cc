@@ -111,6 +111,14 @@ std::string FindFile(const std::string& path, const std::string& extension) {
   return "";
 }
 
+bool EnsureIdb() {
+  bool result = strlen(database_idb) > 0;
+  if (!result) {
+    info("Please open an IDB first.");
+  }
+  return result;
+}
+
 class ExporterThread {
  public:
   explicit ExporterThread(const std::string& temp_dir,
@@ -183,6 +191,10 @@ class ExporterThread {
 };
 
 bool ExportIdbs() {
+  if (!EnsureIdb()) {
+    return false;
+  }
+
   const std::string temp_dir(GetTempDirectory("BinDiff", /* create = */ true));
 
   const char* secondary_idb = askfile2_c(
@@ -724,14 +736,6 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
       refresh_chooser("Secondary Unmatched");
     }
   }
-}
-
-// Forward Declaration
-void idaapi PluginRun(int /**/);
-
-bool idaapi MenuItemShowMainWindowCallback(void* /* unused */) {
-  PluginRun(0);
-  return true;
 }
 
 bool idaapi MenuItemShowResultsCallback(void* user_data) {
@@ -1336,12 +1340,7 @@ void InitMenus() {
                 "Save ~B~inDiff Results...", "", SETMENU_INS,
                 MenuItemSaveResultsCallback, 0);
 
-  // Adding this item to be able to use the hotkey in every view, not just in
-  // the main assembly view
-  add_menu_item("View/Open subviews/Problems", "BinDiff Main Window", "CTRL-6",
-                SETMENU_APP, MenuItemShowMainWindowCallback, 0);
-
-  add_menu_item("View/Open subviews/BinDiff Main Window",
+  add_menu_item("View/Open subviews/Problems",
                 "BinDiff Matched Functions", "", SETMENU_APP,
                 MenuItemShowResultsCallback,
                 reinterpret_cast<void*>(kResultsShowMatched));
@@ -1443,21 +1442,25 @@ void idaapi PluginRun(int /* arg */) {
       "'Diff Database...' diff the currently open IDB against another one "
       "chosen via a file chooser dialog. Please note that the secondary IDB "
       "file must be readable for the BinDiff plugin, i.e. it must not be "
-      "opened in another instance of IDA."
-      "\n\n"
+      "opened in another instance of IDA.\n"
+      "\n"
       "'Diff Database Filtered...' diff specific address ranges of the "
       "selected databases. You must manually specify a section of the primary "
       "IDB to compare against a section of the secondary IDB. This is useful "
-      "for comparing only the non library parts of two executables."
-      "\n\n"
+      "for comparing only the non library parts of two executables.\n"
+      "\n"
       "'Load Results...' load a previously saved diff result. The primary IDB "
-      "used in that diff must already be open in IDA."
+      "used in that diff must already be open in IDA.\n"
+      "\n",
+      kProgramVersion, "\n",
+      kCopyright, "\n",
       "ENDHELP\n",
-      kProgramVersion,
-      "\n\n"
+      kProgramVersion, "\n",
+      "\n"
       "<~D~iff Database...:B:1:30::>\n"
       "<D~i~ff Database Filtered...:B:1:30::>\n\n"
-      "<L~o~ad Results...:B:1:30::>\n\n");
+      "<L~o~ad Results...:B:1:30::>\n\n"
+      );
 
   static const std::string kDialogResultsAvailable = StrCat(
       "STARTITEM 0\n"
@@ -1467,36 +1470,35 @@ void idaapi PluginRun(int /* arg */) {
       "'Diff Database...' diff the currently open IDB against another one "
       "chosen via a file chooser dialog. Please note that the secondary IDB "
       "file must be readable for the BinDiff plugin, i.e. it must not be "
-      "opened in another instance of IDA."
-      "\n\n"
+      "opened in another instance of IDA.\n"
+      "\n"
       "'Diff Database Filtered...' diff specific address ranges of the "
       "selected databases. You must manually specify a section of the primary "
       "IDB to compare against a section of the secondary IDB. This is useful "
-      "for comparing only the non library parts of two executables."
-      "\n\n"
+      "for comparing only the non library parts of two executables.\n"
+      "\n"
       "'Diff Database Incrementally' keep manually confirmed matches (blue "
       "matches with algorithm = 'manual') in the current result and re-match "
       "all others. Thus allowing a partially automated workflow of "
-      "continuously improving the diff results."
-      "\n\n"
+      "continuously improving the diff results.\n"
+      "\n"
       "'Load Results...' load a previously saved diff result. The primary IDB "
-      "used in that diff must already be open in IDA."
-      "\n\n"
+      "used in that diff must already be open in IDA.\n"
+      "\n"
       "'Save Results...' save the current BinDiff matching to a .BinDiff "
-      "result file."
-      "\n\n"
+      "result file.\n"
+      "\n"
       "'Import Symbols and Comments...' copy function names, symbols and "
       "comments from the secondary IDB into the primary IDB for all matched "
       "functions. It is possible to specify a filter so only data for matches "
       "meeting a certain quality threshold or in a certain address range will "
-      "be ported."
-      "\n\n",
-      kProgramVersion,
-      "\nCopyright (c)2004-2011 zynamics GmbH\n"
-      "\nCopyright (c)2011-2017 Google Inc.\n"
+      "be ported.\n"
+      "\n",
+      kProgramVersion, "\n",
+      kCopyright, "\n",
       "ENDHELP\n",
-      kProgramVersion,
-      "\n\n"
+      kProgramVersion, "\n",
+      "\n"
       "<~D~iff Database...:B:1:30::>\n"
       "<D~i~ff Database Filtered...:B:1:30::>\n"
       "<Diff Database Incrementally:B:1:30::>\n\n"
@@ -1507,6 +1509,10 @@ void idaapi PluginRun(int /* arg */) {
       "<Save Results ~L~og...:B:1:30::>\n"
 #endif
       "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n");
+
+  if (!EnsureIdb()) {
+    return;
+  }
 
   if (g_results) {
     // We may have to unload a previous result if the input IDB has changed in
