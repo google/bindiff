@@ -1,11 +1,14 @@
 bindiff (4.3.0) unstable; urgency=low
 
-  * Support for IDA 6.95
   * Dramatic speed improvements in the core BinDiff engine
   * New Google logo
-  * No OS X support for this version
+  * Using the open source version of BinExport that writes the new BinExport2
+    format, based on Protocol Buffers.
+  * macOS support
+  * New human-readable config file format for the UI
+  * UI change: Switched to left-click drag for the graph views
 
- -- Christian Blichmann <cblichmann@google.com>  Mon, 10 Apr 2017 13:35:24 +0200
+ -- Christian Blichmann <cblichmann@google.com>  Tue, 11 Jul 2017 10:19:06 +0200
 
 bindiff (4.2.0) unstable; urgency=low
 
