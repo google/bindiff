@@ -2,7 +2,6 @@ package com.google.security.zynamics.bindiff.resources;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
-import java.io.File;
 
 /** Application-global constants. */
 public final class Constants {
@@ -31,10 +30,10 @@ public final class Constants {
   public static final String SPLASHSCREEN_IMAGE_PATH = "data/splashscreen/splashscreen.png";
 
   // About, License Help and Support Dialog
-  public static final String MANUAL_FILE = "../doc/index.html".replace('/', File.separatorChar);
+  public static final String MANUAL_URL = "https://www.zynamics.com/bindiff/manual/index.html";
   public static final String COPYRIGHT_TEXT =
       "\nCopyright \u00a92004-2011 zynamics GmbH\nCopyright \u00a92011-2017 Google Inc.\n";
-  public static final String ZYNAMICS_HOME_URL = "http://www.zynamics.com";
+  public static final String ZYNAMICS_HOME_URL = "https://www.zynamics.com";
   public static final String ZYNAMICS_BINDIFF_PRODUCT_SITE_URL =
       "http://www.zynamics.com/bindiff.html";
   public static final String ZYNAMICS_SUPPORT_MAIL_URL = "mailto:zynamics-support@google.com";

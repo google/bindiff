@@ -2,19 +2,15 @@ package com.google.security.zynamics.bindiff.gui.tabpanels;
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.CDialogAboutEx;
-import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.license.UpdateCheckHelper;
-import com.google.security.zynamics.zylib.io.FileUtils;
 import java.awt.Desktop;
 import java.awt.Image;
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -85,7 +81,7 @@ public class TabPanelFunctions {
 
     final String message = Constants.PRODUCT_NAME_VERSION + "\n" + Constants.COPYRIGHT_TEXT;
     final String description =
-        "\nParts of this software were created by third parties and have "
+        "\nParts of this software were created by third parties and may have "
             + "different licensing requirements.\nPlease see the manual file for a complete list.\n";
 
     final Image appImage = BINDIFF_ABOUT_IMAGE.getImage();
@@ -103,17 +99,19 @@ public class TabPanelFunctions {
 
   public void showHelp() {
     try {
-      final String manualPath =
-          FileUtils.findLocalRootPath(TabPanelFunctions.class)
-              + File.separatorChar
-              + Constants.MANUAL_FILE;
-      Desktop.getDesktop().browse(new File(manualPath).getCanonicalFile().toURI());
+      Desktop.getDesktop().browse(new URL(Constants.MANUAL_URL).toURI());
     } catch (final MalformedURLException e) {
       // Should never happen
       assert false : "Malformed URL";
+    } catch (final URISyntaxException e) {
+      // Should never happen
+      assert false : "URL could not be converted to URI";
     } catch (final IOException e) {
-      Logger.logException(e, "Couldn't open help content.");
-      CMessageBox.showError(window, "Couldn't open help content.");
+      JOptionPane.showMessageDialog(
+          window,
+          "Couldn' open URL \"" + Constants.MANUAL_URL + "\"!",
+          Constants.DEFAULT_WINDOW_TITLE,
+          JOptionPane.ERROR_MESSAGE);
     }
   }
 }
