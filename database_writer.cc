@@ -717,8 +717,8 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
       ->Execute()
       .Into(&primary_filename_)
       .Into(&secondary_filename_)
-      .Into(&confidence_)
-      .Into(&similarity_);
+      .Into(&similarity_)
+      .Into(&confidence_);
 
   {  // function matches
     SqliteStatement statement(&database_,
