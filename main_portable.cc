@@ -75,7 +75,7 @@ typedef std::list<std::pair<std::string, std::string>> TFiles;
 typedef std::set<std::string> TUniqueFiles;
 
 void PrintMessage(StringPiece message) {
-  fwrite(message.data(), 1 /* Size */, message.size(), stdout);
+  fwrite(message.data(), 1 /* Size */, message.ssize(), stdout);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
 #ifdef GOOGLE
   // If writing to logfiles is enabled, log the message.
@@ -84,7 +84,7 @@ void PrintMessage(StringPiece message) {
 }
 
 void PrintErrorMessage(StringPiece message) {
-  fwrite(message.data(), 1 /* Size */, message.size(), stderr);
+  fwrite(message.data(), 1 /* Size */, message.ssize(), stderr);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
 #ifdef GOOGLE
   // If writing to logfiles is enabled, log the message.
