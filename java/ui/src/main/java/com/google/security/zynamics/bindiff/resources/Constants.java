@@ -38,8 +38,6 @@ public final class Constants {
       "http://www.zynamics.com/bindiff.html";
   public static final String ZYNAMICS_SUPPORT_MAIL_URL = "mailto:zynamics-support@google.com";
   public static final String BUG_REPORT_URL = "https://bugs.zynamics.com/BinDiff";
-  public static final String LICENSE_FILENAME = "zynamics BinDiff License Key.txt";
-  public static final int SUPPORT_EXPIRY_REMINDER_THRESHOLD_IN_DAYS = 45;
 
   // File Extensions
   public static final String BINDIFF_WORKSPACEFILE_EXTENSION = "BinDiffWorkspace";
@@ -53,7 +51,6 @@ public final class Constants {
   public static final String BINDIFF_ENGINE_EXECUTABLE;
 
   // IDA and IDA Plugins
-  public static final String IDA_EXPORTER_PLUGIN_NAME = "zynamics_binexport_9";
   public static final String IDA_EXPORTER_IDC_COMMAND = "BinExport2Diff9";
   public static final String IDA_EXPORT_SCRIPT_NAME = "export.idc";
 
@@ -68,7 +65,7 @@ public final class Constants {
 
   static {
     if (SystemHelpers.isRunningWindows()) {
-      BINDIFF_ENGINE_EXECUTABLE = "differ64.exe";
+      BINDIFF_ENGINE_EXECUTABLE = "differ.exe";
     } else {
       // Linux and OS X use "differ"
       BINDIFF_ENGINE_EXECUTABLE = "differ";
