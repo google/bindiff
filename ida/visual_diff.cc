@@ -219,9 +219,6 @@ void DoStartGui(const std::string& gui_dir) {
     StrAppend(&java_exe, kPathSeparator, "javaw.exe");
     argv.push_back(java_exe);
 #else
-    // TODO(cblichmann): Check if we need to find the real binary path by
-    //                   using readlink(). On some machines that seems to be
-    //                   necessary to be able to start the Java binary.
     argv.push_back("java");
 #endif
   }
@@ -230,13 +227,11 @@ void DoStartGui(const std::string& gui_dir) {
   argv.push_back("-Xdock:name=BinDiff");
 #endif
 
-  // Read default max heap size from configuration.
+  // Set max heap size to 75% of available physical memory if unset.
+  // Note: When using 32-bit Java on a 64-bit machine with more than 4GiB of
+  //       RAM, the calculated value will be too large. In that case, we simply
+  //       try again without setting any heap size.
   int config_max_heap_mb(g_config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1));
-
-  // Set max heap size to 75% of available physical memory if unset. Note, when
-  // using 32-bit Java on a 64-bit machine with more than 4GiB of RAM, the
-  // calculated value will be too large. In this case, we'll simply try again
-  // without setting any max heap size.
   uint64_t max_heap_mb(
       config_max_heap_mb > 0
           ? config_max_heap_mb
@@ -246,24 +241,28 @@ void DoStartGui(const std::string& gui_dir) {
   argv.push_back("-Xmx" + std::to_string(max_heap_mb) + "m");
 
   argv.push_back("-jar");
-  std::string jar_file(JoinPath(gui_dir, "bin", kGuiJarName));
+  auto jar_file = JoinPath(gui_dir, "bin", kGuiJarName);
   if (!FileExists(jar_file)) {
-    throw std::runtime_error(
-        StrCat("Cannot launch BinDiff user interface (JAR file '", jar_file,
-               "' missing).")
-            .c_str());
+    // Try again without the "bin" dir (b/63617055).
+    // TODO(cblichmann): We should instead make the JAR file configurable.
+    jar_file = JoinPath(gui_dir, kGuiJarName);
+    if (!FileExists(jar_file)) {
+      throw std::runtime_error(
+          StrCat("Cannot launch BinDiff user interface. Missing JAR file: ",
+                 jar_file));
+    }
   }
   argv.push_back(jar_file);
 
-  std::string status_message;
+  std::string status_message("unknown");
   if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
     // Try again without the max heap size argument.
     argv.erase(argv.begin() + max_heap_index - 1);
 
     if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
-      throw std::runtime_error(
-          ("Cannot launch BinDiff user interface (process creation failed). " +
-           status_message).c_str());
+      throw std::runtime_error(StrCat(
+          "Cannot launch BinDiff user interface. Process creation failed: ",
+          status_message));
     }
   }
 }
