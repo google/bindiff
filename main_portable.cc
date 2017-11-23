@@ -21,8 +21,6 @@
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
 #include "third_party/absl/strings/case.h"
-
-using strings::ToUpper;
 #else
 #include <gflags/gflags.h>
 #include "strings/strutil.h"
@@ -66,7 +64,7 @@ DEFINE_bool(ls, false,
             "list hash/filenames for all .BinExport files in input directory");
 DEFINE_string(config, "", "specify config file name");
 
-static const char kBinExportVersion[] = "9";  // Exporter version to use.
+static const char kBinExportVersion[] = "10";  // Exporter version to use.
 
 std::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
@@ -424,7 +422,7 @@ void ListFiles(const std::string& path) {
     if (IsDirectory(file_path)) {
       continue;
     }
-    const auto extension(ToUpper(GetFileExtension(file_path)));
+    const auto extension = strings::ToUpper(GetFileExtension(file_path));
     if (extension != ".BINEXPORT") {
       continue;
     }
@@ -453,7 +451,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       continue;
     }
     // Export all idbs in directory.
-    const auto extension(ToUpper(GetFileExtension(file_path)));
+    const auto extension = strings::ToUpper(GetFileExtension(file_path));
     if (extension == ".IDB" || extension == ".I64") {
       if (GetFileSize(file_path) > 0) {
         idb_files.insert(Basename(file_path));
@@ -548,7 +546,7 @@ void BatchDumpMdIndices(const std::string& path) {
     if (IsDirectory(file_path)) {
       continue;
     }
-    auto extension(ToUpper(GetFileExtension(file_path)));
+    auto extension = strings::ToUpper(GetFileExtension(file_path));
     if (extension != ".CALL_GRAPH") {
       continue;
     }
