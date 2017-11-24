@@ -68,7 +68,6 @@ configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 # Interface library with include paths used by BinDiff
 add_library(bindiff_base INTERFACE)
 target_include_directories(bindiff_base INTERFACE
-  ${PROJECT_SOURCE_DIR}
   ${BinExport_DIR}/stubs  # Use BinExport infrastructure
   ${PROJECT_BINARY_DIR}/src_include
   ${PROJECT_BINARY_DIR}/gen_include
@@ -78,6 +77,14 @@ target_include_directories(bindiff_base INTERFACE
 )
 target_link_libraries(bindiff_base INTERFACE
   ${Protobuf_LIBRARIES}  # Same as protobuf::libprotobuf
+)
+
+# Interface library for tests
+add_library(bindiff_tests_base INTERFACE)
+target_link_libraries(bindiff_tests_base INTERFACE
+  bindiff_base
+  GTest::GTest
+  GTest::Main
 )
 
 protobuf_generate_cpp(binexport2_proto binexport2_proto_h
@@ -109,9 +116,8 @@ target_link_libraries(xmlconfig binexport_shared
 
 add_executable(xmlconfig_test xmlconfig_test.cc)
 target_link_libraries(xmlconfig_test
-  bindiff_base
+  bindiff_tests_base
   xmlconfig
-  ${GTEST_BOTH_LIBRARIES}
 )
 add_test(AllTestsInXmlConfig xmlconfig_test)
 
