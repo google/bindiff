@@ -5,10 +5,8 @@
 #include <iomanip>
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
-#ifndef GOOGLE  // MOE:strip_line
-#include "strings/strutil.h"
-#endif  // MOE:strip_line
+#include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
 
@@ -127,11 +125,9 @@ void CallGraph::Read(const BinExport2& proto,
     }
     if (!(vertex.flags_ & VERTEX_NAME)) {
       // Provide a dummy name for display.
-      // TODO(cblichmann): Use StrCat() and strings::Hex(ZERO_PAD_XX) here.
-      std::stringstream name;
-      name << "sub_" << std::hex << std::setfill('0') << std::uppercase
-           << vertex.address_;
-      vertex.name_ = name.str();
+      vertex.name_ =
+          absl::StrCat("sub_", absl::AsciiStrToUpper(absl::StrCat(absl::Hex(
+                                   vertex.address_, absl::kZeroPad8))));
     }
 
     if (proto_vertex.type() ==
@@ -213,8 +209,9 @@ void CallGraph::DetachFlowGraph(FlowGraph* flow_graph) {
   auto entry_point_address = flow_graph->GetEntryPointAddress();
   auto vertex = GetVertex(entry_point_address);
   if (vertex == kInvalidVertex) {
-    LOG(INFO) << "DetachFlowGraph: coudn't find call graph node for flow graph "
-              << StringPrintf("%08" PRIx64, entry_point_address);
+    LOG(INFO) << absl::StrCat(
+        "DetachFlowGraph: coudn't find call graph node for flow graph ",
+        absl::Hex(entry_point_address, absl::kZeroPad8));
   } else {
     graph_[vertex].flow_graph_ = nullptr;
   }

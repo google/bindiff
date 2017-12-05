@@ -4,9 +4,8 @@
 #include <sstream>
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
-#ifdef GOOGLE
 #include "third_party/absl/strings/str_cat.h"
+#ifdef GOOGLE
 #include "third_party/boost/allowed/graph/breadth_first_search.hpp"
 #include "third_party/boost/allowed/graph/dominator_tree.hpp"
 #include "third_party/boost/allowed/graph/iteration_macros.hpp"
@@ -14,7 +13,6 @@
 #include <boost/graph/breadth_first_search.hpp>  // NOLINT
 #include <boost/graph/dominator_tree.hpp>        // NOLINT
 #include <boost/graph/iteration_macros.hpp>      // NOLINT
-#include "strings/strutil.h"
 #endif  // GOOGLE
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comments.h"
@@ -116,8 +114,8 @@ FlowGraph::Vertex FindVertex(const std::vector<Address>& addresses,
                              Address address) {
   auto it = std::lower_bound(addresses.begin(), addresses.end(), address);
   if (it == addresses.end() || *it != address) {
-    LOG(ERROR) << StrCat("Could not find basic block: ",
-                         strings::Hex(address, strings::ZERO_PAD_8));
+    LOG(ERROR) << absl::StrCat("Could not find basic block: ",
+                               absl::Hex(address, absl::kZeroPad8));
     it = addresses.begin();
   }
   return FlowGraph::Vertex(std::distance(addresses.begin(), it));
@@ -314,10 +312,11 @@ void FlowGraph::Read(const BinExport2& proto,
   if (instructions_.size() >= kMaxFunctionInstructions ||
       edges.size() >= kMaxFunctionEdges ||
       temp_addresses.size() >= kMaxFunctionBasicBlocks) {
-    LOG(WARNING) << StringPrintf(
-        "Function %08X is excessively large: %zu basic blocks, %zu edges, %zu "
-        "instructions. Discarding.", entry_point_address_,
-        temp_addresses.size(), edges.size(), instructions_.size());
+    LOG(WARNING) << absl::StrCat(
+        "Function ", absl::Hex(entry_point_address_, absl::kZeroPad8),
+        " is excessively large: ", temp_addresses.size(), " basic blocks, ",
+        edges.size(), " edges, ", instructions_.size(),
+        " instructions. Discarding.");
   } else {
     Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                      edges.end(), edge_properties.begin(),

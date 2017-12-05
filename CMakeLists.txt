@@ -80,6 +80,7 @@ add_library(binexport_shared STATIC
 )
 target_link_libraries(binexport_shared
   bindiff_base
+  absl::strings
   OpenSSL::SSL
 )
 if(WIN32)
@@ -139,6 +140,7 @@ add_library(bindiff_shared STATIC
   writer.h
 )
 target_link_libraries(bindiff_shared
+  absl::strings
   binexport_shared
   sqlite
   xmlconfig)
@@ -206,6 +208,7 @@ install(TARGETS ${bindiff_plugin_name}${_plx}
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
   bindiff_shared
+  absl::time
   gflags
 )
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)

@@ -20,10 +20,8 @@
 #ifdef GOOGLE
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
-#include "third_party/absl/strings/case.h"
 #else
 #include <gflags/gflags.h>
-#include "strings/strutil.h"
 
 using google::ParseCommandLineFlags;
 using google::SET_FLAGS_DEFAULT;
@@ -32,7 +30,9 @@ using google::SetUsageMessage;
 using google::ShowUsageWithFlags;
 #endif  // GOOGLE
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -46,6 +46,10 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/timer.h"
+
+#ifndef GOOGLE
+using std::string;
+#endif
 
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
@@ -69,15 +73,11 @@ static const char kBinExportVersion[] = "10";  // Exporter version to use.
 std::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
 
-typedef std::list<std::pair<std::string, std::string>> TFiles;
-typedef std::set<std::string> TUniqueFiles;
+typedef std::list<std::pair<string, string>> TFiles;
+typedef std::set<string> TUniqueFiles;
 
-void PrintMessage(StringPiece message) {
-#ifdef GOOGLE
-  auto size = message.ssize();
-#else
+void PrintMessage(absl::string_view message) {
   auto size = message.size();
-#endif
   fwrite(message.data(), 1 /* Size */, size, stdout);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
 #ifdef GOOGLE
@@ -86,12 +86,8 @@ void PrintMessage(StringPiece message) {
 #endif
 }
 
-void PrintErrorMessage(StringPiece message) {
-#ifdef GOOGLE
-  auto size = message.ssize();
-#else
+void PrintErrorMessage(absl::string_view message) {
   auto size = message.size();
-#endif
   fwrite(message.data(), 1 /* Size */, size, stderr);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
 #ifdef GOOGLE
@@ -100,34 +96,10 @@ void PrintErrorMessage(StringPiece message) {
 #endif
 }
 
-void PrintMessageF(const char* format, ...) {
-#ifndef GOOGLE
-  using std::string;
-#endif
-  va_list ap;
-  va_start(ap, format);
-  string result;
-  StringAppendV(&result, format, ap);
-  va_end(ap);
-  PrintMessage(result);
-}
-
-void PrintErrorMessageF(const char* format, ...) {
-#ifndef GOOGLE
-  using std::string;
-#endif
-  va_list ap;
-  va_start(ap, format);
-  string result;
-  StringAppendV(&result, format, ap);
-  va_end(ap);
-  PrintErrorMessage(result);
-}
-
 #ifndef GOOGLE
 void UnprefixedLogHandler(google::protobuf::LogLevel level,
                           const char* filename, int line,
-                          const std::string& message) {
+                          const string& message) {
   fwrite(message.data(), 1 /* Size */, message.size(), stdout);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
 }
@@ -137,26 +109,24 @@ void UnprefixedLogHandler(google::protobuf::LogLevel level,
 // 250 characters. It'll truncate part1 and part2, leaving all other fragments
 // as is. If it is not possible to get a short enough name it'll throw an
 // exception.
-std::string GetTruncatedFilename(
-    const std::string& path /* Must include trailing slash */,
-    const std::string& part1 /* Potentially truncated */,
-    const std::string& middle,
-    const std::string& part2 /* Potentially truncated */,
-    const std::string& extension) {
+string GetTruncatedFilename(
+    const string& path /* Must include trailing slash */,
+    const string& part1 /* Potentially truncated */, const string& middle,
+    const string& part2 /* Potentially truncated */, const string& extension) {
   enum { kMaxFilename = 250 };
 
-  const std::string::size_type length = path.size() + part1.size() +
+  const string::size_type length = path.size() + part1.size() +
                                         middle.size() + part2.size() +
                                         extension.size();
   if (length <= kMaxFilename) {
     return path + part1 + middle + part2 + extension;
   }
 
-  std::string::size_type overflow = length - kMaxFilename;
+  string::size_type overflow = length - kMaxFilename;
 
   // First, shorten the longer of the two strings.
-  std::string one(part1);
-  std::string two(part2);
+  string one(part1);
+  string two(part2);
   if (part1.size() > part2.size()) {
     one = part1.substr(
         0, std::max(part2.size(),
@@ -176,7 +146,7 @@ std::string GetTruncatedFilename(
   assert(one.size() == two.size());
   if (overflow / 2 >= one.size()) {
     throw std::runtime_error(
-        std::string("cannot create a valid filename, choose shorter input "
+        string("cannot create a valid filename, choose shorter input "
                     "names or directories: '") +
         path + part1 + middle + part2 + extension + "'");
   }
@@ -186,17 +156,17 @@ std::string GetTruncatedFilename(
 
 class DifferThread {
  public:
-  explicit DifferThread(const std::string& path, const std::string& out_path,
+  explicit DifferThread(const string& path, const string& out_path,
                         TFiles* files);  // Not owned.
   void operator()();
 
  private:
   TFiles* file_queue_;
-  std::string path_;
-  std::string out_path_;
+  string path_;
+  string out_path_;
 };
 
-DifferThread::DifferThread(const std::string& path, const std::string& out_path,
+DifferThread::DifferThread(const string& path, const string& out_path,
                            TFiles* files)
     : file_queue_(files), path_(path), out_path_(out_path) {}
 
@@ -210,12 +180,12 @@ void DifferThread::operator()() {
   FlowGraphs flow_graphs2;
   CallGraph call_graph1;
   CallGraph call_graph2;
-  std::string last_file1;
-  std::string last_file2;
+  string last_file1;
+  string last_file2;
   ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
   do {
-    std::string file1;
-    std::string file2;
+    string file1;
+    string file2;
     try {
       Timer<> timer;
       {
@@ -238,7 +208,7 @@ void DifferThread::operator()() {
       // TODO(soerenme): Consider inverted pairs as well, i.e. file1 ==
       //                 last_file2.
       if (last_file1 != file1) {
-        PrintMessageF("reading %s", file1.c_str());
+        PrintMessage(absl::StrCat("reading ", file1));
         DeleteFlowGraphs(&flow_graphs1);
         FlowGraphInfos infos;
         Read(JoinPath(path_, file1 + ".BinExport"), &call_graph1, &flow_graphs1,
@@ -248,7 +218,7 @@ void DifferThread::operator()() {
       }
 
       if (last_file2 != file2) {
-        PrintMessageF("reading %s", file2.c_str());
+        PrintMessage(absl::StrCat("reading ", file2));
         DeleteFlowGraphs(&flow_graphs2);
         FlowGraphInfos infos;
         Read(JoinPath(path_, file2 + ".BinExport"), &call_graph2, &flow_graphs2,
@@ -257,7 +227,7 @@ void DifferThread::operator()() {
         ResetMatches(&flow_graphs2);
       }
 
-      PrintMessageF("diffing %s vs %s", file1.c_str(), file2.c_str());
+      PrintMessage(absl::StrCat("diffing ", file1, " vs ", file2));
 
       FixedPoints fixed_points;
       MatchingContext context(call_graph1, call_graph2, flow_graphs1,
@@ -290,24 +260,25 @@ void DifferThread::operator()() {
         writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
 
-        PrintMessageF("%s vs %s (%.3f sec) :\tsimilarity:\t%fconfidence:\t%f",
-                      file1.c_str(), file2.c_str(), timer.elapsed(), similarity,
-                      confidence);
+        PrintMessage(absl::StrCat(
+            file1, " vs ", file2, " (",
+            absl::FormatDuration(absl::Seconds(timer.elapsed())),
+            "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence));
         for (const auto& entry : counts) {
-          PrintMessageF("\n\t%s:\t%s", entry.first.c_str(), entry.second);
+          PrintMessage(absl::StrCat("\n\t", entry.first, ":\t", entry.second));
         }
       }
 
       last_file1 = file1;
       last_file2 = file2;
     } catch (const std::bad_alloc&) {
-      PrintErrorMessageF("out of memory diffing %s vs %s", file1.c_str(),
-                         file2.c_str());
+      PrintErrorMessage(
+          absl::StrCat("out of memory diffing ", file1, " vs ", file2));
       last_file1.clear();
       last_file2.clear();
     } catch (const std::exception& error) {
-      PrintErrorMessageF("while diffing %s vs %s: %s", file1.c_str(),
-                         file2.c_str(), error.what());
+      PrintErrorMessage(absl::StrCat("while diffing ", file1, " vs ", file2,
+                                     ": ", error.what()));
 
       last_file1.clear();
       last_file2.clear();
@@ -317,11 +288,11 @@ void DifferThread::operator()() {
 
 class ExporterThread {
  public:
-  explicit ExporterThread(const std::string& in_path,
-                          const std::string& out_path,
-                          const std::string& ida_dir,
-                          const std::string& ida_exe,
-                          const std::string& ida_exe64, TUniqueFiles* files)
+  explicit ExporterThread(const string& in_path,
+                          const string& out_path,
+                          const string& ida_dir,
+                          const string& ida_exe,
+                          const string& ida_exe64, TUniqueFiles* files)
       : files_(files),
         in_path_(in_path),
         out_path_(out_path),
@@ -333,17 +304,17 @@ class ExporterThread {
 
  private:
   TUniqueFiles* files_;
-  std::string in_path_;
-  std::string out_path_;
-  std::string ida_dir_;
-  std::string ida_exe_;
-  std::string ida_exe64_;
+  string in_path_;
+  string out_path_;
+  string ida_dir_;
+  string ida_exe_;
+  string ida_exe64_;
 };
 
 void ExporterThread::operator()() {
   do {
     Timer<> timer;
-    std::string file;
+    string file;
     {
       std::lock_guard<std::mutex> lock(g_queue_mutex);
       if (files_->empty()) {
@@ -360,7 +331,7 @@ void ExporterThread::operator()() {
     if (!FileExists(in_file)) {
       in_file = JoinPath(in_path_, file + ".i64");
       if (!FileExists(in_file)) {
-        PrintErrorMessageF("file not found: %s", in_file.c_str());
+        PrintErrorMessage(absl::StrCat("file not found: ", in_file));
         continue;
       }
       ida64 = true;
@@ -368,8 +339,8 @@ void ExporterThread::operator()() {
 
     // TODO(cblichmann): Bug: If outpath is a relative path like "." IDA won't
     //                   work. We need to fully expand it first.
-    std::string status_message;
-    std::vector<std::string> args;
+    string status_message;
+    std::vector<string> args;
     args.push_back(JoinPath(ida_dir_, !ida64 ? ida_exe_ : ida_exe64_));
     args.push_back("-A");
     args.push_back("-OExporterModule:" + out_path_);
@@ -380,40 +351,41 @@ void ExporterThread::operator()() {
 #endif
     args.push_back(in_file);
     if (!SpawnProcess(args, true /* Wait */, &status_message)) {
-      PrintErrorMessageF("failed to spawn IDA export process: %s",
-                         GetLastOsError().c_str());
+      PrintErrorMessage(absl::StrCat("failed to spawn IDA export process: ",
+                                     GetLastOsError()));
       return;
     }
 
-    PrintMessageF("%.2f\t%" PRIu64 "\t%s", timer.elapsed(),
-                  GetFileSize(in_file), file.c_str());
+    PrintMessage(
+        absl::StrCat(absl::FormatDuration(absl::Seconds(timer.elapsed())), "\t",
+                     GetFileSize(in_file), "\t", file));
   } while (!g_wants_to_quit);
 }
 
-void CreateIdaScript(const std::string& out_path) {
-  std::string path(JoinPath(out_path, "run_ida.idc"));
+void CreateIdaScript(const string& out_path) {
+  string path(JoinPath(out_path, "run_ida.idc"));
   std::ofstream file(path);
   if (!file) {
-    throw std::runtime_error(std::string("could not create IDC script: ") +
-                             out_path);
+    throw std::runtime_error(
+        absl::StrCat("could not create IDC script: ", out_path));
   }
   file << "#include <idc.idc>\n"
        << "static main()\n"
        << "{\n"
        << "\tBatch(0);\n"
        << "\tWait();\n"
-       << "\tExit( 1 - RunPlugin(\"zynamics_binexport_" << kBinExportVersion
-       << "\", 2 ));\n"
+       << "\tExit(1 - RunPlugin(\"binexport" << kBinExportVersion
+       << "\", 2));\n"
        << "}\n";
 }
 
-void DeleteIdaScript(const std::string& out_path) {
-  std::string path(JoinPath(out_path, "run_ida.idc"));
+void DeleteIdaScript(const string& out_path) {
+  string path(JoinPath(out_path, "run_ida.idc"));
   std::remove(path.c_str());
 }
 
-void ListFiles(const std::string& path) {
-  std::vector<std::string> entries;
+void ListFiles(const string& path) {
+  std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
 
   TUniqueFiles files;
@@ -422,7 +394,7 @@ void ListFiles(const std::string& path) {
     if (IsDirectory(file_path)) {
       continue;
     }
-    const auto extension = strings::ToUpper(GetFileExtension(file_path));
+    const auto extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
     if (extension != ".BINEXPORT") {
       continue;
     }
@@ -430,18 +402,18 @@ void ListFiles(const std::string& path) {
     BinExport2 proto;
     if (proto.ParseFromIstream(&file)) {
       const auto& meta_information = proto.meta_information();
-      PrintErrorMessageF("%s: %s (%s)", file_path.c_str(),
-                         meta_information.executable_id().c_str(),
-                         meta_information.executable_name().c_str());
+      PrintErrorMessage(absl::StrCat(file_path, ": ",
+                                     meta_information.executable_id(), " (",
+                                     meta_information.executable_name(), ")"));
       continue;
     }
   }
 }
 
-void BatchDiff(const std::string& path, const std::string& reference_file,
-               const std::string& out_path) {
+void BatchDiff(const string& path, const string& reference_file,
+               const string& out_path) {
   // Collect idb files to diff.
-  std::vector<std::string> entries;
+  std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
   TUniqueFiles idb_files;
   TUniqueFiles diff_files;
@@ -451,12 +423,12 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       continue;
     }
     // Export all idbs in directory.
-    const auto extension = strings::ToUpper(GetFileExtension(file_path));
+    const auto extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
     if (extension == ".IDB" || extension == ".I64") {
       if (GetFileSize(file_path) > 0) {
         idb_files.insert(Basename(file_path));
       } else {
-        PrintMessageF("warning: skipping empty file %s", file_path.c_str());
+        PrintMessage(absl::StrCat("warning: skipping empty file ", file_path));
       }
     } else if (extension == ".BINEXPORT") {
       diff_files.insert(Basename(file_path));
@@ -483,11 +455,11 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   auto config(XmlConfig::LoadFromFile(XmlConfig::GetDefaultFilename()));
   const unsigned num_threads =
       config->ReadInt("/BinDiff/Threads/@use", num_hardware_threads);
-  const std::string ida_dir =
+  const string ida_dir =
       config->ReadString("/BinDiff/Ida/@directory", "");
-  const std::string ida_exe =
+  const string ida_exe =
       config->ReadString("/BinDiff/Ida/@executable", "");
-  const std::string ida_exe64 =
+  const string ida_exe64 =
       config->ReadString("/BinDiff/Ida/@executable64", "");
   Timer<> timer;
   {  // Export
@@ -518,10 +490,11 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   const auto diff_time = timer.elapsed();
   DeleteIdaScript(out_path);
 
-  PrintMessageF("%" PRIuMAX " files exported in %2f seconds, %" PRIuMAX
-                " pairs diffed in %2f seconds",
-                num_idbs, export_time, num_diffs * (1 - FLAGS_export),
-                diff_time);
+  PrintMessage(absl::StrCat(num_idbs, " files exported in ",
+                            absl::FormatDuration(absl::Seconds(export_time)),
+                            ", ", num_diffs * (1 - FLAGS_export),
+                            " pairs diffed in ",
+                            absl::FormatDuration(absl::Seconds(diff_time))));
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
@@ -538,15 +511,15 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
   std::cout << std::endl;
 }
 
-void BatchDumpMdIndices(const std::string& path) {
-  std::vector<std::string> entries;
+void BatchDumpMdIndices(const string& path) {
+  std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
   for (const auto& entry : entries) {
     auto file_path(JoinPath(path, entry));
     if (IsDirectory(file_path)) {
       continue;
     }
-    auto extension = strings::ToUpper(GetFileExtension(file_path));
+    auto extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
     if (extension != ".CALL_GRAPH") {
       continue;
     }
@@ -585,14 +558,14 @@ int main(int argc, char** argv) {
 #endif
   signal(SIGINT, SignalHandler);
 
-  const std::string current_path(GetCurrentDirectory());
+  const string current_path(GetCurrentDirectory());
   SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
                                SET_FLAGS_DEFAULT);
 
   int exit_code = 0;
   try {
-    std::string binary_name(Basename(argv[0]));
-    std::string usage(
+    string binary_name(Basename(argv[0]));
+    string usage(
         "Finds similarities in binary code.\n"
         "Usage:\n");
     usage +=
@@ -621,11 +594,13 @@ int main(int argc, char** argv) {
 #endif
 
     if (!FLAGS_nologo) {
-      PrintMessageF("%s, %s", kProgramVersion,
+      PrintMessage(
+          absl::StrCat(kProgramVersion,
+                       ", "
 #ifdef _DEBUG
-                    "debug build, "
+                       "debug build, "
 #endif
-                    "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.");
+                       "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc."));
     }
 
     const auto user_app_data =
@@ -671,9 +646,9 @@ int main(int argc, char** argv) {
     }
 
     if (!IsDirectory(FLAGS_output_dir.c_str())) {
-      throw std::runtime_error(std::string("output parameter (--output_dir) "
-                                           "must be a writable directory: ") +
-                               FLAGS_output_dir);
+      throw std::runtime_error(absl::StrCat(
+          "output parameter (--output_dir) must be a writable directory: ",
+          FLAGS_output_dir));
     }
 
     if (FileExists(FLAGS_primary.c_str())) {
@@ -725,11 +700,12 @@ int main(int argc, char** argv) {
       const int vertices1 = num_vertices(call_graph1->GetGraph());
       const int edges2 = num_edges(call_graph2->GetGraph());
       const int vertices2 = num_vertices(call_graph2->GetGraph());
-      PrintMessageF("setup: %.2fs sec.", timer.elapsed());
-      PrintMessageF("primary:   %s: %d functions, %d calls",
-                    call_graph1->GetFilename().c_str(), vertices1, edges1);
-      PrintMessageF("secondary: %s: %d functions, %d calls",
-                    call_graph2->GetFilename().c_str(), vertices2, edges2);
+      PrintMessage(absl::StrCat(
+          "setup: ", absl::FormatDuration(absl::Seconds(timer.elapsed()))));
+      PrintMessage(absl::StrCat("primary:   ", call_graph1->GetFilename(), ": ",
+                                vertices1, " functions, ", edges1, " calls"));
+      PrintMessage(absl::StrCat("secondary: ", call_graph2->GetFilename(), ": ",
+                                vertices2, " functions, ", edges2, " calls"));
       timer.restart();
 
       const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
@@ -749,21 +725,25 @@ int main(int argc, char** argv) {
       const double similarity =
           GetSimilarityScore(*call_graph1, *call_graph2, histogram, counts);
 
-      PrintMessageF("matching: %.2f sec.", timer.elapsed());
+      PrintMessage(absl::StrCat(
+          "matching: ", absl::FormatDuration(absl::Seconds(timer.elapsed()))));
       timer.restart();
 
-      PrintMessageF(
+      PrintMessage(absl::StrCat(
           "matched: %d of %d/%d (primary/secondary, %d/%d non-library)",
-          fixed_points.size(), flow_graphs1.size(), flow_graphs2.size(),
-          counts.find("functions primary (non-library)")->second,
-          counts.find("functions secondary (non-library)")->second);
 
-      PrintMessageF("call graph MD index: primary   %16f",
-                    call_graph1->GetMdIndex());
-      PrintMessageF("                     secondary %16f",
-                    call_graph2->GetMdIndex());
-      PrintMessageF("similarity: %5.4f%% (confidence: %5.4f%%)",
-                    similarity * 100.0, confidence * 100.0);
+          "matched: ", fixed_points.size(), " of ", flow_graphs1.size(), "/",
+          flow_graphs2.size(), " (primary/secondary, ",
+          counts.find("functions primary (non-library)")->second, "/",
+          counts.find("functions secondary (non-library)")->second,
+          " non-library)"));
+
+      PrintMessage(absl::StrCat("call graph MD index: primary   ",
+                                call_graph1->GetMdIndex()));
+      PrintMessage(absl::StrCat("                     secondary ",
+                                call_graph2->GetMdIndex()));
+      PrintMessage(absl::StrCat("similarity: ", similarity * 100,
+                                "% (confidence: ", confidence * 100, "%)"));
 
       ChainWriter writer;
       if (FLAGS_log_format) {
@@ -780,7 +760,9 @@ int main(int argc, char** argv) {
       if (!writer.IsEmpty()) {
         writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
-        PrintMessageF("writing results: %.3f sec.", timer.elapsed());
+        PrintMessage(
+            absl::StrCat("writing results: ",
+                         absl::FormatDuration(absl::Seconds(timer.elapsed()))));
       }
       timer.restart();
       done_something = true;
@@ -790,7 +772,7 @@ int main(int argc, char** argv) {
       ShowUsageWithFlags(argv[0]);
     }
   } catch (const std::exception& error) {
-    PrintErrorMessageF("error: %s", error.what());
+    PrintErrorMessage(absl::StrCat("error: ", error.what()));
     exit_code = 1;
   } catch (...) {
     PrintErrorMessage("error: an unknown error occurred");
