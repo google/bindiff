@@ -1,7 +1,8 @@
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
 cmake_minimum_required(VERSION 3.7)
-project(bindiff C CXX)
+cmake_policy(VERSION 3.7)
+project(bindiff VERSION 5.0.0)
 
 set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
 set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
@@ -9,14 +10,10 @@ set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
+include(${BinExport_DIR}/util.cmake)
 include(gflags.cmake)
 include(sqlite.cmake)
 include(tinyxpath.cmake)
-
-# BinDiff version number
-set(PROJECT_VERSION_MAJOR 5)
-set(PROJECT_VERSION_MINOR 0)
-set(PROJECT_VERSION_PATCH 0)
 
 # Use a copy of a subset of Boost that ships with BinExport
 set(Boost_NO_SYSTEM_PATHS ON)
@@ -26,42 +23,22 @@ set(OPENSSL_USE_STATIC_LIBS TRUE)
 set(Protobuf_USE_STATIC_LIBS TRUE)
 
 find_package(Boost 1.55 REQUIRED)
-find_package(GTest REQUIRED)
 find_package(IdaSdk REQUIRED)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Protobuf 3.0.0 REQUIRED)
+include(${BinExport_DIR}/cctz.cmake)
+include(${BinExport_DIR}/googletest.cmake)
+include(${BinExport_DIR}/absl.cmake)
 
 enable_testing()
 
 # Make Google-style includes work
-file(TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/src_include/third_party/zynamics
-  _bindiff_src)
-file(MAKE_DIRECTORY ${_bindiff_src})
-file(TO_NATIVE_PATH ${PROJECT_BINARY_DIR}/gen_include/third_party/zynamics
-  _bindiff_gen)
-file(MAKE_DIRECTORY ${_bindiff_gen})
-if(UNIX)
-  execute_process(
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_SOURCE_DIR}
-            ${_bindiff_src}/bindiff
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_BINARY_DIR}
-            ${_bindiff_gen}/bindiff
-    COMMAND ${CMAKE_COMMAND} -E create_symlink ${PROJECT_BINARY_DIR}
-            ${_bindiff_gen}/binexport
-  )
-elseif(WIN32)
-  file(TO_NATIVE_PATH ${PROJECT_SOURCE_DIR} _bindiff_src_target)
-  file(TO_NATIVE_PATH ${PROJECT_BINARY_DIR} _bindiff_gen_target)
-  execute_process(
-    COMMAND $ENV{ComSpec} /c mklink /J ${_bindiff_src}\\bindiff
-            ${_bindiff_src_target}
-    COMMAND $ENV{ComSpec} /c mklink /J ${_bindiff_gen}\\bindiff
-            ${_bindiff_gen_target}
-    COMMAND $ENV{ComSpec} /c mklink /J ${_bindiff_gen}\\binexport
-            ${_bindiff_gen_target}
-    ERROR_QUIET
-  )
-endif()
+set(_bindiff_src ${PROJECT_BINARY_DIR}/src_include/third_party/zynamics)
+set(_bindiff_gen ${PROJECT_BINARY_DIR}/gen_include/third_party/zynamics)
+create_directory_symlink(${PROJECT_SOURCE_DIR} ${_bindiff_src}/bindiff)
+create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/bindiff)
+create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/binexport)
+create_directory_symlink(${absl_src_dir}/absl ${_bindiff_src}/../absl)
 
 configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
 
@@ -71,6 +48,8 @@ target_include_directories(bindiff_base INTERFACE
   ${BinExport_DIR}/stubs  # Use BinExport infrastructure
   ${PROJECT_BINARY_DIR}/src_include
   ${PROJECT_BINARY_DIR}/gen_include
+  ${absl_src_dir}
+  ${cctz_src_dir}/include
   ${Boost_INCLUDE_DIR}
   ${Protobuf_INCLUDE_DIRS}
   ${Google3_DIR}
@@ -83,8 +62,7 @@ target_link_libraries(bindiff_base INTERFACE
 add_library(bindiff_tests_base INTERFACE)
 target_link_libraries(bindiff_tests_base INTERFACE
   bindiff_base
-  GTest::GTest
-  GTest::Main
+  gtest_main
 )
 
 protobuf_generate_cpp(binexport2_proto binexport2_proto_h
