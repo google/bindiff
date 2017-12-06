@@ -22,26 +22,26 @@ IDA_PLUGINS_DIR=$(cat $TMPFILE)
 [ ! -d "$IDA_PLUGINS_DIR" ] && exit 3
 
 # Ensure the binaries are executable
-chmod +x "$APP_DIR/Contents/MacOS/bin/differ"
+chmod +x "$APP_DIR/Contents/MacOS/bin/bindiff"
 
 # Create symlinks for the IDA Pro plugins/differ
 for plugin in \
-  zynamics_bindiff_4_3.pmc \
-  zynamics_bindiff_4_3.pmc64 \
-  zynamics_binexport_9.pmc \
-  zynamics_binexport_9.pmc64
+  bindiff5.dylib \
+  bindiff564.dylib \
+  binexport10.dylib \
+  binexport1064.dylib
 do
   chmod +x "$APP_DIR/Contents/MacOS/plugins/$plugin"
   ln -sf "$APP_DIR/Contents/MacOS/plugins/$plugin" "$IDA_PLUGINS_DIR/"
 done
-ln -sf "$APP_DIR/Contents/MacOS/bin/differ" /usr/local/bin/differ
+ln -sf "$APP_DIR/Contents/MacOS/bin/bindiff" /usr/local/bin/bindiff
 
 # Setup install location in config file.
 sed -i "" "s,BINDIFF_DIR,$APP_DIR/Contents/Java," \
-  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml \
-  /private/etc/opt/zynamics/BinDiff/bindiff_ui.xml
+  /Library/Preferences/zynamics/BinDiff/bindiff_core.xml \
+  /Library/Preferences/zynamics/BinDiff/bindiff_ui.xml
 
 escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
 sed -i "" "s/IDADIR/${escidadir}/" \
-  /private/etc/opt/zynamics/BinDiff/bindiff_core.xml \
-  /private/etc/opt/zynamics/BinDiff/bindiff_ui.xml
+  /Library/Preferences/zynamics/BinDiff/bindiff_core.xml \
+  /Library/Preferences/zynamics/BinDiff/bindiff_ui.xml

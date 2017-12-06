@@ -18,5 +18,5 @@
   <choice id="com.google.security.zynamics.bindiff" visible="false">
     <pkg-ref id="com.google.security.zynamics.bindiff"/>
   </choice>
-  <pkg-ref id="com.google.security.zynamics.bindiff" version="4.3.0" onConclusion="none">BinDiff.pkg</pkg-ref>
+  <pkg-ref id="com.google.security.zynamics.bindiff" version="5.0.0" onConclusion="none">BinDiff.pkg</pkg-ref>
 </installer-gui-script>
