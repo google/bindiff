@@ -33,6 +33,14 @@ using google::ShowUsageWithFlags;
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
+
+#ifdef WIN32
+// Abseil headers include Windows.h, so undo a few macros
+#undef CopyFile             // winbase.h
+#undef GetCurrentDirectory  // processenv.h
+#undef StrCat               // shlwapi.h
+#endif
+
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -46,10 +54,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/timer.h"
-
-#ifndef GOOGLE
-using std::string;
-#endif
+#include "third_party/zynamics/binexport/types.h"
 
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
