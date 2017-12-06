@@ -5,15 +5,15 @@
   <!-- Never change the UpgradeCode after release -->
   <Product Id="*"
            UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
-           Name="BinDiff 4.3"
+           Name="BinDiff 5"
            Language="1033"
-           Version="4.3.0"
+           Version="5.0.0"
            Manufacturer="Google Inc.">
     <Package Id="*"
              Keywords="Installer"
              Platform="x64"
              Comments="This Installer database contains the logic and data required to install BinDiff."
-             Description="BinDiff 4.3 Installation package"
+             Description="BinDiff 5 Installation package"
              InstallerVersion="405"
              InstallScope="perMachine"
              Compressed="yes" />
@@ -24,11 +24,11 @@
          version automatically uninstalled. See also: https://goo.gl/TfKVUa
       -->
     <Upgrade Id="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726">
-      <UpgradeVersion Minimum="4.3.0" IncludeMinimum="no"
+      <UpgradeVersion Minimum="5.0.0" IncludeMinimum="no"
                       OnlyDetect="yes"
                       Property="NEWERVERSIONDETECTED" />
       <UpgradeVersion Minimum="3.0.0" IncludeMinimum="yes"
-                      Maximum="4.3.0" IncludeMaximum="no"
+                      Maximum="5.0.0" IncludeMaximum="no"
                       IgnoreRemoveFailure="yes"
                       Property="OLDERVERSIONBEINGUPGRADED" />
     </Upgrade>
@@ -44,12 +44,13 @@
                   Property="IDADIRECTORY" Value="[ProgramFilesFolder]IDA\" />
 
     <!-- Launch conditions -->
-    <Condition Message="[ProductName] can only be installed on Microsoft Windows Vista (x64) or higher.">
-      VersionNT64 >= 600
+    <Condition Message="[ProductName] can only be installed on Microsoft Windows 7 (x64) or higher.">
+      VersionNT64 >= 610
     </Condition>
     <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
       Privileged
     </Condition>
+    <!-- TODO(cblichmann): Ship with modularized Java 9 runtime? -->
     <Condition Message="[ProductName] requires a working Java Runtime Environment (JRE). Install JRE 1.8 or higher first.">
       Installed OR
       JREVERSION = "1.8" OR
@@ -62,17 +63,10 @@
     <Property Id="ARPURLINFOABOUT" Value="https://www.zynamics.com/" />
 
     <Property Id="IDADIRECTORY">
-      <RegistrySearch Id="HexRaysIdaRegistry" Type="raw" Win64="yes"
+      <!-- Same for both IDA 7.0 and IDA 7.0 SP1 -->
+      <RegistrySearch Id="HexRaysIdaRegistry700" Type="raw" Win64="yes"
                       Root="HKLM"
-                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_is1"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry695" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.95_is1"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry69" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_6.9_is1"
+                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.0_is1"
                       Name="InstallLocation" />
     </Property>
 
@@ -116,7 +110,7 @@
     <Directory Id="TARGETDIR" Name="SourceDir" FileSource="$(var.ProjectDir)SourceDir">
       <Directory Id="ProgramFiles64Folder" Name="ProgramFiles64">
         <Directory Id="ProgramFiles64_zynamics" Name="zynamics">
-          <Directory Id="INSTALLDIR" Name="BinDiff 4.3">
+          <Directory Id="INSTALLDIR" Name="BinDiff 5">
             <Component Id="BinDiff_License"
                        Guid="44B24AA7-0897-47FD-AD43-11C260EB8982">
               <File Name="license.rtf" KeyPath="yes">
@@ -147,7 +141,7 @@
                 <File Name="bindiff.cmd" KeyPath="yes">
                   <Shortcut Id="bindiff.cmd"
                             Directory="ProgramMenu_BinDiff"
-                            Name="BinDiff 4.3"
+                            Name="BinDiff 5"
                             Advertise="yes"
                             Icon="Icons_BinDiff.ico"
                             IconIndex="0" />
@@ -157,9 +151,9 @@
                          Guid="B9BA7E8F-C08C-4068-8717-A7BA3AE61692">
                 <File Name="bindiff.jar" KeyPath="yes" />
               </Component>
-              <Component Id="BinDiff_Bin_DifferEXE"
-                         Guid="C0B273E3-D49B-4BCB-88D3-53D83D854FB8">
-                <File Name="differ.exe" KeyPath="yes" />
+              <Component Id="BinDiff_Bin_BindiffEXE"
+                         Guid="849A24BB-5409-4405-A9B3-11669582CA99">
+                <File Name="bindiff.exe" KeyPath="yes" />
               </Component>
               <Component Id="BinDiff_Bin_AddToSystemPath"
                          Guid="02A7BB60-AF84-4FDD-980F-E187DCE57264">
@@ -193,20 +187,20 @@
         <Directory Id="IDADIRECTORY" Name="IDA Pro">
           <Directory Id="Ida_Plugins" Name="plugins">
             <Component Id="Ida_Plugins_BinDiff"
-                       Guid="7BD1AF5E-DE5F-4685-A191-495BF0F47D6D">
-              <File Name="zynamics_bindiff_4_3.plw" KeyPath="yes" />
+                       Guid="4F343273-7065-4826-A4B2-F3129B07EBF5">
+              <File Name="bindiff5.dll" KeyPath="yes" />
             </Component>
             <Component Id="Ida_Plugins_BinDiff64"
-                       Guid="E5DDBB06-D7D3-444C-8981-C1C3DCD6AD75">
-              <File Name="zynamics_bindiff_4_3.p64" KeyPath="yes" />
+                       Guid="94CF1742-D057-48FE-860C-7750AFE2A936">
+              <File Name="bindiff564.dll" KeyPath="yes" />
             </Component>
             <Component Id="Ida_Plugins_BinExport"
-                       Guid="B654FF2F-DB27-4E34-BAB5-F2DD8D418665">
-              <File Name="zynamics_binexport_9.plw" KeyPath="yes" />
+                       Guid="D4F90320-C0AA-45A1-9C51-BBF582F008B1">
+              <File Name="binexport10.dll" KeyPath="yes" />
             </Component>
             <Component Id="Ida_Plugins_BinExport64"
-                       Guid="B7B2FBC1-8AE2-4863-82DE-3DBC894CAFD0">
-              <File Name="zynamics_binexport_9.p64" KeyPath="yes" />
+                       Guid="86D324CC-B553-4A7E-A5AA-A44B8C5B05BD">
+              <File Name="binexport1064.dll" KeyPath="yes" />
             </Component>
           </Directory>
         </Directory>
@@ -214,7 +208,7 @@
 
       <!-- Start Menu entries -->
       <Directory Id="ProgramMenuFolder" Name="ProgramMenu">
-        <Directory Id="ProgramMenu_BinDiff" Name="BinDiff 4.3">
+        <Directory Id="ProgramMenu_BinDiff" Name="BinDiff 5">
           <Component Id="ProgramMenu_BinDiff_GoogleSecurityBlog"
                      Guid="8FA2FFB8-14E8-4770-8CEA-21A8477960B8">
             <RegistryValue Root="HKMU"
@@ -355,8 +349,6 @@
     <DirectoryRef Id="TARGETDIR" DiskId="1">
       <!-- These will generate ICE82 warnings, which is expected. See
            https://goo.gl/JNNPJF for details. -->
-      <Merge Id="CRTx86" Language="0"
-             SourceFile="$(var.ProjectDir)SourceDir\MergeModules\Microsoft_VC140_CRT_x86.msm" />
       <Merge Id="CRTx64" Language="0"
              SourceFile="$(var.ProjectDir)SourceDir\MergeModules\Microsoft_VC140_CRT_x64.msm" />
     </DirectoryRef>
@@ -379,7 +371,6 @@
              Display="expand"
              Absent="disallow"
              AllowAdvertise="no">
-      <MergeRef Id="CRTx86" />
       <MergeRef Id="CRTx64" />
 
       <ComponentRef Id="ProgramMenu_BinDiff" />
@@ -402,7 +393,7 @@
                Description="Installs a command line version of BinDiff to be used without a GUI."
                Absent="disallow"
                AllowAdvertise="no">
-        <ComponentRef Id="BinDiff_Bin_DifferEXE" />
+        <ComponentRef Id="BinDiff_Bin_BindiffEXE" />
       </Feature>
 
       <Feature Id="AddToSystemPath"
@@ -449,7 +440,7 @@
           SourceFile="$(var.ProjectDir)SourceDir\Icons\license.txt" />
 
     <WixVariable Id="WixUILicenseRtf"
-                 Value="$(var.ProjectDir)SourceDir\ProgramFiles64\zynamics\BinDiff 4.3\license.rtf" />
+                 Value="$(var.ProjectDir)SourceDir\ProgramFiles64\zynamics\BinDiff 5\license.rtf" />
     <WixVariable Id="WixUIBannerBmp"
                  Value="$(var.ProjectDir)SourceDir\Graphics\banner.bmp" />
     <WixVariable Id="WixUIDialogBmp"
