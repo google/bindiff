@@ -187,12 +187,12 @@ Description: Declined BinDiff License Agreement
  .
  The installation of this package will be canceled.
 
-Template: zynamics/ida_location
+Template: zynamics/ida7_location
 Type: string
-Description: Path where IDA is installed:
+Description: Path where IDA Pro 7.0 or higher is installed:
  Please enter the path to your IDA Pro installation directory.
  .
  The configuration script will create symlinks like
-  IDADIR/plugins/zynamics_bindiff_4_3.plx ->
-    /opt/zynamics/BinDiff/plugins/zynamics_bindiff_4_3.plx
+  IDADIR/plugins/bindiff564.so ->
+    /opt/zynamics/bindiff/plugins/bindiff564.so
  If you enter an empty string, no symbolic links are created.

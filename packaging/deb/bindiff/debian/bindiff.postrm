@@ -19,16 +19,16 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         xdg-desktop-menu forceupdate --mode system
 
-        db_get zynamics/ida_location && idadir=${RET}
+        db_get zynamics/ida7_location && idadir=${RET}
         if [ -x "${idadir}" ]; then
             # Remove symlinks to BinDiff plugin
-            rm -f "${idadir}/plugins/zynamics_bindiff_4_3.plx" 2>&1
-            rm -f "${idadir}/plugins/zynamics_bindiff_4_3.plx64" 2>&1
+            rm -f \
+                "${idadir}/plugins/bindiff50.so" \
+                "${idadir}/plugins/bindiff5064.so" 2>&1
         fi
     ;;
 

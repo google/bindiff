@@ -1,3 +1,10 @@
+bindiff (5) UNRELEASED; urgency=medium
+
+  * Port to IDA Pro 7 with 64-bit builds only
+  * New executable and plugin names for more consistency
+
+ -- Christian Blichmann <cblichmann@google.com>  Wed, 06 Dec 2017 13:42:43 +0100
+
 bindiff (4.3.0) unstable; urgency=low
 
   * Dramatic speed improvements in the core BinDiff engine
