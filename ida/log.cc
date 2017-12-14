@@ -15,18 +15,20 @@
 #include "third_party/zynamics/binexport/ida/log.h"
 
 #include <cerrno>
-#include <chrono>  // NOLINT
 #include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <functional>
 #include <thread>  // NOLINT
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <kernwin.hpp>                                       // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <kernwin.hpp>                                        // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/time/clock.h"
+#include "third_party/absl/time/time.h"
 
 namespace {
 
@@ -47,42 +49,40 @@ class IdaExecutor : public exec_request_t {
   std::function<void()> callback_;
 };
 
-char LogLevelToChar(LogLevel level) {
+const char* const LogLevelToCStr(LogLevel level) {
   switch (level) {
     case LogLevel::LOGLEVEL_INFO:
-      return 'I';
+      return "I";
     case LogLevel::LOGLEVEL_WARNING:
-      return 'W';
+      return "W";
     case LogLevel::LOGLEVEL_ERROR:
-      return 'E';
+      return "E";
     case LogLevel::LOGLEVEL_FATAL:
-      return 'F';
+      return "F";
     default:
-      return '?';
+      return "?";
   }
 }
 
 // Logs a single log message. Should be executed on the IDA main thread.
 void LogLine(LogLevel level, const char* filename, int line,
-             const std::string& message) {
+             const string& message) {
   if (g_logging_options.alsologtostderr() || g_log_file != nullptr) {
-    auto now = std::chrono::system_clock::now();
-    auto now_time = std::chrono::system_clock::to_time_t(now);
-    char log_time[21 /* "0125 16:09:42.992535" */] = {'\0'};
-    std::strftime(log_time, sizeof(log_time), "%m%d %T",
-                  std::localtime(&now_time));
-
-    // TODO(cblichmann): Windows
+    // Filename always has Unix path separators, so this works on Windows, too.
     const char* basename = strrchr(filename, '/');
     if (*basename != '\0') {
       ++basename;
     }
 
     // Prepare log line
-    // TODO(cblichmann): Windows/OS X
-    std::string formatted(StringPrintf(
-        "%c%s %7u [%s:%d]: %s\n", LogLevelToChar(level), log_time,
-        std::this_thread::get_id(), basename, line, message.c_str()));
+    char thread_id[8]{};
+    std::snprintf(thread_id, sizeof(thread_id), "%7u",
+                  std::this_thread::get_id());
+    string formatted =
+        absl::StrCat(LogLevelToCStr(level),
+                     absl::FormatTime("%m%d %T" /* "0125 16:09:42.992535" */,
+                                      absl::Now(), absl::LocalTimeZone()),
+                     thread_id, "[", basename, ":", line, "] ", message);
 
     if (g_logging_options.alsologtostderr()) {
       fputs(formatted.c_str(), stderr);
@@ -97,8 +97,8 @@ void LogLine(LogLevel level, const char* filename, int line,
   msg("%s\n", message.c_str());
 }
 
-void IdaLogHandler(google::protobuf::LogLevel level, const char* filename,
-                   int line, const std::string& message) {
+void IdaLogHandler(LogLevel level, const char* filename, int line,
+                   const string& message) {
   // Do all logging in IDA's main thread.
   IdaExecutor executor(std::bind(LogLine, level, filename, line, message));
   execute_sync(executor, MFF_FAST);

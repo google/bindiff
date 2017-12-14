@@ -37,12 +37,12 @@ class Comment {
   };
 
   explicit Comment(Address address, size_t operand_num,
-                   const std::string* comment = 0, Type type = INVALID,
+                   const string* comment = nullptr, Type type = INVALID,
                    bool repeatable = false);
 
   Address address_;
   size_t operand_num_;
-  const std::string* comment_;
+  const string* comment_;
   bool repeatable_;
   Type type_;
 };

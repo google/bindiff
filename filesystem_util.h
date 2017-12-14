@@ -20,61 +20,63 @@
 #include <string>
 #include <vector>
 
-#include "strings/stringpiece.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/zynamics/binexport/types.h"
 
 extern const char kPathSeparator[];
 extern const char kAllFilesFilter[];
 
 namespace internal {
 // Not part of the public API.
-std::string JoinPathImpl(std::initializer_list<StringPiece> paths);
+string JoinPathImpl(std::initializer_list<absl::string_view> paths);
 }  // namespace internal
 
 // Returns the current working directory.
-std::string GetCurrentDirectory();
+string GetCurrentDirectory();
 
 // Recursively creates directories for a specified path.
-void CreateDirectories(StringPiece path);
+void CreateDirectories(absl::string_view path);
 
 // Returns the path to an OS specific directory for temporary files.
-std::string GetTempDirectory(StringPiece product_name, bool create);
+string GetTempDirectory(absl::string_view product_name, bool create);
 
 // Returns the filename (basename) of a path.
-std::string Basename(StringPiece path);
+string Basename(absl::string_view path);
 
 // Returns the directory part of a path. On Windows, this includes the drive
 // letter.
-std::string Dirname(StringPiece path);
+string Dirname(absl::string_view path);
 
 // Returns the extension of a filename.
-std::string GetFileExtension(StringPiece path);
+string GetFileExtension(absl::string_view path);
 
 // Replaces the extension of a filename.
-std::string ReplaceFileExtension(StringPiece path, StringPiece new_extension);
+string ReplaceFileExtension(absl::string_view path,
+                            absl::string_view new_extension);
 
 // Joins multiple paths together using the platform-specific path separator.
-// Arguments must be convertible to StringPiece.
+// Arguments must be convertible to absl::string_view.
 template <typename... T>
-inline std::string JoinPath(const T&... args) {
+inline string JoinPath(const T&... args) {
   return ::internal::JoinPathImpl({args...});
 }
 
 // Returns the size of a file on disk or -1 on error.
-int64_t GetFileSize(StringPiece path);
+int64 GetFileSize(absl::string_view path);
 
 // Returns whether a file exists.
-bool FileExists(StringPiece path);
+bool FileExists(absl::string_view path);
 
 // Returns whether a given path is a directory.
-bool IsDirectory(StringPiece path);
+bool IsDirectory(absl::string_view path);
 
 // List the files in the specified directory.
-void GetDirectoryEntries(StringPiece path, std::vector<std::string>* result);
+void GetDirectoryEntries(absl::string_view path, std::vector<string>* result);
 
 // Removes all files and sub-directories under path.
-void RemoveAll(StringPiece path);
+void RemoveAll(absl::string_view path);
 
 // Copies a file. Throws std::runtime_error on error.
-void CopyFile(StringPiece from, StringPiece to);
+void CopyFile(absl::string_view from, absl::string_view to);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_FILESYSTEM_UTIL_H_

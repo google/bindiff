@@ -20,7 +20,7 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
-typedef std::vector<uint8_t> Blob;
+using Blob = std::vector<uint8>;
 
 // Intentionally empty, used to indicate dbnull parameter values.
 struct Null {};
@@ -33,10 +33,10 @@ class Parameters {
   int Size() const;
   void Clear();
   Parameters& operator<<(const bool value);
-  Parameters& operator<<(const int32_t value);
-  Parameters& operator<<(const int64_t value);
+  Parameters& operator<<(const int32 value);
+  Parameters& operator<<(const int64 value);
   Parameters& operator<<(double value);
-  Parameters& operator<<(const std::string& value);
+  Parameters& operator<<(const string& value);
   Parameters& operator<<(const Blob& value);
   Parameters& operator<<(const Null& value);
 
@@ -65,16 +65,16 @@ class Database {
   Database& ExecutePrepared(const Parameters& parameters,
                             const char* name = "");
 
-  std::string EscapeLiteral(const std::string& text) const;
-  std::string EscapeIdentifier(const std::string& text) const;
+  string EscapeLiteral(const string& text) const;
+  string EscapeIdentifier(const string& text) const;
 
   operator bool() const;
-  Database& operator>>(bool& value);  // NOLINT
-  Database& operator>>(int32_t& value);  // NOLINT
-  Database& operator>>(int64_t& value);  // NOLINT
+  Database& operator>>(bool& value);    // NOLINT
+  Database& operator>>(int32& value);   // NOLINT
+  Database& operator>>(int64& value);   // NOLINT
   Database& operator>>(double& value);  // NOLINT
-  Database& operator>>(std::string& value);  // NOLINT
-  Database& operator>>(Blob& value);  // NOLINT
+  Database& operator>>(string& value);  // NOLINT
+  Database& operator>>(Blob& value);    // NOLINT
 
  private:
   Database(const Database&) = delete;

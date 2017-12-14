@@ -20,11 +20,10 @@
 #include <stdexcept>
 #include <string>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/tokenizer.hpp>
-
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_replace.h"
+#include "third_party/absl/strings/str_split.h"
 #include "third_party/zynamics/binexport/base_types.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
@@ -39,7 +38,7 @@
 
 namespace {
 
-std::string EncodeHash(const std::string& hash) {
+string EncodeHash(const string& hash) {
   if (hash.size() <= 20) {
     return EncodeHex(hash);
   }
@@ -49,7 +48,7 @@ std::string EncodeHash(const std::string& hash) {
 // Creates a string representation for the base type id of the corresponding
 // stack frame of the given function. Returns "null" if no such stack frame
 // exists.
-std::string GetFrameTypeId(const TypeSystem* type_system,
+string GetFrameTypeId(const TypeSystem* type_system,
                            const Function& function) {
   if (type_system) {
     const BaseType* stack_frame = type_system->GetStackFrame(function);
@@ -63,7 +62,7 @@ std::string GetFrameTypeId(const TypeSystem* type_system,
 // Creates a string representation for the base type id of the corresponding
 // function prototype of the given function. Returns "null" if no such
 // function prototype exists.
-std::string GetFunctionPrototypeId(const TypeSystem* type_system,
+string GetFunctionPrototypeId(const TypeSystem* type_system,
                                    const Function& function) {
   if (type_system) {
     const BaseType* function_prototype =
@@ -95,13 +94,13 @@ void BuildMemberPath(const BaseType::MemberIds& member_ids,
 
 }  // namespace
 
-DatabaseWriter::DatabaseWriter(const std::string& schema,
-                               const std::string& module_name, int module_id,
-                               const std::string& md5, const std::string& sha1,
-                               const std::string& architecture,
+DatabaseWriter::DatabaseWriter(const string& schema,
+                               const string& module_name, int module_id,
+                               const string& md5, const string& sha1,
+                               const string& architecture,
                                const Address base_address,
-                               const std::string& program_version,
-                               const std::string& connection_string)
+                               const string& program_version,
+                               const string& connection_string)
     : database_(connection_string.c_str()),
       query_size_(32 << 20 /* 32 MiB */),
       module_id_(module_id),
@@ -127,33 +126,28 @@ DatabaseWriter::DatabaseWriter(const std::string& schema,
 DatabaseWriter::~DatabaseWriter() = default;
 
 void DatabaseWriter::ExecuteInternalStatement(InternalStatement id,
-                                              const std::string& replacement) {
-  const std::string* stream = 0;
+                                              const string& replacement) {
+  absl::string_view stream;
   switch (id) {
     case INIT_TABLES:
-      stream = &postgresql_initialize_tables_;
+      stream = GetPostgreSqlInitializeTables();
       break;
     case INIT_CONSTRAINTS:
-      stream = &postgresql_initialize_constraints_;
+      stream = GetPostgreSqlInitializeConstraints();
       break;
     case INIT_INDICES:
-      stream = &postgresql_initialize_indices_;
+      stream = GetPostgreSqlInitializeIndices();
       break;
     case MAINTENANCE:
-      stream = &postgresql_maintenance_;
+      stream = GetPostgreSqlMaintenance();
       break;
+    default:
+      return;
   }
-
-  if (!stream) {
-    return;
-  }
-
-  boost::tokenizer<boost::char_separator<char>> tokenizer(
-      *stream, boost::char_separator<char>(";"));
-  for (auto query : tokenizer) {
-    boost::algorithm::trim(query);
-    if (!query.empty()) {
-      boost::replace_all(query, "?", replacement);
+  for (absl::string_view token : absl::StrSplit(stream, ';')) {
+    token = absl::StripAsciiWhitespace(token);
+    if (!token.empty()) {
+      string query = absl::StrReplaceAll(token, {{"?", replacement}});
       database_.Execute(query.c_str());
     }
   }
@@ -192,9 +186,8 @@ void DatabaseWriter::CreateModulesTable() {
   }
 }
 
-void DatabaseWriter::PrepareDatabase(const std::string& md5,
-                                     const std::string& sha1,
-                                     const std::string& architecture,
+void DatabaseWriter::PrepareDatabase(const string& md5, const string& sha1,
+                                     const string& architecture,
                                      const Address base_address) {
   enum { kDbVersion = 7 };
 
@@ -229,34 +222,36 @@ void DatabaseWriter::PrepareDatabase(const std::string& md5,
                       Parameters() << module_id_);
   }
 
-  boost::replace_all(module_name_, "\\", "/");
-  const std::string::size_type pos = module_name_.rfind("/");
-  const std::string module_name =
-      pos != std::string::npos ? module_name_.substr(pos + 1) : module_name_;
+  absl::StrReplaceAll({{"\\", "/"}}, &module_name_);
+  const auto pos = module_name_.rfind("/");
+  const string module_name =
+      pos != string::npos ? module_name_.substr(pos + 1) : module_name_;
 
   database_.Execute(
       "INSERT INTO MODULES VALUES($1::int, $2::text, $3::varchar, $4::bigint, "
       "$5::varchar, $6::int, $7::varchar, $8::varchar, '', NOW())",
-      Parameters() << static_cast<int32_t>(module_id_) << module_name
-                   << architecture << static_cast<int64_t>(base_address)
-                   << program_version_ << static_cast<int32_t>(kDbVersion)
+      Parameters() << static_cast<int32>(module_id_) << module_name
+                   << architecture << static_cast<int64>(base_address)
+                   << program_version_ << static_cast<int32>(kDbVersion)
                    << EncodeHash(md5) << EncodeHash(sha1));
 }
 
 void DatabaseWriter::InsertAddressComments(const CallGraph& call_graph) {
-  std::ostringstream query;
-  query << "INSERT INTO \"ex_" << module_id_ << "_address_comments\" VALUES ";
-  QueryBuilder address_comments_query(&database_, query.str(), query_size_);
+  QueryBuilder address_comments_query(
+      &database_,
+      absl::StrCat("INSERT INTO \"ex_", module_id_,
+                   "_address_comments\" VALUES "),
+      query_size_);
   Address last_address = std::numeric_limits<Address>::max();
   for (const Comment& comment : call_graph.GetComments()) {
     if (comment.type_ != Comment::REGULAR || last_address == comment.address_) {
       continue;
     }
-    std::string comment_string;
+    string comment_string;
     for (auto comment_char : *comment.comment_) {
       comment_string += (isascii(comment_char) ? comment_char : '?');
     }
-    address_comments_query << "(" << static_cast<int64_t>(comment.address_)
+    address_comments_query << "(" << static_cast<int64>(comment.address_)
                            << "," << database_.EscapeLiteral(comment_string)
                            << ")," << kFlushQuery;
     last_address = comment.address_;
@@ -308,12 +303,12 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
   for (const auto& function_entry : flow_graph.GetFunctions()) {
     // Store functions.
     const Function& function = *function_entry.second;
-    std::string mangled_name(function.GetName(Function::MANGLED));
-    std::string demangled_name(function.GetName(Function::DEMANGLED));
-    std::string module_name(function.IsImported() ? function.GetModuleName()
+    string mangled_name(function.GetName(Function::MANGLED));
+    string demangled_name(function.GetName(Function::DEMANGLED));
+    string module_name(function.IsImported() ? function.GetModuleName()
                                                   : module_name_);
     function_query_builder << "("
-                           << static_cast<int64_t>(function.GetEntryPoint())
+                           << static_cast<int64>(function.GetEntryPoint())
                            << "," << database_.EscapeLiteral(mangled_name)
                            << ","
                            << (demangled_name != mangled_name
@@ -331,7 +326,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
       BasicBlock& basic_block = *basic_block_ptr;
       basic_block.set_id(++basic_block_id);
       basic_block_query << "(" << basic_block.id() << ","
-                        << static_cast<int64_t>(function.GetEntryPoint())
+                        << static_cast<int64>(function.GetEntryPoint())
                         << ", " << basic_block.GetEntryPoint() << "),"
                         << kFlushQuery;
 
@@ -340,7 +335,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
         // Store instructions.
         basic_block_instructions_query
             << "(" << basic_block.id() << ","
-            << static_cast<int64_t>(instruction.GetAddress()) << ","
+            << static_cast<int64>(instruction.GetAddress()) << ","
             << instruction_sequence << ")," << kFlushQuery;
 
         // This is inefficient and ugly but has to be done because shared basic
@@ -357,9 +352,9 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
 
         if (!instruction.IsExported()) {
           instruction.SetExported(true);
-          const std::string mnemonic(instruction.GetMnemonic());
+          const string mnemonic(instruction.GetMnemonic());
           instruction_query
-              << "(" << static_cast<int64_t>(instruction.GetAddress()) << ","
+              << "(" << static_cast<int64>(instruction.GetAddress()) << ","
               << database_.EscapeLiteral(mnemonic) << ",decode('"
               << EncodeHex(instruction.GetBytes()) << "','hex')"
               << ")," << kFlushQuery;
@@ -367,7 +362,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
           int operand_sequence = 0;
           for (const auto* operand : instruction) {
             operands_query << "("
-                           << static_cast<int64_t>(instruction.GetAddress())
+                           << static_cast<int64>(instruction.GetAddress())
                            << "," << operand->GetId() << "," << operand_sequence
                            << ")," << kFlushQuery;
             ++operand_sequence;
@@ -385,7 +380,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
         assert(false && "corrupted input data");
         continue;  // BUG: Should not happen.
       }
-      flow_graph_query << "(" << static_cast<int64_t>(function.GetEntryPoint())
+      flow_graph_query << "(" << static_cast<int64>(function.GetEntryPoint())
                        << "," << source->id() << "," << target->id() << ","
                        << (edge.type - 1) << ")," << kFlushQuery;
     }
@@ -409,23 +404,23 @@ void DatabaseWriter::InsertCallGraph(const CallGraph& call_graph) {
 
   // Store call graph edges.
   std::ostringstream query;
-  query << "insert into \"ex_" << module_id_
+  query << "INSERT INTO \"ex_" << module_id_
         << "_callgraph\" (\"source\", \"source_basic_block_id\", "
-           "\"source_address\", \"destination\") values ";
+           "\"source_address\", \"destination\") VALUES ";
   QueryBuilder call_graph_query(&database_, query.str(), query_size_);
   for (const auto& edge : call_graph.GetEdges()) {
     if (edge.source_basic_block_id_ < 0) {
-      LOG(INFO) << StringPrintf(
-          "Warning: skipping broken call graph edge %08" PRIx64
-          " -> %08" PRIx64,
-          edge.source_, edge.target_);
+      LOG(INFO) << absl::StrCat("Warning: skipping broken call graph edge ",
+                                absl::Hex(edge.source_, absl::kZeroPad8),
+                                " -> ",
+                                absl::Hex(edge.target_, absl::kZeroPad8));
       continue;
     }
     call_graph_query << "("
-                     << static_cast<int64_t>(edge.function_->GetEntryPoint())
+                     << static_cast<int64>(edge.function_->GetEntryPoint())
                      << "," << edge.source_basic_block_id_ << ","
-                     << static_cast<int64_t>(edge.source_) << ","
-                     << static_cast<int64_t>(edge.target_) << "),"
+                     << static_cast<int64>(edge.source_) << ","
+                     << static_cast<int64>(edge.target_) << "),"
                      << kFlushQuery;
   }
   call_graph_query.Execute();
@@ -437,22 +432,20 @@ void DatabaseWriter::InsertExpressionTree() {
   QueryBuilder expression_tree_query(&database_, query.str(), query_size_);
   for (const auto& element : Expression::GetExpressions()) {
     const Expression& expression = element.second;
-    std::string name(expression.GetSymbol());
-    assert(!expression.GetSymbol().empty() || expression.IsImmediate());
-    expression_tree_query << "(" << expression.GetId() << ","
-                          << (expression.GetType() <=
-                                      Expression::TYPE_DEREFERENCE
-                                  ? expression.GetType()
-                                  : Expression::TYPE_IMMEDIATE_INT)
-                          << ","
-                          << (!expression.GetSymbol().empty()
-                                  ? database_.EscapeLiteral(name.substr(0, 255))
-                                  : "NULL")
-                          << ","
-                          << (expression.IsImmediate()
-                                  ? std::to_string(expression.GetImmediate())
-                                  : "NULL")
-                          << "," << expression.GetPosition() << ",";
+    const string& name = expression.GetSymbol();
+    assert(!name.empty() || expression.IsImmediate());
+    expression_tree_query
+        << "(" << expression.GetId() << ","
+        << (expression.GetType() <= Expression::TYPE_DEREFERENCE
+                ? expression.GetType()
+                : Expression::TYPE_IMMEDIATE_INT)
+        << ","
+        << (!name.empty() ? database_.EscapeLiteral(name.substr(0, 255))
+                          : "NULL")
+        << ","
+        << (expression.IsImmediate() ? std::to_string(expression.GetImmediate())
+                                     : "NULL")
+        << "," << expression.GetPosition() << ",";
     if (expression.GetParent() != 0) {
       expression_tree_query << expression.GetParent()->GetId();
     } else {
@@ -468,7 +461,7 @@ void DatabaseWriter::InsertExpressionTree() {
 void DatabaseWriter::InsertExpressions() {
   {  // expression_trees
     std::ostringstream query;
-    query << "insert into \"ex_" << module_id_ << "_expression_trees\" values ";
+    query << "INSERT INTO \"ex_" << module_id_ << "_expression_trees\" VALUES ";
     QueryBuilder expression_tree_query(&database_, query.str(), query_size_);
     for (const auto& element : Operand::GetOperands()) {
       const Operand& operand = element.second;
@@ -479,8 +472,8 @@ void DatabaseWriter::InsertExpressions() {
 
   {  // expression_tree_nodes
     std::ostringstream query;
-    query << "insert into \"ex_" << module_id_
-          << "_expression_tree_nodes\" values ";
+    query << "INSERT INTO \"ex_" << module_id_
+          << "_expression_tree_nodes\" VALUES ";
     QueryBuilder expression_tree_query(&database_, query.str(), query_size_);
     for (const auto& operand : Operand::GetOperands()) {
       for (const auto* expression : operand.second) {
@@ -622,9 +615,10 @@ void DatabaseWriter::InsertExpressionSubstitutions(
            "\"expression_node_id\", \"replacement\") values ";
   QueryBuilder query_builder(&database_, query.str(), query_size_);
   for (const auto& substitution : flow_graph.GetSubstitutions()) {
-    std::string replacement = *substitution.second;
-    query_builder << "(" << static_cast<int64_t>(
-                                std::get<0 /* Address */>(substitution.first))
+    string replacement = *substitution.second;
+    query_builder << "("
+                  << static_cast<int64>(
+                         std::get<0 /* Address */>(substitution.first))
                   << "," << std::get<1 /* Operand No */>(substitution.first)
                   << "," << std::get<2 /* Expression Id */>(substitution.first)
                   << "," << database_.EscapeLiteral(replacement) << "),"
@@ -646,11 +640,10 @@ void DatabaseWriter::InsertExpressionSubstitutions(
               ++operand_num;
             }
             if (expression->IsImmediate() && !expression->GetSymbol().empty()) {
-              std::string replacement = expression->GetSymbol();
               query_builder
-                  << "(" << static_cast<int64_t>(instruction.GetAddress())
-                  << "," << operand_num << "," << expression->GetId() << ","
-                  << database_.EscapeLiteral(replacement) << "),"
+                  << "(" << static_cast<int64>(instruction.GetAddress()) << ","
+                  << operand_num << "," << expression->GetId() << ","
+                  << database_.EscapeLiteral(expression->GetSymbol()) << "),"
                   << kFlushQuery;
             }
             ++operand_num;
@@ -679,9 +672,9 @@ void DatabaseWriter::InsertExpressionSubstitutions(
               ? std::to_string(address_reference.source_expression_)
               : "null";
       address_references_query
-          << "(" << static_cast<int64_t>(address_reference.source_) << ","
+          << "(" << static_cast<int64>(address_reference.source_) << ","
           << source_operand << "," << source_expression << ","
-          << static_cast<int64_t>(address_reference.target_) << ","
+          << static_cast<int64>(address_reference.target_) << ","
           << address_reference.kind_ << ")," << kFlushQuery;
     }
     address_references_query.Execute();
@@ -695,8 +688,8 @@ void DatabaseWriter::InsertExpressionSubstitutions(
 
 // Returns a permission string which can be used to store permissions in the
 // BinNavi database.
-std::string GetPermissionsString(int permission) {
-  std::string permission_string;
+static string GetPermissionsString(int permission) {
+  string permission_string;
   if (permission & AddressSpace::kRead) {
     permission_string.append("READ");
   }
@@ -728,13 +721,13 @@ void DatabaseWriter::InsertSections(const AddressSpace& address_space,
         << "$1::integer, $2::text, $3::bigint, $4::bigint, "
         << "$5::ex_" << module_id_ << "_section_permission_type, $6::bytea)";
   database_.Prepare(query.str().c_str());
-  const std::string empty_section_name;
+  const string empty_section_name;
   int id = 0;
   for (const auto& data : address_space.data()) {
     database_.ExecutePrepared(
         Parameters() << id << empty_section_name
-                     << static_cast<int64_t>(data.first)
-                     << static_cast<int64_t>(data.first + data.second.size())
+                     << static_cast<int64>(data.first)
+                     << static_cast<int64>(data.first + data.second.size())
                      << GetPermissionsString(address_space.GetFlags(data.first))
                      << data.second);
     address_space_ids->insert({data.first, id});
@@ -745,7 +738,7 @@ void DatabaseWriter::InsertSections(const AddressSpace& address_space,
 // IDA will sometimes produce completely fucked up disassemblies with invalid
 // flow graphs.
 void CleanUpZombies(Database* database, int module_id_int) {
-  const std::string module_id(std::to_string(module_id_int));
+  const string module_id = std::to_string(module_id_int);
   database->Execute(("DELETE FROM ex_" + module_id +
                      "_instructions AS instructions USING ex_" + module_id +
                      "_basic_block_instructions AS basic_block_instructions "

@@ -17,9 +17,8 @@
 
 #include <ostream>
 #include <string>
+#include <unordered_set>
 #include <vector>
-
-#include <boost/unordered_set.hpp>  // NOLINT
 
 #include "third_party/zynamics/binexport/operand.h"
 #include "third_party/zynamics/binexport/range.h"
@@ -70,32 +69,32 @@ enum {
 #pragma pack(push, 1)
 class Instruction {
  public:
-  typedef std::string (*GetBytesCallback)(const Instruction& instruction);
-  typedef boost::unordered_set<std::string, boost::hash<std::string>,
-                               std::equal_to<std::string>>
-      StringCache;
+  typedef string (*GetBytesCallback)(const Instruction& instruction);
+  using StringCache = std::unordered_set<string>;
 
   explicit Instruction(Address address, Address next_instruction = 0,
-                       uint16_t size = 0, const std::string& mnemonic = "",
+                       uint16 size = 0, const string& mnemonic = "",
                        const Operands& operands = Operands());
   Instruction& operator=(const Instruction&);
   Instruction(const Instruction&);
   ~Instruction();
 
-  static const std::string* CacheString(const std::string& string);
+  static const string* CacheString(const string& string);
   static void SetBitness(int bitness);
   static int GetBitness();
   static void SetGetBytesCallback(GetBytesCallback callback);
   static void SetMemoryFlags(AddressSpace* flags);
   static void SetVirtualMemory(AddressSpace* virtual_memory);
-  static bool IsNegativeValue(int64_t value);
+  static bool IsNegativeValue(int64 value);
 
-  uint8_t GetOperandCount() const;
+  uint8 GetOperandCount() const;
   Operands::iterator begin() const;
   Operands::iterator end() const;
   Operands::const_iterator cbegin() const;
   Operands::const_iterator cend() const;
   const Operand& GetOperand(int operand_number) const;
+  // TODO(cblichmann): Remove these again as part of improving the overall API
+  //                   of this class.
   const Operand& GetFirstOperand() const;
   const Operand& GetSecondOperand() const;
   const Operand& GetThirdOperand() const;
@@ -104,9 +103,9 @@ class Instruction {
   int GetSize() const;
   Address GetNextInstruction() const;
   void SetNextInstruction(Address address);
-  const std::string& GetMnemonic() const;
-  std::string GetBytes() const;
-  uint16_t GetInDegree() const;
+  const string& GetMnemonic() const;
+  string GetBytes() const;
+  uint16 GetInDegree() const;
   void AddInEdge();
   void Render(std::ostream* stream, const FlowGraph& flow_graph) const;
 
@@ -118,12 +117,12 @@ class Instruction {
   bool HasFlag(unsigned char flag) const;
 
  private:
-  const std::string* mnemonic_;  // 4|8 + overhead in stringcache
-  Address address_;              // 8
-  uint32_t operand_index_;       // 4 + overhead in operand pointer vector
-  uint8_t operand_count_;        // 1
-  uint16_t in_degree_;           // 2 TODO(user) in-degree count in edges.
-  uint8_t size_;                 // 1
+  const string* mnemonic_;  // 4|8 + overhead in stringcache
+  Address address_;         // 8
+  uint32 operand_index_;  // 4 + overhead in operand pointer vector
+  uint8 operand_count_;   // 1
+  uint16 in_degree_;      // 2 TODO(user) in-degree count in edges.
+  uint8 size_;            // 1
 
   static int instance_count_;
   static StringCache string_cache_;
@@ -153,7 +152,7 @@ Instructions::iterator GetInstruction(detego::Instructions* instructions,
                                       Address address);
 Instructions::iterator GetNextInstruction(detego::Instructions* instructions,
                                           Instructions::iterator instruction);
-std::string RenderOperands(const Instruction& instruction,
-                           const FlowGraph& flow_graph);
+string RenderOperands(const Instruction& instruction,
+                      const FlowGraph& flow_graph);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INSTRUCTION_H_

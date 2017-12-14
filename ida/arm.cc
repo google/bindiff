@@ -17,19 +17,20 @@
 #include <cinttypes>
 #include <string>
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <idp.hpp>                                           // NOLINT
-#include <allins.hpp>                                        // NOLINT
-#include <bytes.hpp>                                         // NOLINT
-#include <ida.hpp>                                           // NOLINT
-#include <ua.hpp>                                            // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <idp.hpp>                                            // NOLINT
+#include <allins.hpp>                                         // NOLINT
+#include <bytes.hpp>                                          // NOLINT
+#include <ida.hpp>                                            // NOLINT
+#include <ua.hpp>                                             // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
-// The condition code of instruction will be kept in cmd.segpref:
+// The condition code of the instruction will be kept in instruction.segpref:
 #define ARM_cond segpref
 
 namespace {
@@ -43,14 +44,14 @@ enum {
   aux_wback = 0x0020,     // write back (! postfix is required)
   aux_wbackldm = 0x0040,  // write back for LDM/STM (! postfix is required)
   aux_postidx = 0x0080,   // post-indexed mode in LDR,STR
-  aux_ltrans = 0x0100,  // long transfer in LDC/STC (L postfix is required)
-  aux_wimm = 0x0200,    // thumb32 wide encoding of immediate constant
-  aux_sb = 0x0400,      // signed byte (SB postfix)
-  aux_sh = 0x0800,      // signed halfword (SH postfix)
-  aux_h = 0x1000,       // halfword (H postfix)
-  aux_p = 0x2000,       // priviledged (P postfix)
-  aux_coproc = 0x4000,  // coprocessor instruction
-  aux_wide = 0x8000,    // thumb32 instruction (.W suffix)
+  aux_ltrans = 0x0100,    // long transfer in LDC/STC (L postfix is required)
+  aux_wimm = 0x0200,      // thumb32 wide encoding of immediate constant
+  aux_sb = 0x0400,        // signed byte (SB postfix)
+  aux_sh = 0x0800,        // signed halfword (SH postfix)
+  aux_h = 0x1000,         // halfword (H postfix)
+  aux_p = 0x2000,         // priviledged (P postfix)
+  aux_coproc = 0x4000,    // coprocessor instruction
+  aux_wide = 0x8000,      // thumb32 instruction (.W suffix)
 };
 
 enum neon_datatype_t ENUM_SIZE(char){
@@ -120,29 +121,29 @@ const char* GetShift(size_t shift_type) {
 }
 
 // Returns the name for a co processor register in the form "c" + register id.
-std::string GetCoprocessorRegisterName(size_t register_id) {
+string GetCoprocessorRegisterName(size_t register_id) {
   return "c" + std::to_string(register_id);
 }
 
 // Returns the name of a co processor in the form "p" + processor id.
-std::string GetCoprocessorName(size_t processor_id) {
+string GetCoprocessorName(size_t processor_id) {
   return "p" + std::to_string(processor_id);
 }
 
 }  // namespace
 
-Operands DecodeOperandsArm(const Address address) {
-  bool co_processor = cmd.auxpref & aux_coproc ? true : false;
+Operands DecodeOperandsArm(const insn_t& instruction) {
+  bool co_processor = (instruction.auxpref & aux_coproc) != 0;
 
   Operands operands;
-  for (uint8_t operand_position = 0;
+  for (uint8 operand_position = 0;
        operand_position < UA_MAXOP &&
-       cmd.Operands[operand_position].type != o_void;
+       instruction.ops[operand_position].type != o_void;
        ++operand_position) {
     Expressions expressions;
-    const op_t& operand = cmd.Operands[operand_position];
+    const op_t& operand = instruction.ops[operand_position];
 
-    Expression* expression = NULL;
+    Expression* expression = nullptr;
     switch (operand.type) {
       case o_void: {
         // no operand
@@ -150,11 +151,12 @@ Operands DecodeOperandsArm(const Address address) {
       }
       case o_reg: {
         // register
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
-        if (cmd.auxpref & aux_wbackldm) {
+        expressions.push_back(
+            expression = Expression::Create(
+                expression,
+                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+                Expression::TYPE_SIZEPREFIX, 0));
+        if (instruction.auxpref & aux_wbackldm) {
           expressions.push_back(
               expression = Expression::Create(expression, "!", 0,
                                               Expression::TYPE_OPERATOR, 0));
@@ -162,26 +164,28 @@ Operands DecodeOperandsArm(const Address address) {
         expressions.push_back(
             expression = Expression::Create(
                 expression,
-                GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
-                Expression::TYPE_REGISTER, 0));
+                GetRegisterName(operand.reg,
+                                GetOperandByteSize(instruction, operand)),
+                0, Expression::TYPE_REGISTER, 0));
         break;
       }
       case o_mem: {
         // direct memory reference
         const Address immediate = operand.addr;
-        const Name name = GetName(address, immediate, operand_position, false);
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+        const Name name =
+            GetName(instruction.ea, immediate, operand_position, false);
+        expressions.push_back(
+            expression = Expression::Create(
+                expression,
+                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+                Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(expression, "[", 0,
                                             Expression::TYPE_DEREFERENCE, 0));
         expressions.push_back(
             expression = Expression::Create(
                 expression, name.name, immediate,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type,
-                0));
+                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
         break;
       }
       case o_phrase: {
@@ -189,11 +193,12 @@ Operands DecodeOperandsArm(const Address address) {
         // o_phrase: the second register is held in secreg (specflag1)
         //           the shift type is in shtype (specflag2)
         //           the shift counter is in shcnt (value)
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
-        if (cmd.auxpref & aux_wback) {
+        expressions.push_back(
+            expression = Expression::Create(
+                expression,
+                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+                Expression::TYPE_SIZEPREFIX, 0));
+        if (instruction.auxpref & aux_wback) {
           expressions.push_back(
               expression = Expression::Create(expression, "!", 0,
                                               Expression::TYPE_OPERATOR, 0));
@@ -205,17 +210,19 @@ Operands DecodeOperandsArm(const Address address) {
             expression = Expression::Create(expression, ",", 0,
                                             Expression::TYPE_OPERATOR, 0));
         expressions.push_back(Expression::Create(
-            expression,
-            GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
-            Expression::TYPE_REGISTER, 0));
+            expression, GetRegisterName(operand.reg, GetOperandByteSize(
+                                                         instruction, operand)),
+            0, Expression::TYPE_REGISTER, 0));
 
         if (operand.value) {  // shift
-          expressions.push_back(expression = Expression::Create(
-                                    expression, GetShift(operand.specflag2), 0,
-                                    Expression::TYPE_OPERATOR, 1));
+          expressions.push_back(
+              expression = Expression::Create(
+                  expression, GetShift(static_cast<size_t>(operand.specflag2)),
+                  0, Expression::TYPE_OPERATOR, 1));
           expressions.push_back(Expression::Create(
               expression,
-              GetRegisterName(operand.specflag1, GetOperandByteSize(operand)),
+              GetRegisterName(static_cast<size_t>(operand.specflag1),
+                              GetOperandByteSize(instruction, operand)),
               0, Expression::TYPE_REGISTER, 0));
           expressions.push_back(
               Expression::Create(expression, "", operand.value,
@@ -223,7 +230,8 @@ Operands DecodeOperandsArm(const Address address) {
         } else {
           expressions.push_back(Expression::Create(
               expression,
-              GetRegisterName(operand.specflag1, GetOperandByteSize(operand)),
+              GetRegisterName(static_cast<size_t>(operand.specflag1),
+                              GetOperandByteSize(instruction, operand)),
               0, Expression::TYPE_REGISTER, 1));
         }
         break;
@@ -231,11 +239,12 @@ Operands DecodeOperandsArm(const Address address) {
       case o_displ: {
         const Address offset = operand.value;
 
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
-        if (cmd.auxpref & aux_wback)
+        expressions.push_back(
+            expression = Expression::Create(
+                expression,
+                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+                Expression::TYPE_SIZEPREFIX, 0));
+        if (instruction.auxpref & aux_wback)
           expressions.push_back(
               expression = Expression::Create(expression, "!", 0,
                                               Expression::TYPE_OPERATOR, 0));
@@ -244,14 +253,15 @@ Operands DecodeOperandsArm(const Address address) {
                                             Expression::TYPE_DEREFERENCE, 0));
         if (operand.addr) {
           const Name name =
-              GetName(address, operand.addr, operand_position, false);
+              GetName(instruction.ea, operand.addr, operand_position, false);
           expressions.push_back(
               expression = Expression::Create(expression, ",", 0,
                                               Expression::TYPE_OPERATOR, 0));
           expressions.push_back(Expression::Create(
               expression,
-              GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
-              Expression::TYPE_REGISTER, 0));
+              GetRegisterName(operand.reg,
+                              GetOperandByteSize(instruction, operand)),
+              0, Expression::TYPE_REGISTER, 0));
           expressions.push_back(Expression::Create(
               expression, name.name, operand.addr,
               name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 1));
@@ -263,14 +273,15 @@ Operands DecodeOperandsArm(const Address address) {
           }
           expressions.push_back(Expression::Create(
               expression,
-              GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
-              Expression::TYPE_REGISTER, 0));
+              GetRegisterName(operand.reg,
+                              GetOperandByteSize(instruction, operand)),
+              0, Expression::TYPE_REGISTER, 0));
           if (offset) {
-            const Name name = GetName(address, offset, operand_position, false);
+            const Name name =
+                GetName(instruction.ea, offset, operand_position, false);
             expressions.push_back(Expression::Create(
                 expression, name.name, 0,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type,
-                1));
+                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 1));
           }
         }
         break;
@@ -280,17 +291,19 @@ Operands DecodeOperandsArm(const Address address) {
         if (co_processor) {
           const Address immediate = operand.value;
           const Name name =
-              GetName(address, immediate, operand_position, false);
+              GetName(instruction.ea, immediate, operand_position, false);
 
-          expressions.push_back(expression = Expression::Create(
-                                    expression,
-                                    GetSizePrefix(GetOperandByteSize(operand)),
-                                    0, Expression::TYPE_SIZEPREFIX, 0));
+          expressions.push_back(
+              expression = Expression::Create(
+                  expression,
+                  GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+                  Expression::TYPE_SIZEPREFIX, 0));
           expressions.push_back(
               expression = Expression::Create(expression, ",", 0,
                                               Expression::TYPE_OPERATOR, 0));
           expressions.push_back(Expression::Create(
-              expression, GetCoprocessorName(operand.specflag1), 0,
+              expression,
+              GetCoprocessorName(static_cast<size_t>(operand.specflag1)), 0,
               Expression::TYPE_REGISTER, 0));
           expressions.push_back(Expression::Create(
               expression, name.name, immediate,
@@ -299,12 +312,13 @@ Operands DecodeOperandsArm(const Address address) {
         } else {
           const Address immediate = operand.value;
           const Name name =
-              GetName(address, immediate, operand_position, false);
+              GetName(instruction.ea, immediate, operand_position, false);
 
-          expressions.push_back(expression = Expression::Create(
-                                    expression,
-                                    GetSizePrefix(GetOperandByteSize(operand)),
-                                    0, Expression::TYPE_SIZEPREFIX, 0));
+          expressions.push_back(
+              expression = Expression::Create(
+                  expression,
+                  GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+                  Expression::TYPE_SIZEPREFIX, 0));
           expressions.push_back(
               expression = Expression::Create(
                   expression, name.name, immediate,
@@ -317,17 +331,17 @@ Operands DecodeOperandsArm(const Address address) {
       case o_near: {
         // Immediate Near Address (CODE)
         const Address immediate = operand.addr;
-        const Name name = GetName(address, immediate, operand_position, false);
+        const Name name =
+            GetName(instruction.ea, immediate, operand_position, false);
 
         expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+                                  expression, GetSizePrefix(GetOperandByteSize(
+                                                  instruction, operand)),
+                                  0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(
                 expression, name.name, immediate,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type,
-                0));
+                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
         break;
       }
       case o_idpspec0: {
@@ -341,16 +355,17 @@ Operands DecodeOperandsArm(const Address address) {
         const char shiftRegister = operand.specflag1;
         const uval_t shiftCount = operand.value;
         expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+                                  expression, GetSizePrefix(GetOperandByteSize(
+                                                  instruction, operand)),
+                                  0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(expression, GetShift(shiftType), 0,
                                             Expression::TYPE_OPERATOR, 0));
         expressions.push_back(Expression::Create(
             expression,
-            GetRegisterName(registerIndex, GetOperandByteSize(operand)), 0,
-            Expression::TYPE_REGISTER, 0));
+            GetRegisterName(registerIndex,
+                            GetOperandByteSize(instruction, operand)),
+            0, Expression::TYPE_REGISTER, 0));
         if (shiftType == 4) {
           // == RRX, no further expression because it
           // always rotates by one bit only
@@ -362,8 +377,9 @@ Operands DecodeOperandsArm(const Address address) {
         } else {
           expressions.push_back(Expression::Create(
               expression,
-              GetRegisterName(shiftRegister, GetOperandByteSize(operand)), 0,
-              Expression::TYPE_REGISTER, 1));
+              GetRegisterName(shiftRegister,
+                              GetOperandByteSize(instruction, operand)),
+              0, Expression::TYPE_REGISTER, 1));
         }
         break;
       }
@@ -372,18 +388,19 @@ Operands DecodeOperandsArm(const Address address) {
         // #define reglist specval      // The list is in op.specval
         // #define uforce specflag1     // PSR & force user bit
         expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+                                  expression, GetSizePrefix(GetOperandByteSize(
+                                                  instruction, operand)),
+                                  0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(expression, "{", 0,
                                             Expression::TYPE_OPERATOR, 0));
         for (ea_t i = 0; i < 32; ++i) {
           if (operand.specval & ea_t(1 << i)) {
             expressions.push_back(Expression::Create(
-                expression, GetRegisterName(static_cast<size_t>(i),
-                                            GetOperandByteSize(operand)),
-                0, Expression::TYPE_REGISTER, static_cast<uint8_t>(i)));
+                expression,
+                GetRegisterName(static_cast<size_t>(i),
+                                GetOperandByteSize(instruction, operand)),
+                0, Expression::TYPE_REGISTER, static_cast<uint8>(i)));
           }
         }
         break;
@@ -422,18 +439,19 @@ Operands DecodeOperandsArm(const Address address) {
         // #define fpregcnt        value           // number of registers
 
         expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+                                  expression, GetSizePrefix(GetOperandByteSize(
+                                                  instruction, operand)),
+                                  0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(expression, "{", 0,
                                             Expression::TYPE_OPERATOR, 0));
 
         for (uval_t i = 0; i < operand.value; ++i) {
           expressions.push_back(Expression::Create(
-              expression, GetRegisterName(static_cast<size_t>(operand.reg + i),
-                                          GetOperandByteSize(operand)),
-              0, Expression::TYPE_REGISTER, static_cast<uint8_t>(i)));
+              expression,
+              GetRegisterName(static_cast<size_t>(operand.reg + i),
+                              GetOperandByteSize(instruction, operand)),
+              0, Expression::TYPE_REGISTER, static_cast<uint8>(i)));
         }
         break;
       }
@@ -441,7 +459,7 @@ Operands DecodeOperandsArm(const Address address) {
         // For the current implementation of the IDA ARM processor module
         // it is guaranteed that o_idpspec5 is a String.
         // Used for DMB, DSB, SETEND, MRS, MSR, CPSID/CPSIE
-        const char* text = (const char*)&operand.value;
+        auto text = (const char*)&operand.value;
         expressions.push_back(Expression::Create(expression, text, 0,
                                                  Expression::TYPE_OPERATOR, 0));
         break;
@@ -449,14 +467,15 @@ Operands DecodeOperandsArm(const Address address) {
       case o_idpspec5 + 1: {
         // Arbitrary text stored in the operand structure starting at the
         // 'value' field up to 16 bytes (with terminating zero)
-        LOG(INFO) << StringPrintf(
-            "warning: text storage not yet supported (%08" PRIx64 ")", address);
+        LOG(INFO) << absl::StrCat("warning: text storage not yet supported (",
+                                  absl::Hex(instruction.ea, absl::kZeroPad8),
+                                  ")");
         break;
       }
       default: {
-        LOG(INFO) << StringPrintf(
-            "warning: unknown operand type %d at %08" PRIx64,
-            static_cast<int>(operand.type), address);
+        LOG(INFO) << absl::StrCat("warning: unknown operand type ",
+                                  operand.type, " at ",
+                                  absl::Hex(instruction.ea, absl::kZeroPad8));
         break;
       }
     }
@@ -467,29 +486,25 @@ Operands DecodeOperandsArm(const Address address) {
   return operands;
 }
 
-Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
+Instruction ParseInstructionIdaArm(const insn_t& instruction,
+                                   CallGraph* /* call_graph */,
                                    FlowGraph* /* flow_graph */,
                                    TypeSystem* /* type_system */) {
   // Part of this code comes directly from support@hex-rays.com (Igor).
   // It was changed according to our needs but reflects basically what IDA
   // does.
 
-  // const insn_t & instruction = cmd;
-  // size_t iType = cmd.itype;
-  char buffer[128];
-  memset(buffer, 0, sizeof(buffer));
-  if (!IsCode(address) ||
-      !ua_mnem(static_cast<ea_t>(address), buffer, sizeof(buffer))) {
-    return Instruction(address);
+  if (!IsCode(instruction.ea)) {
+    return Instruction(instruction.ea);
   }
-  std::string mnemonic(buffer);
+  string mnemonic(GetMnemonic(instruction.ea));
   if (mnemonic.empty()) {
-    return Instruction(address);
+    return Instruction(instruction.ea);
   }
 
   Address next_instruction = 0;
   xrefblk_t xref;
-  for (bool ok = xref.first_from(static_cast<ea_t>(address), XREF_ALL);
+  for (bool ok = xref.first_from(static_cast<ea_t>(instruction.ea), XREF_ALL);
        ok && xref.iscode; ok = xref.next_from()) {
     if (xref.type == fl_F) {
       next_instruction = xref.to;
@@ -498,7 +513,7 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
   }
 
   char precision = 0;
-  switch (cmd.itype) {
+  switch (instruction.itype) {
     case ARM_fldms:
     case ARM_fstms:
       precision = 'S';
@@ -513,10 +528,10 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
       break;
   }
 
-  if (cmd.itype == ARM_it) {
-    unsigned int first_cond = (cmd.ARM_cond & 0x1);
+  if (instruction.itype == ARM_it) {
+    int first_cond = (instruction.ARM_cond & 0x1);
 
-    switch (cmd.insnpref) {
+    switch (instruction.insnpref) {
       case 0x0:
         break;
 
@@ -643,7 +658,7 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
     }
   }
 
-  switch (cmd.ARM_cond) {
+  switch (instruction.ARM_cond) {
     case 0x0:
       mnemonic += "EQ";
       break;
@@ -694,32 +709,34 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
   }
 
   // add prefix (if any) to string instructions
-  if (cmd.auxpref & aux_cond) mnemonic += "S";
-  if (cmd.auxpref & aux_byte) mnemonic += "B";
-  if (cmd.auxpref & aux_npriv) mnemonic += "T";
-  if (cmd.auxpref & aux_ltrans) mnemonic += "L";
-  if (cmd.auxpref & aux_sb) mnemonic += "SB";
-  if (cmd.auxpref & aux_sh) mnemonic += "SH";
-  if (cmd.auxpref & aux_h) mnemonic += "H";
-  if (cmd.auxpref & aux_p) mnemonic += "H";
+  if (instruction.auxpref & aux_cond) mnemonic += "S";
+  if (instruction.auxpref & aux_byte) mnemonic += "B";
+  if (instruction.auxpref & aux_npriv) mnemonic += "T";
+  if (instruction.auxpref & aux_ltrans) mnemonic += "L";
+  if (instruction.auxpref & aux_sb) mnemonic += "SB";
+  if (instruction.auxpref & aux_sh) mnemonic += "SH";
+  if (instruction.auxpref & aux_h) mnemonic += "H";
+  if (instruction.auxpref & aux_p) mnemonic += "H";
 
-  if (cmd.itype == ARM_ldm || cmd.itype == ARM_stm || cmd.itype == ARM_fldmd ||
-      cmd.itype == ARM_fstmd || cmd.itype == ARM_fldms ||
-      cmd.itype == ARM_fstms || cmd.itype == ARM_fldmx ||
-      cmd.itype == ARM_fstmx || cmd.itype == ARM_vldm ||
-      cmd.itype == ARM_vstm || cmd.itype == ARM_rfe || cmd.itype == ARM_srs ||
+  if (instruction.itype == ARM_ldm || instruction.itype == ARM_stm ||
+      instruction.itype == ARM_fldmd || instruction.itype == ARM_fstmd ||
+      instruction.itype == ARM_fldms || instruction.itype == ARM_fstms ||
+      instruction.itype == ARM_fldmx || instruction.itype == ARM_fstmx ||
+      instruction.itype == ARM_vldm || instruction.itype == ARM_vstm ||
+      instruction.itype == ARM_rfe || instruction.itype == ARM_srs ||
       precision != 0) {
-    size_t n = (cmd.auxpref & aux_negoff) ? 0 : 2;
-    if ((cmd.auxpref & aux_postidx) == 0) n |= 1;
-    if (cmd.itype == ARM_ldm || cmd.itype == ARM_rfe) n |= 4;
+    size_t n = (instruction.auxpref & aux_negoff) ? 0 : 2;
+    if ((instruction.auxpref & aux_postidx) == 0) n |= 1;
+    if (instruction.itype == ARM_ldm || instruction.itype == ARM_rfe) n |= 4;
     static const char* const other[] = {"DA", "DB", "IA", "IB",
                                         "DA", "DB", "IA", "IB"};
     static const char* const stack[] = {"ED", "FD", "EA", "FA",
                                         "FA", "EA", "FD", "ED"};
-    const op_t& operand = cmd.Operands[0];
-    if (GetRegisterName(operand.reg, GetOperandByteSize(operand)) ==
-            std::string("SP") &&
-        cmd.itype != ARM_srs) {
+    const op_t& operand = instruction.ops[0];
+    if (GetRegisterName(operand.reg,
+                        GetOperandByteSize(instruction, operand)) ==
+            string("SP") &&
+        instruction.itype != ARM_srs) {
       mnemonic += stack[n];
     } else {
       mnemonic += other[n];
@@ -729,20 +746,20 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
     }
   }
 
-  if (cmd.itype == ARM_ldrd || cmd.itype == ARM_strd) {
+  if (instruction.itype == ARM_ldrd || instruction.itype == ARM_strd) {
     mnemonic += "D";
   }
 
-  if (cmd.auxpref & aux_wide) {
-    if (cmd.auxpref & aux_wimm) {
+  if (instruction.auxpref & aux_wide) {
+    if (instruction.auxpref & aux_wimm) {
       mnemonic += "W";
     } else {
       mnemonic += ".W";
     }
   }
 
-  if (cmd.insnpref & 0x80) {
-    switch (neon_datatype_t(cmd.insnpref & 0x7F)) {
+  if (instruction.insnpref & 0x80) {
+    switch (neon_datatype_t(instruction.insnpref & 0x7F)) {
       case 0x0:
         break;  // DT_NONE = 0,
       case 0x1:
@@ -813,9 +830,9 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
     }
   }
 
-  if (cmd.itype == ARM_vcvt || cmd.itype == ARM_vcvtr ||
-      cmd.itype == ARM_vcvtb || cmd.itype == ARM_vcvtt) {
-    switch (neon_datatype_t(cmd.Op1.specflag1)) {
+  if (instruction.itype == ARM_vcvt || instruction.itype == ARM_vcvtr ||
+      instruction.itype == ARM_vcvtb || instruction.itype == ARM_vcvtt) {
+    switch (neon_datatype_t(instruction.Op1.specflag1)) {
       case 0x0:
         break;  // DT_NONE = 0,
       case 0x1:
@@ -886,6 +903,6 @@ Instruction ParseInstructionIdaArm(Address address, CallGraph* /* call_graph */,
     }
   }
 
-  return Instruction(address, next_instruction, cmd.size, mnemonic,
-                     DecodeOperandsArm(address));
+  return Instruction(instruction.ea, next_instruction, instruction.size,
+                     mnemonic, DecodeOperandsArm(instruction));
 }

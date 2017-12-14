@@ -15,9 +15,9 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_DIGEST_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_DIGEST_H_
 
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
-std::string Md5(const std::string& data);
-std::string Sha1(const std::string& data);
+string Md5(const string& data);
+string Sha1(const string& data);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_DIGEST_H_

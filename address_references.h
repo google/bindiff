@@ -44,7 +44,7 @@ struct AddressReference {
         source_operand_(operand_expression.first),
         source_expression_(operand_expression.second),
         size_(reference_size),
-        kind_(static_cast<uint8_t>(kind)) {}
+        kind_(static_cast<uint8>(kind)) {}
 
   AddressReference(Address source, std::pair<int, int> operand_expression,
                    Address target, AddressReferenceType kind)
@@ -65,7 +65,7 @@ struct AddressReference {
   int source_operand_;
   int source_expression_;
   int size_;
-  uint8_t kind_;
+  uint8 kind_;
 };
 
 typedef std::vector<AddressReference> AddressReferences;

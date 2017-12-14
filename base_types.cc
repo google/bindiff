@@ -42,11 +42,11 @@ unsigned int BaseType::GetId() const {
   return id_;
 }
 
-void BaseType::SetName(const std::string& name) {
+void BaseType::SetName(const string& name) {
   name_ = name;
 }
 
-const std::string& BaseType::GetName() const {
+const string& BaseType::GetName() const {
   return name_;
 }
 
@@ -87,7 +87,7 @@ void BaseType::SetCategory(TypeCategory category) {
   category_ = category;
 }
 
-std::string BaseType::GetCategoryString() const {
+string BaseType::GetCategoryString() const {
   switch (category_) {
     case kAtomic:
       return "atomic";

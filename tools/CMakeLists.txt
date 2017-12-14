@@ -12,8 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.7)
 project(tools CXX)
 
 add_executable(binexport2dump binexport2dump.cc)
-target_link_libraries(binexport2dump binexport_proto ${PROTOBUF_LIBRARIES})
+target_link_libraries(binexport2dump
+  absl::strings
+  binexport_base
+  binexport_shared
+  binexport_proto
+)
+install(TARGETS binexport2dump RUNTIME DESTINATION binexport-prefix)

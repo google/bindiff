@@ -15,20 +15,20 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
 
-#include "strings/stringpiece.h"
+#include "third_party/absl/strings/string_view.h"
 
 // Small RAII class that displays an wait message for long-running actions.
 class WaitBox {
  public:
   enum Cancellable { kNoCancel, kCancellable };
 
-  explicit WaitBox(StringPiece message) : WaitBox(message, kNoCancel) {}
-  WaitBox(StringPiece message, Cancellable cancel_state);
+  explicit WaitBox(absl::string_view message) : WaitBox(message, kNoCancel) {}
+  WaitBox(absl::string_view message, Cancellable cancel_state);
   ~WaitBox();
 
   static bool IsCancelled();
 
-  void ReplaceText(StringPiece message) const;
+  void ReplaceText(absl::string_view message) const;
 
  private:
   bool cancellable_;

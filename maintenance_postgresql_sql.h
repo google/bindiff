@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// PostgreSQL maintenance. This file should only be included from database.cc.
-
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_MAINTENANCE_POSTGRESQL_SQL_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_MAINTENANCE_POSTGRESQL_SQL_H_
 
-#include "third_party/zynamics/binexport/database_writer.h"
+#include "third_party/absl/strings/string_view.h"
 
-const std::string DatabaseWriter::postgresql_maintenance_ = R"raw(
+inline absl::string_view GetPostgreSqlMaintenance() {
+  static constexpr char kPostgreSqlMaintenance[] = R"raw(
 VACUUM ANALYZE "ex_?_operands";
 VACUUM ANALYZE "ex_?_functions";
 VACUUM ANALYZE "ex_?_basic_blocks";
@@ -39,5 +38,7 @@ VACUUM ANALYZE "ex_?_types";
 VACUUM ANALYZE "ex_?_expression_types";
 VACUUM ANALYZE "ex_?_sections";
 )raw";
+  return kPostgreSqlMaintenance;
+}
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_MAINTENANCE_POSTGRESQL_SQL_H_

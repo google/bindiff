@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "third_party/zynamics/binexport/types.h"
+
 struct MemberType;
 class BaseType;
 
@@ -54,8 +56,8 @@ class BaseType {
   // Returns the database id of this base type.
   unsigned int GetId() const;
 
-  void SetName(const std::string& name);
-  const std::string& GetName() const;
+  void SetName(const string& name);
+  const string& GetName() const;
 
   void SetSize(size_t size);
   size_t GetSize() const;
@@ -71,14 +73,14 @@ class BaseType {
   const MemberTypes& GetMembers() const;
 
   void SetCategory(TypeCategory category);
-  std::string GetCategoryString() const;
+  string GetCategoryString() const;
 
   static const MemberType* ResolveMember(const BaseType* base_type, int offset);
 
  private:
   unsigned int id_;
   // The name of  this type.
-  std::string name_;
+  string name_;
   // The size of this type in bits.
   size_t size_;
   // Is this type able to represent signed values?
@@ -110,7 +112,7 @@ struct MemberType {
   // The corresponding id in the database.
   unsigned int id;
   // The name of the member.
-  std::string name;
+  string name;
   // The type of this member.
   const BaseType* type;
   // The parent id where this type is contained in.

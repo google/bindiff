@@ -28,10 +28,21 @@ class CallGraph;
 
 class FlowGraph {
  public:
+  // Maximum number of basic blocks/edges/instructions we want to allow for a
+  // single function. If a function has more than this, we simply discard it as
+  // invalid. kMaxFunctionEarlyBasicBlocks limit is evaluated before bb merging
+  // thus its value is set to be relative to kMaxFunctionBasicBlocks
+  enum {
+    kMaxFunctionBasicBlocks = 5000,
+    kMaxFunctionEarlyBasicBlocks = kMaxFunctionBasicBlocks + 1000,
+    kMaxFunctionEdges = 5000,
+    kMaxFunctionInstructions = 20000
+  };
+
   // Instruction address, operand number, expression id
-  typedef std::tuple<Address, uint8_t, int> Ref;
-  typedef std::map<Ref, const std::string*> Substitutions;
-  typedef std::vector<FlowGraphEdge> Edges;
+  using Ref = std::tuple<Address, uint8, int>;
+  using Substitutions = std::map<Ref, const string*>;
+  using Edges = std::vector<FlowGraphEdge>;
 
   FlowGraph() = default;
   ~FlowGraph();
@@ -46,16 +57,16 @@ class FlowGraph {
   void ReconstructFunctions(detego::Instructions* instructions,
                             CallGraph* call_graph);
   void PruneFlowGraphEdges();
-  void AddExpressionSubstitution(Address address, uint8_t operator_num,
+  void AddExpressionSubstitution(Address address, uint8 operator_num,
                                  int expression_id,
-                                 const std::string& substitution);
+                                 const string& substitution);
   const Substitutions& GetSubstitutions() const;
   // Note: Keep the detego namespace, plain "Instructions" clashes with IDA.
   void MarkOrphanInstructions(detego::Instructions* instructions) const;
   void Render(std::ostream* stream, const CallGraph& call_graph) const;
 
  private:
-  typedef std::unordered_set<std::string> StringCache;
+  using StringCache = std::unordered_set<string>;
 
   FlowGraph(const FlowGraph& graph) = delete;
   const FlowGraph& operator=(const FlowGraph& graph) = delete;

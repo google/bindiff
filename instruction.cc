@@ -14,7 +14,9 @@
 
 #include "third_party/zynamics/binexport/instruction.h"
 
+#include <algorithm>
 #include <iomanip>
+#include <iterator>
 #include <list>
 #include <memory>
 #include <sstream>
@@ -39,14 +41,14 @@ typedef std::vector<std::shared_ptr<TreeNode>> Tree;
 // TODO(user): immediate_float are rendered as hex and aren't properly
 //                 checked for their sign.
 void RenderExpression(std::ostream* stream, const TreeNode& node,
-                      int substitution_id, const std::string& substitution) {
+                      int substitution_id, const string& substitution) {
   const auto& expression = *CHECK_NOTNULL(node.expression);
   if (expression.GetId() == substitution_id) {
     *stream << substitution;
     return;
   }
-  int8_t expression_type = expression.GetType();
-  std::string expression_symbol = expression.GetSymbol();
+  int8 expression_type = expression.GetType();
+  const string& expression_symbol = expression.GetSymbol();
   switch (expression_type) {
     case Expression::TYPE_SIZEPREFIX: {
       if ((expression_symbol != "b4" && Instruction::GetBitness() == 32) ||
@@ -117,14 +119,14 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
     case Expression::TYPE_IMMEDIATE_INT:
     case Expression::TYPE_IMMEDIATE_FLOAT: {
       if (expression_symbol.empty()) {
-        int64_t expression_immediate = expression.GetImmediate();
+        int64 expression_immediate = expression.GetImmediate();
         if ((Instruction::IsNegativeValue(expression_immediate) &&
              expression.GetParent() &&
              expression.GetParent()->GetSymbol() == "+") ||
             expression.GetImmediate() <= 9) {
           *stream << std::dec << std::setw(0)
                   << (Instruction::GetBitness() == 32
-                          ? static_cast<int32_t>(expression_immediate)
+                          ? static_cast<int32>(expression_immediate)
                           : expression_immediate);
         } else {
           *stream << "0x" << std::hex << std::uppercase << expression_immediate;
@@ -143,7 +145,7 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
       break;
     }
     default: {
-      std::string error("Unknown expression type in RenderExpression.");
+      string error("Unknown expression type in RenderExpression.");
       *stream << error;
       LOG(INFO) << error;
       break;
@@ -154,8 +156,8 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
 FlowGraph::Substitutions::const_iterator GetSubstitution(
     Address address, int operand_num,
     FlowGraph::Substitutions::const_iterator subst_begin,
-    FlowGraph::Substitutions::const_iterator subst_end,
-    std::string* substitution, int* expression_id) {
+    FlowGraph::Substitutions::const_iterator subst_end, string* substitution,
+    int* expression_id) {
   auto it = subst_begin;
   while (it != subst_end && std::get<0>(it->first) == address &&
          std::get<1>(it->first) < operand_num) {
@@ -174,8 +176,8 @@ FlowGraph::Substitutions::const_iterator GetSubstitution(
 
 }  // namespace
 
-std::string RenderOperands(const Instruction& instruction,
-                           const FlowGraph& flow_graph) {
+string RenderOperands(const Instruction& instruction,
+                      const FlowGraph& flow_graph) {
   if (!instruction.GetOperandCount()) {
     return "";
   }
@@ -204,7 +206,7 @@ std::string RenderOperands(const Instruction& instruction,
     }
 
     if (!tree.empty()) {
-      std::string substitution;
+      string substitution;
       int expression_id = 0;
       subst_it =
           GetSubstitution(instruction.GetAddress(), operand_index, subst_it,
@@ -284,7 +286,7 @@ AddressSpace* Instruction::flags_ = nullptr;
 AddressSpace* Instruction::virtual_memory_ = nullptr;
 
 Instruction::Instruction(Address address, Address next_instruction,
-                         uint16_t size, const std::string& mnemonic,
+                         uint16 size, const string& mnemonic,
                          const Operands& operands)
     : mnemonic_(CacheString(mnemonic)),
       address_(address),
@@ -356,20 +358,19 @@ Address Instruction::GetAddress() const { return address_; }
 
 int Instruction::GetSize() const { return size_; }
 
-const std::string& Instruction::GetMnemonic() const {
+const string& Instruction::GetMnemonic() const {
   assert(mnemonic_);
   return *mnemonic_;
 }
 
-std::string Instruction::GetBytes() const {
+string Instruction::GetBytes() const {
   if (!get_bytes_callback_ && virtual_memory_) {
     // TODO(user) Optimize this so we don't need a call to GetMemoryBlock
     //     for each instruction.
     const auto memory_block = virtual_memory_->GetMemoryBlock(address_);
-    return std::string(
-        reinterpret_cast<const char*>(&*memory_block->second.begin() +
-                                      address_ - memory_block->first),
-        size_);
+    return string(reinterpret_cast<const char*>(&*memory_block->second.begin() +
+                                                address_ - memory_block->first),
+                  size_);
   }
 
   assert(get_bytes_callback_);
@@ -389,14 +390,14 @@ Address Instruction::GetNextInstruction() const {
   return address_ + size_;
 }
 
-const std::string* Instruction::CacheString(const std::string& string) {
+const string* Instruction::CacheString(const string& string) {
   return &*string_cache_.insert(string).first;
 }
 
-uint16_t Instruction::GetInDegree() const { return in_degree_; }
+uint16 Instruction::GetInDegree() const { return in_degree_; }
 
 void Instruction::AddInEdge() {
-  if (in_degree_ < std::numeric_limits<uint16_t>::max()) {
+  if (in_degree_ < std::numeric_limits<uint16>::max()) {
     in_degree_++;
 #ifdef _DEBUG
   } else {
@@ -405,7 +406,7 @@ void Instruction::AddInEdge() {
   }
 }
 
-uint8_t Instruction::GetOperandCount() const { return operand_count_; }
+uint8 Instruction::GetOperandCount() const { return operand_count_; }
 
 Operands::const_iterator Instruction::cbegin() const {
   return operands_.begin() + operand_index_;
@@ -461,7 +462,7 @@ bool Instruction::HasFlag(unsigned char flag) const {
   return ((*flags_)[address_] & flag) != 0;
 }
 
-bool Instruction::IsNegativeValue(int64_t value) {
-  return Instruction::GetBitness() == 32 ? static_cast<int32_t>(value) < 0
-                                         : static_cast<int64_t>(value) < 0;
+bool Instruction::IsNegativeValue(int64 value) {
+  return Instruction::GetBitness() == 32 ? static_cast<int32>(value) < 0
+                                         : static_cast<int64>(value) < 0;
 }

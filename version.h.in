@@ -16,7 +16,7 @@
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
 
 // The BinExport release number. A single stringified integer.
-#define BINEXPORT_RELEASE "@RELEASE@"
+#define BINEXPORT_RELEASE "@binexport_VERSION_MAJOR@"
 
 // The Git revision of this build or "internal"
 #define BINEXPORT_REVISION "@REVISION@"

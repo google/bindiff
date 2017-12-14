@@ -14,16 +14,14 @@
 
 #include "third_party/zynamics/binexport/operand.h"
 
-#pragma warning(push, 0)
 #include <iterator>
 #include <sstream>
-#pragma warning(pop)
 
 #include "base/logging.h"
 
 Expressions Operand::expressions_;
 Operand::OperandCache Operand::operand_cache_;
-uint32_t Operand::global_id_ = 0;
+uint32 Operand::global_id_ = 0;
 
 // Delete unreferenced operands from cache and relabel surviving ones so we'll
 // have continuous ids again.
@@ -42,14 +40,14 @@ void Operand::PurgeCache(const std::set<int>& ids_to_keep) {
 
 Operand::Operand(const Expressions& expressions)
     : id_(0),
-      expression_index_(static_cast<uint32_t>(expressions_.size())),
-      expression_count_(static_cast<uint8_t>(expressions.size())) {
+      expression_index_(static_cast<uint32>(expressions_.size())),
+      expression_count_(static_cast<uint8>(expressions.size())) {
   std::copy(expressions.begin(), expressions.end(),
             std::back_inserter<Expressions>(expressions_));
 }
 
 Operand* Operand::CreateOperand(const Expressions& expressions) {
-  std::string signature;
+  string signature;
   signature.reserve(expressions.size() * 18 /* bytes for a single signature */);
   for (auto* expression : expressions) {
     signature.append(expression->CreateSignature());
@@ -96,7 +94,7 @@ Expressions::iterator Operand::end() const {
   return begin() + expression_count_;
 }
 
-uint8_t Operand::GetExpressionCount() const {
+uint8 Operand::GetExpressionCount() const {
   return expression_count_;
 }
 

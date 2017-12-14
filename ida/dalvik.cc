@@ -18,21 +18,24 @@
 #include <cstring>
 #include <string>
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <frame.hpp>                                         // NOLINT
-#include <funcs.hpp>                                         // NOLINT
-#include <ida.hpp>                                           // NOLINT
-#include <idp.hpp>                                           // NOLINT
-#include <lines.hpp>                                         // NOLINT
-#include <nalt.hpp>                                          // NOLINT
-#include <segment.hpp>                                       // NOLINT
-#include <strlist.hpp>                                       // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <frame.hpp>                                          // NOLINT
+#include <funcs.hpp>                                          // NOLINT
+#include <ida.hpp>                                            // NOLINT
+#include <idp.hpp>                                            // NOLINT
+#include <lines.hpp>                                          // NOLINT
+#include <nalt.hpp>                                           // NOLINT
+#include <segment.hpp>                                        // NOLINT
+#include <strlist.hpp>                                        // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
+
+namespace {
 
 #define dex_o_reg o_reg
 #define dex_o_imm o_imm
@@ -46,39 +49,39 @@
 #define dex_fieldoff specflag1  // Byte offset, not a field index
 #define dex_vtindex specflag1   // vtable slot, not a method id
 struct dex_header_item {
-  uint8_t magic[8];
-  uint32_t checksum;
-  uint8_t signature[20];
-  uint32_t file_size;
-  uint32_t header_size;
-  uint32_t endian_tag;
-  uint32_t link_size;
-  uint32_t link_off;
-  uint32_t map_off;
-  uint32_t string_ids_size;
-  uint32_t string_ids_off;
-  uint32_t type_ids_size;
-  uint32_t type_ids_off;
-  uint32_t proto_ids_size;
-  uint32_t proto_ids_off;
-  uint32_t field_ids_size;
-  uint32_t field_ids_off;
-  uint32_t method_ids_size_;
-  uint32_t method_ids_off_;
-  uint32_t class_defs_size_;
-  uint32_t class_defs_off_;
-  uint32_t data_size_;
-  uint32_t data_off_;
+  uint8 magic[8];
+  uint32 checksum;
+  uint8 signature[20];
+  uint32 file_size;
+  uint32 header_size;
+  uint32 endian_tag;
+  uint32 link_size;
+  uint32 link_off;
+  uint32 map_off;
+  uint32 string_ids_size;
+  uint32 string_ids_off;
+  uint32 type_ids_size;
+  uint32 type_ids_off;
+  uint32 proto_ids_size;
+  uint32 proto_ids_off;
+  uint32 field_ids_size;
+  uint32 field_ids_off;
+  uint32 method_ids_size_;
+  uint32 method_ids_off_;
+  uint32 class_defs_size_;
+  uint32 class_defs_off_;
+  uint32 data_size_;
+  uint32 data_off_;
 };
 
 // Returns the ULEB128 encoded value at the specified linear address.
 //
 // If bytes_read is non-zero, this function also returns the number of bytes
 // read  into this output parameter.
-uint32_t GetUleb128(Address ea, uint8_t* bytes_read = 0) {
+uint32 GetUleb128(Address ea, uint8* bytes_read = 0) {
   Address start_ea = ea;
-  uint8_t cur_byte = get_byte(static_cast<ea_t>(ea++));
-  uint32_t result = cur_byte;
+  uint8 cur_byte = get_byte(static_cast<ea_t>(ea++));
+  uint32 result = cur_byte;
 
   // Shortcut for small values
   if (cur_byte >= 0x80) {
@@ -104,18 +107,18 @@ uint32_t GetUleb128(Address ea, uint8_t* bytes_read = 0) {
     }
   }
   if (bytes_read != 0) {
-    *bytes_read = static_cast<uint8_t>(ea - start_ea);
+    *bytes_read = static_cast<uint8>(ea - start_ea);
   }
   return result;
 }
 
 // Returns the C-style string starting at the specified linear address.
-std::string GetString(Address ea) {
-  std::string result;
+string GetString(Address ea) {
+  string result;
   result.reserve(16);
 
   for (;;) {
-    uint8_t b(get_byte(static_cast<ea_t>(ea++)));
+    uint8 b(get_byte(static_cast<ea_t>(ea++)));
     if (b == 0) {
       break;
     }
@@ -124,8 +127,8 @@ std::string GetString(Address ea) {
   return result;
 }
 
-std::string GetDexString(Address ea) {
-  uint8_t len;
+string GetDexString(Address ea) {
+  uint8 len;
   GetUleb128(ea, &len);
   return GetString(ea + len);
 }
@@ -135,30 +138,33 @@ dex_header_item& GetDexHeader() {
   static bool header_init_done(false);
   if (!header_init_done) {
     memset(&header, 0, sizeof(dex_header_item));
-    get_many_bytes(0, &header, sizeof(dex_header_item));
+    get_bytes(&header, sizeof(dex_header_item), header.link_off);
     header_init_done = true;
   }
   return header;
 }
 
-std::string GetTypeNameByIndex(size_t index) {
+string GetTypeNameByIndex(size_t index) {
   dex_header_item& header(GetDexHeader());
-  uint32_t type_idx(get_long(header.type_ids_off + index * sizeof(uint32_t)));
-  uint32_t str_off(
-      get_long(header.string_ids_off + type_idx * sizeof(uint32_t)));
+  uint32 type_idx(get_dword(header.type_ids_off + index * sizeof(uint32)));
+  uint32 str_off(
+      get_dword(header.string_ids_off + type_idx * sizeof(uint32)));
   return GetDexString(str_off);
 }
 
-Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
+}  // namespace
+
+Operands ParseOperandsIdaDalvik(const insn_t& instruction,
+                                CallGraph* /* call_graph */,
                                 FlowGraph* flow_graph) {
   Operands operands;
-
-  for (uint8_t i = 0; i < UA_MAXOP && cmd.Operands[i].type != o_void; ++i) {
+  for (uint8 i = 0; i < UA_MAXOP && instruction.ops[i].type != o_void;
+       ++i) {
     Expressions expressions;
-    const op_t& op(cmd.Operands[i]);
+    const op_t& operand(instruction.ops[i]);
 
     Expression* expr = nullptr;
-    switch (op.type) {
+    switch (operand.type) {
       case o_void:      // No operand
       case o_phrase:    // Not used with Dalvik
       case o_mem:       // Not used with Dalvik
@@ -170,15 +176,16 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
 
       case dex_o_reg: {
         // Get canonical register name for operand
-        std::string regName(GetRegisterName(op.reg, GetOperandByteSize(op)));
+        string regName(GetRegisterName(
+            operand.reg, GetOperandByteSize(instruction, operand)));
 
-        if (op.dex_regpair) {
+        if (operand.dex_regpair) {
           // Register pairs encode 64-bit values
           expr =
               Expression::Create(expr, "b8", 0, Expression::TYPE_SIZEPREFIX, 0);
           expressions.push_back(expr);
-          std::string regName2(
-              GetRegisterName(op.reg + 1, GetOperandByteSize(op)));
+          string regName2(GetRegisterName(
+              operand.reg + 1, GetOperandByteSize(instruction, operand)));
           expr = Expression::Create(expr, regName + ":" + regName2, 0,
                                     Expression::TYPE_REGISTER, 0);
           expressions.push_back(expr);
@@ -193,20 +200,21 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         }
 
         // If the register has been renamed, add an expression substitution
-        regvar_t* rv(find_regvar(get_func(static_cast<ea_t>(address)),
-                                 static_cast<ea_t>(address), regName.c_str()));
+        regvar_t* rv(find_regvar(get_func(instruction.ea), instruction.ea,
+                                 regName.c_str()));
         if (rv != 0)
           flow_graph->AddExpressionSubstitution(
-              address, static_cast<uint8_t>(i), expr->GetId(), rv->user);
+              instruction.ea, static_cast<uint8>(i), expr->GetId(), rv->user);
         break;
       }
       case dex_o_imm: {
-        expr = Expression::Create(expr, GetSizePrefix(GetOperandByteSize(op)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0);
+        expr = Expression::Create(
+            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+            Expression::TYPE_SIZEPREFIX, 0);
         expressions.push_back(expr);
 
-        const Address immediate(static_cast<Address>(op.value));
-        const Name name(GetName(address, immediate, i, false));
+        const Address immediate(static_cast<Address>(operand.value));
+        const Name name(GetName(instruction.ea, immediate, i, false));
         expr = Expression::Create(
             expr, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
@@ -215,17 +223,18 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         break;
       }
       case dex_o_target: {
-        const Address immediate(static_cast<Address>(op.addr));
-        Name name(GetName(address, immediate, i, false));
+        const Address immediate(static_cast<Address>(operand.addr));
+        Name name(GetName(instruction.ea, immediate, i, false));
         if (name.empty()) {
-          LOG(INFO) << StringPrintf("%" PRIx64 ": dex_o_target: empty name\n",
-                                    address);
-          name.name = GetGlobalStructureName(address, immediate, i);
+          LOG(INFO) << absl::StrCat(absl::Hex(instruction.ea, absl::kZeroPad8),
+                                    ": dex_o_target: empty name");
+          name.name = GetGlobalStructureName(instruction.ea, immediate, i);
           name.type = Expression::TYPE_GLOBALVARIABLE;
         }
 
-        expr = Expression::Create(expr, GetSizePrefix(GetOperandByteSize(op)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0);
+        expr = Expression::Create(
+            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+            Expression::TYPE_SIZEPREFIX, 0);
         expressions.push_back(expr);
 
         expr = Expression::Create(
@@ -239,16 +248,17 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         // TODO(cblichmann) Check if we should use the size of a single
         //                  character (the type "pointed to").
         // TODO(cblichmann) Add string as a comment.
-        expr = Expression::Create(expr, GetSizePrefix(GetOperandByteSize(op)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0);
+        expr = Expression::Create(
+            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+            Expression::TYPE_SIZEPREFIX, 0);
         expressions.push_back(expr);
 
         expr =
             Expression::Create(expr, "[", 0, Expression::TYPE_DEREFERENCE, 0);
         expressions.push_back(expr);
 
-        const Address immediate(static_cast<Address>(op.addr));
-        Name name(GetName(address, immediate, i, false));
+        const Address immediate(static_cast<Address>(operand.addr));
+        Name name(GetName(instruction.ea, immediate, i, false));
         expr = Expression::Create(
             expr, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
@@ -257,13 +267,14 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         break;
       }
       case dex_o_type: {
-        std::string str(GetTypeNameByIndex(static_cast<size_t>(op.value)));
+        string str(GetTypeNameByIndex(static_cast<size_t>(operand.value)));
 
-        expr = Expression::Create(expr, GetSizePrefix(GetOperandByteSize(op)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0);
+        expr = Expression::Create(
+            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+            Expression::TYPE_SIZEPREFIX, 0);
         expressions.push_back(expr);
 
-        const Address immediate(static_cast<Address>(op.addr));
+        const Address immediate(static_cast<Address>(operand.addr));
         expr = Expression::Create(expr, str, immediate, Expression::TYPE_SYMBOL,
                                   0);
         expressions.push_back(expr);
@@ -271,12 +282,13 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         break;
       }
       case dex_o_field: {
-        expr = Expression::Create(expr, GetSizePrefix(GetOperandByteSize(op)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0);
+        expr = Expression::Create(
+            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
+            Expression::TYPE_SIZEPREFIX, 0);
         expressions.push_back(expr);
 
-        const Address immediate(static_cast<Address>(op.addr));
-        Name name(GetName(address, immediate, i, false));
+        const Address immediate(static_cast<Address>(operand.addr));
+        Name name(GetName(instruction.ea, immediate, i, false));
         expr = Expression::Create(
             expr, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
@@ -285,11 +297,11 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         break;
       }
       case dex_o_meth: {
-        const Address immediate(
-            static_cast<Address>(op.addr != 0 ? op.addr : op.specval));
+        const Address immediate(static_cast<Address>(
+            operand.addr != 0 ? operand.addr : operand.specval));
         // immediate == 0 => reference to imported method
 
-        Name name(GetName(address, immediate, i, false));
+        Name name(GetName(instruction.ea, immediate, i, false));
         expr = Expression::Create(
             expr, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
@@ -298,9 +310,9 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
         break;
       }
       default:
-        LOG(INFO) << StringPrintf(
-            "warning: unknown operand type %d at %08" PRIx64,
-            static_cast<int>(op.type), address);
+        LOG(INFO) << absl::StrCat("warning: unknown operand type ",
+                                  operand.type, " at ",
+                                  absl::Hex(instruction.ea, absl::kZeroPad8));
         break;
     }
     operands.push_back(Operand::CreateOperand(expressions));
@@ -311,21 +323,19 @@ Operands ParseOperandsIdaDalvik(Address address, CallGraph* /* call_graph */,
   return operands;
 }
 
-Instruction ParseInstructionIdaDalvik(Address address, CallGraph* call_graph,
+Instruction ParseInstructionIdaDalvik(const insn_t& instruction,
+                                      CallGraph* call_graph,
                                       FlowGraph* flow_graph,
                                       TypeSystem* /* type_system */) {
   // If the address contains no code of if the text representation could not
   // be generated, return an empty instruction. Do the same if the mnemonic
   // is empty.
-  char buffer[128];
-  memset(buffer, 0, sizeof(buffer));
-  if (!IsCode(address) ||
-      !ua_mnem(static_cast<ea_t>(address), buffer, sizeof(buffer))) {
-    return Instruction(address);
+  if (!IsCode(instruction.ea)) {
+    return Instruction(instruction.ea);
   }
-  std::string mnemonic(buffer);
+  string mnemonic = GetMnemonic(instruction.ea);
   if (mnemonic.empty()) {
-    return Instruction(address);
+    return Instruction(instruction.ea);
   }
 
   // Look for CODE xrefs that denote code flow and use its address as next
@@ -333,7 +343,7 @@ Instruction ParseInstructionIdaDalvik(Address address, CallGraph* call_graph,
   // 0 as the address of the next address instruction.
   Address nextInstruction(0);
   xrefblk_t xref;
-  bool haveXref(xref.first_from(static_cast<ea_t>(address), XREF_ALL));
+  bool haveXref(xref.first_from(static_cast<ea_t>(instruction.ea), XREF_ALL));
   while (haveXref && xref.iscode) {
     if (xref.type == fl_F) {
       nextInstruction = xref.to;
@@ -342,6 +352,7 @@ Instruction ParseInstructionIdaDalvik(Address address, CallGraph* call_graph,
     haveXref = xref.next_from();
   }
 
-  return Instruction(address, nextInstruction, cmd.size, mnemonic,
-                     ParseOperandsIdaDalvik(address, call_graph, flow_graph));
+  return Instruction(
+      instruction.ea, nextInstruction, instruction.size, mnemonic,
+      ParseOperandsIdaDalvik(instruction, call_graph, flow_graph));
 }

@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// PostgreSQL constraints initialization. This file should only be included from
-// database.cc.
-
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_CONSTRAINTS_POSTGRESQL_SQL_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_CONSTRAINTS_POSTGRESQL_SQL_H_
 
-#include "third_party/zynamics/binexport/database_writer.h"
+#include "third_party/absl/strings/string_view.h"
 
-const std::string DatabaseWriter::postgresql_initialize_constraints_ = R"raw(
+inline absl::string_view GetPostgreSqlInitializeConstraints() {
+  static constexpr char kPostgreSqlInitializeConstraints[] = R"raw(
 ALTER TABLE "ex_?_functions" ADD PRIMARY KEY ("address");
 
 ALTER TABLE "ex_?_basic_blocks" ADD PRIMARY KEY ("id");
@@ -173,5 +171,7 @@ ALTER TABLE "ex_?_expression_type_instances"
     REFERENCES ex_?_expression_nodes ("id") MATCH SIMPLE
     ON UPDATE CASCADE ON DELETE CASCADE;
 )raw";
+  return kPostgreSqlInitializeConstraints;
+}
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_CONSTRAINTS_POSTGRESQL_SQL_H_

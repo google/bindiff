@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011-2016 Google Inc. All Rights Reserved.
+# Copyright 2011-2017 Google Inc. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 
 # Updates the partial copy of Boost in third_party/boost to the latest Boost
 # version.
-# See from https://github.com/Valloric/ycmd/blob/master/update_boost.sh for
-# the script that this one is based on.
+# See https://github.com/Valloric/ycmd/blob/master/update_boost.sh for the
+# script that this one is based on.
 
 # Exit on error
 set -e
@@ -26,7 +26,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-# See configure script.
+# Portable "readlink -e"
 canonical_path()
 (
   file=$1
@@ -66,6 +66,6 @@ find "$BOOST_OUT/libs" -not \( -name "*.?pp" -o -name "*.inl" \) \
   -type f -delete
 
 rm -rf "$THIS_DIR/boost"
-# Note: We're not moving the libs/ because we're currently only using
-#       header-only libraries.
+# Note: We're not moving the libs/ because we're only using header-only
+#       libraries.
 mv "$BOOST_OUT/boost" "$THIS_DIR"

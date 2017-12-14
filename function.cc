@@ -17,15 +17,14 @@
 #include <cinttypes>
 #include <iomanip>
 #include <iostream>
-#include <ostream>
-#include <sstream>
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
 #include <boost/graph/dominator_tree.hpp>               // NOLINT
 #include <boost/graph/iteration_macros.hpp>             // NOLINT
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 
 int Function::instance_count_ = 0;
@@ -138,24 +137,22 @@ const char* Function::GetTypeName(FunctionType type) {
   }
 }
 
-void Function::SetName(const std::string& name,
-                       const std::string& demangled_name) {
+void Function::SetName(const string& name,
+                       const string& demangled_name) {
   name_ = name;
   if (name != demangled_name) {
     demangled_name_ = demangled_name;
   } else {
-    demangled_name_ = std::string();
+    demangled_name_ = string();
   }
 }
 
-std::string Function::GetName(Name type) const {
+string Function::GetName(Name type) const {
   if (HasRealName()) {
     return type == MANGLED || demangled_name_.empty() ? name_ : demangled_name_;
   }
-
-  std::stringstream stream;
-  stream << "sub_" << std::hex << std::uppercase << GetEntryPoint();
-  return stream.str();
+  return absl::StrCat("sub_", absl::AsciiStrToUpper(absl::StrCat(absl::Hex(
+                                  GetEntryPoint(), absl::kZeroPad8))));
 }
 
 bool Function::HasRealName() const { return !name_.empty(); }
@@ -212,19 +209,19 @@ int Function::GetBasicBlockIndexForAddress(Address address) const {
     }
   }
 
-  LOG(WARNING) << StringPrintf("No basic block for %08" PRIx64 " in %08" PRIx64,
-                               address, GetEntryPoint());
-
+  LOG(WARNING) << absl::StrCat("No basic block for ",
+                               absl::Hex(address, absl::kZeroPad8), " in ",
+                               GetEntryPoint());
   return basic_blocks_.size();
 }
 
 bool Function::IsImported() const { return GetType(false) == TYPE_IMPORTED; }
 
-std::string Function::GetModuleName() const {
+string Function::GetModuleName() const {
   return module_name_ ? *module_name_ : "";
 }
 
-void Function::SetModuleName(const std::string& name) {
+void Function::SetModuleName(const string& name) {
   module_name_ = &*string_cache_.insert(name).first;
 }
 
@@ -319,4 +316,7 @@ void Function::GetBackEdges(
       back_edges->emplace_back(detego_edge);
     }
   }
+  // Back edges are not sorted, sort them now, otherwise the loop-finding logic
+  // won't spot them and mark them as back_edges.
+  std::sort(back_edges->begin(), back_edges->end());
 }

@@ -5,7 +5,5 @@ This directory contains external dependencies necessary to build BinExport.
 
 - idasdk/         The extracted files from idasdk.zip.enc during a build.
 
-- protobuf/       Google Protocol Buffers, this is added as a Git submodule.
-
 - idasdk.zip.enc  The IDA Pro SDK. This file is encrypted and can only be used
                   by the TravisCI and AppVeyor CI systems.

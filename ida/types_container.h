@@ -31,7 +31,7 @@ class member_t;
 // to the member it references.
 class IdaTypesContainer : public TypesContainer {
  public:
-  typedef std::map<std::string, const BaseType*> TypesByString;
+  typedef std::map<string, const BaseType*> TypesByString;
 
   ~IdaTypesContainer();
   // Iterate over IDA's type system in order to create a mapping between
@@ -53,7 +53,7 @@ class IdaTypesContainer : public TypesContainer {
   virtual const BaseType* GetFunctionPrototype(const Function& function) const;
 
  private:
-  typedef std::map<uint64_t, BaseType*> TypeIdMap;
+  typedef std::map<uint64, BaseType*> TypeIdMap;
   typedef std::map<Address, const BaseType*> PrototypesMap;
 
   template<class T> void CollectCompoundTypes(T start_it, T end_it);
@@ -69,16 +69,16 @@ class IdaTypesContainer : public TypesContainer {
   void Cleanup();
 
   const BaseType* CreateVoidPointerType();
-  void CreateIdaType(const std::string& name, size_t bit_size);
+  void CreateIdaType(const string& name, size_t bit_size);
   void InitializeBuiltinTypes();
   const BaseType* GetVoidPointerType() const;
   const BaseType* GetBuiltinType(size_t type_size) const;
   const BaseType* GetStackFrame(Address function_address) const;
   const BaseType* GetMemberType(const member_t* member) const;
   TypeReference CreateStackReference(Address address, size_t operand_num,
-                                     int64_t displacement) const;
+                                     int64 displacement) const;
   TypeReference CreateNonStackReference(Address address, size_t operand_num,
-                                        int64_t displacement) const;
+                                        int64 displacement) const;
 
   // Contains and owns all known instances of BaseType.
   BaseType::BaseTypes base_types_;

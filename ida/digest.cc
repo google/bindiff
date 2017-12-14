@@ -16,19 +16,19 @@
 
 #include <openssl/md5.h>
 #include <openssl/sha.h>
-#include <cstdint>
 
-std::string Md5(const std::string& data) {
-  std::string digest(MD5_DIGEST_LENGTH, '\0');
-  MD5(reinterpret_cast<const uint8_t*>(data.data()), data.size(),
-      reinterpret_cast<uint8_t*>(&digest[0]));
+#include "base/integral_types.h"
+
+string Md5(const string& data) {
+  string digest(MD5_DIGEST_LENGTH, '\0');
+  MD5(reinterpret_cast<const uint8*>(data.data()), data.size(),
+      reinterpret_cast<uint8*>(&digest[0]));
   return digest;
 }
 
-std::string Sha1(const std::string& data) {
-  std::string digest(SHA_DIGEST_LENGTH, '\0');
-  SHA1(reinterpret_cast<const uint8_t*>(data.data()), data.size(),
-       reinterpret_cast<uint8_t*>(&digest[0]));
+string Sha1(const string& data) {
+  string digest(SHA_DIGEST_LENGTH, '\0');
+  SHA1(reinterpret_cast<const uint8*>(data.data()), data.size(),
+       reinterpret_cast<uint8*>(&digest[0]));
   return digest;
 }
-

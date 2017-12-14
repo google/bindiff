@@ -16,17 +16,18 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <enum.hpp>                                          // NOLINT
-#include <frame.hpp>                                         // NOLINT
-#include <ida.hpp>                                           // NOLINT
-#include <idp.hpp>                                           // NOLINT
-#include <name.hpp>                                          // NOLINT
-#include <struct.hpp>                                        // NOLINT
-#include <typeinf.hpp>                                       // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <enum.hpp>                                           // NOLINT
+#include <frame.hpp>                                          // NOLINT
+#include <ida.hpp>                                            // NOLINT
+#include <idp.hpp>                                            // NOLINT
+#include <name.hpp>                                           // NOLINT
+#include <struct.hpp>                                         // NOLINT
+#include <typeinf.hpp>                                        // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/base_types.h"
 #include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/ida/names.h"
@@ -103,7 +104,7 @@ struct FrameIterator
     if (start_index >= function_count) {
       return BADADDR;
     }
-    if (!get_frame(getn_func(start_index)->startEA)) {
+    if (!get_frame(getn_func(start_index)->start_ea)) {
       return next_valid_index(start_index, function_count);
     }
     return start_index;
@@ -115,7 +116,7 @@ struct FrameIterator
     }
     while (index < function_count - 1) {
       ++index;
-      if (get_frame(getn_func(index)->startEA)) {
+      if (get_frame(getn_func(index)->start_ea)) {
         return index;
       }
     }
@@ -131,7 +132,7 @@ struct FrameIterator
   }
 
   struc_t& dereference() const {
-    struc_t* frame_struct = get_frame(getn_func(current_index_)->startEA);
+    struc_t* frame_struct = get_frame(getn_func(current_index_)->start_ea);
     if (!frame_struct) {
       throw std::runtime_error("Out of bounds access in FrameIterator.");
     }
@@ -170,9 +171,9 @@ struct IdaFrameStructures {
   FrameIterator end_;
 };
 
-std::string GetTypeName(const tinfo_t& tif) {
+string GetTypeName(const tinfo_t& tif) {
   qstring type_name;
-  return std::string(tif.print(&type_name) ? type_name.c_str() : "");
+  return string(tif.print(&type_name) ? type_name.c_str() : "");
 }
 
 const BaseType* GetKnownType(
@@ -309,8 +310,8 @@ const struc_t* GetIdaStruct(Address address, size_t operand_num,
                             adiff_t* offset) {
   tid_t path[MAXSTRUCPATH];
   adiff_t delta;
-  if (get_struct_operand(static_cast<ea_t>(address), operand_num, path, offset,
-                         &delta)) {
+  if (get_struct_operand(offset, &delta, path, static_cast<ea_t>(address),
+                         operand_num)) {
     // For now we only need to consider the root base type together with an
     // offset in order to uniquely address members in nested structures, so
     // we merely return the first element of that path. This will change once
@@ -354,7 +355,7 @@ void IdaTypesContainer::InitializeBuiltinTypes() {
   CreateVoidPointerType();
 }
 
-void IdaTypesContainer::CreateIdaType(const std::string& name,
+void IdaTypesContainer::CreateIdaType(const string& name,
                                       size_t bit_size) {
   BaseType* new_base_type = new BaseType();
   new_base_type->SetSigned(true);
@@ -389,7 +390,7 @@ const BaseType* IdaTypesContainer::GetBuiltinType(size_t type_size) const {
 const BaseType* IdaTypesContainer::CreateOrGetBaseTypes(
     const member_t* member, BaseType::MemberTypes* member_types) {
   tinfo_t tif;
-  if (!get_member_tinfo2(member, &tif) && !guess_tinfo2(member->id, &tif)) {
+  if (!get_member_tinfo(&tif, member) && !guess_tinfo(&tif, member->id)) {
     return nullptr;
   }
   if (tif.is_array()) {
@@ -415,7 +416,7 @@ MemberType* IdaTypesContainer::CreateMember(
   new_member->parent_type = parent_struct;
 
   qstring ida_name;
-  if (get_member_name2(&ida_name, ida_member->id)) {
+  if (get_member_name(&ida_name, ida_member->id)) {
     new_member->name.assign(ida_name.c_str(), ida_name.length());
   } else {
     LOG(INFO) << "Unable to determine name for member with id: "
@@ -451,7 +452,7 @@ void IdaTypesContainer::CollectCompoundTypes(T start_it, T end_it) {
   // IDA has cases where members are believed to be in a stack frame of a
   // function where this is really a disassembly error. Therefore we try to
   // raise awareness to this issue here.
-  const int kMaxStructSize = std::numeric_limits<int32_t>::max();
+  const int kMaxStructSize = std::numeric_limits<int32>::max();
   for (T it = start_it; it != end_it; ++it) {
     const tid_t struct_id = it->id;
     const asize_t struct_size = static_cast<size_t>(get_struc_size(struct_id)) *
@@ -552,13 +553,15 @@ void IdaTypesContainer::GatherTypes() {
 IdaTypesContainer::~IdaTypesContainer() { Cleanup(); }
 
 TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
-    Address address, size_t operand_num, int64_t displacement) const {
+    Address address, size_t operand_num, int64 displacement) const {
   func_t* function = get_func(address);
   if (!function) {
     return TypeReference::CreateEmptyReference();
   }
+  insn_t instruction;
+  decode_insn(&instruction, address);
   const int structure_offset =
-      calc_stkvar_struc_offset(function, address, operand_num);
+      calc_stkvar_struc_offset(function, instruction, operand_num);
   // final_offset describes the offset that we need to store for the
   // substitution so BinNavi can determine the referenced member as:
   // member_offset = displacement + final_offset
@@ -570,10 +573,10 @@ TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
     // the reported structure offset) so we don't create a substitution at all.
     return TypeReference::CreateEmptyReference();
   }
-  const BaseType* base_type = GetStackFrame(function->startEA);
+  const BaseType* base_type = GetStackFrame(function->start_ea);
   if (!base_type) {
-    LOG(INFO) << StringPrintf("Stack frame of function: %08llx corrupted.",
-                              function->startEA);
+    LOG(INFO) << absl::StrCat("Stack frame corrupted, function: ",
+                              absl::Hex(function->start_ea, absl::kZeroPad8));
     return TypeReference::CreateEmptyReference();
   }
 
@@ -583,7 +586,7 @@ TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
 }
 
 TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
-    Address address, size_t operand_num, int64_t displacement) const {
+    Address address, size_t operand_num, int64 displacement) const {
   // For negative displacements we give up and return an empty reference, since
   // there is no way to obtain a unique base structure in the general case:
   // the obtained base type could be nested in arbitrarily many other
@@ -603,7 +606,10 @@ TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
     // Therefore, we have to find the "parent" structure for references
     // with negative immediate offsets.
     adiff_t offset;
-    const struc_t* ida_struct = GetIdaStruct(address, operand_num, &offset);
+    insn_t instruction;
+    decode_insn(&instruction, address);
+    const struc_t* ida_struct =
+        GetIdaStruct(instruction.ea, operand_num, &offset);
     if (!ida_struct) {
       return TypeReference::CreateEmptyReference();
     }
@@ -619,10 +625,10 @@ TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
 
 TypesContainer::TypeReference IdaTypesContainer::ResolveDisplacedTypeReference(
     Address address, Address displacement, size_t operand_num) const {
-  int64_t signed_displacement = Instruction::IsNegativeValue(displacement)
-                                    ? static_cast<int32_t>(displacement)
-                                    : static_cast<int64_t>(displacement);
-  if (isStkvar(get_flags_novalue(static_cast<ea_t>(address)), operand_num)) {
+  int64 signed_displacement = Instruction::IsNegativeValue(displacement)
+                                    ? static_cast<int32>(displacement)
+                                    : static_cast<int64>(displacement);
+  if (is_stkvar(get_flags(address), operand_num)) {
     return CreateStackReference(address, operand_num, signed_displacement);
   }
   return CreateNonStackReference(address, operand_num, signed_displacement);
@@ -647,12 +653,12 @@ TypesContainer::TypeReference IdaTypesContainer::ResolveTypeReference(
 
 TypesContainer::TypeReference IdaTypesContainer::ResolveMemoryTypeReference(
     Address immediate) const {
-  const flags_t flags = getFlags(immediate);
-  if (isOff(flags, 0 /* operand number*/)) {
+  const flags_t flags = get_flags(immediate);
+  if (is_off(flags, 0 /* operand number*/)) {
     // We treat every datum pointing anywhere else as void* since we can not
     // currently handle function pointers or intra-section offsets.
     return TypeReference::CreateBaseTypeReference(GetVoidPointerType());
-  } else if (isASCII(flags)) {
+  } else if (is_strlit(flags)) {
     // TODO(jannewger): actually emit a char array of the corresponding size.
     return TypeReference::CreateBaseTypeReference(
         GetBuiltinType(get_item_size(immediate) * 8 /* bits per byte*/));
@@ -686,7 +692,7 @@ void IdaTypesContainer::CreateFunctionPrototype(const Function& function) {
   const Address address = function.GetEntryPoint();
 
   tinfo_t tif;
-  if (!get_tinfo2(address, &tif) && !guess_tinfo2(address, &tif)) {
+  if (!get_tinfo(&tif, address) && !guess_tinfo(&tif, address)) {
     return;
   }
 
@@ -696,8 +702,9 @@ void IdaTypesContainer::CreateFunctionPrototype(const Function& function) {
 
   const int num_arguments = tif.get_nargs();
   if (num_arguments == -1) {
-    LOG(INFO) << StringPrintf(
-        "Error: unable to determine function prototype for function at %08llx");
+    LOG(INFO) << absl::StrCat(
+        "Error: unable to determine function prototype for function at ",
+        absl::Hex(address, absl::kZeroPad8));
     return;
   }
 
@@ -717,9 +724,10 @@ void IdaTypesContainer::CreateFunctionPrototype(const Function& function) {
   return_member->type =
       CreateOrGetPrimitiveTypes(tif.get_rettype(), &types_map_, &base_types_);
   if (!return_member->type) {
-    LOG(INFO) << StringPrintf(
+    LOG(INFO) << absl::StrCat(
         "Warning: unable to determine return type for prototype of "
-        " function at %08llx");
+        " function at ",
+        absl::Hex(address, absl::kZeroPad8));
     return_member->type = GetVoidPointerType();
   }
 
@@ -728,10 +736,10 @@ void IdaTypesContainer::CreateFunctionPrototype(const Function& function) {
     const BaseType* arg_type = CreateOrGetPrimitiveTypes(
         tif.get_nth_arg(i), &types_map_, &base_types_);
     if (!arg_type) {
-      LOG(INFO) << StringPrintf(
-          "Warning: unable to determine type of function argument %d for "
-          "prototype of function at %08llx",
-          kFirstArgument + i, address);
+      LOG(INFO) << absl::StrCat(
+          "Warning: unable to determine type of function argument ",
+          kFirstArgument + i, " for prototype of function at ",
+          absl::Hex(address, absl::kZeroPad8));
       arg_type = GetVoidPointerType();
     }
     MemberType* argument = new MemberType();

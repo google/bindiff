@@ -15,11 +15,14 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_EDGE_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_EDGE_H_
 
+#include <cstddef>
+
+#include "base/integral_types.h"
 #include "third_party/zynamics/binexport/types.h"
 
 struct FlowGraphEdge {
  public:
-  enum Type : uint8_t {
+  enum Type : uint8 {
     TYPE_TRUE = 1,
     TYPE_FALSE = 2,
     TYPE_UNCONDITIONAL = 3,
@@ -34,8 +37,13 @@ struct FlowGraphEdge {
   Type type;
 };
 
+struct FlowGraphEdgeHash {
+  std::size_t operator()(const FlowGraphEdge& fge) const;
+};
+
 // For easy use with std::set. Sorts by source address first, target address
 // second.
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two);
+bool operator==(const FlowGraphEdge& lhs, const FlowGraphEdge& rhs);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_EDGE_H_

@@ -23,10 +23,10 @@ class BinExport2Writer : public Writer {
  public:
   // Note: This writer expects executable_hash to be hex encoded, not the raw
   //       bytes of the digest.
-  explicit BinExport2Writer(const std::string& result_filename,
-                            const std::string& executable_filename,
-                            const std::string& executable_hash,
-                            const std::string& architecture);
+  explicit BinExport2Writer(const string& result_filename,
+                            const string& executable_filename,
+                            const string& executable_hash,
+                            const string& architecture);
 
   util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions& instructions,
@@ -43,10 +43,10 @@ class BinExport2Writer : public Writer {
                             BinExport2* proto) const;
 
  private:
-  std::string filename_;
-  std::string executable_filename_;
-  std::string executable_hash_;
-  std::string architecture_;
+  string filename_;
+  string executable_filename_;
+  string executable_hash_;
+  string architecture_;
 };
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINDETEGO_BINEXPORT2_WRITER_H_

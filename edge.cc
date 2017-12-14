@@ -14,6 +14,8 @@
 
 #include "third_party/zynamics/binexport/edge.h"
 
+#include <functional>
+
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two) {
   if (one.source == two.source) {
     if (one.target == two.target) {
@@ -38,4 +40,15 @@ const char* FlowGraphEdge::GetTypeName() const {
     case TYPE_SWITCH:
       return "switch";
   }
+}
+
+bool operator==(const FlowGraphEdge& lhs, const FlowGraphEdge& rhs) {
+  return (lhs.source == rhs.source) && (lhs.target == rhs.target) &&
+         (lhs.type == rhs.type);
+}
+
+std::size_t FlowGraphEdgeHash::operator()(const FlowGraphEdge& fge) const {
+  return (std::hash<Address>()(fge.source) << 8) ^
+         (std::hash<Address>()(fge.target) << 4) ^
+         std::hash<int>()(static_cast<int>(fge.type));
 }

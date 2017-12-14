@@ -61,15 +61,15 @@ class CallGraph {
   // Note that this method appends a comment to the end of the comment vector.
   // Other functions, in particular GetComments(Address), expect the vector to
   // be sorted. So be careful and re-sort comments after adding to them.
-  void AddComment(Address address, size_t operand, const std::string& comment,
+  void AddComment(Address address, size_t operand, const string& comment,
                   Comment::Type type, bool repeatable);
   const Comments& GetComments() const;
   Comments& GetComments();
   std::pair<Comments::const_iterator, Comments::const_iterator> GetComments(
       Address address) const;
-  void AddStringReference(Address address, const std::string& string);
+  void AddStringReference(Address address, const string& string);
   size_t GetStringReference(Address address) const;
-  static const std::string* CacheString(const std::string& text);
+  static const string* CacheString(const string& text);
   void Render(std::ostream* stream, const FlowGraph& flow_graph) const;
   int DeleteInvalidFunctions(FlowGraph* flow_graph);
   void PostProcessComments();
@@ -78,7 +78,7 @@ class CallGraph {
   const LibraryManager& GetLibraryManager() const { return library_manager_; }
 
  private:
-  using StringCache = std::unordered_set<std::string>;
+  using StringCache = std::unordered_set<string>;
   void FoldComments();
 
   FunctionEntryPoints functions_;

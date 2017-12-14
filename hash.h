@@ -15,11 +15,10 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_HASH_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_HASH_H_
 
-#include <cstdint>
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
 // Calculates a general-purpose, non-cryptographic hash over the contents of a
 // string.
-uint32_t GetSdbmHash(const std::string& data);
+uint32 GetSdbmHash(const string& data);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_HASH_H_
