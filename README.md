@@ -1,4 +1,4 @@
-# BinExport [![Build Status](https://api.travis-ci.org/google/binexport.svg?branch=master)](https://travis-ci.org/google/binexport) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8977/badge.svg)](https://scan.coverity.com/projects/google-binexport)
+# BinExport [![Build Status](https://travis-ci.org/cblichmann/binexport.svg?branch=master)](https://travis-ci.org/cblichmann/binexport)
 
 Copyright 2011-2017 Google Inc.
 
