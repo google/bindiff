@@ -15,10 +15,12 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_HEX_CODEC_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_HEX_CODEC_H_
 
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
 // Fast encoding/decoding of big hex strings.
-std::string EncodeHex(const std::string& line);
-std::string DecodeHex(const std::string& line);
+// TODO(cblichmann): Replace this with Abseil's
+//                   BytesToHexString()/HexStringToBytes().
+string EncodeHex(const string& line);
+string DecodeHex(const string& line);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_HEX_CODEC_H_

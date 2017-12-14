@@ -1,36 +1,22 @@
 language: cpp
-
 cache:
   directories:
-    - build_linux/gtest
-    - build_linux/openssl
-    - build_linux/protobuf
-    - build_linux/postgresql
-
+  - build_linux/absl
+  - build_linux/cctz
+  - build_linux/googletest
+  - build_linux/openssl
+  - build_linux/postgresql
+  - build_linux/protobuf
 os:
-  - linux
-
+- linux
 dist: trusty
-sudo: required
-
+sudo: false
 before_install:
-  - sudo dpkg --add-architecture i386
-  - sudo apt-get update -qq
-  - sudo apt-get install -y g++-4.8-multilib lib32stdc++-4.8-dev
-    linux-libc-dev:i386 xutils-dev
-
-  - export CXX=g++-4.8 CC=gcc-4.8
-
-  # IDA SDK
-  - openssl aes-256-cbc -k "$idasdk_secret" -in third_party/idasdk.zip.enc
-    -out third_party/idasdk.zip -d
-  - unzip -q third_party/idasdk.zip -d third_party/
-
+- openssl aes-256-cbc -K $encrypted_652f6f1c2426_key -iv $encrypted_652f6f1c2426_iv
+  -in third_party/idasdk70.zip.enc -out third_party/idasdk70.zip -d
+- unzip -q third_party/idasdk70.zip -d third_party/
 script:
-  - cd build_linux
-  - cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_BUILD_TYPE=Release
-  - make
-
-env:
-  global:
-    - secure: U69GqsmS5MdXdACYjNZN3TVxU6nBYDjvBSRR2Ae/nPHdAfaGEZFbhJlQwcsFdOAA8b5h5AUUaFh2PCTXHTt/6HkNcpu8tvFLTJFih3jE4jomEwb9K2N9Q0qpJzOSiy05LylhHq4O9NF7mErm+M5Mijq9kI0oWc4a72/eV8a9TyC80WoDMqLzrTW2X1CAMIqGogcEvyCmyXPaohknolyv7H07W395ddr3mr+j50gHWGNwoPncj2LfU5qEALRmtLuOxFGghnB8Zs+pekAMMg/k7r52cyUyE9wiaujYmq0bdkz3a2Hb8EYuHbtPomQFb7Fd18ACWW2Pvrv7iN8BEQIGsBJZk3tGUyIj9Nh2F8W5r0nxLmTyGcnU8LO5nWaQhatGgLTCi7amhERVAqCiytT1DC6gw0hEN5H2sDFZfnEpn+RURMqiL6Is8xpmK2o5Hc4/mmLm+VGr6ixIxie7qqnpkrTvlVWtuh61qk8K6U6CQaIe11oNZnkRrGa87/u3nHhDX9XFt0T8QFmiWObmV+sa9AIoazGK+2OHp6M42TX9p6eKg8pSJyMEJiCRTw4uS65H+0GDR/tIzMDVdOOWN35mhLPwILJX5ns8krei4y6lbiGoOKGWm5vSXkt/lI16/laUa3DAImFXgth2QlcunJT6yBs0aE/mQWX30XMDNXVKH0I=
+- mkdir -p build_linux
+- cd build_linux
+- cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk70
+- cmake --build .

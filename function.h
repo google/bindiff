@@ -27,13 +27,13 @@ class CallGraph;
 class Function;
 class FlowGraph;
 
-typedef std::map<Address, Function*> Functions;
+using Functions = std::map<Address, Function*>;
 
 class Function {
  public:
-  typedef std::vector<FlowGraphEdge> Edges;
+  using Edges = std::vector<FlowGraphEdge>;
 
-  enum FunctionType : uint8_t {
+  enum FunctionType : uint8 {
     TYPE_NONE = 123,
     TYPE_STANDARD = 0,
     TYPE_LIBRARY = 1,
@@ -42,10 +42,7 @@ class Function {
     TYPE_INVALID = 4,
   };
 
-  enum Name {
-    MANGLED = 0,
-    DEMANGLED = 1
-  };
+  enum Name { MANGLED = 0, DEMANGLED = 1 };
 
   static const char* GetTypeName(FunctionType type);
 
@@ -80,10 +77,10 @@ class Function {
 
   bool IsImported() const;
 
-  std::string GetModuleName() const;
-  void SetModuleName(const std::string& name);
-  void SetName(const std::string& name, const std::string& demangled_name);
-  std::string GetName(Name type) const;
+  string GetModuleName() const;
+  void SetModuleName(const string& name);
+  void SetName(const string& name, const string& demangled_name);
+  string GetName(Name type) const;
   bool HasRealName() const;
 
   const Edges& GetEdges() const;
@@ -93,20 +90,16 @@ class Function {
   void Render(std::ostream* stream, const CallGraph& call_graph,
               const FlowGraph& flow_graph) const;
 
-  int GetLibraryIndex() const {
-    return library_index_;
-  }
+  int GetLibraryIndex() const { return library_index_; }
 
-  void SetLibraryIndex(int library_index) {
-    library_index_ = library_index;
-  }
+  void SetLibraryIndex(int library_index) { library_index_ = library_index; }
 
 
  private:
   int GetBasicBlockIndexForAddress(Address address) const;
   BasicBlock* GetMutableBasicBlockForAddress(Address address);
 
-  typedef std::unordered_set<std::string> StringCache;
+  typedef std::unordered_set<string> StringCache;
 
   static StringCache string_cache_;
   static int instance_count_;
@@ -114,9 +107,9 @@ class Function {
   Address entry_point_;
   BasicBlocks basic_blocks_;
   Edges edges_;
-  std::string name_;
-  std::string demangled_name_;
-  const std::string* module_name_;
+  string name_;
+  string demangled_name_;
+  const string* module_name_;
   FunctionType type_;
   int library_index_;
 };

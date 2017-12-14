@@ -21,9 +21,10 @@ class Instruction;
 class CallGraph;
 class FlowGraph;
 class TypeSystem;
+class insn_t;
 
-Instruction ParseInstructionIdaArm(Address address, CallGraph* call_graph,
-                                   FlowGraph* flow_graph,
+Instruction ParseInstructionIdaArm(const insn_t& instruction,
+                                   CallGraph* call_graph, FlowGraph* flow_graph,
                                    TypeSystem* type_system);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_ARM_H_

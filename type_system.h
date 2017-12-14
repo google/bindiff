@@ -36,9 +36,9 @@ class TypeSystem {
              const AddressSpace& address_space)
       : types_container_(types_container), address_space_(address_space) {}
   TypeSystem(const TypeSystem&) = delete;
-  TypeSystem& operator =(const TypeSystem&) = delete;
+  TypeSystem& operator=(const TypeSystem&) = delete;
 
-  typedef std::string (*GetNameForInstance)(Address address);
+  typedef string (*GetNameForInstance)(Address address);
   // Creates a type substitution at the given location (if possible).
   void AddTypeSubstitution(Address address, int operand_num, int expression_id);
   // Creates a type substitution at the given location but also takes an
@@ -57,7 +57,7 @@ class TypeSystem {
   // (i.e. some datum in the data section).
   struct TypeInstance {
     TypeInstance(Address section_offset, const BaseType* base_type,
-                 Address segment_address, const std::string& name)
+                 Address segment_address, const string& name)
         : section_offset(section_offset),
           base_type(base_type),
           segment_address(segment_address),
@@ -70,7 +70,7 @@ class TypeSystem {
     // We need an explicit database a priori since the expression substitution
     // table has a foreign key to the type instances table.
     int database_id;
-    std::string name;
+    string name;
 
    private:
     static int NextId() {

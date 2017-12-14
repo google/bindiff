@@ -18,40 +18,29 @@
 #include <limits>
 #include <string>
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <ida.hpp>                                           // NOLINT
-#include <idp.hpp>                                           // NOLINT
-#include <intel.hpp>                                         // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <ida.hpp>                                            // NOLINT
+#include <idp.hpp>                                            // NOLINT
+#include <intel.hpp>                                          // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/base_types.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/type_system.h"
 
-bool IsStringInstruction(const std::string& mnemonic) {
-  static std::set<std::string> instructions = {"ins",  "outs", "movs", "cmps",
-                                               "stos", "lods", "scas"};
+namespace {
+
+bool IsStringInstruction(const string& mnemonic) {
+  static std::set<string> instructions = {"ins",  "outs", "movs", "cmps",
+                                          "stos", "lods", "scas"};
   return instructions.find(mnemonic.substr(0, 4)) != instructions.end();
 }
 
-int GetSegmentSize(const segment_t* segment = nullptr) {
-  if (segment) {
-    // IDA: 0 = 16, 1 = 32, 2 = 64
-    return (16 << segment->bitness) >> 3;
-  }
-  if (cmd.auxpref & aux_use32) {
-    return 4;
-  }
-  if (cmd.auxpref & aux_use64) {
-    return 8;
-  }
-  return 2;
-}
-
-std::string GetSegmentSelector(const op_t& operand) {
+string GetSegmentSelector(const op_t& operand) {
   const size_t index = static_cast<size_t>(operand.specval >> 16);
   if (!index) {
     return "";
@@ -59,7 +48,21 @@ std::string GetSegmentSelector(const op_t& operand) {
   return GetRegisterName(index, 2) + ":";
 }
 
-std::string GetExtendedRegisterName(const op_t& operand) {
+int GetSegmentSize(const insn_t& instruction, const segment_t* segment) {
+  if (segment) {
+    // IDA: 0 = 16, 1 = 32, 2 = 64
+    return (16 << segment->bitness) >> 3;
+  }
+  if (instruction.auxpref & aux_use32) {
+    return 4;
+  }
+  if (instruction.auxpref & aux_use64) {
+    return 8;
+  }
+  return 2;
+}
+
+string GetExtendedRegisterName(const op_t& operand) {
   switch (operand.type) {
     case o_trreg:  // Test register
       return "tr" + std::to_string(operand.reg);
@@ -92,21 +95,21 @@ size_t GetSibOperandSize(Address address) {
 }
 
 // Warning: this function uses the global cmd!
-std::string GetSibBase(const insn_t& instruction, const op_t& operand) {
+string GetSibBase(const insn_t& instruction, const op_t& operand) {
   const size_t opsize = GetSibOperandSize(instruction.ea);
-  std::string name = GetRegisterName(x86_base(operand), opsize);
+  string name = GetRegisterName(x86_base(instruction, operand), opsize);
   if (name.empty()) {
     // Retry with size == 4, otherwise mmx instructions would try with 16 and
     // fail.
-    name = GetRegisterName(x86_base(operand), 4);
+    name = GetRegisterName(x86_base(instruction, operand), 4);
   }
   return name;
 }
 
-std::string GetSibIndex(
+string GetSibIndex(
     const insn_t& instruction,
     const op_t& operand) {  // @warning: this function uses the global cmd!
-  const int index = x86_index(operand);
+  const int index = x86_index(instruction, operand);
   size_t opsize = GetSibOperandSize(instruction.ea);
   if (opsize <= 1) {
     opsize = 4;  // @bug: can sib be 1 byte in size? I get an empty reg name in
@@ -119,14 +122,13 @@ int GetSibScale(const op_t& operand) { return x86_scale(operand); }
 
 Address GetSibImmediate(const op_t& operand) { return operand.addr; }
 
-std::string GetInstanceName(Address address) { return GetName(address, false); }
+string GetInstanceName(Address address) { return GetName(address, false); }
 
 void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
-                            TypeSystem* type_system, const Address address,
-                            const insn_t& instruction, const op_t& operand,
-                            uint8_t operand_num) {
-  std::string base, index;
-  if (ad16()) {  // https://zynamics.fogbugz.com/default.asp?2792
+                            TypeSystem* type_system, const insn_t& instruction,
+                            const op_t& operand, uint8 operand_num) {
+  string base, index;
+  if (ad16(instruction)) {  // https://zynamics.fogbugz.com/default.asp?2792
     switch (operand.phrase) {
       case 0:
         base = "bx";
@@ -164,13 +166,13 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
   }
   const int scale = GetSibScale(operand);
 
-  std::string variable_name = GetVariableName(address, operand_num);
+  string variable_name = GetVariableName(instruction, operand_num);
 
   Expression* expression = nullptr;
-  expressions->push_back(expression = Expression::Create(
-                             expression,
-                             GetSizePrefix(GetOperandByteSize(operand)), 0,
-                             Expression::TYPE_SIZEPREFIX, 0));
+  expressions->push_back(
+      expression = Expression::Create(
+          expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
+          0, Expression::TYPE_SIZEPREFIX, 0));
   expressions->push_back(
       expression = Expression::Create(expression, GetSegmentSelector(operand),
                                       0, Expression::TYPE_OPERATOR, 0));
@@ -186,9 +188,9 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
   expressions->push_back(temp =
                              Expression::Create(expression, base, 0,
                                                 Expression::TYPE_REGISTER, 0));
-  if (!variable_name.empty() && IsStackVariable(address, operand_num)) {
-    flow_graph->AddExpressionSubstitution(address, operand_num, temp->GetId(),
-                                          base + "+" + variable_name);
+  if (!variable_name.empty() && IsStackVariable(instruction.ea, operand_num)) {
+    flow_graph->AddExpressionSubstitution(
+        instruction.ea, operand_num, temp->GetId(), base + "+" + variable_name);
   }
 
   if (!index.empty()) {
@@ -207,7 +209,7 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
     }
   }
 
-  type_system->AddTypeSubstitution(address, operand_num, temp->GetId());
+  type_system->AddTypeSubstitution(instruction.ea, operand_num, temp->GetId());
 }
 
 // Creates a tree for expressions of the form:
@@ -217,23 +219,22 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
 //                           \-> * --> index
 //                           \     \-> scale
 //                           \-> disp
-void HandleDisplacementExpression(const Address address,
-                                  const insn_t& instruction,
-                                  const op_t& operand, uint8_t operand_num,
+void HandleDisplacementExpression(const insn_t& instruction,
+                                  const op_t& operand, uint8 operand_num,
                                   Expressions* expressions,
                                   TypeSystem* type_system) {
-  const std::string base = GetSibBase(instruction, operand);
-  const std::string index = GetSibIndex(instruction, operand);
+  const string base = GetSibBase(instruction, operand);
+  const string index = GetSibIndex(instruction, operand);
   const int scale = GetSibScale(operand);
   const Address immediate = GetSibImmediate(operand);
-  int8_t pos = 0;
+  int8 pos = 0;
 
   Expression* expression = nullptr;
   Expression* register_expression = nullptr;
-  expressions->push_back(expression = Expression::Create(
-                             expression,
-                             GetSizePrefix(GetOperandByteSize(operand)), 0,
-                             Expression::TYPE_SIZEPREFIX, pos));
+  expressions->push_back(
+      expression = Expression::Create(
+          expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
+          0, Expression::TYPE_SIZEPREFIX, pos));
   expressions->push_back(
       expression = Expression::Create(expression, GetSegmentSelector(operand),
                                       0, Expression::TYPE_OPERATOR, pos));
@@ -248,9 +249,9 @@ void HandleDisplacementExpression(const Address address,
                                                Expression::TYPE_REGISTER, pos));
 
   Expression::Type expression_type = Expression::TYPE_IMMEDIATE_INT;
-  std::string variable_name = GetVariableName(address, operand_num);
+  string variable_name = GetVariableName(instruction, operand_num);
   if (variable_name.empty()) {
-    const Name name = GetName(address, immediate, operand_num, true);
+    const Name name = GetName(instruction.ea, immediate, operand_num, true);
     variable_name = name.name;
     expression_type = name.empty() ? Expression::TYPE_IMMEDIATE_INT
                                    : Expression::TYPE_GLOBALVARIABLE;
@@ -274,31 +275,30 @@ void HandleDisplacementExpression(const Address address,
       expression = Expression::Create(expression, variable_name, immediate,
                                       expression_type, ++pos));
 
-  type_system->AddDisplacedTypeSubstitution(address, immediate, operand_num,
-                                            register_expression->GetId());
+  type_system->AddDisplacedTypeSubstitution(
+      instruction.ea, immediate, operand_num, register_expression->GetId());
 }
 
-void HandleMemoryExpression(const Address address, const insn_t& instruction,
-                            const op_t& operand, uint8_t operand_num,
-                            Expressions* expressions, FlowGraph* flow_graph,
-                            TypeSystem* type_system) {
-  const Address immediate = toEA(instruction.cs, operand.addr);
-  const Name name = GetName(address, immediate, operand_num, true);
-  const std::string index = GetSibIndex(instruction, operand);
+void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
+                            uint8 operand_num, Expressions* expressions,
+                            FlowGraph* flow_graph, TypeSystem* type_system) {
+  const Address immediate = to_ea(instruction.cs, operand.addr);
+  const Name name = GetName(instruction.ea, immediate, operand_num, true);
+  const string index = GetSibIndex(instruction, operand);
   const int scale = GetSibScale(operand);
 
   // 1) lookup type ID by name
   // 2) write entry to flow graph AND member_types(!)
   Expression* expression = nullptr;
-  expressions->push_back(expression = Expression::Create(
-                             expression,
-                             GetSizePrefix(GetOperandByteSize(operand)), 0,
-                             Expression::TYPE_SIZEPREFIX, 0));
+  expressions->push_back(
+      expression = Expression::Create(
+          expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
+          0, Expression::TYPE_SIZEPREFIX, 0));
   if (name.empty()) {
-    const std::string global =
-        GetGlobalStructureName(address, immediate, operand_num);
+    const string global =
+        GetGlobalStructureName(instruction.ea, immediate, operand_num);
     if (!global.empty()) {
-      flow_graph->AddExpressionSubstitution(address, operand_num,
+      flow_graph->AddExpressionSubstitution(instruction.ea, operand_num,
                                             expression->GetId(), global);
     }
   }
@@ -331,19 +331,21 @@ void HandleMemoryExpression(const Address address, const insn_t& instruction,
         expression = Expression::Create(
             parent, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
-    type_system->AddTypeSubstitution(address, operand_num, expression->GetId());
-    type_system->CreateMemoryTypeInstance(
-        address, operand_num, expression->GetId(), immediate, GetInstanceName);
+    type_system->AddTypeSubstitution(instruction.ea, operand_num,
+                                     expression->GetId());
+    type_system->CreateMemoryTypeInstance(instruction.ea, operand_num,
+                                          expression->GetId(), immediate,
+                                          GetInstanceName);
   }
 }
 
-void HandleImmediate(const Address address, const op_t& operand,
-                     uint8_t operand_num, Expressions* expressions,
+void HandleImmediate(const insn_t& instruction, const op_t& operand,
+                     uint8 operand_num, Expressions* expressions,
                      TypeSystem* type_system) {
   Address immediate = operand.value;
-  Name name = GetName(address, operand.value, operand_num, true);
+  Name name = GetName(instruction.ea, operand.value, operand_num, true);
   if (name.empty()) {
-    name.name = GetGlobalStructureName(address, immediate, operand_num);
+    name.name = GetGlobalStructureName(instruction.ea, immediate, operand_num);
     name.type = Expression::TYPE_GLOBALVARIABLE;
   }
   // By default IDA will perform a sign/zero extension, returning a 32 bit
@@ -352,10 +354,10 @@ void HandleImmediate(const Address address, const op_t& operand,
   // opcode specification. BeaEngine follows the intel convention, leading to
   // lots of spurious diffs between the two disassemblers. This here is an
   // attempt at undoing the sign extension.
-  size_t operand_size = GetOperandByteSize(operand);
-  if (operand.offb && cmd.size - operand.offb < operand_size) {
+  size_t operand_size = GetOperandByteSize(instruction, operand);
+  if (operand.offb && instruction.size - operand.offb < operand_size) {
     // Immediates are typically the last bytes of an instruction.
-    operand_size = cmd.size - operand.offb;
+    operand_size = instruction.size - operand.offb;
     // Mask the last n bytes of the original immediate.
     Address mask =
         std::numeric_limits<Address>::max() >> (64 - 8 * operand_size);
@@ -369,20 +371,21 @@ void HandleImmediate(const Address address, const op_t& operand,
       expression = Expression::Create(
           expression, name.name, immediate,
           name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
-  type_system->CreateTypeInstance(address, operand_num, expression->GetId(),
-                                  immediate, GetInstanceName);
+  type_system->CreateTypeInstance(instruction.ea, operand_num,
+                                  expression->GetId(), immediate,
+                                  GetInstanceName);
 }
 
-Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
+Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
+                                CallGraph* /* call_graph */,
                                 FlowGraph* flow_graph,
                                 TypeSystem* type_system) {
   Operands operands;
-  uint8_t skipped = 0;
-  for (uint8_t operand_position = 0; operand_position < UA_MAXOP;
+  uint8 skipped = 0;
+  for (uint8 operand_position = 0; operand_position < UA_MAXOP;
        ++operand_position) {
     Expressions expressions;
-    const insn_t& instruction = cmd;
-    const op_t& operand = cmd.Operands[operand_position];
+    const op_t& operand = instruction.ops[operand_position];
     if (operand.type == o_void) {
       break;
     }
@@ -403,9 +406,9 @@ Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
       case o_fpreg:   // Floating point register
       {
         expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+                                  expression, GetSizePrefix(GetOperandByteSize(
+                                                  instruction, operand)),
+                                  0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(expression = Expression::Create(
                                   expression, GetExtendedRegisterName(operand),
                                   0, Expression::TYPE_REGISTER, 0));
@@ -413,35 +416,35 @@ Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
       }
       case o_reg:  // register
         expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetOperandByteSize(operand)), 0,
-                                  Expression::TYPE_SIZEPREFIX, 0));
+                                  expression, GetSizePrefix(GetOperandByteSize(
+                                                  instruction, operand)),
+                                  0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(
                 expression,
-                GetRegisterName(operand.reg, GetOperandByteSize(operand)), 0,
-                Expression::TYPE_REGISTER, 0));
+                GetRegisterName(operand.reg,
+                                GetOperandByteSize(instruction, operand)),
+                0, Expression::TYPE_REGISTER, 0));
         break;
       case o_mem:  // direct memory reference
-        HandleMemoryExpression(address, instruction, operand,
-                               operand_position - skipped, &expressions,
-                               flow_graph, type_system);
+        HandleMemoryExpression(instruction, operand, operand_position - skipped,
+                               &expressions, flow_graph, type_system);
         break;
 
       case o_phrase:  // Memory Ref [Base Reg + Index Reg]    phrase
-        HandlePhraseExpression(&expressions, flow_graph, type_system, address,
+        HandlePhraseExpression(&expressions, flow_graph, type_system,
                                instruction, operand,
                                operand_position - skipped);
         break;
 
       case o_displ:  // array dereference [Base Reg + Index Reg + Displacement]
-        HandleDisplacementExpression(address, instruction, operand,
+        HandleDisplacementExpression(instruction, operand,
                                      operand_position - skipped, &expressions,
                                      type_system);
         break;
 
       case o_imm:  // Immediate value
-        HandleImmediate(address, operand, operand_position - skipped,
+        HandleImmediate(instruction, operand, operand_position - skipped,
                         &expressions, type_system);
         break;
 
@@ -449,16 +452,18 @@ Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
       case o_near:  // Immediate Near Address (CODE)
       {
         const Address immediate = operand.addr;
-        Name name =
-            GetName(address, immediate, operand_position - skipped, true);
+        Name name = GetName(instruction.ea, immediate,
+                            operand_position - skipped, true);
         if (name.empty()) {
-          name.name = GetGlobalStructureName(address, immediate,
+          name.name = GetGlobalStructureName(instruction.ea, immediate,
                                              operand_position - skipped);
           name.type = Expression::TYPE_GLOBALVARIABLE;
         }
 
         expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetSegmentSize()),
+                                  expression,
+                                  GetSizePrefix(GetSegmentSize(
+                                      instruction, /* segment = */ nullptr)),
                                   0, Expression::TYPE_SIZEPREFIX, 0));
         expressions.push_back(
             expression = Expression::Create(
@@ -469,9 +474,9 @@ Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
       }
 
       default:
-        LOG(INFO) << StringPrintf(
-            "warning: unknown operand type %d at %08" PRIx64,
-            static_cast<int>(operand.type), address);
+        LOG(INFO) << absl::StrCat("warning: unknown operand type", operand.type,
+                                  " at ",
+                                  absl::Hex(instruction.ea, absl::kZeroPad8));
         break;
     }
 
@@ -482,39 +487,39 @@ Operands ParseOperandsIdaMetaPc(Address address, CallGraph* /* call_graph */,
   return operands;
 }
 
-Instruction ParseInstructionIdaMetaPc(Address address, CallGraph* call_graph,
+}  // namespace
+
+Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
+                                      CallGraph* call_graph,
                                       FlowGraph* flow_graph,
                                       TypeSystem* type_system) {
-  char buffer[128];
-  memset(buffer, 0, sizeof(buffer));
-  if (!IsCode(address) ||
-      !ua_mnem(static_cast<ea_t>(address), buffer, sizeof(buffer))) {
-    return Instruction(address);
+  if (!IsCode(instruction.ea)) {
+    return Instruction(instruction.ea);
   }
-  std::string mnemonic(buffer);
+  string mnemonic(GetMnemonic(instruction.ea));
   if (mnemonic.empty()) {
-    return Instruction(address);
+    return Instruction(instruction.ea);
   }
 
-  const Address next_instruction = address + cmd.size;
-  const flags_t next_flags = getFlags(static_cast<ea_t>(next_instruction));
+  const Address next_instruction = instruction.ea + instruction.size;
+  const flags_t next_flags = get_flags(static_cast<ea_t>(next_instruction));
 
   // add suffix from hidden operand
   if (IsStringInstruction(mnemonic)) {
     for (size_t operand_position = 0;
          operand_position < UA_MAXOP &&
-             cmd.Operands[operand_position].type != o_void;
+             instruction.ops[operand_position].type != o_void;
          ++operand_position) {
       if (mnemonic == "outs" && operand_position != 1) {
         continue;
       }
-      const op_t& operand = cmd.Operands[operand_position];
+      const op_t& operand = instruction.ops[operand_position];
       if (!(operand.flags & OF_SHOW)) {  // hidden operand, get suffix from it
-        if (operand.dtyp == dt_byte) {
+        if (operand.dtype == dt_byte) {
           mnemonic += "b";
-        } else if (operand.dtyp == dt_word) {
+        } else if (operand.dtype == dt_word) {
           mnemonic += "w";
-        } else if (operand.dtyp == dt_dword) {
+        } else if (operand.dtype == dt_dword) {
           mnemonic += "d";
         } else {
           // default add machine word size suffix. IDA sometimes omits the
@@ -527,21 +532,22 @@ Instruction ParseInstructionIdaMetaPc(Address address, CallGraph* call_graph,
   }
 
   // add prefix (if any) to string instructions
-  if (cmd.auxpref & aux_lock) {
+  if (instruction.auxpref & aux_lock) {
     mnemonic = "lock " + mnemonic;
   }
-  if (cmd.auxpref & aux_rep) {
-    if (cmd.itype == NN_scas || cmd.itype == NN_cmps) {
+  if (instruction.auxpref & aux_rep) {
+    if (instruction.itype == NN_scas || instruction.itype == NN_cmps) {
       mnemonic = "repe " + mnemonic;
     } else {
       mnemonic = "rep " + mnemonic;
     }
   }
-  if (cmd.auxpref & aux_repne) {
+  if (instruction.auxpref & aux_repne) {
     mnemonic = "repne " + mnemonic;
   }
 
   return Instruction(
-      address, isFlow(next_flags) ? next_instruction : 0, cmd.size, mnemonic,
-      ParseOperandsIdaMetaPc(address, call_graph, flow_graph, type_system));
+      instruction.ea, is_flow(next_flags) ? next_instruction : 0,
+      instruction.size, mnemonic,
+      ParseOperandsIdaMetaPc(instruction, call_graph, flow_graph, type_system));
 }

@@ -15,9 +15,9 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_LIBRARY_MANAGER_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_LIBRARY_MANAGER_H_
 
-#include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "third_party/zynamics/binexport/types.h"
@@ -40,7 +40,7 @@ class LibraryManager {
   enum class Linkage { kDynamic, kStatic };
 
   struct LibraryRecord {
-    LibraryRecord(const std::string& name, Linkage linkage, int library_index)
+    LibraryRecord(const string& name, Linkage linkage, int library_index)
         : name(name), linkage(linkage), library_index(library_index) {}
 
     bool IsStatic() const { return linkage == Linkage::kStatic; }
@@ -51,7 +51,7 @@ class LibraryManager {
       return (name == other.name) && (linkage == other.linkage);
     }
 
-    std::string name;
+    string name;
     Linkage linkage;
     int library_index;
   };
@@ -59,8 +59,8 @@ class LibraryManager {
   struct FunctionInfo {
     FunctionInfo() = default;
 
-    FunctionInfo(const std::string& module_name,
-                 const std::string& function_name, int library_index)
+    FunctionInfo(const string& module_name, const string& function_name,
+                 int library_index)
         : module_name(module_name),
           function_name(function_name),
           library_index(library_index) {}
@@ -68,8 +68,8 @@ class LibraryManager {
     // It is not the same as library, as modules may have finer granularity,
     // for example DEX uses class name as module_name, while library is a DEX
     // or JAR file containing multiple classes.
-    std::string module_name;
-    std::string function_name;
+    string module_name;
+    string function_name;
     int library_index = -1;
   };
 
@@ -77,21 +77,19 @@ class LibraryManager {
 
   // Assigns given library name an integer index. If already present - reuses
   // an existing index. Returns library index.
-  int AddKnownLibrary(const std::string& library_name, Linkage linkage);
+  int AddKnownLibrary(const string& library_name, Linkage linkage);
 
   // Assigns function name to address.
-  void AddKnownFunction(const std::string& function_name, Address address) {
+  void AddKnownFunction(const string& function_name, Address address) {
     AddKnownFunction("", function_name, -1, address);
   }
 
-  void AddKnownFunction(const std::string& module_name,
-                        const std::string& function_name, int library_index,
-                        Address address);
+  void AddKnownFunction(const string& module_name, const string& function_name,
+                        int library_index, Address address);
 
   // Adds function imported from library (-1 if unknown), address is made up.
-  Address AddImportedFunction(const std::string& module_name,
-                              const std::string& function_name,
-                              int library_index);
+  Address AddImportedFunction(const string& module_name,
+                              const string& function_name, int library_index);
 
   // Returns library by library index.
   const LibraryRecord& GetKnownLibrary(int library_index) const {
@@ -112,7 +110,7 @@ class LibraryManager {
   void UseFunction(Address address, int library_index);
 
   // Marks provided library as used.
-  int UseLibrary(const std::string& library, Linkage linkage);
+  int UseLibrary(const string& library, Linkage linkage);
 
   // Returns true if the address was earlier marked with UseFunction().
   bool IsKnownFunction(Address address) const {
@@ -153,17 +151,17 @@ class LibraryManager {
   std::set<int> used_libraries_;
 
   // Maps address of known function to its integer library index.
-  std::map<Address, int> used_functions_;
+  std::unordered_map<Address, int> used_functions_;
 
   // List of all known libraries, indexed by library index.
   std::vector<LibraryRecord> library_list_;
 
   // Map of all known functions, indexed by address. Separate from
   // used_functions_ as known and used functions are not the same.
-  std::map<Address, FunctionInfo> known_functions_;
+  std::unordered_map<Address, FunctionInfo> known_functions_;
 
   // References between addresses.
-  std::map<Address, Address> references_;
+  std::unordered_map<Address, Address> references_;
 
   // Current made up address of imported function.
   Address current_imported_address_ = kFirstImportedAddress32;

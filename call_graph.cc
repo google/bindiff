@@ -14,7 +14,9 @@
 
 #include "third_party/zynamics/binexport/call_graph.h"
 
+#include <algorithm>
 #include <iomanip>
+#include <iterator>
 #include <ostream>
 
 #include "third_party/zynamics/binexport/hash.h"
@@ -115,7 +117,7 @@ CallGraph& CallGraph::operator=(const CallGraph& graph) {
   return *this;
 }
 
-const std::string* CallGraph::CacheString(const std::string& text) {
+const string* CallGraph::CacheString(const string& text) {
   return &*string_cache_.insert(text).first;
 }
 
@@ -209,7 +211,7 @@ CallGraph::GetComments(Address address) const {
 }
 
 void CallGraph::AddComment(Address address, size_t operand,
-                           const std::string& comment, Comment::Type type,
+                           const string& comment, Comment::Type type,
                            bool repeatable) {
   comments_.push_back(
       Comment(address, operand, CacheString(comment), type, repeatable));
@@ -221,7 +223,7 @@ size_t CallGraph::GetStringReference(Address address) const {
   return 0;
 }
 
-void CallGraph::AddStringReference(Address address, const std::string& string) {
+void CallGraph::AddStringReference(Address address, const string& string) {
   if (string.empty()) {
     return;
   }
@@ -254,7 +256,7 @@ void CallGraph::FoldComments() {
     if (!AreDuplicateRegularComments(*result, *first)) {
       *(++result) = *first;
     } else {
-      std::string accumulated_comment(*result->comment_);
+      string accumulated_comment(*result->comment_);
       while (AreDuplicateRegularComments(*result, *first)) {
         accumulated_comment.append("\n");
         accumulated_comment.append(*first->comment_);

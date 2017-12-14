@@ -15,29 +15,32 @@
 #include "third_party/zynamics/binexport/filesystem_util.h"
 
 #include <gtest/gtest.h>
-#include "strings/strutil.h"
+#include "third_party/absl/strings/str_cat.h"
 
 TEST(FileSystemUtilTest, Filenames) {
-  EXPECT_EQ("filename.ext", Basename(StrCat(kPathSeparator, "subdir",
-                                            kPathSeparator, "filename.ext")));
+  EXPECT_EQ("filename.ext",
+            Basename(absl::StrCat(kPathSeparator, "subdir", kPathSeparator,
+                                  "filename.ext")));
 
-  EXPECT_EQ(StrCat("subdir1", kPathSeparator, "subdir2"),
-            Dirname(StrCat("subdir1", kPathSeparator, "subdir2", kPathSeparator,
-                           "filename.ext")));
+  EXPECT_EQ(absl::StrCat("subdir1", kPathSeparator, "subdir2"),
+            Dirname(absl::StrCat("subdir1", kPathSeparator, "subdir2",
+                                 kPathSeparator, "filename.ext")));
 
-  EXPECT_EQ(".ext",
-            GetFileExtension(StrCat("subdir", kPathSeparator, "filename.ext")));
+  EXPECT_EQ(".ext", GetFileExtension(absl::StrCat("subdir", kPathSeparator,
+                                                  "filename.ext")));
 
-  EXPECT_EQ(StrCat("subdir", kPathSeparator, "filename.new"),
-            ReplaceFileExtension(
-                StrCat("subdir", kPathSeparator, "filename.ext"), ".new"));
-  EXPECT_EQ(StrCat("subdir", kPathSeparator, "filename_noext.new"),
-            ReplaceFileExtension(
-                StrCat("subdir", kPathSeparator, "filename_noext"), ".new"));
+  EXPECT_EQ(
+      absl::StrCat("subdir", kPathSeparator, "filename.new"),
+      ReplaceFileExtension(
+          absl::StrCat("subdir", kPathSeparator, "filename.ext"), ".new"));
+  EXPECT_EQ(
+      absl::StrCat("subdir", kPathSeparator, "filename_noext.new"),
+      ReplaceFileExtension(
+          absl::StrCat("subdir", kPathSeparator, "filename_noext"), ".new"));
 }
 
 TEST(FileSystemUtilTest, JoinPaths) {
-  EXPECT_EQ(StrCat("a", kPathSeparator, "b"), JoinPath("a", "b"));
+  EXPECT_EQ(absl::StrCat("a", kPathSeparator, "b"), JoinPath("a", "b"));
 #ifndef WIN32
   EXPECT_EQ("/a/b", JoinPath("/a", "b"));
 #endif

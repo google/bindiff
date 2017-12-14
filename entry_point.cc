@@ -27,7 +27,7 @@ bool operator==(const EntryPoint& lhs, const EntryPoint& rhs) {
   return lhs.address_ == rhs.address_;
 }
 
-std::string EntryPoint::SourceToString() {
+string EntryPoint::SourceToString() {
   switch (source_) {
     case Source::CODE_FLOW:
       return "CODE_FLOW";
@@ -59,8 +59,13 @@ std::string EntryPoint::SourceToString() {
       return "ENTRY_POINT_IMAGE";
     case Source::ENTRY_POINT_FILE:
       return "ENTRY_POINT_FILE";
+    case Source::PE64_EXCEPTION_INFO:
+      return "PE64_EXCEPTION_INFO";
+    case Source::MSIL_EXCEPTION_RECORD:
+      return "MSIL_EXCEPTION_RECORD";
     default:
       CHECK(false);
+      return "";  // Not reached
   }
 }
 

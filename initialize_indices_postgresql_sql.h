@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// PostgreSQL constraints initialization. This file should only be included from
-// database.cc.
-
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_INDICES_POSTGRESQL_SQL_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_INDICES_POSTGRESQL_SQL_H_
 
-#include "third_party/zynamics/binexport/database_writer.h"
+#include "third_party/absl/strings/string_view.h"
 
-const std::string DatabaseWriter::postgresql_initialize_indices_ = R"raw(
+inline absl::string_view GetPostgreSqlInitializeIndices() {
+  static constexpr char kPostgreSqlInitializeIndices[] = R"raw(
 CREATE UNIQUE INDEX "ex_?_functions_address_idx"
     ON "ex_?_functions" ("address");
 
@@ -36,5 +34,7 @@ CREATE UNIQUE INDEX "ex_?_expression_trees_id_idx"
 CREATE UNIQUE INDEX "ex_?_expression_nodes_id_idx"
     ON "ex_?_expression_nodes" ("id");
 )raw";
+  return kPostgreSqlInitializeIndices;
+}
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_INDICES_POSTGRESQL_SQL_H_

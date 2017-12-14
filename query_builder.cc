@@ -21,7 +21,7 @@
 
 const Terminator kFlushQuery = {};
 
-QueryBuilder::QueryBuilder(Database* database, const std::string& base_query,
+QueryBuilder::QueryBuilder(Database* database, const string& base_query,
                            size_t query_size)
     : base_query_(base_query),
       query_size_(query_size),
@@ -31,7 +31,7 @@ QueryBuilder::QueryBuilder(Database* database, const std::string& base_query,
 }
 
 void QueryBuilder::Execute() {
-  const std::string& query = current_query_.str();
+  const string& query = current_query_.str();
   if (query != base_query_) {
     database_->Execute(query.substr(0, query.size() - 1).c_str());
   }
@@ -46,7 +46,7 @@ QueryBuilder& operator<<(QueryBuilder& builder, const Terminator&) {
             .substr(0,
                     static_cast<unsigned int>(builder.last_flush_position_) - 1)
             .c_str());
-    std::string query = builder.current_query_.str().substr(
+    string query = builder.current_query_.str().substr(
         static_cast<unsigned int>(builder.last_flush_position_));
     builder.current_query_.str("");
     builder.current_query_ << builder.base_query_ << query;
@@ -57,12 +57,12 @@ QueryBuilder& operator<<(QueryBuilder& builder, const Terminator&) {
   return builder;
 }
 
-QueryBuilder& operator<<(QueryBuilder& builder, const std::string& query) {
+QueryBuilder& operator<<(QueryBuilder& builder, const string& query) {
   builder.current_query_ << query;
   return builder;
 }
 
-QueryBuilder& operator<<(QueryBuilder& builder, int64_t value) {
+QueryBuilder& operator<<(QueryBuilder& builder, int64 value) {
   builder.current_query_ << value;
   return builder;
 }

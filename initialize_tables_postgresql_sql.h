@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// PostgreSQL table initialization. This file should only be included from
-// database.cc.
-
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_TABLES_POSTGRESQL_SQL_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_TABLES_POSTGRESQL_SQL_H_
 
-#include "third_party/zynamics/binexport/database_writer.h"
+#include "third_party/absl/strings/string_view.h"
 
-const std::string DatabaseWriter::postgresql_initialize_tables_ = R"raw(
+inline absl::string_view GetPostgreSqlInitializeTables() {
+  static constexpr char kPostgreSqlInitializeTables[] = R"raw(
 DROP TABLE IF EXISTS "ex_?_address_comments";
 DROP TABLE IF EXISTS "ex_?_address_references";
 DROP TABLE IF EXISTS "ex_?_expression_substitutions";
@@ -206,5 +204,7 @@ CREATE TABLE "ex_?_type_substitution_paths" (
     "type_id" INTEGER NOT NULL
 );
 )raw";
+  return kPostgreSqlInitializeTables;
+}
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_TABLES_POSTGRESQL_SQL_H_

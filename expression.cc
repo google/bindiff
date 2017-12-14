@@ -14,6 +14,7 @@
 
 #include "third_party/zynamics/binexport/expression.h"
 
+#include <cassert>
 #include <sstream>
 
 #include "third_party/zynamics/binexport/hash.h"
@@ -23,22 +24,23 @@ Expression::StringCache Expression::string_cache_;
 Expression::ExpressionCache Expression::expression_cache_;
 int Expression::global_id_ = 0;
 
-Expression::Expression(Expression* parent, const std::string& symbol,
-                       int64_t immediate, Type type, uint16_t position)
+Expression::Expression(Expression* parent, const string& symbol,
+                       int64 immediate, Type type, uint16 position,
+                       bool relocatable)
     : symbol_(CacheString(symbol)),
       immediate_(immediate),
       parent_(parent),
-      id_(0),
       position_(position),
-      type_(type) {
+      type_(type),
+      relocatable_(relocatable) {
   assert(!symbol.empty() || IsImmediate());
 }
 
-Expression* Expression::Create(Expression* parent, const std::string& symbol,
-                               int64_t immediate, Type type,
-                               uint16_t position) {
-  Expression expression(parent, symbol, immediate, type, position);
-  const std::string signature = expression.CreateSignature();
+Expression* Expression::Create(Expression* parent, const string& symbol,
+                               int64 immediate, Type type,
+                               uint16 position, bool relocatable) {
+  Expression expression(parent, symbol, immediate, type, position, relocatable);
+  const string signature = expression.CreateSignature();
   ExpressionCache::iterator i = expression_cache_.find(signature);
   if (i != expression_cache_.end()) {
     return &i->second;
@@ -56,7 +58,7 @@ void Expression::EmptyCache() {
   global_id_ = 0;
 }
 
-const std::string* Expression::CacheString(const std::string& string) {
+const string* Expression::CacheString(const string& string) {
   return &*string_cache_.insert(string).first;
 }
 
@@ -80,25 +82,27 @@ bool Expression::IsDereferenceOperator() const {
   return type_ == TYPE_DEREFERENCE;
 }
 
+bool Expression::IsRelocation() const { return relocatable_; }
+
 int Expression::GetId() const { return id_; }
 
 Expression::Type Expression::GetType() const { return type_; }
 
-const std::string& Expression::GetSymbol() const { return *symbol_; }
+const string& Expression::GetSymbol() const { return *symbol_; }
 
-uint16_t Expression::GetPosition() const { return position_; }
+uint16 Expression::GetPosition() const { return position_; }
 
-int64_t Expression::GetImmediate() const { return immediate_; }
+int64 Expression::GetImmediate() const { return immediate_; }
 
 const Expression* Expression::GetParent() const { return parent_; }
 
-std::string Expression::CreateSignature() {
-  std::string signature(19 /* length of the signature */, '0');
+string Expression::CreateSignature() {
+  string signature(19 /* length of the signature */, '0');
   signature[0] = static_cast<char>(type_);
-  *reinterpret_cast<uint16_t*>(&signature[1]) = position_;
+  *reinterpret_cast<uint16*>(&signature[1]) = position_;
   *reinterpret_cast<Address*>(&signature[3]) = immediate_;
-  *reinterpret_cast<uint32_t*>(&signature[11]) = GetSdbmHash(*symbol_);
-  *reinterpret_cast<uint32_t*>(&signature[15]) = parent_ ? parent_->GetId() : 0;
+  *reinterpret_cast<uint32*>(&signature[11]) = GetSdbmHash(*symbol_);
+  *reinterpret_cast<uint32*>(&signature[15]) = parent_ ? parent_->GetId() : 0;
   return signature;
 }
 

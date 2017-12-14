@@ -14,9 +14,6 @@
 
 // New BinExport protocol buffer based file format. Should be more complete and
 // more compact than the original one.
-// MOE::begin_strip
-// See cl/38435314 for a discussion and the description in the proto file.
-// MOE::end_strip
 //
 // Example rates for item
 // 000026157fb0ada54135ef1f182585fc3edbca4769b9ea3629d6cda9161dc566:
@@ -33,39 +30,38 @@
 
 #include <cinttypes>
 #include <string>
-using ::std::string;
-#include <chrono>  // NOLINT
 #include <fstream>
-
-// We need to include protobuf first, as their uint128 does not play nice with
-// the IDA SDK.
-#include <binexport2.pb.h>  // NOLINT
+#include <unordered_map>
 
 #include "base/integral_types.h"
 #include "base/logging.h"
-#include "base/stringprintf.h"
-#include "strings/strutil.h"
-#include "strings/stringpiece.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/time/clock.h"
+#include "third_party/absl/time/time.h"
+#define final   // Hack: Allow to override generated protobuf code.
+#include <google/protobuf/io/coded_stream.h>  // NOLINT
+#include "third_party/zynamics/binexport/binexport2.pb.h"
+#undef final  // Undo hack
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/function.h"
 
 namespace {
 
-// Sort by descending occurrence count then by mnemonic string. Don't be
+// Sorts by descending occurrence count then by mnemonic string. Don't be
 // confused by operator > - this function is called as an operator less-than.
-bool SortMnemonicsByOccurrenceCount(const std::pair<StringPiece, int32>& one,
-                                    const std::pair<StringPiece, int32>& two) {
+bool SortMnemonicsByOccurrenceCount(const std::pair<string, int32>& one,
+                                    const std::pair<string, int32>& two) {
   if (one.second != two.second) {
     return one.second > two.second;
   }
-
   return one.first < two.first;
 }
 
-// Sort by mnemonic string.
-bool SortMnemonicsAlphabetically(const std::pair<StringPiece, int32>& one,
-                                 const std::pair<StringPiece, int32>& two) {
+// Sorts by mnemonic string.
+bool SortMnemonicsAlphabetically(const std::pair<string, int32>& one,
+                                 const std::pair<string, int32>& two) {
   return one.first < two.first;
 }
 
@@ -73,19 +69,18 @@ bool SortMnemonicsAlphabetically(const std::pair<StringPiece, int32>& one,
 // lexicographically for quick lookups. Every mnemonic maps to its index in the
 // result proto array.
 void WriteMnemonics(const Instructions& instructions,
-                    std::vector<std::pair<StringPiece, int32>>* mnemonics,
+                    std::vector<std::pair<string, int32>>* mnemonics,
                     BinExport2* proto) {
   // Get a histogram of mnemonics. Sort that histogram by descending occurrence
   // count. Store mnemonics in result proto buffer. Remember the indices
   // assigned in the proto array. Sort the index vector by mnemonic string to
   // allow for quick binary search by string and mapping from string to index.
-  hash_map<StringPiece, int32> mnemonic_histogram;
+  std::unordered_map<string, int32> mnemonic_histogram;
   for (const auto& instruction : instructions) {
     if (instruction.HasFlag(FLAG_INVALID)) {
       continue;
     }
-
-    mnemonic_histogram[instruction.GetMnemonic()]++;
+    ++mnemonic_histogram[instruction.GetMnemonic()];
   }
   mnemonics->reserve(mnemonic_histogram.size());
   for (const auto& mnemonic : mnemonic_histogram) {
@@ -128,8 +123,8 @@ BinExport2::Expression::Type ExpressionTypeToProtoType(Expression::Type type) {
       return BinExport2::Expression::SYMBOL;
 
     default:
-      // Invalid expression type.
       LOG(QFATAL) << "Invalid expression type: " << type;
+      return BinExport2::Expression::IMMEDIATE_INT;  // Not reached
   }
 }
 
@@ -160,6 +155,9 @@ void WriteExpressions(BinExport2* proto) {
     }
     if (expression->IsImmediate()) {
       proto_expression->set_immediate(expression->GetImmediate());
+    }
+    if (expression->IsRelocation()) {
+      proto_expression->set_is_relocation(true);
     }
     const auto type = ExpressionTypeToProtoType(expression->GetType());
     if (type != BinExport2::Expression::IMMEDIATE_INT) {
@@ -201,11 +199,10 @@ void WriteOperands(BinExport2* proto) {
 
 // Binary search for the given mnemonic. It is a fatal error to look for a
 // mnemonic that is not actually contained in the set.
-int32 GetMnemonicIndex(
-    const std::vector<std::pair<StringPiece, int32>>& mnemonics,
-    const std::string& mnemonic) {
+int32 GetMnemonicIndex(const std::vector<std::pair<string, int32>>& mnemonics,
+                       const string& mnemonic) {
   const auto it = lower_bound(mnemonics.begin(), mnemonics.end(),
-                              std::make_pair(StringPiece(mnemonic), 0));
+                              std::make_pair(mnemonic, 0));
   QCHECK(it != mnemonics.end()) << "Unknown mnemonic: " << mnemonic;
   QCHECK_EQ(mnemonic, it->first);
   return it->second;
@@ -232,7 +229,7 @@ void WriteCallTargets(Address instruction_address,
 
 void WriteInstructions(
     const FlowGraph& flow_graph, const Instructions& instructions,
-    const std::vector<std::pair<StringPiece, int32>>& mnemonics,
+    const std::vector<std::pair<string, int32>>& mnemonics,
     const AddressReferences& address_references,
     std::vector<std::pair<Address, int32>>* instruction_indices,
     BinExport2* proto) {
@@ -360,6 +357,7 @@ BinExport2::FlowGraph::Edge::Type FlowGraphEdgeTypeToProtoType(
       return BinExport2::FlowGraph::Edge::SWITCH;
     default:
       LOG(QFATAL) << "Invalid flow graph edge type: " << type;
+      return BinExport2::FlowGraph::Edge::UNCONDITIONAL;  // Not reached
   }
 }
 
@@ -416,6 +414,7 @@ void WriteFlowGraphs(const FlowGraph& flow_graph, BinExport2* proto) {
           (*back_edge)->source == edge.source &&
           (*back_edge)->target == edge.target) {
         proto_edge->set_is_back_edge(true);
+        ++back_edge;
       }
     }
   }
@@ -438,6 +437,7 @@ BinExport2::CallGraph::Vertex::Type CallGraphVertexTypeToProtoType(
       return BinExport2::CallGraph::Vertex::INVALID;
     default:
       LOG(QFATAL) << "Invalid call graph vertex type: " << type;
+      return BinExport2::CallGraph::Vertex::NORMAL;  // Not reached
   }
 }
 
@@ -461,9 +461,10 @@ int32 GetVertexIndex(const BinExport2::CallGraph& call_graph, uint64 address) {
                   vertex, &SortByAddress);
   QCHECK(it != call_graph.vertex().end())
       << "Can't find a call graph node for: "
-      << StringPrintf("%08" PRIx64, address);
-  QCHECK_EQ(address, it->address()) << "Can't find a call graph node for: "
-                                    << StringPrintf("%08" PRIx64, address);
+      << absl::StrCat(absl::Hex(address, absl::kZeroPad8));
+  QCHECK_EQ(address, it->address())
+      << "Can't find a call graph node for: "
+      << absl::StrCat(absl::Hex(address, absl::kZeroPad8));
   return it - call_graph.vertex().begin();
 }
 
@@ -474,14 +475,14 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
   // Create used libraries list.
   std::vector<const LibraryManager::LibraryRecord*> used_libraries;
   call_graph.GetLibraryManager().GetUsedLibraries(&used_libraries);
-  std::map<int, int> use_index;
+  std::unordered_map<int, int> use_index;
   for (int i = 0; i < used_libraries.size(); ++i) {
     use_index[used_libraries[i]->library_index] = i;
   }
 
   // Used for verifying that functions are sorted by address.
   uint64 previous_entry_point_address = 0;
-  std::map<string, int32> module_index;
+  std::unordered_map<string, int32> module_index;
   for (const auto& function_it : flow_graph.GetFunctions()) {
     const Function& function(*function_it.second);
     QCHECK_GE(function.GetEntryPoint(), previous_entry_point_address);
@@ -555,8 +556,7 @@ void WriteStrings(
     const AddressSpace& address_space,
     const std::vector<std::pair<Address, int32>>& instruction_indices,
     BinExport2* proto) {
-  std::map<Address, const AddressReference*> string_address_to_reference;
-  std::map<string, int> string_to_string_index;
+  std::unordered_map<string, int> string_to_string_index;
   for (const auto& reference : address_references) {
     if (reference.kind_ != TYPE_DATA_STRING &&
         reference.kind_ != TYPE_DATA_WIDE_STRING) {
@@ -607,7 +607,7 @@ void WriteDataReferences(
     const std::vector<std::pair<Address, int32>>& instruction_indices,
     BinExport2* proto) {
   // Cache address -> instruction mapping.
-  std::map<Address, int32> address_to_index;
+  std::unordered_map<Address, int32> address_to_index;
   for (const auto& index : instruction_indices) {
     address_to_index[index.first] = index.second;
   }
@@ -636,7 +636,7 @@ void WriteComments(
     const CallGraph& call_graph,
     const std::vector<std::pair<Address, int32>>& instruction_indices,
     BinExport2* proto) {
-  std::map<const std::string*, int> comment_to_index;
+  std::unordered_map<const string*, int> comment_to_index;
   for (const Comment& comment : call_graph.GetComments()) {
     const auto new_comment = comment_to_index.insert(
         std::make_pair(comment.comment_, proto->string_table_size()));
@@ -668,23 +668,104 @@ void WriteSections(const AddressSpace& address_space, BinExport2* proto) {
   }
 }
 
+#ifndef GOOGLE
+class BinExport2MetaWithDifferentOrder : public BinExport2_Meta {
+ public:
+  BinExport2MetaWithDifferentOrder(const BinExport2_Meta& from)
+      : BinExport2_Meta(from) {}
+
+  void SerializeWithCachedSizes(
+      google::protobuf::io::CodedOutputStream* output) const override;
+  google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
+      bool deterministic, google::protobuf::uint8* target) const override;
+};
+
+void BinExport2MetaWithDifferentOrder::SerializeWithCachedSizes(
+    google::protobuf::io::CodedOutputStream* output) const {
+  // optional bytes padding_v1 = 5;
+  if (has_padding_v1()) {
+    google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
+        0, this->padding_v1(), output);
+  }
+  // optional string executable_name = 1;
+  if (has_executable_name()) {
+    google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        1, this->executable_name(), output);
+  }
+  // optional string executable_id = 2;
+  if (has_executable_id()) {
+    google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        2, this->executable_id(), output);
+  }
+  // optional string architecture_name = 3;
+  if (has_architecture_name()) {
+    google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
+        3, this->architecture_name(), output);
+  }
+  // optional int64 timestamp = 4;
+  if (has_timestamp()) {
+    google::protobuf::internal::WireFormatLite::WriteInt64(4, this->timestamp(),
+                                                           output);
+  }
+}
+
+google::protobuf::uint8*
+BinExport2MetaWithDifferentOrder::InternalSerializeWithCachedSizesToArray(
+    bool /* deterministic */, google::protobuf::uint8* target) const {
+  // optional bytes padding_v1 = 5;
+  if (has_padding_v1()) {
+    target = google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        5, this->padding_v1(), target);
+  }
+  // optional string executable_name = 1;
+  if (has_executable_name()) {
+    target = google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->executable_name(), target);
+  }
+  // optional string executable_id = 2;
+  if (has_executable_id()) {
+    target = google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->executable_id(), target);
+  }
+  // optional string architecture_name = 3;
+  if (has_architecture_name()) {
+    target = google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        3, this->architecture_name(), target);
+  }
+  // optional int64 timestamp = 4;
+  if (has_timestamp()) {
+    target = google::protobuf::internal::WireFormatLite::WriteInt64ToArray(
+        4, this->timestamp(), target);
+  }
+
+  return target;
+}
+#endif
+
 // Writes a binary protocol buffer to the specified filename. Returns true if
 // successful. Logs an error and returns false if not.
 util::Status WriteProtoToFile(const string& filename, BinExport2* proto) {
   std::ofstream stream(filename, std::ios::binary | std::ios::out);
+
+  // Apply padding for compatibility with BinDiff < 4.3.
+  auto* meta = new BinExport2MetaWithDifferentOrder(proto->meta_information());
+  meta->set_padding_v1(string(7, '\0'));
+  proto->set_allocated_meta_information(meta);  // Transfer ownership
+
   if (!proto->SerializeToOstream(&stream)) {
-    return util::Status(util::error::UNKNOWN,
-                        StrCat("Error serializing data to: '", filename, "'."));
+    return util::Status(
+        util::error::UNKNOWN,
+        absl::StrCat("Error serializing data to: '", filename, "'."));
   }
-        return ::util::OkStatus();
+  return util::OkStatus();
 }
 
 }  // namespace
 
-BinExport2Writer::BinExport2Writer(const std::string& result_filename,
-                                   const std::string& executable_filename,
-                                   const std::string& executable_hash,
-                                   const std::string& architecture)
+BinExport2Writer::BinExport2Writer(const string& result_filename,
+                                   const string& executable_filename,
+                                   const string& executable_hash,
+                                   const string& architecture)
     : filename_(result_filename),
       executable_filename_(executable_filename),
       executable_hash_(executable_hash),
@@ -699,16 +780,12 @@ util::Status BinExport2Writer::WriteToProto(
   meta_information->set_executable_name(executable_filename_);
   meta_information->set_executable_id(executable_hash_);
   meta_information->set_architecture_name(architecture_);
-  const auto timestamp =
-      std::chrono::duration_cast<std::chrono::seconds>(
-          std::chrono::system_clock::now().time_since_epoch())
-          .count();
-  meta_information->set_timestamp(timestamp);
+  meta_information->set_timestamp(absl::ToUnixSeconds(absl::Now()));
 
   WriteExpressions(proto);
   WriteOperands(proto);
   {
-    std::vector<std::pair<StringPiece, int32>> mnemonics;
+    std::vector<std::pair<string, int32>> mnemonics;
     WriteMnemonics(instructions, &mnemonics, proto);
     std::vector<std::pair<Address, int32>> instruction_indices;
     WriteInstructions(flow_graph, instructions, mnemonics, address_references,
@@ -723,7 +800,7 @@ util::Status BinExport2Writer::WriteToProto(
   WriteCallGraph(call_graph, flow_graph, proto);
   WriteSections(address_space, proto);
 
-  return ::util::OkStatus();
+  return util::OkStatus();
 }
 
 util::Status BinExport2Writer::Write(

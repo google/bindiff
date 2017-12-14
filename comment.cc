@@ -17,7 +17,7 @@
 #include <cinttypes>
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
 
 bool SortComments(const Comment& lhs, const Comment& rhs) {
   if (lhs.address_ == rhs.address_) {
@@ -29,8 +29,8 @@ bool SortComments(const Comment& lhs, const Comment& rhs) {
   return lhs.address_ < rhs.address_;
 }
 
-Comment::Comment(Address address, size_t operand_num,
-                 const std::string* comment, Type type, bool repeatable)
+Comment::Comment(Address address, size_t operand_num, const string* comment,
+                 Type type, bool repeatable)
     : address_(address),
       operand_num_(operand_num),
       comment_(comment),
@@ -38,7 +38,7 @@ Comment::Comment(Address address, size_t operand_num,
       type_(type) {
   if (comment && comment->size() >= 4096) {
     LOG(INFO) << "Excessively long comment at "
-              << StringPrintf("%08" PRIx64, address) << ", " << comment->size()
-              << " bytes: " << *comment;
+              << absl::StrCat(absl::Hex(address, absl::kZeroPad8)) << ", "
+              << comment->size() << " bytes: " << *comment;
   }
 }

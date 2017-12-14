@@ -15,7 +15,7 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_LOG_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_LOG_H_
 
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
 class LoggingOptions {
  public:
@@ -25,15 +25,15 @@ class LoggingOptions {
 
   bool alsologtostderr() const { return alsologtostderr_; }
 
-  void set_log_filename(const std::string& filename) {
+  void set_log_filename(const string& filename) {
     log_filename_ = filename;
   }
 
-  const std::string& log_filename() const { return log_filename_; }
+  const string& log_filename() const { return log_filename_; }
 
  private:
   bool alsologtostderr_ = false;
-  std::string log_filename_;
+  string log_filename_;
 };
 
 // Initializes logging. Not thread safe.

@@ -21,8 +21,10 @@ class Instruction;
 class CallGraph;
 class FlowGraph;
 class TypeSystem;
+class insn_t;
 
-Instruction ParseInstructionIdaMetaPc(Address address, CallGraph* call_graph,
+Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
+                                      CallGraph* call_graph,
                                       FlowGraph* flow_graph,
                                       TypeSystem* type_system);
 

@@ -22,11 +22,11 @@
 class StatisticsWriter : public Writer {
  public:
   explicit StatisticsWriter(std::ostream& stream);
-  explicit StatisticsWriter(const std::string& filename);
+  explicit StatisticsWriter(const string& filename);
 
   void GenerateStatistics(const CallGraph& call_graph,
                           const FlowGraph& flow_graph,
-                          std::map<std::string, size_t>* statistics) const;
+                          std::map<string, size_t>* statistics) const;
 
   util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions& instructions,

@@ -16,13 +16,13 @@
 
 #include <cstdint>
 
-std::string EncodeHex(const std::string& line) {
+string EncodeHex(const string& line) {
   static const char kLookup[] = "0123456789ABCDEF";
 
   if (line.empty()) {
-    return std::string();
+    return string();
   }
-  std::string result;
+  string result;
   result.resize(line.size() * 2);
   for (int i = 0, j = 0, end = line.size(); i < end; ++i) {
     auto c = line[i];
@@ -32,8 +32,8 @@ std::string EncodeHex(const std::string& line) {
   return result;
 }
 
-std::string DecodeHex(const std::string& line) {
-  static const uint8_t kLookup[] = {
+string DecodeHex(const string& line) {
+  static const uint8 kLookup[] = {
       0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0,  0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
       0,  0,  0,  0,  0,  0,  0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,  // 0123456789
@@ -45,11 +45,11 @@ std::string DecodeHex(const std::string& line) {
   };
 
   if (line.empty()) {
-    return std::string();
+    return string();
   }
-  std::string result;
+  string result;
   result.resize(line.size() >> 1);
-  for (int i = 0, j = 0, end = line.size(); i < end; ) {
+  for (int i = 0, j = 0, end = line.size(); i < end;) {
     auto& c = result[j++];
     c = kLookup[line[i++]] << 4;
     c |= kLookup[line[i++]];

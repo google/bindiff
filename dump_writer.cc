@@ -22,7 +22,7 @@
 
 DumpWriter::DumpWriter(std::ostream& stream) : stream_(stream) {}
 
-DumpWriter::DumpWriter(const std::string& file_name)
+DumpWriter::DumpWriter(const string& file_name)
     : file_(file_name.c_str()), stream_(file_) {}
 
 util::Status DumpWriter::Write(const CallGraph& call_graph,

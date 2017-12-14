@@ -19,14 +19,14 @@
 #include <map>
 #include <memory>
 #include <string>
-using ::std::string;
 #include <vector>
 
-#include <binexport2.pb.h>  // NOLINT
-
 #include "base/logging.h"
-#include "strings/stringpiece.h"
-#include "strings/strutil.h"
+#include "third_party/absl/strings/match.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/types.h"
 
 Address GetInstructionAddress(const BinExport2& proto, int index) {
@@ -47,7 +47,7 @@ Address GetInstructionAddress(const BinExport2& proto, int index) {
 
 void RenderExpression(const BinExport2& proto,
                       const BinExport2::Operand& operand, int index,
-                      string* output) {
+                      std::string* output) {
   const auto& expression = proto.expression(operand.expression_index(index));
   const auto& symbol = expression.symbol();
   switch (expression.type()) {
@@ -63,25 +63,25 @@ void RenderExpression(const BinExport2& proto,
       }
       auto num_children = children.size();
       if (symbol == "{") {  // ARM Register lists
-        StrAppend(output, "{");
+        absl::StrAppend(output, "{");
         for (int i = 0; i < num_children; i++) {
           RenderExpression(proto, operand, index + 1 + i, output);
           if (i != num_children - 1) {
-            StrAppend(output, ",");
+            absl::StrAppend(output, ",");
           }
         }
-        StrAppend(output, "}");
+        absl::StrAppend(output, "}");
       } else if (num_children == 1) {
         // Only a single child, treat expression as prefix operator (like
         // 'ss:').
-        StrAppend(output, symbol);
+        absl::StrAppend(output, symbol);
         RenderExpression(proto, operand, index + 1, output);
       } else if (num_children > 1) {
         // Multiple children, treat expression as infix operator ('+' or '*').
         // TODO(cblichmann): Deal with negative numbers.
         RenderExpression(proto, operand, index + 1, output);
         for (int i = 1; i < num_children; i++) {
-          StrAppend(output, symbol);
+          absl::StrAppend(output, symbol);
           RenderExpression(proto, operand, index + 1 + i, output);
         }
       }
@@ -89,29 +89,29 @@ void RenderExpression(const BinExport2& proto,
     }
     case BinExport2::Expression::SYMBOL:
     case BinExport2::Expression::REGISTER:
-      StrAppend(output, symbol);
+      absl::StrAppend(output, symbol);
       break;
     case BinExport2::Expression::SIZE_PREFIX: {
-      StringPiece architecture_name(
+      absl::string_view architecture_name(
           proto.meta_information().architecture_name());
-      bool long_mode = architecture_name.ends_with("64");
+      bool long_mode = absl::EndsWith(architecture_name, "64");
       if ((long_mode && symbol != "b8") || (!long_mode && symbol != "b4")) {
-        StrAppend(output, symbol, " ");
+        absl::StrAppend(output, symbol, " ");
       }
       RenderExpression(proto, operand, index + 1, output);
       break;
     }
     case BinExport2::Expression::DEREFERENCE:
-      StrAppend(output, "[");
+      absl::StrAppend(output, "[");
       if (index + 1 < operand.expression_index_size()) {
         RenderExpression(proto, operand, index + 1, output);
       }
-      StrAppend(output, "]");
+      absl::StrAppend(output, "]");
       break;
     case BinExport2::Expression::IMMEDIATE_INT:
     case BinExport2::Expression::IMMEDIATE_FLOAT:
     default:
-      StrAppend(output, "0x", strings::Hex(expression.immediate()));
+      absl::StrAppend(output, "0x", absl::Hex(expression.immediate()));
       break;
   }
 }
@@ -132,20 +132,21 @@ void DumpBinExport2(const BinExport2& proto) {
   const auto& call_graph = proto.call_graph();
   printf("\nFunctions:\n");
   constexpr const char kFunctionType[] = "nlit!";
-  std::map<Address, string> function_names;
+  std::map<Address, std::string> function_names;
   for (int i = 0; i < call_graph.vertex_size(); ++i) {
     const auto& vertex = call_graph.vertex(i);
     const auto address = vertex.address();
 
-    string name(vertex.demangled_name());
+    std::string name(vertex.demangled_name());
     if (name.empty()) {
       name = vertex.mangled_name();
     }
     if (name.empty()) {
-      name = StrCat("sub_", strings::Hex(address, strings::ZERO_PAD_8));
+      name = StrCat("sub_", absl::Hex(address, absl::kZeroPad8));
     }
-    string line(StrCat(strings::Hex(address, strings::ZERO_PAD_8), " ",
-                       string(1, kFunctionType[vertex.type()]), " ", name));
+    auto line =
+        absl::StrCat(absl::Hex(address, absl::kZeroPad8), " ",
+                     std::string(1, kFunctionType[vertex.type()]), " ", name);
     function_names[address] = name;
     printf("%s\n", line.c_str());
   }
@@ -155,8 +156,8 @@ void DumpBinExport2(const BinExport2& proto) {
         proto, proto.basic_block(flow_graph.entry_basic_block_index())
                    .instruction_index(0)
                    .begin_index());
-    string info(StrCat(strings::Hex(function_address, strings::ZERO_PAD_8),
-                       " ; ", function_names[function_address]));
+    const auto info = absl::StrCat(absl::Hex(function_address, absl::kZeroPad8),
+                                   " ; ", function_names[function_address]);
     printf("\n%s\n", info.c_str());
 
     Address computed_instruction_address = 0;
@@ -181,15 +182,15 @@ void DumpBinExport2(const BinExport2& proto) {
 
           if (i == begin_index) {
             basic_block_address = instruction_address;
-            string line(
-                StrCat(strings::Hex(basic_block_address, strings::ZERO_PAD_8),
-                       " ; ----------------------------------------"));
+            const auto line =
+                absl::StrCat(absl::Hex(basic_block_address, absl::kZeroPad8),
+                             " ; ----------------------------------------");
             printf("%s\n", line.c_str());
           }
 
-          string disassembly(
-              StrCat("                ",
-                     proto.mnemonic(instruction.mnemonic_index()).name(), " "));
+          auto disassembly = absl::StrCat(
+              "                ",
+              proto.mnemonic(instruction.mnemonic_index()).name(), " ");
           for (int i = 0; i < instruction.operand_index_size(); i++) {
             const auto& operand = proto.operand(instruction.operand_index(i));
             for (int j = 0; j < operand.expression_index_size(); j++) {
@@ -200,13 +201,13 @@ void DumpBinExport2(const BinExport2& proto) {
               }
             }
             if (i != instruction.operand_index_size() - 1) {
-              StrAppend(&disassembly, ", ");
+              absl::StrAppend(&disassembly, ", ");
             }
           }
 
-          string line(
-              StrCat(strings::Hex(instruction_address, strings::ZERO_PAD_8),
-                     " ", disassembly));
+          const auto line =
+              absl::StrCat(absl::Hex(instruction_address, absl::kZeroPad8), " ",
+                           disassembly);
           printf("%s\n", line.c_str());
 
           const auto& raw_bytes = instruction.raw_bytes();
@@ -220,7 +221,7 @@ void DumpBinExport2(const BinExport2& proto) {
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    fprintf(stderr, "Usage: %s BINEXPORT2\n", argv[0]);
+    fprintf(stderr, "Usage: %s BINEXPORT2\n", Basename(argv[0]).c_str());
     return EXIT_FAILURE;
   }
 

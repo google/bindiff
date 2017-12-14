@@ -22,7 +22,7 @@
 class DumpWriter : public Writer {
  public:
   explicit DumpWriter(std::ostream& stream);
-  explicit DumpWriter(const std::string& file_name);
+  explicit DumpWriter(const string& file_name);
 
   util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions& instructions,

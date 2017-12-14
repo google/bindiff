@@ -28,7 +28,7 @@ struct Terminator {};
 class QueryBuilder {
  public:
   // Does not take ownership.
-  QueryBuilder(Database* database, const std::string& base_query,
+  QueryBuilder(Database* database, const string& base_query,
                size_t query_size);
   void Execute();
 
@@ -36,11 +36,11 @@ class QueryBuilder {
   QueryBuilder(const QueryBuilder&) = delete;
   QueryBuilder& operator=(const QueryBuilder&) = delete;
 
-  friend QueryBuilder& operator<<(QueryBuilder&, const std::string&);
-  friend QueryBuilder& operator<<(QueryBuilder&, int64_t);
+  friend QueryBuilder& operator<<(QueryBuilder&, const string&);
+  friend QueryBuilder& operator<<(QueryBuilder&, int64);
   friend QueryBuilder& operator<<(QueryBuilder&, const Terminator&);
 
-  std::string base_query_;
+  string base_query_;
   std::ostringstream current_query_;
   size_t query_size_;
   Database* database_;

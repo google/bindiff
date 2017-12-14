@@ -23,13 +23,13 @@
 
 StatisticsWriter::StatisticsWriter(std::ostream& stream) : stream_(stream) {}
 
-StatisticsWriter::StatisticsWriter(const std::string& filename)
+StatisticsWriter::StatisticsWriter(const string& filename)
     : file_(filename.c_str()), stream_(file_) {}
 
 void StatisticsWriter::GenerateStatistics(
     const CallGraph& call_graph, const FlowGraph& flow_graph,
-    std::map<std::string, size_t>* statistics_ptr) const {
-  std::map<std::string, size_t>& statistics = *statistics_ptr;
+    std::map<string, size_t>* statistics_ptr) const {
+  std::map<string, size_t>& statistics = *statistics_ptr;
   statistics.clear();
   const Functions& functions = flow_graph.GetFunctions();
   statistics["callgraph nodes (functions)"] = functions.size();
@@ -95,14 +95,13 @@ util::Status StatisticsWriter::Write(const CallGraph& call_graph,
                                      const AddressReferences&,
                                      const TypeSystem* /* type_system */,
                                      const AddressSpace& /* address_space */) {
-  std::map<std::string, size_t> statistics;
+  std::map<string, size_t> statistics;
   GenerateStatistics(call_graph, flow_graph, &statistics);
-  for (std::map<std::string, size_t>::const_iterator i = statistics.begin();
-       i != statistics.end(); ++i) {
-    const std::string padding(32 - i->first.size(), '.');
-    stream_ << i->first << padding << ":" << std::setw(7) << std::dec
-            << std::setfill(' ') << i->second << std::endl;
+  for (const auto& entry : statistics) {
+    const string padding(32 - entry.first.size(), '.');
+    stream_ << entry.first << padding << ":" << std::setw(7) << std::dec
+            << std::setfill(' ') << entry.second << std::endl;
   }
 
-  return ::util::OkStatus();
+  return util::OkStatus();
 }

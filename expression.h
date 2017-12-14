@@ -27,10 +27,10 @@
 #pragma pack(push, 1)
 class Expression {
  public:
-  typedef std::unordered_map<std::string, Expression> ExpressionCache;
-  typedef std::unordered_set<std::string> StringCache;
+  using ExpressionCache = std::unordered_map<string, Expression>;
+  using StringCache = std::unordered_set<string>;
 
-  enum Type : uint8_t {
+  enum Type : uint8 {
     TYPE_MNEMONIC = 0,
     TYPE_SYMBOL = 1,
     TYPE_IMMEDIATE_INT = 2,
@@ -55,17 +55,17 @@ class Expression {
   bool IsImmediate() const;
   bool IsOperator() const;
   bool IsDereferenceOperator() const;
+  bool IsRelocation() const;
   int GetId() const;
   Type GetType() const;
-  const std::string& GetSymbol() const;
-  uint16_t GetPosition() const;
-  int64_t GetImmediate() const;
+  const string& GetSymbol() const;
+  uint16 GetPosition() const;
+  int64 GetImmediate() const;
   const Expression* GetParent() const;
-  std::string CreateSignature();
-  static Expression* Create(Expression* parent, const std::string& symbol = "",
-                            int64_t immediate = 0,
-                            Type type = TYPE_IMMEDIATE_INT,
-                            uint16_t position = 0);
+  string CreateSignature();
+  static Expression* Create(Expression* parent, const string& symbol = "",
+                            int64 immediate = 0, Type type = TYPE_IMMEDIATE_INT,
+                            uint16 position = 0, bool relocatable = false);
   static void EmptyCache();
   static const ExpressionCache& GetExpressions();
 
@@ -76,16 +76,17 @@ class Expression {
   //   refer to the expression_cache_ if someone tries (that way archiving
   //   compression/de-duping)
   // TODO(user): What about copy & assignment?
-  Expression(Expression* parent, const std::string& symbol, int64_t immediate,
-             Type type, uint16_t position);
-  static const std::string* CacheString(const std::string& string);
+  Expression(Expression* parent, const string& symbol, int64 immediate,
+             Type type, uint16 position, bool relocatable);
+  static const string* CacheString(const string& string);
 
-  const std::string* symbol_;
-  int64_t immediate_;
+  const string* symbol_;
+  int64 immediate_;
   Expression* parent_;
-  int id_;
-  uint16_t position_;
+  int id_ = 0;
+  uint16 position_;
   Type type_;
+  bool relocatable_;
 
   static StringCache string_cache_;
   static ExpressionCache expression_cache_;

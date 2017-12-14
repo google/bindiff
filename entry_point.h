@@ -39,11 +39,13 @@ class EntryPoint {
     FUNCTION_CHUNK,
     ENTRY_POINT_IMAGE,  // Process memory image
     ENTRY_POINT_FILE,   // Entry point text file
+    PE64_EXCEPTION_INFO,
+    MSIL_EXCEPTION_RECORD,
   };
 
   EntryPoint(Address address, EntryPoint::Source source);
 
-  std::string SourceToString();
+  string SourceToString();
 
   bool IsFunctionPrologue() const {
     return source_ == Source::FUNCTION_PROLOGUE ||
@@ -70,12 +72,12 @@ typedef std::vector<EntryPoint> EntryPoints;
 
 class EntryPointAdder {
  public:
-  EntryPointAdder(EntryPointAdder* parent, std::string name)
+  EntryPointAdder(EntryPointAdder* parent, string name)
       : parent_(parent),
         entry_points_(parent->entry_points_),
         count_(0),
         name_(name) {}
-  EntryPointAdder(EntryPoints* entry_points, std::string name)
+  EntryPointAdder(EntryPoints* entry_points, string name)
       : parent_(nullptr), entry_points_(entry_points), count_(0), name_(name) {}
 
   ~EntryPointAdder();
@@ -88,7 +90,7 @@ class EntryPointAdder {
   EntryPointAdder* parent_;
   EntryPoints* entry_points_;
   size_t count_;
-  std::string name_;
+  string name_;
 };
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_ENTRY_POINT_H_

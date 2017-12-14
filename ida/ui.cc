@@ -12,29 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "third_party/zynamics/binexport/ida/pro_forward.h"  // NOLINT
-#include <kernwin.hpp>                                       // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <kernwin.hpp>                                        // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
-// Due to conflicting integer types, include this header after kernwin.hpp.
-#include "third_party/zynamics/binexport/ida/ui.h"  // NOLINT
+#include "third_party/zynamics/binexport/ida/ui.h"
+#include "third_party/zynamics/binexport/types.h"
 
 namespace {
 
-std::string FormatMessage(StringPiece message, bool cancellable) {
-  return (cancellable ? "" : "HIDECANCEL\n") + std::string(message);
+string FormatMessage(absl::string_view message, bool cancellable) {
+  return (cancellable ? "" : "HIDECANCEL\n") + string(message);
 }
 
 }  // namespace
 
-WaitBox::WaitBox(StringPiece message, WaitBox::Cancellable cancel_state)
+WaitBox::WaitBox(absl::string_view message, WaitBox::Cancellable cancel_state)
     : cancellable_(cancel_state == WaitBox::kCancellable) {
   show_wait_box("%s", FormatMessage(message, cancellable_).c_str());
 }
 
 WaitBox::~WaitBox() { hide_wait_box(); }
 
-bool WaitBox::IsCancelled() { return wasBreak(); }
+bool WaitBox::IsCancelled() { return user_cancelled(); }
 
-void WaitBox::ReplaceText(StringPiece message) const {
+void WaitBox::ReplaceText(absl::string_view message) const {
   replace_wait_box("%s", FormatMessage(message, cancellable_).c_str());
 }

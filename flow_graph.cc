@@ -14,13 +14,15 @@
 
 #include "third_party/zynamics/binexport/flow_graph.h"
 
+#include <algorithm>
 #include <cinttypes>
+#include <iterator>
 #include <list>
 #include <set>
 #include <stack>
 
 #include "base/logging.h"
-#include "base/stringprintf.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
@@ -70,11 +72,15 @@ void FlowGraph::MarkOrphanInstructions(Instructions* instructions) const {
     for (auto* basic_block : function.second->GetBasicBlocks()) {
       for (auto& instruction : *basic_block) {
         if (instruction.GetMnemonic().empty()) {
-          LOG(WARNING) << StringPrintf(
-              "%08" PRIx64 " is reachable from function %08" PRIx64
-              " basic block %08" PRIx64 " but invalid!",
-              instruction.GetAddress(), function.second->GetEntryPoint(),
-              basic_block->GetEntryPoint());
+          LOG(WARNING) << absl::StrCat(
+              absl::Hex(instruction.GetAddress(), absl::kZeroPad8),
+              " is reachable from function ",
+              absl::StrCat(
+                  absl::Hex(function.second->GetEntryPoint(), absl::kZeroPad8)),
+              " basic block ",
+              absl::StrCat(
+                  absl::Hex(basic_block->GetEntryPoint(), absl::kZeroPad8)),
+              " but invalid!");
           continue;
         }
         instruction.SetFlag(FLAG_INVALID, false);
@@ -83,9 +89,9 @@ void FlowGraph::MarkOrphanInstructions(Instructions* instructions) const {
   }
 }
 
-void FlowGraph::AddExpressionSubstitution(Address address, uint8_t operator_num,
+void FlowGraph::AddExpressionSubstitution(Address address, uint8 operator_num,
                                           int expression_id,
-                                          const std::string& substitution) {
+                                          const string& substitution) {
   substitutions_[std::make_tuple(address, operator_num, expression_id)] =
       &*string_cache_.insert(substitution).first;
 }
@@ -155,7 +161,7 @@ std::vector<Address> FlowGraph::FindBasicBlockBreaks(
   // basic block breaks that are not warranted by any of the functions in the
   // final disassembly. This is unfortunate, but not dangerous, as the
   // disassembly is still correct, just with spurious edges.
-  std::map<Address, int> incoming_code_flows;
+  std::unordered_map<Address, int> incoming_code_flows;
   for (const auto& instruction : *instructions) {
     const Address address = instruction.GetAddress();
     const Address flow_address = instruction.GetNextInstruction();
@@ -226,6 +232,7 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
     instruction.SetFlag(FLAG_VISITED, false);
   }
 
+  std::unordered_set<Address> invalid_functions;
   // Start with every known function entry point address and follow flow from
   // there. Create new functions and add basic blocks and edges to them.
   for (Address entry_point : call_graph->GetFunctions()) {
@@ -235,8 +242,11 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
     std::stack<Address> address_stack;
     address_stack.push(entry_point);
 
+    const int initial_edge_number = new_edges.size();
+    int current_bb_number = 0;
+    int number_of_instructions = 0;
     // Keep track of basic blocks already added to this function.
-    std::set<Address> function_basic_blocks;
+    std::unordered_set<Address> function_basic_blocks;
     while (!address_stack.empty()) {
       Address address = address_stack.top();
       address_stack.pop();
@@ -254,7 +264,13 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
       if (basic_block == nullptr) {
         // We need to create a new basic block.
         BasicBlockInstructions basic_block_instructions;
+        int bb_instr_cnt = 0;
+        bool bb_skip = false;
         do {
+          if (++bb_instr_cnt > kMaxFunctionInstructions) {
+            bb_skip = true;
+            break;
+          }
           CHECK(!instruction->HasFlag(FLAG_VISITED));
           instruction->SetFlag(FLAG_VISITED, true);
           basic_block_instructions.AddInstruction(instruction);
@@ -264,8 +280,28 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
                                      basic_block_breaks.end(),
                                      instruction->GetAddress()));
         basic_block = BasicBlock::Create(&basic_block_instructions);
+        number_of_instructions += bb_instr_cnt;
+        if (bb_skip) {
+          LOG(WARNING) << absl::StrCat("Skipping enormous basic block: ",
+                                       absl::Hex(address, absl::kZeroPad8));
+          continue;
+        }
       }
       CHECK(basic_block != nullptr);
+      ++current_bb_number;
+      // Erases all new_edges for the current entry point (to save some memory)
+      // and add entry point to the list of invalid functions, which is
+      // processed later (after all entry points). This step saves memory and
+      // cpu, because it skips generating results which otherwise would be
+      // discarded by the FlowGraph::FinalizeFunctions
+      if ((current_bb_number > kMaxFunctionEarlyBasicBlocks) ||
+          (number_of_instructions > kMaxFunctionInstructions)) {
+        if (initial_edge_number < new_edges.size()) {
+          new_edges.erase(new_edges.begin() + initial_edge_number);
+        }
+        invalid_functions.insert(entry_point);
+        break;
+      }
 
       // Three possibilities:
       // - the basic block ends in a non-code flow instruction
@@ -296,6 +332,33 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
     }
   }
 
+  if (!invalid_functions.empty()) {
+    LOG(INFO) << "Early erase of " << invalid_functions.size()
+              << " invalid functions.";
+
+    // Drops all entry-basic-blocks for "invalid" functions, we keep entry
+    // points in the call_graph->functions_, so later
+    // FlowGraph::FinalizeFunctions can add "dummy" function entries for call
+    // targets which might be wrong, but we can't really tell at this moment.
+    // Such invalid call targets will be marked as imported functions in the
+    // output binexport.
+    for (const Address& addr : invalid_functions) {
+      BasicBlock::blocks().erase(addr);
+    }
+    // Removes all edges that go from/to the invalid_functions. This step might
+    // be not necessary, but it reduces amount of data which would be processed
+    // later.
+    edges_.erase(
+        std::remove_if(edges_.begin(), edges_.end(),
+                       [&invalid_functions](const FlowGraphEdge& edge) {
+                         return (invalid_functions.find(edge.source) !=
+                                 invalid_functions.end()) ||
+                                (invalid_functions.find(edge.target) !=
+                                 invalid_functions.end());
+                       }),
+        edges_.end());
+  }
+
   // Add the new synthetic edges.
   std::copy(new_edges.begin(), new_edges.end(), std::back_inserter(edges_));
   std::sort(edges_.begin(), edges_.end());
@@ -319,9 +382,10 @@ void FlowGraph::MergeBasicBlocks(const CallGraph& call_graph) {
 
     BasicBlock* target_basic_block = BasicBlock::Find(edge.target);
     if (!target_basic_block) {
-      LOG(WARNING) << StringPrintf("No target basic block for edge %08" PRIx64
-                                   " -> %08" PRIx64,
-                                   edge.source, edge.target);
+      LOG(INFO) << absl::StrCat("No target basic block for edge ",
+                                   absl::Hex(edge.source, absl::kZeroPad8),
+                                   " -> ",
+                                   absl::Hex(edge.target, absl::kZeroPad8));
       return true;
     }
 
@@ -337,9 +401,10 @@ void FlowGraph::MergeBasicBlocks(const CallGraph& call_graph) {
 
     BasicBlock* source_basic_block = BasicBlock::FindContaining(edge.source);
     if (!source_basic_block) {
-      LOG(WARNING) << StringPrintf("No source basic block for edge %08" PRIx64
-                                   " -> %08" PRIx64,
-                                   edge.source, edge.target);
+      LOG(INFO) << absl::StrCat("No source basic block for edge ",
+                                   absl::Hex(edge.source, absl::kZeroPad8),
+                                   " -> ",
+                                   absl::Hex(edge.target, absl::kZeroPad8));
       return true;
     }
 
@@ -375,15 +440,6 @@ void FlowGraph::MergeBasicBlocks(const CallGraph& call_graph) {
 }
 
 void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
-  // Maximum number of basic blocks/edges/instructions we want to allow for a
-  // single function. If a function has more than this, we simply discard it as
-  // invalid.
-  enum {
-    kMaxFunctionBasicBlocks = 5000,
-    kMaxFunctionEdges = 5000,
-    kMaxFunctionInstructions = 20000
-  };
-
   // We now have a global "soup" of basic blocks and edges. Next we need to
   // follow flow from every function entry point and collect a list of basic
   // blocks and edges per function. While doing so we also link the new function
@@ -394,12 +450,12 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
     std::unique_ptr<Function> function(new Function(entry_point));
     size_t num_instructions = 0;
     // Keep track of basic blocks and edges already added to this function.
-    std::set<Address> function_basic_blocks;
+    std::unordered_set<Address> function_basic_blocks;
     // TODO(user) Encountering the same basic block multiple times during
     // traversal is expected and OK. Encountering the same edge is not. This is
     // just inefficient - why did we add it twice in the first place? Only the
     // ARM disassembler produces redundant edges atm.
-    std::set<FlowGraphEdge> done_edges;
+    std::unordered_set<FlowGraphEdge, FlowGraphEdgeHash> done_edges;
     while (!address_stack.empty()) {
       Address address = address_stack.top();
       address_stack.pop();
@@ -427,10 +483,10 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
                            });
       for (; edge != edges_.end() && edge->source == source_address; ++edge) {
         if (!BasicBlock::Find(edge->target)) {
-          LOG(WARNING) << StringPrintf(
-              "Dropping edge %08" PRIx64 " -> %08" PRIx64
-              " because the target address is invalid.",
-              edge->source, edge->target);
+          LOG(INFO) << absl::StrCat(
+              "Dropping edge ", absl::Hex(edge->source, absl::kZeroPad8),
+              " -> ", absl::Hex(edge->target, absl::kZeroPad8),
+              " because the target address is invalid.");
           continue;
         }
         if (done_edges.insert(*edge).second) {
@@ -442,13 +498,13 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
     if (function_basic_blocks.size() >= kMaxFunctionBasicBlocks ||
         function->GetEdges().size() >= kMaxFunctionEdges ||
         num_instructions >= kMaxFunctionInstructions) {
-      LOG(WARNING) << "Function " << StringPrintf("%08" PRIx64, entry_point)
-                   << " is excessively large: " << function_basic_blocks.size()
-                   << " basic blocks, " << function->GetEdges().size()
-                   << " edges, " << num_instructions
-                   << " instructions. Larger than allowed "
-                   << kMaxFunctionBasicBlocks << ", " << kMaxFunctionEdges
-                   << ", " << kMaxFunctionInstructions << ". Discarding it.";
+      LOG(INFO) << absl::StrCat(
+          "Discarding excessively large function ",
+          absl::Hex(entry_point, absl::kZeroPad8), ": ",
+          function_basic_blocks.size(), " basic blocks, ",
+          function->GetEdges().size(), " edges, ", num_instructions,
+          " instructions (Limit is ", kMaxFunctionBasicBlocks, ", ",
+          kMaxFunctionEdges, ", ", kMaxFunctionInstructions, ")");
       function->Clear();
     }
     for (const auto* basic_block : function->GetBasicBlocks()) {

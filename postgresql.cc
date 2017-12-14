@@ -19,10 +19,12 @@
 #include <stdexcept>
 
 #include "base/logging.h"
-
-#include <libpq-fe.h>
-#include "strings/stringpiece.h"
-#include "strings/strutil.h"
+#include "third_party/absl/strings/escaping.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_replace.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/strings/strip.h"
+#include <libpq-fe.h>  // NOLINT
 
 namespace {
 
@@ -32,10 +34,8 @@ namespace {
 void PostgresNoticeProcessor(void* /*arg*/, const char* raw_message) {
   // Postgres sends line breaks which our logging adds automatically, thus we
   // remove it here.
-  StringPiece message(raw_message);
-  auto trimmed(message.ToString());
-  StripWhitespace(&trimmed);
-  LOG(INFO) << "PostgreSQL: " << trimmed;
+  LOG(INFO) << absl::StrCat("PostgreSQL: ",
+                            absl::StripAsciiWhitespace(raw_message));
 }
 
 }  // namespace
@@ -71,33 +71,33 @@ std::vector<const char*> Parameters::GetParameters() const {
 
 Parameters& Parameters::operator<<(const bool value) {
   parameters_.push_back(static_cast<int>(data_.size()));
-  data_.push_back(uint8_t(value ? 1 : 0));
+  data_.push_back(uint8(value ? 1 : 0));
   sizes_.push_back(1);
   types_.push_back(1);
   return *this;
 }
 
-Parameters& Parameters::operator<<(const int32_t value) {
+Parameters& Parameters::operator<<(const int32 value) {
   parameters_.push_back(static_cast<int>(data_.size()));
-  data_.push_back(static_cast<uint8_t>((value >> 24) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 16) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value)&0xFF));
+  data_.push_back(static_cast<uint8>((value >> 24) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 16) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 8) & 0xFF));
+  data_.push_back(static_cast<uint8>((value)&0xFF));
   sizes_.push_back(4);
   types_.push_back(1);
   return *this;
 }
 
-Parameters& Parameters::operator<<(const int64_t value) {
+Parameters& Parameters::operator<<(const int64 value) {
   parameters_.push_back(static_cast<int>(data_.size()));
-  data_.push_back(static_cast<uint8_t>((value >> 56) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 48) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 40) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 32) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 24) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 16) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
-  data_.push_back(static_cast<uint8_t>((value)&0xFF));
+  data_.push_back(static_cast<uint8>((value >> 56) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 48) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 40) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 32) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 24) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 16) & 0xFF));
+  data_.push_back(static_cast<uint8>((value >> 8) & 0xFF));
+  data_.push_back(static_cast<uint8>((value)&0xFF));
   sizes_.push_back(8);
   types_.push_back(1);
   return *this;
@@ -105,7 +105,7 @@ Parameters& Parameters::operator<<(const int64_t value) {
 
 Parameters& Parameters::operator<<(double value) {
   parameters_.push_back(static_cast<int>(data_.size()));
-  const uint8_t* p = (reinterpret_cast<const uint8_t*>(&value) + 7);
+  const uint8* p = (reinterpret_cast<const uint8*>(&value) + 7);
   for (int i = 0; i < 8; ++i) {
     data_.push_back(*(p - i));
   }
@@ -114,7 +114,7 @@ Parameters& Parameters::operator<<(double value) {
   return *this;
 }
 
-Parameters& Parameters::operator<<(const std::string& value) {
+Parameters& Parameters::operator<<(const string& value) {
   parameters_.push_back(static_cast<int>(data_.size()));
   data_.insert(data_.end(), value.begin(), value.end());
   sizes_.push_back(static_cast<int>(value.size()));
@@ -142,7 +142,7 @@ Database::Database(const char* connection_string)
       result_(nullptr),
       result_index_(0) {
   if (PQstatus(connection_) != CONNECTION_OK) {
-    const std::string error = std::string(PQerrorMessage(connection_));
+    const string error = string(PQerrorMessage(connection_));
     PQfinish(connection_);
     throw std::runtime_error(("Failed connecting to database: '" + error +
                               "', connection string used: '" +
@@ -173,7 +173,7 @@ Database& Database::Prepare(const char* query, const char* name) {
   if (PQresultStatus(result_) != PGRES_COMMAND_OK) {
     const char* error = PQerrorMessage(connection_);
     throw std::runtime_error(
-        ("Preparing query failed: " + std::string(error)).c_str());
+        ("Preparing query failed: " + string(error)).c_str());
   }
   return *this;
 }
@@ -203,7 +203,7 @@ Database& Database::ExecutePrepared(const Parameters& parameters,
     default: {
       const char* error = PQerrorMessage(connection_);
       throw std::runtime_error(
-          ("Executing prepared statement failed: " + std::string(error))
+          ("Executing prepared statement failed: " + string(error))
               .c_str());
     }
   }
@@ -235,7 +235,7 @@ Database& Database::Execute(const char* query, const Parameters& parameters) {
     default: {
       const char* error = PQerrorMessage(connection_);
       throw std::runtime_error(
-          ("Executing query failed: " + std::string(error)).c_str());
+          ("Executing query failed: " + string(error)).c_str());
     }
   }
   return *this;
@@ -250,21 +250,21 @@ Database& Database::operator>>(bool& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  const uint8_t* source = reinterpret_cast<const uint8_t*>(PQgetvalue(
+  const uint8* source = reinterpret_cast<const uint8*>(PQgetvalue(
       result_, result_index_ / num_columns, result_index_ % num_columns));
   value = *source != 0;
   ++result_index_;
   return *this;
 }
 
-Database& Database::operator>>(int32_t& value) {
+Database& Database::operator>>(int32& value) {
   const int num_columns = PQnfields(result_);
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
-  const uint8_t* source =
-      reinterpret_cast<const uint8_t*>(PQgetvalue(
+  uint8* dest = reinterpret_cast<uint8*>(&value);
+  const uint8* source =
+      reinterpret_cast<const uint8*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       3;
   *dest++ = *source--;
@@ -275,14 +275,14 @@ Database& Database::operator>>(int32_t& value) {
   return *this;
 }
 
-Database& Database::operator>>(int64_t& value) {
+Database& Database::operator>>(int64& value) {
   const int num_columns = PQnfields(result_);
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
-  const uint8_t* source =
-      reinterpret_cast<const uint8_t*>(PQgetvalue(
+  uint8* dest = reinterpret_cast<uint8*>(&value);
+  const uint8* source =
+      reinterpret_cast<const uint8*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       7;
   *dest++ = *source--;
@@ -302,9 +302,9 @@ Database& Database::operator>>(double& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
-  const uint8_t* source =
-      reinterpret_cast<const uint8_t*>(PQgetvalue(
+  uint8* dest = reinterpret_cast<uint8*>(&value);
+  const uint8* source =
+      reinterpret_cast<const uint8*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       7;
   *dest++ = *source--;
@@ -319,15 +319,15 @@ Database& Database::operator>>(double& value) {
   return *this;
 }
 
-Database& Database::operator>>(std::string& value) {
+Database& Database::operator>>(string& value) {
   const int num_columns = PQnfields(result_);
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
   const int size = PQgetlength(result_, result_index_ / num_columns,
                                result_index_ % num_columns);
-  const std::string::value_type* source =
-      reinterpret_cast<const std::string::value_type*>(PQgetvalue(
+  const string::value_type* source =
+      reinterpret_cast<const string::value_type*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns));
   value.assign(source, source + size);
   ++result_index_;
@@ -349,14 +349,20 @@ Database& Database::operator>>(Blob& value) {
   return *this;
 }
 
-std::string Database::EscapeLiteral(const std::string& text) const {
-  std::shared_ptr<const char> result(
-      PQescapeLiteral(connection_, text.c_str(), text.size()), &PQfreemem);
-  return result.get() ? std::string(result.get()) : std::string();
+string Database::EscapeLiteral(const string& text) const {
+  return absl::StrCat("E'", absl::CEscape(text), "'");
 }
 
-std::string Database::EscapeIdentifier(const std::string& text) const {
-  std::shared_ptr<const char> result(
-      PQescapeIdentifier(connection_, text.c_str(), text.size()), &PQfreemem);
-  return result.get() ? std::string(result.get()) : std::string();
+string Database::EscapeIdentifier(const string& text) const {
+  // NOTE(user): The only case where the escape performed by CEscape doesn't
+  // work for literals is  when we have a double-quote. Options are to change
+  // double-quotes by single-quotes or use a double-" which seems to be what
+  // PostgreSQL does after v9.0. Note that this removes double-quotes, as
+  // "escaped""word" == "escapedword".
+  return absl::StrCat(
+      "\"",
+      absl::StrReplaceAll(absl::CEscape(text),
+                          {{"\\\"" /* replace escaped double-quote \" */,
+                            "\"\"" /* for double double-quote " */}}),
+      "\"");
 }
