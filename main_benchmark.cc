@@ -20,6 +20,7 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "file/base/path.h"
 #include "strings/human_readable.h"
 #include "strings/substitute.h"
+#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/bindiff.proto.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/differ.h"
@@ -53,7 +54,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
     const double time_primary = timer.Get();
     LOG(INFO) << "primary:   "
               << HumanReadableElapsedTime::ToShortString(
-                     base::Seconds(time_primary))
+                     absl::Seconds(time_primary))
               << " " << primary_path;
 
     timer.Restart();
@@ -62,7 +63,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
     const double time_secondary = timer.Get();
     LOG(INFO) << "secondary: "
               << HumanReadableElapsedTime::ToShortString(
-                     base::Seconds(time_secondary))
+                     absl::Seconds(time_secondary))
               << " " << secondary_path;
 
     timer.Restart();
@@ -85,7 +86,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
     LOG(INFO) << strings::Substitute(
         "$0 diffing, similarity $1%, confidence $2%, matched $3 of $4/$5 "
         "($6/$7 non-library)",
-        HumanReadableElapsedTime::ToShortString(base::Seconds(time_diff)),
+        HumanReadableElapsedTime::ToShortString(absl::Seconds(time_diff)),
         similarity * 100.0, confidence * 100.0, fixed_points.size(),
         flow_graphs1.size(), flow_graphs2.size(),
         counts.find("functions primary (non-library)")->second,
@@ -123,7 +124,7 @@ void RunAllDiffs() {
             << HumanReadableNumBytes::ToString(MemoryUsageForExport());
   LOG(INFO) << "Total time: "
             << HumanReadableElapsedTime::ToShortString(
-                   base::Seconds(timer.Get()));
+                   absl::Seconds(timer.Get()));
 }
 
 }  // namespace
