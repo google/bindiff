@@ -60,7 +60,7 @@ static const char kComment[] =
     "Structural comparison of executable objects";  // Status line
 static const char kHotKey[] = "CTRL-6";
 static const char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC.";
 
 XmlConfig* g_config = nullptr;
 bool g_init_done = false;  // Used in PluginTerminate()

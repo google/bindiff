@@ -605,7 +605,7 @@ int main(int argc, char** argv) {
 #ifdef _DEBUG
                        "debug build, "
 #endif
-                       "(c)2004-2011 zynamics GmbH, (c)2011-2017 Google Inc."));
+                       "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC."));
     }
 
     const auto user_app_data =
