@@ -89,11 +89,9 @@ void CallGraph::SetExeFilename(const std::string& name) {
 const std::string& CallGraph::GetExeHash() const { return exe_hash_; }
 
 void CallGraph::SetExeHash(const std::string& hash) {
-  if (hash.size() <= 32) {
-    exe_hash_ = absl::BytesToHexString(hash);
-  } else {
-    exe_hash_ = hash;
-  }
+  // The executable hash is used for display purposes only, so we do not check
+  // it for validity here.
+  exe_hash_ = hash;
 }
 
 void CallGraph::Read(const BinExport2& proto,

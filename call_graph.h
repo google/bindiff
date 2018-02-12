@@ -176,8 +176,8 @@ class CallGraph {
   const std::string& GetExeFilename() const;
   void SetExeFilename(const std::string& name);
 
-  // Return the hex encoded hash (SHA1 or obsolete MD5) of the original input
-  // binary.
+  // Return the hex encoded hash (SHA256, SHA1 or obsolete MD5) of the original
+  // input binary.
   const std::string& GetExeHash() const;
   void SetExeHash(const std::string& hash);
 
