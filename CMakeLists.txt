@@ -75,8 +75,6 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/filesystem_util.h
   ${BinExport_DIR}/hash.cc
   ${BinExport_DIR}/hash.h
-  ${BinExport_DIR}/hex_codec.cc
-  ${BinExport_DIR}/hex_codec.h
 )
 target_link_libraries(binexport_shared
   bindiff_base

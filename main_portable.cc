@@ -52,7 +52,6 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/types.h"
 

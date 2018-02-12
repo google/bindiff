@@ -6,9 +6,9 @@
 
 #include "base/logging.h"
 #include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/binexport/hex_codec.h"
 
 namespace {
 
@@ -90,7 +90,7 @@ const std::string& CallGraph::GetExeHash() const { return exe_hash_; }
 
 void CallGraph::SetExeHash(const std::string& hash) {
   if (hash.size() <= 32) {
-    exe_hash_ = EncodeHex(hash);
+    exe_hash_ = absl::BytesToHexString(hash);
   } else {
     exe_hash_ = hash;
   }

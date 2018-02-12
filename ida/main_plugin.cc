@@ -29,6 +29,7 @@
 #ifndef GOOGLE  // MOE:strip_line
 #include "strings/strutil.h"
 #endif  // MOE:strip_line
+#include "third_party/absl/strings/escaping.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -42,7 +43,6 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
@@ -1221,7 +1221,7 @@ bool DoLoadResults() {
     g_results->Read(&reader);
 
     // See b/27371897.
-    const std::string hash(EncodeHex(Sha1(GetDataForHash())));
+    const std::string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
     if (ToUpper(hash) != ToUpper(g_results->call_graph1_.GetExeHash())) {
       LOG(INFO) << "Warning: currently loaded IDBs input file MD5 differs from "
                    "result file primary graph. Please load IDB for: "
@@ -1517,7 +1517,7 @@ void idaapi PluginRun(int /* arg */) {
   if (g_results) {
     // We may have to unload a previous result if the input IDB has changed in
     // the meantime
-    const std::string hash(EncodeHex(Sha1(GetDataForHash())));
+    const std::string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
     if (ToUpper(hash) != ToUpper(g_results->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
 
