@@ -19,7 +19,10 @@
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
+#include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/hash.h"
+
+using security::binexport::GetInstructionAddress;
 
 namespace {
 
@@ -71,25 +74,6 @@ bool SortByAddressLevel(const std::pair<Address, FlowGraph::Level>& one,
 }
 
 }  // namespace
-
-// Returns an instruction's address. Either the instruction has an address
-// stored directly or we keep iterating previous instructions until we find one
-// that does, adding the correct offset. Assumes that we'll always find a
-// previous instruction with an absolute address.
-Address GetInstructionAddress(const BinExport2& proto, int index) {
-  if (proto.instruction(index).has_address()) {
-    return proto.instruction(index).address();
-  }
-  int delta = 0;
-  for (--index; index >= 0; --index) {
-    delta += proto.instruction(index).raw_bytes().size();
-    if (proto.instruction(index).has_address()) {
-      return proto.instruction(index).address() + delta;
-    }
-  }
-  CHECK(false && "invalid instruction index");
-  return 0;  // Should never be reached.
-}
 
 // Returns true iff the addresses are in strictly increasing order.
 bool IsSorted(const std::vector<Address>& addresses) {
