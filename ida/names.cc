@@ -1,12 +1,13 @@
 #include "third_party/zynamics/bindiff/ida/names.h"
 
-#include <pro.h>      // NOLINT
-#include <bytes.hpp>  // NOLINT
-#include <name.hpp>   // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <bytes.hpp>                                          // NOLINT
+#include <name.hpp>                                           // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 std::string GetName(Address address) {
-  if (has_user_name(getFlags(static_cast<ea_t>(address)))) {
-    qstring ida_name(get_true_name(static_cast<ea_t>(address)));
+  if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
+    qstring ida_name(get_name(static_cast<ea_t>(address)));
     if (!ida_name.empty()) {
       return std::string(ida_name.c_str(), ida_name.length());
     }
@@ -15,7 +16,7 @@ std::string GetName(Address address) {
 }
 
 std::string GetDemangledName(Address address) {
-  if (has_user_name(getFlags(static_cast<ea_t>(address)))) {
+  if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
     qstring ida_name(get_short_name(static_cast<ea_t>(address)));
     if (!ida_name.empty()) {
       return std::string(ida_name.c_str(), ida_name.length());

@@ -71,6 +71,8 @@ protobuf_generate_cpp(binexport2_proto binexport2_proto_h
 add_library(binexport_shared STATIC
   ${binexport2_proto_h}
   ${binexport2_proto}
+  ${BinExport_DIR}/binexport.cc
+  ${BinExport_DIR}/binexport.h
   ${BinExport_DIR}/filesystem_util.cc
   ${BinExport_DIR}/filesystem_util.h
   ${BinExport_DIR}/hash.cc
@@ -162,13 +164,10 @@ target_link_libraries(binexport_plugin_shared
   OpenSSL::SSL
 )
 
-# TODO(cblichmann): Commented out the following since the IDA plugin is not
-#                   ready yet.
-#[[
 # Plugins will be named "bindiff50.so" and "bindiff5064.so"
-set(_bindiff_plugin_name
+set(bindiff_plugin_name
   bindiff${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR})
-add_ida_plugin(${_bindiff_plugin_name} EA64
+add_ida_plugin(${bindiff_plugin_name} EA64
   ida/main_plugin.cc
   ida/names.cc
   ida/names.h
@@ -180,15 +179,18 @@ add_ida_plugin(${_bindiff_plugin_name} EA64
   ida/visual_diff.h
 )
 
-set(bindiff_plugin_libraries binexport_plugin_shared
-                             bindiff)
+set(bindiff_plugin_libraries
+  binexport_plugin_shared
+  bindiff_shared
+  absl::time
+)
 if(WIN32)
-  list(APPEND Plugin_LIBRARIES ws2_32.lib)
+  list(APPEND bindiff_plugin_libraries ws2_32.lib)
 endif()
-target_link_libraries(${_bindiff_plugin_name}${_plx}
+target_link_libraries(${bindiff_plugin_name}${_plx}
   ${bindiff_plugin_libraries}
 )
-target_link_libraries(${_bindiff_plugin_name}${_plx64}
+target_link_libraries(${bindiff_plugin_name}${_plx64}
   ${bindiff_plugin_libraries}
 )
 set_target_properties(
@@ -201,7 +203,6 @@ install(TARGETS ${bindiff_plugin_name}${_plx}
         ARCHIVE DESTINATION bindiff-prefix
         RUNTIME DESTINATION bindiff-prefix
         LIBRARY DESTINATION bindiff-prefix)
-]]
 
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff

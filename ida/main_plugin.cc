@@ -6,30 +6,30 @@
 #include <sstream>
 #include <thread>
 
-#include <pro.h>        // NOLINT
-#include <bytes.hpp>    // NOLINT
-#include <diskio.hpp>   // NOLINT
-#include <enum.hpp>     // NOLINT
-#include <expr.hpp>     // NOLINT
-#include <frame.hpp>    // NOLINT
-#include <funcs.hpp>    // NOLINT
-#include <ida.hpp>      // NOLINT
-#include <idp.hpp>      // NOLINT
-#include <kernwin.hpp>  // NOLINT
-#include <loader.hpp>   // NOLINT
-#include <nalt.hpp>     // NOLINT
-#include <name.hpp>     // NOLINT
-#include <struct.hpp>   // NOLINT
-#include <ua.hpp>       // NOLINT
-#include <xref.hpp>     // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <bytes.hpp>                                          // NOLINT
+#include <diskio.hpp>                                         // NOLINT
+#include <enum.hpp>                                           // NOLINT
+#include <expr.hpp>                                           // NOLINT
+#include <frame.hpp>                                          // NOLINT
+#include <funcs.hpp>                                          // NOLINT
+#include <ida.hpp>                                            // NOLINT
+#include <idp.hpp>                                            // NOLINT
+#include <kernwin.hpp>                                        // NOLINT
+#include <loader.hpp>                                         // NOLINT
+#include <nalt.hpp>                                           // NOLINT
+#include <name.hpp>                                           // NOLINT
+#include <struct.hpp>                                         // NOLINT
+#include <ua.hpp>                                             // NOLINT
+#include <xref.hpp>                                           // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
-#include <version.h>  // NOLINT
 #include "base/logging.h"
-#include "base/stringprintf.h"
-#ifndef GOOGLE  // MOE:strip_line
-#include "strings/strutil.h"
-#endif  // MOE:strip_line
+#include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
+#include "third_party/absl/strings/match.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -41,6 +41,7 @@
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
@@ -50,19 +51,19 @@
 #include "third_party/zynamics/binexport/types.h"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
-#if _MSC_VER
-#define snprintf _snprintf
-#endif  // _MSC_VER
 
-static const char kBinExportVersion[] = "9";  // Exporter version to use.
-static const char kName[] = "BinDiff 4.3";
-static const char kComment[] =
+XmlConfig* g_config = nullptr;  // Used in visual_diff.cc
+
+namespace {
+
+constexpr char kBinExportVersion[] = "10";  // Exporter version to use.
+constexpr char kName[] = "BinDiff 5";
+constexpr char kComment[] =
     "Structural comparison of executable objects";  // Status line
-static const char kHotKey[] = "CTRL-6";
-static const char kCopyright[] =
+constexpr char kHotKey[] = "CTRL-6";
+constexpr char kCopyright[] =
     "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC.";
 
-XmlConfig* g_config = nullptr;
 bool g_init_done = false;  // Used in PluginTerminate()
 
 Results* g_results = nullptr;
@@ -75,24 +76,26 @@ enum ResultFlags {
   kResultsShowAll = 0xffffffff
 };
 
-std::string GetArgument(const char* name) {
-  const char* option = get_plugin_options(StrCat("BinDiff", name).c_str());
+string GetArgument(const char* name) {
+  const char* option =
+      get_plugin_options(absl::StrCat("BinDiff", name).c_str());
   return option ? option : "";
 }
 
 bool DoSaveResults();
 
-std::string GetDataForHash() {
-  std::string data;
+string GetDataForHash() {
+  string data;
   // 32MiB maximum size for hash data.
   for (segment_t* segment = get_first_seg();
        segment != 0 && data.size() < (32 << 20);
-       segment = get_next_seg(segment->startEA)) {
-    // truncate segments longer than 1MB so we don't produce too long a string
-    for (ea_t address = segment->startEA;
-         address < std::min(segment->endEA, segment->startEA + (1 << 20));
+       segment = get_next_seg(segment->start_ea)) {
+    // Truncate segments longer than 1MB so we don't produce too long a string
+    for (ea_t address = segment->start_ea;
+         address < std::min(segment->end_ea, segment->start_ea + (1 << 20));
          ++address) {
-      if (getFlags(address)) {  // check whether address is loaded
+      if (get_full_flags(address)) {  // check whether address is loaded
+        // TODO(cblichmann): Use get_bytes() and address ranges instead.
         data += get_byte(address);
       }
     }
@@ -100,8 +103,8 @@ std::string GetDataForHash() {
   return data;
 }
 
-std::string FindFile(const std::string& path, const std::string& extension) {
-  std::vector<std::string> entries;
+string FindFile(const string& path, const string& extension) {
+  std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
   for (const auto& entry : entries) {
     if (GetFileExtension(entry) == extension) {
@@ -112,7 +115,7 @@ std::string FindFile(const std::string& path, const std::string& extension) {
 }
 
 bool EnsureIdb() {
-  bool result = strlen(database_idb) > 0;
+  bool result = strlen(get_path(PATH_TYPE_IDB)) > 0;
   if (!result) {
     info("Please open an IDB first.");
   }
@@ -121,8 +124,8 @@ bool EnsureIdb() {
 
 class ExporterThread {
  public:
-  explicit ExporterThread(const std::string& temp_dir,
-                          const std::string& idb_path)
+  explicit ExporterThread(const string& temp_dir,
+                          const string& idb_path)
       : success_(false),
         secondary_idb_path_(idb_path),
         secondary_temp_dir(JoinPath(temp_dir, "secondary")),
@@ -130,64 +133,49 @@ class ExporterThread {
     RemoveAll(secondary_temp_dir);
     CreateDirectories(secondary_temp_dir);
 
+    // TODO(cblichmann): Add plugin 'command' option to BinExport so we can
+    //                   directly export from the command-line and don't need
+    //                   the IDC temp script.
     std::ofstream file(idc_file_.c_str());
     file << "#include <idc.idc>\n"
          << "static main()\n"
          << "{\n"
          << "\tBatch(0);\n"
          << "\tWait();\n"
-         << "\tRunPlugin(\"zynamics_binexport_" << kBinExportVersion
-         << "\", 2);\n"
+         << "\tRunPlugin(\"binexport" << kBinExportVersion << "\", 2);\n"
          << "\tExit(0);\n"
          << "}\n";
   }
 
   void operator()() {
-    std::string ida_exe(idadir(0));
     const bool is_64bit =
-        StringPiece(ToUpper(secondary_idb_path_)).ends_with(".I64");
+        absl::EndsWith(absl::AsciiStrToUpper(secondary_idb_path_), ".I64");
+    string ida_exe = JoinPath(idadir(0), is_64bit ? "ida64" : "ida");
 
-    std::string s_param;
+    string s_param;
     // We only support the Qt version.
 #ifdef WIN32
-    if (is_64bit) {
-      ida_exe += "\\idaq64.exe";
-    } else {
-      ida_exe += "\\idaq.exe";
-    }
-
-    // Note: We only support IDA 6.8 or higher. The current quoting behavior
-    //       on Windows was introduced in IDA 6.1. Previously, the quotes were
-    //       not needed.
+    ida_exe = ReplaceFileExtension(ida_exe, ".exe");
     s_param = "-S\"" + idc_file_ + "\"";
 #else
-    if (is_64bit) {
-      ida_exe += "/idaq64";
-    } else {
-      ida_exe += "/idaq";
-    }
     s_param = "-S" + idc_file_;
 #endif
-    std::vector<std::string> argv;
-    argv.push_back(ida_exe);
-    argv.push_back("-A");
-    argv.push_back("-OExporterModule:" + secondary_temp_dir);
-    argv.push_back(s_param);
-    argv.push_back(secondary_idb_path_);
-
-    success_ = SpawnProcess(argv, true /* Wait */, &status_message_);
+    success_ = SpawnProcess(
+        {ida_exe, "-A", absl::StrCat("-OBinExportModule:", secondary_temp_dir),
+         s_param, secondary_idb_path_},
+        /*wait=*/true, &status_message_);
   }
 
   bool success() const { return success_; }
 
-  const std::string& status() const { return status_message_; }
+  const string& status() const { return status_message_; }
 
  private:
   volatile bool success_;
-  std::string status_message_;
-  std::string secondary_idb_path_;
-  std::string secondary_temp_dir;
-  std::string idc_file_;
+  string status_message_;
+  string secondary_idb_path_;
+  string secondary_temp_dir;
+  string idc_file_;
 };
 
 bool ExportIdbs() {
@@ -195,18 +183,19 @@ bool ExportIdbs() {
     return false;
   }
 
-  const std::string temp_dir(GetTempDirectory("BinDiff", /* create = */ true));
+  const string temp_dir(GetTempDirectory("BinDiff", /*create=*/true));
 
-  const char* secondary_idb = askfile2_c(
-      /* forsave = */ false, "*.idb;*.i64",
-      StrCat("IDA Databases|*.idb;*.i64|All files|", kAllFilesFilter).c_str(),
-      "Select Database");
+  const char* secondary_idb = ask_file(
+      /*for_saving=*/false, "*.idb;*.i64", "%s",
+      absl::StrCat("FILTER IDA Databases|*.idb;*.i64|All files|",
+                   kAllFilesFilter, "\nSelect Database")
+          .c_str());
   if (!secondary_idb) {
     return false;
   }
 
-  const std::string primary_idb_path(database_idb /* IDA global variable */);
-  std::string secondary_idb_path(secondary_idb);
+  const string primary_idb_path(get_path(PATH_TYPE_IDB));
+  string secondary_idb_path(secondary_idb);
   if (primary_idb_path == secondary_idb_path) {
     throw std::runtime_error(
         "You cannot open the same IDB file twice. Please copy and rename one if"
@@ -216,16 +205,18 @@ bool ExportIdbs() {
     throw std::runtime_error(
         "You cannot open an idb and an i64 with the same base filename in the "
         "same directory. Please rename or move one of the files.");
-  } else if (GetFileExtension(primary_idb_path) == ".idb" &&
-             GetFileExtension(secondary_idb_path) == ".i64") {
-    if (askyn_c(0,
-                "Warning: you are trying to diff a 32-bit binary vs. a 64-bit "
-                "binary.\n"
-                "If the 64-bit binary contains addresses outside the 32-bit "
-                "range they will be truncated.\n"
-                "To fix this problem please start 64-bit aware IDA and diff "
-                "the other way around, i.e. 64-bit vs. 32-bit.\n"
-                "Continue anyways?") != 1) {
+  } else if (absl::AsciiStrToUpper(GetFileExtension(primary_idb_path)) ==
+                 ".IDB" &&
+             absl::AsciiStrToUpper(GetFileExtension(secondary_idb_path)) ==
+                 ".I64") {
+    if (ask_yn(ASKBTN_YES,
+               "Warning: you are trying to diff a 32-bit binary vs. a 64-bit "
+               "binary.\n"
+               "If the 64-bit binary contains addresses outside the 32-bit "
+               "range they will be truncated.\n"
+               "To fix this problem please start 64-bit aware IDA and diff "
+               "the other way around, i.e. 64-bit vs. 32-bit.\n"
+               "Continue anyways?") != 1) {
       return false;
     }
   }
@@ -239,23 +230,24 @@ bool ExportIdbs() {
     ExporterThread exporter(temp_dir, secondary_idb_path);
     std::thread thread(std::ref(exporter));
 
-    std::string primary_temp_dir(JoinPath(temp_dir, "primary"));
+    string primary_temp_dir(JoinPath(temp_dir, "primary"));
     RemoveAll(primary_temp_dir);
     CreateDirectories(primary_temp_dir);
 
-    char errbuf[MAXSTR];
+    qstring errbuf;
     idc_value_t arg(primary_temp_dir.c_str());
-    if (!Run(StrCat("BinExport2Diff", kBinExportVersion).c_str(),
-             /* argsnum = */ 1, &arg, /* result = */ nullptr, errbuf,
-             MAXSTR - 1)) {
-      throw std::runtime_error(
-          StrCat("Error: Export of the current database failed: ", errbuf));
+    if (!call_idc_func(
+            /*result=*/nullptr,
+            absl::StrCat("BinExport2Diff", kBinExportVersion).c_str(), &arg,
+            /*argsnum=*/1, &errbuf, /*resolver=*/nullptr)) {
+      throw std::runtime_error(absl::StrCat(
+          "Export of the current database failed: ", errbuf.c_str()));
     }
 
     thread.join();
     if (!exporter.success()) {
-      throw std::runtime_error(
-          StrCat("Failed to spawn second IDA instance: ", exporter.status()));
+      throw std::runtime_error(absl::StrCat(
+          "Failed to spawn second IDA instance: ", exporter.status()));
     }
   }
 
@@ -271,7 +263,7 @@ uint32_t idaapi GetNumFixedPoints(void* /* unused */) {
 
 void DoVisualDiff(uint32_t index, bool call_graph_diff) {
   try {
-    std::string message;
+    string message;
     if (!g_results) {
       return;
     }
@@ -291,8 +283,7 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
         g_config->ReadString("/BinDiff/Gui/@directory",
                              "C:\\Program Files\\zynamics\\BinDiff 4.3\\bin"),
         g_config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
-        static_cast<unsigned short>(
-            g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
+        static_cast<uint16_t>(g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
         message, nullptr);
   } catch (const std::bad_alloc&) {
     LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
@@ -310,11 +301,11 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
 }
 
 void idaapi VisualDiffCallback(void* /* unused */, uint32_t index) {
-  DoVisualDiff(index, /* call_graph_diff = */ false);
+  DoVisualDiff(index, /*call_graph_diff=*/ false);
 }
 
 void idaapi VisualCallGraphDiffCallback(void* /* unused */, uint32_t index) {
-  DoVisualDiff(index, /* call_graph_diff = */ true);
+  DoVisualDiff(index, /*call_graph_diff=*/true);
 }
 
 uint32_t idaapi PortCommentsSelectionAsLib(void* /* unused */, uint32_t index) {
@@ -492,7 +483,7 @@ uint32_t idaapi AddMatchSecondary(void* /* unused */, uint32_t index) {
   return 0;
 }
 
-void idaapi jumpToMatchAddress(void* /* unused */, uint32_t index) {
+void idaapi JumpToMatchAddress(void* /* unused */, uint32_t index) {
   if (!g_results) return;
 
   jumpto(static_cast<ea_t>(g_results->GetMatchPrimaryAddress(index)));
@@ -502,17 +493,14 @@ void idaapi jumpToMatchAddress(void* /* unused */, uint32_t index) {
 // and the choose2 window is still open. If we don't close it first IDA hangs
 // in a deadlock.
 void CloseForm(const char* name) {
-  TForm* form = find_tform(name);
-  if (form) {
-    close_tform(form, FORM_SAVE);
-  }
+  // TODO(cblichmann): Use form_actions_t::close
 }
 
 void SaveAndDiscardResults() {
   if (g_results && g_results->IsDirty()) {
-    const int answer(askyn_c(0,
-                             "HIDECANCEL\nCurrent diff results have not been"
-                             " saved - save before closing?"));
+    const int answer(ask_yn(ASKBTN_YES,
+                            "HIDECANCEL\nCurrent diff results have not been"
+                            " saved - save before closing?"));
     if (answer == 1) {  // Yes
       DoSaveResults();
     }
@@ -522,27 +510,33 @@ void SaveAndDiscardResults() {
   g_results = 0;
 }
 
-int idaapi ProcessorHook(void*, int event_id, va_list /*arguments*/) {
+ssize_t idaapi ProcessorHook(void*, int event_id, va_list /*arguments*/) {
   switch (event_id) {
-    case processor_t::term: {
-      if (!(database_flags & DBFL_KILL) && g_results) {
+    case processor_t::ev_term:
+      if (!is_database_flag(DBFL_KILL) && g_results) {
         g_results->MarkPortedCommentsInDatabase();
       }
-    } break;
-    case processor_t::closebase: {
-      SaveAndDiscardResults();
-    } break;
+      break;
   }
   return 0;
 }
 
-int idaapi UiHook(void*, int eventId, va_list arguments) {
-  switch (eventId) {
+ssize_t idaapi IdbHook(void*, int event_id, va_list /*arguments*/) {
+  switch (event_id) {
+    case idb_event::closebase:
+      SaveAndDiscardResults();
+      break;
+  }
+  return 0;
+}
+
+ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
+  switch (event_id) {
     case ui_get_chooser_item_attrs: {
       if (g_results) {
-        // pop user supplied void* from arguments first (but ignore, since
-        // this may go stale)
-        if (reinterpret_cast<uint32_t>(va_arg(arguments, void*)) != 0x00000001) {
+        // Pop user supplied void* from arguments first (but ignore, since
+        // this may go stale).
+        if (reinterpret_cast<uint64_t>(va_arg(arguments, void*)) != 0x00000001) {
           // Magic value so we don't color IDA's windows.
           return 0;
         }
@@ -553,14 +547,14 @@ int idaapi UiHook(void*, int eventId, va_list arguments) {
         }
       }
     } break;
-    case ui_preprocess: {
-      const char* name(va_arg(arguments, const char*));
-      if (strcmp(name, "LoadFile") == 0 || strcmp(name, "NewFile") == 0 ||
-          strcmp(name, "CloseBase") == 0 || strcmp(name, "Quit") == 0) {
+    case ui_preprocess_action: {
+      absl::string_view name(va_arg(arguments, const char*));
+      if (name == "LoadFile" || name == "NewFile" || name == "CloseBase" ||
+          name == "Quit") {
         if (g_results && g_results->IsDirty()) {
-          const int answer(askyn_c(0,
-                                   "Current diff results have not been saved -"
-                                   " save before closing?"));
+          const int answer(ask_yn(ASKBTN_YES,
+                                  "Current diff results have not been saved -"
+                                  " save before closing?"));
           if (answer == 1) {
             // Yes
             DoSaveResults();
@@ -574,8 +568,8 @@ int idaapi UiHook(void*, int eventId, va_list arguments) {
         // delete old results if they weren't dirty of if the user
         // saved/discarded them
         delete g_results;
-        g_results = 0;
-        // refreshing the choosers here is important as after our
+        g_results = nullptr;
+        // Refreshing the choosers here is important as after our
         // "save results?" confirmation dialog IDA will open its own
         // confirmation. The user can cancel in that dialog. So a "bad"
         // sequence of events is: don't save diff results, but cancel the
@@ -601,6 +595,8 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
   results->CreateIndexedViews();
 
   if (flags & kResultsShowMatched) {
+    // TODO(cblichmann): Port this over to the new IDA 7 API
+#if 0
     if (!find_tform("Matched Functions")) {
       static const int widths[] = {5, 3, 3, 10, 30, 10, 30, 1, 30,
                                    5, 5, 5, 6,  6,  6,  5,  5, 5};
@@ -618,7 +614,7 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
               0,                       // insert callback
               0,                       // update callback
               &VisualDiffCallback,     // edit callback (visual diff)
-              &jumpToMatchAddress,     // enter callback (jump to)
+              &JumpToMatchAddress,     // enter callback (jump to)
               nullptr,                 // destroy callback
               popups,                  // popups (insert, delete, edit, refresh)
               0);
@@ -650,9 +646,12 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
     } else {
       refresh_chooser("Matched Functions");
     }
+#endif
   }
 
   if (flags & kResultsShowStatistics) {
+    // TODO(cblichmann): Port this over to the new IDA 7 API
+#if 0
     if (!find_tform("Statistics")) {
       static const int widths[] = {30, 12};
       static const char* popups[] = {0, 0, 0, 0};
@@ -673,9 +672,12 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
     } else {
       refresh_chooser("Statistics");
     }
+#endif
   }
 
   if (flags & kResultsShowPrimaryUnmatched) {
+    // TODO(cblichmann): Port this over to the new IDA 7 API
+#if 0
     if (!find_tform("Primary Unmatched")) {
       static const int widths[] = {10, 30, 5, 6, 5};
       static const char* popups[] = {0, 0, 0, 0};
@@ -704,9 +706,12 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
     } else {
       refresh_chooser("Primary Unmatched");
     }
+#endif
   }
 
   if (flags & kResultsShowSecondaryUnmatched) {
+    // TODO(cblichmann): Port this over to the new IDA 7 API
+#if 0
     if (!find_tform("Secondary Unmatched")) {
       static const int widths[] = {10, 30, 5, 6, 5};
       static const char* popups[] = {0, 0, 0, 0};
@@ -735,6 +740,7 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
     } else {
       refresh_chooser("Secondary Unmatched");
     }
+#endif
   }
 }
 
@@ -745,7 +751,7 @@ bool idaapi MenuItemShowResultsCallback(void* user_data) {
   }
 
   const ResultFlags flags =
-      static_cast<ResultFlags>(reinterpret_cast<int>(user_data));
+      static_cast<ResultFlags>(reinterpret_cast<int64_t>(user_data));
   ShowResults(g_results, flags);
   return true;
 }
@@ -755,16 +761,16 @@ bool idaapi MenuItemShowResultsCallback(void* user_data) {
 void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
                      FlowGraphs* flow_graphs,
                      FlowGraphInfos* flow_graph_infos) {
-  for (auto i = flow_graphs->begin(); i != flow_graphs->end();) {
-    const FlowGraph* flow_graph = *i;
-    if (flow_graph->GetEntryPointAddress() < start ||
-        flow_graph->GetEntryPointAddress() > end) {
-      flow_graph_infos->erase(flow_graph->GetEntryPointAddress());
+  for (auto it = flow_graphs->begin(); it != flow_graphs->end();) {
+    const FlowGraph* flow_graph = *it;
+    const auto entry_point = flow_graph->GetEntryPointAddress();
+    if (entry_point < start || entry_point > end) {
+      flow_graph_infos->erase(entry_point);
       delete flow_graph;
       // GNU implementation of erase does not return an iterator.
-      flow_graphs->erase(i++);
+      flow_graphs->erase(it++);
     } else {
-      ++i;
+      ++it;
     }
   }
   call_graph->DeleteVertices(start, end);
@@ -779,23 +785,23 @@ bool Diff(ea_t start_address_source, ea_t end_address_source,
     }
   } catch (...) {
     delete g_results;
-    g_results = 0;
+    g_results = nullptr;
     throw;
   }
 
-  LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
-            << " seconds for exports...";
-  LOG(INFO) << "Diffing address range primary("
-            << StringPrintf(HEX_ADDRESS, start_address_source) << " - "
-            << StringPrintf(HEX_ADDRESS, end_address_source)
-            << ") vs secondary("
-            << StringPrintf(HEX_ADDRESS, start_address_target) << " - "
-            << StringPrintf(HEX_ADDRESS, end_address_target) << ").";
+  LOG(INFO) << absl::FormatDuration(absl::Seconds(timer.elapsed()))
+            << " for exports...";
+  LOG(INFO) << absl::StrCat(
+      "Diffing address range primary(",
+      absl::Hex(start_address_source, absl::kZeroPad8), " - ",
+      absl::Hex(end_address_source, absl::kZeroPad8), ") vs secondary(",
+      absl::Hex(start_address_target), absl::kZeroPad8, " - ",
+      absl::Hex(end_address_target, absl::kZeroPad8), ")");
   timer.restart();
 
   WaitBox wait_box("Performing diff...");
   g_results = new Results();
-  const auto temp_dir(GetTempDirectory("BinDiff", /* create = */ true));
+  const auto temp_dir(GetTempDirectory("BinDiff", /*create=*/true));
   const auto filename1(FindFile(JoinPath(temp_dir, "primary"), ".BinExport"));
   const auto filename2(FindFile(JoinPath(temp_dir, "secondary"), ".BinExport"));
   if (filename1.empty() || filename2.empty()) {
@@ -822,8 +828,8 @@ bool Diff(ea_t start_address_source, ea_t end_address_source,
   const MatchingStepsFlowGraph default_basicblock_steps(
       GetDefaultMatchingStepsBasicBlock());
   Diff(&context, default_callgraph_steps, default_basicblock_steps);
-  LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
-            << " seconds for matching.";
+  LOG(INFO) << absl::StrCat(
+      absl::FormatDuration(absl::Seconds(timer.elapsed())), " for matching.");
 
   ShowResults(g_results);
   g_results->SetDirty();
@@ -844,12 +850,6 @@ bool DoRediffDatabase() {
     const bool result = g_results->IncrementalDiff();
     ShowResults(g_results);
     return result;
-  } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
-                 "use the 64-bit command-line version of BinDiff.";
-    warning(
-        "Out-of-memory. Some extremely large binaries may require to use the "
-        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while diffing: " << message.what();
     warning("Error while diffing: %s\n", message.what());
@@ -864,9 +864,9 @@ bool DoDiffDatabase(bool filtered) {
   try {
     if (g_results && g_results->IsDirty()) {
       const int answer =
-          askyn_c(0,
-                  "HIDECANCEL\nCurrent diff results have not been saved - save "
-                  "before closing?");
+          ask_yn(ASKBTN_YES,
+                 "HIDECANCEL\nCurrent diff results have not been saved - save "
+                 "before closing?");
       if (answer == 1) {  // yes
         DoSaveResults();
       } else if (answer == -1) {  // cancel
@@ -890,19 +890,13 @@ bool DoDiffDatabase(bool filtered) {
           "  <Start address (secondary):$::16::>\n"
           "  <End address (secondary):$::16::>\n\n";
 
-      if (!AskUsingForm_c(kDialog, &start_address_source, &end_address_source,
+      if (!ask_form(kDialog, &start_address_source, &end_address_source,
                           &start_address_target, &end_address_target)) {
         return false;
       }
     }
     return Diff(start_address_source, end_address_source, start_address_target,
                 end_address_target);
-  } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
-                 "use the 64-bit command-line version of BinDiff.";
-    warning(
-        "Out-of-memory. Some extremely large binaries may require to use the "
-        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while diffing: " << message.what();
     warning("Error while diffing: %s\n", message.what());
@@ -913,31 +907,24 @@ bool DoDiffDatabase(bool filtered) {
   return false;
 }
 
-bool idaapi MenuItemDiffDatabaseFilteredCallback(void* /* unused */) {
-  // Refresh screen on successful diff
-  return DoDiffDatabase(/* filtered = */ true);
-}
-
-void idaapi ButtonDiffDatabaseFilteredCallback(TView* fields[], int) {
-  if (DoDiffDatabase(/* filtered = */ true)) {
-    close_form(fields, 1);
+void idaapi ButtonDiffDatabaseFilteredCallback(int button_code,
+                                               form_actions_t& actions) {
+  if (DoDiffDatabase(/*filtered=*/true)) {
+//    close_form(fields, 1);
   }
 }
 
-bool idaapi MenuItemDiffDatabaseCallback(void* /* unused */) {
-  // Refresh screen on successful diff
-  return DoDiffDatabase(/* filtered = */ false);
-}
-
-void idaapi ButtonDiffDatabaseCallback(TView* fields[], int) {
-  if (DoDiffDatabase(/* filtered = */ false)) {
-    close_form(fields, 1);
+void idaapi ButtonDiffDatabaseCallback(int button_code,
+                                       form_actions_t& actions) {
+  if (DoDiffDatabase(/*filtered=*/false)) {
+//    close_form(fields, 1);
   }
 }
 
-void idaapi ButtonRediffDatabaseCallback(TView* fields[], int) {
+void idaapi ButtonRediffDatabaseCallback(int button_code,
+                                         form_actions_t& actions) {
   if (DoRediffDatabase()) {
-    close_form(fields, 1);
+//    close_form(fields, 1);
   }
 }
 
@@ -972,7 +959,7 @@ bool DoPortComments() {
     char buffer2[MAXSTR];
     memset(buffer2, 0, MAXSTR);
     buffer2[0] = '0';
-    if (!AskUsingForm_c(kDialog, &start_address_source, &end_address_source,
+    if (!ask_form(kDialog, &start_address_source, &end_address_source,
                         &start_address_target, &end_address_target, buffer1,
                         buffer2)) {
       return false;
@@ -986,15 +973,10 @@ bool DoPortComments() {
                             min_confidence, min_similarity);
     refresh_chooser("Matched Functions");
     refresh_chooser("Primary Unmatched");
-    LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
-              << " seconds for comment porting.";
+    LOG(INFO) << absl::StrCat(
+        absl::FormatDuration(absl::Seconds(timer.elapsed())),
+        " for comment porting");
     return true;
-  } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
-                 "use the 64-bit command-line version of BinDiff.";
-    warning(
-        "Out-of-memory. Some extremely large binaries may require to use the "
-        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while porting comments: " << message.what();
     warning("Error while porting comments: %s\n", message.what());
@@ -1005,21 +987,17 @@ bool DoPortComments() {
   return false;
 }
 
-bool idaapi MenuItemPortCommentsCallback(void* /* unused */) {
-  // Refresh screen if user did not cancel.
-  return DoPortComments();
-}
-
-void idaapi ButtonPortCommentsCallback(TView* fields[], int) {
+void idaapi ButtonPortCommentsCallback(int button_code,
+                                       form_actions_t& actions) {
   if (DoPortComments()) {
-    close_form(fields, 1);
+//    close_form(fields, 1);
   }
 }
 
-bool WriteResults(const std::string& path) {
+bool WriteResults(const string& path) {
   if (FileExists(path)) {
-    if (askyn_c(0, "File\n'%s'\nalready exists - overwrite?",
-                path.c_str()) != 1) {
+    if (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
+               path.c_str()) != 1) {
       return false;
     }
   }
@@ -1027,11 +1005,11 @@ bool WriteResults(const std::string& path) {
   WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing results...";
-  std::string export1(g_results->call_graph1_.GetFilePath());
-  std::string export2(g_results->call_graph2_.GetFilePath());
-  const std::string temp_dir =
+  string export1(g_results->call_graph1_.GetFilePath());
+  string export2(g_results->call_graph2_.GetFilePath());
+  const string temp_dir =
       GetTempDirectory("BinDiff", /* create = */ true);
-  const std::string out_dir(Dirname(path));
+  const string out_dir(Dirname(path));
 
   if (!g_results->IsInComplete()) {
     DatabaseWriter writer(path);
@@ -1041,29 +1019,29 @@ bool WriteResults(const std::string& path) {
     // copy original result file to temp dir first, so we can overwrite the
     // original if required
     std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
-    CopyFile(g_results->input_filename_, JoinPath(temp_dir, "input.BinDiff"));
+    ::CopyFile(g_results->input_filename_, JoinPath(temp_dir, "input.BinDiff"));
     {
       SqliteDatabase database(JoinPath(temp_dir, "input.BinDiff").c_str());
       DatabaseTransmuter writer(database, g_results->fixed_point_infos_);
       g_results->Write(&writer);
     }
     std::remove(path.c_str());
-    CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
+    ::CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
     std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
   }
-  std::string new_export1(JoinPath(out_dir, Basename(export1)));
+  string new_export1(JoinPath(out_dir, Basename(export1)));
   if (export1 != new_export1) {
     std::remove(new_export1.c_str());
     CopyFile(export1, new_export1);
   }
-  std::string new_export2(JoinPath(out_dir, Basename(export2)));
+  string new_export2(JoinPath(out_dir, Basename(export2)));
   if (export2 != new_export2) {
     std::remove(new_export2.c_str());
-    CopyFile(export2, new_export2);
+    ::CopyFile(export2, new_export2);
   }
 
-  LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed())
-            << ").";
+  LOG(INFO) << absl::StrCat(
+      "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
   return true;
 }
 
@@ -1077,19 +1055,20 @@ bool DoSaveResultsLog() {
     return false;
   }
 
-  const std::string default_filename(
+  const string default_filename(
       g_results->call_graph1_.GetFilename() + "_vs_" +
       g_results->call_graph2_.GetFilename() + ".results");
-  const char* filename = askfile2_c(
-      /* forsave = */ true, default_filename.c_str(),
-      StrCat("BinDiff Result Log files|*.results|All files", kAllFilesFilter)
-          .c_str(),
-      "Save Log As");
+  const char* filename = ask_file(
+      /*for_saving=*/true, default_filename.c_str(), "%s",
+      absl::StrCat("FILDER BinDiff Result Log files|*.results|All files",
+                   kAllFilesFilter, "\nSave Log As")
+          .c_str());
   if (!filename) {
     return false;
   }
 
-  if (FileExists(filename) && (askyn_c(0, "File exists - overwrite?") != 1)) {
+  if (FileExists(filename) &&
+      (ask_yn(ASKBTN_YES, "File exists - overwrite?") != 1)) {
     return false;
   }
 
@@ -1098,12 +1077,16 @@ bool DoSaveResultsLog() {
   LOG(INFO) << "Writing to log...";
   ResultsLogWriter writer(filename);
   g_results->Write(&writer);
-  LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
+  LOG(INFO) << absl::StrCat(
+      "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
 
   return true;
 }
 
-void idaapi ButtonSaveResultsLogCallback(TView* [], int) { DoSaveResultsLog(); }
+void idaapi ButtonSaveResultsLogCallback(int button_code,
+                                         form_actions_t& actions) {
+  DoSaveResultsLog();
+}
 
 bool DoSaveResultsDebug() {
   if (!g_results) {
@@ -1111,18 +1094,20 @@ bool DoSaveResultsDebug() {
     return false;
   }
 
-  const std::string default_filename(
+  const string default_filename(
       g_results->call_graph1_.GetFilename() + "_vs_" +
       g_results->call_graph2_.GetFilename() + ".truth");
-  const char* filename = askfile2_c(
-      /* forsave = */ true, default_filename.c_str(),
-      StrCat("Groundtruth files|*.truth|All files|", kAllFilesFilter).c_str(),
-      "Save Groundtruth As");
+  const char* filename = ask_file(
+      /*for_saving=*/true, default_filename.c_str(), "%s",
+      absl::StrCat("FILTER Groundtruth files|*.truth|All files|",
+                   kAllFilesFilter, "\nSave Groundtruth As")
+          .c_str());
   if (!filename) {
     return false;
   }
 
-  if (FileExists(filename) && (askyn_c(0, "File exists - overwrite?") != 1)) {
+  if (FileExists(filename) &&
+      (ask_yn(ASKBTN_YES, "File exists - overwrite?") != 1)) {
     return false;
   }
 
@@ -1133,12 +1118,14 @@ bool DoSaveResultsDebug() {
                            g_results->flow_graph_infos1_,
                            g_results->flow_graph_infos2_);
   g_results->Write(&writer);
-  LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
+  LOG(INFO) << absl::StrCat(
+      "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
 
   return true;
 }
 
-void idaapi ButtonSaveResultsDebugCallback(TView* [], int) {
+void idaapi ButtonSaveResultsDebugCallback(int button_code,
+                                           form_actions_t& actions) {
   DoSaveResultsDebug();
 }
 
@@ -1154,14 +1141,14 @@ bool DoSaveResults() {
     // It seems the filechooser will only ever use the directory part of the
     // default filename _or_ the filename part. I want both!
     // (Hex-Rays has confirmed this to be a bug and promised to fix it in 6.2)
-    std::string default_filename(
+    string default_filename(
         g_results->call_graph1_.GetFilename() + "_vs_" +
         g_results->call_graph2_.GetFilename() + ".BinDiff");
-    const char* filename = askfile2_c(
-        /* forsave = */ true, default_filename.c_str(),
-        StrCat("BinDiff Result files|*.BinDiff|All files", kAllFilesFilter)
-            .c_str(),
-        "Save Results As");
+    const char* filename = ask_file(
+        /*for_saving=*/true, default_filename.c_str(), "%s",
+        absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files",
+                     kAllFilesFilter, "\nSave Results As")
+            .c_str());
     if (!filename) {
       return false;
     }
@@ -1181,13 +1168,17 @@ bool idaapi MenuItemSaveResultsCallback(void* /* unused */) {
   return DoSaveResults();
 }
 
-void idaapi ButtonSaveResultsCallback(TView* [], int) { DoSaveResults(); }
+void idaapi ButtonSaveResultsCallback(int button_code,
+                                      form_actions_t& actions) {
+  DoSaveResults();
+}
 
 bool DoLoadResults() {
   try {
     if (g_results && g_results->IsDirty()) {
-      const int answer = askyn_c(
-          0, "Current diff results have not been saved - save before closing?");
+      const int answer = ask_yn(
+          ASKBTN_YES,
+          "Current diff results have not been saved - save before closing?");
       if (answer == 1) {  // yes
         DoSaveResults();
       } else if (answer == -1) {  // cancel
@@ -1195,16 +1186,16 @@ bool DoLoadResults() {
       }
     }
 
-    const char* filename = askfile2_c(
-        /* forsave = */ false, "*.BinDiff",
-        StrCat("BinDiff Result files|*.BinDiff|All files|", kAllFilesFilter)
-            .c_str(),
-        "Load Results");
+    const char* filename = ask_file(
+        /*for_saving=*/false, "*.BinDiff", "%s",
+        absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files|",
+                     kAllFilesFilter, "\nLoad Results")
+            .c_str());
     if (!filename) {
       return false;
     }
 
-    std::string path(Dirname(filename));
+    string path(Dirname(filename));
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("Loading results...");
@@ -1213,7 +1204,7 @@ bool DoLoadResults() {
     delete g_results;
     g_results = new Results();
 
-    const std::string temp_dir(
+    const string temp_dir(
         GetTempDirectory("BinDiff", /* create = */ true));
 
     SqliteDatabase database(filename);
@@ -1221,12 +1212,13 @@ bool DoLoadResults() {
     g_results->Read(&reader);
 
     // See b/27371897.
-    const std::string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
-    if (ToUpper(hash) != ToUpper(g_results->call_graph1_.GetExeHash())) {
+    const string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
+    if (absl::AsciiStrToUpper(hash) !=
+        absl::AsciiStrToUpper(g_results->call_graph1_.GetExeHash())) {
       LOG(INFO) << "Warning: currently loaded IDBs input file MD5 differs from "
                    "result file primary graph. Please load IDB for: "
                 << g_results->call_graph1_.GetExeFilename();
-      throw std::runtime_error(StrCat(
+      throw std::runtime_error(absl::StrCat(
           "loaded IDB must match primary graph in results file. Please load "
           "IDB for: ",
           g_results->call_graph1_.GetExeFilename()));
@@ -1234,14 +1226,9 @@ bool DoLoadResults() {
 
     ShowResults(g_results);
 
-    LOG(INFO) << "done (" << StringPrintf("%.2fs", timer.elapsed()) << ").";
+    LOG(INFO) << absl::StrCat(
+        "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
     return true;
-  } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
-                 "use the 64-bit command-line version of BinDiff.";
-    warning(
-        "Out-of-memory. Some extremely large binaries may require to use the "
-        "64-bit command-line version of BinDiff.");
   } catch (const std::exception& message) {
     LOG(INFO) << "Error loading results: " << message.what();
     warning("Error loading results: %s\n", message.what());
@@ -1254,29 +1241,78 @@ bool DoLoadResults() {
   return false;
 }
 
-bool idaapi MenuItemLoadResultsCallback(void* /* unused */) {
-  // Refresh screen if user did not cancel
-  return DoLoadResults();
-}
-
-void idaapi ButtonLoadResultsCallback(TView* fields[], int /* unused */) {
+void idaapi ButtonLoadResultsCallback(int button_code,
+                                      form_actions_t& actions) {
   if (DoLoadResults()) {
-    close_form(fields, 1);
+//    close_form(fields, 1);
   }
 }
 
+class DiffDatabaseAction : public ActionHandler<DiffDatabaseAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    return DoDiffDatabase(/*filtered=*/false);  // Refresh windows on success
+  }
+};
+
+class LoadResultsAction : public ActionHandler<LoadResultsAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    return DoLoadResults();  // Refresh screen if user did not cancel
+  }
+};
+
+class SaveResultsAction : public ActionHandler<SaveResultsAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    return DoLoadResults();  // Refresh screen if user did not cancel
+  }
+};
+
+class PortCommentsAction : public ActionHandler<PortCommentsAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    return DoPortComments();  // Refresh screen if user did not cancel
+  }
+};
+
+class ShowMatchedAction : public ActionHandler<ShowMatchedAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    ShowResults(g_results, kResultsShowMatched);
+    return 0;
+  }
+};
+
+class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    ShowResults(g_results, kResultsShowStatistics);
+    return 0;
+  }
+};
+
+class ShowPrimaryUnmatchedAction
+    : public ActionHandler<ShowPrimaryUnmatchedAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    ShowResults(g_results, kResultsShowPrimaryUnmatched);
+    return 0;
+  }
+};
+
+class ShowSecondaryUnmatchedAction
+    : public ActionHandler<ShowSecondaryUnmatchedAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    ShowResults(g_results, kResultsShowSecondaryUnmatched);
+    return 0;
+  }
+};
+
 void InitConfig() {
-  const std::string config_filename("bindiff_core.xml");
+  const string config_filename("bindiff_core.xml");
 
-  const std::string user_path(
-      GetDirectory(PATH_APPDATA, "BinDiff", /* create = */ true) +
-      config_filename);
-  const std::string common_path(
-      GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /* create = */ false) +
+  const string user_path = absl::StrCat(
+      GetDirectory(PATH_APPDATA, "BinDiff", /*create=*/true), config_filename);
+  const string common_path = absl::StrCat(
+      GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /*create=*/false),
       config_filename);
 
-  bool have_user_config;
-  bool have_common_config;
+  bool have_user_config = false;
+  bool have_common_config = false;
   std::unique_ptr<XmlConfig> user_config;
   std::unique_ptr<XmlConfig> common_config;
 
@@ -1319,49 +1355,62 @@ void InitConfig() {
   }
 }
 
+void InitActions() {
+  // TODO(cblichmann): This action should have the BinDiff icon
+  register_action(DiffDatabaseAction::MakeActionDesc(
+      "bindiff:diff_database", "Bin~D~iff...", "SHIFT-D",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+
+  register_action(LoadResultsAction::MakeActionDesc(
+      "bindiff:load_results", "~B~inDiff Results...", /*shortcut=*/"",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(SaveResultsAction::MakeActionDesc(
+      "bindiff:save_results", "Save ~B~inDiff Results...", /*shortcut=*/"",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+
+  register_action(PortCommentsAction::MakeActionDesc(
+      "bindiff:port_comments", "Im~p~ort Symbols and Comments...",
+      /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
+
+  register_action(ShowMatchedAction::MakeActionDesc(
+      "bindiff:show_matched", "~M~atched Functions", /*shortcut=*/"",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(ShowStatisticsAction::MakeActionDesc(
+      "bindiff:show_statistics", "S~t~atistics", /*shortcut=*/"",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(ShowPrimaryUnmatchedAction::MakeActionDesc(
+      "bindiff:show_primary_unmatched", "~P~rimary Unmatched", /*shortcut=*/"",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(ShowSecondaryUnmatchedAction::MakeActionDesc(
+      "bindiff:show_secondary_unmatched", "~S~econdary Unmatched",
+      /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
+}
+
 void InitMenus() {
-  add_menu_item("File/Produce file", "~D~iff Database...", "SHIFT-D",
-                SETMENU_APP, MenuItemDiffDatabaseCallback, 0);
+  attach_action_to_menu("File/ProduceFile", "bindiff:diff_database",
+                        SETMENU_APP);
+  attach_action_to_menu("File/LoadFile/AdditionalBinaryFile",
+                        "bindiff:load_results", SETMENU_APP);
+  attach_action_to_menu("File/ProduceFile/CreateCallgraphGDL",
+                        "bindiff:save_results", SETMENU_APP);
 
-  add_menu_item("Edit/Comments/Insert predefined comment...",
-                "Im~p~ort Symbols and Comments...", "", SETMENU_APP,
-                MenuItemPortCommentsCallback, 0);
+  attach_action_to_menu("Edit/Comments/InsertPredefinedComment",
+                        "bindiff:port_comments", SETMENU_APP);
 
-  // Different paths are used for the GUI version
-  const bool result = add_menu_item("File/Load file/Additional binary file...",
-                                    "~B~inDiff Results...", "", SETMENU_APP,
-                                    MenuItemLoadResultsCallback, 0);
-  if (!result) {
-    add_menu_item("File/Save", "~B~inDiff Results...", "", SETMENU_INS,
-                  MenuItemLoadResultsCallback, 0);
-  }
-
-  add_menu_item("File/Produce file/Create callgraph GDL...",
-                "Save ~B~inDiff Results...", "", SETMENU_INS,
-                MenuItemSaveResultsCallback, 0);
-
-  add_menu_item("View/Open subviews/Problems",
-                "BinDiff Matched Functions", "", SETMENU_APP,
-                MenuItemShowResultsCallback,
-                reinterpret_cast<void*>(kResultsShowMatched));
-  add_menu_item("View/Open subviews/BinDiff Matched Functions",
-                "BinDiff Statistics", "", SETMENU_APP,
-                MenuItemShowResultsCallback,
-                reinterpret_cast<void*>(kResultsShowStatistics));
-  add_menu_item("View/Open subviews/BinDiff Statistics",
-                "BinDiff Primary Unmatched", "", SETMENU_APP,
-                MenuItemShowResultsCallback,
-                reinterpret_cast<void*>(kResultsShowPrimaryUnmatched));
-  add_menu_item("View/Open subviews/BinDiff Primary Unmatched",
-                "BinDiff Secondary Unmatched", "", SETMENU_APP,
-                MenuItemShowResultsCallback,
-                reinterpret_cast<void*>(kResultsShowSecondaryUnmatched));
+  attach_action_to_menu("View/BinDiff/", "bindiff:show_matched",
+                        SETMENU_FIRST);
+  attach_action_to_menu("View/BinDiff/MatchedFunctions",
+                        "bindiff:show_statistics", SETMENU_APP);
+  attach_action_to_menu("View/BinDiff/Statistics",
+                        "bindiff:show_primary_unmatched", SETMENU_APP);
+  attach_action_to_menu("View/BinDiff/PrimaryUnmatched",
+                        "bindiff:show_secondary_unmatched", SETMENU_APP);
 }
 
 int idaapi PluginInit() {
   LoggingOptions options;
-  options.set_alsologtostderr(ToUpper(GetArgument("AlsoLogToStdErr")) ==
-                              "TRUE");
+  options.set_alsologtostderr(
+      absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE");
   options.set_log_filename(GetArgument("LogFile"));
   if (!InitLogging(options)) {
     LOG(INFO) << "Error initializing logging, skipping BinDiff plugin";
@@ -1375,7 +1424,6 @@ int idaapi PluginInit() {
             << "), " << kCopyright;
 
   addon_info_t addon_info;
-  addon_info.cb = sizeof(addon_info_t);
   addon_info.id = "com.google.bindiff";
   addon_info.name = kName;
   addon_info.producer = "Google";
@@ -1385,9 +1433,10 @@ int idaapi PluginInit() {
   register_addon(&addon_info);
 
   if (!hook_to_notification_point(HT_IDP, ProcessorHook,
-                                  nullptr /* User data */) ||
-      !hook_to_notification_point(HT_UI, UiHook, nullptr /* User data */)) {
-    LOG(INFO) << "hook_to_notification_point error";
+                                  /*user_data=*/nullptr) ||
+      !hook_to_notification_point(HT_IDB, IdbHook, /*user_data=*/nullptr) ||
+      !hook_to_notification_point(HT_UI, UiHook, /*user_data=*/nullptr)) {
+    LOG(INFO) << "Internal error: hook_to_notification_point() failed";
     return PLUGIN_SKIP;
   }
 
@@ -1398,29 +1447,41 @@ int idaapi PluginInit() {
         << "Error: Could not load configuration file, skipping BinDiff plugin.";
     return PLUGIN_SKIP;
   }
+  InitActions();
   InitMenus();
-
   g_init_done = true;
+
+  absl::string_view diff_against(
+      GetArgument("Against"));  // -OBinDiffAgainst:<IDB>
+  if (!diff_against.empty()) {
+    LOG(INFO) << "Diff requested in plugin option";
+    // TODO(cblichmann): Factor out the UI from Diff()
+  }
+
   return PLUGIN_KEEP;
 }
 
 void TermMenus() {
-  del_menu_item("File/Diff Database...");
-  del_menu_item("Edit/Comments/Import Symbols and Comments...");
-  del_menu_item("File/Load file/BinDiff Results...");
-  del_menu_item("File/Save/BinDiff Results...");
-  del_menu_item("File/Produce file/Save BinDiff Results...");
-  del_menu_item("View/Open subviews/BinDiff Main Window");
-  del_menu_item("View/Open subviews/BinDiff Matched Functions");
-  del_menu_item("View/Open subviews/BinDiff Statistics");
-  del_menu_item("View/Open subviews/BinDiff Primary Unmatched");
-  del_menu_item("View/Open subviews/BinDiff Secondary Unmatched");
+  detach_action_from_menu("File/BinDiff", "bindiff:diff_database");
+  detach_action_from_menu("File/LoadFile/BinDiffResults",
+                          "bindiff:load_results");
+  detach_action_from_menu("File/ProduceFile/SaveBinDiffResults",
+                          "bindiff:save_results");
+  detach_action_from_menu("Edit/Comments/ImportSymbolsAndComments",
+                          "bindiff:port_comments");
+  detach_action_from_menu("View/BinDiff/MatchedFunctions",
+                          "bindiff:show_matched");
+  detach_action_from_menu("View/BinDiff/Statistics", "bindiff:show_statistics");
+  detach_action_from_menu("View/BinDiff/PrimaryUnmatched",
+                          "bindiff:show_primary_unmatched");
+  detach_action_from_menu("View/BinDiff/SecondaryUnmatched",
+                          "bindiff:show_secondary_unmatched");
 }
 
 void idaapi PluginTerminate() {
-  unhook_from_notification_point(HT_UI, UiHook, nullptr /* User data */);
-  unhook_from_notification_point(HT_IDP, ProcessorHook,
-                                 nullptr /* User data */);
+  unhook_from_notification_point(HT_UI, UiHook, /*user_data=*/nullptr);
+  unhook_from_notification_point(HT_IDB, IdbHook, /*user_data=*/nullptr);
+  unhook_from_notification_point(HT_IDP, ProcessorHook, /*user_data=*/nullptr);
 
   if (g_init_done) {
     TermMenus();
@@ -1433,8 +1494,8 @@ void idaapi PluginTerminate() {
   ShutdownLogging();
 }
 
-void idaapi PluginRun(int /* arg */) {
-  static const std::string kDialogBase = StrCat(
+bool idaapi PluginRun(size_t /* arg */) {
+  static const string kDialogBase = absl::StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
       "BUTTON CANCEL NONE\n"
@@ -1462,7 +1523,7 @@ void idaapi PluginRun(int /* arg */) {
       "<L~o~ad Results...:B:1:30::>\n\n"
       );
 
-  static const std::string kDialogResultsAvailable = StrCat(
+  static const string kDialogResultsAvailable = absl::StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
       "BUTTON CANCEL NONE\n"
@@ -1510,15 +1571,22 @@ void idaapi PluginRun(int /* arg */) {
 #endif
       "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n");
 
+  addon_info_t addon_info;
+  if (!get_addon_info("com.google.binexport", &addon_info)) {
+    warning("Required BinExport plugin is missing.");
+    return false;
+  }
+
   if (!EnsureIdb()) {
-    return;
+    return false;
   }
 
   if (g_results) {
     // We may have to unload a previous result if the input IDB has changed in
     // the meantime
-    const std::string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
-    if (ToUpper(hash) != ToUpper(g_results->call_graph1_.GetExeHash())) {
+    const string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
+    if (absl::AsciiStrToUpper(hash) !=
+        absl::AsciiStrToUpper(g_results->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
 
       delete g_results;
@@ -1532,26 +1600,25 @@ void idaapi PluginRun(int /* arg */) {
   }
 
   if (!g_results) {
-    AskUsingForm_c(kDialogBase.c_str(), ButtonDiffDatabaseCallback,
-                   ButtonDiffDatabaseFilteredCallback,
-                   ButtonLoadResultsCallback);
+    ask_form(kDialogBase.c_str(), ButtonDiffDatabaseCallback,
+             ButtonDiffDatabaseFilteredCallback, ButtonLoadResultsCallback);
   } else {
-    AskUsingForm_c(
-        kDialogResultsAvailable.c_str(), ButtonDiffDatabaseCallback,
-        ButtonDiffDatabaseFilteredCallback, ButtonRediffDatabaseCallback,
-        ButtonLoadResultsCallback, ButtonSaveResultsCallback,
+    ask_form(kDialogResultsAvailable.c_str(), ButtonDiffDatabaseCallback,
+             ButtonDiffDatabaseFilteredCallback, ButtonRediffDatabaseCallback,
+             ButtonLoadResultsCallback, ButtonSaveResultsCallback,
 #ifdef _DEBUG
-        ButtonSaveResultsDebugCallback, ButtonSaveResultsLogCallback,
+             ButtonSaveResultsDebugCallback, ButtonSaveResultsLogCallback,
 #endif
-        ButtonPortCommentsCallback);
+             ButtonPortCommentsCallback);
   }
+  return true;
 }
 
-extern "C" {
+}  // namespace
 
 plugin_t PLUGIN = {
     IDP_INTERFACE_VERSION,
-    PLUGIN_FIX,       // Flags
+    PLUGIN_FIX,       // Plugin flags
     PluginInit,       // Initialize
     PluginTerminate,  // Terminate
     PluginRun,        // Invoke plugin
@@ -1560,5 +1627,3 @@ plugin_t PLUGIN = {
     kName,            // The preferred short name of the plugin
     kHotKey           // The preferred hotkey to run the plugin
 };
-
-}  // extern "C"

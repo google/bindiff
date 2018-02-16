@@ -4,7 +4,15 @@
 #include <string>
 #include <vector>
 
-#include <pro.h>  // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
+#include <enum.hpp>                                           // NOLINT
+#include <frame.hpp>                                          // NOLINT
+#include <funcs.hpp>                                          // NOLINT
+#include <kernwin.hpp>                                        // NOLINT
+#include <name.hpp>                                           // NOLINT
+#include <struct.hpp>                                         // NOLINT
+#include <xref.hpp>                                           // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "base/integral_types.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
@@ -97,10 +105,13 @@ class Results {
 
   DatabaseWriter temp_database_;
   bool incomplete_results_;
+
+ public:
   FlowGraphs flow_graphs1_;
   FlowGraphs flow_graphs2_;
   FixedPoints fixed_points_;
 
+ private:
   IndexedFlowGraphs indexed_flow_graphs1_;
   IndexedFlowGraphs indexed_flow_graphs2_;
   IndexedFixedPoints indexed_fixed_points_;

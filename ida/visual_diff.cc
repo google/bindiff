@@ -30,9 +30,7 @@
 #include <thread>  // NOLINT
 
 #include "base/logging.h"
-#ifndef GOOGLE  // MOE:strip_line
-#include "strings/strutil.h"
-#endif  // MOE:strip_line
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/matching.h"
@@ -40,14 +38,14 @@
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 
-static const char kGuiJarName[] = "bindiff.jar";
+static constexpr char kGuiJarName[] = "bindiff.jar";
 
 #ifdef WIN32
 // The JRE's registry key under HKEY_LOCAL_MACHINE
-static const char kRegkeyHklmJreRoot[] =
+static constexpr char kRegkeyHklmJreRoot[] =
     "SOFTWARE\\JavaSoft\\Java Runtime Environment";
 // Minimum required version of the JRE
-static const double kMinJavaVersion = 1.7;
+static constexpr double kMinJavaVersion = 1.8;
 
 bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
                          int bufsize) {
@@ -70,7 +68,7 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
                          &size) == ERROR_SUCCESS;
 }
 
-std::string GetJavaHomeDir() {
+string GetJavaHomeDir() {
   HKEY key = 0;
   int wow64_flag = KEY_WOW64_64KEY;
 
@@ -96,7 +94,7 @@ std::string GetJavaHomeDir() {
     }
   }
 
-  std::string result;
+  string result;
   char buffer[MAX_PATH];
   if (RegQueryStringValue(key, "CurrentVersion", buffer, MAX_PATH)) {
     const double cur_var(strtod(buffer, 0));
@@ -105,7 +103,7 @@ std::string GetJavaHomeDir() {
         RegOpenKeyEx(key, buffer, 0, KEY_READ | wow64_flag, &subkey) ==
             ERROR_SUCCESS) {
       if (RegQueryStringValue(subkey, "JavaHome", buffer, MAX_PATH)) {
-        result = std::string(buffer);
+        result = string(buffer);
       }
       RegCloseKey(subkey);
     }
@@ -137,8 +135,8 @@ uint64_t GetPhysicalMemSize() {
 #endif
 }
 
-bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
-                         const std::string& arguments) {
+bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
+                         absl::string_view arguments) {
 #ifdef WIN32
   static int winsock_status = []() -> int {
     WSADATA wsa_data;
@@ -156,9 +154,9 @@ bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
 #endif
 
   uint32_t packet_size(arguments.size());
-  std::string packet(reinterpret_cast<const uint8_t*>(&packet_size),
-                     reinterpret_cast<const uint8_t*>(&packet_size) + 4);
-  packet.append(arguments);
+  string packet(reinterpret_cast<const uint8_t*>(&packet_size),
+                reinterpret_cast<const uint8_t*>(&packet_size) + 4);
+  absl::StrAppend(&packet, arguments);
 
   struct addrinfo hints = {0};
   hints.ai_family = AF_UNSPEC;  // IPv4 or IPv6
@@ -166,8 +164,8 @@ bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
   hints.ai_flags = AI_NUMERICSERV;
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* address_info = nullptr;
-  auto err = getaddrinfo(server.c_str(), std::to_string(port).c_str(), &hints,
-                         &address_info);
+  auto err = getaddrinfo(string(server).c_str(), std::to_string(port).c_str(),
+                         &hints, &address_info);
   if (err != 0) {
     // TODO(cblichmann): This function should return a util::Status and use
     //                   gai_strerror(err).
@@ -199,24 +197,23 @@ bool DoSendGuiMessageTCP(const std::string& server, const unsigned short port,
   return success;
 }
 
-void DoStartGui(const std::string& gui_dir) {
+void DoStartGui(absl::string_view gui_dir) {
   // This is not strictly correct: we allow specifying a server by IP address in
   // our config file. If we cannot reach it we launch BinDiff GUI locally...
   // This will be the most common setup by far, so I guess it's ok.
 
   extern XmlConfig* g_config;
-  std::vector<std::string> argv;
-  std::string java_binary(
-      g_config->ReadString("/BinDiff/Gui/@java_binary", ""));
+  std::vector<string> argv;
+  string java_binary(g_config->ReadString("/BinDiff/Gui/@java_binary", ""));
   if (!java_binary.empty()) {
     argv.push_back(java_binary);
   } else {
 #ifdef WIN32
-    std::string java_exe(GetJavaHomeDir());
+    string java_exe(GetJavaHomeDir());
     if (!java_exe.empty()) {
-      StrAppend(&java_exe, kPathSeparator, "bin");
+      absl::StrAppend(&java_exe, kPathSeparator, "bin");
     }
-    StrAppend(&java_exe, kPathSeparator, "javaw.exe");
+    absl::StrAppend(&java_exe, kPathSeparator, "javaw.exe");
     argv.push_back(java_exe);
 #else
     argv.push_back("java");
@@ -247,30 +244,30 @@ void DoStartGui(const std::string& gui_dir) {
     // TODO(cblichmann): We should instead make the JAR file configurable.
     jar_file = JoinPath(gui_dir, kGuiJarName);
     if (!FileExists(jar_file)) {
-      throw std::runtime_error(
-          StrCat("Cannot launch BinDiff user interface. Missing JAR file: ",
-                 jar_file));
+      throw std::runtime_error(absl::StrCat(
+          "Cannot launch BinDiff user interface. Missing JAR file: ",
+          jar_file));
     }
   }
   argv.push_back(jar_file);
 
-  std::string status_message("unknown");
+  string status_message("unknown");
   if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
     // Try again without the max heap size argument.
     argv.erase(argv.begin() + max_heap_index - 1);
 
     if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
-      throw std::runtime_error(StrCat(
+      throw std::runtime_error(absl::StrCat(
           "Cannot launch BinDiff user interface. Process creation failed: ",
           status_message));
     }
   }
 }
 
-bool SendGuiMessage(const int retries, const std::string& gui_dir,
-                    const std::string& server, const unsigned short port,
-                    const std::string& arguments,
-                    void progress_callback(void)) {
+bool SendGuiMessage(int retries, absl::string_view gui_dir,
+                    absl::string_view server, uint16_t port,
+                    absl::string_view arguments,
+                    std::function<void()> callback) {
   if (DoSendGuiMessageTCP(server, port, arguments)) {
     return true;
   }
@@ -282,8 +279,8 @@ bool SendGuiMessage(const int retries, const std::string& gui_dir,
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (progress_callback) {
-      progress_callback();
+    if (callback) {
+      callback();
     }
   }
   return false;

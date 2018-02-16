@@ -100,5 +100,7 @@ void CopyToClipboard(const std::string& data) {
   }
 #else
   // TODO(cblichmann): Implement copy to clipboard for Linux/macOS.
+  //                   Linux: Pipe to "xsel -b"
+  //                   macOS: Pipe to "pbcopy"
 #endif
 }

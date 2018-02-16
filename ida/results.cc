@@ -1,19 +1,8 @@
 #include "third_party/zynamics/bindiff/ida/results.h"
 
-#include <pro.h>        // NOLINT
-#include <enum.hpp>     // NOLINT
-#include <frame.hpp>    // NOLINT
-#include <funcs.hpp>    // NOLINT
-#include <kernwin.hpp>  // NOLINT
-#include <name.hpp>     // NOLINT
-#include <struct.hpp>   // NOLINT
-#include <xref.hpp>     // NOLINT
-
 #include "base/logging.h"
-#include "base/stringprintf.h"
-#ifndef GOOGLE  // MOE:strip_line
-#include "strings/strutil.h"
-#endif  // MOE:strip_line
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
 #include "third_party/zynamics/bindiff/ida/names.h"
@@ -99,18 +88,16 @@ bool PortFunctionName(FixedPoint* fixed_point) {
   const Address secondary_address =
       fixed_point->GetSecondary()->GetEntryPointAddress();
   if (const func_t* function = get_func(static_cast<ea_t>(primary_address))) {
-    if (function->startEA == primary_address) {
+    if (function->start_ea == primary_address) {
       if (!secondary_call_graph->HasRealName(
               secondary_call_graph->GetVertex(secondary_address))) {
         return false;
       }
 
       const std::string& name = fixed_point->GetSecondary()->GetName();
-      enum { BUFFER_SIZE = MAXSTR };
-      char buffer[BUFFER_SIZE];
-      get_true_name(static_cast<ea_t>(primary_address),
-                    static_cast<ea_t>(primary_address), buffer, BUFFER_SIZE);
-      if (std::string(buffer) != name) {
+      qstring buffer =
+          get_name(static_cast<ea_t>(primary_address), /*flags=*/0);
+      if (absl::string_view(buffer.c_str(), buffer.length()) != name) {
         set_name(static_cast<ea_t>(primary_address), name.c_str(),
                  SN_NOWARN | SN_CHECK);
         const CallGraph::Vertex vertex =
@@ -137,9 +124,7 @@ size_t SetComments(Address source, Address target, const Comments& comments,
     const int operand_id = i->first.second;
 
     // Do not port auto generated names (unfortunately this does not work for
-    // comments)
-    // The IDA API is totally broken here. See:
-    // https://zynamics.fogbugz.com/default.asp?4451
+    // comments).
     if ((comment.type_ == Comment::ENUM || comment.type_ == Comment::LOCATION ||
          comment.type_ == Comment::GLOBALREFERENCE ||
          comment.type_ == Comment::LOCALREFERENCE) &&
@@ -148,77 +133,90 @@ size_t SetComments(Address source, Address target, const Comments& comments,
     }
 
     switch (comment.type_) {
-      case Comment::REGULAR: {
+      case Comment::REGULAR:
         set_cmt(static_cast<ea_t>(address), comment.comment_.c_str(),
                 comment.repeatable_);
-      } break;
+        break;
       case Comment::ENUM: {
         unsigned char serial;
-        if (isEnum0(getFlags(static_cast<ea_t>(address))) && operand_id == 0) {
-          if (int id = get_enum_id(static_cast<ea_t>(address), operand_id,
-                                   &serial) != BADNODE) {
+        if (is_enum0(get_full_flags(static_cast<ea_t>(address))) &&
+            operand_id == 0) {
+          if (int id = get_enum_id(&serial, static_cast<ea_t>(address),
+                                   operand_id) != BADNODE) {
             set_enum_name(id, comment.comment_.c_str());
           }
         }
-        if (isEnum1(getFlags(static_cast<ea_t>(address))) && operand_id == 1) {
-          if (int id = get_enum_id(static_cast<ea_t>(address), operand_id,
-                                   &serial) != BADNODE) {
+        if (is_enum1(get_full_flags(static_cast<ea_t>(address))) &&
+            operand_id == 1) {
+          if (int id = get_enum_id(&serial, static_cast<ea_t>(address),
+                                   operand_id) != BADNODE) {
             set_enum_name(id, comment.comment_.c_str());
           }
         }
-      } break;
+        break;
+      }
       case Comment::FUNCTION: {
         if (func_t* function = get_func(static_cast<ea_t>(address))) {
-          if (function->startEA == address) {
+          if (function->start_ea == address) {
             set_func_cmt(function, comment.comment_.c_str(),
                          comment.repeatable_);
           }
         }
-      } break;
-      case Comment::LOCATION: {
+        break;
+      }
+      case Comment::LOCATION:
         if (fixed_point) {
           PortFunctionName(fixed_point);
         }
-      } break;
+        break;
       case Comment::ANTERIOR: {
         const std::string existing_comment = GetLineComments(address, -1);
         if (existing_comment.rfind(comment.comment_) == std::string::npos) {
-          describe(static_cast<ea_t>(address), true, "%s",
-                   comment.comment_.c_str());
+          add_extra_line(static_cast<ea_t>(address), true, "%s",
+                         comment.comment_.c_str());
         }
-      } break;
+        break;
+      }
       case Comment::POSTERIOR: {
         const std::string existing_comment = GetLineComments(address, +1);
         if (existing_comment.rfind(comment.comment_) == std::string::npos) {
-          describe(static_cast<ea_t>(address), false, "%s",
-                   comment.comment_.c_str());
+          add_extra_line(static_cast<ea_t>(address), false, "%s",
+                         comment.comment_.c_str());
         }
-      } break;
+        break;
+      }
       case Comment::GLOBALREFERENCE: {
         int count = 0;
         xrefblk_t xb;
         for (bool ok = xb.first_from(static_cast<ea_t>(address), XREF_DATA); ok;
              ok = xb.next_from(), ++count) {
           if (count == operand_id - UA_MAXOP - 1024) {
-            char current_name[MAXSTR];
-            get_name(BADADDR, xb.to, current_name, MAXSTR);
-            if (strcmp(current_name, comment.comment_.c_str()) != 0) {
+            qstring current_name = get_name(xb.to, /*flags=*/0);
+            if (absl::string_view(current_name.c_str(),
+                                  current_name.length()) == comment.comment_) {
               set_name(xb.to, comment.comment_.c_str(), SN_NOWARN | SN_CHECK);
             }
             break;
           }
         }
-      } break;
+        break;
+      }
       case Comment::LOCALREFERENCE: {
         func_t* function = get_func(static_cast<ea_t>(address));
-        if (!function) break;
-
+        if (!function) {
+          break;
+        }
         struc_t* frame = get_frame(function);
-        if (!frame) break;
-
+        if (!frame) {
+          break;
+        }
+        insn_t instruction;
+        if (decode_insn(&instruction, address) <= 0) {
+          break;
+        }
         for (int operand_num = 0; operand_num < UA_MAXOP; ++operand_num) {
-          const ea_t offset = calc_stkvar_struc_offset(
-              function, static_cast<ea_t>(address), operand_num);
+          const ea_t offset =
+              calc_stkvar_struc_offset(function, instruction, operand_num);
           if (offset == BADADDR) {
             continue;
           }
@@ -227,7 +225,8 @@ size_t SetComments(Address source, Address target, const Comments& comments,
             set_member_name(frame, offset, comment.comment_.c_str());
           }
         }
-      } break;
+        break;
+      }
       case Comment::STRUCTURE: {
         /*
         tid_t id = 0;
@@ -240,12 +239,13 @@ size_t SetComments(Address source, Address target, const Comments& comments,
           }
           // TODO: structure members
         } */
-      } break;
+        break;
+      }
       default:
-        LOG(INFO) << "Unknown comment type " << comment.type_ << ": "
-                  << StringPrintf(HEX_ADDRESS, source) << " -> "
-                  << StringPrintf(HEX_ADDRESS, target) << " "
-                  << i->second.comment_;
+        LOG(INFO) << absl::StrCat("Unknown comment type ", comment.type_, ": ",
+                                  absl::Hex(source, absl::kZeroPad8), " -> ",
+                                  absl::Hex(target, absl::kZeroPad8), " ",
+                                  i->second.comment_);
         break;
     }
   }
@@ -323,16 +323,12 @@ std::string VisualDiffMessage(bool call_graph_match,
                               Address primary_address,
                               const std::string& secondary_path,
                               Address secondary_address) {
-  std::string result(StrCat("<BinDiffMatch type=\"",
-                            call_graph_match ? "call_graph" : "flow_graph",
-                            "\">"));
-  StrAppend(&result, "<Database path =\"", database);
-  StrAppend(&result, "\"/><Primary path=\"", primary_path, "\" address=\"",
-            primary_address);
-  StrAppend(&result, "\"/><Secondary path=\"", secondary_path, "\" address=\"",
-            secondary_address);
-  StrAppend(&result, "\"/></BinDiffMatch>");
-  return result;
+  return absl::StrCat("<BinDiffMatch type=\"",
+                      call_graph_match ? "call_graph" : "flow_graph", "\">",
+                      "<Database path =\"", database, "\"/><Primary path=\"",
+                      primary_path, "\" address=\"", primary_address,
+                      "\"/><Secondary path=\"", secondary_path, "\" address=\"",
+                      secondary_address, "\"/></BinDiffMatch>");
 }
 
 }  // namespace
@@ -547,8 +543,8 @@ bool Results::IncrementalDiff() {
     fixed_point_infos_.insert(info);
   }
 
-  LOG(INFO) << StringPrintf("%.2fs", timer.elapsed())
-            << " seconds for incremental matching.";
+  LOG(INFO) << absl::FormatDuration(absl::Seconds(timer.elapsed()))
+            << " for incremental matching.";
 
   SetDirty();
   return true;
@@ -596,6 +592,9 @@ void Results::GetStatisticsDescription(size_t index, char* const* line) const {
 }
 
 int Results::DeleteMatch(size_t index) {
+  // TODO(cblichmann): Port this over to the new IDA 7 API
+  return 0;
+#if 0
   if (index == static_cast<size_t>(START_SEL) || !index) {
     return 1;
   }
@@ -702,6 +701,7 @@ int Results::DeleteMatch(size_t index) {
   SetDirty();
 
   return 1;
+#endif
 }
 
 FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
@@ -864,45 +864,51 @@ int Results::AddMatch(Address primary, Address secondary) {
 }
 
 int Results::AddMatchPrimary(size_t index) {
+  // TODO(cblichmann): Port this over to the new IDA 7 API
+  return 0;
+#if 0
   static const int widths[] = {10, 30, 5, 6, 5};
   static const char* popups[] = {0, 0, 0, 0};
   const int index2 = choose2(
-      CH_MODAL, /* x0 = */ -1, /* y0 = */ -1, /* x1 = */ -1, /* y1 = */ -1,
-      /* obj = */ reinterpret_cast<void*>(this),
-      sizeof(widths) / sizeof(widths[0]), widths,
-      /* sizer = */ &::GetNumUnmatchedSecondary,
-      /* getl = */ &::GetUnmatchedSecondaryDescription, "Secondary Unmatched",
-      /* icon = */ -1, /* deflt = */ 1, /* del = */ nullptr,
-      /* ins = */ nullptr, /* update = */ nullptr, /* edit = */ nullptr,
-      /* enter = */ nullptr, /* destroy = */ nullptr,
-      /* popup_names = */ popups, /* get_icon = */ nullptr);
+      CH_MODAL, /*x0=*/-1, /*y0=*/-1, /*x1=*/-1, /*y1=*/-1,
+      /*obj=*/reinterpret_cast<void*>(this), sizeof(widths) / sizeof(widths[0]),
+      widths,
+      /*sizer=*/&::GetNumUnmatchedSecondary,
+      /*getl=*/&::GetUnmatchedSecondaryDescription, "Secondary Unmatched",
+      /*icon=*/-1, /*deflt=*/1, /*del=*/nullptr,
+      /*ins=*/nullptr, /*update=*/nullptr, /*edit=*/nullptr,
+      /*enter=*/nullptr, /*destroy=*/nullptr,
+      /*popup_names=*/popups, /*get_icon=*/nullptr);
   if (index2 > 0) {
     const Address primary = GetPrimaryAddress(index);
     const Address secondary = GetSecondaryAddress(index2);
     return AddMatch(primary, secondary);
   }
-  return 0;
+#endif
 }
 
 int Results::AddMatchSecondary(size_t index) {
+  // TODO(cblichmann): Port this over to the new IDA 7 API
+  return 0;
+#if 0
   static const int widths[] = {10, 30, 5, 6, 5};
   static const char* popups[] = {0, 0, 0, 0};
-  const int index2 = choose2(
-      CH_MODAL, /* x0 = */ -1, /* y0 = */ -1, /* x1 = */ -1, /* y1 = */ -1,
-      /* obj = */ reinterpret_cast<void*>(this),
-      sizeof(widths) / sizeof(widths[0]), widths,
-      /* sizer = */ &::GetNumUnmatchedPrimary,
-      /* getl = */ &::GetUnmatchedPrimaryDescription, "Primary Unmatched",
-      /* icon = */ -1, /* deflt = */ 1, /* del = */ nullptr,
-      /* ins = */ nullptr, /* update = */ nullptr, /* edit = */ nullptr,
-      /* enter = */ nullptr, /* destroy = */ nullptr,
-      /* popup_names = */ popups, /* get_icon = */ nullptr);
+  const int index2 =
+      choose2(CH_MODAL, /*x0=*/-1, /*y0=*/-1, /*x1=*/-1, /*y1=*/-1,
+              /*obj=*/reinterpret_cast<void*>(this),
+              sizeof(widths) / sizeof(widths[0]), widths,
+              /*sizer=*/&::GetNumUnmatchedPrimary,
+              /*getl=*/&::GetUnmatchedPrimaryDescription, "Primary Unmatched",
+              /*icon=*/-1, /*deflt=*/1, /*del=*/nullptr,
+              /*ins=*/nullptr, /*update=*/nullptr, /*edit=*/nullptr,
+              /*enter=*/nullptr, /*destroy=*/nullptr,
+              /*popup_names=*/popups, /*get_icon=*/nullptr);
   if (index2 > 0) {
     const Address secondary = GetSecondaryAddress(index);
     const Address primary = GetPrimaryAddress(index2);
     return AddMatch(primary, secondary);
   }
-  return 0;
+#endif
 }
 
 void Results::GetMatchDescription(size_t index, char* const* line) const {
@@ -1010,12 +1016,12 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
 
   SqliteStatement statement(
       database.get(),
-      "select basicblock.address1, basicblock.address2, basicblock.algorithm "
-      "from function "
-      "inner join basicblock on functionid = function.id "
-      "inner join instruction on basicblockid = basicblock.id "
-      "where function.address1 = :address1 and function.address2 = :address2 "
-      "order by basicblock.id");
+      "SELECT basicblock.address1, basicblock.address2, basicblock.algorithm "
+      "FROM function "
+      "INNER JOIN basicblock ON functionid = function.id "
+      "INNER JOIN instruction ON basicblockid = basicblock.id "
+      "WHERE function.address1 = :address1 AND function.address2 = :address2 "
+      "ORDER BY basicblock.id");
   statement.BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress());
   statement.BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress());
 
@@ -1054,14 +1060,14 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
                            &primary, &instruction_cache_);
   } catch (...) {
     throw std::runtime_error(
-        StrCat("error reading: ", call_graph1_.GetFilePath()));
+        absl::StrCat("error reading: ", call_graph1_.GetFilePath()));
   }
   try {
     ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_, &call_graph2_,
                            &secondary, &instruction_cache_);
   } catch (...) {
     throw std::runtime_error(
-        StrCat("error reading: ", call_graph2_.GetFilePath()));
+        absl::StrCat("error reading: ", call_graph2_.GetFilePath()));
   }
   fixed_point.Create(&primary, &secondary);
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
@@ -1102,7 +1108,7 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
 
   const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
   diff_database_id_++;
-  std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
+  std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
   std::string database_file;
   // TODO(cblichmann): Bug: if matches have been manually modified in the
   //                   meantime we are hosed!
@@ -1168,7 +1174,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   fixed_points.insert(fixed_point);
 
   diff_database_id_++;
-  std::string name(StrCat("visual_diff", diff_database_id_, ".database"));
+  std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
   DatabaseWriter writer(name, true);
   writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
                fixed_points);
@@ -1326,6 +1332,9 @@ int Results::PortComments(Address start_address_source,
 }
 
 int Results::PortComments(int index, bool as_external) {
+  // TODO(cblichmann): Port this over to the new IDA 7 API
+  return 0;
+#if 0
   if (index == START_SEL) {
     // multiselection support. we must return OK, but cannot do anything yet
     return 1;
@@ -1343,7 +1352,7 @@ int Results::PortComments(int index, bool as_external) {
   const Address end_address_target = std::numeric_limits<ea_t>::max() - 1;
   const Address start_address_source = fixed_point_info.primary;
   if (func_t* function = get_func(static_cast<ea_t>(start_address_source))) {
-    const ea_t end_address_source = function->endEA;
+    const ea_t end_address_source = function->end_ea;
     if (as_external) {
       function->flags |= FUNC_LIB;
     }
@@ -1366,9 +1375,13 @@ int Results::PortComments(int index, bool as_external) {
   }
   fixed_point_info.comments_ported = true;
   return 1;
+#endif
 }
 
 int Results::ConfirmMatch(int index) {
+  // TODO(cblichmann): Port this over to the new IDA 7 API
+  return 0;
+#if 0
   if (index == START_SEL || index == END_SEL) {
     // multiselection support. we must return OK, but cannot do anything yet
     return 1;
@@ -1389,6 +1402,7 @@ int Results::ConfirmMatch(int index) {
   SetDirty();
 
   return 1;
+#endif
 }
 
 
