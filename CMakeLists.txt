@@ -145,29 +145,16 @@ target_link_libraries(bindiff_shared
   sqlite
   xmlconfig)
 
-add_library(binexport_plugin_shared STATIC ${BinExport_DIR}/ida/digest.cc
-                                           ${BinExport_DIR}/ida/digest.h
-                                           ${BinExport_DIR}/ida/log.cc
-                                           ${BinExport_DIR}/ida/log.h
-                                           ${BinExport_DIR}/ida/ui.cc
-                                           ${BinExport_DIR}/ida/ui.h)
-target_compile_definitions(binexport_plugin_shared PUBLIC
-                           ${IdaSdk_PLATFORM}
-                           __IDP__
-                           USE_DANGEROUS_FUNCTIONS
-                           USE_STANDARD_FILE_FUNCTIONS)
-target_include_directories(binexport_plugin_shared PUBLIC
-  ${IdaSdk_INCLUDE_DIRS}
-)
-target_link_libraries(binexport_plugin_shared
-  bindiff_base
-  OpenSSL::SSL
-)
-
 # Plugins will be named "bindiff50.so" and "bindiff5064.so"
 set(bindiff_plugin_name
   bindiff${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR})
 add_ida_plugin(${bindiff_plugin_name} EA64
+  ${BinExport_DIR}/ida/digest.cc
+  ${BinExport_DIR}/ida/digest.h
+  ${BinExport_DIR}/ida/log.cc
+  ${BinExport_DIR}/ida/log.h
+  ${BinExport_DIR}/ida/ui.cc
+  ${BinExport_DIR}/ida/ui.h
   ida/main_plugin.cc
   ida/names.cc
   ida/names.h
@@ -178,31 +165,30 @@ add_ida_plugin(${bindiff_plugin_name} EA64
   ida/visual_diff.cc
   ida/visual_diff.h
 )
-
 set(bindiff_plugin_libraries
-  binexport_plugin_shared
+  bindiff_base
   bindiff_shared
   absl::time
+  OpenSSL::SSL
 )
 if(WIN32)
   list(APPEND bindiff_plugin_libraries ws2_32.lib)
 endif()
-target_link_libraries(${bindiff_plugin_name}${_plx}
-  ${bindiff_plugin_libraries}
-)
-target_link_libraries(${bindiff_plugin_name}${_plx64}
-  ${bindiff_plugin_libraries}
-)
-set_target_properties(
-  ${bindiff_plugin_name}${_plx}
-  ${bindiff_plugin_name}${_plx64}
-  PROPERTIES POSITION_INDEPENDENT_CODE ON
-)
-install(TARGETS ${bindiff_plugin_name}${_plx}
-                ${bindiff_plugin_name}${_plx64}
-        ARCHIVE DESTINATION bindiff-prefix
-        RUNTIME DESTINATION bindiff-prefix
-        LIBRARY DESTINATION bindiff-prefix)
+foreach(target ${bindiff_plugin_name}${_plx} ${bindiff_plugin_name}${_plx64})
+  target_include_directories(${target} PUBLIC
+    ${IdaSdk_INCLUDE_DIRS}
+  )
+  target_link_libraries(${target}
+    ${bindiff_plugin_libraries}
+  )
+  set_target_properties(${target}
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+  )
+  install(TARGETS ${target}
+          ARCHIVE DESTINATION bindiff-prefix
+          RUNTIME DESTINATION bindiff-prefix
+          LIBRARY DESTINATION bindiff-prefix)
+endforeach()
 
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
