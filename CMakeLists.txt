@@ -63,6 +63,7 @@ add_library(bindiff_tests_base INTERFACE)
 target_link_libraries(bindiff_tests_base INTERFACE
   bindiff_base
   gtest_main
+  gmock
 )
 
 protobuf_generate_cpp(binexport2_proto binexport2_proto_h
