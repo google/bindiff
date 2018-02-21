@@ -4,15 +4,15 @@
 #include <string>
 #include <vector>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <enum.hpp>                                           // NOLINT
-#include <frame.hpp>                                          // NOLINT
-#include <funcs.hpp>                                          // NOLINT
-#include <kernwin.hpp>                                        // NOLINT
-#include <name.hpp>                                           // NOLINT
-#include <struct.hpp>                                         // NOLINT
-#include <xref.hpp>                                           // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <enum.hpp>                                             // NOLINT
+#include <frame.hpp>                                            // NOLINT
+#include <funcs.hpp>                                            // NOLINT
+#include <kernwin.hpp>                                          // NOLINT
+#include <name.hpp>                                             // NOLINT
+#include <struct.hpp>                                           // NOLINT
+#include <xref.hpp>                                             // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/integral_types.h"
 #include "third_party/zynamics/bindiff/call_graph.h"

@@ -1,9 +1,9 @@
 #include "third_party/zynamics/bindiff/ida/names.h"
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <bytes.hpp>                                          // NOLINT
-#include <name.hpp>                                           // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <bytes.hpp>                                            // NOLINT
+#include <name.hpp>                                             // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 std::string GetName(Address address) {
   if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {

@@ -6,23 +6,23 @@
 #include <sstream>
 #include <thread>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <bytes.hpp>                                          // NOLINT
-#include <diskio.hpp>                                         // NOLINT
-#include <enum.hpp>                                           // NOLINT
-#include <expr.hpp>                                           // NOLINT
-#include <frame.hpp>                                          // NOLINT
-#include <funcs.hpp>                                          // NOLINT
-#include <ida.hpp>                                            // NOLINT
-#include <idp.hpp>                                            // NOLINT
-#include <kernwin.hpp>                                        // NOLINT
-#include <loader.hpp>                                         // NOLINT
-#include <nalt.hpp>                                           // NOLINT
-#include <name.hpp>                                           // NOLINT
-#include <struct.hpp>                                         // NOLINT
-#include <ua.hpp>                                             // NOLINT
-#include <xref.hpp>                                           // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <bytes.hpp>                                            // NOLINT
+#include <diskio.hpp>                                           // NOLINT
+#include <enum.hpp>                                             // NOLINT
+#include <expr.hpp>                                             // NOLINT
+#include <frame.hpp>                                            // NOLINT
+#include <funcs.hpp>                                            // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <idp.hpp>                                              // NOLINT
+#include <kernwin.hpp>                                          // NOLINT
+#include <loader.hpp>                                           // NOLINT
+#include <nalt.hpp>                                             // NOLINT
+#include <name.hpp>                                             // NOLINT
+#include <struct.hpp>                                           // NOLINT
+#include <ua.hpp>                                               // NOLINT
+#include <xref.hpp>                                             // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/ascii.h"
