@@ -734,8 +734,6 @@ int main(int argc, char** argv) {
       timer.restart();
 
       PrintMessage(absl::StrCat(
-          "matched: %d of %d/%d (primary/secondary, %d/%d non-library)",
-
           "matched: ", fixed_points.size(), " of ", flow_graphs1.size(), "/",
           flow_graphs2.size(), " (primary/secondary, ",
           counts.find("functions primary (non-library)")->second, "/",
