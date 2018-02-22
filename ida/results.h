@@ -50,8 +50,8 @@ class Results {
   int AddMatch(Address primary, Address secondary);
   void GetStatisticsDescription(size_t index, char* const* line) const;
   void GetMatchDescription(size_t index, char* const* line) const;
-  bool PrepareVisualDiff(size_t index, std::string* message);
-  bool PrepareVisualCallGraphDiff(size_t index, std::string* message);
+  bool PrepareVisualDiff(size_t index, string* message);
+  bool PrepareVisualCallGraphDiff(size_t index, string* message);
   void Read(Reader* reader);
   void Write(Writer* writer);
   void WriteFromIncompleteResults();
@@ -75,7 +75,7 @@ class Results {
 
   CallGraph call_graph1_;
   CallGraph call_graph2_;
-  std::string input_filename_;
+  string input_filename_;
   Instruction::Cache instruction_cache_;
   FixedPointInfos fixed_point_infos_;
   FlowGraphInfos flow_graph_infos1_;

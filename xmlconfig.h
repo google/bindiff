@@ -6,6 +6,8 @@
 #include <string>
 #include <utility>
 
+#include "third_party/zynamics/binexport/types.h"
+
 class TiXmlDocument;
 
 class XmlConfig {
@@ -15,19 +17,18 @@ class XmlConfig {
 
   virtual ~XmlConfig();
 
-  double ReadDouble(const std::string& key, const double& default_value);
-  int ReadInt(const std::string& key, const int& default_value);
-  std::string ReadString(const std::string& key,
-                         const std::string& default_value);
-  bool ReadBool(const std::string& key, const bool& default_value);
+  double ReadDouble(const string& key, const double& default_value);
+  int ReadInt(const string& key, const int& default_value);
+  string ReadString(const string& key, const string& default_value);
+  bool ReadBool(const string& key, const bool& default_value);
 
-  void WriteDouble(const std::string& key, double value);
-  void WriteInt(const std::string& key, int value);
-  void WriteString(const std::string& key, const std::string& value);
-  void WriteBool(const std::string& key, bool value);
+  void WriteDouble(const string& key, double value);
+  void WriteInt(const string& key, int value);
+  void WriteString(const string& key, const string& value);
+  void WriteBool(const string& key, bool value);
 
-  void Dump(const std::string& filename) const;
-  void SetSaveFileName(const std::string& filename);
+  void Dump(const string& filename) const;
+  void SetSaveFileName(const string& filename);
   void Save();
   TiXmlDocument* GetDocument();
   const TiXmlDocument* GetDocument() const;
@@ -35,32 +36,32 @@ class XmlConfig {
   // Re-initializes the config file with the given content.
   void SetData(const char* data);
 
-  static std::unique_ptr<XmlConfig> LoadFromString(const std::string& data);
-  static std::unique_ptr<XmlConfig> LoadFromFile(const std::string& filename);
+  static std::unique_ptr<XmlConfig> LoadFromString(const string& data);
+  static std::unique_ptr<XmlConfig> LoadFromFile(const string& filename);
 
-  static const std::string& SetDefaultFilename(const std::string& filename);
-  static const std::string& GetDefaultFilename();
+  static const string& SetDefaultFilename(const string& filename);
+  static const string& GetDefaultFilename();
 
  private:
-  using DoubleCache = std::map<std::string, std::pair<double, bool>>;
-  using IntCache = std::map<std::string, std::pair<int, bool>>;
-  using StringCache = std::map<std::string, std::pair<std::string, bool>>;
-  using BoolCache = std::map<std::string, std::pair<bool, bool>>;
+  using DoubleCache = std::map<string, std::pair<double, bool>>;
+  using IntCache = std::map<string, std::pair<int, bool>>;
+  using StringCache = std::map<string, std::pair<string, bool>>;
+  using BoolCache = std::map<string, std::pair<bool, bool>>;
 
   XmlConfig();
-  void Init(const std::string& filename);
+  void Init(const string& filename);
 
-  static std::string default_filename_;
+  static string default_filename_;
 
   TiXmlDocument* document_;
-  std::string filename_;
+  string filename_;
   bool modified_ = false;
   DoubleCache double_cache_;
   IntCache int_cache_;
   StringCache string_cache_;
   BoolCache bool_cache_;
 
-  void WriteNode(const std::string& key, const std::string& value);
+  void WriteNode(const string& key, const string& value);
 };
 
 #endif  // XMLCONFIG_H_

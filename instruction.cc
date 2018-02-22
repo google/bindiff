@@ -161,7 +161,7 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
 // Cache must have a lifetime longer than instruction, otherwise cache_entry_
 // will point to invalid memory.
 Instruction::Instruction(Cache* cache, Address address,
-                         const std::string& mnemonic, uint32_t prime)
+                         const string& mnemonic, uint32_t prime)
     : address_(address), prime_(prime) {
   // The differ standalone version is multi threaded so be careful with static
   // variables and the like.
@@ -187,6 +187,6 @@ Address Instruction::GetAddress() const { return address_; }
 
 uint32_t Instruction::GetPrime() const { return prime_; }
 
-std::string Instruction::GetMnemonic(const Cache* cache) const {
+string Instruction::GetMnemonic(const Cache* cache) const {
   return cache->prime_to_mnemonic_.find(GetPrime())->second;
 }

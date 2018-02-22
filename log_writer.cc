@@ -25,7 +25,7 @@ struct ProjectSecondary : public std::unary_function<FixedPoint, FlowGraph*> {
 
 }  // namespace
 
-ResultsLogWriter::ResultsLogWriter(const std::string& filename)
+ResultsLogWriter::ResultsLogWriter(const string& filename)
     : filename_(filename) {}
 
 void ResultsLogWriter::Write(const CallGraph& call_graph1,
@@ -48,14 +48,14 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
               << call_graph2.GetMdIndex() << std::endl
               << std::dec << "\n --------- statistics ---------\n";
   for (Counts::const_iterator i = counts.begin(); i != counts.end(); ++i) {
-    const std::string padding(60 - i->first.size(), '.');
+    const string padding(60 - i->first.size(), '.');
     result_file << i->first << padding << ":" << std::setw(7) << i->second
                 << "\n";
   }
   result_file << std::endl;
   for (Histogram::const_iterator i = histogram.begin(); i != histogram.end();
        ++i) {
-    const std::string padding(60 - i->first.size(), '.');
+    const string padding(60 - i->first.size(), '.');
     result_file << i->first << padding << ":" << std::setw(7) << i->second
                 << "\n";
   }
@@ -65,7 +65,7 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
               << "\n\nindividual confidence values used: " << std::endl;
   for (Confidences::const_iterator i = confidences.begin();
        i != confidences.end(); ++i) {
-    const std::string padding(60 - i->first.size(), '.');
+    const string padding(60 - i->first.size(), '.');
     result_file << i->first << padding << ":" << std::setw(7)
                 << std::setprecision(2) << i->second << "\n";
   }

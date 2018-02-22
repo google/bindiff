@@ -5,6 +5,7 @@
 #include <string>
 
 #include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/types.h"
 
 class Comment {
  public:
@@ -20,10 +21,10 @@ class Comment {
     STRUCTURE = 8,
   };
 
-  explicit Comment(const std::string& comment = "", Type type = REGULAR,
+  explicit Comment(const string& comment = "", Type type = REGULAR,
                    bool repeatable = false);
 
-  std::string comment_;
+  string comment_;
   bool repeatable_;
   Type type_;
 };

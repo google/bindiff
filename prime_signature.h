@@ -1,12 +1,11 @@
 #ifndef PRIME_SIGNATURE_H_
 #define PRIME_SIGNATURE_H_
 
-#include <cstdint>
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
 namespace bindiff {
 
-uint32_t GetPrime(const std::string& mnemonic);
+uint32_t GetPrime(const string& mnemonic);
 
 }  // namespace bindiff
 

@@ -9,7 +9,7 @@
 class Instruction {
  public:
   struct Cache {
-    typedef std::unordered_map<uint32_t, std::string> PrimeToMnemonic;
+    typedef std::unordered_map<uint32_t, string> PrimeToMnemonic;
 
     void Clear() {
       prime_to_mnemonic_.clear();
@@ -18,10 +18,10 @@ class Instruction {
     PrimeToMnemonic prime_to_mnemonic_;
   };
 
-  Instruction(Cache* cache, Address address, const std::string& mnemonic,
+  Instruction(Cache* cache, Address address, const string& mnemonic,
               uint32_t prime);
   uint32_t GetPrime() const;
-  std::string GetMnemonic(const Cache* cache) const;
+  string GetMnemonic(const Cache* cache) const;
   Address GetAddress() const;
 
  private:

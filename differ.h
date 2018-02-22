@@ -3,18 +3,20 @@
 
 #include <iostream>
 #include <map>
+#include <string>
 
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/bindiff/reader.h"
+#include "third_party/zynamics/binexport/types.h"
 
 class MatchingContext;
 
-typedef std::map<std::string, size_t> Histogram;
-typedef std::map<std::string, size_t> Counts;
-typedef std::map<std::string, double> Confidences;
+typedef std::map<string, size_t> Histogram;
+typedef std::map<string, size_t> Counts;
+typedef std::map<string, double> Confidences;
 
 // Main entry point to the differ. Runs the core algorithm and produces a
 // (partial) matching between the two inputs.
@@ -45,17 +47,17 @@ void ResetMatches(FlowGraphs* flow_graphs);
 void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs);
 
 // Load a .BinExport file into the internal data structures.
-void Read(const std::string& filename, CallGraph* call_graph,
+void Read(const string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache);
 #ifdef GOOGLE
 // Same as the above Read() function, but using Google3 File for reading. In
 // addition, this function supports .BinExport2 files as well.
-bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
+bool ReadGoogle(const string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache);
 
-void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
+void SetupGraphsFromProto(const BinExport2& proto, const string& filename,
                           CallGraph* call_graph, FlowGraphs* flow_graphs,
                           FlowGraphInfos* flow_graph_infos,
                           Instruction::Cache* instruction_cache);

@@ -24,11 +24,11 @@ void SqliteDatabase::Connect(const char* filename) {
   }
 
   if (sqlite3_open(filename, &database_) != SQLITE_OK) {
-    const std::string error(sqlite3_errmsg(database_));
+    const string error(sqlite3_errmsg(database_));
     sqlite3_close(database_);
     database_ = nullptr;
     throw std::runtime_error(("failed opening database: '" + error
-        + "', filename: '" + std::string(filename) + "'").c_str());
+        + "', filename: '" + string(filename) + "'").c_str());
   }
 
   if (!database_) {
@@ -71,8 +71,8 @@ SqliteStatement::SqliteStatement(SqliteDatabase* database,
       got_data_(false) {
   if (sqlite3_prepare_v2(database_, statement, strlen(statement), &statement_,
                          nullptr) != SQLITE_OK) {
-    const std::string error(sqlite3_errmsg(database_));
-    throw std::runtime_error((std::string("error preparing statement '") +
+    const string error(sqlite3_errmsg(database_));
+    throw std::runtime_error((string("error preparing statement '") +
                               statement + "', '" + error + "'").c_str());
   }
 }
@@ -141,7 +141,7 @@ SqliteStatement& SqliteStatement::Into(double* value, bool* is_null) {
   return *this;
 }
 
-SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
+SqliteStatement& SqliteStatement::Into(string* value, bool* is_null) {
   if (is_null)
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
   if (const char* data = reinterpret_cast<const char*>(
@@ -154,8 +154,8 @@ SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
 SqliteStatement& SqliteStatement::Execute() {
   const int return_code = sqlite3_step(statement_);
   if (return_code != SQLITE_ROW && return_code != SQLITE_DONE) {
-    const std::string error(sqlite3_errmsg(database_));
-    throw std::runtime_error((std::string("error executing statement '")
+    const string error(sqlite3_errmsg(database_));
+    throw std::runtime_error((string("error executing statement '")
         + sqlite3_sql(statement_) + "', '" + error + "'").c_str());
   }
 

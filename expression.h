@@ -5,6 +5,7 @@
 #include <string>
 
 #include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/types.h"
 
 class Expression {
  public:
@@ -24,7 +25,7 @@ class Expression {
  private:
   Type type_;
   Address immediate_;
-  std::string symbol_;
+  string symbol_;
   std::list<Expression*> children_;
 };
 

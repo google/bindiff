@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/types.h"
 
 struct sqlite3;
 struct sqlite3_stmt;
@@ -52,7 +53,7 @@ class SqliteStatement {
   SqliteStatement& Into(int64_t* value, bool* is_null = nullptr);
   SqliteStatement& Into(Address* value, bool* is_null = nullptr);
   SqliteStatement& Into(double* value, bool* is_null = nullptr);
-  SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
+  SqliteStatement& Into(string* value, bool* is_null = nullptr);
 
   SqliteStatement& Execute();
   SqliteStatement& Reset();

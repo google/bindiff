@@ -57,11 +57,11 @@ void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
 
 // TODO(cblichmann): Move to names.h
 void UpdateName(CallGraph* call_graph, Address address) {
-  const std::string& name = GetName(address);
+  const string& name = GetName(address);
   const CallGraph::Vertex vertex = call_graph->GetVertex(address);
   if (!name.empty() && name != call_graph->GetName(vertex)) {
     call_graph->SetName(vertex, name);
-    const std::string& demangled_name = GetDemangledName(address);
+    const string& demangled_name = GetDemangledName(address);
     if (demangled_name != name) {
       call_graph->SetDemangledName(vertex, demangled_name);
     } else {
@@ -94,7 +94,7 @@ bool PortFunctionName(FixedPoint* fixed_point) {
         return false;
       }
 
-      const std::string& name = fixed_point->GetSecondary()->GetName();
+      const string& name = fixed_point->GetSecondary()->GetName();
       qstring buffer =
           get_name(static_cast<ea_t>(primary_address), /*flags=*/0);
       if (absl::string_view(buffer.c_str(), buffer.length()) != name) {
@@ -170,16 +170,16 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         }
         break;
       case Comment::ANTERIOR: {
-        const std::string existing_comment = GetLineComments(address, -1);
-        if (existing_comment.rfind(comment.comment_) == std::string::npos) {
+        const string existing_comment = GetLineComments(address, -1);
+        if (existing_comment.rfind(comment.comment_) == string::npos) {
           add_extra_line(static_cast<ea_t>(address), true, "%s",
                          comment.comment_.c_str());
         }
         break;
       }
       case Comment::POSTERIOR: {
-        const std::string existing_comment = GetLineComments(address, +1);
-        if (existing_comment.rfind(comment.comment_) == std::string::npos) {
+        const string existing_comment = GetLineComments(address, +1);
+        if (existing_comment.rfind(comment.comment_) == string::npos) {
           add_extra_line(static_cast<ea_t>(address), false, "%s",
                          comment.comment_.c_str());
         }
@@ -317,11 +317,11 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
   return counts;
 }
 
-std::string VisualDiffMessage(bool call_graph_match,
-                              const std::string& database,
-                              const std::string& primary_path,
+string VisualDiffMessage(bool call_graph_match,
+                              const string& database,
+                              const string& primary_path,
                               Address primary_address,
-                              const std::string& secondary_path,
+                              const string& secondary_path,
                               Address secondary_address) {
   return absl::StrCat("<BinDiffMatch type=\"",
                       call_graph_match ? "call_graph" : "flow_graph", "\">",
@@ -415,7 +415,7 @@ bool Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
   if (IsInComplete()) {
-    const std::string temp_dir(
+    const string temp_dir(
         GetTempDirectory("BinDiff", /* create = */ true));
     {
       ::Read(call_graph1_.GetFilePath(), &call_graph1_, &flow_graphs1_,
@@ -545,8 +545,8 @@ void Results::GetStatisticsDescription(size_t index, char* const* line) const {
   --index;
 
   size_t nr = 0;
-  std::string description;
-  std::string value;
+  string description;
+  string value;
   if (index < counts_.size()) {
     auto i = counts_.cbegin();
     for (; i != counts_.cend() && nr < index; ++i, ++nr) {
@@ -983,13 +983,13 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
     database.reset(new SqliteDatabase(input_filename_.c_str()));
   }
 
-  std::map<int, std::string> algorithms;
+  std::map<int, string> algorithms;
   {
     SqliteStatement statement(database.get(),
                               "select id, name from basicblockalgorithm");
     for (statement.Execute(); statement.GotData(); statement.Execute()) {
       int id;
-      std::string name;
+      string name;
       statement.Into(&id).Into(&name);
       algorithms[id] = name;
     }
@@ -1082,15 +1082,15 @@ void Results::DeleteTemporaryFlowGraphs() {
   fixed_points_.clear();
 }
 
-bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
+bool Results::PrepareVisualCallGraphDiff(size_t index, string* message) {
   if (!index || index > indexed_fixed_points_.size()) {
     return false;
   }
 
   const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
   diff_database_id_++;
-  std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
-  std::string database_file;
+  string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
+  string database_file;
   // TODO(cblichmann): Bug: if matches have been manually modified in the
   //                   meantime we are hosed!
   if (IsInComplete()) {
@@ -1111,7 +1111,7 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   return true;
 }
 
-bool Results::PrepareVisualDiff(size_t index, std::string* message) {
+bool Results::PrepareVisualDiff(size_t index, string* message) {
   if (!index || index > indexed_fixed_points_.size()) {
     return false;
   }
@@ -1155,11 +1155,11 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   fixed_points.insert(fixed_point);
 
   diff_database_id_++;
-  std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
+  string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
   DatabaseWriter writer(name, true);
   writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
                fixed_points);
-  const std::string& database_file = writer.GetFilename();
+  const string& database_file = writer.GetFilename();
 
   *message = VisualDiffMessage(
       /* call_graph_match */ false, database_file, call_graph1_.GetFilePath(),

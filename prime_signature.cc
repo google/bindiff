@@ -12528,7 +12528,7 @@ size_t GetPrime(size_t index) {
 
 }  // namespace
 
-uint32_t GetPrime(const std::string& mnemonic) {
+uint32_t GetPrime(const string& mnemonic) {
   uint32_t prime = 1;
   for (uint32_t i = 0; i < mnemonic.size(); ++i) {
     // Compute a variant of Gödel number to uniquely identify a mnemonic string.

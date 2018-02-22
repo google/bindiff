@@ -11,6 +11,7 @@
 #include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/types.h"
 
 class FixedPoint;
 class BasicBlockFixedPoint;
@@ -213,10 +214,10 @@ class FlowGraph {
 
   // O(1) The function accesses a call graph vertex in order to retrieve the
   // name.
-  const std::string& GetName() const;
-  const std::string& GetDemangledName() const;
+  const string& GetName() const;
+  const string& GetDemangledName() const;
   // Returns the demangled name if available, raw name otherwise.
-  const std::string& GetGoodName() const;
+  const string& GetGoodName() const;
 
  private:
   typedef std::vector<std::pair<Address, Level> > AddressToLevelMap;

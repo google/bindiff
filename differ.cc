@@ -106,7 +106,7 @@ void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
   }
 }
 
-void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
+void SetupGraphsFromProto(const BinExport2& proto, const string& filename,
                           CallGraph* call_graph, FlowGraphs* flow_graphs,
                           FlowGraphInfos* flow_graph_infos,
                           Instruction::Cache* instruction_cache) {
@@ -139,7 +139,7 @@ void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
 }
 
 #ifdef GOOGLE
-bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
+bool ReadGoogle(const string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -174,7 +174,7 @@ bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
 }
 #endif  // GOOGLE
 
-void Read(const std::string& filename, CallGraph* call_graph,
+void Read(const string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;

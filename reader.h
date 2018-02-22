@@ -3,11 +3,12 @@
 
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
+#include "third_party/zynamics/binexport/types.h"
 
 struct FlowGraphInfo {
   Address address;
-  const std::string* name;
-  const std::string* demangled_name;
+  const string* name;
+  const string* demangled_name;
   int basic_block_count;
   int edge_count;
   int instruction_count;
@@ -23,7 +24,7 @@ struct FixedPointInfo {
   double similarity;
   double confidence;
   int flags;
-  const std::string* algorithm;
+  const string* algorithm;
   bool evaluate;
   bool comments_ported;
 

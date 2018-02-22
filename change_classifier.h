@@ -1,7 +1,7 @@
 #ifndef CHANGE_CLASSIFIER_H_
 #define CHANGE_CLASSIFIER_H_
 
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
 class MatchingContext;
 class FixedPoint;
@@ -20,6 +20,6 @@ typedef enum {
 
 void ClassifyChanges(FixedPoint* fixed_point);
 void ClassifyChanges(MatchingContext* context);
-std::string GetChangeDescription(ChangeType change);
+string GetChangeDescription(ChangeType change);
 
 #endif  // CHANGE_CLASSIFIER_H_

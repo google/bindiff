@@ -152,15 +152,15 @@ FlowGraph::Graph& FlowGraph::GetGraph() { return graph_; }
 
 const FlowGraph::Graph& FlowGraph::GetGraph() const { return graph_; }
 
-const std::string& FlowGraph::GetName() const {
+const string& FlowGraph::GetName() const {
   return call_graph_->GetName(call_graph_vertex_);
 }
 
-const std::string& FlowGraph::GetDemangledName() const {
+const string& FlowGraph::GetDemangledName() const {
   return call_graph_->GetDemangledName(call_graph_vertex_);
 }
 
-const std::string& FlowGraph::GetGoodName() const {
+const string& FlowGraph::GetGoodName() const {
   return call_graph_->GetGoodName(call_graph_vertex_);
 }
 
@@ -190,7 +190,7 @@ void FlowGraph::Read(const BinExport2& proto,
 
   Address computed_instruction_address = 0;
   int last_instruction_index = 0;
-  std::string function_bytes;
+  string function_bytes;
   std::vector<VertexInfo> temp_vertices(
       proto_flow_graph.basic_block_index_size());
   std::vector<Address> temp_addresses(temp_vertices.size());
@@ -199,7 +199,7 @@ void FlowGraph::Read(const BinExport2& proto,
        ++basic_block_index) {
     const BinExport2::BasicBlock& proto_basic_block(proto.basic_block(
         proto_flow_graph.basic_block_index(basic_block_index)));
-    std::string basic_block_bytes;
+    string basic_block_bytes;
 
     VertexInfo& vertex_info(temp_vertices[basic_block_index]);
     vertex_info.instruction_start_ = instructions_.size();
@@ -238,7 +238,7 @@ void FlowGraph::Read(const BinExport2& proto,
         computed_instruction_address =
             instruction_address + proto_instruction.raw_bytes().size();
         last_instruction_index = instruction_index;
-        const std::string& mnemonic(
+        const string& mnemonic(
             proto.mnemonic(proto_instruction.mnemonic_index()).name());
         const uint32_t instruction_prime = bindiff::GetPrime(mnemonic);
         vertex_info.prime_ += instruction_prime;

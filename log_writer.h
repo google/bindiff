@@ -8,14 +8,14 @@
 // Writes a human readable log file for debugging purposes.
 class ResultsLogWriter : public Writer {
  public:
-  explicit ResultsLogWriter(const std::string& filename);
+  explicit ResultsLogWriter(const string& filename);
   virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
                      const FlowGraphs& flow_graphs1,
                      const FlowGraphs& flow_graphs2,
                      const FixedPoints& fixed_points);
 
  private:
-  std::string filename_;
+  string filename_;
 };
 
 #endif  // LOG_WRITER_H_
