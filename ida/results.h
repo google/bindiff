@@ -68,7 +68,6 @@ class Results {
   bool IsInComplete() const;
   void SetDirty();
   bool IsDirty() const;
-  uint32_t GetColor(uint32_t index) const;
   bool IncrementalDiff();
   void MarkPortedCommentsInDatabase();
 

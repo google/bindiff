@@ -532,21 +532,6 @@ ssize_t idaapi IdbHook(void*, int event_id, va_list /*arguments*/) {
 
 ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
   switch (event_id) {
-    case ui_get_chooser_item_attrs: {
-      if (g_results) {
-        // Pop user supplied void* from arguments first (but ignore, since
-        // this may go stale).
-        if (reinterpret_cast<uint64_t>(va_arg(arguments, void*)) != 0x00000001) {
-          // Magic value so we don't color IDA's windows.
-          return 0;
-        }
-        const uint32_t index = va_arg(arguments, uint32_t);
-        if (chooser_item_attrs_t* attributes =
-                va_arg(arguments, chooser_item_attrs_t*)) {
-          attributes->color = g_results->GetColor(index);
-        }
-      }
-    } break;
     case ui_preprocess_action: {
       absl::string_view name(va_arg(arguments, const char*));
       if (name == "LoadFile" || name == "NewFile" || name == "CloseBase" ||

@@ -1,17 +1,17 @@
 #ifndef IDA_UI_H_
 #define IDA_UI_H_
 
-#include <string>
+#include "third_party/zynamics/binexport/types.h"
 
-#include "base/integral_types.h"
+constexpr double kManualMatch = -1.0;
 
-// TODO(cblichmann): Should return uint32_t.
-void HsvToRgb(double h, double s, double v,
-              unsigned char& r,  // NOLINT(runtime/references)
-              unsigned char& g,  // NOLINT(runtime/references)
-              unsigned char& b   // NOLINT(runtime/references)
-              );
+// Returns a 32-bit RGB color value suitable for colorizing match similarities.
+// If passed kManualMatch, returns a color that can be used to mark manual
+// matches.
+uint32_t GetMatchColor(double value);
 
-void CopyToClipboard(const std::string& data);
+// Copies unformatted data to clipboard. Throws on error.
+// TODO(cblichmann): Use util::Status instead of exceptions to signal errors.
+void CopyToClipboard(const string& data);
 
 #endif  // IDA_UI_H_

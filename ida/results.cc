@@ -364,25 +364,6 @@ void Results::DeleteTemporaryFiles() {
   }
 }
 
-uint32_t Results::GetColor(uint32_t index) const {
-  if (!index || index > indexed_fixed_points_.size()) {
-    return 0;
-  }
-
-  const FixedPointInfo& fixed_point = *indexed_fixed_points_[index - 1];
-
-  if (fixed_point.IsManual()) {
-    // Mark manual matches in blue.
-    return (230 << 16) | (200 << 8) | 150;
-  }
-  // Choose hue for automatic matches according to similarity score.
-  uint8_t r = 0;
-  uint8_t g = 0;
-  uint8_t b = 0;
-  HsvToRgb(360 * 0.31 * fixed_point.similarity, 0.3, 0.9, r, g, b);
-  return (b << 16) | (g << 8) | r;
-}
-
 size_t Results::GetNumFixedPoints() const {
   return indexed_fixed_points_.size();
 }
