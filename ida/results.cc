@@ -1,5 +1,13 @@
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <frame.hpp>                                            // NOLINT
+#include <enum.hpp>                                             // NOLINT
+#include <name.hpp>                                             // NOLINT
+#include <struct.hpp>                                           // NOLINT
+#include <ua.hpp>                                               // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
@@ -12,14 +20,6 @@
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/timer.h"
-
-// These are defined in main_plugin.cc.
-extern uint32_t idaapi GetNumUnmatchedSecondary(void* object);
-extern void idaapi GetUnmatchedSecondaryDescription(void* object, uint32_t index,
-                                                    char* const* line);
-extern uint32_t idaapi GetNumUnmatchedPrimary(void* object);
-extern void idaapi GetUnmatchedPrimaryDescription(void* object, uint32_t index,
-                                                  char* const* line);
 
 namespace {
 
@@ -364,16 +364,48 @@ void Results::DeleteTemporaryFiles() {
   }
 }
 
-size_t Results::GetNumFixedPoints() const {
-  return indexed_fixed_points_.size();
-}
-
 size_t Results::GetNumUnmatchedPrimary() const {
   return indexed_flow_graphs1_.size();
 }
 
+Results::UnmatchedDescription Results::GetUnmatchedDescriptionPrimary(
+    size_t index) const {
+  return GetUnmatchedDescription(indexed_flow_graphs1_, index);
+}
+
 size_t Results::GetNumUnmatchedSecondary() const {
   return indexed_flow_graphs2_.size();
+}
+
+Results::UnmatchedDescription Results::GetUnmatchedDescriptionSecondary(
+    size_t index) const {
+  return GetUnmatchedDescription(indexed_flow_graphs2_, index);
+}
+
+Results::UnmatchedDescription Results::GetUnmatchedDescription(
+    const IndexedFlowGraphs& flow_graphs, size_t index) const {
+  if (index < 0 || index >= flow_graphs.size()) {
+    return {};
+  }
+
+  const FlowGraphInfo& flow_graph_info = *flow_graphs[index];
+  // The primary IDB is loaded in IDA and the function name might have been
+  // changed manually, thus we need to propagate that information.
+  if (&flow_graphs == &indexed_flow_graphs1_) {
+    UpdateName(const_cast<CallGraph*>(&call_graph1_), flow_graph_info.address);
+  }
+
+  CHECK(flow_graph_info.demangled_name);
+
+  Results::UnmatchedDescription desc{};
+  desc.address = flow_graph_info.address;
+  desc.name = flow_graph_info.demangled_name->empty()
+                  ? *flow_graph_info.name
+                  : *flow_graph_info.demangled_name;
+  desc.basic_block_count = flow_graph_info.basic_block_count;
+  desc.instruction_count = flow_graph_info.instruction_count;
+  desc.edge_count = flow_graph_info.edge_count;
+  return desc;
 }
 
 Address Results::GetSecondaryAddress(size_t index) const {
@@ -395,20 +427,6 @@ Address Results::GetMatchPrimaryAddress(size_t index) const {
     return 0;
   }
   return indexed_fixed_points_[index - 1]->primary;
-}
-
-void Results::GetUnmatchedDescriptionPrimary(size_t index,
-                                             char* const* line) const {
-  GetUnmatchedDescription(indexed_flow_graphs1_, index, line);
-}
-
-void Results::GetUnmatchedDescriptionSecondary(size_t index,
-                                               char* const* line) const {
-  GetUnmatchedDescription(indexed_flow_graphs2_, index, line);
-}
-
-size_t Results::GetNumStatistics() const {
-  return counts_.size() + histogram_.size() + 2;
 }
 
 bool Results::IncrementalDiff() {
@@ -531,45 +549,43 @@ bool Results::IncrementalDiff() {
   return true;
 }
 
-void Results::GetStatisticsDescription(size_t index, char* const* line) const {
-  // The target buffers are promised to be MAXSTR == 1024 characters long.
-  if (!index) {
-    snprintf(line[0], MAXSTR, "name");
-    snprintf(line[1], MAXSTR, "value");
-    return;
-  }
+size_t Results::GetNumStatistics() const {
+  return counts_.size() + histogram_.size() + 2 /* Similarity & Confidence */;
+}
 
+Results::StatisticDescription Results::GetStatisticDescription(
+    size_t index) const {
+  Results::StatisticDescription desc{};
   if (index > GetNumStatistics()) {
-    return;
+    return desc;
   }
-  --index;
 
   size_t nr = 0;
-  string description;
-  string value;
   if (index < counts_.size()) {
-    auto i = counts_.cbegin();
-    for (; i != counts_.cend() && nr < index; ++i, ++nr) {
+    auto it = counts_.cbegin();
+    for (; it != counts_.cend() && nr < index; ++it, ++nr) {
     }
-    description = i->first;
-    value = std::to_string(i->second);
+    desc.name = it->first;
+    desc.is_count = true;
+    desc.count = it->second;
   } else if (index < histogram_.size() + counts_.size()) {
     index -= counts_.size();
-    auto i = histogram_.cbegin();
-    for (; i != histogram_.cend() && nr < index; ++i, ++nr) {
+    auto it = histogram_.cbegin();
+    for (; it != histogram_.cend() && nr < index; ++it, ++nr) {
     }
-    description = i->first;
-    value = std::to_string(i->second);
+    desc.name = it->first;
+    desc.is_count = true;
+    desc.count = it->second;
   } else if (index == histogram_.size() + counts_.size() + 1) {
-    description = "similarity";
-    value = std::to_string(similarity_);
+    desc.name = "Similarity";
+    desc.is_count = false;
+    desc.value = similarity_;
   } else {
-    description = "confidence";
-    value = std::to_string(confidence_);
+    desc.name = "Confidence";
+    desc.is_count = false;
+    desc.value = confidence_;
   }
-
-  snprintf(line[0], MAXSTR, "%s", description.c_str());
-  snprintf(line[1], MAXSTR, "%s", value.c_str());
+  return desc;
 }
 
 int Results::DeleteMatch(size_t index) {
@@ -892,35 +908,16 @@ int Results::AddMatchSecondary(size_t index) {
 #endif
 }
 
-void Results::GetMatchDescription(size_t index, char* const* line) const {
-  // The target buffers are promised to be MAXSTR == 1024 characters long...
-  if (!index) {
-    snprintf(line[0], MAXSTR, "Similarity");
-    snprintf(line[1], MAXSTR, "Confidence");
-    snprintf(line[2], MAXSTR, "Change");
-    snprintf(line[3], MAXSTR, "EA Primary");
-    snprintf(line[4], MAXSTR, "Name Primary");
-    snprintf(line[5], MAXSTR, "EA Secondary");
-    snprintf(line[6], MAXSTR, "Name Secondary");
-    snprintf(line[7], MAXSTR, "Comments Ported");
-    snprintf(line[8], MAXSTR, "Algorithm");
-    snprintf(line[9], MAXSTR, "Matched Basic Blocks");
-    snprintf(line[10], MAXSTR, "Basic Blocks Primary");
-    snprintf(line[11], MAXSTR, "Basic Blocks Secondary");
-    snprintf(line[12], MAXSTR, "Matched Instructions");
-    snprintf(line[13], MAXSTR, "Instructions Primary");
-    snprintf(line[14], MAXSTR, "Instructions Secondary");
-    snprintf(line[15], MAXSTR, "Matched Edges");
-    snprintf(line[16], MAXSTR, "Edges Primary");
-    snprintf(line[17], MAXSTR, "Edges Secondary");
-    return;
+size_t Results::GetNumMatches() const {
+  return indexed_fixed_points_.size();
+}
+
+Results::MatchDescription Results::GetMatchDescription(int index) const {
+  if (index < 0 || index >= indexed_fixed_points_.size()) {
+    return {};
   }
 
-  if (index > indexed_fixed_points_.size()) {
-    return;
-  }
-
-  const FixedPointInfo& fixed_point(*indexed_fixed_points_[index - 1]);
+  const FixedPointInfo& fixed_point(*indexed_fixed_points_[index]);
   UpdateName(const_cast<CallGraph*>(&call_graph1_), fixed_point.primary);
 
   FlowGraphInfo empty{0};
@@ -932,35 +929,30 @@ void Results::GetMatchDescription(size_t index, char* const* line) const {
       flow_graph_infos2_.find(fixed_point.secondary) != flow_graph_infos2_.end()
           ? flow_graph_infos2_.find(fixed_point.secondary)->second
           : empty);
-  snprintf(line[0], MAXSTR, "%.2f", fixed_point.similarity);
-  snprintf(line[1], MAXSTR, "%.2f", fixed_point.confidence);
-  snprintf(line[2], MAXSTR, "%s",
-           GetChangeDescription(ChangeType(fixed_point.flags)).c_str());
-  snprintf(line[3], MAXSTR, HEX_ADDRESS,
-           static_cast<ea_t>(fixed_point.primary));
-  snprintf(line[4], MAXSTR, "%s",
-           call_graph1_.GetGoodName(call_graph1_.GetVertex(fixed_point.primary))
-               .c_str());
-  snprintf(line[5], MAXSTR, HEX_ADDRESS,
-           static_cast<ea_t>(fixed_point.secondary));
-  snprintf(
-      line[6], MAXSTR, "%s",
-      call_graph2_.GetGoodName(call_graph2_.GetVertex(fixed_point.secondary))
-          .c_str());
-  snprintf(line[7], MAXSTR, "%s", fixed_point.comments_ported ? "X" : " ");
-  snprintf(
-      line[8], MAXSTR, "%s",
-      fixed_point.algorithm->substr(fixed_point.algorithm->size() > 10 ? 10 : 0)
-          .c_str());
-  snprintf(line[9], MAXSTR, "%5d", fixed_point.basic_block_count);
-  snprintf(line[10], MAXSTR, "%5d", primary.basic_block_count);
-  snprintf(line[11], MAXSTR, "%5d", secondary.basic_block_count);
-  snprintf(line[12], MAXSTR, "%6d", fixed_point.instruction_count);
-  snprintf(line[13], MAXSTR, "%6d", primary.instruction_count);
-  snprintf(line[14], MAXSTR, "%6d", secondary.instruction_count);
-  snprintf(line[15], MAXSTR, "%5d", fixed_point.edge_count);
-  snprintf(line[16], MAXSTR, "%5d", primary.edge_count);
-  snprintf(line[17], MAXSTR, "%5d", secondary.edge_count);
+
+  MatchDescription desc{};
+  desc.similarity = fixed_point.similarity;
+  desc.confidence = fixed_point.confidence;
+  desc.change_type = static_cast<ChangeType>(fixed_point.flags);
+  desc.address_primary = fixed_point.primary;
+  desc.name_primary =
+      call_graph1_.GetGoodName(call_graph1_.GetVertex(fixed_point.primary));
+  desc.address_secondary = fixed_point.secondary;
+  desc.name_secondary =
+      call_graph2_.GetGoodName(call_graph2_.GetVertex(fixed_point.secondary));
+  desc.comments_ported = fixed_point.comments_ported;
+  desc.algorithm_name = *fixed_point.algorithm;
+  desc.basic_block_count = fixed_point.basic_block_count;
+  desc.basic_block_count_primary = primary.basic_block_count;
+  desc.basic_block_count_secondary = secondary.basic_block_count;
+  desc.instruction_count = fixed_point.instruction_count;
+  desc.instruction_count_primary = primary.instruction_count;
+  desc.instruction_count_secondary = secondary.instruction_count;
+  desc.edge_count = fixed_point.edge_count;
+  desc.edge_count_primary = primary.edge_count;
+  desc.edge_count_secondary = secondary.edge_count;
+  desc.manual = fixed_point.IsManual();
+  return desc;
 }
 
 void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
@@ -1386,7 +1378,6 @@ int Results::ConfirmMatch(int index) {
 #endif
 }
 
-
 int Results::CopyPrimaryAddress(int index) const {
   if (index < 1 || index > static_cast<int>(indexed_fixed_points_.size())) {
     return 0;
@@ -1452,37 +1443,6 @@ int Results::CopySecondaryAddressUnmatched(int index) const {
 }
 
 bool Results::IsInComplete() const { return incomplete_results_; }
-
-void Results::GetUnmatchedDescription(const IndexedFlowGraphs& flow_graphs,
-                                      size_t index, char* const* line) const {
-  // The target buffers are promised to be MAXSTR == 1024 characters long...
-  if (!index) {
-    snprintf(line[0], MAXSTR, "EA");
-    snprintf(line[1], MAXSTR, "Name");
-    snprintf(line[2], MAXSTR, "Basicblocks");
-    snprintf(line[3], MAXSTR, "Instructions");
-    snprintf(line[4], MAXSTR, "Edges");
-    return;
-  }
-
-  const FlowGraphInfo& flow_graph_info = *flow_graphs[index - 1];
-  // The primary IDB is loaded in IDA and the function name might have been
-  // changed manually, thus we need to propagate that information.
-  if (&flow_graphs == &indexed_flow_graphs1_) {
-    UpdateName(const_cast<CallGraph*>(&call_graph1_), flow_graph_info.address);
-  }
-
-  CHECK(flow_graph_info.demangled_name);
-  snprintf(line[0], MAXSTR, HEX_ADDRESS,
-           static_cast<ea_t>(flow_graph_info.address));
-  snprintf(line[1], MAXSTR, "%s",
-           flow_graph_info.demangled_name->empty()
-               ? flow_graph_info.name->c_str()
-               : flow_graph_info.demangled_name->c_str());
-  snprintf(line[2], MAXSTR, "%5d", flow_graph_info.basic_block_count);
-  snprintf(line[3], MAXSTR, "%6d", flow_graph_info.instruction_count);
-  snprintf(line[4], MAXSTR, "%5d", flow_graph_info.edge_count);
-}
 
 void Results::InitializeIndexedVectors() {
   std::set<Address> matched_primaries;

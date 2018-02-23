@@ -157,12 +157,18 @@ add_ida_plugin(${bindiff_plugin_name} EA64
   ${BinExport_DIR}/ida/ui.cc
   ${BinExport_DIR}/ida/ui.h
   ida/main_plugin.cc
+  ida/matched_functions_chooser.cc
+  ida/matched_functions_chooser.h
   ida/names.cc
   ida/names.h
   ida/results.cc
   ida/results.h
+  ida/statistics_chooser.cc
+  ida/statistics_chooser.h
   ida/ui.cc
   ida/ui.h
+  ida/unmatched_functions_chooser.cc
+  ida/unmatched_functions_chooser.h
   ida/visual_diff.cc
   ida/visual_diff.h
 )

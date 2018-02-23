@@ -5,13 +5,6 @@
 #include <vector>
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
-#include <enum.hpp>                                             // NOLINT
-#include <frame.hpp>                                            // NOLINT
-#include <funcs.hpp>                                            // NOLINT
-#include <kernwin.hpp>                                          // NOLINT
-#include <name.hpp>                                             // NOLINT
-#include <struct.hpp>                                           // NOLINT
-#include <xref.hpp>                                             // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/integral_types.h"
@@ -32,24 +25,69 @@
 
 class Results {
  public:
+  struct StatisticDescription {
+    string name;
+    bool is_count;
+    union {
+      size_t count;
+      double value;
+    };
+  };
+
+  struct MatchDescription {
+    double similarity;
+    double confidence;
+    ChangeType change_type;
+    Address address_primary;
+    string name_primary;
+    Address address_secondary;
+    string name_secondary;
+    bool comments_ported;
+    string algorithm_name;
+    int basic_block_count;
+    int basic_block_count_primary;
+    int basic_block_count_secondary;
+    int edge_count;
+    int edge_count_primary;
+    int edge_count_secondary;
+    int instruction_count;
+    int instruction_count_primary;
+    int instruction_count_secondary;
+    bool manual;
+  };
+
+  struct UnmatchedDescription {
+    Address address;
+    string name;
+    int basic_block_count;
+    int instruction_count;
+    int edge_count;
+  };
+
   Results();
   ~Results();
 
-  size_t GetNumFixedPoints() const;
   size_t GetNumUnmatchedPrimary() const;
+  UnmatchedDescription GetUnmatchedDescriptionPrimary(size_t index) const;
+
   size_t GetNumUnmatchedSecondary() const;
+  UnmatchedDescription GetUnmatchedDescriptionSecondary(size_t index) const;
+
   Address GetPrimaryAddress(size_t index) const;
   Address GetSecondaryAddress(size_t index) const;
   Address GetMatchPrimaryAddress(size_t index) const;
-  void GetUnmatchedDescriptionPrimary(size_t index, char* const* line) const;
-  void GetUnmatchedDescriptionSecondary(size_t index, char* const* line) const;
-  size_t GetNumStatistics() const;
+
   int DeleteMatch(size_t index);
   int AddMatchPrimary(size_t index);
   int AddMatchSecondary(size_t index);
   int AddMatch(Address primary, Address secondary);
-  void GetStatisticsDescription(size_t index, char* const* line) const;
-  void GetMatchDescription(size_t index, char* const* line) const;
+
+  size_t GetNumStatistics() const;
+  StatisticDescription GetStatisticDescription(size_t index) const;
+
+  size_t GetNumMatches() const;
+  MatchDescription GetMatchDescription(int index) const;
+
   bool PrepareVisualDiff(size_t index, string* message);
   bool PrepareVisualCallGraphDiff(size_t index, string* message);
   void Read(Reader* reader);
@@ -87,8 +125,8 @@ class Results {
   typedef std::vector<FlowGraphInfo*> IndexedFlowGraphs;
   typedef std::vector<FixedPointInfo*> IndexedFixedPoints;
 
-  void GetUnmatchedDescription(const IndexedFlowGraphs& flow_graphs,
-                               size_t index, char* const* line) const;
+  UnmatchedDescription GetUnmatchedDescription(
+      const IndexedFlowGraphs& flow_graphs, size_t index) const;
   void InitializeIndexedVectors();
   void Count();
   void SetupTemporaryFlowGraphs(

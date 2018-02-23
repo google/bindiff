@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 #include <sstream>
-#include <thread>
+#include <thread>  // NOLINT(build/c++11)
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
@@ -25,6 +25,7 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
+#include "third_party/absl/base/macros.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
@@ -36,7 +37,10 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph_matching.h"
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
+#include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
+#include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
+#include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/matching.h"
@@ -129,13 +133,10 @@ class ExporterThread {
       : success_(false),
         secondary_idb_path_(idb_path),
         secondary_temp_dir(JoinPath(temp_dir, "secondary")),
-        idc_file_(JoinPath(temp_dir, "run_secondary.idc")) {
+        idc_file_(JoinPath(temp_dir, "export_secondary.idc")) {
     RemoveAll(secondary_temp_dir);
     CreateDirectories(secondary_temp_dir);
 
-    // TODO(cblichmann): Add plugin 'command' option to BinExport so we can
-    //                   directly export from the command-line and don't need
-    //                   the IDC temp script.
     std::ofstream file(idc_file_.c_str());
     file << "#include <idc.idc>\n"
          << "static main()\n"
@@ -237,9 +238,9 @@ bool ExportIdbs() {
     qstring errbuf;
     idc_value_t arg(primary_temp_dir.c_str());
     if (!call_idc_func(
-            /*result=*/nullptr,
-            absl::StrCat("BinExport2Diff", kBinExportVersion).c_str(), &arg,
+            /*result=*/nullptr, "BinExportBinary", &arg,
             /*argsnum=*/1, &errbuf, /*resolver=*/nullptr)) {
+      thread.detach();
       throw std::runtime_error(absl::StrCat(
           "Export of the current database failed: ", errbuf.c_str()));
     }
@@ -252,13 +253,6 @@ bool ExportIdbs() {
   }
 
   return true;
-}
-
-uint32_t idaapi GetNumFixedPoints(void* /* unused */) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->GetNumFixedPoints();
 }
 
 void DoVisualDiff(uint32_t index, bool call_graph_diff) {
@@ -281,6 +275,7 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
     SendGuiMessage(
         g_config->ReadInt("/BinDiff/Gui/@retries", 20),
         g_config->ReadString("/BinDiff/Gui/@directory",
+                             // TODO(cblichmann): Use better defaults
                              "C:\\Program Files\\zynamics\\BinDiff 4.3\\bin"),
         g_config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
         static_cast<uint16_t>(g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
@@ -395,45 +390,6 @@ void idaapi jumpToUnmatchedPrimaryAddress(void* /* unused */, uint32_t index) {
   jumpto(static_cast<ea_t>(g_results->GetPrimaryAddress(index)));
 }
 
-void idaapi GetUnmatchedPrimaryDescription(void* /* unused */, uint32_t index,
-                                           char* const* line) {
-  if (!g_results) {
-    return;
-  }
-  g_results->GetUnmatchedDescriptionPrimary(index, line);
-}
-
-void idaapi GetUnmatchedSecondaryDescription(void* /* unused */, uint32_t index,
-                                             char* const* line) {
-  if (!g_results) {
-    return;
-  }
-  g_results->GetUnmatchedDescriptionSecondary(index, line);
-}
-
-uint32_t idaapi GetNumStatistics(void* /* unused */) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->GetNumStatistics();
-}
-
-void idaapi GetStatisticsDescription(void* /* unused */, uint32_t index,
-                                     char* const* line) {
-  if (!g_results) {
-    return;
-  }
-  g_results->GetStatisticsDescription(index, line);
-}
-
-void idaapi GetMatchDescription(void* /* unused */, uint32_t index,
-                                char* const* line) {
-  if (!g_results) {
-    return;
-  }
-  g_results->GetMatchDescription(index, line);
-}
-
 uint32_t idaapi DeleteMatch(void* /* unused */, uint32_t index) {
   if (!g_results) {
     return 0;
@@ -487,13 +443,6 @@ void idaapi JumpToMatchAddress(void* /* unused */, uint32_t index) {
   if (!g_results) return;
 
   jumpto(static_cast<ea_t>(g_results->GetMatchPrimaryAddress(index)));
-}
-
-// Need to close forms if we are calling choose2 from askUsingForm_c callback
-// and the choose2 window is still open. If we don't close it first IDA hangs
-// in a deadlock.
-void CloseForm(const char* name) {
-  // TODO(cblichmann): Use form_actions_t::close
 }
 
 void SaveAndDiscardResults() {
@@ -580,21 +529,12 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
   results->CreateIndexedViews();
 
   if (flags & kResultsShowMatched) {
-    // TODO(cblichmann): Port this over to the new IDA 7 API
+    (new MatchedFunctionsChooser(g_results))->choose();
 #if 0
     if (!find_tform("Matched Functions")) {
-      static const int widths[] = {5, 3, 3, 10, 30, 10, 30, 1, 30,
-                                   5, 5, 5, 6,  6,  6,  5,  5, 5};
       static const char* popups[] =  // insert, delete, edit, refresh
           {"Delete Match", "Delete Match", "View Flowgraphs", "Refresh"};
-      CloseForm("Matched Functions");
-      choose2(CH_MULTI | CH_ATTRS, -1, -1, -1, -1,
-              // Magic value to differentiate our window from IDA's.
-              reinterpret_cast<void*>(0x00000001),
-              static_cast<int>(sizeof(widths) / sizeof(widths[0])), widths,
-              &GetNumFixedPoints, &GetMatchDescription, "Matched Functions",
-              -1,                      // icon
-              static_cast<uint32_t>(1),  // default
+      close_chooser("Matched Functions");
               &DeleteMatch,            // delete callback
               0,                       // insert callback
               0,                       // update callback
@@ -603,23 +543,16 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
               nullptr,                 // destroy callback
               popups,                  // popups (insert, delete, edit, refresh)
               0);
-
       // not currently implemented/used
       // add_chooser_command( "Matched Functions", "View Call graphs",
       //    &VisualCallGraphDiffCallback, -1, -1, CHOOSER_POPUP_MENU );
-      // @bug: IDA will forget the selection state if CHOOSER_MULTI_SELECTION is
-      //       set. See fogbugz 2946 and my mail to hex rays.
-      // @bug: IDA doesn't allow adding hotkeys for custom menu entries. See
-      //       fogbugz 2945 and my mail to hex rays.
       add_chooser_command("Matched Functions", "Import Symbols and Comments",
                           &PortCommentsSelection, -1, -1,
                           CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
-
       add_chooser_command("Matched Functions",
                           "Import Symbols and Comments as external lib",
                           &PortCommentsSelectionAsLib, -1, -1,
                           CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
-
       add_chooser_command("Matched Functions", "Confirm Match", &ConfirmMatch,
                           -1, -1, CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
 #ifdef WIN32
@@ -635,25 +568,9 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
   }
 
   if (flags & kResultsShowStatistics) {
-    // TODO(cblichmann): Port this over to the new IDA 7 API
+    (new StatisticsChooser(g_results))->choose();
 #if 0
     if (!find_tform("Statistics")) {
-      static const int widths[] = {30, 12};
-      static const char* popups[] = {0, 0, 0, 0};
-      CloseForm("Statistics");
-      choose2(0, -1, -1, -1, -1, static_cast<void*>(0),
-              static_cast<int>(sizeof(widths) / sizeof(widths[0])), widths,
-              &GetNumStatistics, &GetStatisticsDescription, "Statistics",
-              -1,                      // icon
-              static_cast<uint32_t>(1),  // default
-              0,                       // delete callback
-              0,                       // new callback
-              0,                       // update callback
-              0,                       // edit callback
-              0,                       // enter callback
-              nullptr,                 // destroy callback
-              popups,                  // popups (insert, delete, edit, refresh)
-              0);
     } else {
       refresh_chooser("Statistics");
     }
@@ -661,71 +578,34 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
   }
 
   if (flags & kResultsShowPrimaryUnmatched) {
-    // TODO(cblichmann): Port this over to the new IDA 7 API
+    (new UnmatchedFunctionsChooserPrimary(g_results))->choose();
 #if 0
-    if (!find_tform("Primary Unmatched")) {
-      static const int widths[] = {10, 30, 5, 6, 5};
-      static const char* popups[] = {0, 0, 0, 0};
-      CloseForm("Primary Unmatched");
-      choose2(0, -1, -1, -1, -1, static_cast<void*>(0),
-              sizeof(widths) / sizeof(widths[0]), widths,
-              &GetNumUnmatchedPrimary, &GetUnmatchedPrimaryDescription,
-              "Primary Unmatched", -1,         // icon
-              1,                               // default
-              0,                               // delete callback
-              0,                               // new callback
-              0,                               // update callback
-              0,                               // edit callback
-              &jumpToUnmatchedPrimaryAddress,  // enter callback
-              nullptr,                         // destroy callback
-              popups,  // popups (insert, delete, edit, refresh)
-              0);
-
-      add_chooser_command("Primary Unmatched", "Add Match", &AddMatchPrimary,
-                          -1, -1, CHOOSER_POPUP_MENU);
+    choose2(0, -1, -1, -1, -1, static_cast<void*>(0),
+            sizeof(widths) / sizeof(widths[0]), widths,
+            &GetNumUnmatchedPrimary, &GetUnmatchedPrimaryDescription,
+            "Primary Unmatched", -1,         // icon
+            1,                               // default
+            0,                               // delete callback
+            0,                               // new callback
+            0,                               // update callback
+            0,                               // edit callback
+            &jumpToUnmatchedPrimaryAddress,  // enter callback
+            nullptr,                         // destroy callback
+            popups,  // popups (insert, delete, edit, refresh)
+            0);
+    add_chooser_command("Primary Unmatched", "Add Match", &AddMatchPrimary,
+                        -1, -1, CHOOSER_POPUP_MENU);
 #ifdef WIN32
-      add_chooser_command("Primary Unmatched", "Copy Address",
-                          &CopyPrimaryAddressUnmatched, -1, -1,
-                          CHOOSER_POPUP_MENU);
+    add_chooser_command("Primary Unmatched", "Copy Address",
+                        &CopyPrimaryAddressUnmatched, -1, -1,
+                        CHOOSER_POPUP_MENU);
 #endif
-    } else {
-      refresh_chooser("Primary Unmatched");
-    }
+    refresh_chooser("Primary Unmatched");
 #endif
   }
 
   if (flags & kResultsShowSecondaryUnmatched) {
-    // TODO(cblichmann): Port this over to the new IDA 7 API
-#if 0
-    if (!find_tform("Secondary Unmatched")) {
-      static const int widths[] = {10, 30, 5, 6, 5};
-      static const char* popups[] = {0, 0, 0, 0};
-      CloseForm("Secondary Unmatched");
-      choose2(0, -1, -1, -1, -1, static_cast<void*>(0),
-              sizeof(widths) / sizeof(widths[0]), widths,
-              &GetNumUnmatchedSecondary, &GetUnmatchedSecondaryDescription,
-              "Secondary Unmatched", -1,  // icon
-              1,                          // default
-              0,                          // delete callback
-              0,                          // new callback
-              0,                          // update callback
-              0,                          // edit callback
-              0,                          // enter callback
-              nullptr,                    // destroy callback
-              popups,  // popups (insert, delete, edit, refresh)
-              0);
-
-      add_chooser_command("Secondary Unmatched", "Add Match",
-                          &AddMatchSecondary, -1, -1, CHOOSER_POPUP_MENU);
-#ifdef WIN32
-      add_chooser_command("Secondary Unmatched", "Copy Address",
-                          &CopySecondaryAddressUnmatched, -1, -1,
-                          CHOOSER_POPUP_MENU);
-#endif
-    } else {
-      refresh_chooser("Secondary Unmatched");
-    }
-#endif
+    (new UnmatchedFunctionsChooserSecondary(g_results))->choose();
   }
 }
 
@@ -761,8 +641,8 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
   call_graph->DeleteVertices(start, end);
 }
 
-bool Diff(ea_t start_address_source, ea_t end_address_source,
-          ea_t start_address_target, ea_t end_address_target) {
+bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
+                      ea_t start_address_target, ea_t end_address_target) {
   Timer<> timer;
   try {
     if (!ExportIdbs()) {
@@ -791,7 +671,7 @@ bool Diff(ea_t start_address_source, ea_t end_address_source,
   const auto filename2(FindFile(JoinPath(temp_dir, "secondary"), ".BinExport"));
   if (filename1.empty() || filename2.empty()) {
     throw std::runtime_error(
-        "Export failed. Is the secondary idb opened in another IDA instance? "
+        "Export failed. Is the secondary IDB opened in another IDA instance? "
         "Please close all other IDA instances and try again.");
   }
 
@@ -874,14 +754,13 @@ bool DoDiffDatabase(bool filtered) {
           "  <End address (primary):$::16::>\n"
           "  <Start address (secondary):$::16::>\n"
           "  <End address (secondary):$::16::>\n\n";
-
       if (!ask_form(kDialog, &start_address_source, &end_address_source,
                           &start_address_target, &end_address_target)) {
         return false;
       }
     }
-    return Diff(start_address_source, end_address_source, start_address_target,
-                end_address_target);
+    return DiffAddressRange(start_address_source, end_address_source,
+                            start_address_target, end_address_target);
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while diffing: " << message.what();
     warning("Error while diffing: %s\n", message.what());
@@ -890,27 +769,6 @@ bool DoDiffDatabase(bool filtered) {
     warning("Unknown error while diffing.");
   }
   return false;
-}
-
-void idaapi ButtonDiffDatabaseFilteredCallback(int button_code,
-                                               form_actions_t& actions) {
-  if (DoDiffDatabase(/*filtered=*/true)) {
-//    close_form(fields, 1);
-  }
-}
-
-void idaapi ButtonDiffDatabaseCallback(int button_code,
-                                       form_actions_t& actions) {
-  if (DoDiffDatabase(/*filtered=*/false)) {
-//    close_form(fields, 1);
-  }
-}
-
-void idaapi ButtonRediffDatabaseCallback(int button_code,
-                                         form_actions_t& actions) {
-  if (DoRediffDatabase()) {
-//    close_form(fields, 1);
-  }
 }
 
 bool DoPortComments() {
@@ -970,13 +828,6 @@ bool DoPortComments() {
     warning("Unknown error while porting comments.");
   }
   return false;
-}
-
-void idaapi ButtonPortCommentsCallback(int button_code,
-                                       form_actions_t& actions) {
-  if (DoPortComments()) {
-//    close_form(fields, 1);
-  }
 }
 
 bool WriteResults(const string& path) {
@@ -1068,11 +919,6 @@ bool DoSaveResultsLog() {
   return true;
 }
 
-void idaapi ButtonSaveResultsLogCallback(int button_code,
-                                         form_actions_t& actions) {
-  DoSaveResultsLog();
-}
-
 bool DoSaveResultsDebug() {
   if (!g_results) {
     vinfo("Please perform a diff first", 0);
@@ -1109,11 +955,6 @@ bool DoSaveResultsDebug() {
   return true;
 }
 
-void idaapi ButtonSaveResultsDebugCallback(int button_code,
-                                           form_actions_t& actions) {
-  DoSaveResultsDebug();
-}
-
 bool DoSaveResults() {
   if (!g_results) {
     vinfo("Please perform a diff first.", 0);
@@ -1146,16 +987,6 @@ bool DoSaveResults() {
     warning("Error writing results.\n");
   }
   return false;
-}
-
-bool idaapi MenuItemSaveResultsCallback(void* /* unused */) {
-  // Refresh screen if user did not cancel
-  return DoSaveResults();
-}
-
-void idaapi ButtonSaveResultsCallback(int button_code,
-                                      form_actions_t& actions) {
-  DoSaveResults();
 }
 
 bool DoLoadResults() {
@@ -1226,10 +1057,59 @@ bool DoLoadResults() {
   return false;
 }
 
+void idaapi ButtonDiffDatabaseCallback(int button_code,
+                                       form_actions_t& actions) {
+  if (DoDiffDatabase(/*filtered=*/false)) {
+    actions.close(/*close_normally=*/1);
+  }
+}
+
+void idaapi ButtonDiffDatabaseFilteredCallback(int button_code,
+                                               form_actions_t& actions) {
+  if (DoDiffDatabase(/*filtered=*/true)) {
+    actions.close(/*close_normally=*/1);
+  }
+}
+
+void idaapi ButtonRediffDatabaseCallback(int button_code,
+                                         form_actions_t& actions) {
+  if (DoRediffDatabase()) {
+    actions.close(/*close_normally=*/1);
+  }
+}
+
 void idaapi ButtonLoadResultsCallback(int button_code,
                                       form_actions_t& actions) {
   if (DoLoadResults()) {
-//    close_form(fields, 1);
+    actions.close(/*close_normally=*/1);
+  }
+}
+
+void idaapi ButtonSaveResultsCallback(int button_code,
+                                      form_actions_t& actions) {
+  if (DoSaveResults()) {
+    actions.close(/*close_normally=*/1);
+  }
+}
+
+void idaapi ButtonSaveResultsLogCallback(int button_code,
+                                         form_actions_t& actions) {
+  if (DoSaveResultsLog()) {
+    actions.close(/*close_normally=*/1);
+  }
+}
+
+void idaapi ButtonSaveResultsDebugCallback(int button_code,
+                                           form_actions_t& actions) {
+  if (DoSaveResultsDebug()) {
+    actions.close(/*close_normally=*/1);
+  }
+}
+
+void idaapi ButtonPortCommentsCallback(int button_code,
+                                       form_actions_t& actions) {
+  if (DoPortComments()) {
+    actions.close(/*close_normally=*/1);
   }
 }
 
@@ -1241,19 +1121,19 @@ class DiffDatabaseAction : public ActionHandler<DiffDatabaseAction> {
 
 class LoadResultsAction : public ActionHandler<LoadResultsAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
-    return DoLoadResults();  // Refresh screen if user did not cancel
+    return DoLoadResults();  // Refresh if user did not cancel
   }
 };
 
 class SaveResultsAction : public ActionHandler<SaveResultsAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
-    return DoLoadResults();  // Refresh screen if user did not cancel
+    return DoSaveResults();  // Refresh if user did not cancel
   }
 };
 
 class PortCommentsAction : public ActionHandler<PortCommentsAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
-    return DoPortComments();  // Refresh screen if user did not cancel
+    return DoPortComments();  // Refresh if user did not cancel
   }
 };
 
@@ -1392,6 +1272,23 @@ void InitMenus() {
                         "bindiff:show_secondary_unmatched", SETMENU_APP);
 }
 
+void TermMenus() {
+  detach_action_from_menu("File/BinDiff", "bindiff:diff_database");
+  detach_action_from_menu("File/LoadFile/BinDiffResults",
+                          "bindiff:load_results");
+  detach_action_from_menu("File/ProduceFile/SaveBinDiffResults",
+                          "bindiff:save_results");
+  detach_action_from_menu("Edit/Comments/ImportSymbolsAndComments",
+                          "bindiff:port_comments");
+  detach_action_from_menu("View/BinDiff/MatchedFunctions",
+                          "bindiff:show_matched");
+  detach_action_from_menu("View/BinDiff/Statistics", "bindiff:show_statistics");
+  detach_action_from_menu("View/BinDiff/PrimaryUnmatched",
+                          "bindiff:show_primary_unmatched");
+  detach_action_from_menu("View/BinDiff/SecondaryUnmatched",
+                          "bindiff:show_secondary_unmatched");
+}
+
 int idaapi PluginInit() {
   LoggingOptions options;
   options.set_alsologtostderr(
@@ -1440,27 +1337,10 @@ int idaapi PluginInit() {
       GetArgument("Against"));  // -OBinDiffAgainst:<IDB>
   if (!diff_against.empty()) {
     LOG(INFO) << "Diff requested in plugin option";
-    // TODO(cblichmann): Factor out the UI from Diff()
+    // TODO(cblichmann): Factor out the UI from DiffAddressRange()
   }
 
   return PLUGIN_KEEP;
-}
-
-void TermMenus() {
-  detach_action_from_menu("File/BinDiff", "bindiff:diff_database");
-  detach_action_from_menu("File/LoadFile/BinDiffResults",
-                          "bindiff:load_results");
-  detach_action_from_menu("File/ProduceFile/SaveBinDiffResults",
-                          "bindiff:save_results");
-  detach_action_from_menu("Edit/Comments/ImportSymbolsAndComments",
-                          "bindiff:port_comments");
-  detach_action_from_menu("View/BinDiff/MatchedFunctions",
-                          "bindiff:show_matched");
-  detach_action_from_menu("View/BinDiff/Statistics", "bindiff:show_statistics");
-  detach_action_from_menu("View/BinDiff/PrimaryUnmatched",
-                          "bindiff:show_primary_unmatched");
-  detach_action_from_menu("View/BinDiff/SecondaryUnmatched",
-                          "bindiff:show_secondary_unmatched");
 }
 
 void idaapi PluginTerminate() {
