@@ -113,7 +113,7 @@ bool PortFunctionName(FixedPoint* fixed_point) {
 }
 
 size_t SetComments(Address source, Address target, const Comments& comments,
-                   FixedPoint* fixed_point = 0) {
+                   FixedPoint* fixed_point = nullptr) {
   int comment_count = 0;
   const OperatorId begin(std::make_pair(source, 0));
   for (auto i = comments.lower_bound(begin);
@@ -123,19 +123,21 @@ size_t SetComments(Address source, Address target, const Comments& comments,
     const Address address = target;
     const int operand_id = i->first.second;
 
-    // Do not port auto generated names (unfortunately this does not work for
-    // comments).
-    if ((comment.type_ == Comment::ENUM || comment.type_ == Comment::LOCATION ||
-         comment.type_ == Comment::GLOBALREFERENCE ||
-         comment.type_ == Comment::LOCALREFERENCE) &&
-        !is_uname(comment.comment_.c_str())) {
+    // Do not port auto-generated names (unfortunately this does not work for
+    // comments that were auto-generated).
+    if ((comment.type == Comment::ENUM || comment.type == Comment::LOCATION ||
+         comment.type == Comment::GLOBALREFERENCE ||
+         comment.type == Comment::LOCALREFERENCE) &&
+        !is_uname(comment.comment.c_str())) {
       continue;
     }
 
-    switch (comment.type_) {
+    // TODO(b/63693724): comment.type will only ever be REGULAR, due to changed
+    //                   behavior in BinExport2.
+    switch (comment.type) {
       case Comment::REGULAR:
-        set_cmt(static_cast<ea_t>(address), comment.comment_.c_str(),
-                comment.repeatable_);
+        set_cmt(static_cast<ea_t>(address), comment.comment.c_str(),
+                comment.repeatable);
         break;
       case Comment::ENUM: {
         unsigned char serial;
@@ -143,14 +145,14 @@ size_t SetComments(Address source, Address target, const Comments& comments,
             operand_id == 0) {
           if (int id = get_enum_id(&serial, static_cast<ea_t>(address),
                                    operand_id) != BADNODE) {
-            set_enum_name(id, comment.comment_.c_str());
+            set_enum_name(id, comment.comment.c_str());
           }
         }
         if (is_enum1(get_full_flags(static_cast<ea_t>(address))) &&
             operand_id == 1) {
           if (int id = get_enum_id(&serial, static_cast<ea_t>(address),
                                    operand_id) != BADNODE) {
-            set_enum_name(id, comment.comment_.c_str());
+            set_enum_name(id, comment.comment.c_str());
           }
         }
         break;
@@ -158,8 +160,7 @@ size_t SetComments(Address source, Address target, const Comments& comments,
       case Comment::FUNCTION: {
         if (func_t* function = get_func(static_cast<ea_t>(address))) {
           if (function->start_ea == address) {
-            set_func_cmt(function, comment.comment_.c_str(),
-                         comment.repeatable_);
+            set_func_cmt(function, comment.comment.c_str(), comment.repeatable);
           }
         }
         break;
@@ -171,17 +172,17 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         break;
       case Comment::ANTERIOR: {
         const string existing_comment = GetLineComments(address, -1);
-        if (existing_comment.rfind(comment.comment_) == string::npos) {
+        if (existing_comment.rfind(comment.comment) == string::npos) {
           add_extra_line(static_cast<ea_t>(address), true, "%s",
-                         comment.comment_.c_str());
+                         comment.comment.c_str());
         }
         break;
       }
       case Comment::POSTERIOR: {
         const string existing_comment = GetLineComments(address, +1);
-        if (existing_comment.rfind(comment.comment_) == string::npos) {
+        if (existing_comment.rfind(comment.comment) == string::npos) {
           add_extra_line(static_cast<ea_t>(address), false, "%s",
-                         comment.comment_.c_str());
+                         comment.comment.c_str());
         }
         break;
       }
@@ -193,8 +194,8 @@ size_t SetComments(Address source, Address target, const Comments& comments,
           if (count == operand_id - UA_MAXOP - 1024) {
             qstring current_name = get_name(xb.to, /*flags=*/0);
             if (absl::string_view(current_name.c_str(),
-                                  current_name.length()) == comment.comment_) {
-              set_name(xb.to, comment.comment_.c_str(), SN_NOWARN | SN_CHECK);
+                                  current_name.length()) == comment.comment) {
+              set_name(xb.to, comment.comment.c_str(), SN_NOWARN | SN_CHECK);
             }
             break;
           }
@@ -222,7 +223,7 @@ size_t SetComments(Address source, Address target, const Comments& comments,
           }
 
           if (operand_num == operand_id - UA_MAXOP - 2048) {
-            set_member_name(frame, offset, comment.comment_.c_str());
+            set_member_name(frame, offset, comment.comment.c_str());
           }
         }
         break;
@@ -242,10 +243,10 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         break;
       }
       default:
-        LOG(INFO) << absl::StrCat("Unknown comment type ", comment.type_, ": ",
+        LOG(INFO) << absl::StrCat("Unknown comment type ", comment.type, ": ",
                                   absl::Hex(source, absl::kZeroPad8), " -> ",
                                   absl::Hex(target, absl::kZeroPad8), " ",
-                                  i->second.comment_);
+                                  i->second.comment);
         break;
     }
   }
@@ -256,14 +257,18 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
                    Address start_source, Address end_source,
                    Address start_target, Address end_target,
                    double min_confidence, double min_similarity) {
-  // we call SetComments three times here which potentially sets a single
-  // comment multiple times. We have to do this however, because we are
-  // iterating over fixedpoints and might miss comments otherwise.
-  // i.e. we may have a function fixed point but no corresponding instruction
-  // fixed point for the function's entry point address
+  // Comments are always ported from secondary to primary:
+  const FlowGraph* source_flow_graph = fixed_point->GetSecondary();
+  const FlowGraph* target_flow_graph = fixed_point->GetPrimary();
+
+  // SetComments is called three times below which potentially sets a single
+  // comment multiple times. This is necessary however, because iterating over
+  // fixedpoints might miss comments otherwise. For instance, there may be a
+  // function fixed point but no corresponding instruction fixed point for the
+  // function's entry point address.
   size_t counts = 0;
-  Address source = fixed_point->GetSecondary()->GetEntryPointAddress();
-  Address target = fixed_point->GetPrimary()->GetEntryPointAddress();
+  Address source = source_flow_graph->GetEntryPointAddress();
+  Address target = target_flow_graph->GetEntryPointAddress();
   fixed_point->SetCommentsPorted(true);
 
   if (source >= start_source && source <= end_source &&
@@ -279,38 +284,29 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
     }
   }
 
-  auto source_vertex = fixed_point->GetSecondary()->GetVertex(source);
-  auto target_vertex = fixed_point->GetPrimary()->GetVertex(target);
-  const BasicBlockFixedPoints& basic_block_fixed_points =
-      fixed_point->GetBasicBlockFixedPoints();
-  for (auto j = basic_block_fixed_points.begin();
-       j != basic_block_fixed_points.end(); ++j) {
-    if (source_vertex != j->GetSecondaryVertex() ||
-        target_vertex != j->GetPrimaryVertex()) {
-      source_vertex = j->GetSecondaryVertex();
-      target_vertex = j->GetPrimaryVertex();
-      source = fixed_point->GetSecondary()->GetAddress(source_vertex);
-      target = fixed_point->GetPrimary()->GetAddress(target_vertex);
+  FlowGraph::Vertex source_vertex = -1;  // Invalid vertex
+  FlowGraph::Vertex target_vertex = -1;  // Invalid vertex
+  for (const auto& basic_block : fixed_point->GetBasicBlockFixedPoints()) {
+    if (source_vertex != basic_block.GetSecondaryVertex() ||
+        target_vertex != basic_block.GetPrimaryVertex()) {
+      source_vertex = basic_block.GetSecondaryVertex();
+      target_vertex = basic_block.GetPrimaryVertex();
+      source = source_flow_graph->GetAddress(source_vertex);
+      target = target_flow_graph->GetAddress(target_vertex);
       if (source >= start_source && source <= end_source &&
           target >= start_target && target <= end_target) {
-        counts += SetComments(source, target, comments);
+        counts +=
+            SetComments(source, target, comments, /*fixed_point=*/nullptr);
       }
     }
 
-    const InstructionMatches& instruction_matches = j->GetInstructionMatches();
-    for (auto k = instruction_matches.begin(); k != instruction_matches.end();
-         ++k) {
-      const Address target_address = k->first->GetAddress();
-      const Address source_address = k->second->GetAddress();
-      if (source != source_address || target != target_address) {
-        source = source_address;
-        target = target_address;
-        source_vertex = fixed_point->GetSecondary()->GetVertex(source);
-        target_vertex = fixed_point->GetPrimary()->GetVertex(target);
-        if (source >= start_source && source <= end_source &&
-            target >= start_target && target <= end_target) {
-          counts += SetComments(source, target, comments);
-        }
+    for (const auto& instruction_match : basic_block.GetInstructionMatches()) {
+      source = instruction_match.second->GetAddress();
+      target = instruction_match.first->GetAddress();
+      if (source >= start_source && source <= end_source &&
+          target >= start_target && target <= end_target) {
+        counts +=
+            SetComments(source, target, comments, /*fixed_point=*/nullptr);
       }
     }
   }
@@ -1138,7 +1134,7 @@ bool Results::PrepareVisualDiff(size_t index, string* message) {
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed_points.
     SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary, fixed_point,
-                             /* create_instruction_matches = */ false);
+                             /*create_instruction_matches=*/false);
   } else {
     fixed_point = *FindFixedPoint(fixed_point_info);
   }

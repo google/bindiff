@@ -109,7 +109,6 @@ add_library(bindiff_shared STATIC
   call_graph_matching.h
   change_classifier.cc
   change_classifier.h
-  comments.cc
   comments.h
   database_writer.cc
   database_writer.h

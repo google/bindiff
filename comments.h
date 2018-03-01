@@ -7,7 +7,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
-class Comment {
+struct Comment {
  public:
   enum Type {
     REGULAR = 0,
@@ -21,15 +21,12 @@ class Comment {
     STRUCTURE = 8,
   };
 
-  explicit Comment(const string& comment = "", Type type = REGULAR,
-                   bool repeatable = false);
-
-  string comment_;
-  bool repeatable_;
-  Type type_;
+  string comment;
+  bool repeatable = false;
+  Type type = REGULAR;
 };
 
-typedef std::pair<Address, int> OperatorId;
-typedef std::map<OperatorId, Comment> Comments;
+using OperatorId = std::pair<Address, int>;
+using Comments = std::map<OperatorId, Comment>;
 
 #endif  // COMMENTS_H_
