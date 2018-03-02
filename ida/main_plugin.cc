@@ -128,43 +128,57 @@ bool EnsureIdb() {
 
 class ExporterThread {
  public:
-  explicit ExporterThread(const string& temp_dir,
-                          const string& idb_path)
-      : success_(false),
-        secondary_idb_path_(idb_path),
-        secondary_temp_dir(JoinPath(temp_dir, "secondary")),
-        idc_file_(JoinPath(temp_dir, "export_secondary.idc")) {
-    RemoveAll(secondary_temp_dir);
-    CreateDirectories(secondary_temp_dir);
+  explicit ExporterThread(const string& temp_dir, const string& idb_path,
+                          bool headless_export_mode)
+      : secondary_idb_path_(idb_path),
+        secondary_temp_dir_(JoinPath(temp_dir, "secondary")),
+        idc_file_(JoinPath(temp_dir, "export_secondary.idc")),
+        headless_export_mode_(headless_export_mode) {
+    RemoveAll(secondary_temp_dir_);
+    CreateDirectories(secondary_temp_dir_);
 
-    std::ofstream file(idc_file_.c_str());
-    file << "#include <idc.idc>\n"
-         << "static main()\n"
-         << "{\n"
-         << "\tBatch(0);\n"
-         << "\tWait();\n"
-         << "\tRunPlugin(\"binexport" << kBinExportVersion << "\", 2);\n"
-         << "\tExit(0);\n"
-         << "}\n";
+    if (!headless_export_mode_) {
+      std::ofstream file(idc_file_.c_str());
+      file << "#include <idc.idc>\n"
+           << "static main()\n"
+           << "{\n"
+           << "\tBatch(0);\n"
+           << "\tWait();\n"
+           << "\tRunPlugin(\"binexport" << kBinExportVersion << "\", 2);\n"
+           << "\tExit(0);\n"
+           << "}\n";
+    }
   }
 
   void operator()() {
     const bool is_64bit =
         absl::EndsWith(absl::AsciiStrToUpper(secondary_idb_path_), ".I64");
-    string ida_exe = JoinPath(idadir(0), is_64bit ? "ida64" : "ida");
-
-    string s_param;
-    // We only support the Qt version.
+    std::vector<string> args = {
+        JoinPath(idadir(0), is_64bit ? "ida64" : "ida")};
 #ifdef WIN32
-    ida_exe = ReplaceFileExtension(ida_exe, ".exe");
-    s_param = "-S\"" + idc_file_ + "\"";
-#else
-    s_param = "-S" + idc_file_;
+    args[0] = ReplaceFileExtension(args[0], ".exe");
 #endif
-    success_ = SpawnProcess(
-        {ida_exe, "-A", absl::StrCat("-OBinExportModule:", secondary_temp_dir),
-         s_param, secondary_idb_path_},
-        /*wait=*/true, &status_message_);
+
+    args.push_back("-A");
+    args.push_back(absl::StrCat("-OBinExportModule:", secondary_temp_dir_));
+
+    if (!headless_export_mode_) {
+      // Script parameter: We only support the Qt version.
+#ifdef WIN32
+      args.push_back(absl::StrCat("-S\"", idc_file_, "\""));
+#else
+      args.push_back(absl::StrCat("-S", idc_file_));
+#endif
+    } else {
+      SetEnvironmentVariable("TVHEADLESS", "1");
+      args.push_back("-OBinExportAutoAction:BinExportBinary");
+    }
+    args.push_back(secondary_idb_path_);
+
+    success_ = SpawnProcess(args, /*wait=*/true, &status_message_);
+
+    // Reset environment variable.
+    SetEnvironmentVariable("TVHEADLESS", /*value=*/"");
   }
 
   bool success() const { return success_; }
@@ -172,11 +186,12 @@ class ExporterThread {
   const string& status() const { return status_message_; }
 
  private:
-  volatile bool success_;
+  volatile bool success_ = false;
   string status_message_;
   string secondary_idb_path_;
-  string secondary_temp_dir;
+  string secondary_temp_dir_;
   string idc_file_;
+  bool headless_export_mode_;
 };
 
 bool ExportIdbs() {
@@ -228,7 +243,9 @@ bool ExportIdbs() {
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
   {
-    ExporterThread exporter(temp_dir, secondary_idb_path);
+    ExporterThread exporter(temp_dir, secondary_idb_path,
+                            g_config->ReadBool("/BinDiff/Ida/headlessExport",
+                                               /*default_value=*/false));
     std::thread thread(std::ref(exporter));
 
     string primary_temp_dir(JoinPath(temp_dir, "primary"));
