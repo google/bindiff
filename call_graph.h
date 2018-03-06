@@ -21,11 +21,11 @@ class CallGraph {
           flags_(0),
           flow_graph_(0) {}
 
-    Address address_;             // function address
+    Address address_;        // function address
     string name_;            // function name
     string demangled_name_;  // only set iff different from name_
-    uint32_t bfs_top_down_;       // breadth first search level top down
-    uint32_t bfs_bottom_up_;      // breadth first search level bottom up
+    uint32_t bfs_top_down_;    // breadth first search level top down
+    uint32_t bfs_bottom_up_;   // breadth first search level bottom up
     uint32_t flags_;
     FlowGraph* flow_graph_;  // flow graph (if loaded and attached)
   };
@@ -43,20 +43,20 @@ class CallGraph {
     double md_index_bottom_up_;  // MD index bottom up
   };
 
-  typedef boost::compressed_sparse_row_graph<
+  using Graph = boost::compressed_sparse_row_graph<
       boost::bidirectionalS,  // we need to be able to iterate in/out edges
       VertexInfo,             // vertex properties
       EdgeInfo,               // edge properties
       boost::no_property,     // graph properties
-      uint32_t,               // index type for vertices
-      uint32_t> Graph;        // index type for edges
+      uint32_t,                 // index type for vertices
+      uint32_t>;                // index type for edges
 
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef boost::graph_traits<Graph>::vertex_iterator VertexIterator;
-  typedef boost::graph_traits<Graph>::edge_descriptor Edge;
-  typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
-  typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIterator;
-  typedef boost::graph_traits<Graph>::in_edge_iterator InEdgeIterator;
+  using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
+  using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;
+  using Edge = boost::graph_traits<Graph>::edge_descriptor;
+  using EdgeIterator = boost::graph_traits<Graph>::edge_iterator;
+  using OutEdgeIterator = boost::graph_traits<Graph>::out_edge_iterator;
+  using InEdgeIterator = boost::graph_traits<Graph>::in_edge_iterator;
 
   enum {  // edge flags
     EDGE_DUPLICATE = 1

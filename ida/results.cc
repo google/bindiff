@@ -140,28 +140,27 @@ size_t SetComments(Address source, Address target, const Comments& comments,
                 comment.repeatable);
         break;
       case Comment::ENUM: {
-        unsigned char serial;
+        uint8_t serial;
         if (is_enum0(get_full_flags(static_cast<ea_t>(address))) &&
             operand_id == 0) {
-          if (int id = get_enum_id(&serial, static_cast<ea_t>(address),
-                                   operand_id) != BADNODE) {
+          int id = get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
+          if (id != BADNODE) {
             set_enum_name(id, comment.comment.c_str());
           }
         }
         if (is_enum1(get_full_flags(static_cast<ea_t>(address))) &&
             operand_id == 1) {
-          if (int id = get_enum_id(&serial, static_cast<ea_t>(address),
-                                   operand_id) != BADNODE) {
+          int id = get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
+          if (id != BADNODE) {
             set_enum_name(id, comment.comment.c_str());
           }
         }
         break;
       }
       case Comment::FUNCTION: {
-        if (func_t* function = get_func(static_cast<ea_t>(address))) {
-          if (function->start_ea == address) {
-            set_func_cmt(function, comment.comment.c_str(), comment.repeatable);
-          }
+        func_t* function = get_func(static_cast<ea_t>(address));
+        if (function && function->start_ea == address) {
+          set_func_cmt(function, comment.comment.c_str(), comment.repeatable);
         }
         break;
       }

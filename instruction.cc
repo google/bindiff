@@ -46,7 +46,7 @@ template <typename Iterator, typename OutIterator>
 void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
                 Iterator ylo, Iterator yhi, OutIterator xout,
                 OutIterator yout) {
-  const unsigned nx = distance(xlo, xhi);
+  const auto nx = distance(xlo, xhi);
   if (nx == 0) {         // all done
   } else if (nx == 1) {  // single item in x range.
     // If it's in the yrange, mark its position in the LCS.
@@ -59,7 +59,8 @@ void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
     Iterator xmid = xlo + nx / 2;
 
     // Find LCS lengths at xmid, working from both ends of the range
-    Lengths ll_b, ll_e;
+    Lengths ll_b;
+    Lengths ll_e;
     std::reverse_iterator<Iterator> hix(xhi), midx(xmid), hiy(yhi), loy(ylo);
 
     LcsLens(xlo, xmid, ylo, yhi, ll_b);
@@ -68,19 +69,18 @@ void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
     // Find the optimal place to split the y range
     Lengths::const_reverse_iterator e = ll_e.rbegin();
     int lmax = -1;
-    Iterator y = ylo, ymid = ylo;
+    Iterator y = ylo;
+    Iterator ymid = ylo;
 
     for (Lengths::const_iterator b = ll_b.begin(); b != ll_b.end(); ++b, ++e) {
       if (*b + *e > lmax) {
         lmax = *b + *e;
         ymid = y;
       }
-      if (y != yhi) ++y;
+      if (y != yhi) {
+        ++y;
+      }
     }
-
-    // TODO(soerenme) test: We may need to implement an iterative solution to
-    //     prevent stack overflows for large inputs. Split the range and
-    //     recurse.
     ComputeLcs(xo, xlo, xmid, yo, ylo, ymid, xout, yout);
     ComputeLcs(xo, xmid, xhi, yo, ymid, yhi, xout, yout);
   }

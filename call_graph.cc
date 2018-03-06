@@ -277,7 +277,7 @@ bool CallGraph::IsLibrary(Vertex vertex) const {
 }
 
 void CallGraph::SetLibrary(Vertex vertex, bool library) {
-  unsigned int flags = graph_[vertex].flags_;
+  uint32_t flags = graph_[vertex].flags_;
   if (library) {
     flags |= VERTEX_LIBRARY;
   } else {
@@ -295,7 +295,7 @@ bool CallGraph::IsStub(Vertex vertex) const {
 }
 
 void CallGraph::SetStub(Vertex vertex, bool stub) {
-  unsigned int flags = graph_[vertex].flags_;
+  uint32_t flags = graph_[vertex].flags_;
   if (stub) {
     flags |= VERTEX_STUB;
   } else {
@@ -305,7 +305,7 @@ void CallGraph::SetStub(Vertex vertex, bool stub) {
 }
 
 void CallGraph::SetDuplicate(const Edge& edge, bool duplicate) {
-  unsigned int flags = graph_[edge].flags_;
+  uint32_t flags = graph_[edge].flags_;
   if (duplicate) {
     flags |= EDGE_DUPLICATE;
   } else {

@@ -58,13 +58,12 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
   }
 
   // Is it the right type and not too large?
-  if (type != REG_SZ || (size >= static_cast<unsigned int>(bufsize))) {
+  if (type != REG_SZ || (size >= static_cast<uint32_t>(bufsize))) {
     return false;
   }
 
   // Finally read the string and return status
-  return RegQueryValueEx(key, name, 0, 0,
-                         reinterpret_cast<unsigned char*>(buffer),
+  return RegQueryValueEx(key, name, 0, 0, reinterpret_cast<uint8_t*>(buffer),
                          &size) == ERROR_SUCCESS;
 }
 
@@ -97,7 +96,7 @@ string GetJavaHomeDir() {
   string result;
   char buffer[MAX_PATH];
   if (RegQueryStringValue(key, "CurrentVersion", buffer, MAX_PATH)) {
-    const double cur_var(strtod(buffer, 0));
+    const double cur_var = strtod(buffer, 0);
     HKEY subkey(0);
     if (cur_var >= kMinJavaVersion &&
         RegOpenKeyEx(key, buffer, 0, KEY_READ | wow64_flag, &subkey) ==

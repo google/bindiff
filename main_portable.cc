@@ -455,23 +455,19 @@ void BatchDiff(const string& path, const string& reference_file,
 
   const size_t num_idbs = idb_files.size();
   const size_t num_diffs = files.size();
-  const unsigned num_hardware_threads = std::thread::hardware_concurrency();
   auto config(XmlConfig::LoadFromFile(XmlConfig::GetDefaultFilename()));
-  const unsigned num_threads =
-      config->ReadInt("/BinDiff/Threads/@use", num_hardware_threads);
-  const string ida_dir =
-      config->ReadString("/BinDiff/Ida/@directory", "");
-  const string ida_exe =
-      config->ReadString("/BinDiff/Ida/@executable", "");
-  const string ida_exe64 =
-      config->ReadString("/BinDiff/Ida/@executable64", "");
+  const int num_threads = config->ReadInt("/BinDiff/Threads/@use",
+                                          std::thread::hardware_concurrency());
+  const string ida_dir = config->ReadString("/BinDiff/Ida/@directory", "");
+  const string ida_exe = config->ReadString("/BinDiff/Ida/@executable", "");
+  const string ida_exe64 = config->ReadString("/BinDiff/Ida/@executable64", "");
   Timer<> timer;
   {  // Export
     if (!idb_files.empty()) {
       CreateIdaScript(out_path);
     }
     std::vector<std::thread> threads;
-    for (unsigned i = 0; i < num_threads; ++i) {
+    for (int i = 0; i < num_threads; ++i) {
       threads.emplace_back(ExporterThread(path, out_path, ida_dir, ida_exe,
                                           ida_exe64, &idb_files));
     }
@@ -484,7 +480,7 @@ void BatchDiff(const string& path, const string& reference_file,
 
   if (!FLAGS_export) {  // Perform diff
     std::vector<std::thread> threads;
-    for (unsigned i = 0; i < num_threads; ++i) {
+    for (int i = 0; i < num_threads; ++i) {
       threads.emplace_back(DifferThread(out_path, out_path, &files));
     }
     for (auto& thread : threads) {
