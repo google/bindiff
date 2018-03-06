@@ -69,28 +69,12 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
 
 string GetJavaHomeDir() {
   HKEY key = 0;
-  int wow64_flag = KEY_WOW64_64KEY;
-
-  // Note: When running on 64-bit Windows, 32-bit processes (such as IDA) have
-  //       an isolated view on the registry. This means that an installed
-  //       64-bit JVM will not be found using default access flags. Thus, this
-  //       function first tries to open the 64-bit view of the registry to
-  //       determine where Java is installed. If it failes to detect a 64-bit
-  //       JVM, the 32-bit view of the registry is searched.
-  //       Saving the KEY_WOW64_64KEY access flag is necessary because
-  //       applications are supposed to supply it in subsequent registry API
-  //       calls.
 
   // Try 64-bit registry view first
   if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, kRegkeyHklmJreRoot, 0,
-                   KEY_READ | wow64_flag, &key) != ERROR_SUCCESS) {
-    wow64_flag = 0;
-    // Try default registry view
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, kRegkeyHklmJreRoot, 0,
-                     KEY_READ | wow64_flag, &key) != ERROR_SUCCESS) {
-      // Still not found, return empty path
-      return "";
-    }
+                   KEY_READ | KEY_WOW64_64KEY, &key) != ERROR_SUCCESS) {
+    // Not found, return empty path
+    return "";
   }
 
   string result;
@@ -99,7 +83,7 @@ string GetJavaHomeDir() {
     const double cur_var = strtod(buffer, 0);
     HKEY subkey(0);
     if (cur_var >= kMinJavaVersion &&
-        RegOpenKeyEx(key, buffer, 0, KEY_READ | wow64_flag, &subkey) ==
+        RegOpenKeyEx(key, buffer, 0, KEY_READ | KEY_WOW64_64KEY, &subkey) ==
             ERROR_SUCCESS) {
       if (RegQueryStringValue(subkey, "JavaHome", buffer, MAX_PATH)) {
         result = string(buffer);
