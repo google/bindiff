@@ -297,12 +297,6 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
         g_config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
         static_cast<uint16_t>(g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
         message, nullptr);
-  } catch (const std::bad_alloc&) {
-    LOG(INFO) << "Out-of-memory. Some extremely large binaries may require to "
-                 "use the 64-bit command-line version of BinDiff.";
-    warning(
-        "Out-of-memory. Some extremely large binaries may require to use the "
-        "64-bit command-line version of BinDiff.");
   } catch (const std::runtime_error& message) {
     LOG(INFO) << "Error while calling BinDiff GUI: " << message.what();
     warning("Error while calling BinDiff GUI: %s\n", message.what());
