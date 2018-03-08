@@ -20,8 +20,10 @@
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
 #include "third_party/zynamics/binexport/binexport.h"
+#include "third_party/zynamics/binexport/format_util.h"
 #include "third_party/zynamics/binexport/hash.h"
 
+using security::binexport::FormatAddress;
 using security::binexport::GetInstructionAddress;
 
 namespace {
@@ -99,7 +101,7 @@ FlowGraph::Vertex FindVertex(const std::vector<Address>& addresses,
   auto it = std::lower_bound(addresses.begin(), addresses.end(), address);
   if (it == addresses.end() || *it != address) {
     LOG(ERROR) << absl::StrCat("Could not find basic block: ",
-                               absl::Hex(address, absl::kZeroPad8));
+                               FormatAddress(address));
     it = addresses.begin();
   }
   return FlowGraph::Vertex(std::distance(addresses.begin(), it));
@@ -297,7 +299,7 @@ void FlowGraph::Read(const BinExport2& proto,
       edges.size() >= kMaxFunctionEdges ||
       temp_addresses.size() >= kMaxFunctionBasicBlocks) {
     LOG(WARNING) << absl::StrCat(
-        "Function ", absl::Hex(entry_point_address_, absl::kZeroPad8),
+        "Function ", FormatAddress(entry_point_address_),
         " is excessively large: ", temp_addresses.size(), " basic blocks, ",
         edges.size(), " edges, ", instructions_.size(),
         " instructions. Discarding.");

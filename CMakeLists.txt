@@ -76,12 +76,15 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/binexport.h
   ${BinExport_DIR}/filesystem_util.cc
   ${BinExport_DIR}/filesystem_util.h
+  ${BinExport_DIR}/format_util.cc
+  ${BinExport_DIR}/format_util.h
   ${BinExport_DIR}/hash.cc
   ${BinExport_DIR}/hash.h
 )
 target_link_libraries(binexport_shared
   bindiff_base
   absl::strings
+  absl::time
   OpenSSL::SSL
 )
 if(WIN32)

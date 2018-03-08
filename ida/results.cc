@@ -18,8 +18,12 @@
 #include "third_party/zynamics/bindiff/matching.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/format_util.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/timer.h"
+
+using security::binexport::FormatAddress;
+using security::binexport::HumanReadableDuration;
 
 namespace {
 
@@ -242,10 +246,9 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         break;
       }
       default:
-        LOG(INFO) << absl::StrCat("Unknown comment type ", comment.type, ": ",
-                                  absl::Hex(source, absl::kZeroPad8), " -> ",
-                                  absl::Hex(target, absl::kZeroPad8), " ",
-                                  i->second.comment);
+        LOG(INFO) << absl::StrCat(
+            "Unknown comment type ", comment.type, ": ", FormatAddress(source),
+            " -> ", FormatAddress(target), " ", i->second.comment);
         break;
     }
   }
@@ -537,8 +540,8 @@ bool Results::IncrementalDiff() {
     fixed_point_infos_.insert(info);
   }
 
-  LOG(INFO) << absl::FormatDuration(absl::Seconds(timer.elapsed()))
-            << " for incremental matching.";
+  LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                            " for incremental matching.");
 
   SetDirty();
   return true;

@@ -5,6 +5,9 @@
 
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/ida/ui.h"
+#include "third_party/zynamics/binexport/format_util.h"
+
+using security::binexport::FormatAddress;
 
 constexpr const int UnmatchedFunctionsChooserBase::kColumnWidths[];
 constexpr const char* const UnmatchedFunctionsChooserBase::kColumnNames[];
@@ -22,11 +25,11 @@ void UnmatchedFunctionsChooserBase::get_row(qstrvec_t* cols, int* icon_,
   }
   Results::UnmatchedDescription desc = GetDescription(n);
 
-  (*cols)[0] = absl::StrCat(absl::Hex(desc.address, absl::kZeroPad8)).c_str();
+  (*cols)[0] = FormatAddress(desc.address).c_str();
   (*cols)[1] = desc.name.c_str();
-  (*cols)[2] = std::to_string(desc.basic_block_count).c_str();  // %5d
-  (*cols)[3] = std::to_string(desc.instruction_count).c_str();  // %6d
-  (*cols)[4] = std::to_string(desc.edge_count).c_str();         // %5d
+  (*cols)[2] = std::to_string(desc.basic_block_count).c_str();
+  (*cols)[3] = std::to_string(desc.instruction_count).c_str();
+  (*cols)[4] = std::to_string(desc.edge_count).c_str();
 }
 
 size_t UnmatchedFunctionsChooserPrimary::get_count() const {

@@ -48,6 +48,7 @@
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/format_util.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
@@ -55,6 +56,9 @@
 #include "third_party/zynamics/binexport/types.h"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
+
+using security::binexport::FormatAddress;
+using security::binexport::HumanReadableDuration;
 
 XmlConfig* g_config = nullptr;  // Used in visual_diff.cc
 
@@ -665,14 +669,13 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
     throw;
   }
 
-  LOG(INFO) << absl::FormatDuration(absl::Seconds(timer.elapsed()))
-            << " for exports...";
+  LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                            " for exports...");
   LOG(INFO) << absl::StrCat(
-      "Diffing address range primary(",
-      absl::Hex(start_address_source, absl::kZeroPad8), " - ",
-      absl::Hex(end_address_source, absl::kZeroPad8), ") vs secondary(",
-      absl::Hex(start_address_target), absl::kZeroPad8, " - ",
-      absl::Hex(end_address_target, absl::kZeroPad8), ")");
+      "Diffing address range primary(", FormatAddress(start_address_source),
+      " - ", FormatAddress(end_address_source), ") vs secondary(",
+      FormatAddress(start_address_target), " - ",
+      FormatAddress(end_address_target), ")");
   timer.restart();
 
   WaitBox wait_box("Performing diff...");
@@ -704,8 +707,8 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   const MatchingStepsFlowGraph default_basicblock_steps(
       GetDefaultMatchingStepsBasicBlock());
   Diff(&context, default_callgraph_steps, default_basicblock_steps);
-  LOG(INFO) << absl::StrCat(
-      absl::FormatDuration(absl::Seconds(timer.elapsed())), " for matching.");
+  LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                            " for matching.");
 
   ShowResults(g_results);
   g_results->SetDirty();
@@ -827,9 +830,8 @@ bool DoPortComments() {
                             min_confidence, min_similarity);
     refresh_chooser("Matched Functions");
     refresh_chooser("Primary Unmatched");
-    LOG(INFO) << absl::StrCat(
-        absl::FormatDuration(absl::Seconds(timer.elapsed())),
-        " for comment porting");
+    LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                              " for comment porting");
     return true;
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while porting comments: " << message.what();
@@ -887,8 +889,8 @@ bool WriteResults(const string& path) {
     ::CopyFile(export2, new_export2);
   }
 
-  LOG(INFO) << absl::StrCat(
-      "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
+  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
+                            ")");
   return true;
 }
 
@@ -924,9 +926,8 @@ bool DoSaveResultsLog() {
   LOG(INFO) << "Writing to log...";
   ResultsLogWriter writer(filename);
   g_results->Write(&writer);
-  LOG(INFO) << absl::StrCat(
-      "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
-
+  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
+                            ")");
   return true;
 }
 
@@ -960,8 +961,8 @@ bool DoSaveResultsDebug() {
                            g_results->flow_graph_infos1_,
                            g_results->flow_graph_infos2_);
   g_results->Write(&writer);
-  LOG(INFO) << absl::StrCat(
-      "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
+  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
+                            ")");
 
   return true;
 }
@@ -1053,8 +1054,8 @@ bool DoLoadResults() {
 
     ShowResults(g_results);
 
-    LOG(INFO) << absl::StrCat(
-        "done (", absl::FormatDuration(absl::Seconds(timer.elapsed())), ")");
+    LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
+                              ")");
     return true;
   } catch (const std::exception& message) {
     LOG(INFO) << "Error loading results: " << message.what();

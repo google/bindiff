@@ -52,8 +52,11 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/format_util.h"
 #include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/types.h"
+
+using security::binexport::HumanReadableDuration;
 
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
@@ -77,8 +80,8 @@ static const char kBinExportVersion[] = "10";  // Exporter version to use.
 std::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
 
-typedef std::list<std::pair<string, string>> TFiles;
-typedef std::set<string> TUniqueFiles;
+using TFiles = std::list<std::pair<string, string>>;
+using TUniqueFiles = std::set<string>;
 
 void PrintMessage(absl::string_view message) {
   auto size = message.size();
@@ -265,8 +268,7 @@ void DifferThread::operator()() {
                      fixed_points);
 
         PrintMessage(absl::StrCat(
-            file1, " vs ", file2, " (",
-            absl::FormatDuration(absl::Seconds(timer.elapsed())),
+            file1, " vs ", file2, " (", HumanReadableDuration(timer.elapsed()),
             "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence));
         for (const auto& entry : counts) {
           PrintMessage(absl::StrCat("\n\t", entry.first, ":\t", entry.second));
@@ -360,9 +362,8 @@ void ExporterThread::operator()() {
       return;
     }
 
-    PrintMessage(
-        absl::StrCat(absl::FormatDuration(absl::Seconds(timer.elapsed())), "\t",
-                     GetFileSize(in_file), "\t", file));
+    PrintMessage(absl::StrCat(HumanReadableDuration(timer.elapsed()), "\t",
+                              GetFileSize(in_file), "\t", file));
   } while (!g_wants_to_quit);
 }
 
@@ -491,10 +492,9 @@ void BatchDiff(const string& path, const string& reference_file,
   DeleteIdaScript(out_path);
 
   PrintMessage(absl::StrCat(num_idbs, " files exported in ",
-                            absl::FormatDuration(absl::Seconds(export_time)),
-                            ", ", num_diffs * (1 - FLAGS_export),
-                            " pairs diffed in ",
-                            absl::FormatDuration(absl::Seconds(diff_time))));
+                            HumanReadableDuration(export_time), ", ",
+                            num_diffs * (1 - FLAGS_export), " pairs diffed in ",
+                            HumanReadableDuration(diff_time)));
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
@@ -700,8 +700,8 @@ int main(int argc, char** argv) {
       const int vertices1 = num_vertices(call_graph1->GetGraph());
       const int edges2 = num_edges(call_graph2->GetGraph());
       const int vertices2 = num_vertices(call_graph2->GetGraph());
-      PrintMessage(absl::StrCat(
-          "setup: ", absl::FormatDuration(absl::Seconds(timer.elapsed()))));
+      PrintMessage(
+          absl::StrCat("setup: ", HumanReadableDuration(timer.elapsed())));
       PrintMessage(absl::StrCat("primary:   ", call_graph1->GetFilename(), ": ",
                                 vertices1, " functions, ", edges1, " calls"));
       PrintMessage(absl::StrCat("secondary: ", call_graph2->GetFilename(), ": ",
@@ -725,8 +725,8 @@ int main(int argc, char** argv) {
       const double similarity =
           GetSimilarityScore(*call_graph1, *call_graph2, histogram, counts);
 
-      PrintMessage(absl::StrCat(
-          "matching: ", absl::FormatDuration(absl::Seconds(timer.elapsed()))));
+      PrintMessage(
+          absl::StrCat("matching: ", HumanReadableDuration(timer.elapsed())));
       timer.restart();
 
       PrintMessage(absl::StrCat(
@@ -758,9 +758,8 @@ int main(int argc, char** argv) {
       if (!writer.IsEmpty()) {
         writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
-        PrintMessage(
-            absl::StrCat("writing results: ",
-                         absl::FormatDuration(absl::Seconds(timer.elapsed()))));
+        PrintMessage(absl::StrCat("writing results: ",
+                                  HumanReadableDuration(timer.elapsed())));
       }
       timer.restart();
       done_something = true;

@@ -5,6 +5,9 @@
 
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/ida/ui.h"
+#include "third_party/zynamics/binexport/format_util.h"
+
+using security::binexport::FormatAddress;
 
 constexpr const int MatchedFunctionsChooser::kColumnWidths[];
 constexpr const char* const MatchedFunctionsChooser::kColumnNames[];
@@ -27,31 +30,27 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* icon_,
   }
   Results::MatchDescription match = results_->GetMatchDescription(n);
 
-  // TODO(cblichmann): Implement the formatting hints from the line comments.
-  (*cols)[0] = std::to_string(match.similarity).c_str();  // %.2f
-  (*cols)[1] = std::to_string(match.confidence).c_str();  // %.2f
+  // Round similarity/confidence to 2 digits
+  (*cols)[0] = std::to_string(match.similarity * 100 / 100).c_str();
+  (*cols)[1] = std::to_string(match.confidence * 100 / 100).c_str();
   (*cols)[2] = GetChangeDescription(match.change_type).c_str();
-  (*cols)[3] = absl::StrCat(absl::Hex(match.address_primary, absl::kZeroPad8))
-                   .c_str();  // HEX_ADDRESS
+  (*cols)[3] = FormatAddress(match.address_primary).c_str();
   (*cols)[4] = match.name_primary.c_str();
-  (*cols)[5] = absl::StrCat(absl::Hex(match.address_secondary, absl::kZeroPad8))
-                   .c_str();  // HEX_ADDRESS
+  (*cols)[5] = FormatAddress(match.address_secondary).c_str();
   (*cols)[6] = match.name_secondary.c_str();
   (*cols)[7] = match.comments_ported ? "X" : " ";
   (*cols)[8] =
       match.algorithm_name.substr(match.algorithm_name.size() > 10 ? 10 : 0)
           .c_str();
-  (*cols)[9] = std::to_string(match.basic_block_count).c_str();           // %5d
-  (*cols)[10] = std::to_string(match.basic_block_count_primary).c_str();  // %5d
-  (*cols)[11] =
-      std::to_string(match.basic_block_count_secondary).c_str();          // %5d
-  (*cols)[12] = std::to_string(match.instruction_count).c_str();          // %6d
-  (*cols)[13] = std::to_string(match.instruction_count_primary).c_str();  // %6d
-  (*cols)[14] =
-      std::to_string(match.instruction_count_secondary).c_str();     // %6d
-  (*cols)[15] = std::to_string(match.edge_count).c_str();            // %5d
-  (*cols)[16] = std::to_string(match.edge_count_primary).c_str();    // %5d
-  (*cols)[17] = std::to_string(match.edge_count_secondary).c_str();  // %5d
+  (*cols)[9] = std::to_string(match.basic_block_count).c_str();
+  (*cols)[10] = std::to_string(match.basic_block_count_primary).c_str();
+  (*cols)[11] = std::to_string(match.basic_block_count_secondary).c_str();
+  (*cols)[12] = std::to_string(match.instruction_count).c_str();
+  (*cols)[13] = std::to_string(match.instruction_count_primary).c_str();
+  (*cols)[14] = std::to_string(match.instruction_count_secondary).c_str();
+  (*cols)[15] = std::to_string(match.edge_count).c_str();
+  (*cols)[16] = std::to_string(match.edge_count_primary).c_str();
+  (*cols)[17] = std::to_string(match.edge_count_secondary).c_str();
   attrs->color = GetMatchColor(match.similarity);
   if (match.manual) {
     attrs->flags |= CHITEM_BOLD;
