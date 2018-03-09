@@ -598,7 +598,7 @@ FlowGraph::Vertex FlowGraph::GetVertex(Address address) const {
 
   CHECK(first != last && GetAddress(first) == address)
 #ifdef GOOGLE
-      << "Invalid flow graph address " << std::hex << address;
+      << "Invalid flow graph address " << FormatAddress(address);
 #endif
   ;
   return first;

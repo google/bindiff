@@ -9,6 +9,9 @@
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/binexport/format_util.h"
+
+using security::binexport::FormatAddress;
 
 namespace {
 
@@ -94,8 +97,7 @@ void CallGraph::SetExeHash(const string& hash) {
   exe_hash_ = hash;
 }
 
-void CallGraph::Read(const BinExport2& proto,
-                     const string& filename) {
+void CallGraph::Read(const BinExport2& proto, const string& filename) {
   filename_ = filename;
   std::replace(filename_.begin(), filename_.end(), '\\', '/');
 
@@ -123,16 +125,12 @@ void CallGraph::Read(const BinExport2& proto,
     }
     if (!(vertex.flags_ & VERTEX_NAME)) {
       // Provide a dummy name for display.
-      vertex.name_ =
-          absl::StrCat("sub_", absl::AsciiStrToUpper(absl::StrCat(absl::Hex(
-                                   vertex.address_, absl::kZeroPad8))));
+      vertex.name_ = absl::StrCat("sub_", FormatAddress(vertex.address_));
     }
 
-    if (proto_vertex.type() ==
-        BinExport2::CallGraph::Vertex::LIBRARY) {
+    if (proto_vertex.type() == BinExport2::CallGraph::Vertex::LIBRARY) {
       vertex.flags_ |= VERTEX_LIBRARY;
-    } else if (proto_vertex.type() ==
-               BinExport2::CallGraph::Vertex::THUNK) {
+    } else if (proto_vertex.type() == BinExport2::CallGraph::Vertex::THUNK) {
       vertex.flags_ |= VERTEX_STUB;
     }
   }
@@ -182,17 +180,15 @@ void CallGraph::AttachFlowGraph(FlowGraph* flow_graph) {
   auto entry_point_address = flow_graph->GetEntryPointAddress();
   auto vertex = GetVertex(entry_point_address);
   if (vertex == kInvalidVertex) {
-    std::stringstream error;
-    error << "AttachFlowGraph: couldn't find call graph node for flow graph "
-          << std::hex << entry_point_address;
-    throw std::runtime_error(error.str().c_str());
+    throw std::runtime_error(absl::StrCat(
+        "AttachFlowGraph: couldn't find call graph node for flow graph ",
+        FormatAddress(entry_point_address)));
   }
 
   if (graph_[vertex].flow_graph_ != nullptr) {
-    std::stringstream error;
-    error << "AttachFlowGraph: flow graph already attached " << std::hex
-          << entry_point_address;
-    throw std::runtime_error(error.str().c_str());
+    throw std::runtime_error(
+        absl::StrCat("AttachFlowGraph: flow graph already attached ",
+                     FormatAddress(entry_point_address)));
   }
 
   graph_[vertex].flow_graph_ = flow_graph;
@@ -209,7 +205,7 @@ void CallGraph::DetachFlowGraph(FlowGraph* flow_graph) {
   if (vertex == kInvalidVertex) {
     LOG(INFO) << absl::StrCat(
         "DetachFlowGraph: coudn't find call graph node for flow graph ",
-        absl::Hex(entry_point_address, absl::kZeroPad8));
+        FormatAddress(entry_point_address));
   } else {
     graph_[vertex].flow_graph_ = nullptr;
   }
@@ -444,9 +440,7 @@ bool operator<(const NeighborInfo& one, const NeighborInfo& two) {
 
 // TODO(soerenme): Very bad worst case behavior in high connectivity graphs!
 double CallGraph::CalculateProximityMdIndex(Edge edge) {
-  typedef std::vector<NeighborInfo> Neighbors;
-  Neighbors neighbors;
-
+  std::vector<NeighborInfo> neighbors;
   {
     // Collect all nodes with a distance less than or equal to one.
     const Vertex source = boost::source(edge, graph_);
@@ -455,11 +449,11 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
       InEdgeIterator i, end;
       for (boost::tie(i, end) = boost::in_edges(source, graph_); i != end;
            ++i) {
-        neighbors.push_back(NeighborInfo(boost::source(*i, graph_)));
+        neighbors.emplace_back(boost::source(*i, graph_));
       }
       for (boost::tie(i, end) = boost::in_edges(target, graph_); i != end;
            ++i) {
-        neighbors.push_back(NeighborInfo(boost::source(*i, graph_)));
+        neighbors.emplace_back(boost::source(*i, graph_));
       }
     }
     {
@@ -479,11 +473,8 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
                   neighbors.end());
 
   // Compute truncated in-degree and out-degree for each neighbor.
-  typedef std::vector<std::pair<Edge, double> > Edges;
-  Edges edges;
-  for (Neighbors::iterator j = neighbors.begin(), jend = neighbors.end();
-       j != jend; ++j) {
-    NeighborInfo& neighbor = *j;
+  std::vector<std::pair<Edge, double>> edges;
+  for (auto& neighbor : neighbors) {
     {
       InEdgeIterator i, end;
       for (boost::tie(i, end) = boost::in_edges(neighbor.vertex_, graph_);
@@ -517,24 +508,23 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
   edges.erase(std::unique(edges.begin(), edges.end()), edges.end());
 
   // Collect all truncated MD indices.
-  for (Edges::iterator i = edges.begin(), end = edges.end(); i != end; ++i) {
+  for (auto& edge : edges) {
     const auto source =
         std::lower_bound(neighbors.begin(), neighbors.end(),
-                         NeighborInfo(boost::source(i->first, graph_)));
+                         NeighborInfo(boost::source(edge.first, graph_)));
     const auto target =
         std::lower_bound(neighbors.begin(), neighbors.end(),
-                         NeighborInfo(boost::target(i->first, graph_)));
-    i->second =
+                         NeighborInfo(boost::target(edge.first, graph_)));
+    edge.second =
         sqrt(2.0) * source->in_degree_ + sqrt(3.0) * source->out_degree_ +
         sqrt(5.0) * target->in_degree_ + sqrt(7.0) * target->out_degree_;
-    i->second = i->second ? 1.0 / i->second : 0.0;
+    edge.second = edge.second ? 1.0 / edge.second : 0.0;
   }
 
   std::sort(edges.begin(), edges.end(), &SortEdgeByMdIndex);
   double md_index = 0;
-  for (Edges::const_iterator i = edges.begin(), end = edges.end(); i != end;
-       ++i) {
-    md_index += i->second;
+  for (const auto& edge : edges) {
+    md_index += edge.second;
   }
   return md_index;
 }

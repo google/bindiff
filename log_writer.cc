@@ -6,8 +6,12 @@
 // TODO(cblichmann): Replace this
 #include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
 
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/binexport/format_util.h"
+
+using security::binexport::FormatAddress;
 
 namespace {
 
@@ -85,10 +89,11 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
         boost::num_vertices(i->GetPrimary()->GetGraph());
     const size_t basic_blocks2 =
         boost::num_vertices(i->GetSecondary()->GetGraph());
-    result_file << std::hex << primary_address << "\t" << std::hex
-                << secondary_address << "\t" << i->GetSimilarity() << "\t"
-                << i->GetConfidence() << "\t" << i->GetPrimary()->GetMdIndex()
-                << "\t" << i->GetSecondary()->GetMdIndex() << "\t"
+    result_file << FormatAddress(primary_address) << "\t"
+                << FormatAddress(secondary_address) << "\t"
+                << i->GetSimilarity() << "\t" << i->GetConfidence() << "\t"
+                << i->GetPrimary()->GetMdIndex() << "\t"
+                << i->GetSecondary()->GetMdIndex() << "\t"
                 << i->GetPrimary()->IsLibrary() << "\t"
                 << i->GetSecondary()->IsLibrary() << "\t"
                 << i->GetMatchingStep() << "\t\"" << i->GetPrimary()->GetName()
@@ -103,17 +108,19 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
       const size_t instructions2 =
           i->GetSecondary()->GetInstructionCount(j->GetSecondaryVertex());
       const InstructionMatches& matches = j->GetInstructionMatches();
-      result_file << "\t" << std::hex
-                  << i->GetPrimary()->GetAddress(j->GetPrimaryVertex()) << "\t"
-                  << std::hex
-                  << i->GetSecondary()->GetAddress(j->GetSecondaryVertex())
+      result_file << "\t"
+                  << FormatAddress(
+                         i->GetPrimary()->GetAddress(j->GetPrimaryVertex()))
+                  << "\t"
+                  << FormatAddress(
+                         i->GetSecondary()->GetAddress(j->GetSecondaryVertex()))
                   << "\t" << j->GetMatchingStep() << "\n"
                   << "\t\t" << std::dec << matches.size() << "\t"
                   << instructions1 << "\t" << instructions2 << std::endl;
       for (InstructionMatches::const_iterator k = matches.begin();
            k != matches.end(); ++k) {
-        result_file << "\t\t" << std::hex << k->first->GetAddress() << "\t"
-                    << std::hex << k->second->GetAddress() << std::endl;
+        result_file << "\t\t" << FormatAddress(k->first->GetAddress()) << "\t"
+                    << FormatAddress(k->second->GetAddress()) << std::endl;
       }
     }
   }
@@ -130,7 +137,7 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
               << unmatched.size() << ") ------------ " << std::endl;
   for (FlowGraphs::const_iterator i = unmatched.begin(); i != unmatched.end();
        ++i) {
-    result_file << std::hex << (*i)->GetEntryPointAddress() << "\t"
+    result_file << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
                 << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
                 << (*i)->GetName() << std::endl;
   }
@@ -149,7 +156,7 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
               << unmatched.size() << ") ------------ " << std::endl;
   for (FlowGraphs::const_iterator i = unmatched.begin(); i != unmatched.end();
        ++i) {
-    result_file << std::hex << (*i)->GetEntryPointAddress() << "\t"
+    result_file << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
                 << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
                 << (*i)->GetName() << std::endl;
   }

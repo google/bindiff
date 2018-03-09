@@ -56,6 +56,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/types.h"
 
+using security::binexport::FormatAddress;
 using security::binexport::HumanReadableDuration;
 
 // Note: We cannot use new-style flags here because third-party gflags does not
@@ -503,10 +504,9 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
             << call_graph.GetMdIndex();
   for (auto i = flow_graphs.cbegin(), end = flow_graphs.cend(); i != end; ++i) {
     std::cout << "\n"
-              << std::hex << std::setfill('0') << std::setw(16)
-              << (*i)->GetEntryPointAddress() << "\t" << std::fixed
-              << std::setprecision(12) << (*i)->GetMdIndex() << "\t"
-              << ((*i)->IsLibrary() ? "Library" : "Non-library");
+              << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
+              << std::fixed << std::setprecision(12) << (*i)->GetMdIndex()
+              << "\t" << ((*i)->IsLibrary() ? "Library" : "Non-library");
   }
   std::cout << std::endl;
 }
