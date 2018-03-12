@@ -31,6 +31,9 @@ TEST(XmlConfigTest, BasicFunctionality) {
   EXPECT_THAT(config->ReadString("/doc/value/@setting",
                                  /*default_value=*/"<no_value>"),
               StrEq("Test"));
+  EXPECT_THAT(config->ReadInt("/doc/value/@no-such-setting",
+                              /*default_value=*/47),
+              Eq(47));
   EXPECT_THAT(config->ReadBool("/doc/settings/entry[@key='bool']/@value",
                                /*default_value=*/false),
               Eq(true));

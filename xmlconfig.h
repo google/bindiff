@@ -17,10 +17,10 @@ class XmlConfig {
 
   virtual ~XmlConfig();
 
-  double ReadDouble(const string& key, const double& default_value);
-  int ReadInt(const string& key, const int& default_value);
+  double ReadDouble(const string& key, double default_value);
+  int ReadInt(const string& key, int default_value);
   string ReadString(const string& key, const string& default_value);
-  bool ReadBool(const string& key, const bool& default_value);
+  bool ReadBool(const string& key, bool default_value);
 
   void WriteDouble(const string& key, double value);
   void WriteInt(const string& key, int value);
@@ -34,32 +34,33 @@ class XmlConfig {
   const TiXmlDocument* GetDocument() const;
 
   // Re-initializes the config file with the given content.
-  void SetData(const char* data);
+  void SetData(const string& data);
 
   static std::unique_ptr<XmlConfig> LoadFromString(const string& data);
   static std::unique_ptr<XmlConfig> LoadFromFile(const string& filename);
 
-  static const string& SetDefaultFilename(const string& filename);
+  static const string& SetDefaultFilename(string filename);
   static const string& GetDefaultFilename();
 
  private:
-  using DoubleCache = std::map<string, std::pair<double, bool>>;
-  using IntCache = std::map<string, std::pair<int, bool>>;
-  using StringCache = std::map<string, std::pair<string, bool>>;
-  using BoolCache = std::map<string, std::pair<bool, bool>>;
+  template <typename T>
+  struct CacheValue {
+    using value_type = T;
+    T value;
+    bool modified;
+  };
 
   XmlConfig();
-  void Init(const string& filename);
 
-  static string default_filename_;
+  static string* default_filename_;
 
-  TiXmlDocument* document_;
+  std::unique_ptr<TiXmlDocument> document_;
   string filename_;
   bool modified_ = false;
-  DoubleCache double_cache_;
-  IntCache int_cache_;
-  StringCache string_cache_;
-  BoolCache bool_cache_;
+  std::map<string, CacheValue<double>> double_cache_;
+  std::map<string, CacheValue<int>> int_cache_;
+  std::map<string, CacheValue<string>> string_cache_;
+  std::map<string, CacheValue<bool>> bool_cache_;
 
   void WriteNode(const string& key, const string& value);
 };
