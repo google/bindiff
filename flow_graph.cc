@@ -609,7 +609,7 @@ FlowGraph::Level FlowGraph::GetLevelForCallAddress(Address address) const {
       std::make_pair(std::numeric_limits<Level::first_type>::max(),
                      std::numeric_limits<Level::second_type>::max());
 
-  AddressToLevelMap::const_iterator i = std::lower_bound(
+  AddressToLevelMap::const_iterator it = std::lower_bound(
       level_for_call_.begin(), level_for_call_.end(),
       std::make_pair(address, std::make_pair(uint16_t(0), uint16_t(0))),
       &SortByAddressLevel);
@@ -618,11 +618,11 @@ FlowGraph::Level FlowGraph::GetLevelForCallAddress(Address address) const {
   //     there is a child of this flow graph node in the call graph but we
   //     cannot find the corresponding call in the flow graph's instructions.
   //  assert(i != level_for_call_.end());
-  for (; i != level_for_call_.end() && i->first == address; ++i) {
-    if (i->second.first <= min_level.first ||
-        (i->second.first == min_level.first &&
-         i->second.second <= min_level.second)) {
-      min_level = i->second;
+  for (; it != level_for_call_.end() && it->first == address; ++it) {
+    if (it->second.first <= min_level.first ||
+        (it->second.first == min_level.first &&
+         it->second.second <= min_level.second)) {
+      min_level = it->second;
     }
   }
 

@@ -14,33 +14,20 @@ class FlowGraph;
 class CallGraph {
  public:
   struct VertexInfo {
-    VertexInfo()
-        : address_(0),
-          bfs_top_down_(0),
-          bfs_bottom_up_(0),
-          flags_(0),
-          flow_graph_(0) {}
-
-    Address address_;        // function address
-    string name_;            // function name
-    string demangled_name_;  // only set iff different from name_
-    uint32_t bfs_top_down_;    // breadth first search level top down
-    uint32_t bfs_bottom_up_;   // breadth first search level bottom up
-    uint32_t flags_;
-    FlowGraph* flow_graph_;  // flow graph (if loaded and attached)
+    Address address_ = 0;       // Function address
+    string name_;               // Function name
+    string demangled_name_;     // Only set iff different from name_
+    uint32_t bfs_top_down_ = 0;   // Breadth-first-search level top down
+    uint32_t bfs_bottom_up_ = 0;  // Breadth-first-search level bottom up
+    uint32_t flags_ = 0;
+    FlowGraph* flow_graph_ = nullptr;  // Flow graph (if loaded and attached)
   };
 
   struct EdgeInfo {
-    EdgeInfo()
-        : flags_(0),
-          md_index_proximity_(-1.0),
-          md_index_top_down_(0.0),
-          md_index_bottom_up_(0.0) {}
-
-    uint32_t flags_;
-    double md_index_proximity_;  // MD index proximity
-    double md_index_top_down_;   // MD index top down
-    double md_index_bottom_up_;  // MD index bottom up
+    uint32_t flags_ = 0;
+    double md_index_proximity_ = -1.0;  // MD index proximity
+    double md_index_top_down_ = 0.0;    // MD index top down
+    double md_index_bottom_up_ = 0.0;   // MD index bottom up
   };
 
   using Graph = boost::compressed_sparse_row_graph<
@@ -58,13 +45,15 @@ class CallGraph {
   using OutEdgeIterator = boost::graph_traits<Graph>::out_edge_iterator;
   using InEdgeIterator = boost::graph_traits<Graph>::in_edge_iterator;
 
-  enum {  // edge flags
+  enum {
+    // Edge flags
     EDGE_DUPLICATE = 1
   };
-  enum {  // vertex flags
-    VERTEX_LIBRARY        = 1 << 0,  // This is a library function.
-    VERTEX_STUB           = 1 << 1,  // Stub function, i.e. single jmp.
-    VERTEX_NAME           = 1 << 2,  // Function has a non-auto-generated name.
+  enum {
+    // Vertex flags
+    VERTEX_LIBRARY = 1 << 0,         // This is a library function.
+    VERTEX_STUB = 1 << 1,            // Stub function, i.e. single jmp.
+    VERTEX_NAME = 1 << 2,            // Function has a non-auto-generated name.
     VERTEX_DEMANGLED_NAME = 1 << 3,  // C++ demangled name.
   };
 

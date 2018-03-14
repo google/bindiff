@@ -1,7 +1,6 @@
 #ifndef FLOW_GRAPH_H_
 #define FLOW_GRAPH_H_
 
-#include <cstdint>
 #include <string>
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
@@ -21,56 +20,43 @@ bool IsSorted(const std::vector<Address>& addresses);
 class FlowGraph {
  public:
   struct VertexInfo {
-    VertexInfo()
-        : prime_(0),
-          flags_(0),
-          string_hash_(0),
-          basic_block_hash_(0),
-          instruction_start_(std::numeric_limits<uint32_t>::max()),
-          call_target_start_(std::numeric_limits<uint32_t>::max()),
-          fixed_point_(0),
-          bfs_top_down_(0),
-          bfs_bottom_up_(0) {}
-
-    uint64_t prime_;  // prime signature
-    uint32_t flags_;
-    uint32_t string_hash_;               // string reference hash
-    uint32_t basic_block_hash_;          // basic block binary hash
-    uint32_t instruction_start_;         // start index of instructions
-                                         //  in instruction vector
-    uint32_t call_target_start_;         // start index of calltargets
-                                         //  in calltarget vector
-    BasicBlockFixedPoint* fixed_point_;  // basic block match (if any)
-    uint16_t bfs_top_down_;              // BFS level top down
-    uint16_t bfs_bottom_up_;             // BFS level bottom up
+    uint64_t prime_ = 0;  // Prime signature
+    uint32_t flags_ = 0;
+    uint32_t string_hash_ = 0;       // String reference hash
+    uint32_t basic_block_hash_ = 0;  // Basic block binary hash
+    uint32_t instruction_start_ =
+        kuint32max;  // Start index of instructions in instruction vector
+    uint32_t call_target_start_ =
+        kuint32max;  // Start index of calltargets in calltarget vector
+    BasicBlockFixedPoint* fixed_point_ = nullptr;  // Basic block match (if any)
+    uint16_t bfs_top_down_ = 0;                      // BFS level top down
+    uint16_t bfs_bottom_up_ = 0;                     // BFS level bottom up
   };
 
   struct EdgeInfo {
-    EdgeInfo() : md_index_top_down_(0), md_index_bottom_up_(0), flags_(0) {}
-
-    double md_index_top_down_;
-    double md_index_bottom_up_;
-    uint8_t flags_;  // unconditional, true, false, switch
+    double md_index_top_down_ = 0;
+    double md_index_bottom_up_ = 0;
+    uint8_t flags_ = 0;  // Unconditional, true, false, switch
   };
 
-  typedef boost::compressed_sparse_row_graph<
+  using Graph = boost::compressed_sparse_row_graph<
       boost::bidirectionalS,
-      VertexInfo,          // vertex properties
-      EdgeInfo,            // edge properties
-      boost::no_property,  // graph properties
-      uint32_t,            // index type for vertices (see b/35456354)
-      uint32_t             // index type for edges
-      > Graph;
+      VertexInfo,          // Vertex properties
+      EdgeInfo,            // Edge properties
+      boost::no_property,  // Graph properties
+      uint32_t,              // Index type for vertices (see b/35456354)
+      uint32_t               // Index type for edges
+      >;
 
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef boost::graph_traits<Graph>::vertex_iterator VertexIterator;
-  typedef boost::graph_traits<Graph>::edge_descriptor Edge;
-  typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
-  typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIterator;
-  typedef boost::graph_traits<Graph>::in_edge_iterator InEdgeIterator;
-  // basic block level, inner basic block level
-  typedef std::pair<uint16_t, uint16_t> Level;
-  typedef std::vector<Address> CallTargets;
+  using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
+  using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;
+  using Edge = boost::graph_traits<Graph>::edge_descriptor;
+  using EdgeIterator = boost::graph_traits<Graph>::edge_iterator;
+  using OutEdgeIterator = boost::graph_traits<Graph>::out_edge_iterator;
+  using InEdgeIterator = boost::graph_traits<Graph>::in_edge_iterator;
+  // Basic block level, inner basic block level
+  using Level = std::pair<uint16_t, uint16_t>;
+  using CallTargets = std::vector<Address>;
 
   enum {
     EDGE_UNCONDITIONAL = 1 << 0,
@@ -220,7 +206,7 @@ class FlowGraph {
   const string& GetGoodName() const;
 
  private:
-  typedef std::vector<std::pair<Address, Level> > AddressToLevelMap;
+  using AddressToLevelMap = std::vector<std::pair<Address, Level>>;
 
   void Init();
   void MarkLoops();
@@ -247,6 +233,6 @@ struct SortByAddress {
   }
 };
 
-typedef std::set<FlowGraph*, SortByAddress> FlowGraphs;
+using FlowGraphs = std::set<FlowGraph*, SortByAddress>;
 
 #endif  // FLOW_GRAPH_H_
