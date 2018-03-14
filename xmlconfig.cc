@@ -26,7 +26,7 @@ string ReadFileToString(const string& filename) {
 
 }  // namespace
 
-string* XmlConfig::default_filename_{};
+string* XmlConfig::default_filename_ = new string();
 
 XmlConfig::XmlConfig() { SetData(/*data=*/""); }
 
@@ -43,8 +43,7 @@ std::unique_ptr<XmlConfig> XmlConfig::LoadFromFile(const string& filename) {
 }
 
 const string& XmlConfig::SetDefaultFilename(string filename) {
-  delete default_filename_;
-  default_filename_ = new string(std::move(filename));
+  *default_filename_ = std::move(filename);
   return *default_filename_;
 }
 
