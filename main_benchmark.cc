@@ -20,6 +20,7 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "file/base/path.h"
 #include "strings/human_readable.h"
 #include "strings/substitute.h"
+#include "third_party/absl/strings/substitute.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/bindiff.proto.h"
 #include "third_party/zynamics/bindiff/call_graph_matching.h"
@@ -83,7 +84,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
     const double similarity =
         GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
 
-    LOG(INFO) << strings::Substitute(
+    LOG(INFO) << absl::Substitute(
         "$0 diffing, similarity $1%, confidence $2%, matched $3 of $4/$5 "
         "($6/$7 non-library)",
         HumanReadableElapsedTime::ToShortString(absl::Seconds(time_diff)),
@@ -91,7 +92,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
         flow_graphs1.size(), flow_graphs2.size(),
         counts.find("functions primary (non-library)")->second,
         counts.find("functions secondary (non-library)")->second);
-    LOG(INFO) << strings::Substitute(
+    LOG(INFO) << absl::Substitute(
         "primary call graph MD index $0, secondary call graph MD index $1",
         call_graph1.GetMdIndex(), call_graph2.GetMdIndex());
   } catch (const std::runtime_error& error) {
