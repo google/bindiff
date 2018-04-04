@@ -8,15 +8,15 @@
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/binexport/types.h"
 
 class MatchingContext;
 
-typedef std::map<string, size_t> Histogram;
-typedef std::map<string, size_t> Counts;
-typedef std::map<string, double> Confidences;
+using Histogram = std::map<string, size_t>;
+using Counts = std::map<string, size_t>;
+using Confidences = std::map<string, double>;
 
 // Main entry point to the differ. Runs the core algorithm and produces a
 // (partial) matching between the two inputs.
@@ -51,8 +51,7 @@ void Read(const string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache);
 #ifdef GOOGLE
-// Same as the above Read() function, but using Google3 File for reading. In
-// addition, this function supports .BinExport2 files as well.
+// Same as the above Read() function, but using Google3 File for reading.
 bool ReadGoogle(const string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache);

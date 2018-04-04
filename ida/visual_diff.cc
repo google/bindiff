@@ -33,7 +33,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"

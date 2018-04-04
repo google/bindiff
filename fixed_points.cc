@@ -2,7 +2,7 @@
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 
 std::vector<string> InitStringPool() {
   std::vector<string> pool;

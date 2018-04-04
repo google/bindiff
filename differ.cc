@@ -6,8 +6,8 @@
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/zynamics/bindiff/call_graph_matching.h"
-#include "third_party/zynamics/bindiff/flow_graph_matching.h"
+#include "third_party/zynamics/bindiff/call_graph_match.h"
+#include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 #include "util/task/status.h"
 

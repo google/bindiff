@@ -1,7 +1,7 @@
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/matching.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 
 namespace {
 

@@ -108,8 +108,33 @@ add_test(AllTestsInXmlConfig xmlconfig_test)
 add_library(bindiff_shared STATIC
   call_graph.cc
   call_graph.h
-  call_graph_matching.cc
-  call_graph_matching.h
+  call_graph_match.cc
+  call_graph_match.h
+  call_graph_match_function_address_sequence.cc
+  call_graph_match_function_address_sequence.h
+  call_graph_match_function_call_graph_edges_proximity_mdindex.cc
+  call_graph_match_function_call_graph_edges_proximity_mdindex.h
+  call_graph_match_function_call_graph_mdindex.cc
+  call_graph_match_function_call_graph_mdindex.h
+  call_graph_match_function_call_graph_mdindex_relaxed.cc
+  call_graph_match_function_call_graph_mdindex_relaxed.h
+  call_graph_match_function_call_sequence.cc
+  call_graph_match_function_call_sequence.h
+  call_graph_match_function_flow_graph_edges_mdindex.h
+  call_graph_match_function_flow_graph_mdindex.cc
+  call_graph_match_function_flow_graph_mdindex.h
+  call_graph_match_function_hash.cc
+  call_graph_match_function_hash.h
+  call_graph_match_function_instruction_count.cc
+  call_graph_match_function_instruction_count.h
+  call_graph_match_function_loops.cc
+  call_graph_match_function_loops.h
+  call_graph_match_function_name_hash.cc
+  call_graph_match_function_name_hash.h
+  call_graph_match_function_prime.cc
+  call_graph_match_function_prime.h
+  call_graph_match_function_string_refs.cc
+  call_graph_match_function_string_refs.h
   change_classifier.cc
   change_classifier.h
   comments.h
@@ -121,16 +146,16 @@ add_library(bindiff_shared STATIC
   fixed_points.h
   flow_graph.cc
   flow_graph.h
-  flow_graph_matching.cc
-  flow_graph_matching.h
+  flow_graph_match.cc
+  flow_graph_match.h
   groundtruth_writer.cc
   groundtruth_writer.h
   instruction.cc
   instruction.h
   log_writer.cc
   log_writer.cc
-  matching.cc
-  matching.h
+  match_context.cc
+  match_context.h
   prime_signature.cc
   prime_signature.h
   reader.cc
