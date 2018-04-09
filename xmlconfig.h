@@ -10,6 +10,9 @@
 
 class TiXmlDocument;
 
+namespace security {
+namespace bindiff {
+
 class XmlConfig {
  public:
   XmlConfig(const XmlConfig&) = delete;
@@ -64,5 +67,8 @@ class XmlConfig {
 
   void WriteNode(const string& key, const string& value);
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // XMLCONFIG_H_

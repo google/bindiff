@@ -3,6 +3,9 @@
 #include <cstring>
 #include <vector>
 
+namespace security {
+namespace bindiff {
+
 constexpr const int StatisticsChooser::kColumnWidths[];
 constexpr const char* const StatisticsChooser::kColumnNames[];
 constexpr const char StatisticsChooser::kTitle[];
@@ -28,3 +31,6 @@ void StatisticsChooser::get_row(qstrvec_t* cols, int* icon_,
                                    : std::to_string(statistic.value))
                    .c_str();
 }
+
+}  // namespace bindiff
+}  // namespace security

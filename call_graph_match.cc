@@ -26,6 +26,9 @@
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 
+namespace security {
+namespace bindiff {
+
 bool IsValidCandidate(const FlowGraph* flow_graph) {
   return !flow_graph->GetFixedPoint() &&
          // These may only be matched by name:
@@ -247,9 +250,9 @@ bool BaseMatchingStepEdgesMdIndex::FindFixedPoints(
                                &edges1);
     }
   }
-  return ::FindFixedPointsEdge(primary_parent, secondary_parent, &edges1,
-                               &edges2, &context, &matching_steps,
-                               default_steps);
+  return ::security::bindiff::FindFixedPointsEdge(
+      primary_parent, secondary_parent, &edges1, &edges2, &context,
+      &matching_steps, default_steps);
 }
 
 void BaseMatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
@@ -334,9 +337,6 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(
   }
 }
 
-namespace security {
-namespace bindiff {
-
 MatchingSteps GetDefaultMatchingSteps() {
   static auto* algorithms = []() -> std::map<string, MatchingStep*>* {
     auto* result = new std::map<string, MatchingStep*>();
@@ -394,7 +394,3 @@ MatchingSteps GetDefaultMatchingSteps() {
 
 }  // namespace bindiff
 }  // namespace security
-
-MatchingSteps GetDefaultMatchingSteps() {
-  return security::bindiff::GetDefaultMatchingSteps();
-}

@@ -3,6 +3,9 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 
+namespace security {
+namespace bindiff {
+
 bool operator<(const FixedPointInfo& one, const FixedPointInfo& two) {
   return one.primary < two.primary;
 }
@@ -17,3 +20,6 @@ Reader::Reader() : similarity_(0.0), confidence_(0.0) {}
 double Reader::GetSimilarity() const { return similarity_; }
 
 double Reader::GetConfidence() const { return confidence_; }
+
+}  // namespace bindiff
+}  // namespace security

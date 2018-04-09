@@ -34,6 +34,8 @@ DEFINE_FLAG(string, data_path,
             "Path of the BinDiff text fixtures to use (should contain a "
             "groundtruth_tests.list text proto file).");
 
+namespace security {
+namespace bindiff {
 namespace {
 
 void Diff(const string& primary_path, const string& secondary_path) {
@@ -107,8 +109,8 @@ void Diff(const string& primary_path, const string& secondary_path) {
 void RunAllDiffs() {
   const auto& path = base::GetFlag(FLAGS_data_path);
 
-  // TODO(soerenme) Add a set of DEX files to the test. DEX seems to have unique
-  //     performance issues.
+  // TODO(cblichmann): Add a set of DEX files to the test. DEX seems to have
+  //                   unique performance issues.
   BinDiff::TestPackage tests;
   QCHECK_OK(file::GetTextProto(file::JoinPath(path, "groundtruth_tests.list"),
                                &tests, file::Defaults()));
@@ -129,10 +131,12 @@ void RunAllDiffs() {
 }
 
 }  // namespace
+}  // namespace bindiff
+}  // namespace security
 
 int main(int argc, char** argv) {
-  InitGoogle(argv[0], &argc, &argv, true /* Remove flags */);
+  InitGoogle(argv[0], &argc, &argv, /*remove_flags=*/true);
 
-  RunAllDiffs();
+  security::bindiff::RunAllDiffs();
   return 0;
 }

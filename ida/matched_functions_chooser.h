@@ -8,6 +8,9 @@
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+namespace security {
+namespace bindiff {
+
 class MatchedFunctionsChooser : public chooser_multi_t {
  public:
   explicit MatchedFunctionsChooser(Results* results)
@@ -53,5 +56,8 @@ class MatchedFunctionsChooser : public chooser_multi_t {
 
   Results* results_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // IDA_MATCHED_FUNCTIONS_CHOOSER_H_

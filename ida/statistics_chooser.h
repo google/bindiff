@@ -8,6 +8,9 @@
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+namespace security {
+namespace bindiff {
+
 class StatisticsChooser : public chooser_t {
  public:
   explicit StatisticsChooser(Results* results)
@@ -30,5 +33,8 @@ class StatisticsChooser : public chooser_t {
 
   Results* results_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // IDA_STATISTICS_CHOOSER_H_

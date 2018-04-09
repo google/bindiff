@@ -7,9 +7,12 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 class Expression {
  public:
-  typedef enum {
+  enum Type {
     TYPE_MNEMONIC = 0,
     TYPE_SYMBOL = 1,
     TYPE_IMMEDIATE_INT = 2,
@@ -18,7 +21,7 @@ class Expression {
     TYPE_REGISTER = 5,
     TYPE_SIZEPREFIX = 6,
     TYPE_DEREFERENCE = 7
-  } Type;
+  };
 
   Expression();
 
@@ -28,5 +31,8 @@ class Expression {
   string symbol_;
   std::list<Expression*> children_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // EXPRESSION_H_

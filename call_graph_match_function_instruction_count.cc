@@ -14,9 +14,9 @@ bool MatchingStepFunctionInstructionCount::FindFixedPoints(
   FlowGraphIntMap flow_graphs_map_2;
   GetUnmatchedFlowGraphsByInstructionCount(flow_graphs_1, flow_graphs_map_1);
   GetUnmatchedFlowGraphsByInstructionCount(flow_graphs_2, flow_graphs_map_2);
-  return ::FindFixedPoints(primary_parent, secondary_parent, flow_graphs_map_1,
-                           flow_graphs_map_2, &context, matching_steps,
-                           default_steps);
+  return ::security::bindiff::FindFixedPoints(
+      primary_parent, secondary_parent, flow_graphs_map_1, flow_graphs_map_2,
+      &context, matching_steps, default_steps);
 }
 
 void MatchingStepFunctionInstructionCount::

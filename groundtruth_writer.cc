@@ -6,7 +6,10 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/binexport/format_util.h"
 
-using security::binexport::FormatAddress;
+namespace security {
+namespace bindiff {
+
+using binexport::FormatAddress;
 
 GroundtruthWriter::GroundtruthWriter(const string& filename)
     : filename_(filename),
@@ -55,3 +58,6 @@ void GroundtruthWriter::Write(const CallGraph& /* call_graph1 */,
     }
   }
 }
+
+}  // namespace bindiff
+}  // namespace security

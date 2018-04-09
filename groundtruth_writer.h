@@ -16,6 +16,9 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/writer.h"
 
+namespace security {
+namespace bindiff {
+
 // Writes a text file which is suitable for easy text comparison to a known good
 // file.
 class GroundtruthWriter : public Writer {
@@ -39,5 +42,8 @@ class GroundtruthWriter : public Writer {
   const FlowGraphInfos* primary_;
   const FlowGraphInfos* secondary_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // GROUNDTRUTH_WRITER_H_

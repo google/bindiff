@@ -1,8 +1,7 @@
 #include "third_party/zynamics/bindiff/writer.h"
 
-Writer::Writer() {}
-
-Writer::~Writer() {}
+namespace security {
+namespace bindiff {
 
 void ChainWriter::Write(const CallGraph& call_graph1,
                         const CallGraph& call_graph2,
@@ -20,3 +19,6 @@ void ChainWriter::Add(std::shared_ptr<Writer> writer) {
 }
 
 bool ChainWriter::IsEmpty() const { return writers_.empty(); }
+
+}  // namespace bindiff
+}  // namespace security

@@ -11,6 +11,8 @@
 #include "third_party/tinyxpath/xpath_static.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
+namespace security {
+namespace bindiff {
 namespace {
 
 string ReadFileToString(const string& filename) {
@@ -225,3 +227,6 @@ void XmlConfig::WriteBool(const string& key, bool value) {
 void XmlConfig::Dump(const string& filename) const {
   document_->SaveFile(filename.c_str());
 }
+
+}  // namespace bindiff
+}  // namespace security

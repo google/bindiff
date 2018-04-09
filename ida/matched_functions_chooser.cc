@@ -7,7 +7,11 @@
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/binexport/format_util.h"
 
-using security::binexport::FormatAddress;
+namespace security {
+
+using binexport::FormatAddress;
+
+namespace bindiff {
 
 constexpr const int MatchedFunctionsChooser::kColumnWidths[];
 constexpr const char* const MatchedFunctionsChooser::kColumnNames[];
@@ -56,3 +60,6 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* icon_,
     attrs->flags |= CHITEM_BOLD;
   }
 }
+
+}  // namespace bindiff
+}  // namespace security

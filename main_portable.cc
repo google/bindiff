@@ -56,9 +56,6 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/types.h"
 
-using security::binexport::FormatAddress;
-using security::binexport::HumanReadableDuration;
-
 // Note: We cannot use new-style flags here because third-party gflags does not
 //       support the new syntax yet.
 DEFINE_bool(nologo, false, "do not display version/copyright information");
@@ -77,6 +74,13 @@ DEFINE_bool(ls, false,
 DEFINE_string(config, "", "specify config file name");
 
 static const char kBinExportVersion[] = "10";  // Exporter version to use.
+
+namespace security {
+
+using binexport::FormatAddress;
+using binexport::HumanReadableDuration;
+
+namespace bindiff {
 
 std::mutex g_queue_mutex;
 volatile bool g_wants_to_quit = false;
@@ -552,7 +556,7 @@ void SignalHandler(int code) {
   }
 }
 
-int main(int argc, char** argv) {
+int DifferMain(int argc, char** argv) {
 #ifdef WIN32
   signal(SIGBREAK, SignalHandler);
 #endif
@@ -777,4 +781,11 @@ int main(int argc, char** argv) {
   }
 
   return exit_code;
+}
+
+}  // namespace bindiff
+}  // namespace security
+
+int main(int argc, char** argv) {
+  return security::bindiff::DifferMain(argc, argv);
 }

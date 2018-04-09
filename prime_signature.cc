@@ -2,6 +2,7 @@
 
 #include <cassert>
 
+namespace security {
 namespace bindiff {
 namespace {
 
@@ -12535,11 +12536,12 @@ uint32_t GetPrime(const string& mnemonic) {
     // prime[character_value] ^ character_position
     // We subtract 32 from the character value to skip unprintable characters
     // (ASCII table 32 is space).
-    // TODO(soerenme) Use proper Gödel numbers, i.e.:
-    //     prime[character_position] ^ character_value
+    // TODO(cblichmann): Use proper Gödel numbers, i.e.:
+    //                   prime[character_position] ^ character_value
     prime *= ipow(GetPrime(mnemonic[i] - 32), i + 1);
   }
   return prime;
 }
 
 }  // namespace bindiff
+}  // namespace security

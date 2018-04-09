@@ -12,9 +12,9 @@ bool MatchingStepEdgesProximityMdIndex::FindFixedPoints(
   EdgeFeatures edges2;
   GetUnmatchedEdgesProximityMdIndex(&context.primary_call_graph_, &edges1);
   GetUnmatchedEdgesProximityMdIndex(&context.secondary_call_graph_, &edges2);
-  return ::FindFixedPointsEdge(primary_parent, secondary_parent, &edges1,
-                               &edges2, &context, &matching_steps,
-                               default_steps);
+  return ::security::bindiff::FindFixedPointsEdge(
+      primary_parent, secondary_parent, &edges1, &edges2, &context,
+      &matching_steps, default_steps);
 }
 
 void MatchingStepEdgesProximityMdIndex::GetUnmatchedEdgesProximityMdIndex(

@@ -57,8 +57,12 @@
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 
-using security::binexport::FormatAddress;
-using security::binexport::HumanReadableDuration;
+namespace security {
+
+using binexport::FormatAddress;
+using binexport::HumanReadableDuration;
+
+namespace bindiff {
 
 XmlConfig* g_config = nullptr;  // Used in visual_diff.cc
 
@@ -1492,15 +1496,17 @@ bool idaapi PluginRun(size_t /* arg */) {
 }
 
 }  // namespace
+}  // namespace bindiff
+}  // namespace security
 
 plugin_t PLUGIN = {
     IDP_INTERFACE_VERSION,
-    PLUGIN_FIX,       // Plugin flags
-    PluginInit,       // Initialize
-    PluginTerminate,  // Terminate
-    PluginRun,        // Invoke plugin
-    kComment,         // Statusline text
-    nullptr,          // Multiline help about the plugin, unused
-    kName,            // The preferred short name of the plugin
-    kHotKey           // The preferred hotkey to run the plugin
+    PLUGIN_FIX,                          // Plugin flags
+    security::bindiff::PluginInit,       // Initialize
+    security::bindiff::PluginTerminate,  // Terminate
+    security::bindiff::PluginRun,        // Invoke plugin
+    security::bindiff::kComment,         // Statusline text
+    nullptr,                    // Multiline help about the plugin, unused
+    security::bindiff::kName,   // The preferred short name of the plugin
+    security::bindiff::kHotKey  // The preferred hotkey to run the plugin
 };

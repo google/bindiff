@@ -8,6 +8,9 @@
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+namespace security {
+namespace bindiff {
+
 class UnmatchedFunctionsChooserBase : public chooser_multi_t {
  protected:
   UnmatchedFunctionsChooserBase(const char* title, Results* results)
@@ -59,5 +62,8 @@ class UnmatchedFunctionsChooserSecondary
   size_t get_count() const override;
   Results::UnmatchedDescription GetDescription(size_t index) const override;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // IDA_UNMATCHED_FUNCTIONS_CHOOSER_H_

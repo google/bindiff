@@ -12,6 +12,9 @@
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
+namespace security {
+namespace bindiff {
+
 uint32_t GetMatchColor(double value) {
   // Google Material colors: Deep Orange (500) -> Google Yellow (A700) ->
   // Light Green (A400)
@@ -108,3 +111,6 @@ void CopyToClipboard(const string& data) {
   //                   macOS: Pipe to "pbcopy"
 #endif
 }
+
+}  // namespace bindiff
+}  // namespace security

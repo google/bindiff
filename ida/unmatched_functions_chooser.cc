@@ -7,7 +7,11 @@
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/binexport/format_util.h"
 
-using security::binexport::FormatAddress;
+namespace security {
+
+using binexport::FormatAddress;
+
+namespace bindiff {
 
 constexpr const int UnmatchedFunctionsChooserBase::kColumnWidths[];
 constexpr const char* const UnmatchedFunctionsChooserBase::kColumnNames[];
@@ -49,3 +53,6 @@ Results::UnmatchedDescription
 UnmatchedFunctionsChooserSecondary::GetDescription(size_t index) const {
   return results_->GetUnmatchedDescriptionSecondary(index);
 }
+
+}  // namespace bindiff
+}  // namespace security

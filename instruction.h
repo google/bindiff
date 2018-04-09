@@ -6,10 +6,13 @@
 
 #include "third_party/zynamics/bindiff/utility.h"
 
+namespace security {
+namespace bindiff {
+
 class Instruction {
  public:
   struct Cache {
-    typedef std::unordered_map<uint32_t, string> PrimeToMnemonic;
+    using PrimeToMnemonic = std::unordered_map<uint32_t, string>;
 
     void Clear() {
       prime_to_mnemonic_.clear();
@@ -29,14 +32,17 @@ class Instruction {
   uint32_t prime_;
 };
 
-typedef std::vector<Instruction> Instructions;
-typedef std::vector<std::pair<const Instruction*, const Instruction*> >
-    InstructionMatches;
+using Instructions = std::vector<Instruction>;
+using InstructionMatches =
+    std::vector<std::pair<const Instruction*, const Instruction*>>;
 
 void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
                 const Instructions::const_iterator& instructions1_end,
                 const Instructions::const_iterator& instructions2_begin,
                 const Instructions::const_iterator& instructions2_end,
                 InstructionMatches& matches);
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // INSTRUCTION_H_

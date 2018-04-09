@@ -1,6 +1,8 @@
 #include "gtest/gtest.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 
+namespace security {
+namespace bindiff {
 namespace {
 
 TEST(FlowGraphTest, FlowGraphDefaultValues) {
@@ -16,7 +18,7 @@ TEST(FlowGraphTest, FlowGraphDefaultValues) {
   flow_graph.CalculateCallLevels();
   flow_graph.CalculateTopology();
 
-  // TODO(soerenme) Test the following:
+  // TODO(cblichmann): Test the following:
   //  void SetMdIndex(double index);
   //  void SetMdIndexInverted(double index);
   //  void SetFixedPoint(FixedPoint* fixed_point)
@@ -24,3 +26,5 @@ TEST(FlowGraphTest, FlowGraphDefaultValues) {
 }
 
 }  // namespace
+}  // namespace bindiff
+}  // namespace security

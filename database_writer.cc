@@ -8,6 +8,9 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 
+namespace security {
+namespace bindiff {
+
 void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
                int& instructions) {
   FlowGraphs flow1, flow2;
@@ -50,7 +53,7 @@ void ReadInfos(const string& filename, CallGraph& call_graph,
     flow_graph.Read(proto, flow_graph_proto, &call_graph, &instruction_cache);
 
     Counts counts;
-    ::Count(flow_graph, &counts);
+    Count(flow_graph, &counts);
     auto address = flow_graph.GetEntryPointAddress();
     FlowGraphInfo& info = flow_graph_infos[address];
     info.address = address;
@@ -766,3 +769,6 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
   ReadInfos((path_ + (secondary_filename_ + ".BinExport")),
             call_graph2, flow_graphs2);
 }
+
+}  // namespace bindiff
+}  // namespace security

@@ -23,6 +23,8 @@
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_string_refs.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 
+namespace security {
+namespace bindiff {
 namespace {
 
 double GetConfidenceFromConfig(const string& name) {
@@ -180,9 +182,6 @@ MatchingStepFlowGraph::MatchingStepFlowGraph(const string& name)
       confidence_(GetConfidenceFromConfig(GetName())),
       edge_matching_(false) {}
 
-namespace security {
-namespace bindiff {
-
 MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
   static auto* algorithms = []() -> std::map<string, MatchingStepFlowGraph*>* {
     auto* result = new std::map<string, MatchingStepFlowGraph*>();
@@ -242,7 +241,3 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
 
 }  // namespace bindiff
 }  // namespace security
-
-MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
-  return security::bindiff::GetDefaultMatchingStepsBasicBlock();
-}

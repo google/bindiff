@@ -10,12 +10,15 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 class CallGraph;
 class MatchingStep;
 class MatchingStepFlowGraph;
 
-using MatchingStepsFlowGraph = std::list<MatchingStepFlowGraph*>;
 using MatchingSteps = std::list<MatchingStep*>;
+using MatchingStepsFlowGraph = std::list<MatchingStepFlowGraph*>;
 
 enum Direction {
   kTopDown,
@@ -112,5 +115,8 @@ class MatchingContext {
 
 class XmlConfig;
 XmlConfig& GetConfig();
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // MATCH_CONTEXT_H_

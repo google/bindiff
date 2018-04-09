@@ -4,6 +4,9 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 
+namespace security {
+namespace bindiff {
+
 std::vector<string> InitStringPool() {
   std::vector<string> pool;
   try {
@@ -206,3 +209,6 @@ bool operator<(const FixedPoint& one, const FixedPoint& two) {
   return one.GetPrimary()->GetEntryPointAddress() <
          two.GetPrimary()->GetEntryPointAddress();
 }
+
+}  // namespace bindiff
+}  // namespace security

@@ -9,6 +9,9 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 class FlowGraph;
 
 class CallGraph {
@@ -195,5 +198,8 @@ class CallGraph {
   Comments comments_;
   string filename_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // CALL_GRAPH_H_

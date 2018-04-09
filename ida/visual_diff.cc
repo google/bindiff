@@ -38,6 +38,9 @@
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
 
+namespace security {
+namespace bindiff {
+
 static constexpr char kGuiJarName[] = "bindiff.jar";
 
 #ifdef WIN32
@@ -268,3 +271,6 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
   }
   return false;
 }
+
+}  // namespace bindiff
+}  // namespace security

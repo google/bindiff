@@ -22,9 +22,12 @@
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/timer.h"
 
-using security::binexport::FormatAddress;
-using security::binexport::HumanReadableDuration;
+namespace security {
 
+using binexport::FormatAddress;
+using binexport::HumanReadableDuration;
+
+namespace bindiff {
 namespace {
 
 void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
@@ -434,10 +437,12 @@ bool Results::IncrementalDiff() {
     const string temp_dir(
         GetTempDirectory("BinDiff", /* create = */ true));
     {
-      ::Read(call_graph1_.GetFilePath(), &call_graph1_, &flow_graphs1_,
-             &flow_graph_infos1_, &instruction_cache_);
-      ::Read(call_graph2_.GetFilePath(), &call_graph2_, &flow_graphs2_,
-             &flow_graph_infos2_, &instruction_cache_);
+      ::security::bindiff::Read(call_graph1_.GetFilePath(), &call_graph1_,
+                                &flow_graphs1_, &flow_graph_infos1_,
+                                &instruction_cache_);
+      ::security::bindiff::Read(call_graph2_.GetFilePath(), &call_graph2_,
+                                &flow_graphs2_, &flow_graph_infos2_,
+                                &instruction_cache_);
 
       CopyFile(input_filename_, JoinPath(temp_dir, "incremental.BinDiff"));
 
@@ -1229,7 +1234,7 @@ void Results::CreateIndexedViews() {
       fixed_point_info.comments_ported = fixed_point.GetCommentsPorted();
       Counts counts;
       Histogram histogram;
-      ::Count(fixed_point, &counts, &histogram);
+      ::security::bindiff::Count(fixed_point, &counts, &histogram);
       fixed_point_info.basic_block_count =
           counts["basicBlock matches (library)"] +
           counts["basicBlock matches (non-library)"];
@@ -1586,3 +1591,6 @@ void Results::Count() {
     histogram_[*i->algorithm]++;
   }
 }
+
+}  // namespace bindiff
+}  // namespace security

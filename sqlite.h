@@ -1,3 +1,6 @@
+// TODO(cblichmann): We may want to export directly to SQLite from BinExport in
+//                   the future. In that case, move this file to BinExport.
+
 #ifndef SQLITE_H_
 #define SQLITE_H_
 
@@ -9,6 +12,10 @@
 
 struct sqlite3;
 struct sqlite3_stmt;
+
+namespace security {
+namespace bindiff {
+
 class SqliteStatement;
 
 class SqliteDatabase {
@@ -66,5 +73,8 @@ class SqliteStatement {
   int column_;
   bool got_data_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // SQLITE_H_

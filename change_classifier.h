@@ -3,10 +3,13 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 class MatchingContext;
 class FixedPoint;
 
-typedef enum {
+enum ChangeType {
   CHANGE_NONE = 0,
   CHANGE_STRUCTURAL = 1 << 0,       // G-raph
   CHANGE_INSTRUCTIONS = 1 << 1,     // I-nstruction
@@ -16,10 +19,13 @@ typedef enum {
   CHANGE_LOOPS = 1 << 5,            // L-oop
   CHANGE_CALLS = 1 << 6,            // C-all
   CHANGE_COUNT = 7
-} ChangeType;
+};
 
 void ClassifyChanges(FixedPoint* fixed_point);
 void ClassifyChanges(MatchingContext* context);
 string GetChangeDescription(ChangeType change);
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // CHANGE_CLASSIFIER_H_

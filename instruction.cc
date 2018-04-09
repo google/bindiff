@@ -8,9 +8,11 @@
 
 #include "base/logging.h"
 
+namespace security {
+namespace bindiff {
 namespace {
 
-typedef std::vector<int> Lengths;
+using Lengths = std::vector<int>;
 
 // Calculate LCS row lengths given iterator ranges into two sequences.
 // On completion, `lens` holds LCS lengths in the final row.
@@ -140,10 +142,11 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
                 const Instructions::const_iterator& instructions2_begin,
                 const Instructions::const_iterator& instructions2_end,
                 InstructionMatches& matches) {
-  typedef std::list<size_t> List;
-  List matches1, matches2;
-  typedef boost::transform_iterator<ProjectPrime, Instructions::const_iterator>
-      Iterator;
+  using List = std::list<size_t>;
+  List matches1;
+  List matches2;
+  using Iterator =
+      boost::transform_iterator<ProjectPrime, Instructions::const_iterator>;
   ComputeLcs(Iterator(instructions1_begin, ProjectPrime()),
              Iterator(instructions1_end, ProjectPrime()),
              Iterator(instructions2_begin, ProjectPrime()),
@@ -190,3 +193,6 @@ uint32_t Instruction::GetPrime() const { return prime_; }
 string Instruction::GetMnemonic(const Cache* cache) const {
   return cache->prime_to_mnemonic_.find(GetPrime())->second;
 }
+
+}  // namespace bindiff
+}  // namespace security

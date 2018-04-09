@@ -8,6 +8,9 @@
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 class DatabaseWriter : public Writer {
  public:
   // Regular constructor for creating result databases.
@@ -40,7 +43,7 @@ class DatabaseWriter : public Writer {
   void WriteMatches(const FixedPoints& fixed_points);
   void WriteAlgorithms();
 
-  typedef std::map<string, int> NameToId;
+  using NameToId = std::map<string, int>;
   NameToId basic_block_steps_;
   NameToId function_steps_;
   SqliteDatabase database_;
@@ -63,7 +66,7 @@ class DatabaseTransmuter : public Writer {
                                  const FixedPointInfos& fixed_points);
 
  private:
-  typedef std::set<std::pair<Address, Address> > TempFixedPoints;
+  using TempFixedPoints = std::set<std::pair<Address, Address>>;
 
   void DeleteMatches(const TempFixedPoints& kill_me);
 
@@ -101,5 +104,8 @@ class DatabaseReader : public Reader {
   string temporary_directory_;
   Counts basic_block_fixed_point_info_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // DATABASE_WRITER_H_

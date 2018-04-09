@@ -5,6 +5,14 @@
 #include <name.hpp>                                             // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
+// Taken from IDA SDK 6.1 nalt.hpp. ExtraGet has since been deprecated.
+inline ssize_t ExtraGet(ea_t ea, int what, char* buf, size_t bufsize) {
+  return netnode(ea).supstr(what, buf, bufsize);
+}
+
+namespace security {
+namespace bindiff {
+
 string GetName(Address address) {
   if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
     qstring ida_name(get_name(static_cast<ea_t>(address)));
@@ -23,11 +31,6 @@ string GetDemangledName(Address address) {
     }
   }
   return "";
-}
-
-// Taken from IDA SDK 6.1 nalt.hpp. ExtraGet has since been deprecated.
-inline ssize_t ExtraGet(ea_t ea, int what, char* buf, size_t bufsize) {
-  return netnode(ea).supstr(what, buf, bufsize);
 }
 
 string GetLineComments(Address address, int direction) {
@@ -55,3 +58,6 @@ string GetLineComments(Address address, int direction) {
   }
   return comment;
 }
+
+}  // namespace bindiff
+}  // namespace security

@@ -9,23 +9,29 @@
 
 #include "third_party/zynamics/bindiff/utility.h"
 
-class FlowGraph;
-class CallGraph;
-
 enum vertex_flags_t { vertex_flags };
 enum vertex_bfs_index_t { vertex_bfs_index };
 enum vertex_bfs_index_inverted_t { vertex_bfs_index_inverted };
 enum edge_flags_t { edge_flags };
 enum edge_md_index_t { edge_md_index };
 enum edge_md_index_inverted_t { edge_md_index_inverted };
+
 namespace boost {
+
 BOOST_INSTALL_PROPERTY(vertex, bfs_index);
 BOOST_INSTALL_PROPERTY(vertex, bfs_index_inverted);
 BOOST_INSTALL_PROPERTY(vertex, flags);
 BOOST_INSTALL_PROPERTY(edge, flags);
 BOOST_INSTALL_PROPERTY(edge, md_index);
 BOOST_INSTALL_PROPERTY(edge, md_index_inverted);
-}
+
+}  // namespace boost
+
+namespace security {
+namespace bindiff {
+
+class FlowGraph;
+class CallGraph;
 
 // Calculate the MD index for a given edge in the graph. Use regular breadth
 // first index topology if inverted == false, bottom up breadth first index
@@ -216,5 +222,8 @@ void InvertedBreadthFirstSearch(Graph* graph) {
     }
   }
 }
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // GRAPH_UTIL_H_

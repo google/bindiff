@@ -6,6 +6,9 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 MatchingSteps GetDefaultMatchingSteps();
 bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
                                   MatchingContext* context,
@@ -98,7 +101,6 @@ class BaseMatchingStepEdgesMdIndex : public MatchingStep {
   MatchingContext::FeatureId secondary_feature_;
 };
 
-
 using FlowGraphDoubleMap = std::multimap<double, FlowGraph*, std::less<double>>;
 using FlowGraphIntMap = std::multimap<uint64_t, FlowGraph*>;
 
@@ -188,5 +190,8 @@ bool FindFixedPointsEdge(const FlowGraph* primary_parent,
                          MatchingContext* context,
                          MatchingSteps* matching_steps,
                          const MatchingStepsFlowGraph& default_steps);
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // CALL_GRAPH_MATCH_H_

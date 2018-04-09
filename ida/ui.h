@@ -3,6 +3,9 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 constexpr double kManualMatch = -1.0;
 
 // Returns a 32-bit RGB color value suitable for colorizing match similarities.
@@ -13,5 +16,8 @@ uint32_t GetMatchColor(double value);
 // Copies unformatted data to clipboard. Throws on error.
 // TODO(cblichmann): Use util::Status instead of exceptions to signal errors.
 void CopyToClipboard(const string& data);
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // IDA_UI_H_

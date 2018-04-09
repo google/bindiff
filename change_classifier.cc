@@ -3,6 +3,8 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 
+namespace security {
+namespace bindiff {
 namespace {
 
 bool InstructionsChanged(const FlowGraph& primary, const FlowGraph& secondary,
@@ -165,8 +167,8 @@ void ClassifyChanges(FixedPoint* fixed_point) {
   }
 
   // Check for changes in entry point.
-  // TODO(soerenme) Set this only if it is the only change (i.e. no other
-  //     instructions have been modified).
+  // TODO(cblichmann): Set this only if it is the only change (i.e. no other
+  //                   instructions have been modified).
   if (primary.GetBasicBlockCount()) {
     const auto* basic_block_fixed_point = primary.GetFixedPoint(
         primary.GetVertex(primary.GetEntryPointAddress()));
@@ -183,16 +185,12 @@ void ClassifyChanges(FixedPoint* fixed_point) {
     fixed_point->SetFlag(CHANGE_LOOPS);
   }
 
-  // TODO(soerenme) Check for changes in operands.
+  // TODO(cblichmann): Check for changes in operands.
 }
 
 void ClassifyChanges(MatchingContext* context) {
-  FixedPoints& fixed_points = context->fixed_points_;
-  for (auto i = fixed_points.begin(), end = fixed_points.end(); i != end; ++i) {
-    // Cast away constness for VC 2010 and C++0x.
-    // TODO(soerenme) Check if we can use set<shared_ptr<T>> or a map.
-    FixedPoint* fixed_point(const_cast<FixedPoint*>(&*i));
-    ClassifyChanges(fixed_point);
+  for (auto& fixed_point : context->fixed_points_) {
+    ClassifyChanges(const_cast<FixedPoint*>(&fixed_point));
   }
 }
 
@@ -205,3 +203,6 @@ string GetChangeDescription(ChangeType change) {
   }
   return result;
 }
+
+}  // namespace bindiff
+}  // namespace security

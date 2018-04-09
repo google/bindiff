@@ -10,6 +10,9 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 class MatchingContext;
 
 class BasicBlockFixedPoint {
@@ -36,7 +39,7 @@ class BasicBlockFixedPoint {
 bool operator<(const BasicBlockFixedPoint& one,
                const BasicBlockFixedPoint& two);
 
-typedef std::set<BasicBlockFixedPoint> BasicBlockFixedPoints;
+using BasicBlockFixedPoints = std::set<BasicBlockFixedPoint>;
 
 class FixedPoint {
  public:
@@ -85,9 +88,12 @@ struct FixedPointComparator {
   }
 };
 
-typedef std::set<FixedPoint> FixedPoints;
-typedef std::set<FixedPoint*, FixedPointComparator> FixedPointRefs;
+using FixedPoints = std::set<FixedPoint>;
+using FixedPointRefs = std::set<FixedPoint*, FixedPointComparator>;
 
 const string* FindString(const string& name);
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // FIXED_POINTS_H_

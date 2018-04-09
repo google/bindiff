@@ -5,6 +5,9 @@
 
 #include "third_party/sqlite/src/sqlite3.h"
 
+namespace security {
+namespace bindiff {
+
 SqliteDatabase::SqliteDatabase()
     : database_(nullptr) {
 }
@@ -174,3 +177,6 @@ SqliteStatement& SqliteStatement::Reset() {
 bool SqliteStatement::GotData() const {
   return got_data_;
 }
+
+}  // namespace bindiff
+}  // namespace security

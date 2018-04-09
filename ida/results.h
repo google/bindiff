@@ -17,6 +17,9 @@
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/types.h"
 
+namespace security {
+namespace bindiff {
+
 #ifndef __EA64__
 #define HEX_ADDRESS "%08X"
 #else
@@ -122,8 +125,8 @@ class Results {
  private:
   friend bool Diff(ea_t, ea_t, ea_t, ea_t);
 
-  typedef std::vector<FlowGraphInfo*> IndexedFlowGraphs;
-  typedef std::vector<FixedPointInfo*> IndexedFixedPoints;
+  using IndexedFlowGraphs = std::vector<FlowGraphInfo*>;
+  using IndexedFixedPoints = std::vector<FixedPointInfo*>;
 
   UnmatchedDescription GetUnmatchedDescription(
       const IndexedFlowGraphs& flow_graphs, size_t index) const;
@@ -159,5 +162,8 @@ class Results {
   bool dirty_;
   int diff_database_id_;
 };
+
+}  // namespace bindiff
+}  // namespace security
 
 #endif  // IDA_RESULTS_H_

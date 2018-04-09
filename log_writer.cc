@@ -11,8 +11,11 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/format_util.h"
 
-using security::binexport::FormatAddress;
+namespace security {
 
+using binexport::FormatAddress;
+
+namespace bindiff {
 namespace {
 
 struct ProjectPrimary : public std::unary_function<FixedPoint, FlowGraph*> {
@@ -125,8 +128,8 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
     }
   }
 
-  typedef boost::transform_iterator<ProjectPrimary, FixedPoints::const_iterator>
-      IteratorPrimary;
+  using IteratorPrimary =
+      boost::transform_iterator<ProjectPrimary, FixedPoints::const_iterator>;
   FlowGraphs unmatched;
   std::set_symmetric_difference(
       flow_graphs1.begin(), flow_graphs1.end(),
@@ -142,8 +145,8 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
                 << (*i)->GetName() << std::endl;
   }
 
-  typedef boost::transform_iterator<
-      ProjectSecondary, FixedPoints::const_iterator> IteratorSecondary;
+  using IteratorSecondary =
+      boost::transform_iterator<ProjectSecondary, FixedPoints::const_iterator>;
   unmatched.clear();
   // Necessary because this set is sorted by primary flow_graph and we need it
   // by secondary now.
@@ -161,3 +164,6 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
                 << (*i)->GetName() << std::endl;
   }
 }
+
+}  // namespace bindiff
+}  // namespace security

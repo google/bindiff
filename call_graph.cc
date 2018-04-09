@@ -11,8 +11,11 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/format_util.h"
 
-using security::binexport::FormatAddress;
+namespace security {
 
+using binexport::FormatAddress;
+
+namespace bindiff {
 namespace {
 
 bool SortEdgeByMdIndex(const std::pair<CallGraph::Edge, double>& one,
@@ -595,6 +598,9 @@ void CallGraph::DeleteVertices(Address from, Address to) {
     }
   }
 
-  // TODO(soerenme): Bug: comments_ contains orphans now.
-  // TODO(soerenme): Bug: IsDuplicate may contain wrong information for edges.
+  // TODO(cblichmann): Bug: comments_ contains orphans now.
+  // TODO(cblichmann): Bug: IsDuplicate may contain wrong information for edges.
 }
+
+}  // namespace bindiff
+}  // namespace security
