@@ -148,6 +148,19 @@ add_library(bindiff_shared STATIC
   flow_graph.h
   flow_graph_match.cc
   flow_graph_match.h
+  flow_graph_match_basic_block_call_refs.h
+  flow_graph_match_basic_block_edges_lengauer_tarjan.h
+  flow_graph_match_basic_block_edges_mdindex.h
+  flow_graph_match_basic_block_edges_prime.h
+  flow_graph_match_basic_block_entry_node.h
+  flow_graph_match_basic_block_hash.h
+  flow_graph_match_basic_block_instruction_count.h
+  flow_graph_match_basic_block_jump_sequence.h
+  flow_graph_match_basic_block_loop_entry.h
+  flow_graph_match_basic_block_mdindex_relaxed.h
+  flow_graph_match_basic_block_prime.h
+  flow_graph_match_basic_block_self_loop.h
+  flow_graph_match_basic_block_string_refs.h
   groundtruth_writer.cc
   groundtruth_writer.h
   instruction.cc
