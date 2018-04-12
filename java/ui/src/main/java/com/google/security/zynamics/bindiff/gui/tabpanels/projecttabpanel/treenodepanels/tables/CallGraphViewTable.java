@@ -9,20 +9,20 @@ import com.google.security.zynamics.bindiff.resources.Colors;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 public class CallGraphViewTable extends AbstractTable {
   public CallGraphViewTable(
       final AbstractTableModel model, final WorkspaceTabPanelFunctions controller) {
     super(model, controller);
 
-    final TableColumn primaryName =
-        getColumnModel().getColumn(CallGraphViewTableModel.PRIMARY_NAME);
-    final TableColumn functions = getColumnModel().getColumn(CallGraphViewTableModel.FUNCTIONS);
-    final TableColumn similarity = getColumnModel().getColumn(CallGraphViewTableModel.SIMILARITY);
-    final TableColumn confidence = getColumnModel().getColumn(CallGraphViewTableModel.CONFIDENCE);
-    final TableColumn calls = getColumnModel().getColumn(CallGraphViewTableModel.CALLS);
-    final TableColumn secondaryName =
-        getColumnModel().getColumn(CallGraphViewTableModel.SECONDARY_NAME);
+    final TableColumnModel colModel = getColumnModel();
+    final TableColumn primaryName = colModel.getColumn(CallGraphViewTableModel.PRIMARY_NAME);
+    final TableColumn functions = colModel.getColumn(CallGraphViewTableModel.FUNCTIONS);
+    final TableColumn similarity = colModel.getColumn(CallGraphViewTableModel.SIMILARITY);
+    final TableColumn confidence = colModel.getColumn(CallGraphViewTableModel.CONFIDENCE);
+    final TableColumn calls = colModel.getColumn(CallGraphViewTableModel.CALLS);
+    final TableColumn secondaryName = colModel.getColumn(CallGraphViewTableModel.SECONDARY_NAME);
 
     primaryName.setMinWidth(60);
     functions.setMinWidth(75);

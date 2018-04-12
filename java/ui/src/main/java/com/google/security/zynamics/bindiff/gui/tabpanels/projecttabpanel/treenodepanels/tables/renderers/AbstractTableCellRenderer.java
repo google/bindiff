@@ -14,8 +14,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public abstract class AbstractTableCellRenderer extends DefaultTableCellRenderer {
-  public static Color NOT_ACCESSABLE_COLOR = Colors.GRAY250;
-  public static String NOT_ACCESSABLE_TEXT = "";
+  public static Color NON_ACCESSIBLE_COLOR = Colors.GRAY250;
+  public static String NON_ACCESSIBLE_TEXT = "";
 
   protected static Font NORMAL_FONT = GuiHelper.DEFAULT_FONT;
   protected static Font BOLD_FONT =

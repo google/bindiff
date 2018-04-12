@@ -33,10 +33,10 @@ public class SimilarityConfidenceCellRenderer extends AbstractTableCellRenderer 
 
       setIcon(
           new BackgroundIcon(
-              d == -1 ? NOT_ACCESSABLE_TEXT : String.format("%.2f", d),
+              d == -1 ? NON_ACCESSIBLE_TEXT : String.format("%.2f", d),
               SwingConstants.CENTER,
               Colors.GRAY32,
-              d == -1 ? NOT_ACCESSABLE_COLOR : calcColor((Double) value),
+              d == -1 ? NON_ACCESSIBLE_COLOR : calcColor((Double) value),
               table.getSelectionBackground(),
               selected,
               0 - 1,

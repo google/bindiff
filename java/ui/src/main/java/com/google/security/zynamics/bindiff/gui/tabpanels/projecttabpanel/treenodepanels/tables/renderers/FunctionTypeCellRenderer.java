@@ -43,10 +43,10 @@ public class FunctionTypeCellRenderer extends AbstractTableCellRenderer {
 
       setIcon(
           new BackgroundIcon(
-              accessable ? value.toString() : NOT_ACCESSABLE_TEXT,
+              accessable ? value.toString() : NON_ACCESSIBLE_TEXT,
               SwingConstants.CENTER,
               Colors.GRAY32,
-              accessable ? calcColor((EFunctionType) value) : NOT_ACCESSABLE_COLOR,
+              accessable ? calcColor((EFunctionType) value) : NON_ACCESSIBLE_COLOR,
               table.getSelectionBackground(),
               selected,
               0 - 1,

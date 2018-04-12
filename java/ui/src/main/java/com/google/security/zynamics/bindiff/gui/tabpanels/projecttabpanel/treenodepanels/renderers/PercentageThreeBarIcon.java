@@ -62,10 +62,10 @@ public class PercentageThreeBarIcon implements Icon {
       this.height = height;
       this.xOffset = xOffset;
       this.yOffset = yOffset;
-      this.leftBarColor = AbstractTableCellRenderer.NOT_ACCESSABLE_COLOR;
-      this.centerBarColor = AbstractTableCellRenderer.NOT_ACCESSABLE_COLOR;
-      this.rightBarColor = AbstractTableCellRenderer.NOT_ACCESSABLE_COLOR;
-      this.emptyBarColor = AbstractTableCellRenderer.NOT_ACCESSABLE_COLOR;
+      this.leftBarColor = AbstractTableCellRenderer.NON_ACCESSIBLE_COLOR;
+      this.centerBarColor = AbstractTableCellRenderer.NON_ACCESSIBLE_COLOR;
+      this.rightBarColor = AbstractTableCellRenderer.NON_ACCESSIBLE_COLOR;
+      this.emptyBarColor = AbstractTableCellRenderer.NON_ACCESSIBLE_COLOR;
       this.textColor = textColor;
       this.selectionColor = selectionColor;
     } else if (data.getLeftBarValue() != 0

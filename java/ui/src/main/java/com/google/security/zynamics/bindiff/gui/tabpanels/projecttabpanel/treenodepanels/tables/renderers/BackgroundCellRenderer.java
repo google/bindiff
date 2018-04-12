@@ -55,10 +55,10 @@ public class BackgroundCellRenderer extends AbstractTableCellRenderer {
 
     setIcon(
         new BackgroundIcon(
-            isNotAccessable ? NOT_ACCESSABLE_TEXT : text,
+            isNotAccessable ? NON_ACCESSIBLE_TEXT : text,
             horizontalAlignment,
             textColor,
-            isNotAccessable ? NOT_ACCESSABLE_COLOR : backgroundColor,
+            isNotAccessable ? NON_ACCESSIBLE_COLOR : backgroundColor,
             table.getSelectionBackground(),
             selected,
             0 - 1,
