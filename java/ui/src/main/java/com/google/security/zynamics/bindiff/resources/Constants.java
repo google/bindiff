@@ -12,8 +12,8 @@ public final class Constants {
 
   // Application Generals
   public static final String PRODUCT_NAME = "BinDiff";
-  public static final String PRODUCT_VERSION = "4.3.0";
-  public static final String PRODUCT_NAME_VERSION = "BinDiff 4.3";
+  public static final String PRODUCT_VERSION = "5.0.0";
+  public static final String PRODUCT_NAME_VERSION = "BinDiff 5.0";
   public static final String DEFAULT_WINDOW_TITLE = "BinDiff";
   public static final String LOG_FILE_NAME = "bindiff_ui.log";
   public static final String LOG_DIRECTORYNAME = "logs";
@@ -27,7 +27,6 @@ public final class Constants {
   public static final String DEFAULT_BACKGROUND_IMAGE_PATH =
       "data/appimages/bindiff-background-image.png";
   public static final String ABOUT_BINDIFF_IMAGE_PATH = "data/appimages/bindiff-about-image.png";
-  public static final String SPLASHSCREEN_IMAGE_PATH = "data/splashscreen/splashscreen.png";
 
   // About, License Help and Support Dialog
   public static final String MANUAL_URL = "https://www.zynamics.com/bindiff/manual/index.html";
@@ -51,7 +50,7 @@ public final class Constants {
   public static final String BINDIFF_ENGINE_EXECUTABLE;
 
   // IDA and IDA Plugins
-  public static final String IDA_EXPORTER_IDC_COMMAND = "BinExport2Diff9";
+  public static final String IDA_EXPORTER_IDC_COMMAND = "BinExportBinary";
   public static final String IDA_EXPORT_SCRIPT_NAME = "export.idc";
 
   // File format Versions
@@ -65,10 +64,10 @@ public final class Constants {
 
   static {
     if (SystemHelpers.isRunningWindows()) {
-      BINDIFF_ENGINE_EXECUTABLE = "differ.exe";
+      BINDIFF_ENGINE_EXECUTABLE = "bindiff.exe";
     } else {
-      // Linux and OS X use "differ"
-      BINDIFF_ENGINE_EXECUTABLE = "differ";
+      // Linux and OS X use "bindiff"
+      BINDIFF_ENGINE_EXECUTABLE = "bindiff";
     }
   }
 

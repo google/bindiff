@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.UnknownFormatConversionException;
 
 /**
  * Contains a few simple methods that are useful for dealing with IDA and command line handling
@@ -15,11 +14,11 @@ public final class IdaHelpers {
 
   static {
     if (SystemHelpers.isRunningWindows()) {
-      IDA32_EXECUTABLE = "idaq.exe";
-      IDA64_EXECUTABLE = "idaq64.exe";
+      IDA32_EXECUTABLE = "ida.exe";
+      IDA64_EXECUTABLE = "ida64.exe";
     } else {
-      IDA32_EXECUTABLE = "idaq";
-      IDA64_EXECUTABLE = "idaq64";
+      IDA32_EXECUTABLE = "ida";
+      IDA64_EXECUTABLE = "ida64";
     }
   }
 
@@ -38,7 +37,6 @@ public final class IdaHelpers {
         new ProcessBuilder(idaExe, "-A", "-OExporterModule:" + outputDirectory, sArgument,
             idbFileName);
 
-    // ESCA-JAVA0166:
     // Now launch the exporter to export the IDB to the database
     try {
       Process processInfo = null;
@@ -48,29 +46,17 @@ public final class IdaHelpers {
 
       // Java manages the streams internally - if they are full, the
       // process blocks, i.e. IDA hangs, so we need to consume them.
-      final BufferedReader reader =
-          new BufferedReader(new InputStreamReader(processInfo.getInputStream()));
-      String line;
-      try {
+      try (final BufferedReader reader =
+          new BufferedReader(new InputStreamReader(processInfo.getInputStream()))) {
+        String line;
         while ((line = reader.readLine()) != null) {
           System.out.println(line);
         }
-      } catch (final IOException exception) {
-        reader.close();
       }
-      reader.close();
-
       return processInfo;
-    } catch (final Exception exception) {
-      try {
-        // TODO: What can we do here ? Do we have a ZyLib-wide logger ?
-        // CUtilityFunctions.logException(exception);
-      } catch (final UnknownFormatConversionException e) {
-        // Some Windows error messages contain %1 characters.
-      }
-
-      throw new IdaException("Failed attempting to launch the importer with IDA: " + exception,
-          exception);
+    } catch (final IOException e) {
+      throw new IdaException(
+          "Failed attempting to launch the importer with IDA: " + e.getMessage(), e);
     }
   }
 
