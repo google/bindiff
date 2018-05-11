@@ -82,7 +82,7 @@ static constexpr char kDefaultConfiguration[] = R"raw(<?xml version="1.0"?>
 typedef std::vector<std::pair<uint64_t, uint64_t>> Matches;
 
 void MatchParser(Matches* matches, char* line) {
-  CHECK_NOTNULL(matches)->emplace_back(
+  ABSL_DIE_IF_NULL(matches)->emplace_back(
       ParseLeadingHex64Value(line, 0),
       ParseLeadingHex64Value(strchr(line, ' '), 0));
 }
