@@ -26,7 +26,6 @@ find_package(Boost 1.55 REQUIRED)
 find_package(IdaSdk REQUIRED)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(Protobuf 3.0.0 REQUIRED)
-include(${BinExport_DIR}/cctz.cmake)
 include(${BinExport_DIR}/googletest.cmake)
 include(${BinExport_DIR}/absl.cmake)
 
@@ -49,7 +48,6 @@ target_include_directories(bindiff_base INTERFACE
   ${PROJECT_BINARY_DIR}/src_include
   ${PROJECT_BINARY_DIR}/gen_include
   ${absl_src_dir}
-  ${cctz_src_dir}/include
   ${Boost_INCLUDE_DIR}
   ${Protobuf_INCLUDE_DIRS}
   ${Google3_DIR}
