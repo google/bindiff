@@ -12,7 +12,8 @@ namespace bindiff {
 class MatchingStepCallGraphMdIndexRelaxed : public MatchingStep {
  public:
   MatchingStepCallGraphMdIndexRelaxed()
-      : MatchingStep("function: relaxed MD index matching") {}
+      : MatchingStep("function: relaxed MD index matching",
+                     "Function: Relaxed MD Index") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,

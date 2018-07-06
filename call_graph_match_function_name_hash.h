@@ -12,7 +12,8 @@ namespace bindiff {
 // i.e. functions that do not have an actual body in the binary.
 class MatchingStepName : public MatchingStep {
  public:
-  MatchingStepName() : MatchingStep("function: name hash matching") {}
+  MatchingStepName()
+      : MatchingStep("function: name hash matching", "Function: Name Hash") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,

@@ -469,7 +469,8 @@ bool Results::IncrementalDiff() {
   for (auto i = fixed_points_.cbegin(), end = fixed_points_.cend(); i != end;
        ++i) {
     const FixedPoint& fixedpoint = *i;
-    if (fixedpoint.GetMatchingStep() == "function: manual") {
+    if (fixedpoint.GetMatchingStep() ==
+        absl::string_view{MatchingStep::kFunctionManualName}) {
       has_confirmed_fixedpoints = true;
       break;
     }
@@ -487,7 +488,8 @@ bool Results::IncrementalDiff() {
     FixedPoint& fixed_point = const_cast<FixedPoint&>(*i);
     FlowGraph* primary = fixed_point.GetPrimary();
     FlowGraph* secondary = fixed_point.GetSecondary();
-    if (fixed_point.GetMatchingStep() == "function: manual") {
+    if (fixed_point.GetMatchingStep() ==
+        absl::string_view{MatchingStep::kFunctionManualName}) {
       ++i;
       continue;  // Keep confirmed fixed points.
     }
@@ -717,7 +719,7 @@ FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
 
 int Results::AddMatch(Address primary, Address secondary) {
   FixedPointInfo fixed_point_info;
-  fixed_point_info.algorithm = FindString("function: manual");
+  fixed_point_info.algorithm = FindString(MatchingStep::kFunctionManualName);
   fixed_point_info.confidence = 1.0;
   fixed_point_info.basic_block_count = 0;
   fixed_point_info.edge_count = 0;
@@ -746,7 +748,7 @@ int Results::AddMatch(Address primary, Address secondary) {
     dummy3.insert(fixed_point);
     GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
 
-    fixed_point.SetMatchingStep("function: manual");
+    fixed_point.SetMatchingStep(MatchingStep::kFunctionManualName);
     fixed_point.SetSimilarity(
         GetSimilarityScore(primary_graph, secondary_graph, histogram, counts));
     ClassifyChanges(&fixed_point);
@@ -775,8 +777,9 @@ int Results::AddMatch(Address primary, Address secondary) {
       return 0;
     }
     FixedPoint& fixed_point(const_cast<FixedPoint&>(
-        *fixed_points_.insert(FixedPoint(primary_graph, secondary_graph,
-                                         "function: manual"))
+        *fixed_points_
+             .insert(FixedPoint(primary_graph, secondary_graph,
+                                MatchingStep::kFunctionManualName))
              .first));
     MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
                             flow_graphs2_, fixed_points_);
@@ -1368,7 +1371,7 @@ int Results::ConfirmMatch(int index) {
   }
 
   FixedPointInfo* fixed_point_info(indexed_fixed_points_[index - 1]);
-  fixed_point_info->algorithm = FindString("function: manual");
+  fixed_point_info->algorithm = FindString(MatchingStep::kFunctionManualName);
   fixed_point_info->confidence = 1.0;
   if (!IsInComplete()) {
     FixedPoint* fixed_point(FindFixedPoint(*fixed_point_info));

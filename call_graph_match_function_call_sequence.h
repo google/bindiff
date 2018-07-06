@@ -3,6 +3,8 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
+#include "third_party/absl/strings/str_cat.h"
+
 namespace security {
 namespace bindiff {
 
@@ -20,11 +22,16 @@ class MatchingStepCallSequence : public MatchingStep {
   enum Accuracy { EXACT = 0, TOPOLOGY, SEQUENCE };
 
   explicit MatchingStepCallSequence(Accuracy accuracy)
-      : MatchingStep(accuracy == EXACT
-                         ? "function: call sequence matching(exact)"
-                         : accuracy == TOPOLOGY
-                               ? "function: call sequence matching(topology)"
-                               : "function: call sequence matching(sequence)"),
+      : MatchingStep(absl::StrCat("function: call sequence matching(",
+                                  accuracy == EXACT
+                                      ? "exact)"
+                                      : accuracy == TOPOLOGY ? "topology)"
+                                                             : "sequence)"),
+                     absl::StrCat("Function: Call Sequence (",
+                                  accuracy == EXACT
+                                      ? "Exact)"
+                                      : accuracy == TOPOLOGY ? "Topology)"
+                                                             : "Sequence)")),
         accuracy_(accuracy) {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,

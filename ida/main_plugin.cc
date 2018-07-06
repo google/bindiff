@@ -523,7 +523,7 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
         delete g_results;
         g_results = nullptr;
         // Refreshing the choosers here is important as after our
-        // "save results?" confirmation dialog IDA will open its own
+        // "Save results?" confirmation dialog IDA will open its own
         // confirmation. The user can cancel in that dialog. So a "bad"
         // sequence of events is: don't save diff results, but cancel the
         // closing operation in the following IDA dialog. In an ideal world

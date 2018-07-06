@@ -29,13 +29,13 @@ namespace security {
 namespace bindiff {
 namespace {
 
-static constexpr char kFixturesPath[] =
+static constexpr const char kFixturesPath[] =
     "/google3/third_party/zynamics/bindiff/fixtures/";
 
 // We shouldn't be using the built-in default configuration as it has name
 // matching enabled which makes the tests pointless (both binaries contain full
 // symbols and the differ will simply match everything based on that).
-static constexpr char kDefaultConfiguration[] = R"raw(<?xml version="1.0"?>
+static constexpr const char kDefaultConfiguration[] = R"raw(<?xml version="1.0"?>
 <BinDiff configVersion="4">
   <FunctionMatching>
     <!-- <Step confidence="1.0" algorithm="function: name hash matching" /> -->

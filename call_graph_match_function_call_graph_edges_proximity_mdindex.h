@@ -12,12 +12,13 @@ namespace bindiff {
 class MatchingStepEdgesProximityMdIndex : public MatchingStep {
  public:
   MatchingStepEdgesProximityMdIndex()
-      : MatchingStep("function: edges proximity MD index") {}
+      : MatchingStep("function: edges proximity MD index",
+                     "Function: Edges Proximity MD Index") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,
-                       FlowGraphs& /*flow_graphs_1*/,
-                       FlowGraphs& /*flow_graphs_2*/, MatchingContext& context,
+                       FlowGraphs& /*flow_graphs1*/,
+                       FlowGraphs& /*flow_graphs2*/, MatchingContext& context,
                        MatchingSteps& matching_steps,
                        const MatchingStepsFlowGraph& default_steps) override;
 

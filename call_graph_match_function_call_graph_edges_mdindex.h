@@ -15,6 +15,7 @@ class MatchingStepEdgesCallGraphMdIndex : public BaseMatchingStepEdgesMdIndex {
   MatchingStepEdgesCallGraphMdIndex()
       : BaseMatchingStepEdgesMdIndex(
             "function: edges callgraph MD index",
+            "Function: Edges Call Graph MD Index",
             MatchingContext::kCallGraphMdIndexPrimary,
             MatchingContext::kCallGraphMdIndexSecondary) {}
 

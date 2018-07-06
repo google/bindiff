@@ -261,7 +261,8 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
   GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
                         &counts);
 
-  int file1 = 1, file2 = 2;
+  int file1 = 1;
+  int file2 = 2;
   database_.Statement(
       "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
       ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
@@ -390,56 +391,46 @@ void DatabaseWriter::WriteAlgorithms() {
     return;  // Assume we have already done this step.
   }
 
-  {
-    const MatchingStepsFlowGraph& steps = GetDefaultMatchingStepsBasicBlock();
-    int id = 0;
-    for (auto i = steps.cbegin(), end = steps.cend(); i != end; ++i) {
-      basic_block_steps_[(*i)->GetName()] = ++id;
-      database_.Statement(
-          "insert into basicblockalgorithm values (:id, :name)")
-          ->BindInt(id)
-          .BindText((*i)->GetName().c_str())
-          .Execute();
-    }
-    basic_block_steps_["basicBlock: propagation (size==1)"] = ++id;
-    database_.Statement(
-        "insert into basicblockalgorithm values (:id, :name)")
+  const MatchingStepsFlowGraph& steps = GetDefaultMatchingStepsBasicBlock();
+  int id = 0;
+  for (const auto* step : GetDefaultMatchingStepsBasicBlock()) {
+    basic_block_steps_[step->name()] = ++id;
+    database_.Statement("INSERT INTO basicblockalgorithm VALUES (:id, :name)")
         ->BindInt(id)
-        .BindText("basicBlock: propagation (size==1)")
-        .Execute();
-
-    basic_block_steps_["basicblock: manual"] = ++id;
-    database_.Statement(
-        "insert into basicblockalgorithm values (:id, :name)")
-        ->BindInt(id)
-        .BindText("basicblock: manual")
+        .BindText(step->name().c_str())
         .Execute();
   }
+  basic_block_steps_[MatchingStepFlowGraph::kBasicBlockPropagationName] = ++id;
+  database_.Statement("INSERT INTO basicblockalgorithm VALUES (:id, :name)")
+      ->BindInt(id)
+      .BindText(MatchingStepFlowGraph::kBasicBlockPropagationName)
+      .Execute();
 
-  {
-    const MatchingSteps& steps = GetDefaultMatchingSteps();
-    int id = 0;
-    for (auto i = steps.cbegin(), end = steps.cend(); i != end; ++i) {
-      function_steps_[(*i)->GetName()] = ++id;
-      database_.Statement(
-          "insert into functionalgorithm values (:id, :name)")
-          ->BindInt(id)
-          .BindText((*i)->GetName().c_str()).Execute();
-    }
-    function_steps_["function: call reference matching"] = ++id;
-    database_.Statement(
-        "insert into functionalgorithm values (:id, :name)")
-        ->BindInt(id)
-        .BindText("function: call reference matching")
-        .Execute();
+  basic_block_steps_[MatchingStepFlowGraph::kBasicBlockManualName] = ++id;
+  database_.Statement("INSERT INTO basicblockalgorithm VALUES (:id, :name)")
+      ->BindInt(id)
+      .BindText(MatchingStepFlowGraph::kBasicBlockManualName)
+      .Execute();
 
-    function_steps_["function: manual"] = ++id;
-    database_.Statement(
-        "insert into functionalgorithm values (:id, :name)")
+  id = 0;
+  for (const auto* step : GetDefaultMatchingSteps()) {
+    function_steps_[step->name()] = ++id;
+    database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
         ->BindInt(id)
-        .BindText("function: manual")
+        .BindText(step->name().c_str())
         .Execute();
   }
+  function_steps_[MatchingStep::kFunctionCallReferenceName] = ++id;
+  database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
+      ->BindInt(id)
+      .BindText(MatchingStep::kFunctionCallReferenceName)
+      .Execute();
+
+  function_steps_[MatchingStep::kFunctionManualName] = ++id;
+  database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
+      ->BindInt(id)
+      .BindText(MatchingStep::kFunctionManualName)
+      .Execute();
 }
 
 void DatabaseWriter::Write(const CallGraph& call_graph1,

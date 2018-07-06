@@ -10,7 +10,8 @@ namespace bindiff {
 // loop is present.
 class MatchingStepLoops : public MatchingStep {
  public:
-  MatchingStepLoops() : MatchingStep("function: loop count matching") {}
+  MatchingStepLoops()
+      : MatchingStep("function: loop count matching", "Function: Loop Count") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,

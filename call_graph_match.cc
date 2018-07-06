@@ -201,7 +201,7 @@ bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
         if (match1 && match2) {
           std::pair<FixedPoints::iterator, bool> fixed_point_iterator =
               context->AddFixedPoint(match1, match2,
-                                     "function: call reference matching");
+                                     MatchingStep::kFunctionCallReferenceName);
           if (fixed_point_iterator.second) {
             FixedPoint& fixed_point =
                 const_cast<FixedPoint&>(*fixed_point_iterator.first);
@@ -216,10 +216,15 @@ bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
   return fixed_points_discovered;
 }
 
-MatchingStep::MatchingStep(const string& name)
-    : name_(name),
-      confidence_(GetConfidenceFromConfig(GetName())),
-      strict_equivalence_(false) {}
+constexpr const char MatchingStep::kFunctionManualName[];
+constexpr const char MatchingStep::kFunctionManualDisplayName[];
+constexpr const char MatchingStep::kFunctionCallReferenceName[];
+constexpr const char MatchingStep::kFunctionCallReferenceDisplayName[];
+
+MatchingStep::MatchingStep(string name, string display_name)
+    : name_{std::move(name)},
+      display_name_{std::move(display_name)},
+      confidence_{GetConfidenceFromConfig(name_)} {}
 
 void BaseMatchingStepEdgesMdIndex::FeatureDestructor(EdgeFeatures* feature) {
   delete feature;
@@ -362,7 +367,7 @@ MatchingSteps GetDefaultMatchingSteps() {
              new MatchingStepFunctionInstructionCount(),
              new MatchingStepSequence(),
          }) {
-      (*result)[step->GetName()] = step;
+      (*result)[step->name()] = step;
     }
     return result;
   }();

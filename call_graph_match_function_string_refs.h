@@ -15,7 +15,8 @@ namespace bindiff {
 class MatchingStepFunctionStringReferences : public MatchingStep {
  public:
   MatchingStepFunctionStringReferences()
-      : MatchingStep("function: string references") {}
+      : MatchingStep("function: string references",
+                     "Function: String References") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,

@@ -10,7 +10,8 @@ namespace bindiff {
 class MatchingStepSelfLoops : public MatchingStepFlowGraph {
  public:
   MatchingStepSelfLoops()
-      : MatchingStepFlowGraph("basicBlock: self loop matching") {}
+      : MatchingStepFlowGraph("basicBlock: self loop matching",
+                              "Basic Block: Self Loop") {}
 
   virtual bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
                                const VertexSet& vertices1,

@@ -9,7 +9,8 @@ namespace bindiff {
 class MatchingStepFunctionInstructionCount : public MatchingStep {
  public:
   MatchingStepFunctionInstructionCount()
-      : MatchingStep("function: instruction count") {
+      : MatchingStep("function: instruction count",
+                     "Function: Instruction Count") {
     strict_equivalence_ = true;
   }
 

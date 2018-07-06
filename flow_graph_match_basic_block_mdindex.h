@@ -3,6 +3,8 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
+#include "third_party/absl/strings/str_cat.h"
+
 namespace security {
 namespace bindiff {
 
@@ -11,9 +13,10 @@ class MatchingStepMdIndex : public MatchingStepFlowGraph {
  public:
   explicit MatchingStepMdIndex(Direction direction)
       : MatchingStepFlowGraph(
-            direction == kTopDown
-                ? "basicBlock: MD index matching (top down)"
-                : "basicBlock: MD index matching (bottom up)"),
+            absl::StrCat("basicBlock: MD index matching (",
+                         direction == kTopDown ? "top down)" : "bottom up)"),
+            absl::StrCat("Basic Block: MD Index (",
+                         direction == kTopDown ? "Top Down)" : "Bottom Up)")),
         direction_(direction) {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,

@@ -11,7 +11,8 @@ namespace bindiff {
 class MatchingStepStringReferences : public MatchingStepFlowGraph {
  public:
   MatchingStepStringReferences()
-      : MatchingStepFlowGraph("basicBlock: string references matching") {}
+      : MatchingStepFlowGraph("basicBlock: string references matching",
+                              "Basic Block: String References") {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
                        const VertexSet& vertices1, const VertexSet& vertices2,

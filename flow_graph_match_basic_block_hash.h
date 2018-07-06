@@ -13,9 +13,11 @@ namespace bindiff {
 class MatchingStepHashBasicBlock : public MatchingStepFlowGraph {
  public:
   explicit MatchingStepHashBasicBlock(int min_instructions)
-      : MatchingStepFlowGraph(absl::StrCat("basicBlock: hash matching (",
-                                           min_instructions,
-                                           " instructions minimum)")),
+      : MatchingStepFlowGraph(
+            absl::StrCat("basicBlock: hash matching (", min_instructions,
+                         " instructions minimum)"),
+            absl::StrCat("Basic Block: Hash (", min_instructions,
+                         " Instructions Minimum)")),
         min_instructions_(min_instructions) {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,

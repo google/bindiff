@@ -11,7 +11,8 @@ namespace bindiff {
 class MatchingStepEdgesLoop : public MatchingStepFlowGraph {
  public:
   MatchingStepEdgesLoop()
-      : MatchingStepFlowGraph("basicBlock: edges Lengauer Tarjan dominated") {
+      : MatchingStepFlowGraph("basicBlock: edges Lengauer Tarjan dominated",
+                              "Basic Block: Edges Lengauer Tarjan Dominated") {
     edge_matching_ = true;
   }
 

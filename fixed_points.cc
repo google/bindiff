@@ -1,5 +1,7 @@
-#include "base/logging.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
+
+#include "base/logging.h"
+#include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
@@ -22,7 +24,7 @@ std::vector<string> InitStringPool() {
     // May throw if config file is missing.
   }
 
-  pool.push_back("function: manual");
+  pool.push_back(MatchingStep::kFunctionManualName);
   std::sort(pool.begin(), pool.end());
   return pool;
 }

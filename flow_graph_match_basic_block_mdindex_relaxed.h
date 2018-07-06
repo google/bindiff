@@ -10,7 +10,8 @@ namespace bindiff {
 class MatchingStepMdIndexRelaxed : public MatchingStepFlowGraph {
  public:
   MatchingStepMdIndexRelaxed()
-      : MatchingStepFlowGraph("basicBlock: relaxed MD index matching") {}
+      : MatchingStepFlowGraph("basicBlock: relaxed MD index matching",
+                              "Basic Block: Relaxed MD index") {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
                        const VertexSet& vertices1, const VertexSet& vertices2,

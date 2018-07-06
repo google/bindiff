@@ -40,7 +40,7 @@ bool MatchUnique(const VertexSet& vertices1, const VertexSet& vertices2,
                  FixedPoint& fixed_point) {
   if (vertices1.size() == 1 && vertices2.size() == 1) {
     return fixed_point.Add(*vertices1.begin(), *vertices2.begin(),
-                           "basicBlock: propagation (size==1)") !=
+                           MatchingStepFlowGraph::kBasicBlockPropagationName) !=
            fixed_point.GetBasicBlockFixedPoints().end();
   }
   return false;
@@ -177,10 +177,16 @@ void FindFixedPointsBasicBlock(FixedPoint* fixed_point,
   } while (more_fixed_points_discovered);
 }
 
-MatchingStepFlowGraph::MatchingStepFlowGraph(const string& name)
-    : name_(name),
-      confidence_(GetConfidenceFromConfig(GetName())),
-      edge_matching_(false) {}
+constexpr const char MatchingStepFlowGraph::kBasicBlockPropagationName[];
+constexpr const char MatchingStepFlowGraph::kBasicBlockPropagationDisplayName[];
+
+constexpr const char MatchingStepFlowGraph::kBasicBlockManualName[];
+constexpr const char MatchingStepFlowGraph::kBasicBlockManualDisplayName[];
+
+MatchingStepFlowGraph::MatchingStepFlowGraph(string name, string display_name)
+    : name_{std::move(name)},
+      display_name_{std::move(display_name)},
+      confidence_{GetConfidenceFromConfig(name_)} {}
 
 MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
   static auto* algorithms = []() -> std::map<string, MatchingStepFlowGraph*>* {
@@ -210,7 +216,7 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
              new MatchingStepInstructionCount(),
              new MatchingStepJumpSequence(),
          }) {
-      (*result)[step->GetName()] = step;
+      (*result)[step->name()] = step;
     }
     return result;
   }();

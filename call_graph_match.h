@@ -2,6 +2,7 @@
 #define CALL_GRAPH_MATCH_H_
 
 #include "base/logging.h"
+#include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -21,11 +22,21 @@ bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
 // Note: Since adding new fixed points may lead to discovery of addtional fixed
 //       points, the methods of this class must be reentrant. I.e. if execution
 //       of FindFixedPoints() in turn calls global ::FindFixedPoints(), it may
-//       be called by the later in a mutually recursive way. Hence, deriving
+//       be called by the latter in a mutually recursive way. Hence, deriving
 //       classes should not depend on global mutable state.
 class MatchingStep {
  public:
-  explicit MatchingStep(const string& name);
+  static constexpr const char kFunctionManualName[] = "function: manual";
+  static constexpr const char kFunctionManualDisplayName[] = "Function: Manual";
+
+  static constexpr const char kFunctionCallReferenceName[] =
+      "function: call reference matching";
+  static constexpr const char kFunctionCallReferenceDisplayName[] =
+      "Function: Call Reference";
+
+  // name denotes a short name for use in the config file, display_name refers
+  // to the name shown in the UI/plugin.
+  explicit MatchingStep(string name, string display_name);
   virtual ~MatchingStep() = default;
 
   // Tries to discover additional matches in the two binaries described by their
@@ -38,16 +49,28 @@ class MatchingStep {
                                MatchingSteps& matching_steps,
                                const MatchingStepsFlowGraph& default_steps) = 0;
 
+  ABSL_DEPRECATED("Use name() instead")
   const string& GetName() const { return name_; }
 
+  const string& name() const { return name_; }
+
+  const string& display_name() const { return display_name_; }
+
+  ABSL_DEPRECATED("Use confidence() instead")
   double GetConfidence() const { return confidence_; }
 
+  double confidence() const { return confidence_; }
+
+  ABSL_DEPRECATED("Use strict_equivalence() instead")
   bool NeedsStrictEquivalence() const { return strict_equivalence_; }
+
+  bool strict_equivalence() const { return strict_equivalence_; }
 
  protected:
   string name_;
-  double confidence_;
-  bool strict_equivalence_;
+  string display_name_;
+  double confidence_ = 0.0;
+  bool strict_equivalence_ = false;
 };
 
 struct EdgeFeature {
@@ -65,10 +88,10 @@ using EdgeFeatures = std::vector<EdgeFeature>;
 // data.
 class BaseMatchingStepEdgesMdIndex : public MatchingStep {
  public:
-  BaseMatchingStepEdgesMdIndex(const char* name,
+  BaseMatchingStepEdgesMdIndex(string name, string display_name,
                                MatchingContext::FeatureId primary_feature,
                                MatchingContext::FeatureId secondary_feature)
-      : MatchingStep(name),
+      : MatchingStep(std::move(name), std::move(display_name)),
         primary_feature_(primary_feature),
         secondary_feature_(secondary_feature) {}
 

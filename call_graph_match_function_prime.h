@@ -13,7 +13,9 @@ namespace bindiff {
 // attribute.
 class MatchingStepPrime : public MatchingStep {
  public:
-  MatchingStepPrime() : MatchingStep("function: prime signature matching") {}
+  MatchingStepPrime()
+      : MatchingStep("function: prime signature matching",
+                     "Function: Prime Signature") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,

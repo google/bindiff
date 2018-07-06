@@ -15,7 +15,9 @@ namespace bindiff {
 // equal size.
 class MatchingStepSequence : public MatchingStep {
  public:
-  MatchingStepSequence() : MatchingStep("function: address sequence") {
+  MatchingStepSequence()
+      : MatchingStep("function: address sequence",
+                     "Function: Address Sequence") {
     strict_equivalence_ = true;
   }
 

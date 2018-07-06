@@ -13,9 +13,11 @@ namespace bindiff {
 class MatchingStepPrimeBasicBlock : public MatchingStepFlowGraph {
  public:
   explicit MatchingStepPrimeBasicBlock(int min_instructions)
-      : MatchingStepFlowGraph(absl::StrCat("basicBlock: prime matching (",
-                                           min_instructions,
-                                           " instructions minimum)")),
+      : MatchingStepFlowGraph(
+            absl::StrCat("basicBlock: prime matching (", min_instructions,
+                         " instructions minimum)"),
+            absl::StrCat("Basic Block: Primes (", min_instructions,
+                         " Instructions Minimum)")),
         min_instructions_(min_instructions) {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,

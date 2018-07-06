@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 
+#include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/types.h"
 
@@ -19,7 +20,16 @@ using EdgeIntMap = std::multimap<uint64_t, FlowGraph::Edge>;
 
 class MatchingStepFlowGraph {
  public:
-  explicit MatchingStepFlowGraph(const string& name);
+  static constexpr const char kBasicBlockPropagationName[] =
+      "basicBlock: propagation (size==1)";
+  static constexpr const char kBasicBlockPropagationDisplayName[] =
+      "Basic Block: Propagation (Size 1)";
+
+  static constexpr const char kBasicBlockManualName[] = "basicblock: manual";
+  static constexpr const char kBasicBlockManualDisplayName[] =
+      "Basic Block: Manual";
+
+  explicit MatchingStepFlowGraph(string name, string display_name);
   virtual ~MatchingStepFlowGraph() = default;
 
   virtual bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
@@ -29,16 +39,25 @@ class MatchingStepFlowGraph {
                                MatchingContext* context,
                                MatchingStepsFlowGraph* matching_steps) = 0;
 
+  ABSL_DEPRECATED("Use name() instead")
   const string& GetName() const { return name_; }
 
+  const string& name() const { return name_; }
+
+  const string& display_name() const { return display_name_; }
+
+  ABSL_DEPRECATED("Use confidence() instead")
   double GetConfidence() const { return confidence_; }
+
+  double confidence() const { return confidence_; }
 
   bool IsEdgeMatching() const { return edge_matching_; }
 
  protected:
   string name_;
-  double confidence_;
-  bool edge_matching_;
+  string display_name_;
+  double confidence_ = 0.0;
+  bool edge_matching_ = false;
 };
 
 MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock();

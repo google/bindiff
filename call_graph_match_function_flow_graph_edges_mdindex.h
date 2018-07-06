@@ -13,6 +13,7 @@ class MatchingStepEdgesFlowGraphMdIndex : public BaseMatchingStepEdgesMdIndex {
   MatchingStepEdgesFlowGraphMdIndex()
       : BaseMatchingStepEdgesMdIndex(
             "function: edges flowgraph MD index",
+            "Function: Edges Flow Graph MD Index",
             MatchingContext::kFlowGraphMdIndexPrimary,
             MatchingContext::kFlowGraphMdIndexSecondary) {}
 

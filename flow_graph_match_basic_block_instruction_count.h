@@ -10,7 +10,8 @@ namespace bindiff {
 class MatchingStepInstructionCount : public MatchingStepFlowGraph {
  public:
   MatchingStepInstructionCount()
-      : MatchingStepFlowGraph("basicBlock: instruction count matching") {}
+      : MatchingStepFlowGraph("basicBlock: instruction count matching",
+                              "Basic Block: Instruction Count") {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
                        const VertexSet& vertices1, const VertexSet& vertices2,

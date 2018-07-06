@@ -11,7 +11,8 @@ namespace bindiff {
 // level.
 class MatchingStepHash : public MatchingStep {
  public:
-  MatchingStepHash() : MatchingStep("function: hash matching") {}
+  MatchingStepHash()
+      : MatchingStep("function: hash matching", "Function: Hash") {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,
                        const FlowGraph* secondary_parent,

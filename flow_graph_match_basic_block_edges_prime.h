@@ -12,7 +12,8 @@ namespace bindiff {
 class MatchingStepEdgesPrimeProduct : public MatchingStepFlowGraph {
  public:
   MatchingStepEdgesPrimeProduct()
-      : MatchingStepFlowGraph("basicBlock: edges prime product") {
+      : MatchingStepFlowGraph("basicBlock: edges prime product",
+                              "Basic Block: Edges Prime Product") {
     edge_matching_ = true;
   }
 

@@ -3,6 +3,8 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
+#include "third_party/absl/strings/str_cat.h"
+
 namespace security {
 namespace bindiff {
 
@@ -12,9 +14,12 @@ namespace bindiff {
 class MatchingStepEntryNodes : public MatchingStepFlowGraph {
  public:
   explicit MatchingStepEntryNodes(Direction direction)
-      : MatchingStepFlowGraph(direction == kTopDown
-                                  ? "basicBlock: entry point matching"
-                                  : "basicBlock: exit point matching"),
+      : MatchingStepFlowGraph(
+            absl::StrCat(
+                "basicBlock: ", direction == kTopDown ? "entry" : "exit",
+                " point matching"),
+            absl::StrCat("Basic Block: ",
+                         direction == kTopDown ? "Entry Point" : "Exit Point")),
         direction_(direction) {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,

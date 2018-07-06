@@ -9,7 +9,8 @@ namespace bindiff {
 class MatchingStepJumpSequence : public MatchingStepFlowGraph {
  public:
   MatchingStepJumpSequence()
-      : MatchingStepFlowGraph("basicBlock: jump sequence matching") {}
+      : MatchingStepFlowGraph("basicBlock: jump sequence matching",
+                              "Basic Block: Jump Sequence") {}
 
   bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
                        const VertexSet& vertices1, const VertexSet& vertices2,

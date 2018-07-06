@@ -414,8 +414,8 @@ void Count(const FixedPoint& fixed_point, Counts* counts,
   }
 }
 
-// TODO(soerenme) remove the statics!!! threading issues!
 double GetConfidence(const Histogram& histogram, Confidences* confidences) {
+  // TODO(cblichmann): Remove the statics!!! Threading issues!
   {
     static MatchingSteps steps = GetDefaultMatchingSteps();
     for (auto i = steps.cbegin(); i != steps.cend(); ++i) {
@@ -428,8 +428,8 @@ double GetConfidence(const Histogram& histogram, Confidences* confidences) {
       (*confidences)[(*i)->GetName()] = (*i)->GetConfidence();
     }
   }
-  (*confidences)["basicBlock: propagation (size==1)"] = 0.0;
-  (*confidences)["function: call reference matching"] = 0.75;
+  (*confidences)[MatchingStepFlowGraph::kBasicBlockPropagationName] = 0.0;
+  (*confidences)[MatchingStep::kFunctionCallReferenceName] = 0.75;
   double confidence = 0.0;
   double match_count = 0;
   for (auto i = histogram.cbegin(); i != histogram.cend(); ++i) {

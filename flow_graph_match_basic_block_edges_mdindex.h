@@ -3,6 +3,8 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
+#include "third_party/absl/strings/str_cat.h"
+
 namespace security {
 namespace bindiff {
 
@@ -10,9 +12,11 @@ namespace bindiff {
 class MatchingStepEdgesMdIndex : public MatchingStepFlowGraph {
  public:
   explicit MatchingStepEdgesMdIndex(Direction direction)
-      : MatchingStepFlowGraph(direction == kTopDown
-                                  ? "basicBlock: edges MD index (top down)"
-                                  : "basicBlock: edges MD index (bottom up)"),
+      : MatchingStepFlowGraph(
+            absl::StrCat("basicBlock: edges MD index (",
+                         direction == kTopDown ? "top down)" : "bottom up)"),
+            absl::StrCat("Basic Block: Edges MD Index (",
+                         direction == kTopDown ? "Top Down)" : "Bottom Up)")),
         direction_(direction) {
     edge_matching_ = true;
   }
