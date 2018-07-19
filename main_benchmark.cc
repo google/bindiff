@@ -56,7 +56,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
                &instruction_cache);
     const double time_primary = timer.Get();
     LOG(INFO) << "primary:   "
-              << HumanReadableElapsedTime::ToShortString(
+              << strings::HumanReadableElapsedTime::ToShortString(
                      absl::Seconds(time_primary))
               << " " << primary_path;
 
@@ -65,7 +65,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
                &instruction_cache);
     const double time_secondary = timer.Get();
     LOG(INFO) << "secondary: "
-              << HumanReadableElapsedTime::ToShortString(
+              << strings::HumanReadableElapsedTime::ToShortString(
                      absl::Seconds(time_secondary))
               << " " << secondary_path;
 
@@ -89,7 +89,8 @@ void Diff(const string& primary_path, const string& secondary_path) {
     LOG(INFO) << absl::Substitute(
         "$0 diffing, similarity $1%, confidence $2%, matched $3 of $4/$5 "
         "($6/$7 non-library)",
-        HumanReadableElapsedTime::ToShortString(absl::Seconds(time_diff)),
+        strings::HumanReadableElapsedTime::ToShortString(
+            absl::Seconds(time_diff)),
         similarity * 100.0, confidence * 100.0, fixed_points.size(),
         flow_graphs1.size(), flow_graphs2.size(),
         counts.find("functions primary (non-library)")->second,
@@ -124,9 +125,9 @@ void RunAllDiffs() {
          file::JoinPath(path, test.secondary_item_path()));
   }
   LOG(INFO) << "Memory usage: "
-            << HumanReadableNumBytes::ToString(MemoryUsageForExport());
+            << strings::HumanReadableNumBytes::ToString(MemoryUsageForExport());
   LOG(INFO) << "Total time: "
-            << HumanReadableElapsedTime::ToShortString(
+            << strings::HumanReadableElapsedTime::ToShortString(
                    absl::Seconds(timer.Get()));
 }
 

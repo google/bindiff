@@ -11,6 +11,7 @@
 #include "file/base/path.h"
 #include "file/util/temp_path.h"
 #include "net/proto2/public/text_format.h"
+#include "strings/numbers.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -83,8 +84,8 @@ typedef std::vector<std::pair<uint64_t, uint64_t>> Matches;
 
 void MatchParser(Matches* matches, char* line) {
   ABSL_DIE_IF_NULL(matches)->emplace_back(
-      ParseLeadingHex64Value(line, 0),
-      ParseLeadingHex64Value(strchr(line, ' '), 0));
+      strings::ParseLeadingHex64Value(line, 0),
+      strings::ParseLeadingHex64Value(strchr(line, ' '), 0));
 }
 
 bool IsSorted(const Matches& matches) {
