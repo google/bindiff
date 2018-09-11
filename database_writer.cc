@@ -391,7 +391,6 @@ void DatabaseWriter::WriteAlgorithms() {
     return;  // Assume we have already done this step.
   }
 
-  const MatchingStepsFlowGraph& steps = GetDefaultMatchingStepsBasicBlock();
   int id = 0;
   for (const auto* step : GetDefaultMatchingStepsBasicBlock()) {
     basic_block_steps_[step->name()] = ++id;

@@ -188,12 +188,12 @@ target_link_libraries(bindiff_shared
 set(bindiff_plugin_name
   bindiff${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR})
 add_ida_plugin(${bindiff_plugin_name} EA64
-  ${BinExport_DIR}/ida/digest.cc
-  ${BinExport_DIR}/ida/digest.h
   ${BinExport_DIR}/ida/log.cc
   ${BinExport_DIR}/ida/log.h
   ${BinExport_DIR}/ida/ui.cc
   ${BinExport_DIR}/ida/ui.h
+  ${BinExport_DIR}/ida/digest.cc
+  ${BinExport_DIR}/ida/digest.h
   ida/main_plugin.cc
   ida/matched_functions_chooser.cc
   ida/matched_functions_chooser.h
@@ -214,7 +214,6 @@ set(bindiff_plugin_libraries
   bindiff_base
   bindiff_shared
   absl::time
-  OpenSSL::SSL
 )
 if(WIN32)
   list(APPEND bindiff_plugin_libraries ws2_32.lib)

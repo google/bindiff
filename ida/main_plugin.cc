@@ -96,25 +96,6 @@ string GetArgument(const char* name) {
 
 bool DoSaveResults();
 
-string GetDataForHash() {
-  string data;
-  // 32MiB maximum size for hash data.
-  for (segment_t* segment = get_first_seg();
-       segment != 0 && data.size() < (32 << 20);
-       segment = get_next_seg(segment->start_ea)) {
-    // Truncate segments longer than 1MB so we don't produce too long a string
-    for (ea_t address = segment->start_ea;
-         address < std::min(segment->end_ea, segment->start_ea + (1 << 20));
-         ++address) {
-      if (get_full_flags(address)) {  // check whether address is loaded
-        // TODO(cblichmann): Use get_bytes() and address ranges instead.
-        data += get_byte(address);
-      }
-    }
-  }
-  return data;
-}
-
 string FindFile(const string& path, const string& extension) {
   std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
@@ -1043,10 +1024,12 @@ bool DoLoadResults() {
     DatabaseReader reader(database, filename, temp_dir);
     g_results->Read(&reader);
 
-    // See b/27371897.
-    const string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
-    if (absl::AsciiStrToUpper(hash) !=
-        absl::AsciiStrToUpper(g_results->call_graph1_.GetExeHash())) {
+    auto sha256_or = GetInputFileSha256();
+    if (!sha256_or.ok()) {
+      throw std::runtime_error{sha256_or.status().error_message()};
+    }
+    if (sha256_or.ValueOrDie() !=
+        absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
       LOG(INFO) << "Warning: currently loaded IDBs input file MD5 differs from "
                    "result file primary graph. Please load IDB for: "
                 << g_results->call_graph1_.GetExeFilename();
@@ -1465,9 +1448,12 @@ bool idaapi PluginRun(size_t /* arg */) {
   if (g_results) {
     // We may have to unload a previous result if the input IDB has changed in
     // the meantime
-    const string hash(absl::BytesToHexString(Sha1(GetDataForHash())));
-    if (absl::AsciiStrToUpper(hash) !=
-        absl::AsciiStrToUpper(g_results->call_graph1_.GetExeHash())) {
+    auto sha256_or = GetInputFileSha256();
+    if (!sha256_or.ok()) {
+      throw std::runtime_error{sha256_or.status().error_message()};
+    }
+    if (sha256_or.ValueOrDie() !=
+        absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
 
       delete g_results;
