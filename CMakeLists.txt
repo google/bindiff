@@ -187,7 +187,7 @@ target_link_libraries(bindiff_shared
 # Plugins will be named "bindiff50.so" and "bindiff5064.so"
 set(bindiff_plugin_name
   bindiff${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR})
-add_ida_plugin(${bindiff_plugin_name} EA64
+add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/log.cc
   ${BinExport_DIR}/ida/log.h
   ${BinExport_DIR}/ida/ui.cc
@@ -210,29 +210,22 @@ add_ida_plugin(${bindiff_plugin_name} EA64
   ida/visual_diff.cc
   ida/visual_diff.h
 )
-set(bindiff_plugin_libraries
-  bindiff_base
-  bindiff_shared
-  absl::time
-)
 if(WIN32)
   list(APPEND bindiff_plugin_libraries ws2_32.lib)
 endif()
-foreach(target ${bindiff_plugin_name}${_plx} ${bindiff_plugin_name}${_plx64})
-  target_include_directories(${target} PUBLIC
-    ${IdaSdk_INCLUDE_DIRS}
-  )
-  target_link_libraries(${target}
-    ${bindiff_plugin_libraries}
-  )
-  set_target_properties(${target}
-    PROPERTIES POSITION_INDEPENDENT_CODE ON
-  )
-  install(TARGETS ${target}
-          ARCHIVE DESTINATION bindiff-prefix
-          RUNTIME DESTINATION bindiff-prefix
-          LIBRARY DESTINATION bindiff-prefix)
-endforeach()
+ida_target_link_libraries(${bindiff_plugin_name}
+  bindiff_base
+  bindiff_shared
+  absl::time
+  ${bindiff_plugin_libraries}
+)
+set_ida_target_properties(${bindiff_plugin_name}
+  PROPERTIES POSITION_INDEPENDENT_CODE ON
+)
+ida_install(TARGETS ${bindiff_plugin_name}
+            ARCHIVE DESTINATION bindiff-prefix
+            RUNTIME DESTINATION bindiff-prefix
+            LIBRARY DESTINATION bindiff-prefix)
 
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
