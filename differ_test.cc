@@ -14,6 +14,7 @@
 #include "strings/numbers.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/flags/flag.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/bindiff.pb.h"
@@ -276,7 +277,7 @@ class GroundtruthIntegrationTest : public ::testing::Test {
 TEST_F(GroundtruthIntegrationTest, Run) {
   string buffer;
   CHECK_OK(
-      file::GetContents(file::JoinPath(base::GetFlag(FLAGS_test_srcdir),
+      file::GetContents(file::JoinPath(absl::GetFlag(FLAGS_test_srcdir),
                                        kFixturesPath, "groundtruth_tests.list"),
                         &buffer, file::Defaults()))
       << "Failed opening groundtruth_tests.list";
@@ -284,13 +285,14 @@ TEST_F(GroundtruthIntegrationTest, Run) {
   ASSERT_THAT(proto2::TextFormat::ParseFromString(buffer, &test_set), IsTrue());
 
   for (const auto& test : test_set.test()) {
-    Diff(test.name(), file::JoinPath(base::GetFlag(FLAGS_test_srcdir),
-                                     kFixturesPath, test.primary_item_path()),
-         file::JoinPath(base::GetFlag(FLAGS_test_srcdir), kFixturesPath,
+    Diff(test.name(),
+         file::JoinPath(absl::GetFlag(FLAGS_test_srcdir), kFixturesPath,
+                        test.primary_item_path()),
+         file::JoinPath(absl::GetFlag(FLAGS_test_srcdir), kFixturesPath,
                         test.secondary_item_path()),
          test.truth_file_path().empty()
              ? ""
-             : file::JoinPath(base::GetFlag(FLAGS_test_srcdir), kFixturesPath,
+             : file::JoinPath(absl::GetFlag(FLAGS_test_srcdir), kFixturesPath,
                               test.truth_file_path()));
   }
 

@@ -20,6 +20,7 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "file/base/path.h"
 #include "strings/human_readable.h"
 #include "strings/substitute.h"
+#include "third_party/absl/flags/flag.h"
 #include "third_party/absl/strings/substitute.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/bindiff.proto.h"
@@ -108,7 +109,7 @@ void Diff(const string& primary_path, const string& secondary_path) {
 }
 
 void RunAllDiffs() {
-  const auto& path = base::GetFlag(FLAGS_data_path);
+  const auto& path = absl::GetFlag(FLAGS_data_path);
 
   // TODO(cblichmann): Add a set of DEX files to the test. DEX seems to have
   //                   unique performance issues.
