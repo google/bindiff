@@ -1,9 +1,8 @@
 #include <cstdint>
 #include <cstdio>
+#include <fstream>
 #include <limits>
-#include <map>
 #include <memory>
-#include <sstream>
 #include <thread>  // NOLINT(build/c++11)
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
@@ -164,19 +163,18 @@ class ExporterThread {
     }
     args.push_back(secondary_idb_path_);
 
-    success_ = SpawnProcess(args, /*wait=*/true, &status_message_);
+    success_or_ = SpawnProcessAndWait(args);
 
     // Reset environment variable.
     SetEnvironmentVariable("TVHEADLESS", /*value=*/"");
   }
 
-  bool success() const { return success_; }
+  bool success() const { return success_or_.ok(); }
 
-  const string& status() const { return status_message_; }
+  string status() const { return success_or_.status().error_message(); }
 
  private:
-  volatile bool success_ = false;
-  string status_message_;
+  util::StatusOr<int> success_or_;  // Defaults to util::error::UNKNOWN.
   string secondary_idb_path_;
   string secondary_temp_dir_;
   string idc_file_;
@@ -1298,7 +1296,7 @@ int idaapi PluginInit() {
     return PLUGIN_SKIP;
   }
 
-  LOG(INFO) << kProgramVersion << " (" << __DATE__
+  LOG(INFO) << string(kProgramVersion) << " (" << __DATE__
 #ifdef _DEBUG
             << ", debug build"
 #endif

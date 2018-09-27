@@ -1,6 +1,7 @@
 #include "third_party/zynamics/bindiff/differ.h"
 
 #include <exception>
+#include <fstream>
 #include <iomanip>
 #include <memory>
 

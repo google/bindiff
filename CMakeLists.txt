@@ -184,6 +184,13 @@ target_link_libraries(bindiff_shared
   sqlite
   xmlconfig)
 
+add_executable(utility_test utility_test.cc)
+target_link_libraries(utility_test
+  bindiff_tests_base
+  bindiff_shared
+)
+add_test(AllTestsInUtility utility_test)
+
 # Plugins will be named "bindiff50.so" and "bindiff5064.so"
 set(bindiff_plugin_name
   bindiff${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR})

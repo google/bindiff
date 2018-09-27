@@ -1,5 +1,6 @@
 #include "third_party/zynamics/bindiff/database_writer.h"
 
+#include <fstream>
 #include <memory>
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"

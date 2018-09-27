@@ -22,7 +22,7 @@
 #endif
 
 #include <algorithm>
-#include <chrono>  // NOLINT
+#include <cstdint>
 #include <iomanip>
 #include <iterator>
 #include <map>
@@ -31,6 +31,8 @@
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/time/clock.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
@@ -41,14 +43,11 @@
 namespace security {
 namespace bindiff {
 
-static constexpr char kGuiJarName[] = "bindiff.jar";
+constexpr char kGuiJarName[] = "bindiff.jar";
 
 #ifdef WIN32
-// The JRE's registry key under HKEY_LOCAL_MACHINE
-static constexpr char kRegkeyHklmJreRoot[] =
-    "SOFTWARE\\JavaSoft\\Java Runtime Environment";
 // Minimum required version of the JRE
-static constexpr double kMinJavaVersion = 1.8;
+constexpr double kMinJavaVersion = 1.8;
 
 bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
                          int bufsize) {
@@ -71,6 +70,10 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
 }
 
 string GetJavaHomeDir() {
+  // The JRE's registry key under HKEY_LOCAL_MACHINE
+  constexpr char kRegkeyHklmJreRoot[] =
+      "SOFTWARE\\JavaSoft\\Java Runtime Environment";
+
   HKEY key = 0;
 
   // Try 64-bit registry view first
@@ -237,15 +240,14 @@ void DoStartGui(absl::string_view gui_dir) {
   }
   argv.push_back(jar_file);
 
-  string status_message("unknown");
-  if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
+  if (!SpawnProcess(argv).ok()) {
     // Try again without the max heap size argument.
     argv.erase(argv.begin() + max_heap_index - 1);
 
-    if (!SpawnProcess(argv, false /* Wait */, &status_message)) {
+    if (!SpawnProcess(argv).ok()) {
       throw std::runtime_error(absl::StrCat(
           "Cannot launch BinDiff user interface. Process creation failed: ",
-          status_message));
+          GetLastOsError()));
     }
   }
 }
@@ -264,7 +266,7 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
       return true;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    absl::SleepFor(absl::Milliseconds(100));
     if (callback) {
       callback();
     }

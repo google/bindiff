@@ -49,6 +49,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
@@ -56,8 +57,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/types.h"
 
-// Note: We cannot use new-style flags here because third-party gflags does not
-//       support the new syntax yet.
+// TODO(cblichmann): Migrate to Abseil's flags once they become available.
 DEFINE_bool(nologo, false, "do not display version/copyright information");
 DEFINE_string(primary, "", "primary input file or path in batch mode");
 DEFINE_string(secondary, "", "secondary input file (optional)");
@@ -350,7 +350,6 @@ void ExporterThread::operator()() {
 
     // TODO(cblichmann): Bug: If outpath is a relative path like "." IDA won't
     //                   work. We need to fully expand it first.
-    string status_message;
     std::vector<string> args;
     args.push_back(JoinPath(ida_dir_, !ida64 ? ida_exe_ : ida_exe64_));
     args.push_back("-A");
@@ -361,7 +360,7 @@ void ExporterThread::operator()() {
     args.push_back("-S\"" + JoinPath(out_path_, "run_ida.idc") + "\"");
 #endif
     args.push_back(in_file);
-    if (!SpawnProcess(args, true /* Wait */, &status_message)) {
+    if (!SpawnProcessAndWait(args).ok()) {
       PrintErrorMessage(absl::StrCat("failed to spawn IDA export process: ",
                                      GetLastOsError()));
       return;
@@ -598,13 +597,12 @@ int DifferMain(int argc, char** argv) {
 #endif
 
     if (!FLAGS_nologo) {
-      PrintMessage(
-          absl::StrCat(kProgramVersion,
-                       ", "
+      PrintMessage(absl::StrCat(
+          kProgramVersion,
 #ifdef _DEBUG
-                       "debug build, "
+          "debug build"
 #endif
-                       "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC."));
+          ", (c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC."));
     }
 
     const auto user_app_data =

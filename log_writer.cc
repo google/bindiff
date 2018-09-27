@@ -1,5 +1,6 @@
 #include "third_party/zynamics/bindiff/log_writer.h"
 
+#include <fstream>
 #include <iomanip>
 #include <memory>
 

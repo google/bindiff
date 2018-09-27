@@ -1,5 +1,6 @@
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
 
+#include <fstream>
 #include <iomanip>
 
 #include "third_party/absl/strings/str_cat.h"

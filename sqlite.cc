@@ -100,9 +100,9 @@ SqliteStatement& SqliteStatement::BindDouble(double value) {
 }
 
 // This creates a copy of the string which may well be undesired/inefficient.
-SqliteStatement& SqliteStatement::BindText(const char * value, int length) {
-  sqlite3_bind_text(
-      statement_, ++parameter_, value, length, SQLITE_TRANSIENT);
+SqliteStatement& SqliteStatement::BindText(absl::string_view value) {
+  sqlite3_bind_text(statement_, ++parameter_, value.data(), value.size(),
+                    SQLITE_TRANSIENT);
   return *this;
 }
 

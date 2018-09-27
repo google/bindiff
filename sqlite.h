@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
@@ -53,7 +54,7 @@ class SqliteStatement {
   SqliteStatement& BindInt(int value);
   SqliteStatement& BindInt64(int64_t value);
   SqliteStatement& BindDouble(double value);
-  SqliteStatement& BindText(const char * value, int length = -1);
+  SqliteStatement& BindText(absl::string_view value);
   SqliteStatement& BindNull();
 
   SqliteStatement& Into(int* value, bool* is_null = nullptr);

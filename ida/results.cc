@@ -1,5 +1,7 @@
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+#include <fstream>
+
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <enum.hpp>                                             // NOLINT
