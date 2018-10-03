@@ -362,7 +362,11 @@ void Results::DeleteTemporaryFiles() {
   // Extremely dangerous, make very sure GetDirectory _never_ returns something
   // like "C:".
   try {
-    RemoveAll(GetTempDirectory("BinDiff", /* create = */ false));
+    auto temp_dir_or = GetTempDirectory("BinDiff");
+    if (!temp_dir_or.ok()) {
+      return;
+    }
+    RemoveAll(temp_dir_or.ValueOrDie());
   } catch (...) {  // We don't care if it failed-only litters the temp dir a bit
   }
 }
@@ -436,8 +440,11 @@ bool Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
   if (IsInComplete()) {
-    const string temp_dir(
-        GetTempDirectory("BinDiff", /* create = */ true));
+    auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
+    if (!temp_dir_or.ok()) {
+      return false;
+    }
+    const string temp_dir = std::move(temp_dir_or).ValueOrDie();
     {
       ::security::bindiff::Read(call_graph1_.GetFilePath(), &call_graph1_,
                                 &flow_graphs1_, &flow_graph_infos1_,

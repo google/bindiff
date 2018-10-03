@@ -366,8 +366,10 @@ void ExporterThread::operator()() {
       return;
     }
 
+    auto file_size_or = GetFileSize(in_file);
     PrintMessage(absl::StrCat(HumanReadableDuration(timer.elapsed()), "\t",
-                              GetFileSize(in_file), "\t", file));
+                              file_size_or.ok() ? file_size_or.ValueOrDie() : 0,
+                              "\t", file));
   } while (!g_wants_to_quit);
 }
 
@@ -434,7 +436,8 @@ void BatchDiff(const string& path, const string& reference_file,
     // Export all idbs in directory.
     const auto extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
     if (extension == ".IDB" || extension == ".I64") {
-      if (GetFileSize(file_path) > 0) {
+      auto file_size_or = GetFileSize(file_path);
+      if (file_size_or.ok() && file_size_or.ValueOrDie() > 0) {
         idb_files.insert(Basename(file_path));
       } else {
         PrintMessage(absl::StrCat("warning: skipping empty file ", file_path));

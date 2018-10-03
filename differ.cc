@@ -178,6 +178,7 @@ bool ReadGoogle(const string& filename, CallGraph* call_graph,
 }
 #endif  // GOOGLE
 
+// TODO(cblichmann): Make this function return an error instead of throwing.
 void Read(const string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
@@ -187,17 +188,19 @@ void Read(const string& filename, CallGraph* call_graph,
   flow_graph_infos->clear();
 
   enum { kMinFileSize = 8 };
-  if (GetFileSize(filename) <= kMinFileSize) {
-    // TODO(cblichmann): Make this function return an error instead of throwing.
-    throw std::runtime_error(absl::StrCat("file too small: ", filename));
+  auto file_size_or = GetFileSize(filename);
+  if (!file_size_or.ok()) {
+    throw std::runtime_error{file_size_or.status().error_message()};
+  }
+  if (file_size_or.ValueOrDie() <= kMinFileSize) {
+    throw std::runtime_error{absl::StrCat("file too small: ", filename)};
   }
 
   std::ifstream stream(filename, std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
-    // TODO(cblichmann): Make this function return an error instead of throwing.
-    throw std::runtime_error(
-        absl::StrCat("parsing failed for exported file: ", filename));
+    throw std::runtime_error{
+        absl::StrCat("parsing failed for exported file: ", filename)};
   }
   SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
                        flow_graph_infos, instruction_cache);

@@ -59,11 +59,10 @@ class DatabaseTransmuter : public Writer {
                      const FlowGraphs& flow_graphs2,
                      const FixedPoints& fixed_points);
 
-  static string GetTempFile();
-  static void DeleteTempFile();
   static void MarkPortedComments(SqliteDatabase* database,
                                  const char* temp_database,
                                  const FixedPointInfos& fixed_points);
+  static void DeleteTempFile();
 
  private:
   using TempFixedPoints = std::set<std::pair<Address, Address>>;

@@ -1,5 +1,6 @@
 #include "third_party/zynamics/bindiff/database_writer.h"
 
+#include <cstdio>
 #include <fstream>
 #include <memory>
 
@@ -8,6 +9,8 @@
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/filesystem_util.h"
+#include "util/task/status_macros.h"
+#include "util/task/statusor.h"
 
 namespace security {
 namespace bindiff {
@@ -74,10 +77,14 @@ DatabaseWriter::DatabaseWriter(const string& path)
 }
 
 DatabaseWriter::DatabaseWriter(const string& path, bool recreate) {
-  filename_ = JoinPath(GetTempDirectory("BinDiff", /* create = */ true),
-                       Basename(path));
+  auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
+  if (!tempdir_or.ok()) {
+    // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
+    throw std::runtime_error{tempdir_or.status().error_message()};
+  }
+  filename_ = JoinPath(tempdir_or.ValueOrDie(), Basename(path));
   if (recreate) {
-    remove(filename_.c_str());
+    std::remove(filename_.c_str());
   }
   const bool needs_init = !FileExists(filename_);
   database_.Connect(filename_.c_str());
@@ -317,26 +324,29 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 
 void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
   string temp;
-  database_.Statement("select coalesce( max( id ) + 1, 1 ) from \"function\"")
+  database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM \"function\"")
       ->Execute()
       .Into(&temp);
 
   int function_id = std::stoi(temp);
-  database_.Statement("select coalesce( max( id ) + 1, 1 ) from basicblock")
+  database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM basicblock")
       ->Execute()
       .Into(&temp);
 
   int basic_block_id = std::stoi(temp);
 
-  SqliteStatement function_match_statement(&database_,
-      "insert into \"function\" values (:id,:primary,:secondary,:similarity,"
+  SqliteStatement function_match_statement(
+      &database_,
+      "INSERT INTO \"function\" VALUES (:id,:primary,:secondary,:similarity,"
       ":confidence,:flags,:step,:evaluate,:commentsported,:basicblocks,:edges,"
       ":instructions)");
-  SqliteStatement basic_block_match_statement(&database_,
-      "insert into basicblock values (:id,:functionId,:primaryBB,:secondaryBB,"
-      ":step,:evaluate)");
-  SqliteStatement instruction_statement(&database_,
-      "insert into instruction values (:basicBlockId,:primaryInstruction,"
+  SqliteStatement basic_block_match_statement(
+      &database_,
+      "INSERT INTO \"basicblock\" VALUES "
+      "(:id,:functionId,:primaryBB,:secondaryBB,:step,:evaluate)");
+  SqliteStatement instruction_statement(
+      &database_,
+      "INSERT INTO \"instruction\" VALUES (:basicBlockId,:primaryInstruction,"
       ":secondaryInstruction)");
   for (auto i = fixed_points.cbegin(); i != fixed_points.cend();
        ++i, ++function_id) {
@@ -344,8 +354,7 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
     GetCounts(*i, basic_block_count, edge_count, instruction_count);
     const FlowGraph& primary = *i->GetPrimary();
     const FlowGraph& secondary = *i->GetSecondary();
-    function_match_statement
-        .BindInt(function_id)
+    function_match_statement.BindInt(function_id)
         .BindInt64(primary.GetEntryPointAddress())
         .BindInt64(secondary.GetEntryPointAddress())
         .BindDouble(i->GetSimilarity())
@@ -490,15 +499,15 @@ void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
   }
 }
 
-string DatabaseTransmuter::GetTempFile() {
-  return JoinPath(GetTempDirectory("BinDiff", /* create = */ true),
-                  "temporary.database");
+util::StatusOr<string> GetTempFileName() {
+  string temp_dir;
+  ASSIGN_OR_RETURN(temp_dir, GetOrCreateTempDirectory("BinDiff"));
+  return JoinPath(temp_dir, "temporary.database");
 }
 
 void DatabaseTransmuter::DeleteTempFile() {
-  try {
-    remove(GetTempFile().c_str());
-  } catch(...) {
+  if (GetTempDirectory("BinDiff").ok()) {
+    std::remove(GetTempFileName().ValueOrDie().c_str());
   }
 }
 
@@ -519,7 +528,7 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
                                const FlowGraphs& /*flow_graphs1*/,
                                const FlowGraphs& /*flow_graphs2*/,
                                const FixedPoints& /*fixed_points*/) {
-  // step 1: Remove deleted matches.
+  // Step 1: Remove deleted matches.
   TempFixedPoints current_fixed_points;
 
   {
@@ -541,49 +550,56 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
                       std::inserter(kill_me, kill_me.begin()));
   DeleteMatches(kill_me);
 
-  // step 2: Merge new matches from temp database.
-  const string temp_dir(GetTempFile());
-  if (FileExists(temp_dir)) {
-    database_.Statement(
-        "attach :filename as newMatches")
-        ->BindText(temp_dir.c_str())
+  // Step 2: Merge new matches from temp database.
+  auto temp_file_or = GetTempFileName();
+  if (!temp_file_or.ok()) {
+    // TODO(cblichmann): Refactor Writer interface to return util::Status.
+    throw std::runtime_error{temp_file_or.status().error_message()};
+  }
+  const auto temp_file = std::move(temp_file_or).ValueOrDie();
+  if (FileExists(temp_file)) {
+    database_.Statement("ATTACH :filename AS newMatches")
+        ->BindText(temp_file.c_str())
         .Execute();
     int function_id = 0, basic_block_id = 0;
-    database_.Statement(
-        "select coalesce( max( id ), 0 ) from \"function\"")
+    database_.Statement("SELECT COALESCE(MAX(id), 0) FROM \"function\"")
         ->Execute()
         .Into(&function_id);
-    database_.Statement(
-        "select coalesce( max( id ), 0 ) from \"basicblock\"")
+    database_.Statement("SELECT COALESCE(MAX(id), 0) FROM \"basicblock\"")
         ->Execute()
         .Into(&basic_block_id);
-    database_.Statement(
-        "insert into \"function\" select id + :id, "
-        "address1, address2, similarity, confidence, flags, algorithm, "
-        "evaluate, commentsported, basicblocks, edges, instructions from "
-        "newMatches.\"function\"")
+    database_
+        .Statement(
+            "INSERT INTO \"function\" SELECT id + :id, address1, address2, "
+            "similarity, confidence, flags, algorithm, evaluate, "
+            "commentsported, basicblocks, edges, instructions FROM "
+            "newMatches.\"function\"")
         ->BindInt(function_id)
         .Execute();
-    database_.Statement(
-        "insert into basicblock select id + :id, functionId + :fid, address1, "
-        "address2, algorithm, evaluate from newMatches.basicblock")
+    database_
+        .Statement(
+            "INSERT INTO basicblock select id + :id, functionId + :fid, "
+            "address1, address2, algorithm, evaluate FROM "
+            "newMatches.basicblock")
         ->BindInt(basic_block_id)
         .BindInt(function_id)
         .Execute();
-    database_.Statement(
-        "insert into instruction select basicblockid + :id, address1, address2 "
-        "from newMatches.instruction")
+    database_
+        .Statement(
+            "INSERT INTO instruction select basicblockid + :id, address1, "
+            "address2 FROM newMatches.instruction")
         ->BindInt(basic_block_id)
         .Execute();
   }
 
-  // step 3: Update changed matches (user set algorithm type to "manual").
+  // Step 3: Update changed matches (user set algorithm type to "manual").
   int algorithm = 0;
-  database_.Statement("select max(id) from functionalgorithm")
+  database_.Statement("SELECT MAX(id) FROM functionalgorithm")
       ->Execute().Into(&algorithm);
-  SqliteStatement statement(&database_,
-      "update \"function\" set confidence=1.0, algorithm=:algorithm "
-      "where address1=:address1 and address2=:address2");
+  SqliteStatement statement(
+      &database_,
+      "UPDATE \"function\" SET confidence=1.0, algorithm=:algorithm WHERE "
+      "address1=:address1 AND address2=:address2");
   for (auto i = fixed_point_infos_.cbegin(), end = fixed_point_infos_.cend();
        i != end; ++i) {
     if (!i->IsManual())
@@ -596,8 +612,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
         .Reset();
   }
 
-  // step 4: Update last changed timestamp.
-  database_.Statement("update \"metadata\" set modified=DATETIME('NOW')")
+  // Step 4: Update last changed timestamp.
+  database_.Statement("UPDATE \"metadata\" SET modified=DATETIME('NOW')")
       ->Execute();
 }
 

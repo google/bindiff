@@ -123,7 +123,10 @@ class ExporterThread {
         idc_file_(JoinPath(temp_dir, "export_secondary.idc")),
         headless_export_mode_(headless_export_mode) {
     RemoveAll(secondary_temp_dir_);
-    CreateDirectories(secondary_temp_dir_);
+    auto status = CreateDirectories(secondary_temp_dir_);
+    if (!status.ok()) {
+      throw std::runtime_error(status.error_message());
+    }
 
     if (!headless_export_mode_) {
       std::ofstream file(idc_file_.c_str());
@@ -186,7 +189,11 @@ bool ExportIdbs() {
     return false;
   }
 
-  const string temp_dir(GetTempDirectory("BinDiff", /*create=*/true));
+  auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir_or.ok()) {
+    return false;
+  }
+  const string temp_dir = std::move(temp_dir_or).ValueOrDie();
 
   const char* secondary_idb = ask_file(
       /*for_saving=*/false, "*.idb;*.i64", "%s",
@@ -237,7 +244,10 @@ bool ExportIdbs() {
 
     string primary_temp_dir(JoinPath(temp_dir, "primary"));
     RemoveAll(primary_temp_dir);
-    CreateDirectories(primary_temp_dir);
+    auto status = CreateDirectories(primary_temp_dir);
+    if (!status.ok()) {
+      throw std::runtime_error(status.error_message());
+    }
 
     qstring errbuf;
     idc_value_t arg(primary_temp_dir.c_str());
@@ -663,7 +673,11 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
 
   WaitBox wait_box("Performing diff...");
   g_results = new Results();
-  const auto temp_dir(GetTempDirectory("BinDiff", /*create=*/true));
+  auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir_or.ok()) {
+    return false;
+  }
+  const auto temp_dir = std::move(temp_dir_or).ValueOrDie();
   const auto filename1(FindFile(JoinPath(temp_dir, "primary"), ".BinExport"));
   const auto filename2(FindFile(JoinPath(temp_dir, "secondary"), ".BinExport"));
   if (filename1.empty() || filename2.empty()) {
@@ -839,8 +853,11 @@ bool WriteResults(const string& path) {
   LOG(INFO) << "Writing results...";
   string export1(g_results->call_graph1_.GetFilePath());
   string export2(g_results->call_graph2_.GetFilePath());
-  const string temp_dir =
-      GetTempDirectory("BinDiff", /* create = */ true);
+  auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir_or.ok()) {
+    return false;
+  }
+  const string temp_dir = std::move(temp_dir_or).ValueOrDie();
   const string out_dir(Dirname(path));
 
   if (!g_results->IsInComplete()) {
@@ -1015,8 +1032,11 @@ bool DoLoadResults() {
     delete g_results;
     g_results = new Results();
 
-    const string temp_dir(
-        GetTempDirectory("BinDiff", /* create = */ true));
+    auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
+    if (!temp_dir_or.ok()) {
+      return false;
+    }
+    const string temp_dir = std::move(temp_dir_or).ValueOrDie();
 
     SqliteDatabase database(filename);
     DatabaseReader reader(database, filename, temp_dir);
