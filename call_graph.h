@@ -71,7 +71,7 @@ class CallGraph {
   // construct default save filenames with it for example).
   void Read(const BinExport2& proto, const string& filename);
 
-  // Get just the filename part (without path or extension) passed into read().
+  // Get just the filename part (without path or extension) passed into Read().
   string GetFilename() const;
 
   // Get the fully specified filename including path and extension as passed

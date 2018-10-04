@@ -170,8 +170,8 @@ Instruction::Instruction(Cache* cache, Address address,
   // variables and the like.
   CHECK(cache != nullptr);
 
-  auto prime_to_mnemonic = cache->prime_to_mnemonic_.find(prime);
-  if (prime_to_mnemonic != cache->prime_to_mnemonic_.end()) {
+  auto prime_to_mnemonic = cache->find(prime);
+  if (prime_to_mnemonic != cache->end()) {
     if (!prime_to_mnemonic->second.empty() && !mnemonic.empty() &&
         prime_to_mnemonic->second != mnemonic) {
       // Test for empty mnemonics as one of the VxClass space optimizations is
@@ -182,7 +182,7 @@ Instruction::Instruction(Cache* cache, Address address,
                 << "', hash: " << prime;
     }
   } else {
-    cache->prime_to_mnemonic_[prime] = mnemonic;
+    (*cache)[prime] = mnemonic;
   }
 }
 
@@ -191,7 +191,7 @@ Address Instruction::GetAddress() const { return address_; }
 uint32_t Instruction::GetPrime() const { return prime_; }
 
 string Instruction::GetMnemonic(const Cache* cache) const {
-  return cache->prime_to_mnemonic_.find(GetPrime())->second;
+  return cache->find(GetPrime())->second;
 }
 
 }  // namespace bindiff

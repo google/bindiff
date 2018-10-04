@@ -227,7 +227,7 @@ ScopedCleanup::~ScopedCleanup() {
   DeleteFlowGraphs(flow_graphs1_);
   DeleteFlowGraphs(flow_graphs2_);
   if (instruction_cache_) {
-    instruction_cache_->Clear();
+    instruction_cache_->clear();
   }
 }
 

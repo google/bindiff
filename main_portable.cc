@@ -213,7 +213,7 @@ void DifferThread::operator()() {
 
       // We need to keep the cache around if one file stays the same
       if (last_file1 != file1 && last_file2 != file2) {
-        instruction_cache.Clear();
+        instruction_cache.clear();
       }
 
       // Perform setup and diff.

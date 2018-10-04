@@ -1042,7 +1042,7 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
                                        FlowGraph& primary, FlowGraph& secondary,
                                        FixedPoint& fixed_point,
                                        bool create_instruction_matches) {
-  instruction_cache_.Clear();
+  instruction_cache_.clear();
   try {
     ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_, &call_graph1_,
                            &primary, &instruction_cache_);

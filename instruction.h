@@ -1,9 +1,11 @@
 #ifndef INSTRUCTION_H_
 #define INSTRUCTION_H_
 
+#include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "base/integral_types.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
 namespace security {
@@ -11,15 +13,7 @@ namespace bindiff {
 
 class Instruction {
  public:
-  struct Cache {
-    using PrimeToMnemonic = std::unordered_map<uint32_t, string>;
-
-    void Clear() {
-      prime_to_mnemonic_.clear();
-    }
-
-    PrimeToMnemonic prime_to_mnemonic_;
-  };
+  using Cache = std::unordered_map<uint32_t, string>;
 
   Instruction(Cache* cache, Address address, const string& mnemonic,
               uint32_t prime);
