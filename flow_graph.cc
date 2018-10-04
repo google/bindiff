@@ -8,10 +8,12 @@
 #ifdef GOOGLE
 #include "third_party/boost/allowed/graph/breadth_first_search.hpp"
 #include "third_party/boost/allowed/graph/dominator_tree.hpp"
+#include "third_party/boost/allowed/graph/filtered_graph.hpp"
 #include "third_party/boost/allowed/graph/iteration_macros.hpp"
 #else
 #include <boost/graph/breadth_first_search.hpp>  // NOLINT
 #include <boost/graph/dominator_tree.hpp>        // NOLINT
+#include <boost/graph/filtered_graph.hpp>        // NOLINT
 #include <boost/graph/iteration_macros.hpp>      // NOLINT
 #endif  // GOOGLE
 #include "third_party/zynamics/bindiff/call_graph.h"
@@ -367,21 +369,23 @@ Address FlowGraph::GetAddress(Vertex vertex) const {
 }
 
 void FlowGraph::MarkLoops() {
-  std::vector<Vertex> dominatorNodes(std::vector<Vertex>(
-      num_vertices(graph_), boost::graph_traits<Graph>::null_vertex()));
+  std::vector<Vertex> dominator_nodes(
+      num_vertices(graph_), boost::graph_traits<Graph>::null_vertex());
   boost::lengauer_tarjan_dominator_tree(
-      graph_, boost::vertex(0, graph_),
-      make_iterator_property_map(dominatorNodes.begin(),
+      // Need boost::filtered_graph<> to satisfy Boost.Graph concept.
+      boost::make_filtered_graph(graph_, boost::keep_all()),
+      boost::vertex(0, graph_),
+      make_iterator_property_map(dominator_nodes.begin(),
                                  get(boost::vertex_index, graph_)));
 
   EdgeIterator i, end;
   for (boost::tie(i, end) = boost::edges(graph_); i != end; ++i) {
     const Vertex target = boost::target(*i, graph_);
     const Vertex source = boost::source(*i, graph_);
-    if (dominatorNodes[source] != boost::graph_traits<Graph>::null_vertex()) {
-      for (Vertex node = dominatorNodes[source];
+    if (dominator_nodes[source] != boost::graph_traits<Graph>::null_vertex()) {
+      for (Vertex node = dominator_nodes[source];
            node != boost::graph_traits<Graph>::null_vertex();
-           node = dominatorNodes[node]) {
+           node = dominator_nodes[node]) {
         if (node == target) {
           SetFlags(*i, GetFlags(*i) | EDGE_DOMINATED);
           graph_[target].flags_ |= VERTEX_LOOPENTRY;

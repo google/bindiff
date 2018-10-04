@@ -1,9 +1,8 @@
 #include "third_party/zynamics/bindiff/instruction.h"
 
 #include <functional>
+#include <list>
 
-// TODO(cblichmann): Replace this
-#include <boost/algorithm/string.hpp>             // NOLINT(readability/boost)
 #include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
 
 #include "base/logging.h"
