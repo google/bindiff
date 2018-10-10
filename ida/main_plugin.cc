@@ -53,6 +53,8 @@
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/timer.h"
 #include "third_party/zynamics/binexport/types.h"
+#include "util/task/statusor.h"
+#include "util/task/status_macros.h"
 
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 
@@ -76,6 +78,7 @@ constexpr char kCopyright[] =
     "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC.";
 
 bool g_init_done = false;  // Used in PluginTerminate()
+bool g_alsologtostderr = false;
 
 Results* g_results = nullptr;
 
@@ -116,20 +119,31 @@ bool EnsureIdb() {
 
 class ExporterThread {
  public:
-  explicit ExporterThread(const string& temp_dir, const string& idb_path,
-                          bool headless_export_mode)
-      : secondary_idb_path_(idb_path),
-        secondary_temp_dir_(JoinPath(temp_dir, "secondary")),
-        idc_file_(JoinPath(temp_dir, "export_secondary.idc")),
-        headless_export_mode_(headless_export_mode) {
-    RemoveAll(secondary_temp_dir_);
-    auto status = CreateDirectories(secondary_temp_dir_);
-    if (!status.ok()) {
-      throw std::runtime_error(status.error_message());
+  struct Options {
+    Options& set_alsologtostderr(bool value) {
+      alsologtostderr = value;
+      return *this;
     }
 
-    if (!headless_export_mode_) {
-      std::ofstream file(idc_file_.c_str());
+    Options& set_headless_export_mode(bool value) {
+      headless_export_mode = value;
+      return *this;
+    }
+
+    bool alsologtostderr = false;
+    bool headless_export_mode = false;
+  };
+
+  static util::StatusOr<ExporterThread> Create(const string& temp_dir,
+                                               const string& idb_path,
+                                               Options options) {
+    string secondary_temp_dir = JoinPath(temp_dir, "secondary");
+    RemoveAll(secondary_temp_dir);
+    RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
+
+    string idc_file = JoinPath(temp_dir, "export_secondary.idc");
+    if (!options.headless_export_mode) {
+      std::ofstream file{idc_file, std::ios::binary | std::ios::trunc};
       file << "#include <idc.idc>\n"
            << "static main()\n"
            << "{\n"
@@ -138,7 +152,17 @@ class ExporterThread {
            << "\tRunPlugin(\"binexport" << kBinExportVersion << "\", 2);\n"
            << "\tExit(0);\n"
            << "}\n";
+      if (!file) {
+        return util::Status{absl::StatusCode::kUnknown,
+                            "error writing helper IDC script"};
+      }
     }
+    ExporterThread result;
+    result.secondary_idb_path_ = idb_path;
+    result.secondary_temp_dir_ = std::move(secondary_temp_dir);
+    result.idc_file_ = std::move(idc_file);
+    result.options_ = std::move(options);
+    return result;
   }
 
   void operator()() {
@@ -153,7 +177,11 @@ class ExporterThread {
     args.push_back("-A");
     args.push_back(absl::StrCat("-OBinExportModule:", secondary_temp_dir_));
 
-    if (!headless_export_mode_) {
+    if (options_.alsologtostderr) {
+      args.push_back("-OBinExportAlsoLogToStdErr:TRUE");
+    }
+
+    if (!options_.headless_export_mode) {
       // Script parameter: We only support the Qt version.
 #ifdef WIN32
       args.push_back(absl::StrCat("-S\"", idc_file_, "\""));
@@ -164,6 +192,7 @@ class ExporterThread {
       SetEnvironmentVariable("TVHEADLESS", "1");
       args.push_back("-OBinExportAutoAction:BinExportBinary");
     }
+
     args.push_back(secondary_idb_path_);
 
     success_or_ = SpawnProcessAndWait(args);
@@ -177,11 +206,14 @@ class ExporterThread {
   string status() const { return success_or_.status().error_message(); }
 
  private:
-  util::StatusOr<int> success_or_;  // Defaults to util::error::UNKNOWN.
+  friend class util::StatusOr<ExporterThread>;
+  ExporterThread() = default;
+
+  util::StatusOr<int> success_or_;  // Defaults to absl::StatusCode::kUnknown.
   string secondary_idb_path_;
   string secondary_temp_dir_;
   string idc_file_;
-  bool headless_export_mode_;
+  Options options_;
 };
 
 bool ExportIdbs() {
@@ -237,9 +269,19 @@ bool ExportIdbs() {
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
   {
-    ExporterThread exporter(temp_dir, secondary_idb_path,
-                            g_config->ReadBool("/BinDiff/Ida/headlessExport",
-                                               /*default_value=*/false));
+    auto exporter_or =
+        ExporterThread::Create(temp_dir, secondary_idb_path,
+                               ExporterThread::Options{}
+                                   .set_alsologtostderr(g_alsologtostderr)
+                                   .set_headless_export_mode(g_config->ReadBool(
+                                       "/BinDiff/Ida/headlessExport",
+                                       /*default_value=*/false)));
+    if (!exporter_or.ok()) {
+      throw std::runtime_error{
+          absl::StrCat("Export of the current database failed: ",
+                       string(exporter_or.status().error_message()))};
+    }
+    auto exporter = std::move(exporter_or).ValueOrDie();
     std::thread thread(std::ref(exporter));
 
     string primary_temp_dir(JoinPath(temp_dir, "primary"));
@@ -1323,11 +1365,11 @@ void TermMenus() {
 }
 
 int idaapi PluginInit() {
-  LoggingOptions options;
-  options.set_alsologtostderr(
-      absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE");
-  options.set_log_filename(GetArgument("LogFile"));
-  if (!InitLogging(options)) {
+  g_alsologtostderr =
+      absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
+  if (!InitLogging(LoggingOptions{}
+                       .set_alsologtostderr(g_alsologtostderr)
+                       .set_log_filename(GetArgument("LogFile")))) {
     LOG(INFO) << "Error initializing logging, skipping BinDiff plugin";
     return PLUGIN_SKIP;
   }
