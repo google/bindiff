@@ -524,7 +524,8 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
         refresh_chooser("Secondary Unmatched");
         refresh_chooser("Statistics");
       }
-    } break;
+      break;
+    }
   }
   return 0;
 }
@@ -840,6 +841,21 @@ bool DoPortComments() {
   return false;
 }
 
+error_t idaapi IdcBinDiffDatabase(idc_value_t* argument, idc_value_t*) {
+  if (argument[0].vtype != VT_STR || argument[1].vtype != VT_STR) {
+    LOG(INFO) << "Error (BinDiffDatabase): required arguments are missing or "
+                 "have the wrong type.";
+    LOG(INFO) << "Usage:";
+    LOG(INFO) << "  BinDiffDatabase('secondary_idb', 'results_file')";
+    return -1;
+  }
+  return DoDiffDatabase(/*filtered=*/false) ? eOk : -1;
+}
+constexpr char kBinDiffDatabaseArgs[] = {VT_STR, VT_STR};
+constexpr ext_idcfunc_t kBinDiffDatabaseIdcFunc = {
+    "BinDiffDatabase", IdcBinDiffDatabase, kBinDiffDatabaseArgs, nullptr, 0,
+    EXTFUN_BASE};
+
 bool WriteResults(const string& path) {
   if (FileExists(path)) {
     if (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
@@ -868,14 +884,14 @@ bool WriteResults(const string& path) {
     // copy original result file to temp dir first, so we can overwrite the
     // original if required
     std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
-    ::CopyFile(g_results->input_filename_, JoinPath(temp_dir, "input.BinDiff"));
+    CopyFile(g_results->input_filename_, JoinPath(temp_dir, "input.BinDiff"));
     {
       SqliteDatabase database(JoinPath(temp_dir, "input.BinDiff").c_str());
       DatabaseTransmuter writer(database, g_results->fixed_point_infos_);
       g_results->Write(&writer);
     }
     std::remove(path.c_str());
-    ::CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
+    CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
     std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
   }
   string new_export1(JoinPath(out_dir, Basename(export1)));
@@ -886,7 +902,7 @@ bool WriteResults(const string& path) {
   string new_export2(JoinPath(out_dir, Basename(export2)));
   if (export2 != new_export2) {
     std::remove(new_export2.c_str());
-    ::CopyFile(export2, new_export2);
+    CopyFile(export2, new_export2);
   }
 
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
@@ -1317,7 +1333,7 @@ int idaapi PluginInit() {
   }
 
   LOG(INFO) << string(kProgramVersion) << " (" << __DATE__
-#ifdef _DEBUG
+#ifndef NDEBUG
             << ", debug build"
 #endif
             << "), " << kCopyright;
@@ -1339,6 +1355,11 @@ int idaapi PluginInit() {
     return PLUGIN_SKIP;
   }
 
+  if (!add_idc_func(kBinDiffDatabaseIdcFunc)) {
+    LOG(INFO) << "Error registering IDC extension, skipping BinDiff plugin";
+    return PLUGIN_SKIP;
+  }
+
   try {
     InitConfig();
   } catch (const std::runtime_error&) {
@@ -1349,13 +1370,6 @@ int idaapi PluginInit() {
   InitActions();
   InitMenus();
   g_init_done = true;
-
-  absl::string_view diff_against(
-      GetArgument("Against"));  // -OBinDiffAgainst:<IDB>
-  if (!diff_against.empty()) {
-    LOG(INFO) << "Diff requested in plugin option";
-    // TODO(cblichmann): Factor out the UI from DiffAddressRange()
-  }
 
   return PLUGIN_KEEP;
 }
@@ -1370,7 +1384,7 @@ void idaapi PluginTerminate() {
     SaveAndDiscardResults();
   }
 
-  delete g_config;  // Also saves the config
+  delete g_config;
   g_config = nullptr;
 
   ShutdownLogging();
