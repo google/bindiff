@@ -19,10 +19,10 @@
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/binexport/format_util.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
-#include "third_party/zynamics/binexport/timer.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security {
 

@@ -9,7 +9,7 @@
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/binexport/format_util.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security {
 

@@ -38,7 +38,7 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 
 namespace security {
 namespace bindiff {

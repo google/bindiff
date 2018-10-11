@@ -9,7 +9,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "util/task/status.h"
 
 #ifdef GOOGLE

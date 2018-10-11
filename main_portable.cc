@@ -52,9 +52,9 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/binexport/format_util.h"
-#include "third_party/zynamics/binexport/timer.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/types.h"
 
 // TODO(cblichmann): Migrate to Abseil's flags once they become available.

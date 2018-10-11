@@ -8,7 +8,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "util/task/status_macros.h"
 #include "util/task/statusor.h"
 

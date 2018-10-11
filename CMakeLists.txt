@@ -72,12 +72,13 @@ add_library(binexport_shared STATIC
   ${binexport2_proto}
   ${BinExport_DIR}/binexport.cc
   ${BinExport_DIR}/binexport.h
-  ${BinExport_DIR}/filesystem_util.cc
-  ${BinExport_DIR}/filesystem_util.h
-  ${BinExport_DIR}/format_util.cc
-  ${BinExport_DIR}/format_util.h
   ${BinExport_DIR}/hash.cc
   ${BinExport_DIR}/hash.h
+  ${BinExport_DIR}/util/filesystem.cc
+  ${BinExport_DIR}/util/filesystem.h
+  ${BinExport_DIR}/util/format.cc
+  ${BinExport_DIR}/util/format.h
+  ${BinExport_DIR}/util/timer.h
 )
 target_link_libraries(binexport_shared
   bindiff_base
