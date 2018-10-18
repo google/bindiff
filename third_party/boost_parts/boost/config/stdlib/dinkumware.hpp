@@ -96,7 +96,8 @@
 #include <exception>
 #endif
 #include <typeinfo>
-#if ( (!_HAS_EXCEPTIONS && !defined(__ghs__)) || (!_HAS_NAMESPACE && defined(__ghs__)) ) && !defined(__TI_COMPILER_VERSION__) && !defined(__VISUALDSPVERSION__)
+#if ( (!_HAS_EXCEPTIONS && !defined(__ghs__)) || (!_HAS_NAMESPACE && defined(__ghs__)) ) && !defined(__TI_COMPILER_VERSION__) && !defined(__VISUALDSPVERSION__) \
+	&& !defined(__VXWORKS__)
 #  define BOOST_NO_STD_TYPEINFO
 #endif  
 
@@ -147,14 +148,40 @@
 #  define BOOST_NO_CXX11_STD_ALIGN
 #endif
 
+// Before 650 std::pointer_traits has a broken rebind template
+#if !defined(_CPPLIB_VER) || _CPPLIB_VER < 650
+#  define BOOST_NO_CXX11_POINTER_TRAITS
+#elif defined(BOOST_MSVC) && BOOST_MSVC < 1910
+#  define BOOST_NO_CXX11_POINTER_TRAITS
+#endif
+
 #if defined(__has_include)
 #if !__has_include(<shared_mutex>)
 #  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
-#elif __cplusplus < 201402
+#elif (__cplusplus < 201402) && !defined(_MSC_VER)
 #  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
 #endif
 #elif !defined(_CPPLIB_VER) || (_CPPLIB_VER < 650)
 #  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#endif
+
+// C++14 features
+#if !defined(_CPPLIB_VER) || (_CPPLIB_VER < 650)
+#  define BOOST_NO_CXX14_STD_EXCHANGE
+#endif
+
+// C++17 features
+#if !defined(_CPPLIB_VER) || (_CPPLIB_VER < 650) || !defined(BOOST_MSVC) || (BOOST_MSVC < 1910) || !defined(_HAS_CXX17) || (_HAS_CXX17 == 0)
+#  define BOOST_NO_CXX17_STD_APPLY
+#  define BOOST_NO_CXX17_ITERATOR_TRAITS
+#endif
+#if !defined(_CPPLIB_VER) || (_CPPLIB_VER < 650)
+#  define BOOST_NO_CXX17_STD_INVOKE
+#endif
+
+#if !(!defined(_CPPLIB_VER) || (_CPPLIB_VER < 650) || !defined(BOOST_MSVC) || (BOOST_MSVC < 1912) || !defined(_HAS_CXX17) || (_HAS_CXX17 == 0))
+// Deprecated std::iterator:
+#  define BOOST_NO_STD_ITERATOR
 #endif
 
 #if defined(BOOST_INTEL) && (BOOST_INTEL <= 1400)
@@ -177,12 +204,45 @@
 #endif
 
 #if defined(_CPPLIB_VER) && (_CPPLIB_VER >= 650)
-// If _HAS_AUTO_PTR_ETC is defined to 0, std::auto_ptr is not available.
+// If _HAS_AUTO_PTR_ETC is defined to 0, std::auto_ptr and std::random_shuffle are not available.
 // See https://www.visualstudio.com/en-us/news/vs2015-vs.aspx#C++
 // and http://blogs.msdn.com/b/vcblog/archive/2015/06/19/c-11-14-17-features-in-vs-2015-rtm.aspx
 #  if defined(_HAS_AUTO_PTR_ETC) && (_HAS_AUTO_PTR_ETC == 0)
 #    define BOOST_NO_AUTO_PTR
+#    define BOOST_NO_CXX98_RANDOM_SHUFFLE
+#    define BOOST_NO_CXX98_FUNCTION_BASE
+#    define BOOST_NO_CXX98_BINDERS
 #  endif
+#endif
+
+
+//
+// Things not supported by the CLR:
+#ifdef _M_CEE
+#ifndef BOOST_NO_CXX11_HDR_MUTEX
+#  define BOOST_NO_CXX11_HDR_MUTEX
+#endif
+#ifndef BOOST_NO_CXX11_HDR_ATOMIC
+#  define BOOST_NO_CXX11_HDR_ATOMIC
+#endif
+#ifndef BOOST_NO_CXX11_HDR_FUTURE
+#  define BOOST_NO_CXX11_HDR_FUTURE
+#endif
+#ifndef BOOST_NO_CXX11_HDR_CONDITION_VARIABLE
+#  define BOOST_NO_CXX11_HDR_CONDITION_VARIABLE
+#endif
+#ifndef BOOST_NO_CXX11_HDR_THREAD
+#  define BOOST_NO_CXX11_HDR_THREAD
+#endif
+#ifndef BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+#endif
+#ifndef BOOST_NO_CXX14_STD_EXCHANGE
+#  define BOOST_NO_CXX14_STD_EXCHANGE
+#endif
+#ifndef BOOST_NO_FENV_H
+#  define BOOST_NO_FENV_H
+#endif
 #endif
 
 #ifdef _CPPLIB_VER

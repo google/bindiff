@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
 
 #pragma pack(push, 1)
@@ -68,6 +70,73 @@ class Expression {
                             uint16 position = 0, bool relocatable = false);
   static void EmptyCache();
   static const ExpressionCache& GetExpressions();
+
+  class Builder {
+   public:
+    explicit Builder(Expression::Type type) : type_(type) {}
+
+    Builder& AtPosition(uint16 position) {
+      position_ = position;
+      return *this;
+    }
+
+    Builder& SetRelocatable(bool relocatable) {
+      relocatable_ = relocatable;
+      return *this;
+    }
+
+    Builder& WithParent(Expression* parent) {
+      parent_ = parent;
+      return *this;
+    }
+
+    static Builder Operator(absl::string_view symbol) {
+      return Builder(Expression::TYPE_OPERATOR).SetSymbol(symbol);
+    }
+
+    static Builder Register(absl::string_view symbol) {
+      return Builder(Expression::TYPE_REGISTER).SetSymbol(symbol);
+    }
+
+    static Builder ImmediateInt(uint64 immediate) {
+      return Builder(Expression::TYPE_IMMEDIATE_INT).SetImmediate(immediate);
+    }
+
+    static Builder SizePrefix(absl::string_view size_prefix) {
+      return Builder(Expression::TYPE_SIZEPREFIX).SetSymbol(size_prefix);
+    }
+
+    static Builder SizePrefix(int size_in_bits) {
+      return SizePrefix(absl::StrCat("b", size_in_bits / 8));
+    }
+
+    static Builder Dereference() {
+      return Builder(Expression::TYPE_DEREFERENCE).SetSymbol("[");
+    }
+
+    Expression* Build() {
+      return Expression::Create(parent_, std::move(symbol_), immediate_, type_,
+                                position_, relocatable_);
+    }
+
+   private:
+    Builder SetSymbol(absl::string_view symbol) {
+      symbol_ = string(symbol);
+      return *this;
+    }
+
+    Builder SetImmediate(uint64 immediate) {
+      immediate_ = immediate;
+      return *this;
+    }
+
+    string symbol_ = "";
+    uint64 immediate_ = 0;
+    uint16 position_ = 0;
+    bool relocatable_ = false;
+    Expression::Type type_;
+    Expression* parent_ = nullptr;
+  };
 
  private:
   // The constructor is private for two reasons:

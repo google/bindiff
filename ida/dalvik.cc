@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@
 #include <cstring>
 #include <string>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <frame.hpp>                                          // NOLINT
-#include <funcs.hpp>                                          // NOLINT
-#include <ida.hpp>                                            // NOLINT
-#include <idp.hpp>                                            // NOLINT
-#include <lines.hpp>                                          // NOLINT
-#include <nalt.hpp>                                           // NOLINT
-#include <segment.hpp>                                        // NOLINT
-#include <strlist.hpp>                                        // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <frame.hpp>                                            // NOLINT
+#include <funcs.hpp>                                            // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <idp.hpp>                                              // NOLINT
+#include <lines.hpp>                                            // NOLINT
+#include <nalt.hpp>                                             // NOLINT
+#include <segment.hpp>                                          // NOLINT
+#include <strlist.hpp>                                          // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"

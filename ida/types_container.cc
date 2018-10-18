@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 #include <boost/iterator/iterator_facade.hpp>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <enum.hpp>                                           // NOLINT
-#include <frame.hpp>                                          // NOLINT
-#include <ida.hpp>                                            // NOLINT
-#include <idp.hpp>                                            // NOLINT
-#include <name.hpp>                                           // NOLINT
-#include <struct.hpp>                                         // NOLINT
-#include <typeinf.hpp>                                        // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <enum.hpp>                                             // NOLINT
+#include <frame.hpp>                                            // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <idp.hpp>                                              // NOLINT
+#include <name.hpp>                                             // NOLINT
+#include <struct.hpp>                                           // NOLINT
+#include <typeinf.hpp>                                          // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -575,8 +575,8 @@ TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
   }
   const BaseType* base_type = GetStackFrame(function->start_ea);
   if (!base_type) {
-    LOG(INFO) << absl::StrCat("Stack frame corrupted, function: ",
-                              absl::Hex(function->start_ea, absl::kZeroPad8));
+    DLOG(INFO) << absl::StrCat("Stack frame corrupted, function: ",
+                               absl::Hex(function->start_ea, absl::kZeroPad8));
     return TypeReference::CreateEmptyReference();
   }
 

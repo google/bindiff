@@ -9,10 +9,10 @@
 # include <boost/mpl/bool.hpp>
 # include <boost/preprocessor/enum_params.hpp>
 
-
-#  include <boost/type_traits/remove_reference.hpp>
-#  include <boost/type_traits/remove_cv.hpp>
+# include <boost/python/detail/type_traits.hpp>
 #  include <boost/python/detail/is_xxx.hpp>
+
+namespace boost { namespace python { namespace detail {
 
 #  define BOOST_PYTHON_VALUE_IS_XXX_DEF(name, qualified_name, nargs)    \
 template <class X_>                                                     \
@@ -24,9 +24,10 @@ struct value_is_##name                                                  \
                                   typename remove_reference<X_>::type   \
                                >::type                                  \
                            >::value);                                   \
-    typedef mpl::bool_<value> type;                                    \
+    typedef mpl::bool_<value> type;                                     \
                                                                         \
 };                                                              
 
+}}} // namespace boost::python::detail
 
 #endif // VALUE_IS_XXX_DWA2003224_HPP

@@ -11,7 +11,7 @@
 
 #include <boost/config.hpp>
 #include <boost/detail/workaround.hpp>
-#include <cstddef>
+#include <cstddef> // size_t
 
 namespace boost {
 
@@ -28,6 +28,12 @@ template <typename T> struct remove_extent<T const[]> { typedef T const type; };
 template <typename T> struct remove_extent<T volatile[]> { typedef T volatile type; };
 template <typename T> struct remove_extent<T const volatile[]> { typedef T const volatile type; };
 #endif
+#endif
+
+#if !defined(BOOST_NO_CXX11_TEMPLATE_ALIASES)
+
+   template <class T> using remove_extent_t = typename remove_extent<T>::type;
+
 #endif
 
 } // namespace boost

@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,7 +42,8 @@ typedef std::vector<std::shared_ptr<TreeNode>> Tree;
 //                 checked for their sign.
 void RenderExpression(std::ostream* stream, const TreeNode& node,
                       int substitution_id, const string& substitution) {
-  const auto& expression = *CHECK_NOTNULL(node.expression);
+  CHECK(node.expression != nullptr);
+  const auto& expression = *node.expression;
   if (expression.GetId() == substitution_id) {
     *stream << substitution;
     return;
@@ -450,7 +451,7 @@ void Instruction::SetExported(bool exported) {
   }
 }
 
-void Instruction::SetFlag(unsigned char flag, bool value) {
+void Instruction::SetFlag(uint8 flag, bool value) {
   if (value) {
     (*flags_)[address_] |= flag;
   } else {
@@ -458,7 +459,7 @@ void Instruction::SetFlag(unsigned char flag, bool value) {
   }
 }
 
-bool Instruction::HasFlag(unsigned char flag) const {
+bool Instruction::HasFlag(uint8 flag) const {
   return ((*flags_)[address_] & flag) != 0;
 }
 

@@ -6,7 +6,7 @@
 # define POINTER_TYPE_ID_DWA2002222_HPP
 
 # include <boost/python/type_id.hpp>
-# include <boost/type_traits/composite_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 namespace boost { namespace python { namespace converter { 
 
@@ -59,7 +59,7 @@ template <class T>
 type_info pointer_type_id(T(*)() = 0)
 {
     return detail::pointer_typeid_select<
-          is_reference<T>::value
+          boost::python::detail::is_lvalue_reference<T>::value
         >::execute((T(*)())0);
 }
 

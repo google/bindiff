@@ -102,7 +102,8 @@ public:
         super_t(base),
         m_bnext(NULL),
         m_bend(NULL),
-        m_full(false)
+        m_full(false),
+        m_current_value(0)
     {
     }
 };

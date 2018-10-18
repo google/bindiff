@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,10 +23,9 @@ class BinExport2Writer : public Writer {
  public:
   // Note: This writer expects executable_hash to be hex encoded, not the raw
   //       bytes of the digest.
-  explicit BinExport2Writer(const string& result_filename,
-                            const string& executable_filename,
-                            const string& executable_hash,
-                            const string& architecture);
+  BinExport2Writer(const string& result_filename,
+                   const string& executable_filename,
+                   const string& executable_hash, const string& architecture);
 
   util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions& instructions,

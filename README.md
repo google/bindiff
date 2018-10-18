@@ -1,6 +1,6 @@
 # BinExport [![Build Status](https://travis-ci.org/cblichmann/binexport.svg?branch=master)](https://travis-ci.org/cblichmann/binexport)
 
-Copyright 2011-2017 Google Inc.
+Copyright 2011-2018 Google LLC.
 
 Disclaimer: This is not an official Google product (experimental or otherwise),
 it is just code that happens to be owned by Google.
@@ -106,12 +106,12 @@ The BinExport plugin registers the IDC functions below. The function names are
 versioned in order to support side-by-side installation of different versions
 (i.e. BinDiff's BinExport 8).
 
-| IDC Function name      | Exports to           | Arguments                                    |
-| ---------------------- | -------------------- | -------------------------------------------- |
-| BinExport2Sql10        | PostgreSQL database  | host, port, database, schema, user, password |
-| BinExport2Diff10       | Protocol Buffer      | filename                                     |
-| BinExport2Text10       | Text file dump       | filename                                     |
-| BinExport2Statistics10 | Statistics text file | filename                                     |
+| IDC Function name   | Exports to           | Arguments                                    |
+| ------------------- | -------------------- | -------------------------------------------- |
+| BinExportSql        | PostgreSQL database  | host, port, database, schema, user, password |
+| BinExportDiff       | Protocol Buffer      | filename                                     |
+| BinExportText       | Text file dump       | filename                                     |
+| BinExportStatistics | Statistics text file | filename                                     |
 
 BinExport also supports exporting to a database via the `RunPlugin()` IDC
 function:
@@ -136,7 +136,7 @@ The option flags are the same as IDC (listed above).
 import idaapi
 idc_lang = idaapi.find_extlang_by_name("idc")
 idaapi.run_statements(
-    'BinExport2Sql10("{}", {}, "{}", "{}", "{}", "{}")'.format(
+    'BinExportSql("{}", {}, "{}", "{}", "{}", "{}")'.format(
         "host", 5432, "database", "public", "user", "pass"), idc_lang)
 ```
 
@@ -145,16 +145,16 @@ idaapi.run_statements(
 BinExport defines the following plugin options, that can be specified on IDA's
 command line:
 
-| Option                           | Description                                     |
-| -------------------------------- | ----------------------------------------------- |
-| `-OExporterHost:<HOST>`          | Database server to connect to                   |
-| `-OExporterPort:<PORT>`          | Port to connect to. PostgreSQL default is 5432. |
-| `-OExporterUser:<USER>`          | User name                                       |
-| `-OExporterPassword:<PASS>`      | Password                                        |
-| `-OExporterDatabase:<DB>`        | Database to use                                 |
-| `-OExporterSchema:<SCHEMA>`      | Database schema. BinNavi only uses "public".    |
-| `-OExporterLogFile:<FILE>`       | Log messages to a file                          |
-| `-OExporterAlsoLogToStdErr:TRUE` | If specified, also log to standard error        |
+| Option                            | Description                                     |
+| --------------------------------- | ----------------------------------------------- |
+| `-OBinExportHost:<HOST>`          | Database server to connect to                   |
+| `-OBinExportPort:<PORT>`          | Port to connect to. PostgreSQL default is 5432. |
+| `-OBinExportUser:<USER>`          | User name                                       |
+| `-OBinExportPassword:<PASS>`      | Password                                        |
+| `-OBinExportDatabase:<DB>`        | Database to use                                 |
+| `-OBinExportSchema:<SCHEMA>`      | Database schema. BinNavi only uses "public".    |
+| `-OBinExportLogFile:<FILE>`       | Log messages to a file                          |
+| `-OBinExportAlsoLogToStdErr:TRUE` | If specified, also log to standard error        |
 
 Note that these options must come before any files.
 
@@ -165,7 +165,7 @@ Note that these options must come before any files.
 As we support exporting into PostgreSQL databases as well as a Protocol Buffer
 based format, there are quite a few dependencies to satisfy:
 
-*   Boost 1.55.0 or higher (a partial copy of 1.61.0 ships in
+*   Boost 1.61.0 or higher (a partial copy of 1.61.0 ships in
     `third_party/boost_parts`)
 *   [CMake](https://cmake.org/download/) 3.7.2 or higher
 *   GCC 4.8 or a recent version of Clang on Linux/macOS. On Windows, use the
@@ -182,7 +182,8 @@ based format, there are quite a few dependencies to satisfy:
 
 #### Prerequisites
 
-The preferred build environment is Ubuntu 14.04 LTS (64-bit Intel).
+The preferred build environment is Ubuntu 14.04 LTS (64-bit Intel). Debian
+Testing (version 10, "Buster") is also supported.
 
 This should install all the necessary packages:
 
@@ -362,7 +363,7 @@ if not exist build_msvc mkdir build_msvc
 cd build_msvc
 cmake ../cmake -DIdaSdk_ROOT_DIR=%cd%\..\third_party\idasdk ^
     -G "Visual Studio 15 2017 Win64"
-cmake --build . --config Release -- /clp:NoSummary;ForceNoAlign /v:minimal
+cmake --build . --config Release --install -- /clp:NoSummary;ForceNoAlign /v:minimal
 ```
 
 For Visual Studio 2015 replace the `-G` argument with `"Visual Studio 14 2015

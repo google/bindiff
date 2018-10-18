@@ -1,4 +1,4 @@
-/* Copyright 2003-2015 Joaquin M Lopez Munoz.
+/* Copyright 2003-2018 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -17,6 +17,7 @@
 #include <boost/detail/allocator_utilities.hpp>
 #include <boost/multi_index/detail/raw_ptr.hpp>
 #include <utility>
+#include <memory>
 
 namespace boost{
 
@@ -101,22 +102,32 @@ struct hashed_index_base_node_impl
 {
   typedef typename
   boost::detail::allocator::rebind_to<
-      Allocator,hashed_index_base_node_impl
-  >::type::pointer                          base_pointer;
-  typedef typename
-  boost::detail::allocator::rebind_to<
     Allocator,hashed_index_base_node_impl
-  >::type::const_pointer                    const_base_pointer;
+  >::type                                        base_allocator;
   typedef typename
   boost::detail::allocator::rebind_to<
     Allocator,
     hashed_index_node_impl<Allocator>
-  >::type::pointer                          pointer;
-  typedef typename
-  boost::detail::allocator::rebind_to<
-    Allocator,
-    hashed_index_node_impl<Allocator>
-  >::type::const_pointer                    const_pointer;
+  >::type                                        node_allocator;
+#ifdef BOOST_NO_CXX11_ALLOCATOR
+  typedef typename base_allocator::pointer       base_pointer;
+  typedef typename base_allocator::const_pointer const_base_pointer;
+  typedef typename node_allocator::pointer       pointer;
+  typedef typename node_allocator::const_pointer const_pointer;
+#else
+  typedef typename std::allocator_traits<
+    base_allocator
+  >::pointer                                     base_pointer;
+  typedef typename std::allocator_traits<
+    base_allocator
+  >::const_pointer                               const_base_pointer;
+  typedef typename std::allocator_traits<
+    node_allocator
+  >::pointer                                     pointer;
+  typedef typename std::allocator_traits<
+    node_allocator
+  >::const_pointer                               const_pointer;
+#endif
 
   pointer& prior(){return prior_;}
   pointer  prior()const{return prior_;}

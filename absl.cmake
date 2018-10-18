@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,4 +18,35 @@ find_path(absl_src_dir
   HINTS ${ABSL_ROOT_DIR}
   PATHS ${PROJECT_BINARY_DIR}/absl
 )
-add_subdirectory(${absl_src_dir})
+add_subdirectory(${absl_src_dir} ${PROJECT_BINARY_DIR}/absl
+                 EXCLUDE_FROM_ALL)
+
+if(WIN32)
+  foreach(target absl_base
+                 absl_algorithm
+                 absl_container
+                 absl_debugging
+                 absl_hash
+                 absl_memory
+                 absl_meta
+                 absl_numeric
+                 absl_strings
+                 absl_synchronization
+                 absl_time
+                 absl_utility)
+    if(MSVC)
+      target_compile_options(${target} PRIVATE
+        /wd4005  # macro-redefinition
+        /wd4068  # unknown pragma
+        /wd4244  # conversion from 'type1' to 'type2'
+        /wd4267  # conversion from 'size_t' to 'type2'
+        /wd4800  # force value to bool 'true' or 'false' (performance warning)
+      )
+    endif()
+    target_compile_definitions(${target} PRIVATE
+      /DNOMINMAX
+      /DWIN32_LEAN_AND_MEAN=1
+      /D_CRT_SECURE_NO_WARNINGS
+    )
+  endforeach()
+endif()

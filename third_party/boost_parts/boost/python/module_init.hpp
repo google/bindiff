@@ -66,25 +66,9 @@ BOOST_PYTHON_DECL PyObject* init_module(char const* name, void(*)());
 
 #  endif
 
-#  if (defined(_WIN32) || defined(__CYGWIN__)) && !defined(BOOST_PYTHON_STATIC_MODULE)
-
-#   define BOOST_PYTHON_MODULE_INIT(name)                           \
-  void BOOST_PP_CAT(init_module_,name)();                           \
-extern "C" __declspec(dllexport) _BOOST_PYTHON_MODULE_INIT(name)
-
-#  elif BOOST_PYTHON_USE_GCC_SYMBOL_VISIBILITY
-
-#   define BOOST_PYTHON_MODULE_INIT(name)                               \
-  void BOOST_PP_CAT(init_module_,name)();                               \
-extern "C" __attribute__ ((__visibility__("default"))) _BOOST_PYTHON_MODULE_INIT(name)
-
-#  else
-
-#   define BOOST_PYTHON_MODULE_INIT(name)                               \
-  void BOOST_PP_CAT(init_module_,name)();                               \
-extern "C" _BOOST_PYTHON_MODULE_INIT(name)
-
-#  endif
+#  define BOOST_PYTHON_MODULE_INIT(name)                       \
+  void BOOST_PP_CAT(init_module_,name)();                      \
+extern "C" BOOST_SYMBOL_EXPORT _BOOST_PYTHON_MODULE_INIT(name)
 
 # endif
 

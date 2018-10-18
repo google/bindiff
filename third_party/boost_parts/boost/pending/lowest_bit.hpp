@@ -15,7 +15,7 @@
 #define BOOST_LOWEST_BIT_HPP_GP_20030301
 
 #include <assert.h>
-#include "boost/pending/integer_log2.hpp"
+#include "boost/integer/integer_log2.hpp"
 
 
 namespace boost {

@@ -12,7 +12,7 @@ os:
 dist: trusty
 sudo: false
 before_install:
-- openssl aes-256-cbc -K $encrypted_652f6f1c2426_key -iv $encrypted_652f6f1c2426_iv
+- openssl aes-256-cbc -K $encrypted_e7d783d52fe7_key -iv $encrypted_e7d783d52fe7_iv
   -in third_party/idasdk70.zip.enc -out third_party/idasdk70.zip -d
 - unzip -q third_party/idasdk70.zip -d third_party/
 script:

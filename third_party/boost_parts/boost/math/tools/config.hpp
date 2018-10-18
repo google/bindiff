@@ -442,8 +442,27 @@ namespace boost{ namespace math{
 
 #endif
 
-#endif // BOOST_MATH_TOOLS_CONFIG_HPP
+//
+// Thread local storage:
+//
+#if !defined(BOOST_NO_CXX11_THREAD_LOCAL) && !defined(BOOST_INTEL)
+#  define BOOST_MATH_THREAD_LOCAL thread_local
+#else
+#  define BOOST_MATH_THREAD_LOCAL
+#endif
 
+//
+// Can we have constexpr tables?
+//
+#if (!defined(BOOST_NO_CXX11_HDR_ARRAY) && !defined(BOOST_NO_CXX14_CONSTEXPR)) || BOOST_WORKAROUND(BOOST_MSVC, >= 1910)
+#define BOOST_MATH_HAVE_CONSTEXPR_TABLES
+#define BOOST_MATH_CONSTEXPR_TABLE_FUNCTION constexpr
+#else
+#define BOOST_MATH_CONSTEXPR_TABLE_FUNCTION
+#endif
+
+
+#endif // BOOST_MATH_TOOLS_CONFIG_HPP
 
 
 

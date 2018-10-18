@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -389,10 +389,10 @@ void WriteFlowGraphs(const FlowGraph& flow_graph, BinExport2* proto) {
     proto_flow_graph->mutable_edge()->Reserve(function.GetEdges().size());
     for (const FlowGraphEdge& edge : function.GetEdges()) {
       BinExport2::FlowGraph::Edge* proto_edge = proto_flow_graph->add_edge();
-      const BasicBlock* source =
-          CHECK_NOTNULL(function.GetBasicBlockForAddress(edge.source));
-      const BasicBlock* target =
-          CHECK_NOTNULL(function.GetBasicBlockForAddress(edge.target));
+      const BasicBlock* source = function.GetBasicBlockForAddress(edge.source);
+      CHECK(source != nullptr);
+      const BasicBlock* target = function.GetBasicBlockForAddress(edge.target);
+      CHECK(target != nullptr);
       proto_edge->set_source_basic_block_index(source->id());
       proto_edge->set_target_basic_block_index(target->id());
 
@@ -535,7 +535,8 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
   proto_call_graph->mutable_edge()->Reserve(call_graph.GetEdges().size());
   for (const EdgeInfo& edge : call_graph.GetEdges()) {
     BinExport2::CallGraph::Edge* proto_edge(proto_call_graph->add_edge());
-    const uint64 source_address(CHECK_NOTNULL(edge.function_)->GetEntryPoint());
+    CHECK(edge.function_ != nullptr);
+    const uint64 source_address(edge.function_->GetEntryPoint());
     const uint64 target_address(edge.target_);
     proto_edge->set_source_vertex_index(
         GetVertexIndex(*proto_call_graph, source_address));
@@ -577,7 +578,7 @@ void WriteStrings(
     }
 
     string content;
-    // TODO(timkornau): Add support for UTF16 strings.
+    // TODO(timkornau): Add support for UCS-2 strings.
     if (reference.kind_ != TYPE_DATA_STRING) {
       continue;
     }
@@ -649,10 +650,10 @@ void WriteComments(
                     std::make_pair(comment.address_, 0));
     QCHECK(instruction != instruction_indices.end());
     proto_comment->set_instruction_index(instruction->second);
-    // TODO(user) Fill these properly once we actually have
-    //     operand/expression comments.
-    //    proto_comment->set_instruction_operand_index(0);
-    //    proto_comment->set_operand_expression_index(0);
+    // TODO(cblichmann): Fill these properly once we actually have
+    //                   operand/expression comments.
+    //   proto_comment->set_instruction_operand_index(0);
+    //   proto_comment->set_operand_expression_index(0);
     proto_comment->set_string_table_index(new_comment.first->second);
   }
 }
@@ -754,7 +755,7 @@ util::Status WriteProtoToFile(const string& filename, BinExport2* proto) {
 
   if (!proto->SerializeToOstream(&stream)) {
     return util::Status(
-        util::error::UNKNOWN,
+        absl::StatusCode::kUnknown,
         absl::StrCat("Error serializing data to: '", filename, "'."));
   }
   return util::OkStatus();

@@ -7,11 +7,11 @@
 
 # if defined(__EDG_VERSION__) && __EDG_VERSION__ <= 241
 #  include <boost/mpl/if.hpp>
-#  include <boost/type_traits/conversion_traits.hpp>
+#  include <boost/python/detail/type_traits.hpp>
 # endif 
 
 // Supplies a runtime is_convertible check which can be used with tag
-// dispatching to work around the Metrowerks Pro7 limitation with boost::is_convertible
+// dispatching to work around the Metrowerks Pro7 limitation with boost/std::is_convertible
 namespace boost { namespace python { namespace detail { 
 
 typedef char* yes_convertible;

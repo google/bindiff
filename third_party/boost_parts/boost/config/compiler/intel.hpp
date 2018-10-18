@@ -35,14 +35,24 @@
 
 #endif
 
-#else
+#if (__INTEL_COMPILER <= 1600) && !defined(BOOST_NO_CXX14_VARIABLE_TEMPLATES)
+#  define BOOST_NO_CXX14_VARIABLE_TEMPLATES
+#endif
+
+#else // defined(_MSC_VER)
 
 #include <boost/config/compiler/gcc.hpp>
 
 #undef BOOST_GCC_VERSION
 #undef BOOST_GCC_CXX11
+#undef BOOST_GCC
 
+// Broken in all versions up to 17 (newer versions not tested)
+#if (__INTEL_COMPILER <= 1700) && !defined(BOOST_NO_CXX14_CONSTEXPR)
+#  define BOOST_NO_CXX14_CONSTEXPR
 #endif
+
+#endif // defined(_MSC_VER)
 
 #undef BOOST_COMPILER
 
@@ -88,9 +98,9 @@
 #  define BOOST_INTEL_LINUX BOOST_INTEL
 #endif
 
-#else
+#else // defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 1500) && (defined(_MSC_VER) || defined(__GNUC__))
 
-#include "boost/config/compiler/common_edg.hpp"
+#include <boost/config/compiler/common_edg.hpp>
 
 #if defined(__INTEL_COMPILER)
 #if __INTEL_COMPILER == 9999
@@ -302,6 +312,12 @@ template<> struct assert_intrinsic_wchar_t<unsigned short> {};
 #  define BOOST_SYMBOL_IMPORT
 #  define BOOST_SYMBOL_VISIBLE __attribute__((visibility("default")))
 #endif
+
+// Type aliasing hint
+#if defined(__GNUC__) && (BOOST_INTEL_CXX_VERSION >= 1300)
+#  define BOOST_MAY_ALIAS __attribute__((__may_alias__))
+#endif
+
 //
 // C++0x features
 // For each feature we need to check both the Intel compiler version, 
@@ -406,6 +422,11 @@ template<> struct assert_intrinsic_wchar_t<unsigned short> {};
 #  undef BOOST_NO_SFINAE_EXPR
 #endif
 
+// BOOST_NO_CXX11_SFINAE_EXPR
+#if (BOOST_INTEL_CXX_VERSION >= 1500) && (!defined(BOOST_INTEL_GCC_VERSION) || (BOOST_INTEL_GCC_VERSION >= 40800)) && !defined(_MSC_VER)
+#  undef BOOST_NO_CXX11_SFINAE_EXPR
+#endif
+
 // BOOST_NO_CXX11_EXPLICIT_CONVERSION_OPERATORS
 #if (BOOST_INTEL_CXX_VERSION >= 1500) && (!defined(BOOST_INTEL_GCC_VERSION) || (BOOST_INTEL_GCC_VERSION >= 40500)) && (!defined(_MSC_VER) || (_MSC_FULL_VER >= 180020827))
 // This is available in earlier Intel releases, but breaks Multiprecision:
@@ -479,7 +500,7 @@ template<> struct assert_intrinsic_wchar_t<unsigned short> {};
 #  undef BOOST_NO_CXX11_FINAL
 #endif
 
-#endif
+#endif // defined(BOOST_INTEL_STDCXX0X)
 
 //
 // Broken in all versions up to 15:
@@ -526,12 +547,12 @@ template<> struct assert_intrinsic_wchar_t<unsigned short> {};
 #  define BOOST_HAS_INT128
 #endif
 
-#endif
+#endif // defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 1500) && (defined(_MSC_VER) || defined(__GNUC__))
 //
 // last known and checked version:
-#if (BOOST_INTEL_CXX_VERSION > 1500)
+#if (BOOST_INTEL_CXX_VERSION > 1700)
 #  if defined(BOOST_ASSERT_CONFIG)
-#     error "Unknown compiler version - please run the configure tests and report the results"
+#     error "Boost.Config is older than your compiler - please check for an updated Boost release."
 #  elif defined(_MSC_VER)
 //
 //      We don't emit this warning any more, since we have so few

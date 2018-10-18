@@ -9,26 +9,21 @@
 
 #include <boost/config.hpp>
 
-// std::codecvt_utf8 doesn't seem to work for msvc
-// versions prior to MSVC 14.0
+#ifdef BOOST_NO_STD_WSTREAMBUF
+#error "wide char i/o not supported on this platform"
+#endif
 
-#if defined(_MSC_VER) && _MSC_VER < 1900 \
-||  defined( BOOST_NO_CXX11_HDR_CODECVT )
-    #include <boost/archive/detail/decl.hpp>
-    #define BOOST_UTF8_BEGIN_NAMESPACE \
-         namespace boost { namespace archive { namespace detail {
-    #define BOOST_UTF8_DECL BOOST_ARCHIVE_DECL
-    #define BOOST_UTF8_END_NAMESPACE }}}
+// use boost's utf8 codecvt facet
+#include <boost/archive/detail/decl.hpp>
+#define BOOST_UTF8_BEGIN_NAMESPACE \
+     namespace boost { namespace archive { namespace detail {
+#define BOOST_UTF8_DECL BOOST_ARCHIVE_DECL
+#define BOOST_UTF8_END_NAMESPACE }}}
 
-    #include <boost/detail/utf8_codecvt_facet.hpp>
+#include <boost/detail/utf8_codecvt_facet.hpp>
 
-    #undef BOOST_UTF8_END_NAMESPACE
-    #undef BOOST_UTF8_DECL
-    #undef BOOST_UTF8_BEGIN_NAMESPACE
-#else
-    #include <codecvt>
-    namespace boost { namespace archive { namespace detail {
-        typedef std::codecvt_utf8<wchar_t> utf8_codecvt_facet;
-    } } }
-#endif // BOOST_NO_CXX11_HDR_CODECVT
+#undef BOOST_UTF8_END_NAMESPACE
+#undef BOOST_UTF8_DECL
+#undef BOOST_UTF8_BEGIN_NAMESPACE
+
 #endif // BOOST_ARCHIVE_DETAIL_UTF8_CODECVT_FACET_HPP

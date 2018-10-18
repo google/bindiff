@@ -14,9 +14,9 @@
 # include <boost/python/detail/prefix.hpp>
 
 # include <boost/mpl/if.hpp>
-# include <boost/type_traits/is_convertible.hpp>
 
 #  include <boost/python/detail/preprocessor.hpp>
+#  include <boost/python/detail/type_traits.hpp>
 #  include <boost/preprocessor/repeat.hpp>
 #  include <boost/preprocessor/enum.hpp>
 #  include <boost/preprocessor/enum_params.hpp>
@@ -42,7 +42,7 @@ template <class C1, class C2>
 struct most_derived
 {
     typedef typename mpl::if_<
-        is_convertible<C1*,C2*>
+        detail::is_convertible<C1*,C2*>
       , C1
       , C2
     >::type type;

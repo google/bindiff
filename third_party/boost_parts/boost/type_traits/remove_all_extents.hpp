@@ -10,7 +10,7 @@
 #define BOOST_TT_REMOVE_ALL_EXTENTS_HPP_INCLUDED
 
 #include <boost/config.hpp>
-#include <cstddef>
+#include <cstddef> // size_t
 #include <boost/detail/workaround.hpp>
 
 namespace boost {
@@ -28,6 +28,12 @@ template <class T> struct remove_all_extents<T const[]> : public remove_all_exte
 template <class T> struct remove_all_extents<T volatile[]> : public remove_all_extents<T volatile>{};
 template <class T> struct remove_all_extents<T const volatile[]> : public remove_all_extents<T const volatile>{};
 #endif
+#endif
+
+#if !defined(BOOST_NO_CXX11_TEMPLATE_ALIASES)
+
+   template <class T> using remove_all_extents_t = typename remove_all_extents<T>::type;
+
 #endif
 
 } // namespace boost

@@ -56,7 +56,7 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
                 if (this->derived().test(ch))
                 {
                     iterator_t save(scan.first);
-                    ++scan.first;
+                    ++scan;
                     return scan.create_match(1, ch, save, scan.first);
                 }
             }
@@ -589,14 +589,14 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
 
             if (!scan.at_end() && *scan == '\r')    // CR
             {
-                ++scan.first;
+                ++scan;
                 ++len;
             }
 
             // Don't call skipper here
             if (scan.first != scan.last && *scan == '\n')    // LF
             {
-                ++scan.first;
+                ++scan;
                 ++len;
             }
 

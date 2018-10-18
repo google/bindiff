@@ -41,7 +41,7 @@ template<class CharType>
 struct from_6_bit {
     typedef CharType result_type;
     CharType operator()(CharType t) const{
-        const char * lookup_table = 
+        static const char * lookup_table =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
             "abcdefghijklmnopqrstuvwxyz"
             "0123456789"

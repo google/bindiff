@@ -1,5 +1,5 @@
 // Copyright (C) 2003, 2008 Fernando Luis Cacciola Carballal.
-// Copyright (C) 2015 Andrzej Krzemienski.
+// Copyright (C) 2015 - 2017 Andrzej Krzemienski.
 //
 // Use, modification, and distribution is subject to the Boost Software
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
@@ -44,11 +44,11 @@
 # define BOOST_OPTIONAL_WEAK_OVERLOAD_RESOLUTION
 #endif
 
-#if defined(__GNUC__) && !defined(__INTEL_COMPILER)
-// GCC since 3.3 has may_alias attribute that helps to alleviate optimizer issues with
-// regard to violation of the strict aliasing rules. The optional< T > storage type is marked
-// with this attribute in order to let the compiler know that it will alias objects of type T
-// and silence compilation warnings.
+#if !defined(BOOST_NO_MAY_ALIAS)
+// GCC since 3.3 and some other compilers have may_alias attribute that helps to alleviate
+// optimizer issues with regard to violation of the strict aliasing rules. The optional< T >
+// storage type is marked with this attribute in order to let the compiler know that it will
+// alias objects of type T and silence compilation warnings.
 # define BOOST_OPTIONAL_DETAIL_USE_ATTRIBUTE_MAY_ALIAS
 #endif
 
@@ -95,5 +95,41 @@
 # endif
 
 #endif // defined(__GNUC__)
+
+#if !defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) && !defined(BOOST_NO_CXX11_DECLTYPE) && !BOOST_WORKAROUND(BOOST_MSVC, < 1800) && !BOOST_WORKAROUND(BOOST_GCC_VERSION, < 40500) && !defined(__SUNPRO_CC)
+  // this condition is a copy paste from is_constructible.hpp
+  // I also disable SUNPRO, as it seems not to support type_traits correctly
+#else
+# define BOOST_OPTIONAL_DETAIL_NO_IS_CONSTRUCTIBLE_TRAIT
+#endif
+
+#if defined __SUNPRO_CC
+# define BOOST_OPTIONAL_DETAIL_NO_SFINAE_FRIENDLY_CONSTRUCTORS
+#elif (defined _MSC_FULL_VER) && (_MSC_FULL_VER < 190023026)
+# define BOOST_OPTIONAL_DETAIL_NO_SFINAE_FRIENDLY_CONSTRUCTORS
+#elif defined BOOST_GCC && !defined BOOST_GCC_CXX11
+# define BOOST_OPTIONAL_DETAIL_NO_SFINAE_FRIENDLY_CONSTRUCTORS
+#elif defined BOOST_GCC_VERSION && BOOST_GCC_VERSION < 40800
+# define BOOST_OPTIONAL_DETAIL_NO_SFINAE_FRIENDLY_CONSTRUCTORS
+#endif
+
+
+// Detect suport for defaulting move operations
+// (some older compilers implement rvalue references,
+// defaulted funcitons but move operations are not special members and cannot be defaulted)
+
+#ifdef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
+# define BOOST_OPTIONAL_DETAIL_NO_DEFAULTED_MOVE_FUNCTIONS
+#elif BOOST_WORKAROUND(BOOST_MSVC, < 1900)
+# define BOOST_OPTIONAL_DETAIL_NO_DEFAULTED_MOVE_FUNCTIONS
+#elif BOOST_WORKAROUND(BOOST_GCC_VERSION, < 40600)
+# define BOOST_OPTIONAL_DETAIL_NO_DEFAULTED_MOVE_FUNCTIONS
+#endif
+
+
+#ifdef BOOST_OPTIONAL_CONFIG_NO_DIRECT_STORAGE_SPEC
+# define BOOST_OPTIONAL_DETAIL_NO_DIRECT_STORAGE_SPEC
+#endif
+
 
 #endif // header guard

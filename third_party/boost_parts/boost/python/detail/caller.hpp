@@ -16,6 +16,7 @@
 #  include <boost/python/detail/invoke.hpp>
 #  include <boost/python/detail/signature.hpp>
 #  include <boost/python/detail/preprocessor.hpp>
+#  include <boost/python/detail/type_traits.hpp>
 
 #  include <boost/python/arg_from_python.hpp>
 #  include <boost/python/converter/context_result_converter.hpp>
@@ -30,9 +31,6 @@
 #  include <boost/preprocessor/repetition/repeat.hpp>
 
 #  include <boost/compressed_pair.hpp>
-
-#  include <boost/type_traits/is_same.hpp>
-#  include <boost/type_traits/is_convertible.hpp>
 
 #  include <boost/mpl/apply.hpp>
 #  include <boost/mpl/eval_if.hpp>
@@ -50,7 +48,7 @@ inline PyObject* get(mpl::int_<N>, PyObject* const& args_)
     return PyTuple_GET_ITEM(args_,N);
 }
 
-inline unsigned arity(PyObject* const& args_)
+inline Py_ssize_t arity(PyObject* const& args_)
 {
     return PyTuple_GET_SIZE(args_);
 }
@@ -236,7 +234,7 @@ struct caller_arity<N>
             typedef typename select_result_converter<Policies, rtype>::type result_converter;
 
             static const signature_element ret = {
-                (boost::is_void<rtype>::value ? "void" : type_id<rtype>().name())
+                (is_void<rtype>::value ? "void" : type_id<rtype>().name())
                 , &detail::converter_target_type<result_converter>::get_pytype
                 , boost::detail::indirect_traits::is_reference_to_non_const<rtype>::value 
             };

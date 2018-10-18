@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 
+#include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/entry_point.h"
 #include "third_party/zynamics/binexport/instruction.h"
@@ -56,7 +57,9 @@ Name GetName(Address address, Address immediate, uint8 operand_num,
              bool user_names_only);
 string GetName(Address address, bool user_names_only);
 string GetModuleName();
-string GetArchitectureName();
+
+absl::optional<string> GetArchitectureName();
+
 int GetArchitectureBitness();
 
 string GetSizePrefix(const size_t size_in_bytes);

@@ -62,6 +62,7 @@ protected:
     friend class basic_xml_iarchive<Archive>;
     friend class load_access;
 #endif
+    std::locale archive_locale;
     boost::scoped_ptr<xml_wgrammar> gimpl;
     std::wistream & get_is(){
         return is;

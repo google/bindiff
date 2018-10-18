@@ -14,7 +14,7 @@
 # include <boost/python/detail/void_return.hpp>
 # include <boost/python/errors.hpp>
 # include <boost/python/handle.hpp>
-# include <boost/type_traits/has_trivial_copy.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/mpl/and.hpp>
 # include <boost/mpl/bool.hpp>
 

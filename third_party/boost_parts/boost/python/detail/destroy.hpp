@@ -5,7 +5,7 @@
 #ifndef DESTROY_DWA2002221_HPP
 # define DESTROY_DWA2002221_HPP
 
-# include <boost/type_traits/is_array.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/detail/workaround.hpp>
 namespace boost { namespace python { namespace detail { 
 
@@ -30,7 +30,7 @@ struct value_destroyer<true>
         for (T const volatile* p = first; p != first + sizeof(A)/sizeof(T); ++p)
         {
             value_destroyer<
-                boost::is_array<T>::value
+                is_array<T>::value
             >::execute(p);
         }
     }
@@ -48,7 +48,7 @@ inline void destroy_referent_impl(void* p, T& (*)())
     // note: cv-qualification needed for MSVC6
     // must come *before* T for metrowerks
     value_destroyer<
-         (boost::is_array<T>::value)
+         (is_array<T>::value)
     >::execute((const volatile T*)p);
 }
 

@@ -15,9 +15,10 @@
 #define BOOST_CONCEPT_ARCHETYPES_HPP
 
 #include <boost/config.hpp>
-#include <boost/iterator.hpp>
 #include <boost/mpl/identity.hpp>
 #include <functional>
+#include <iterator>  // iterator tags
+#include <cstddef>   // std::ptrdiff_t
 
 namespace boost {
 

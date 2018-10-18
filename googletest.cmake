@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,4 +19,6 @@ find_path(googletest_src_dir
   PATHS ${PROJECT_BINARY_DIR}/googletest
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-add_subdirectory(${googletest_src_dir} EXCLUDE_FROM_ALL)
+message("${googletest_src_dir}")
+add_subdirectory(${googletest_src_dir} ${PROJECT_BINARY_DIR}/googletest
+                 EXCLUDE_FROM_ALL)

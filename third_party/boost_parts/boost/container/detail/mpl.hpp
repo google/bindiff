@@ -30,7 +30,7 @@
 
 namespace boost {
 namespace container {
-namespace container_detail {
+namespace dtl {
 
 using boost::move_detail::integral_constant;
 using boost::move_detail::true_type;
@@ -62,22 +62,21 @@ using boost::move_detail::disable_if_and;
 using boost::move_detail::enable_if_or;
 using boost::move_detail::disable_if_or;
 
-
-template <class Pair>
+template <class FirstType>
 struct select1st
 {
-   typedef Pair                        argument_type;
-   typedef typename Pair::first_type   result_type;
+   typedef FirstType type;
 
-   template<class OtherPair>
-   const typename Pair::first_type& operator()(const OtherPair& x) const
+   template<class T>
+   const type& operator()(const T& x) const
    {  return x.first;   }
 
-   const typename Pair::first_type& operator()(const typename Pair::first_type& x) const
-   {  return x;   }
+   template<class T>
+   type& operator()(T& x)
+   {  return const_cast<type&>(x.first);   }
 };
 
-}  //namespace container_detail {
+}  //namespace dtl {
 }  //namespace container {
 }  //namespace boost {
 

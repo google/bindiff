@@ -71,6 +71,7 @@ basic_binary_oprimitive<Archive, Elem, Tr>::save(const std::string &s)
 }
 
 #ifndef BOOST_NO_CWCHAR
+#ifndef BOOST_NO_INTRINSIC_WCHAR_T
 template<class Archive, class Elem, class Tr>
 BOOST_ARCHIVE_OR_WARCHIVE_DECL void
 basic_binary_oprimitive<Archive, Elem, Tr>::save(const wchar_t * ws)
@@ -91,6 +92,7 @@ basic_binary_oprimitive<Archive, Elem, Tr>::save(const std::wstring &ws)
     save_binary(ws.data(), l * sizeof(wchar_t) / sizeof(char));
 }
 #endif
+#endif // BOOST_NO_CWCHAR
 
 template<class Archive, class Elem, class Tr>
 BOOST_ARCHIVE_OR_WARCHIVE_DECL

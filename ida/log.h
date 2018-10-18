@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,23 +17,19 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
-class LoggingOptions {
- public:
-  LoggingOptions() = default;
-
-  void set_alsologtostderr(bool value) { alsologtostderr_ = value; }
-
-  bool alsologtostderr() const { return alsologtostderr_; }
-
-  void set_log_filename(const string& filename) {
-    log_filename_ = filename;
+struct LoggingOptions {
+  LoggingOptions& set_alsologtostderr(bool value) {
+    alsologtostderr = value;
+    return *this;
   }
 
-  const string& log_filename() const { return log_filename_; }
+  LoggingOptions& set_log_filename(const string& filename) {
+    log_filename = filename;
+    return *this;
+  }
 
- private:
-  bool alsologtostderr_ = false;
-  string log_filename_;
+  bool alsologtostderr = false;
+  string log_filename;
 };
 
 // Initializes logging. Not thread safe.

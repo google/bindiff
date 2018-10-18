@@ -8,6 +8,7 @@
 # include <boost/python/detail/prefix.hpp>
 # include <boost/python/converter/registered.hpp>
 #  include <boost/python/detail/unwind_type.hpp>
+#  include <boost/python/detail/type_traits.hpp>
 
 
 namespace boost { namespace python {
@@ -53,7 +54,7 @@ inline python::type_info unwind_type_id_(boost::type<void>* = 0, mpl::true_* =0)
 template <class T>
 inline python::type_info unwind_type_id(boost::type<T>* p= 0)
 {
-    return unwind_type_id_(p, (mpl::bool_<boost::is_void<T>::value >*)0 );
+    return unwind_type_id_(p, (mpl::bool_<boost::python::detail::is_void<T>::value >*)0 );
 }
 }
 
@@ -64,7 +65,7 @@ struct expected_pytype_for_arg
     static PyTypeObject const *get_pytype()
     {
         const converter::registration *r=converter::registry::query(
-            detail::unwind_type_id_((boost::type<T>*)0, (mpl::bool_<boost::is_void<T>::value >*)0 )
+            detail::unwind_type_id_((boost::type<T>*)0, (mpl::bool_<boost::python::detail::is_void<T>::value >*)0 )
             );
         return r ? r->expected_from_python_type(): 0;
     }
@@ -77,7 +78,7 @@ struct registered_pytype
     static PyTypeObject const *get_pytype()
     {
         const converter::registration *r=converter::registry::query(
-            detail::unwind_type_id_((boost::type<T>*) 0, (mpl::bool_<boost::is_void<T>::value >*)0 )
+            detail::unwind_type_id_((boost::type<T>*) 0, (mpl::bool_<boost::python::detail::is_void<T>::value >*)0 )
             );
         return r ? r->m_class_object: 0;
     }
@@ -111,7 +112,7 @@ struct to_python_target_type
     static PyTypeObject const *get_pytype()
     {
         const converter::registration *r=converter::registry::query(
-            detail::unwind_type_id_((boost::type<T>*)0, (mpl::bool_<boost::is_void<T>::value >*)0 )
+            detail::unwind_type_id_((boost::type<T>*)0, (mpl::bool_<boost::python::detail::is_void<T>::value >*)0 )
             );
         return r ? r->to_python_target_type(): 0;
     }

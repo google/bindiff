@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_STANDARD 11)
 
 set(CMAKE_SKIP_BUILD_RPATH TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
@@ -42,7 +45,6 @@ endif()
 
 if(UNIX)
   add_compile_options(-Wno-deprecated)
-  list(APPEND CMAKE_CXX_FLAGS --std=c++11)
 elseif(WIN32)
   add_definitions(
     # Do not define min/max macros which collide with std::min()/std::max()

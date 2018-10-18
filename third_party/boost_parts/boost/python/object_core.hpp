@@ -31,10 +31,7 @@
 # include <boost/python/detail/is_xxx.hpp>
 # include <boost/python/detail/string_literal.hpp>
 # include <boost/python/detail/def_helper_fwd.hpp>
-
-# include <boost/type_traits/is_same.hpp>
-# include <boost/type_traits/is_convertible.hpp>
-# include <boost/type_traits/remove_reference.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 namespace boost { namespace python { 
 
@@ -165,7 +162,7 @@ namespace api
           // It's too late to specify anything other than docstrings if
           // the callable object is already wrapped.
           BOOST_STATIC_ASSERT(
-              (is_same<char const*,DocStringT>::value
+              (detail::is_same<char const*,DocStringT>::value
                || detail::is_string_literal<DocStringT const>::value));
         
           objects::add_to_namespace(cl, name, this->derived_visitor(), helper.doc());
@@ -208,8 +205,8 @@ namespace api
 
   template <class T, class U>
   struct is_derived
-    : is_convertible<
-          typename remove_reference<T>::type*
+    : boost::python::detail::is_convertible<
+          typename detail::remove_reference<T>::type*
         , U const*
       >
   {};
@@ -280,14 +277,14 @@ namespace api
   struct object_initializer_impl
   {
       static PyObject*
-      get(object const& x, mpl::true_)
+      get(object const& x, detail::true_)
       {
           return python::incref(x.ptr());
       }
       
       template <class T>
       static PyObject*
-      get(T const& x, mpl::false_)
+      get(T const& x, detail::false_)
       {
           return python::incref(converter::arg_to_python<T>(x).get());
       }
@@ -298,7 +295,7 @@ namespace api
   {
       template <class Policies>
       static PyObject* 
-      get(proxy<Policies> const& x, mpl::false_)
+      get(proxy<Policies> const& x, detail::false_)
       {
           return python::incref(x.operator object().ptr());
       }
@@ -422,6 +419,7 @@ inline api::object_base& api::object_base::operator=(api::object_base const& rhs
 
 inline api::object_base::~object_base()
 {
+    assert( Py_REFCNT(m_ptr) > 0 );
     Py_DECREF(m_ptr);
 }
 

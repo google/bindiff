@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@
 #include <cstring>
 #include <ctime>
 #include <functional>
+#include <iomanip>
+#include <sstream>
 #include <thread>  // NOLINT
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <kernwin.hpp>                                        // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <kernwin.hpp>                                          // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -34,7 +36,7 @@ namespace {
 
 static LogHandler* g_old_log_handler = nullptr;
 static FILE* g_log_file = nullptr;
-static LoggingOptions g_logging_options;
+static auto* g_logging_options = new LoggingOptions{};
 
 class IdaExecutor : public exec_request_t {
  public:
@@ -67,7 +69,7 @@ const char* const LogLevelToCStr(LogLevel level) {
 // Logs a single log message. Should be executed on the IDA main thread.
 void LogLine(LogLevel level, const char* filename, int line,
              const string& message) {
-  if (g_logging_options.alsologtostderr() || g_log_file != nullptr) {
+  if (g_logging_options->alsologtostderr || g_log_file != nullptr) {
     // Filename always has Unix path separators, so this works on Windows, too.
     const char* basename = strrchr(filename, '/');
     if (*basename != '\0') {
@@ -75,16 +77,18 @@ void LogLine(LogLevel level, const char* filename, int line,
     }
 
     // Prepare log line
-    char thread_id[8]{};
-    std::snprintf(thread_id, sizeof(thread_id), "%7u",
-                  std::this_thread::get_id());
-    string formatted =
-        absl::StrCat(LogLevelToCStr(level),
-                     absl::FormatTime("%m%d %T" /* "0125 16:09:42.992535" */,
-                                      absl::Now(), absl::LocalTimeZone()),
-                     thread_id, "[", basename, ":", line, "] ", message);
+    std::ostringstream thread_id;
+    enum { kThreadIdWidth = 7 };
+    thread_id << std::setw(kThreadIdWidth) << std::setfill(' ')
+              << std::this_thread::get_id();
+    string formatted = absl::StrCat(
+        LogLevelToCStr(level),
+        absl::FormatTime("%m%d %R:%E6S" /* "0125 16:09:42.992535" */,
+                         absl::Now(), absl::LocalTimeZone()),
+        " ", thread_id.str().substr(0, kThreadIdWidth), " ", basename, ":",
+        line, "] ", message, "\n");
 
-    if (g_logging_options.alsologtostderr()) {
+    if (g_logging_options->alsologtostderr) {
       fputs(formatted.c_str(), stderr);
       fflush(stderr);
     }
@@ -109,9 +113,9 @@ void IdaLogHandler(LogLevel level, const char* filename, int line,
 bool InitLogging(const LoggingOptions& options) {
   ShutdownLogging();
 
-  g_logging_options = options;
-  if (!g_logging_options.log_filename().empty()) {
-    const char* log_filename = g_logging_options.log_filename().c_str();
+  *g_logging_options = options;
+  if (!g_logging_options->log_filename.empty()) {
+    const char* log_filename = g_logging_options->log_filename.c_str();
     g_log_file = fopen(log_filename, "a");
     if (!g_log_file) {
       msg("Could not open log file: \"%s\": %s\n", log_filename,

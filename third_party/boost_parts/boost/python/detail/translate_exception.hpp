@@ -6,11 +6,9 @@
 # define TRANSLATE_EXCEPTION_TDS20091020_HPP
 
 # include <boost/python/detail/exception_handler.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 # include <boost/call_traits.hpp>
-# include <boost/type_traits/add_const.hpp>
-# include <boost/type_traits/add_reference.hpp>
-# include <boost/type_traits/remove_reference.hpp>
 
 # include <boost/function/function0.hpp>
 
@@ -33,7 +31,7 @@ struct translate_exception
         typename add_const<ExceptionType>::type
     >::type exception_non_ref;
 # else
-    typedef typename add_reference<
+    typedef typename add_lvalue_reference<
         typename add_const<ExceptionType>::type
     >::type exception_cref;
 # endif

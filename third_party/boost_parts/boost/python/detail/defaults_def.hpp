@@ -12,7 +12,7 @@
 #define DEFAULTS_DEF_JDG20020811_HPP
 
 #include <boost/python/detail/defaults_gen.hpp>
-#include <boost/type_traits.hpp>
+#include <boost/python/detail/type_traits.hpp>
 #include <boost/mpl/front.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/static_assert.hpp>
@@ -238,7 +238,7 @@ namespace detail
       typedef typename OverloadsT::non_void_return_type non_void_return_type;
 
       typedef typename mpl::if_c<
-          boost::is_same<void, return_type>::value
+          is_same<void, return_type>::value
           , void_return_type
           , non_void_return_type
       >::type stubs_type;

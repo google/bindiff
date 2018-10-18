@@ -47,6 +47,10 @@ archive_serializer_map<Archive>::insert(const basic_serializer * bs){
 template<class Archive>
 BOOST_ARCHIVE_OR_WARCHIVE_DECL void
 archive_serializer_map<Archive>::erase(const basic_serializer * bs){
+    BOOST_ASSERT(! boost::serialization::singleton<
+            extra_detail::map<Archive>
+        >::is_destroyed()
+    );
     if(boost::serialization::singleton<
         extra_detail::map<Archive>
     >::is_destroyed())

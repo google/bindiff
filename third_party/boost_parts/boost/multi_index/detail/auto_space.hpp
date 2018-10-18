@@ -1,4 +1,4 @@
-/* Copyright 2003-2013 Joaquin M Lopez Munoz.
+/* Copyright 2003-2018 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -47,15 +47,31 @@ struct auto_space:private noncopyable
 {
   typedef typename boost::detail::allocator::rebind_to<
     Allocator,T
-  >::type::pointer pointer;
+  >::type allocator;
+#ifdef BOOST_NO_CXX11_ALLOCATOR
+  typedef typename allocator::pointer pointer;
+#else
+  typedef std::allocator_traits<allocator> traits;
+  typedef typename traits::pointer pointer;
+#endif
 
   explicit auto_space(const Allocator& al=Allocator(),std::size_t n=1):
-  al_(al),n_(n),data_(n_?al_.allocate(n_):pointer(0))
+  al_(al),n_(n),
+#ifdef BOOST_NO_CXX11_ALLOCATOR
+  data_(n_?al_.allocate(n_):pointer(0))
+#else
+  data_(n_?traits::allocate(al_,n_):pointer(0))
+#endif
   {}
 
   ~auto_space()
   {
-    if(n_)al_.deallocate(data_,n_);
+    if(n_)
+#ifdef BOOST_NO_CXX11_ALLOCATOR
+      al_.deallocate(data_,n_);
+#else
+      traits::deallocate(al_,data_,n_);
+#endif
   }
 
   Allocator get_allocator()const{return al_;}
@@ -70,10 +86,9 @@ struct auto_space:private noncopyable
   }
     
 private:
-  typename boost::detail::allocator::rebind_to<
-    Allocator,T>::type                          al_;
-  std::size_t                                   n_;
-  pointer                                       data_;
+  allocator   al_;
+  std::size_t n_;
+  pointer     data_;
 };
 
 template<typename T,typename Allocator>

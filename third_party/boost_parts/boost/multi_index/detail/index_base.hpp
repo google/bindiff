@@ -1,4 +1,4 @@
-/* Copyright 2003-2014 Joaquin M Lopez Munoz.
+/* Copyright 2003-2017 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -14,6 +14,7 @@
 #endif
 
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
+#include <boost/core/addressof.hpp>
 #include <boost/detail/allocator_utilities.hpp>
 #include <boost/detail/no_exceptions_support.hpp>
 #include <boost/detail/workaround.hpp>
@@ -102,7 +103,7 @@ protected:
   {
     x=final().allocate_node();
     BOOST_TRY{
-      boost::detail::allocator::construct(&x->value(),v);
+      boost::detail::allocator::construct(boost::addressof(x->value()),v);
     }
     BOOST_CATCH(...){
       final().deallocate_node(x);
@@ -123,7 +124,8 @@ protected:
        * perfect forwarding emulation of Boost.Move might break other libs.
        */
 
-      new (&x->value()) value_type(boost::move(const_cast<value_type&>(v)));
+      new (boost::addressof(x->value()))
+        value_type(boost::move(const_cast<value_type&>(v)));
     }
     BOOST_CATCH(...){
       final().deallocate_node(x);
@@ -158,12 +160,12 @@ protected:
 
   void erase_(node_type* x)
   {
-    boost::detail::allocator::destroy(&x->value());
+    boost::detail::allocator::destroy(boost::addressof(x->value()));
   }
 
   void delete_node_(node_type* x)
   {
-    boost::detail::allocator::destroy(&x->value());
+    boost::detail::allocator::destroy(boost::addressof(x->value()));
   }
 
   void clear_(){}
@@ -187,6 +189,8 @@ protected:
   bool modify_(node_type*){return true;}
 
   bool modify_rollback_(node_type*){return true;}
+
+  bool check_rollback_(node_type*)const{return true;}
 
 #if !defined(BOOST_MULTI_INDEX_DISABLE_SERIALIZATION)
   /* serialization */

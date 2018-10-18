@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ find_package(IdaSdk REQUIRED)
 find_package(OpenSSL 1.0.2 REQUIRED)
 find_package(PostgreSQL 9.5 REQUIRED)
 find_package(Protobuf 3.0.0 REQUIRED)
-include(cctz.cmake)
 include(googletest.cmake)
 include(absl.cmake)
 
@@ -73,8 +72,6 @@ target_include_directories(binexport_base INTERFACE
   ${PROJECT_SOURCE_DIR}/stubs
   ${PROJECT_BINARY_DIR}/src_include
   ${PROJECT_BINARY_DIR}/gen_include
-  ${absl_src_dir}
-  ${cctz_src_dir}/include
   ${Boost_INCLUDE_DIR}
   ${PostgreSQL_INCLUDE_DIRS}
   ${Protobuf_INCLUDE_DIRS}
@@ -83,29 +80,31 @@ target_link_libraries(binexport_base INTERFACE
   ${Protobuf_LIBRARIES}  # Same as protobuf::libprotobuf
 )
 
-# Interface library to be used by all tests
+# Interface library to be used by tests that don't need data files
 add_library(binexport_test INTERFACE)
 target_link_libraries(binexport_test INTERFACE
   gtest_main
+  gmock
 )
 
 # BinExport format version 2 proto library
 protobuf_generate_cpp(binexport2_proto binexport2_proto_h binexport2.proto)
-add_library(binexport_proto STATIC
-  ${binexport2_proto_h}
-  ${binexport2_proto}
-)
-target_link_libraries(binexport_proto PUBLIC
-  binexport_base
-)
 
 # Utility library code shared with BinDiff
 add_library(binexport_shared STATIC
-  filesystem_util.cc
-  timer.h
+  ${binexport2_proto_h}
+  ${binexport2_proto}
+  binexport.cc
+  binexport.h
+  util/format.cc
+  util/format.h
+  util/timer.h
+  util/filesystem.cc
+  util/filesystem.h
 )
 target_link_libraries(binexport_shared PUBLIC
   absl::strings
+  absl::time
   binexport_base
 )
 if(WIN32)
@@ -114,45 +113,35 @@ if(WIN32)
   )
 endif()
 add_executable(binexport_shared_test
-  filesystem_util_test.cc
-  timer_test.cc
+  util/filesystem_test.cc
+  util/format_test.cc
+  util/timer_test.cc
 )
 target_link_libraries(binexport_shared_test PUBLIC
   binexport_test
   binexport_shared
 )
-add_test(BinExportTests binexport_shared_test)
+add_test(BinExportSharedTests binexport_shared_test)
 
 # binexport2dump tool
 add_subdirectory(tools)
 
 # Code shared with the BinDiff plugin
-add_library(binexport_plugin_shared STATIC
+add_ida_library(binexport_plugin_shared STATIC
   hash.cc
   hash.h
-  hex_codec.cc
-  hex_codec.h
   ida/digest.cc
   ida/digest.h
   ida/log.cc
   ida/log.h
 )
-target_compile_definitions(binexport_plugin_shared PUBLIC
-                           ${IdaSdk_PLATFORM}
-                           __IDP__
-                           USE_DANGEROUS_FUNCTIONS
-                           USE_STANDARD_FILE_FUNCTIONS)
-target_include_directories(binexport_plugin_shared PUBLIC
-  ${IdaSdk_INCLUDE_DIRS}
-)
-target_link_libraries(binexport_plugin_shared PUBLIC
+ida_target_link_libraries(binexport_plugin_shared PUBLIC
   absl::time
   binexport_base
-  OpenSSL::Crypto
 )
 
-set(binexport_plugin_name binexport${RELEASE})
-add_ida_plugin(${binexport_plugin_name} EA64
+set(binexport_plugin_name binexport${binexport_VERSION_MAJOR})
+add_ida_plugin(${binexport_plugin_name}
   address_references.cc
   address_references.h
   base_types.cc
@@ -163,8 +152,6 @@ add_ida_plugin(${binexport_plugin_name} EA64
   binexport2_writer.h
   call_graph.cc
   call_graph.h
-  chain_writer.cc
-  chain_writer.h
   comment.cc
   comment.h
   database_writer.cc
@@ -226,15 +213,6 @@ add_ida_plugin(${binexport_plugin_name} EA64
   x86_nop.cc
   x86_nop.h
 )
-set(binexport_libraries ${IdaSdk_LIBRARIES}
-                        absl::strings
-                        absl::time
-                        binexport_proto
-                        binexport_shared
-                        binexport_plugin_shared
-                        ${PostgreSQL_LIBRARIES}
-                        # OpenSSL must come after PostgreSQL
-                        OpenSSL::SSL)
 if(WIN32)
   list(APPEND binexport_libraries crypt32.lib
                                   secur32.lib
@@ -242,19 +220,54 @@ if(WIN32)
                                   ws2_32.lib
                                   wldap32.lib)
 endif()
-target_link_libraries(${binexport_plugin_name}${_plx}
+ida_target_link_libraries(${binexport_plugin_name}
+  absl::strings
+  absl::time
+  absl::optional
+  absl::bad_optional_access
+  binexport_shared
+  binexport_plugin_shared
+  ${PostgreSQL_LIBRARIES}
+  # OpenSSL must come after PostgreSQL
+  OpenSSL::SSL
   ${binexport_libraries}
 )
-target_link_libraries(${binexport_plugin_name}${_plx64}
-  ${binexport_libraries}
-)
-set_target_properties(
-  ${binexport_plugin_name}${_plx}
-  ${binexport_plugin_name}${_plx64}
+set_ida_target_properties(${binexport_plugin_name}
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
-install(TARGETS ${binexport_plugin_name}${_plx}
-                ${binexport_plugin_name}${_plx64}
-        ARCHIVE DESTINATION binexport-prefix
-        RUNTIME DESTINATION binexport-prefix
-        LIBRARY DESTINATION binexport-prefix)
+ida_install(TARGETS ${binexport_plugin_name}
+            ARCHIVE DESTINATION binexport-prefix
+            RUNTIME DESTINATION binexport-prefix
+            LIBRARY DESTINATION binexport-prefix)
+
+# Experimental BinExport reader library
+add_library(binexport_reader STATIC
+  reader/call_graph.cc
+  reader/call_graph.h
+  reader/flow_graph.cc
+  reader/flow_graph.h
+  reader/graph_utility.h
+  reader/instruction.cc
+  reader/instruction.h
+)
+target_link_libraries(binexport_reader PUBLIC
+  absl::strings
+  binexport_shared
+)
+add_executable(binexport_reader_test
+  reader/call_graph_test.cc
+  reader/flow_graph_test.cc
+  reader/graph_utility_test.cc
+  reader/instruction_test.cc
+  reader/reader_test_util.cc
+  reader/reader_test_util.h
+)
+target_link_libraries(binexport_reader_test PUBLIC
+  gtest
+  gmock
+  binexport_reader
+)
+add_test(
+  NAME BinExportReaderTests
+  COMMAND binexport_reader_test ${PROJECT_SOURCE_DIR}/reader
+)

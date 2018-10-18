@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -43,11 +43,10 @@ QueryBuilder& operator<<(QueryBuilder& builder, const Terminator&) {
     // Buffer overrun, create new query.
     builder.database_->Execute(
         builder.current_query_.str()
-            .substr(0,
-                    static_cast<unsigned int>(builder.last_flush_position_) - 1)
+            .substr(0, static_cast<uint32>(builder.last_flush_position_) - 1)
             .c_str());
     string query = builder.current_query_.str().substr(
-        static_cast<unsigned int>(builder.last_flush_position_));
+        static_cast<uint32>(builder.last_flush_position_));
     builder.current_query_.str("");
     builder.current_query_ << builder.base_query_ << query;
     builder.last_flush_position_ = builder.current_query_.tellp();
@@ -66,4 +65,3 @@ QueryBuilder& operator<<(QueryBuilder& builder, int64 value) {
   builder.current_query_ << value;
   return builder;
 }
-

@@ -20,12 +20,20 @@ object
 BOOST_PYTHON_DECL
 eval(str string, object global = object(), object local = object());
 
+object 
+BOOST_PYTHON_DECL
+eval(char const *string, object global = object(), object local = object());
+
 // Execute an individual python statement from str.
 // global and local are the global and local scopes respectively,
 // used during execution.
 object 
 BOOST_PYTHON_DECL
 exec_statement(str string, object global = object(), object local = object());
+
+object 
+BOOST_PYTHON_DECL
+exec_statement(char const *string, object global = object(), object local = object());
 
 // Execute python source code from str.
 // global and local are the global and local scopes respectively,
@@ -34,12 +42,20 @@ object
 BOOST_PYTHON_DECL
 exec(str string, object global = object(), object local = object());
 
+object 
+BOOST_PYTHON_DECL
+exec(char const *string, object global = object(), object local = object());
+
 // Execute python source code from file filename.
 // global and local are the global and local scopes respectively,
 // used during execution.
 object 
 BOOST_PYTHON_DECL
 exec_file(str filename, object global = object(), object local = object());
+
+object 
+BOOST_PYTHON_DECL
+exec_file(char const *filename, object global = object(), object local = object());
 
 }
 }

@@ -15,6 +15,7 @@ third_party/protobuf/*
 # Build artifacts
 build_linux/*
 build_msvc/*
+build_mac/*
 third_party/zynamics/binexport
 
 # Auto-generated

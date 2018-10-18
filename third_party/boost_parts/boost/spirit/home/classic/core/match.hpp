@@ -17,6 +17,8 @@
 #include <boost/spirit/home/classic/core/safe_bool.hpp>
 #include <boost/spirit/home/classic/core/impl/match_attr_traits.ipp>
 #include <boost/type_traits/add_const.hpp>
+#include <boost/type_traits/add_reference.hpp>
+#include <boost/type_traits/conditional.hpp>
 #include <boost/type_traits/is_reference.hpp>
 
 namespace boost { namespace spirit {
@@ -62,12 +64,20 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
     template <typename T = nil_t>
     class match : public safe_bool<match<T> >
     {
+        typedef typename
+            conditional<
+                is_reference<T>::value
+              , T
+              , typename add_reference<
+                    typename add_const<T>::type
+                >::type
+            >::type attr_ref_t;
 
     public:
 
         typedef typename boost::optional<T> optional_type;
-        typedef typename optional_type::argument_type ctor_param_t;
-        typedef typename optional_type::reference_const_type return_t;
+        typedef attr_ref_t ctor_param_t;
+        typedef attr_ref_t return_t;
         typedef T attr_t;
 
                                 match();
