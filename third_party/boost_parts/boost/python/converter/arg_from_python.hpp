@@ -8,8 +8,7 @@
 # include <boost/python/detail/prefix.hpp>
 # include <boost/python/converter/from_python.hpp>
 # include <boost/python/detail/indirect_traits.hpp>
-# include <boost/type_traits/transform_traits.hpp>
-# include <boost/type_traits/cv_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/python/converter/rvalue_from_python_data.hpp>
 # include <boost/mpl/eval_if.hpp>
 # include <boost/mpl/if.hpp>
@@ -106,7 +105,7 @@ struct reference_arg_from_python : arg_lvalue_from_python_base
 template <class T>
 struct arg_rvalue_from_python
 {
-    typedef typename boost::add_reference<
+    typedef typename boost::python::detail::add_lvalue_reference<
         T
         // We can't add_const here, or it would be impossible to pass
         // auto_ptr<U> args from Python to C++

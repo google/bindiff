@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,11 @@
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_INTEGRAL_TYPES_H_
 
 #include <google/protobuf/stubs/port.h>
+
+// Import macros
+#define GG_LONGLONG GOOGLE_LONGLONG
+#define GG_ULONGLONG GOOGLE_ULONGLONG
+#define GG_LL_FORMAT GOOGLE_LL_FORMAT
 
 // Map names from the Protocol Buffers stubs into the global namespace.
 using ::google::protobuf::int16;

@@ -17,7 +17,9 @@
 
 #include <cstring> // strlen
 #include <cstdlib> // mbtowc
+#ifndef BOOST_NO_CWCHAR
 #include <cwchar>  // wcslen
+#endif
 
 #include <boost/config.hpp>
 #if defined(BOOST_NO_STDC_NAMESPACE)
@@ -101,7 +103,6 @@ xml_woarchive_impl<Archive>::save(const char * s){
 template<class Archive>
 BOOST_WARCHIVE_DECL void
 xml_woarchive_impl<Archive>::save(const wchar_t * ws){
-    os << ws;
     typedef iterators::xml_escape<const wchar_t *> xmbtows;
     std::copy(
         xmbtows(ws),
@@ -124,12 +125,12 @@ xml_woarchive_impl<Archive>::xml_woarchive_impl(
     basic_xml_oarchive<Archive>(flags)
 {
     if(0 == (flags & no_codecvt)){
-        std::locale l = std::locale(
+        archive_locale = std::locale(
             os_.getloc(),
             new boost::archive::detail::utf8_codecvt_facet
         );
         os_.flush();
-        os_.imbue(l);
+        os_.imbue(archive_locale);
     }
     if(0 == (flags & no_header))
         this->init();
@@ -141,7 +142,7 @@ xml_woarchive_impl<Archive>::~xml_woarchive_impl(){
     if(std::uncaught_exception())
         return;
     if(0 == (this->get_flags() & no_header)){
-        save(L"</boost_serialization>\n");
+        os << L"</boost_serialization>";
     }
 }
 

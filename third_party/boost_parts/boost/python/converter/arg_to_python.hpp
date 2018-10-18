@@ -24,11 +24,7 @@
 # include <boost/python/detail/convertible.hpp>
 # include <boost/python/detail/string_literal.hpp>
 # include <boost/python/detail/value_is_shared_ptr.hpp>
-
-# include <boost/type_traits/cv_traits.hpp>
-# include <boost/type_traits/composite_traits.hpp>
-# include <boost/type_traits/function_traits.hpp>
-
+# include <boost/python/detail/type_traits.hpp>
 
 # include <boost/mpl/or.hpp>
 
@@ -116,9 +112,9 @@ namespace detail
       
             , typename mpl::if_<
                 mpl::or_<
-                    is_function<T>
+                    boost::python::detail::is_function<T>
                   , indirect_traits::is_pointer_to_function<T>
-                  , is_member_function_pointer<T>
+                  , boost::python::detail::is_member_function_pointer<T>
                 >
                 , function_arg_to_python<T>
 
@@ -127,7 +123,7 @@ namespace detail
                     , object_manager_arg_to_python<T>
 
                     , typename mpl::if_<
-                          is_pointer<T>
+                          boost::python::detail::is_pointer<T>
                         , pointer_deep_arg_to_python<T>
 
                         , typename mpl::if_<

@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@
 #include <string>
 
 #include "base/logging.h"
+#include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/zynamics/binexport/base_types.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
-#include "third_party/zynamics/binexport/hex_codec.h"
 #include "third_party/zynamics/binexport/initialize_constraints_postgresql_sql.h"
 #include "third_party/zynamics/binexport/initialize_indices_postgresql_sql.h"
 #include "third_party/zynamics/binexport/initialize_tables_postgresql_sql.h"
@@ -37,13 +37,6 @@
 #include "third_party/zynamics/binexport/types_container.h"
 
 namespace {
-
-string EncodeHash(const string& hash) {
-  if (hash.size() <= 20) {
-    return EncodeHex(hash);
-  }
-  return hash;
-}
 
 // Creates a string representation for the base type id of the corresponding
 // stack frame of the given function. Returns "null" if no such stack frame
@@ -232,8 +225,8 @@ void DatabaseWriter::PrepareDatabase(const string& md5, const string& sha1,
       "$5::varchar, $6::int, $7::varchar, $8::varchar, '', NOW())",
       Parameters() << static_cast<int32>(module_id_) << module_name
                    << architecture << static_cast<int64>(base_address)
-                   << program_version_ << static_cast<int32>(kDbVersion)
-                   << EncodeHash(md5) << EncodeHash(sha1));
+                   << program_version_ << static_cast<int32>(kDbVersion) << md5
+                   << sha1);
 }
 
 void DatabaseWriter::InsertAddressComments(const CallGraph& call_graph) {
@@ -356,7 +349,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
           instruction_query
               << "(" << static_cast<int64>(instruction.GetAddress()) << ","
               << database_.EscapeLiteral(mnemonic) << ",decode('"
-              << EncodeHex(instruction.GetBytes()) << "','hex')"
+              << absl::BytesToHexString(instruction.GetBytes()) << "','hex')"
               << ")," << kFlushQuery;
 
           int operand_sequence = 0;

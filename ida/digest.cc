@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +14,33 @@
 
 #include "third_party/zynamics/binexport/ida/digest.h"
 
-#include <openssl/md5.h>
-#include <openssl/sha.h>
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <nalt.hpp>                                             // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/integral_types.h"
+#include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/escaping.h"
+#include "util/task/status.h"
 
-string Md5(const string& data) {
-  string digest(MD5_DIGEST_LENGTH, '\0');
-  MD5(reinterpret_cast<const uint8*>(data.data()), data.size(),
-      reinterpret_cast<uint8*>(&digest[0]));
-  return digest;
+util::StatusOr<string> GetInputFileSha256() {
+  constexpr int kBinarySha256Length = 32;
+  unsigned char hash[kBinarySha256Length];
+  if (!retrieve_input_file_sha256(hash)) {
+    return util::Status{absl::StatusCode::kInternal,
+                        "Failed to load SHA256 hash of input file"};
+  }
+  return absl::AsciiStrToLower(absl::BytesToHexString(absl::string_view(
+      reinterpret_cast<const char*>(hash), kBinarySha256Length)));
 }
 
-string Sha1(const string& data) {
-  string digest(SHA_DIGEST_LENGTH, '\0');
-  SHA1(reinterpret_cast<const uint8*>(data.data()), data.size(),
-       reinterpret_cast<uint8*>(&digest[0]));
-  return digest;
+util::StatusOr<string> GetInputFileMd5() {
+  constexpr int kBinaryMd5Length = 16;
+  unsigned char hash[kBinaryMd5Length];
+  if (!retrieve_input_file_md5(hash)) {
+    return util::Status{absl::StatusCode::kInternal,
+                        "Failed to load SHA256 hash of input file"};
+  }
+  return absl::AsciiStrToLower(absl::BytesToHexString(absl::string_view(
+      reinterpret_cast<const char*>(hash), kBinaryMd5Length)));
 }

@@ -1,4 +1,4 @@
-/* Copyright 2003-2015 Joaquin M Lopez Munoz.
+/* Copyright 2003-2018 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -16,6 +16,7 @@
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
 #include <boost/bind.hpp>
 #include <boost/call_traits.hpp>
+#include <boost/core/addressof.hpp>
 #include <boost/detail/allocator_utilities.hpp>
 #include <boost/detail/no_exceptions_support.hpp>
 #include <boost/detail/workaround.hpp>
@@ -41,6 +42,7 @@
 #include <cstddef>
 #include <functional>
 #include <utility>
+#include <memory>
 
 #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 #include<initializer_list>
@@ -105,8 +107,13 @@ public:
   typedef typename node_type::value_type              value_type;
   typedef tuples::null_type                           ctor_args;
   typedef typename super::final_allocator_type        allocator_type;
+#ifdef BOOST_NO_CXX11_ALLOCATOR
   typedef typename allocator_type::reference          reference;
   typedef typename allocator_type::const_reference    const_reference;
+#else
+  typedef value_type&                                 reference;
+  typedef const value_type&                           const_reference;
+#endif
 
 #if defined(BOOST_MULTI_INDEX_ENABLE_SAFE_MODE)
   typedef safe_mode::safe_iterator<
@@ -120,8 +127,14 @@ public:
 
   typedef std::size_t                                 size_type;      
   typedef std::ptrdiff_t                              difference_type;
+#ifdef BOOST_NO_CXX11_ALLOCATOR
   typedef typename allocator_type::pointer            pointer;
   typedef typename allocator_type::const_pointer      const_pointer;
+#else
+  typedef std::allocator_traits<allocator_type>       allocator_traits;
+  typedef typename allocator_traits::pointer          pointer;
+  typedef typename allocator_traits::const_pointer    const_pointer;
+#endif
   typedef typename
     boost::reverse_iterator<iterator>                 reverse_iterator;
   typedef typename
@@ -240,12 +253,12 @@ public:
 
   iterator iterator_to(const value_type& x)
   {
-    return make_iterator(node_from_value<node_type>(&x));
+    return make_iterator(node_from_value<node_type>(boost::addressof(x)));
   }
 
   const_iterator iterator_to(const value_type& x)const
   {
-    return make_iterator(node_from_value<node_type>(&x));
+    return make_iterator(node_from_value<node_type>(boost::addressof(x)));
   }
 
   /* capacity */
@@ -769,6 +782,11 @@ BOOST_MULTI_INDEX_PROTECTED_IF_MEMBER_TEMPLATE_FRIENDS:
   bool modify_rollback_(node_type* x)
   {
     return super::modify_rollback_(x);
+  }
+
+  bool check_rollback_(node_type* x)const
+  {
+    return super::check_rollback_(x);
   }
 
 #if !defined(BOOST_MULTI_INDEX_DISABLE_SERIALIZATION)

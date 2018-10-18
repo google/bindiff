@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@
 #include <limits>
 #include <string>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <ida.hpp>                                            // NOLINT
-#include <idp.hpp>                                            // NOLINT
-#include <intel.hpp>                                          // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <idp.hpp>                                              // NOLINT
+#include <intel.hpp>                                            // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -35,9 +35,9 @@
 namespace {
 
 bool IsStringInstruction(const string& mnemonic) {
-  static std::set<string> instructions = {"ins",  "outs", "movs", "cmps",
-                                          "stos", "lods", "scas"};
-  return instructions.find(mnemonic.substr(0, 4)) != instructions.end();
+  static auto* instructions = new std::set<string>{
+      "ins", "outs", "movs", "cmps", "stos", "lods", "scas"};
+  return instructions->find(mnemonic.substr(0, 4)) != instructions->end();
 }
 
 string GetSegmentSelector(const op_t& operand) {
@@ -90,11 +90,10 @@ string GetExtendedRegisterName(const op_t& operand) {
 // mov ax, word ss:[edx + 16]
 size_t GetSibOperandSize(Address address) {
   const segment_t* segment = getseg(static_cast<ea_t>(address));
-  // fucking IDA: 0 = 16, 1 = 32, 2 = 64
+  // IDA: 0 = 16, 1 = 32, 2 = 64
   return (16 << segment->bitness) >> 3;
 }
 
-// Warning: this function uses the global cmd!
 string GetSibBase(const insn_t& instruction, const op_t& operand) {
   const size_t opsize = GetSibOperandSize(instruction.ea);
   string name = GetRegisterName(x86_base(instruction, operand), opsize);
@@ -106,9 +105,7 @@ string GetSibBase(const insn_t& instruction, const op_t& operand) {
   return name;
 }
 
-string GetSibIndex(
-    const insn_t& instruction,
-    const op_t& operand) {  // @warning: this function uses the global cmd!
+string GetSibIndex(const insn_t& instruction, const op_t& operand) {
   const int index = x86_index(instruction, operand);
   size_t opsize = GetSibOperandSize(instruction.ea);
   if (opsize <= 1) {
@@ -153,9 +150,8 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
         base = "di";
         break;
       case 6:
-        base = "sword (@bug!)";
-        break;  // @bug: this should probably be a value retrieved from
-                // somewhere
+        base = "bp";
+        break;
       case 7:
         base = "bx";
         break;

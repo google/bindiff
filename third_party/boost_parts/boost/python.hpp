@@ -42,7 +42,6 @@
 # include <boost/python/make_function.hpp>
 # include <boost/python/manage_new_object.hpp>
 # include <boost/python/module.hpp>
-# include <boost/python/numeric.hpp>
 # include <boost/python/object.hpp>
 # include <boost/python/object_protocol.hpp>
 # include <boost/python/object_protocol_core.hpp>

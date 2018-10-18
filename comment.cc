@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
 
 #include "third_party/zynamics/binexport/comment.h"
 
-#include <cinttypes>
-
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 bool SortComments(const Comment& lhs, const Comment& rhs) {
   if (lhs.address_ == rhs.address_) {
@@ -37,8 +36,9 @@ Comment::Comment(Address address, size_t operand_num, const string* comment,
       repeatable_(repeatable),
       type_(type) {
   if (comment && comment->size() >= 4096) {
-    LOG(INFO) << "Excessively long comment at "
-              << absl::StrCat(absl::Hex(address, absl::kZeroPad8)) << ", "
-              << comment->size() << " bytes: " << *comment;
+    LOG(INFO) << absl::StrCat("Excessively long comment at ",
+                              security::binexport::FormatAddress(address), ", ",
+                              comment->size(), ": ", comment->substr(0, 128),
+                              "...");
   }
 }

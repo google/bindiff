@@ -24,7 +24,7 @@
 //  This is the version of the current Spirit distribution
 //
 ///////////////////////////////////////////////////////////////////////////////
-#define SPIRIT_VERSION 0x1806
+#define SPIRIT_VERSION 0x1808
 #define SPIRIT_PIZZA_VERSION SPIRIT_MEGA_VEGGI  // :-)
 
 #endif // defined(SPIRIT_VERSION_HPP)

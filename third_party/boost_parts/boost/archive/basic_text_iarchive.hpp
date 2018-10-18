@@ -21,7 +21,7 @@
 //
 // note the fact that on libraries without wide characters, ostream is
 // is not a specialization of basic_ostream which in fact is not defined
-// in such cases.   So we can't use basic_ostream<IStream::char_type> but rather
+// in such cases.   So we can't use basic_istream<IStream::char_type> but rather
 // use two template parameters
 
 #include <boost/config.hpp>

@@ -1,43 +1,40 @@
-// Copyright David Abrahams 2004. Distributed under the Boost
-// Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-#ifndef CLASS_METADATA_DWA2004719_HPP
-# define CLASS_METADATA_DWA2004719_HPP
-# include <boost/python/converter/shared_ptr_from_python.hpp>
+// Copyright David Abrahams 2004.
+// Copyright Stefan Seefeld 2016.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 
-# include <boost/python/object/inheritance.hpp>
-# include <boost/python/object/class_wrapper.hpp>
-# include <boost/python/object/make_instance.hpp>
-# include <boost/python/object/value_holder.hpp>
-# include <boost/python/object/pointer_holder.hpp>
-# include <boost/python/object/make_ptr_instance.hpp>
+#ifndef boost_python_object_class_metadata_hpp_
+#define boost_python_object_class_metadata_hpp_
 
-# include <boost/python/detail/force_instantiate.hpp>
-# include <boost/python/detail/not_specified.hpp>
+#include <boost/python/converter/shared_ptr_from_python.hpp>
+#include <boost/python/object/inheritance.hpp>
+#include <boost/python/object/class_wrapper.hpp>
+#include <boost/python/object/make_instance.hpp>
+#include <boost/python/object/value_holder.hpp>
+#include <boost/python/object/pointer_holder.hpp>
+#include <boost/python/object/make_ptr_instance.hpp>
 
-# include <boost/python/has_back_reference.hpp>
-# include <boost/python/bases.hpp>
+#include <boost/python/detail/force_instantiate.hpp>
+#include <boost/python/detail/not_specified.hpp>
+#include <boost/python/detail/type_traits.hpp>
 
-# include <boost/type_traits/add_pointer.hpp>
-# include <boost/type_traits/is_convertible.hpp>
-# include <boost/type_traits/is_polymorphic.hpp>
+#include <boost/python/has_back_reference.hpp>
+#include <boost/python/bases.hpp>
 
-# include <boost/mpl/if.hpp>
-# include <boost/mpl/eval_if.hpp>
-# include <boost/mpl/bool.hpp>
-# include <boost/mpl/or.hpp>
-# include <boost/mpl/identity.hpp>
-# include <boost/mpl/for_each.hpp>
-# include <boost/mpl/placeholders.hpp>
-# include <boost/mpl/single_view.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/or.hpp>
+#include <boost/mpl/identity.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/placeholders.hpp>
+#include <boost/mpl/single_view.hpp>
 
-# include <boost/mpl/assert.hpp>
-# include <boost/type_traits/is_same.hpp>
+#include <boost/mpl/assert.hpp>
 
-# include <boost/type_traits/is_convertible.hpp>
-
-# include <boost/noncopyable.hpp>
-# include <boost/detail/workaround.hpp>
+#include <boost/noncopyable.hpp>
+#include <boost/detail/workaround.hpp>
 
 namespace boost { namespace python { namespace objects { 
 
@@ -53,7 +50,7 @@ struct register_base_of
     template <class Base>
     inline void operator()(Base*) const
     {
-        BOOST_MPL_ASSERT_NOT((is_same<Base,Derived>));
+        BOOST_MPL_ASSERT_NOT((boost::python::detail::is_same<Base,Derived>));
         
         // Register the Base class
         register_dynamic_id<Base>();
@@ -62,14 +59,14 @@ struct register_base_of
         register_conversion<Derived,Base>(false);
 
         // Register the down-cast, if appropriate.
-        this->register_downcast((Base*)0, is_polymorphic<Base>());
+        this->register_downcast((Base*)0, boost::python::detail::is_polymorphic<Base>());
     }
 
  private:
-    static inline void register_downcast(void*, mpl::false_) {}
+    static inline void register_downcast(void*, boost::python::detail::false_) {}
     
     template <class Base>
-    static inline void register_downcast(Base*, mpl::true_)
+    static inline void register_downcast(Base*, boost::python::detail::true_)
     {
         register_conversion<Base, Derived>(true);
     }
@@ -80,18 +77,22 @@ struct register_base_of
 // Preamble of register_class.  Also used for callback classes, which
 // need some registration of their own.
 //
+
 template <class T, class Bases>
 inline void register_shared_ptr_from_python_and_casts(T*, Bases)
 {
-    // Constructor performs registration
-    python::detail::force_instantiate(converter::shared_ptr_from_python<T>());
+  // Constructor performs registration
+  python::detail::force_instantiate(converter::shared_ptr_from_python<T, boost::shared_ptr>());
+#if !defined(BOOST_NO_CXX11_SMART_PTR)
+  python::detail::force_instantiate(converter::shared_ptr_from_python<T, std::shared_ptr>());
+#endif
 
-    //
-    // register all up/downcasts here.  We're using the alternate
-    // interface to mpl::for_each to avoid an MSVC 6 bug.
-    //
-    register_dynamic_id<T>();
-    mpl::for_each(register_base_of<T>(), (Bases*)0, (add_pointer<mpl::_>*)0);
+  //
+  // register all up/downcasts here.  We're using the alternate
+  // interface to mpl::for_each to avoid an MSVC 6 bug.
+  //
+  register_dynamic_id<T>();
+  mpl::for_each(register_base_of<T>(), (Bases*)0, (boost::python::detail::add_pointer<mpl::_>*)0);
 }
 
 //
@@ -102,7 +103,7 @@ struct select_held_type
   : mpl::if_<
         mpl::or_<
             python::detail::specifies_bases<T>
-          , is_same<T,noncopyable>
+          , boost::python::detail::is_same<T,noncopyable>
         >
       , Prev
       , T
@@ -149,9 +150,9 @@ struct class_metadata
     >::type bases;
 
     typedef mpl::or_<
-        is_same<X1,noncopyable>
-      , is_same<X2,noncopyable>
-      , is_same<X3,noncopyable>
+        boost::python::detail::is_same<X1,noncopyable>
+      , boost::python::detail::is_same<X2,noncopyable>
+      , boost::python::detail::is_same<X3,noncopyable>
     > is_noncopyable;
     
     //
@@ -160,11 +161,11 @@ struct class_metadata
     
     // Compute the actual type that will be held in the Holder.
     typedef typename mpl::if_<
-        is_same<held_type_arg,python::detail::not_specified>, T, held_type_arg
+        boost::python::detail::is_same<held_type_arg,python::detail::not_specified>, T, held_type_arg
     >::type held_type;
 
     // Determine if the object will be held by value
-    typedef mpl::bool_<is_convertible<held_type*,T*>::value> use_value_holder;
+    typedef mpl::bool_<boost::python::detail::is_convertible<held_type*,T*>::value> use_value_holder;
     
     // Compute the "wrapped type", that is, if held_type is a smart
     // pointer, we're talking about the pointee.
@@ -178,7 +179,7 @@ struct class_metadata
     typedef mpl::bool_<
         mpl::or_<
             has_back_reference<T>
-          , is_same<held_type_arg,T>
+          , boost::python::detail::is_same<held_type_arg,T>
           , is_base_and_derived<T,wrapped>
         >::value
     > use_back_reference;
@@ -207,7 +208,7 @@ struct class_metadata
     template <class T2>
     inline static void register_aux(python::wrapper<T2>*) 
     {
-        typedef typename mpl::not_<is_same<T2,wrapped> >::type use_callback;
+        typedef typename mpl::not_<boost::python::detail::is_same<T2,wrapped> >::type use_callback;
         class_metadata::register_aux2((T2*)0, use_callback());
     }
 
@@ -220,8 +221,7 @@ struct class_metadata
     template <class T2, class Callback>
     inline static void register_aux2(T2*, Callback) 
     {
-        objects::register_shared_ptr_from_python_and_casts((T2*)0, bases());
-        
+	objects::register_shared_ptr_from_python_and_casts((T2*)0, bases());
         class_metadata::maybe_register_callback_class((T2*)0, Callback());
 
         class_metadata::maybe_register_class_to_python((T2*)0, is_noncopyable());
@@ -237,7 +237,7 @@ struct class_metadata
     inline static void maybe_register_pointer_to_python(...) {}
 
 #ifndef BOOST_PYTHON_NO_PY_SIGNATURES
-    inline static void maybe_register_pointer_to_python(void*,void*,mpl::true_*) 
+    inline static void maybe_register_pointer_to_python(void*,void*,mpl::true_*)
     {
         objects::copy_class_object(python::type_id<T>(), python::type_id<back_reference<T const &> >());
         objects::copy_class_object(python::type_id<T>(), python::type_id<back_reference<T &> >());
@@ -282,9 +282,8 @@ struct class_metadata
     template <class T2>
     inline static void maybe_register_callback_class(T2*, mpl::true_)
     {
-        objects::register_shared_ptr_from_python_and_casts(
+	objects::register_shared_ptr_from_python_and_casts(
             (wrapped*)0, mpl::single_view<T2>());
-
         // explicit qualification of type_id makes msvc6 happy
         objects::copy_class_object(python::type_id<T2>(), python::type_id<wrapped>());
     }
@@ -292,4 +291,4 @@ struct class_metadata
 
 }}} // namespace boost::python::object
 
-#endif // CLASS_METADATA_DWA2004719_HPP
+#endif

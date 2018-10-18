@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -75,11 +75,9 @@ void FlowGraph::MarkOrphanInstructions(Instructions* instructions) const {
           LOG(WARNING) << absl::StrCat(
               absl::Hex(instruction.GetAddress(), absl::kZeroPad8),
               " is reachable from function ",
-              absl::StrCat(
-                  absl::Hex(function.second->GetEntryPoint(), absl::kZeroPad8)),
+              absl::Hex(function.second->GetEntryPoint(), absl::kZeroPad8),
               " basic block ",
-              absl::StrCat(
-                  absl::Hex(basic_block->GetEntryPoint(), absl::kZeroPad8)),
+              absl::Hex(basic_block->GetEntryPoint(), absl::kZeroPad8),
               " but invalid!");
           continue;
         }
@@ -360,7 +358,7 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
   }
 
   // Add the new synthetic edges.
-  std::copy(new_edges.begin(), new_edges.end(), std::back_inserter(edges_));
+  edges_.insert(edges_.end(), new_edges.begin(), new_edges.end());
   std::sort(edges_.begin(), edges_.end());
 }
 
@@ -481,12 +479,14 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
                            [](const FlowGraphEdge& edge, Address address) {
                              return edge.source < address;
                            });
+      uint64 dropped_edges = 0;
       for (; edge != edges_.end() && edge->source == source_address; ++edge) {
         if (!BasicBlock::Find(edge->target)) {
-          LOG(INFO) << absl::StrCat(
+          DLOG(INFO) << absl::StrCat(
               "Dropping edge ", absl::Hex(edge->source, absl::kZeroPad8),
               " -> ", absl::Hex(edge->target, absl::kZeroPad8),
               " because the target address is invalid.");
+          ++dropped_edges;
           continue;
         }
         if (done_edges.insert(*edge).second) {
@@ -494,6 +494,10 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
           address_stack.push(edge->target);
         }
       }
+      LOG_IF(INFO, dropped_edges > 0) << absl::StrCat(
+          "Dropped ", dropped_edges,
+          " edges because the target address is invalid (current basic block ",
+          absl::Hex(address, absl::kZeroPad8), ").");
     }
     if (function_basic_blocks.size() >= kMaxFunctionBasicBlocks ||
         function->GetEdges().size() >= kMaxFunctionEdges ||

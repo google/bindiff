@@ -1,4 +1,4 @@
-/* Copyright 2003-2015 Joaquin M Lopez Munoz.
+/* Copyright 2003-2018 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -16,6 +16,7 @@
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
 #include <algorithm>
 #include <boost/call_traits.hpp>
+#include <boost/core/addressof.hpp>
 #include <boost/detail/allocator_utilities.hpp>
 #include <boost/detail/no_exceptions_support.hpp>
 #include <boost/detail/workaround.hpp>
@@ -44,6 +45,7 @@
 #include <functional>
 #include <iterator>
 #include <utility>
+#include <memory>
 
 #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 #include <initializer_list>
@@ -126,10 +128,18 @@ public:
   typedef tuple<std::size_t,
     key_from_value,hasher,key_equal>                 ctor_args;
   typedef typename super::final_allocator_type       allocator_type;
+#ifdef BOOST_NO_CXX11_ALLOCATOR
   typedef typename allocator_type::pointer           pointer;
   typedef typename allocator_type::const_pointer     const_pointer;
   typedef typename allocator_type::reference         reference;
   typedef typename allocator_type::const_reference   const_reference;
+#else
+  typedef std::allocator_traits<allocator_type>      allocator_traits;
+  typedef typename allocator_traits::pointer         pointer;
+  typedef typename allocator_traits::const_pointer   const_pointer;
+  typedef value_type&                                reference;
+  typedef const value_type&                          const_reference;
+#endif
   typedef std::size_t                                size_type;      
   typedef std::ptrdiff_t                             difference_type;
 
@@ -238,12 +248,12 @@ public:
 
   iterator iterator_to(const value_type& x)
   {
-    return make_iterator(node_from_value<node_type>(&x));
+    return make_iterator(node_from_value<node_type>(boost::addressof(x)));
   }
 
   const_iterator iterator_to(const value_type& x)const
   {
-    return make_iterator(node_from_value<node_type>(&x));
+    return make_iterator(node_from_value<node_type>(boost::addressof(x)));
   }
 
   /* modifiers */
@@ -563,12 +573,14 @@ public:
 
   local_iterator local_iterator_to(const value_type& x)
   {
-    return make_local_iterator(node_from_value<node_type>(&x));
+    return make_local_iterator(
+      node_from_value<node_type>(boost::addressof(x)));
   }
 
   const_local_iterator local_iterator_to(const value_type& x)const
   {
-    return make_local_iterator(node_from_value<node_type>(&x));
+    return make_local_iterator(
+      node_from_value<node_type>(boost::addressof(x)));
   }
 
   /* hash policy */
@@ -584,7 +596,7 @@ public:
     if(size()<=max_load&&n<=bucket_count())return;
 
     size_type bc =(std::numeric_limits<size_type>::max)();
-    float     fbc=static_cast<float>(1+size()/mlf);
+    float     fbc=1.0f+static_cast<float>(size())/mlf;
     if(bc>fbc){
       bc=static_cast<size_type>(fbc);
       if(bc<n)bc=n;
@@ -594,7 +606,7 @@ public:
 
   void reserve(size_type n)
   {
-    rehash(static_cast<size_type>(std::ceil(static_cast<double>(n)/mlf)));
+    rehash(static_cast<size_type>(std::ceil(static_cast<float>(n)/mlf)));
   }
 
 BOOST_MULTI_INDEX_PROTECTED_IF_MEMBER_TEMPLATE_FRIENDS:
@@ -1009,6 +1021,12 @@ BOOST_MULTI_INDEX_PROTECTED_IF_MEMBER_TEMPLATE_FRIENDS:
     BOOST_CATCH_END
   }
 
+  bool check_rollback_(node_type* x)const
+  {
+    std::size_t buc=find_bucket(x->value());
+    return in_place(x->impl(),key(x->value()),buc)&&super::check_rollback_(x);
+  }
+
   /* comparison */
 
 #if !defined(BOOST_NO_MEMBER_TEMPLATE_FRIENDS)
@@ -1271,7 +1289,7 @@ private:
 
   void calculate_max_load()
   {
-    float fml=static_cast<float>(mlf*static_cast<float>(bucket_count()));
+    float fml=mlf*static_cast<float>(bucket_count());
     max_load=(std::numeric_limits<size_type>::max)();
     if(max_load>fml)max_load=static_cast<size_type>(fml);
   }
@@ -1280,7 +1298,7 @@ private:
   {
     if(n>max_load){
       size_type bc =(std::numeric_limits<size_type>::max)();
-      float     fbc=static_cast<float>(1+static_cast<double>(n)/mlf);
+      float     fbc=1.0f+static_cast<float>(n)/mlf;
       if(bc>fbc)bc =static_cast<size_type>(fbc);
       unchecked_rehash(bc);
     }

@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # FindIdaSdk
 # ----------
 #
-# Locates and configures the IDA Pro SDK.
+# Locates and configures the IDA Pro SDK. Only support version 7.0 or hight.
 #
 # Use this module by invoking find_package with the form:
 #
@@ -33,37 +33,36 @@
 #
 #   IdaSdk_ROOT_DIR  - Preferred installation prefix
 #
-# Starting with IDA 7.0 SDK, all builds are 64-bit by default. For
-# compatibility with 6.95, which is 32-bit, users can tell this module to
-# configure the build using these variables:
+# Example (this assumes Windows):
 #
-#   IdaSdk_COMPILE_32BIT          - Always compile 32-bit binaries
-#   IdaSdk_LEGACY_FILE_EXTENSIONS - For IDA up until 6.95, use the special
-#                                   platform-specific file extensions
-#                                   (plx/pmc/plw etc.).
-#
-# Example:
-#
-#   set(IdaSdk_COMPILE_32BIT ON)
-#   set(IdaSdk_LEGACY_FILE_EXTENSIONS ON)
 #   find_package(IdaSdk REQUIRED)
 #   include_directories(${IdaSdk_INCLUDE_DIRS})
 #
-#   # Builds target plugin32.plx
-#   add_ida_plugin(plugin32 myplugin.cc)
-#   # Builds targets plugin.plx and plugin.plx64
-#   add_ida_plugin(plugin EA64 myplugin.cc)
-#   # Builds target plugin64.plx64
-#   add_ida_plugin(plugin64 NOEA32 EA64 myplugin.cc)
+#   # Builds targets plugin.dll and plugin64.dll
+#   add_ida_plugin(plugin myplugin.cc)
+#   # Builds target plugin64.dll
+#   add_ida_plugin(plugin NOEA32 myplugin.cc)
+#   # Builds target plugin.dll
+#   add_ida_plugin(plugin NOEA64 myplugin.cc)
 #
-#   Builds targets ldr.llx and ldr64.llx64
-#   add_ida_loader(ldr EA64 myloader.cc)
+#   Builds targets ldr.dll and ldr64.dll
+#   add_ida_loader(ldr myloader.cc)
 #
-#   For platform-agnostic build files, the variables _plx, _plx64, _llx and
-#   _llx64 are available:
-#   add_ida_plugin(plugin EA64 myplugin.cc)
-#   target_link_libraries(plugin${_plx} ssl)
-#   target_link_libraries(plugin${_plx64} ssl)
+# For platform-agnostic build files, the variables _so, and _so64 are
+# available (and map to .dll, .so, .dylib as necessary):
+#
+#   add_ida_plugin(plugin myplugin.cc)
+#   target_link_libraries(plugin${_so} ssl)
+#   target_link_libraries(plugin${_so64} ssl)
+#
+# To avoid the duplication above, these functions, which mimic the built-in
+# ones, are also defined:
+#
+#   add_ida_library(<name> NOEA64|NOEA64 ...) <=> add_libary()
+#   ida_target_link_libraries(...)            <=> target_link_libraries()
+#   ida_target_include_directories(...)       <=> target_include_directories()
+#   set_ida_target_properties(...)            <=> set_target_properties()
+#   ida_install(...)                          <=> install()
 
 include(CMakeParseArguments)
 include(FindPackageHandleStandardArgs)
@@ -83,124 +82,195 @@ find_package_handle_standard_args(
          FAIL_MESSAGE "IDA SDK not found, try setting IdaSdk_ROOT_DIR")
 
 # Define some platform specific variables for later use.
-if(NOT IdaSdk_LEGACY_FILE_EXTENSIONS)
-  set(_plx ${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(_plx64 64${CMAKE_SHARED_LIBRARY_SUFFIX})  # An additional "64"
-  set(_llx ${CMAKE_SHARED_LIBRARY_SUFFIX})
-  set(_llx64 64${CMAKE_SHARED_LIBRARY_SUFFIX})  # An additional "64"
-endif()
+set(_so ${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(_so64 64${CMAKE_SHARED_LIBRARY_SUFFIX})  # An additional "64"
+# _plx, _plx64, _llx, _llx64 are kept to stay compatible with older
+# CMakeLists.txt files.
+set(_plx ${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(_plx64 64${CMAKE_SHARED_LIBRARY_SUFFIX})  # An additional "64"
+set(_llx ${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(_llx64 64${CMAKE_SHARED_LIBRARY_SUFFIX})  # An additional "64"
 if(APPLE)
   set(IdaSdk_PLATFORM __MAC__)
-  if(IdaSdk_LEGACY_FILE_EXTENSIONS)
-    set(_plx .pmc)
-    set(_plx64 .pmc64)  # No extra "64"
-    set(_llx .lmc)
-    set(_llx64 64.lmc64)   # An additional "64"
-  endif()
 elseif(UNIX)
   set(IdaSdk_PLATFORM __LINUX__)
-  if(IdaSdk_LEGACY_FILE_EXTENSIONS)
-    set(_plx .plx)
-    set(_plx64 .plx64)  # No extra "64"
-    set(_llx .llx)
-    set(_llx64 64.llx64)   # An additional "64"
-  endif()
+  set(_ida_compile_options -m64)
 elseif(WIN32)
   set(IdaSdk_PLATFORM __NT__)
-  if(IdaSdk_LEGACY_FILE_EXTENSIONS)
-    set(_plx .plw)
-    set(_plx64 .p64)  # No extra "64"
-    set(_llx .ldw)
-    set(_llx64 64.l64)  # An additional "64"
-  endif()
 else()
   message(FATAL_ERROR "Unsupported system type: ${CMAKE_SYSTEM_NAME}")
 endif()
 
-function(_ida_plugin name ea64 link_script)  # ARGN contains sources
-  # Define a module with the specified sources.
-  add_library(${name} MODULE ${ARGN})
-
-  # Support for 64-bit addresses.
-  if(ea64)
-    target_compile_definitions(${name} PUBLIC __EA64__)
+function(_ida_common_target_settings t ea64)
+  if(ea64)  # Support for 64-bit addresses.
+    target_compile_definitions(${t} PUBLIC __EA64__)
   endif()
-
-  # Build 64-bit by default.
-  if(NOT IdaSdk_COMPILE_32BIT)
-    target_compile_definitions(${name} PUBLIC __X64__)
-  endif()
-
   # Add the necessary __IDP__ define and allow to use "dangerous" and standard
   # file functions.
-  target_compile_definitions(${name} PUBLIC
-                             ${IdaSdk_PLATFORM}
-                             __IDP__
-                             USE_DANGEROUS_FUNCTIONS
-                             USE_STANDARD_FILE_FUNCTIONS)
+  target_compile_definitions(${t} PUBLIC ${IdaSdk_PLATFORM}
+                                         __X64__
+                                         __IDP__
+                                         USE_DANGEROUS_FUNCTIONS
+                                         USE_STANDARD_FILE_FUNCTIONS)
+  target_include_directories(${t} PUBLIC ${IdaSdk_INCLUDE_DIRS})
+endfunction()
 
-  set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "")
+function(_ida_plugin name ea64 link_script)  # ARGN contains sources
+  if(ea64)
+    set(t ${name}${_so64})
+  else()
+    set(t ${name}${_so})
+  endif()
+
+  # Define a module with the specified sources.
+  add_library(${t} MODULE ${ARGN})
+  _ida_common_target_settings(${t} ${ea64})
+
+  set_target_properties(${t} PROPERTIES PREFIX "" SUFFIX "")
   if(UNIX)
-    if(NOT IdaSdk_COMPILE_32BIT)
-      set(_ida_cflag -m64)
-    else()
-      set(_ida_cflag -m32)
-    endif()
-    # Always use the linker script needed for IDA.
-    target_compile_options(${name} PUBLIC ${_ida_cflag})
+    target_compile_options(${t} PUBLIC ${_ida_compile_options})
     if(APPLE)
-      target_link_libraries(${name} ${_ida_cflag}
-                                    -Wl,-flat_namespace
-                                    -Wl,-undefined,warning
-                                    -Wl,-exported_symbol,_PLUGIN)
+      target_link_libraries(${t} ${_ida_compile_options}
+                                 -Wl,-flat_namespace
+                                 -Wl,-undefined,warning
+                                 -Wl,-exported_symbol,_PLUGIN)
     else()
-      set(script_flag )
-      target_link_libraries(${name}
-        ${_ida_cflag} -Wl,--version-script ${IdaSdk_DIR}/${link_script})
+      # Always use the linker script needed for IDA.
+      target_link_libraries(${t} ${_ida_compile_options}
+        -Wl,--version-script ${IdaSdk_DIR}/${link_script})
     endif()
 
     # For qrefcnt_obj_t in ida.hpp
-    target_compile_options(${name} PUBLIC -Wno-non-virtual-dtor)
+    # TODO(cblichmann): This belongs in an interface library instead.
+    target_compile_options(${t} PUBLIC -Wno-non-virtual-dtor)
   elseif(WIN32)
-    if(NOT IdaSdk_COMPILE_32BIT)
-      set(_ida_prefix x64)
-    else()
-      set(_ida_prefix x86)
-    endif()
     if(ea64)
-      set(IdaSdk_LIBRARY ${IdaSdk_DIR}/lib/${_ida_prefix}_win_vc_64/ida.lib)
+      target_link_libraries(${t} ${IdaSdk_DIR}/lib/x64_win_vc_64/ida.lib)
     else()
-      set(IdaSdk_LIBRARY ${IdaSdk_DIR}/lib/${_ida_prefix}_win_vc_32/ida.lib)
+      target_link_libraries(${t} ${IdaSdk_DIR}/lib/x64_win_vc_32/ida.lib)
     endif()
-    target_link_libraries(${name} ${IdaSdk_LIBRARY})
+  endif()
+endfunction()
+
+macro(_ida_check_bitness)
+  if(opt_NOEA32 AND opt_NOEA64)
+    message(FATAL_ERROR "NOEA32 and NOEA64 cannot be used at the same time")
+  endif()
+endmacro()
+
+function(_ida_library name ea64)
+  if(ea64)
+    set(t ${name}_ea32)
+  else()
+    set(t ${name}_ea64)
+  endif()
+
+  # Define the actual library.
+  add_library(${t} ${ARGN})
+  _ida_common_target_settings(${t} ${ea64})
+endfunction()
+
+function(add_ida_library name)
+  cmake_parse_arguments(PARSE_ARGV 1 opt "NOEA32;NOEA64" "" "")
+  _ida_check_bitness(opt_NOEA32 opt_NOEA64)
+
+  if(NOT DEFINED(opt_NOEA32))
+    _ida_library(${name} FALSE ${opt_UNPARSED_ARGUMENTS})
+  endif()
+  if(NOT DEFINED(opt_NOEA64))
+    _ida_library(${name} TRUE ${opt_UNPARSED_ARGUMENTS})
   endif()
 endfunction()
 
 function(add_ida_plugin name)
-  set(options NOEA32 EA64)
-  cmake_parse_arguments(add_ida_plugin "${options}" "" "" ${ARGN})
+  cmake_parse_arguments(PARSE_ARGV 1 opt "NOEA32;NOEA64" "" "")
+  _ida_check_bitness(opt_NOEA32 opt_NOEA64)
 
-  if(NOT DEFINED(add_ida_plugin_NOEA32))
-    _ida_plugin(${name}${_plx} FALSE plugins/plugin.script
-                ${add_ida_plugin_UNPARSED_ARGUMENTS})
+  if(NOT opt_NOEA32)
+    _ida_plugin(${name} FALSE plugins/plugin.script ${opt_UNPARSED_ARGUMENTS})
   endif()
-  if(add_ida_plugin_EA64)
-    _ida_plugin(${name}${_plx64} TRUE plugins/plugin.script
-                ${add_ida_plugin_UNPARSED_ARGUMENTS})
+  if(NOT opt_NOEA64)
+    _ida_plugin(${name} TRUE plugins/plugin.script ${opt_UNPARSED_ARGUMENTS})
   endif()
 endfunction()
 
 function(add_ida_loader name)
-  set(options NOEA32 EA64)
-  cmake_parse_arguments(add_ida_loader "${options}" "" "" ${ARGN})
+  cmake_parse_arguments(PARSE_ARGV 1 opt "NOEA32;NOEA64" "" "")
+  _ida_check_bitness(opt_NOEA32 opt_NOEA64)
 
-  if(NOT DEFINED(add_ida_loader_NOEA32))
-    _ida_plugin(${name}${_llx} FALSE ldr/ldr.script
-                ${add_ida_loader_UNPARSED_ARGUMENTS})
+  if(NOT opt_NOEA32)
+    _ida_plugin(${name} FALSE ldr/ldr.script ${opt_UNPARSED_ARGUMENTS})
   endif()
-  if(add_ida_loader_EA64)
-    _ida_plugin(${name}${_llx64} TRUE ldr/ldr.script
-                ${add_ida_loader_UNPARSED_ARGUMENTS})
+  if(NOT opt_NOEA64)
+    _ida_plugin(${name} TRUE ldr/ldr.script ${opt_UNPARSED_ARGUMENTS})
   endif()
 endfunction()
 
+function(ida_target_link_libraries name)
+  foreach(item IN LISTS ARGN)
+    if(TARGET ${item}_ea32)
+      list(APPEND args ${item}_ea32)
+    elseif(TARGET ${item}_ea64)
+      list(APPEND args ${item}_ea64)
+    else()
+      list(APPEND args ${item})
+    endif()
+  endforeach()
+  foreach(target ${name}${_so}
+                 ${name}${_so64}
+                 ${name}_ea32
+                 ${name}_ea64)
+    if(TARGET ${target})
+      target_link_libraries(${target} ${args})
+      set(added TRUE)
+    endif()
+  endforeach()
+  if (NOT added)
+    message(FATAL_ERROR "No such target: ${name}")
+  endif()
+endfunction()
+
+function(ida_target_include_directories name)
+  foreach(target ${name}${_so}
+                 ${name}${_so64}
+                 ${name}_ea32
+                 ${name}_ea64)
+    if(TARGET ${target})
+      target_include_directories(${target} ${ARGN})
+      set(added TRUE)
+    endif()
+  endforeach()
+  if (NOT added)
+    message(FATAL_ERROR "No such target: ${name}")
+  endif()
+endfunction()
+
+function(set_ida_target_properties name)
+  foreach(target ${name}${_so}
+                 ${name}${_so64}
+                 ${name}_ea32
+                 ${name}_ea64)
+    if(TARGET ${target})
+      set_target_properties(${target} ${ARGN})
+      set(added TRUE)
+    endif()
+  endforeach()
+  if (NOT added)
+    message(FATAL_ERROR "No such target: ${name}")
+  endif()
+endfunction()
+
+function(ida_install)
+  foreach(item IN LISTS ARGN)
+    if(TARGET ${item}${_so} AND TARGET ${item}${_so64})
+      list(APPEND args ${item}${_so} ${item}${_so64})
+    elseif(TARGET ${item}${_so})
+      list(APPEND args ${item}${_so})
+    elseif(TARGET ${item}${_so64})
+      list(APPEND args ${item}${_so64})
+    else()
+      list(APPEND args ${item})
+    endif()
+  endforeach()
+  install(${args})
+endfunction()

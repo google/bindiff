@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 #include <cinttypes>
 #include <string>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <idp.hpp>                                            // NOLINT
-#include <allins.hpp>                                         // NOLINT
-#include <bytes.hpp>                                          // NOLINT
-#include <ida.hpp>                                            // NOLINT
-#include <ua.hpp>                                             // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <idp.hpp>                                              // NOLINT
+#include <allins.hpp>                                           // NOLINT
+#include <bytes.hpp>                                            // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <ua.hpp>                                               // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -832,7 +832,7 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
 
   if (instruction.itype == ARM_vcvt || instruction.itype == ARM_vcvtr ||
       instruction.itype == ARM_vcvtb || instruction.itype == ARM_vcvtt) {
-    switch (neon_datatype_t(instruction.Op1.specflag1)) {
+    switch (neon_datatype_t(instruction.ops[0].specflag1)) {
       case 0x0:
         break;  // DT_NONE = 0,
       case 0x1:

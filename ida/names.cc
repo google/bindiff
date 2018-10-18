@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@
 #include <string>
 #include <tuple>
 
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <idp.hpp>                                            // NOLINT
-#include <allins.hpp>                                         // NOLINT
-#include <enum.hpp>                                           // NOLINT
-#include <frame.hpp>                                          // NOLINT
-#include <ida.hpp>                                            // NOLINT
-#include <name.hpp>                                           // NOLINT
-#include <segment.hpp>                                        // NOLINT
-#include <struct.hpp>                                         // NOLINT
-#include <typeinf.hpp>                                        // NOLINT
-#include <ua.hpp>                                             // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <idp.hpp>                                              // NOLINT
+#include <allins.hpp>                                           // NOLINT
+#include <enum.hpp>                                             // NOLINT
+#include <frame.hpp>                                            // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <name.hpp>                                             // NOLINT
+#include <segment.hpp>                                          // NOLINT
+#include <struct.hpp>                                           // NOLINT
+#include <typeinf.hpp>                                          // NOLINT
+#include <ua.hpp>                                               // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/strings/ascii.h"
@@ -40,9 +40,10 @@
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/base_types.h"
 #include "third_party/zynamics/binexport/call_graph.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
+#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/arm.h"
 #include "third_party/zynamics/binexport/ida/dalvik.h"
 #include "third_party/zynamics/binexport/ida/generic.h"
@@ -50,11 +51,13 @@
 #include "third_party/zynamics/binexport/ida/mips.h"
 #include "third_party/zynamics/binexport/ida/ppc.h"
 #include "third_party/zynamics/binexport/ida/types_container.h"
-#include "third_party/zynamics/binexport/timer.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/writer.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
+
+using security::binexport::HumanReadableDuration;
 
 enum Architecture {
   kX86 = 0,
@@ -107,7 +110,7 @@ Architecture GetArchitecture() {
   return kGeneric;
 }
 
-string GetArchitectureName() {
+absl::optional<string> GetArchitectureName() {
   string architecture;
   switch (GetArchitecture()) {
     case kX86:
@@ -129,15 +132,12 @@ string GetArchitectureName() {
       architecture = "GENERIC";
       break;
     default:
-      throw std::runtime_error("unsupported processor");
+      return {};
   }
-  if (inf.is_64bit()) {
-    architecture += "-64";
-  } else if (inf.is_32bit()) {
-    architecture += "-32";
-  } else {
-    architecture += "-32";
-  }
+  // This is not strictly correct, i.e. for 16-bit archs and also for 128-bit
+  // archs, but is what IDA supports. This needs to be changed if IDA introduces
+  // is_128bit().
+  absl::StrAppend(&architecture, inf.is_64bit() ? "-64" : "-32");
   return architecture;
 }
 
@@ -850,8 +850,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
 
   const auto writing_time = absl::Seconds(timer.elapsed());
   LOG(INFO) << absl::StrCat(
-      GetModuleName(), ": ", absl::FormatDuration(processing_time),
-      " processing, ", absl::FormatDuration(writing_time), " writing");
+      GetModuleName(), ": ", HumanReadableDuration(processing_time),
+      " processing, ", HumanReadableDuration(writing_time), " writing");
 }
 
 void GetRegularComments(Address address, Comments* comments) {
@@ -874,23 +874,25 @@ void GetRegularComments(Address address, Comments* comments) {
 void GetEnumComments(Address address,
                      Comments* comments) {  // @bug: there is an get_enum_cmt
                                             // function in IDA as well!
-  unsigned char serial;
+  uint8 serial;
   if (is_enum0(get_flags(address))) {
-    if (int id = get_enum_id(&serial, address, 0) != BADNODE) {
+    int id = get_enum_id(&serial, address, 0);
+    if (id != BADNODE) {
       qstring ida_name(get_enum_name(id));
-      comments->emplace_back(address, 0,
-                             CallGraph::CacheString(string(
-                                 ida_name.c_str(), ida_name.length())),
-                             Comment::ENUM, false);
+      comments->emplace_back(
+          address, 0,
+          CallGraph::CacheString(string(ida_name.c_str(), ida_name.length())),
+          Comment::ENUM, false);
     }
   }
   if (is_enum1(get_flags(address))) {
-    if (int id = get_enum_id(&serial, address, 1) != BADNODE) {
+    int id = get_enum_id(&serial, address, 1);
+    if (id != BADNODE) {
       qstring ida_name(get_enum_name(id));
-      comments->emplace_back(address, 1,
-                             CallGraph::CacheString(string(
-                                 ida_name.c_str(), ida_name.length())),
-                             Comment::ENUM, false);
+      comments->emplace_back(
+          address, 1,
+          CallGraph::CacheString(string(ida_name.c_str(), ida_name.length())),
+          Comment::ENUM, false);
     }
   }
 }

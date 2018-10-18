@@ -161,13 +161,13 @@ xml_wiarchive_impl<Archive>::xml_wiarchive_impl(
     gimpl(new xml_wgrammar())
 {
     if(0 == (flags & no_codecvt)){
-        std::locale l = std::locale(
+        archive_locale = std::locale(
             is_.getloc(),
             new boost::archive::detail::utf8_codecvt_facet
         );
         // libstdc++ crashes without this
         is_.sync();
-        is_.imbue(l);
+        is_.imbue(archive_locale);
     }
     if(0 == (flags & no_header))
         init();

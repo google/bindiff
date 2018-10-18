@@ -6,12 +6,11 @@
 # define DEF_HELPER_DWA200287_HPP
 
 # include <boost/python/args.hpp>
-# include <boost/type_traits/same_traits.hpp>
 # include <boost/python/detail/indirect_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/mpl/not.hpp>
 # include <boost/mpl/and.hpp>
 # include <boost/mpl/or.hpp>
-# include <boost/type_traits/add_reference.hpp>
 # include <boost/mpl/lambda.hpp>
 # include <boost/mpl/apply.hpp>
 # include <boost/tuple/tuple.hpp>
@@ -73,7 +72,8 @@ namespace detail
   struct tuple_extract_base_select
   {
       typedef typename Tuple::head_type head_type;
-      typedef typename mpl::apply1<Predicate, typename add_reference<head_type>::type>::type match_t;
+      typedef typename mpl::apply1<Predicate,
+              typename add_lvalue_reference<head_type>::type>::type match_t;
       BOOST_STATIC_CONSTANT(bool, match = match_t::value);
       typedef typename tuple_extract_impl<match>::template apply<Tuple,Predicate> type;
   };

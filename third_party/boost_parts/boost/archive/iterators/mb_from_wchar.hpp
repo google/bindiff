@@ -18,14 +18,16 @@
 
 #include <boost/assert.hpp>
 #include <cstddef> // size_t
+#ifndef BOOST_NO_CWCHAR
 #include <cwchar> //  mbstate_t
-
+#endif
 #include <boost/config.hpp>
 #if defined(BOOST_NO_STDC_NAMESPACE)
 namespace std{ 
     using ::mbstate_t;
 } // namespace std
 #endif
+
 #include <boost/archive/detail/utf8_codecvt_facet.hpp>
 #include <boost/iterator/iterator_adaptor.hpp>
 
@@ -84,12 +86,15 @@ class mb_from_wchar
         wchar_t value = * this->base_reference();
         const wchar_t *wend;
         char *bend;
-        std::codecvt_base::result r = m_codecvt_facet.out(
-            m_mbs,
-            & value, & value + 1, wend,
-            m_buffer, m_buffer + sizeof(m_buffer), bend
+        BOOST_VERIFY(
+            m_codecvt_facet.out(
+                m_mbs,
+                & value, & value + 1, wend,
+                m_buffer, m_buffer + sizeof(m_buffer), bend
+            )
+            ==
+            std::codecvt_base::ok
         );
-        BOOST_ASSERT(std::codecvt_base::ok == r);
         m_bnext = 0;
         m_bend = bend - m_buffer;
     }

@@ -4,7 +4,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 #ifndef CV_CATEGORY_DWA200222_HPP
 # define CV_CATEGORY_DWA200222_HPP
-# include <boost/type_traits/cv_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 namespace boost { namespace python { namespace detail { 
 
@@ -26,8 +26,8 @@ struct cv_category
 //    BOOST_STATIC_CONSTANT(bool, c = is_const<T>::value);
 //    BOOST_STATIC_CONSTANT(bool, v = is_volatile<T>::value);
     typedef cv_tag<
-        ::boost::is_const<T>::value
-      , ::boost::is_volatile<T>::value
+        is_const<T>::value
+      , is_volatile<T>::value
     > type;
 };
 

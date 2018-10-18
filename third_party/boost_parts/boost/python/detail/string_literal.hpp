@@ -7,8 +7,7 @@
 
 # include <cstddef>
 # include <boost/type.hpp>
-# include <boost/type_traits/array_traits.hpp>
-# include <boost/type_traits/same_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/mpl/bool.hpp>
 # include <boost/detail/workaround.hpp>
 

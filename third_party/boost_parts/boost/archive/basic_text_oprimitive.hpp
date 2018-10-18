@@ -175,8 +175,6 @@ protected:
 
     template<class T>
     void save(const T & t){
-        boost::io::ios_flags_saver fs(os);
-        boost::io::ios_precision_saver ps(os);
         typename is_float<T>::type tf;
         save_impl(t, tf);
     }

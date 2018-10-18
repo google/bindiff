@@ -11,8 +11,6 @@
 #  include <boost/python/detail/preprocessor.hpp>
 #  include <boost/python/detail/none.hpp>
 
-#  include <boost/type_traits/is_member_function_pointer.hpp>
-
 #  include <boost/preprocessor/iterate.hpp>
 #  include <boost/preprocessor/facilities/intercept.hpp>
 #  include <boost/preprocessor/repetition/enum_trailing_params.hpp>

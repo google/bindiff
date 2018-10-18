@@ -111,6 +111,7 @@ public:
     transform_width(T start) : 
         super_t(Base(static_cast< T >(start))),
         m_buffer_out_full(false),
+        m_buffer_out(0),
         // To disable GCC warning, but not truly necessary 
 	    //(m_buffer_in will be initialized later before being 
 	    //used because m_remaining_bits == 0)

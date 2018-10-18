@@ -375,6 +375,12 @@ BOOST_SPIRIT_CLASSIC_NAMESPACE_BEGIN
             return to_char_type<wchar_t>(towupper(to_int_type(c)));
         }
 
+        inline bool
+        isblank_(bool)
+        {
+            return false;
+        }
+
 #endif // !defined(BOOST_NO_CWCTYPE)
 
 }

@@ -38,6 +38,7 @@ class BOOST_SYMBOL_VISIBLE common_oarchive :
     public interface_oarchive<Archive>
 {
     friend class interface_oarchive<Archive>;
+    friend class basic_oarchive;
 private:
     virtual void vsave(const version_type t){
         * this->This() << t;

@@ -8,7 +8,7 @@
 # include <boost/python/handle.hpp>
 # include <boost/python/cast.hpp>
 # include <boost/python/converter/pyobject_traits.hpp>
-# include <boost/type_traits/object_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/mpl/if.hpp>
 # include <boost/python/detail/indirect_traits.hpp>
 # include <boost/mpl/bool.hpp>

@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
 #include <boost/graph/dominator_tree.hpp>               // NOLINT
+#include <boost/graph/filtered_graph.hpp>               // NOLINT
 #include <boost/graph/iteration_macros.hpp>             // NOLINT
 
 #include "base/logging.h"
@@ -243,15 +244,14 @@ void Function::FixEdges() {
 
 void Function::GetBackEdges(
     std::vector<Edges::const_iterator>* back_edges) const {
-  typedef boost::compressed_sparse_row_graph<
+  using LocalGraph = boost::compressed_sparse_row_graph<
       boost::bidirectionalS, boost::property<boost::vertex_index_t, int>,
-      boost::property<boost::edge_index_t, int>> LocalGraph;
-  typedef boost::graph_traits<LocalGraph>::vertex_descriptor LocalVertex;
-  typedef std::pair<LocalVertex, LocalVertex> LocalEdge;
-  typedef std::vector<LocalEdge> LocalEdges;
+      boost::property<boost::edge_index_t, int>>;
+  using LocalVertex = boost::graph_traits<LocalGraph>::vertex_descriptor;
+  using LocalEdge = std::pair<LocalVertex, LocalVertex>;
 
   back_edges->clear();
-  LocalEdges local_edges;
+  std::vector<LocalEdge> local_edges;
   local_edges.reserve(edges_.size());
   for (const auto& edge : edges_) {
     auto source_index = GetBasicBlockIndexForAddress(edge.source);
@@ -262,15 +262,16 @@ void Function::GetBackEdges(
           basic_blocks_[target_index]->GetEntryPoint() == edge.target);
     local_edges.emplace_back(source_index, target_index);
   }
-  // TODO(user) Use edges_are_sorted (they are, after all, already sorted
-  // by source index)
+  // TODO(cblichmann): Use edges_are_sorted (they are, after all, already sorted
+  //                   by source index).
   const LocalGraph graph(boost::edges_are_unsorted_multi_pass,
                          local_edges.begin(), local_edges.end(),
                          basic_blocks_.size());
   std::vector<LocalVertex> dominator_nodes(
       num_vertices(graph), boost::graph_traits<LocalGraph>::null_vertex());
   boost::lengauer_tarjan_dominator_tree(
-      graph,
+      // Need boost::filtered_graph<> to satisfy Boost.Graph concept.
+      boost::make_filtered_graph(graph, boost::keep_all()),
       boost::vertex(GetBasicBlockIndexForAddress(GetEntryPoint()), graph),
       make_iterator_property_map(dominator_nodes.begin(),
                                  get(boost::vertex_index, graph)));

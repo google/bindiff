@@ -8,10 +8,8 @@
 # include <boost/python/detail/prefix.hpp>
 # include <boost/mpl/if.hpp>
 # include <boost/python/to_python_value.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/python/detail/value_arg.hpp>
-# include <boost/type_traits/transform_traits.hpp>
-# include <boost/type_traits/is_pointer.hpp>
-# include <boost/type_traits/is_reference.hpp>
 # include <boost/mpl/or.hpp>
 # include <boost/mpl/front.hpp>
 
@@ -64,7 +62,7 @@ struct default_result_converter
     struct apply
     {
         typedef typename mpl::if_<
-            mpl::or_<is_pointer<R>, is_reference<R> >
+            mpl::or_<detail::is_pointer<R>, detail::is_reference<R> >
           , detail::specify_a_return_value_policy_to_wrap_functions_returning<R>
           , boost::python::to_python_value<
                 typename detail::value_arg<R>::type

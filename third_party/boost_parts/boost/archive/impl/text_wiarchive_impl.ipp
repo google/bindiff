@@ -56,7 +56,7 @@ text_wiarchive_impl<Archive>::load(std::string &s)
         s.resize(0);
     s.reserve(size);
     while(size-- > 0){
-        int x = is.narrow(is.get(), '\0');
+        char x = is.narrow(is.get(), '\0');
         s += x;
     }
 }

@@ -44,7 +44,9 @@ inline std::size_t wcslen(const wchar_t * ws)
 
 #else
 
+#ifndef BOOST_NO_CWCHAR
 #include <cwchar>
+#endif
 #ifdef BOOST_NO_STDC_NAMESPACE
 namespace std{ using ::wcslen; }
 #endif

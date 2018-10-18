@@ -11,10 +11,7 @@
 # include <boost/config.hpp>
 # include <boost/python/detail/preprocessor.hpp>
 # include <boost/python/detail/type_list.hpp>
-
-# include <boost/type_traits/is_reference.hpp>
-# include <boost/type_traits/remove_reference.hpp>
-# include <boost/type_traits/remove_cv.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 # include <boost/preprocessor/enum_params.hpp>
 # include <boost/preprocessor/repeat.hpp>
@@ -116,9 +113,9 @@ namespace detail
   template <class T>
   struct is_reference_to_keywords
   {
-      BOOST_STATIC_CONSTANT(bool, is_ref = is_reference<T>::value);
-      typedef typename remove_reference<T>::type deref;
-      typedef typename remove_cv<deref>::type key_t;
+      BOOST_STATIC_CONSTANT(bool, is_ref = detail::is_reference<T>::value);
+      typedef typename detail::remove_reference<T>::type deref;
+      typedef typename detail::remove_cv<deref>::type key_t;
       BOOST_STATIC_CONSTANT(bool, is_key = is_keywords<key_t>::value);
       BOOST_STATIC_CONSTANT(bool, value = (is_ref & is_key));
       

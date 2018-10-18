@@ -28,12 +28,9 @@
 # include <boost/python/detail/operator_id.hpp>
 # include <boost/python/detail/def_helper.hpp>
 # include <boost/python/detail/force_instantiate.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/python/detail/unwrap_type_id.hpp>
 # include <boost/python/detail/unwrap_wrapper.hpp>
-
-# include <boost/type_traits/is_same.hpp>
-# include <boost/type_traits/is_member_function_pointer.hpp>
-# include <boost/type_traits/is_polymorphic.hpp>
 
 # include <boost/mpl/size.hpp>
 # include <boost/mpl/for_each.hpp>
@@ -53,7 +50,6 @@
 
 # ifdef BOOST_PYTHON_NO_MEMBER_POINTER_ORDERING
 #  include <boost/mpl/and.hpp>
-#  include <boost/type_traits/is_member_pointer.hpp>
 # endif
 
 namespace boost { namespace python {
@@ -84,8 +80,8 @@ namespace detail
   template <class T>
   struct is_data_member_pointer
       : mpl::and_<
-            is_member_pointer<T>
-          , mpl::not_<is_member_function_pointer<T> >
+            detail::is_member_pointer<T>
+          , mpl::not_<detail::is_member_function_pointer<T> >
         >
   {};
   
@@ -138,11 +134,11 @@ namespace detail
         must_be_derived_class_member(Default const&)
         {
             // https://svn.boost.org/trac/boost/ticket/5803
-            //typedef typename assertion<mpl::not_<is_same<Default,Fn> > >::failed test0;
+            //typedef typename assertion<mpl::not_<detail::is_same<Default,Fn> > >::failed test0;
 # if !BOOST_WORKAROUND(__MWERKS__, <= 0x2407)
-            typedef typename assertion<is_polymorphic<T> >::failed test1;
+            typedef typename assertion<detail::is_polymorphic<T> >::failed test1 BOOST_ATTRIBUTE_UNUSED;
 # endif 
-            typedef typename assertion<is_member_function_pointer<Fn> >::failed test2;
+            typedef typename assertion<detail::is_member_function_pointer<Fn> >::failed test2 BOOST_ATTRIBUTE_UNUSED;
             not_a_derived_class_member<Default>(Fn());
         }
     };

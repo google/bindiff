@@ -22,7 +22,7 @@
 namespace boost { namespace mpi {
           
 namespace detail {
-  // We're performaing an all-to-all with a type that has an
+  // We're performing an all-to-all with a type that has an
   // associated MPI datatype, so we'll use MPI_Alltoall to do all of
   // the work.
   template<typename T>
@@ -38,9 +38,7 @@ namespace detail {
 
   // We're performing an all-to-all with a type that does not have an
   // associated MPI datatype, so we'll need to serialize
-  // it. Unfortunately, this means that we cannot use MPI_Alltoall, so
-  // we'll just have to send individual messages to the other
-  // processes.
+  // it.
   template<typename T>
   void
   all_to_all_impl(const communicator& comm, const T* in_values, int n,

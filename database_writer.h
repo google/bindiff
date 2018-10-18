@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@ class CallGraph;
 
 class DatabaseWriter : public Writer {
  public:
-  typedef enum {
+  enum InternalStatement {
     INIT_TABLES,
     INIT_CONSTRAINTS,
     INIT_INDICES,
     MAINTENANCE,
-  } InternalStatement;
+  };
 
-  typedef std::map<Address, int> AddressSpaceIds;
+  using AddressSpaceIds = std::map<Address, int>;
 
   DatabaseWriter(const string& schema, const string& module_name, int module_id,
                  const string& md5, const string& sha1,

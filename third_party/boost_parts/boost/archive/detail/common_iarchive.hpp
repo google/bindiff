@@ -35,11 +35,12 @@ class extended_type_info;
 
 // note: referred to as Curiously Recurring Template Patter (CRTP)
 template<class Archive>
-class BOOST_SYMBOL_VISIBLE common_iarchive : 
+class BOOST_SYMBOL_VISIBLE common_iarchive :
     public basic_iarchive,
     public interface_iarchive<Archive>
 {
     friend class interface_iarchive<Archive>;
+    friend class basic_iarchive;
 private:
     virtual void vload(version_type & t){
         * this->This() >> t; 

@@ -1,4 +1,4 @@
-/* Copyright 2003-2015 Joaquin M Lopez Munoz.
+/* Copyright 2003-2018 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -15,6 +15,7 @@
 
 #include <boost/config.hpp> /* keep it first to prevent nasty warns in MSVC */
 #include <algorithm>
+#include <memory>
 #include <boost/detail/allocator_utilities.hpp>
 #include <boost/multi_index/detail/raw_ptr.hpp>
 
@@ -32,12 +33,15 @@ struct sequenced_index_node_impl
   typedef typename
   boost::detail::allocator::rebind_to<
     Allocator,sequenced_index_node_impl
-  >::type::pointer                      pointer;
-  typedef typename
-  boost::detail::allocator::rebind_to<
-    Allocator,sequenced_index_node_impl
-  >::type::const_pointer                const_pointer;
-
+  >::type                                          node_allocator;
+#ifdef BOOST_NO_CXX11_ALLOCATOR
+  typedef typename node_allocator::pointer         pointer;
+  typedef typename node_allocator::const_pointer   const_pointer;
+#else
+  typedef std::allocator_traits<node_allocator>    allocator_traits;
+  typedef typename allocator_traits::pointer       pointer;
+  typedef typename allocator_traits::const_pointer const_pointer;
+#endif
   pointer& prior(){return prior_;}
   pointer  prior()const{return prior_;}
   pointer& next(){return next_;}

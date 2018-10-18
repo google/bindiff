@@ -84,6 +84,8 @@ basic_binary_iprimitive<Archive, Elem, Tr>::init()
         );
 }
 
+#ifndef BOOST_NO_CWCHAR
+#ifndef BOOST_NO_INTRINSIC_WCHAR_T
 template<class Archive, class Elem, class Tr>
 BOOST_ARCHIVE_OR_WARCHIVE_DECL void
 basic_binary_iprimitive<Archive, Elem, Tr>::load(wchar_t * ws)
@@ -93,6 +95,8 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load(wchar_t * ws)
     load_binary(ws, l * sizeof(wchar_t) / sizeof(char));
     ws[l] = L'\0';
 }
+#endif
+#endif
 
 template<class Archive, class Elem, class Tr>
 BOOST_ARCHIVE_OR_WARCHIVE_DECL void
@@ -110,7 +114,6 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load(std::string & s)
         load_binary(&(*s.begin()), l);
 }
 
-#ifndef BOOST_NO_CWCHAR
 template<class Archive, class Elem, class Tr>
 BOOST_ARCHIVE_OR_WARCHIVE_DECL void
 basic_binary_iprimitive<Archive, Elem, Tr>::load(char * s)
@@ -120,7 +123,6 @@ basic_binary_iprimitive<Archive, Elem, Tr>::load(char * s)
     load_binary(s, l);
     s[l] = '\0';
 }
-#endif
 
 #ifndef BOOST_NO_STD_WSTRING
 template<class Archive, class Elem, class Tr>

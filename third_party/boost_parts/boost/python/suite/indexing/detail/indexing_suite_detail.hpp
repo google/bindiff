@@ -11,7 +11,7 @@
 # include <boost/get_pointer.hpp>
 # include <boost/detail/binary_search.hpp>
 # include <boost/numeric/conversion/cast.hpp>
-# include <boost/type_traits/is_pointer.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <vector>
 # include <map>
 #include <iostream>
@@ -465,14 +465,14 @@ namespace boost { namespace python { namespace detail {
 
         template <class DataType> 
         static object
-        base_get_item_helper(DataType const& p, mpl::true_)
+        base_get_item_helper(DataType const& p, detail::true_)
         { 
             return object(ptr(p));
         }
 
         template <class DataType> 
         static object
-        base_get_item_helper(DataType const& x, mpl::false_)
+        base_get_item_helper(DataType const& x, detail::false_)
         { 
             return object(x);
         }

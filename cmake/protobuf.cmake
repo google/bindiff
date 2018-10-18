@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,12 +25,13 @@ ExternalProject_Add(protobuf
              -Dprotobuf_BUILD_SHARED_LIBS=OFF
              -Dprotobuf_WITH_ZLIB=OFF
 )
+set(_pb_stubs_src "<SOURCE_DIR>/src/google/protobuf/stubs")
+set(_pb_stubs_inst "<INSTALL_DIR>/include/google/protobuf/stubs")
 ExternalProject_Add_Step(protobuf copy-stub-headers COMMAND
-  "${CMAKE_COMMAND}" -E copy
-    "<SOURCE_DIR>/src/google/protobuf/stubs/stringprintf.h"
-    "<INSTALL_DIR>/include/google/protobuf/stubs/" &&
-  "${CMAKE_COMMAND}" -E copy
-    "<SOURCE_DIR>/src/google/protobuf/stubs/strutil.h"
-    "<INSTALL_DIR>/include/google/protobuf/stubs/" DEPENDEES install)
+  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/status_macros.h" "${_pb_stubs_inst}/" &&
+  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/statusor.h" "${_pb_stubs_inst}/" &&
+  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/stringprintf.h" "${_pb_stubs_inst}/" &&
+  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/strutil.h" "${_pb_stubs_inst}/"
+    DEPENDEES install)
 ExternalProject_Get_Property(protobuf INSTALL_DIR)
 list(APPEND CMAKE_PREFIX_PATH ${INSTALL_DIR})

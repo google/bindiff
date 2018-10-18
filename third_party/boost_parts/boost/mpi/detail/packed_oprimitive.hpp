@@ -12,10 +12,9 @@
 #include <boost/mpi/config.hpp>
 #include <cstddef> // size_t
 #include <boost/config.hpp>
-
 #include <boost/mpi/datatype.hpp>
 #include <boost/mpi/exception.hpp>
-#include <boost/serialization/detail/get_data.hpp>
+#include <boost/mpi/detail/antiques.hpp>
 #include <boost/serialization/array.hpp>
 #include <boost/assert.hpp>
 #include <vector>
@@ -45,6 +44,11 @@ public:
     const std::size_t& size() const
     {
       return size_ = buffer_.size();
+    }
+
+    const std::size_t* size_ptr() const
+    {
+      return &size();
     }
 
     void save_binary(void const *address, std::size_t count)
@@ -98,11 +102,19 @@ private:
 
       // pack the data into the buffer
       BOOST_MPI_CHECK_RESULT(MPI_Pack,
-      (const_cast<void*>(p), l, t, boost::serialization::detail::get_data(buffer_), buffer_.size(), &position, comm));
+                             (const_cast<void*>(p),l,t, 
+                              detail::c_data(buffer_),
+                              buffer_.size(), 
+                              &position,comm));
       // reduce the buffer size if needed
       BOOST_ASSERT(std::size_t(position) <= buffer_.size());
       if (std::size_t(position) < buffer_.size())
           buffer_.resize(position);
+    }
+
+    static buffer_type::value_type* get_data(buffer_type& b)
+    {
+      return b.empty() ? 0 : &(b[0]);
     }
 
   buffer_type& buffer_;

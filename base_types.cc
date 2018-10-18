@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,12 +33,12 @@ bool SortMemberTypes(const MemberType* lhs, const MemberType* rhs) {
 
 // The database sequences need to start with one.
 // Otherwise the initialization in BinNavi can fail.
-unsigned int BaseType::NextTypeId() {
-  static unsigned int type_id = 1;
+uint32 BaseType::NextTypeId() {
+  static uint32 type_id = 1;
   return type_id++;
 }
 
-unsigned int BaseType::GetId() const {
+uint32 BaseType::GetId() const {
   return id_;
 }
 
@@ -140,8 +140,8 @@ const MemberType* BaseType::ResolveMember(const BaseType* base_type,
   return IsWithinMember(*cit, offset) ? *cit : nullptr;
 }
 
-unsigned int MemberType::NextTypeId() {
-  static unsigned int member_id = 1;
+uint32 MemberType::NextTypeId() {
+  static uint32 member_id = 1;
   return member_id++;
 }
 

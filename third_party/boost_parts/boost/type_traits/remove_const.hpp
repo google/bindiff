@@ -12,7 +12,7 @@
 #define BOOST_TT_REMOVE_CONST_HPP_INCLUDED
 
 #include <boost/config.hpp>
-#include <cstddef>
+#include <cstddef> // size_t
 #include <boost/detail/workaround.hpp>
 
 namespace boost {
@@ -26,6 +26,12 @@ namespace boost {
 #if !BOOST_WORKAROUND(__BORLANDC__, < 0x600) && !defined(__IBMCPP__) &&  !BOOST_WORKAROUND(__DMC__, BOOST_TESTED_AT(0x840))
    template <class T> struct remove_const<T const[]>{ typedef T type[]; };
 #endif
+#endif
+
+#if !defined(BOOST_NO_CXX11_TEMPLATE_ALIASES)
+
+   template <class T> using remove_const_t = typename remove_const<T>::type;
+
 #endif
 
 } // namespace boost

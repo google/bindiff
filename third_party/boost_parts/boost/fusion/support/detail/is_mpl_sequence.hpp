@@ -13,6 +13,7 @@
 #include <boost/mpl/is_sequence.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/not.hpp>
+#include <boost/type_traits/is_complete.hpp>
 #include <boost/type_traits/is_convertible.hpp>
 
 namespace boost { namespace fusion { namespace detail
@@ -20,7 +21,7 @@ namespace boost { namespace fusion { namespace detail
     template <typename T>
     struct is_mpl_sequence
         : mpl::and_<
-            mpl::not_<is_convertible<T, from_sequence_convertible_type> >
+            mpl::not_<mpl::and_<is_complete<T>, is_convertible<T, from_sequence_convertible_type> > >
           , mpl::is_sequence<T> >
     {};
 }}}

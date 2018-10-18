@@ -1,4 +1,4 @@
-// Copyright Gottfried Ganﬂauge 2003..2006.
+// Copyright Gottfried Gan√üauge 2003..2006.
 // Distributed under the Boost Software License, Version 1.0. (See
 // accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
@@ -13,13 +13,10 @@
 # include <boost/python/to_python_converter.hpp>
 # include <boost/python/converter/registrations.hpp>
 # include <boost/python/detail/dealloc.hpp>
+# include <boost/python/detail/type_traits.hpp>
 # include <boost/python/detail/none.hpp>
 # include <boost/python/type_id.hpp>
 # include <boost/python/errors.hpp>
-
-# include <boost/type_traits/remove_pointer.hpp>
-# include <boost/type_traits/is_pointer.hpp>
-# include <boost/type_traits/is_void.hpp>
 
 # include <boost/implicit_cast.hpp>
 

@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}
 include(ExternalProject)
 
 include(absl.cmake)
-include(cctz.cmake)
 include(googletest.cmake)
 include(openssl.cmake)
 include(postgresql.cmake)  # Depends on openssl
@@ -33,7 +32,6 @@ string(REPLACE ";" "^^" CMAKE_PREFIX_PATH_ALT_SEP "${CMAKE_PREFIX_PATH}")
 ExternalProject_Add(binexport
   DEPENDS
     absl
-    cctz
     googletest
     openssl
     postgresql
@@ -44,7 +42,6 @@ ExternalProject_Add(binexport
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
              "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH_ALT_SEP}"
              "-DABSL_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/absl"
-             "-DCCTZ_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/cctz"
              "-DGOOGLETEST_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/googletest"
              "-DIdaSdk_DIR=${IdaSdk_ROOT_DIR}"
              "-DBUILD_TESTING=OFF"

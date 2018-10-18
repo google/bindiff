@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,34 +16,22 @@
 
 #include <stdio.h>  // fileno()
 #include <ctime>
-#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "base/logging.h"
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
+#include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/filesystem_util.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 
-Address GetInstructionAddress(const BinExport2& proto, int index) {
-  auto& instruction = proto.instruction(index);
-  if (instruction.has_address()) {
-    return instruction.address();
-  }
-  int delta = 0;
-  for (--index; index >= 0; --index) {
-    delta += proto.instruction(index).raw_bytes().size();
-    if (proto.instruction(index).has_address()) {
-      return proto.instruction(index).address() + delta;
-    }
-  }
-  LOG(QFATAL) << "Invalid instruction index";
-  return 0;  // Not reached.
-}
+namespace security {
+namespace binexport {
+namespace {
 
 void RenderExpression(const BinExport2& proto,
                       const BinExport2::Operand& operand, int index,
@@ -129,15 +117,22 @@ void DumpBinExport2(const BinExport2& proto) {
     printf("Creation time (local):    %s\n", formatted);
   }
 
+  // Read address comments.
+  absl::flat_hash_map<int, int> comment_index_map;
+  for (const auto& reference : proto.address_comment()) {
+    comment_index_map[reference.instruction_index()] =
+        reference.string_table_index();
+  }
+
   const auto& call_graph = proto.call_graph();
   printf("\nFunctions:\n");
   constexpr const char kFunctionType[] = "nlit!";
-  std::map<Address, std::string> function_names;
+  absl::flat_hash_map<Address, string> function_names;
   for (int i = 0; i < call_graph.vertex_size(); ++i) {
     const auto& vertex = call_graph.vertex(i);
     const auto address = vertex.address();
 
-    std::string name(vertex.demangled_name());
+    auto name = vertex.demangled_name();
     if (name.empty()) {
       name = vertex.mangled_name();
     }
@@ -205,9 +200,16 @@ void DumpBinExport2(const BinExport2& proto) {
             }
           }
 
+          string comment;
+          auto address_comment = comment_index_map.find(i);
+          if (address_comment != comment_index_map.end()) {
+            comment = absl::StrCat(" ; ",
+                                   proto.string_table(address_comment->second));
+          }
+
           const auto line =
               absl::StrCat(absl::Hex(instruction_address, absl::kZeroPad8), " ",
-                           disassembly);
+                           disassembly, comment);
           printf("%s\n", line.c_str());
 
           const auto& raw_bytes = instruction.raw_bytes();
@@ -218,6 +220,10 @@ void DumpBinExport2(const BinExport2& proto) {
     }
   }
 }
+
+}  // namespace
+}  // namespace binexport
+}  // namespace security
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -237,6 +243,6 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  DumpBinExport2(proto);
+  security::binexport::DumpBinExport2(proto);
   return EXIT_SUCCESS;
 }

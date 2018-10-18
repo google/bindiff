@@ -55,8 +55,11 @@ struct is_commutative : public mpl::false_ { };
  *  associated, built-in MPI data type, translates to @c MPI_MAX.
  */
 template<typename T>
-struct maximum : public std::binary_function<T, T, T>
+struct maximum
 {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef T result_type;
   /** @returns the maximum of x and y. */
   const T& operator()(const T& x, const T& y) const
   {
@@ -72,8 +75,11 @@ struct maximum : public std::binary_function<T, T, T>
  *  associated, built-in MPI data type, translates to @c MPI_MIN.
  */
 template<typename T>
-struct minimum : public std::binary_function<T, T, T>
+struct minimum
 {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef T result_type;
   /** @returns the minimum of x and y. */
   const T& operator()(const T& x, const T& y) const
   {
@@ -90,8 +96,11 @@ struct minimum : public std::binary_function<T, T, T>
  *  associated, built-in MPI data type, translates to @c MPI_BAND.
  */
 template<typename T>
-struct bitwise_and : public std::binary_function<T, T, T>
+struct bitwise_and
 {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef T result_type;
   /** @returns @c x & y. */
   T operator()(const T& x, const T& y) const
   {
@@ -107,8 +116,11 @@ struct bitwise_and : public std::binary_function<T, T, T>
  *  associated, built-in MPI data type, translates to @c MPI_BOR.
  */
 template<typename T>
-struct bitwise_or : public std::binary_function<T, T, T>
+struct bitwise_or
 {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef T result_type;
   /** @returns the @c x | y. */
   T operator()(const T& x, const T& y) const
   {
@@ -124,8 +136,11 @@ struct bitwise_or : public std::binary_function<T, T, T>
  *  an associated, built-in MPI data type, translates to @c MPI_LXOR.
  */
 template<typename T>
-struct logical_xor : public std::binary_function<T, T, T>
+struct logical_xor
 {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef T result_type;
   /** @returns the logical exclusive OR of x and y. */
   T operator()(const T& x, const T& y) const
   {
@@ -142,8 +157,11 @@ struct logical_xor : public std::binary_function<T, T, T>
  *  MPI_BXOR.
  */
 template<typename T>
-struct bitwise_xor : public std::binary_function<T, T, T>
+struct bitwise_xor
 {
+  typedef T first_argument_type;
+  typedef T second_argument_type;
+  typedef T result_type;
   /** @returns @c x ^ y. */
   T operator()(const T& x, const T& y) const
   {

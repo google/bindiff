@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,12 +49,12 @@ class BaseType {
         pointer_(nullptr),
         category_(kAtomic) {}
 
-  typedef std::vector<const BaseType*> BaseTypes;
-  typedef std::vector<MemberType*> MemberTypes;
-  typedef std::vector<int> MemberIds;
+  using BaseTypes = std::vector<const BaseType*>;
+  using MemberTypes = std::vector<MemberType*>;
+  using MemberIds = std::vector<int>;
 
   // Returns the database id of this base type.
-  unsigned int GetId() const;
+  uint32 GetId() const;
 
   void SetName(const string& name);
   const string& GetName() const;
@@ -78,7 +78,7 @@ class BaseType {
   static const MemberType* ResolveMember(const BaseType* base_type, int offset);
 
  private:
-  unsigned int id_;
+  uint32 id_;
   // The name of  this type.
   string name_;
   // The size of this type in bits.
@@ -92,7 +92,7 @@ class BaseType {
   // own the MemberType instances. Instead, the types container owns them.
   MemberTypes members_;
   TypeCategory category_;
-  static unsigned int NextTypeId();
+  static uint32 NextTypeId();
 };
 
 // Represents an element of a compound type.
@@ -110,7 +110,7 @@ struct MemberType {
         num_elements(DB_NULL_VALUE) {}
 
   // The corresponding id in the database.
-  unsigned int id;
+  uint32 id;
   // The name of the member.
   string name;
   // The type of this member.
@@ -130,7 +130,7 @@ struct MemberType {
   int num_elements;
 
  private:
-  static unsigned int NextTypeId();
+  static uint32 NextTypeId();
 };
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_TYPES_H_

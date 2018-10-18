@@ -1,4 +1,4 @@
-# Copyright 2011-2017 Google Inc. All Rights Reserved.
+# Copyright 2011-2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -85,8 +85,8 @@ endif()
 
 ExternalProject_Add(postgresql
   DEPENDS openssl
-  URL https://ftp.postgresql.org/pub/source/v9.6.1/postgresql-9.6.1.tar.bz2
-  URL_HASH SHA256=e5101e0a49141fc12a7018c6dad594694d3a3325f5ab71e93e0e51bd94e51fcd
+  URL https://ftp.postgresql.org/pub/source/v9.6.6/postgresql-9.6.6.tar.gz
+  URL_HASH SHA256=53e1cd5fdff5f45415ae9d5b645177275265a3e800c86becbb94ce183a3a5061
   PREFIX ${postgresql_dir}
   CONFIGURE_COMMAND ${POSTGRESQL_CONFIGURE_COMMAND}
   BUILD_COMMAND ${POSTGRESQL_BUILD_COMMAND}

@@ -7,8 +7,7 @@
 # include <boost/python/converter/registered.hpp>
 # include <boost/python/converter/pointer_type_id.hpp>
 # include <boost/python/converter/registry.hpp>
-# include <boost/type_traits/transform_traits.hpp>
-# include <boost/type_traits/cv_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 namespace boost { namespace python { namespace converter { 
 
@@ -17,9 +16,9 @@ struct registration;
 template <class T>
 struct registered_pointee
     : registered<
-        typename remove_pointer<
-           typename remove_cv<
-              typename remove_reference<T>::type
+        typename boost::python::detail::remove_pointer<
+           typename boost::python::detail::remove_cv<
+              typename boost::python::detail::remove_reference<T>::type
            >::type
         >::type
     >

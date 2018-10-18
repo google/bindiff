@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -11,10 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-#include "third_party/zynamics/binexport/ida/begin_idasdk.h"  // NOLINT
-#include <kernwin.hpp>                                        // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.h"    // NOLINT
 
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/types.h"

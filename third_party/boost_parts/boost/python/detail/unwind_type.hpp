@@ -7,7 +7,7 @@
 
 # include <boost/python/detail/cv_category.hpp>
 # include <boost/python/detail/indirect_traits.hpp>
-# include <boost/type_traits/object_traits.hpp>
+# include <boost/python/detail/type_traits.hpp>
 
 namespace boost { namespace python { namespace detail {
 
@@ -155,10 +155,10 @@ unwind_type(boost::type<U>*p =0, Generator* =0)
 #endif
 {
     BOOST_STATIC_CONSTANT(int, indirection
-        = (boost::is_pointer<U>::value ? pointer_ : 0)
+        = (is_pointer<U>::value ? pointer_ : 0)
                              + (indirect_traits::is_reference_to_pointer<U>::value
                              ? reference_to_pointer_
-                             : boost::is_reference<U>::value
+                             : is_lvalue_reference<U>::value
                              ? reference_
                              : 0));
 

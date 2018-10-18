@@ -1,4 +1,4 @@
-// Copyright 2011-2017 Google Inc. All Rights Reserved.
+// Copyright 2011-2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -113,8 +113,8 @@ class Instruction {
   bool IsExported() const;
   static bool IsExported(Address address);
   void SetExported(bool exported);
-  void SetFlag(unsigned char flag, bool value);
-  bool HasFlag(unsigned char flag) const;
+  void SetFlag(uint8 flag, bool value);
+  bool HasFlag(uint8 flag) const;
 
  private:
   const string* mnemonic_;  // 4|8 + overhead in stringcache
