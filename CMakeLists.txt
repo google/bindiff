@@ -263,7 +263,7 @@ add_executable(binexport_reader_test
   reader/reader_test_util.h
 )
 target_link_libraries(binexport_reader_test PUBLIC
-  gtest
+  gtest_main
   gmock
   binexport_reader
 )
