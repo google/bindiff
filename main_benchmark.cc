@@ -29,11 +29,11 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "util/task/status.h"
 
-DEFINE_FLAG(string, data_path,
-            "/google_src/files/head/depot/google3/third_party/zynamics/bindiff/"
-            "fixtures",
-            "Path of the BinDiff text fixtures to use (should contain a "
-            "groundtruth_tests.list text proto file).");
+ABSL_FLAG(string, data_path,
+          "/google_src/files/head/depot/google3/third_party/zynamics/bindiff/"
+          "fixtures",
+          "Path of the BinDiff text fixtures to use (should contain a "
+          "groundtruth_tests.list text proto file).");
 
 namespace security {
 namespace bindiff {
