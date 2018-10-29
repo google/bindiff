@@ -56,8 +56,6 @@
 #include "util/task/statusor.h"
 #include "util/task/status_macros.h"
 
-#include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
-
 namespace security {
 
 using binexport::FormatAddress;

@@ -16,8 +16,8 @@ class UnmatchedFunctionsChooserBase : public chooser_multi_t {
   UnmatchedFunctionsChooserBase(const char* title, Results* results)
       : chooser_multi_t(CH_KEEP | CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths),
                         kColumnWidths, kColumnNames, title),
-        title_(title),
-        results_(results) {}
+        results_(results),
+        title_(title) {}
 
   Results* results_;
 
