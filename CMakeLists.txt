@@ -202,6 +202,8 @@ add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/ui.h
   ${BinExport_DIR}/ida/digest.cc
   ${BinExport_DIR}/ida/digest.h
+  ida/bindiff_icon.cc
+  ida/bindiff_icon.h
   ida/main_plugin.cc
   ida/matched_functions_chooser.cc
   ida/matched_functions_chooser.h

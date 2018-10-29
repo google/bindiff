@@ -36,6 +36,7 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
+#include "third_party/zynamics/bindiff/ida/bindiff_icon.h"
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
@@ -1294,10 +1295,11 @@ void InitConfig() {
 }
 
 void InitActions() {
-  // TODO(cblichmann): This action should have the BinDiff icon
+  const int bindiff_icon_id =
+      load_custom_icon(kBinDiffIcon.data(), kBinDiffIcon.size(), "png");
   register_action(DiffDatabaseAction::MakeActionDesc(
       "bindiff:diff_database", "Bin~D~iff...", "SHIFT-D",
-      /*tooltip=*/nullptr, /*icon=*/-1));
+      /*tooltip=*/nullptr, bindiff_icon_id));
 
   register_action(LoadResultsAction::MakeActionDesc(
       "bindiff:load_results", "~B~inDiff Results...", /*shortcut=*/"",
