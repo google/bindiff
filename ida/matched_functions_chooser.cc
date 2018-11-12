@@ -13,9 +13,34 @@ using binexport::FormatAddress;
 
 namespace bindiff {
 
+constexpr const char MatchedFunctionsChooser::kDeleteAction[];
+constexpr const char MatchedFunctionsChooser::kViewFlowGraphsAction[];
+constexpr const char MatchedFunctionsChooser::kImportSymbolsCommentsAction[];
+constexpr const char
+    MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction[];
+constexpr const char MatchedFunctionsChooser::kConfirmMatchAction[];
+constexpr const char MatchedFunctionsChooser::kCopyPrimaryAddressAction[];
+constexpr const char MatchedFunctionsChooser::kCopySecondaryAddressAction[];
+
 constexpr const int MatchedFunctionsChooser::kColumnWidths[];
 constexpr const char* const MatchedFunctionsChooser::kColumnNames[];
 constexpr const char MatchedFunctionsChooser::kTitle[];
+
+bool MatchedFunctionsChooser::AttachActionsToPopup(TWidget* widget,
+                                                   TPopupMenu* popup_handle) {
+  qstring title;
+  if (get_widget_type(widget) != BWN_CHOOSER ||
+      !get_widget_title(&title, widget) || title != kTitle) {
+    return false;
+  }
+  for (const auto& action :
+       {kDeleteAction, kViewFlowGraphsAction, kImportSymbolsCommentsAction,
+        kImportSymbolsCommentsExternalAction, kConfirmMatchAction,
+        kCopyPrimaryAddressAction, kCopySecondaryAddressAction}) {
+    attach_action_to_popup(widget, popup_handle, action);
+  }
+  return true;
+}
 
 const void* MatchedFunctionsChooser::get_obj_id(size_t* len) const {
   *len = strlen(kTitle);

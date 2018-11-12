@@ -13,10 +13,28 @@ namespace bindiff {
 
 class MatchedFunctionsChooser : public chooser_multi_t {
  public:
+  // Action names
+  static constexpr const char kDeleteAction[] = "bindiff:match_delete";
+  static constexpr const char kViewFlowGraphsAction[] =
+      "bindiff:view_flow_graphs";
+  static constexpr const char kImportSymbolsCommentsAction[] =
+      "bindiff:import_symbols_comments";
+  static constexpr const char kImportSymbolsCommentsExternalAction[] =
+      "bindiff:import_symbols_comments_external";
+  static constexpr const char kConfirmMatchAction[] = "bindiff:confirm_match";
+  static constexpr const char kCopyPrimaryAddressAction[] =
+      "bindiff:copy_primary_address";
+  static constexpr const char kCopySecondaryAddressAction[] =
+      "bindiff:copy_secondary_address";
+
   explicit MatchedFunctionsChooser(Results* results)
       : chooser_multi_t(CH_KEEP | CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths),
                         kColumnWidths, kColumnNames, kTitle),
         results_(results) {}
+
+  // Attaches the chooser actions to IDA's popup menu. To be called from a HT_UI
+  // notification point.
+  static bool AttachActionsToPopup(TWidget* widget, TPopupMenu* popup_handle);
 
  private:
   static constexpr const int kColumnWidths[] = {

@@ -5,6 +5,7 @@
 #include <memory>
 #include <thread>  // NOLINT(build/c++11)
 
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <diskio.hpp>                                           // NOLINT
@@ -47,15 +48,15 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
-#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "util/task/statusor.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 #include "util/task/status_macros.h"
+#include "util/task/statusor.h"
 
 namespace security {
 
@@ -344,14 +345,6 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
   }
 }
 
-void idaapi VisualDiffCallback(void* /* unused */, uint32_t index) {
-  DoVisualDiff(index, /*call_graph_diff=*/ false);
-}
-
-void idaapi VisualCallGraphDiffCallback(void* /* unused */, uint32_t index) {
-  DoVisualDiff(index, /*call_graph_diff=*/true);
-}
-
 uint32_t idaapi PortCommentsSelectionAsLib(void* /* unused */, uint32_t index) {
   try {
     return g_results->PortComments(index, true /* as_external */);
@@ -361,32 +354,6 @@ uint32_t idaapi PortCommentsSelectionAsLib(void* /* unused */, uint32_t index) {
   } catch (...) {
     LOG(INFO) << "Unknown error while porting comments";
     warning("Unknown error while porting comments\n");
-  }
-  return 0;
-}
-
-uint32_t idaapi PortCommentsSelection(void* /* unused */, uint32_t index) {
-  try {
-    return g_results->PortComments(index, false /* as_external */);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error: " << message.what();
-    warning("Error: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while porting comments";
-    warning("Unknown error while porting comments\n");
-  }
-  return 0;
-}
-
-uint32_t idaapi ConfirmMatch(void* /* unused */, uint32_t index) {
-  try {
-    return g_results->ConfirmMatch(index);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error: " << message.what();
-    warning("Error: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while confirming match";
-    warning("Unknown error while confirming match\n");
   }
   return 0;
 }
@@ -437,23 +404,6 @@ void idaapi jumpToUnmatchedPrimaryAddress(void* /* unused */, uint32_t index) {
     return;
   }
   jumpto(static_cast<ea_t>(g_results->GetPrimaryAddress(index)));
-}
-
-uint32_t idaapi DeleteMatch(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return 0;
-  }
-
-  try {
-    return g_results->DeleteMatch(index);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error: " << message.what();
-    warning("Error: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while deleting match";
-    warning("Unknown error while deleting match\n");
-  }
-  return 0;
 }
 
 uint32_t idaapi AddMatchPrimary(void* /* unused */, uint32_t index) {
@@ -564,6 +514,16 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
         refresh_chooser("Primary Unmatched");
         refresh_chooser("Secondary Unmatched");
         refresh_chooser("Statistics");
+      }
+      break;
+    }
+    case ui_finish_populating_widget_popup: {
+      auto* widget = va_arg(arguments, TWidget*);
+      auto* popup_handle = va_arg(arguments, TPopupMenu*);
+      for (auto& attach : {MatchedFunctionsChooser::AttachActionsToPopup}) {
+        if (attach(widget, popup_handle)) {
+          break;
+        }
       }
       break;
     }
@@ -1188,38 +1148,60 @@ void idaapi ButtonPortCommentsCallback(int button_code,
 }
 
 class DiffDatabaseAction : public ActionHandler<DiffDatabaseAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     return DoDiffDatabase(/*filtered=*/false);  // Refresh windows on success
   }
 };
 
 class LoadResultsAction : public ActionHandler<LoadResultsAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     return DoLoadResults();  // Refresh if user did not cancel
   }
 };
 
 class SaveResultsAction : public ActionHandler<SaveResultsAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     return DoSaveResults();  // Refresh if user did not cancel
   }
 };
 
 class PortCommentsAction : public ActionHandler<PortCommentsAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
+    int num_selected = context->chooser_selection.size();
+    if (g_results && num_selected > 0) {
+      try {
+        const bool as_external_lib =
+            absl::string_view{context->action} ==
+            MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction;
+        // TODO(cblichmann): Efficient bulk actions in Results class
+        for (const auto& index : context->chooser_selection) {
+          g_results->PortComments(index, as_external_lib);
+        }
+        return 1;
+      } catch (const std::exception& message) {
+        LOG(INFO) << "Error: " << message.what();
+        warning("Error: %s\n", message.what());
+        return 0;
+      } catch (...) {
+        LOG(INFO) << "Unknown error while porting comments";
+        warning("Unknown error while porting comments\n");
+        return 0;
+      }
+    }
+    // Not called from the chooser, display dialog.
     return DoPortComments();  // Refresh if user did not cancel
   }
 };
 
 class ShowMatchedAction : public ActionHandler<ShowMatchedAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     ShowResults(g_results, kResultsShowMatched);
     return 0;
   }
 };
 
 class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     ShowResults(g_results, kResultsShowStatistics);
     return 0;
   }
@@ -1227,7 +1209,7 @@ class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
 
 class ShowPrimaryUnmatchedAction
     : public ActionHandler<ShowPrimaryUnmatchedAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     ShowResults(g_results, kResultsShowPrimaryUnmatched);
     return 0;
   }
@@ -1235,9 +1217,69 @@ class ShowPrimaryUnmatchedAction
 
 class ShowSecondaryUnmatchedAction
     : public ActionHandler<ShowSecondaryUnmatchedAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
+  int idaapi activate(action_activation_ctx_t*) override {
     ShowResults(g_results, kResultsShowSecondaryUnmatched);
     return 0;
+  }
+};
+
+class DeleteMatchAction : public ActionHandler<DeleteMatchAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    if (!g_results) {
+      return 0;
+    }
+    try {
+      // TODO(cblichmann): Efficient bulk actions in Results class
+      for (const auto& index : context->chooser_selection) {
+        g_results->DeleteMatch(index);
+      }
+      return 1;
+    } catch (const std::exception& message) {
+      LOG(INFO) << "Error: " << message.what();
+      warning("Error: %s\n", message.what());
+      return 0;
+    } catch (...) {
+      LOG(INFO) << "Unknown error while deleting match";
+      warning("Unknown error while deleting match\n");
+      return 0;
+    }
+  }
+};
+
+class ViewFlowGraphsAction : public ActionHandler<ViewFlowGraphsAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    const auto& chooser_selection = context->chooser_selection;
+    if (chooser_selection.empty()) {
+      return 0;
+    }
+    DoVisualDiff(chooser_selection.front(),
+                 /*call_graph_diff=*/false);
+    return 1;
+  }
+};
+
+class ConfirmMatchAction : public ActionHandler<ConfirmMatchAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+        LOG(INFO) << " " << context->action;
+    if (!g_results) {
+      return 0;
+    }
+    try {
+      // TODO(cblichmann): Efficient bulk actions in Results class
+      for (const auto& index : context->chooser_selection) {
+        LOG(INFO) << " index: " << index;
+        g_results->ConfirmMatch(index);
+      }
+      return 1;
+    } catch (const std::exception& message) {
+      LOG(INFO) << "Error: " << message.what();
+      warning("Error: %s\n", message.what());
+      return 0;
+    } catch (...) {
+      LOG(INFO) << "Unknown error while confirming match";
+      warning("Unknown error while confirming match\n");
+      return 0;
+    }
   }
 };
 
@@ -1302,28 +1344,47 @@ void InitActions() {
       /*tooltip=*/nullptr, bindiff_icon_id));
 
   register_action(LoadResultsAction::MakeActionDesc(
-      "bindiff:load_results", "~B~inDiff Results...", /*shortcut=*/"",
+      "bindiff:load_results", "~B~inDiff results...", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(SaveResultsAction::MakeActionDesc(
-      "bindiff:save_results", "Save ~B~inDiff Results...", /*shortcut=*/"",
+      "bindiff:save_results", "Save ~B~inDiff results...", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
 
   register_action(PortCommentsAction::MakeActionDesc(
-      "bindiff:port_comments", "Im~p~ort Symbols and Comments...",
+      "bindiff:port_comments", "Im~p~ort symbols/comments...",
       /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
 
   register_action(ShowMatchedAction::MakeActionDesc(
-      "bindiff:show_matched", "~M~atched Functions", /*shortcut=*/"",
+      "bindiff:show_matched", "~M~atched functions", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(ShowStatisticsAction::MakeActionDesc(
       "bindiff:show_statistics", "S~t~atistics", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(ShowPrimaryUnmatchedAction::MakeActionDesc(
-      "bindiff:show_primary_unmatched", "~P~rimary Unmatched", /*shortcut=*/"",
+      "bindiff:show_primary_unmatched", "~P~rimary unmatched", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(ShowSecondaryUnmatchedAction::MakeActionDesc(
-      "bindiff:show_secondary_unmatched", "~S~econdary Unmatched",
+      "bindiff:show_secondary_unmatched", "~S~econdary unmatched",
       /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
+
+  // Matched Functions chooser
+  register_action(DeleteMatchAction::MakeActionDesc(
+      MatchedFunctionsChooser::kDeleteAction, "~D~elete match", "",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(ViewFlowGraphsAction::MakeActionDesc(
+      MatchedFunctionsChooser::kViewFlowGraphsAction, "View flow graphs", "",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(PortCommentsAction::MakeActionDesc(
+      MatchedFunctionsChooser::kImportSymbolsCommentsAction,
+      "Im~p~ort symbols/comments", "",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(PortCommentsAction::MakeActionDesc(
+      MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction,
+      "Import symbols/comments as ~e~xternal library", "",
+      /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(ConfirmMatchAction::MakeActionDesc(
+      MatchedFunctionsChooser::kConfirmMatchAction, "~C~onfirm match", "",
+      /*tooltip=*/nullptr, /*icon=*/-1));
 }
 
 void InitMenus() {
