@@ -3,6 +3,7 @@ package com.google.security.zynamics.bindiff.io;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.security.zynamics.BinExport.BinExport2;
+import com.google.security.zynamics.BinExport.BinExport2.Expression.Type;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EInstructionHighlighting;
 import com.google.security.zynamics.bindiff.enums.EJumpType;
@@ -163,10 +164,12 @@ public class BinExport2Reader {
       final BinExport2.Operand operand,
       int index,
       final StringBuffer output) {
-    final String architectureName = proto.getMetaInformation().getArchitectureName();
-    boolean longMode = architectureName.endsWith("64");
-    final BinExport2.Expression expression = proto.getExpression(operand.getExpressionIndex(index));
-    final String symbol = expression.getSymbol();
+    // Note: Keep this code in sync with the versions in binexport/instruction.cc and
+    //       binexport/tools/binexport2dump.cc.
+    final int expressionIndex = operand.getExpressionIndex(index);
+    final BinExport2.Expression expression = proto.getExpression(expressionIndex);
+    final String expressionSymbol = expression.getSymbol();
+    final boolean longMode = proto.getMetaInformation().getArchitectureName().endsWith("64");
     switch (expression.getType()) {
       case OPERATOR:
         {
@@ -176,13 +179,13 @@ public class BinExport2Reader {
                   && proto.getExpression(operand.getExpressionIndex(i)).getParentIndex()
                       == operand.getExpressionIndex(index);
               i++) {
-            children.add(operand.getExpressionIndex(i));
+            children.add(i);
           }
           int numChildren = children.size();
-          if ("{".equals(symbol)) { // ARM Register lists
+          if ("{".equals(expressionSymbol)) { // ARM Register lists
             output.append("{");
             for (int i = 0; i < numChildren; i++) {
-              renderExpression(proto, operand, index + 1 + i, output);
+              renderExpression(proto, operand, children.get(i), output);
               if (i != numChildren - 1) {
                 output.append(highlightChar(EInstructionHighlighting.TYPE_NEWOPERAND_COMMA));
                 output.append(",");
@@ -192,38 +195,53 @@ public class BinExport2Reader {
           } else if (numChildren == 1) {
             // Only a single child, treat expression as prefix operator (like 'ss:').
             output.append(highlightChar(EInstructionHighlighting.TYPE_OPERATOR));
-            output.append(symbol);
-            renderExpression(proto, operand, index + 1, output);
+            output.append(expressionSymbol);
+            renderExpression(proto, operand, children.get(0), output);
           } else if (numChildren > 1) {
             // Multiple children, treat expression as infix operator ('+' or '*').
-            // TODO(cblichmann): Deal with negative numbers.
-            renderExpression(proto, operand, index + 1, output);
-            for (int i = 1; i < numChildren; i++) {
-              output.append(highlightChar(EInstructionHighlighting.TYPE_OPERATOR));
-              output.append(symbol);
-              renderExpression(proto, operand, index + 1 + i, output);
+            for (int i = 0; i < numChildren; i++) {
+              renderExpression(proto, operand, children.get(i), output);
+              if (i != numChildren - 1) {
+                final BinExport2.Expression childExpression =
+                    proto.getExpression(operand.getExpressionIndex(children.get(i + 1)));
+                final BinExport2.Expression.Type childType = childExpression.getType();
+                if ("+".equals(expressionSymbol)
+                    && (childType == Type.IMMEDIATE_INT || childType == Type.IMMEDIATE_FLOAT)) {
+                  final long childImmediate =
+                      longMode
+                          ? childExpression.getImmediate()
+                          : (int) childExpression.getImmediate();
+                  if (childImmediate < 0 && childExpression.getSymbol().isEmpty()) {
+                    continue; // Don't render anything or we'll get: eax+-12
+                  }
+                  if (childImmediate == 0) {
+                    i++;  // Skip "+0"
+                    continue;
+                  }
+                }
+                output.append(expressionSymbol);
+              }
             }
           }
           break;
         }
       case SYMBOL:
         output.append(highlightChar(EInstructionHighlighting.TYPE_SYMBOL));
-        output.append(symbol);
+        output.append(expressionSymbol);
         break;
       case REGISTER:
         output.append(highlightChar(EInstructionHighlighting.TYPE_REGISTER));
-        output.append(symbol);
+        output.append(expressionSymbol);
         break;
       case SIZE_PREFIX:
-        {
-          if ((longMode && symbol.equals("b8")) || (!longMode && !symbol.equals("b4"))) {
-            output.append(highlightChar(EInstructionHighlighting.TYPE_SIZEPREFIX));
-            output.append(symbol);
-            output.append(" ");
-          }
-          renderExpression(proto, operand, index + 1, output);
-          break;
+        if ((longMode && !"b8".equals(expressionSymbol))
+            || (!longMode && !"b4".equals(expressionSymbol))) {
+          output.append(highlightChar(EInstructionHighlighting.TYPE_SIZEPREFIX));
+          output.append(expressionSymbol);
+          output.append(" ");
         }
+        renderExpression(proto, operand, index + 1, output);
+        break;
       case DEREFERENCE:
         output.append(highlightChar(EInstructionHighlighting.TYPE_DEREFERENCE));
         output.append("[");
@@ -235,8 +253,19 @@ public class BinExport2Reader {
         break;
       case IMMEDIATE_INT:
       case IMMEDIATE_FLOAT:
-        output.append(highlightChar(EInstructionHighlighting.TYPE_IMMEDIATE));
-        output.append(String.format("0x%X", expression.getImmediate()));
+        if (expressionSymbol.isEmpty()) {
+          final long expressionImmediate =
+              longMode ? expression.getImmediate() : (int) expression.getImmediate();
+          output.append(highlightChar(EInstructionHighlighting.TYPE_IMMEDIATE));
+          if (expressionImmediate <= 9) {
+            output.append(String.format("%d", expressionImmediate));
+          } else {
+            output.append(String.format("0x%X", expressionImmediate));
+          }
+        } else {
+          output.append(highlightChar(EInstructionHighlighting.TYPE_SYMBOL));
+          output.append(expressionSymbol);
+        }
         break;
       default:
         throw new IllegalStateException("Invalid expression type");
