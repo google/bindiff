@@ -3,9 +3,7 @@ package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressi
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.CriteriumWrapper;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.ICriteriumCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeActionProvider;
-
 import java.awt.event.ActionEvent;
-
 import javax.swing.AbstractAction;
 import javax.swing.JComboBox;
 
@@ -23,7 +21,8 @@ public class AddConditionAction extends AbstractAction {
   }
 
   public AddConditionAction(
-      final JComboBox<String> selectionBox, final ExpressionTreeActionProvider actionProvider) {
+      final JComboBox<CriteriumWrapper> selectionBox,
+      final ExpressionTreeActionProvider actionProvider) {
     this.condition = ((CriteriumWrapper) selectionBox.getSelectedItem()).getObject();
     this.actionProvider = actionProvider;
 
