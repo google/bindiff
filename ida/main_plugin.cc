@@ -1060,18 +1060,27 @@ bool DoLoadResults() {
     g_results->Read(&reader);
 
     auto sha256_or = GetInputFileSha256();
-    if (!sha256_or.ok()) {
-      throw std::runtime_error{sha256_or.status().error_message()};
+    auto status = sha256_or.status();
+    string hash;
+    if (status.ok()) {
+      hash = std::move(*sha256_or);
+    } else {
+      auto md5_or = GetInputFileMd5();
+      status = md5_or.status();
+      if (status.ok()) {
+        hash = std::move(*md5_or);
+      }
     }
-    if (sha256_or.ValueOrDie() !=
-        absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
-      LOG(INFO) << "Warning: currently loaded IDBs input file MD5 differs from "
-                   "result file primary graph. Please load IDB for: "
-                << g_results->call_graph1_.GetExeFilename();
-      throw std::runtime_error(absl::StrCat(
-          "loaded IDB must match primary graph in results file. Please load "
-          "IDB for: ",
-          g_results->call_graph1_.GetExeFilename()));
+    if (hash.empty()) {
+      throw std::runtime_error{status.error_message()};
+    }
+    if (hash != absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
+      const string message = absl::StrCat(
+          "Error: currently loaded IDBs input file hash differs from "
+          "result file primary graph. Please load IDB for: ",
+          g_results->call_graph1_.GetExeFilename());
+      LOG(INFO) << message;
+      throw std::runtime_error(message);
     }
 
     ShowResults(g_results);
