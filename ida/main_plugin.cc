@@ -1063,12 +1063,12 @@ bool DoLoadResults() {
     auto status = sha256_or.status();
     string hash;
     if (status.ok()) {
-      hash = std::move(*sha256_or);
+      hash = std::move(sha256_or).ValueOrDie();
     } else {
       auto md5_or = GetInputFileMd5();
       status = md5_or.status();
       if (status.ok()) {
-        hash = std::move(*md5_or);
+        hash = std::move(md5_or).ValueOrDie();
       }
     }
     if (hash.empty()) {
