@@ -5,17 +5,20 @@ import com.google.security.zynamics.zylib.date.DateHelpers;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.util.Date;
 import javax.swing.JTable;
 
 public class BackgroundCellRenderer extends AbstractTableCellRenderer {
-  final Color backgroundColor;
-  final Color textColor;
-  final int horizontalAlignment;
-  boolean isNotAccessable = false;
+  private final Font font;
+  private final Color backgroundColor;
+  private final Color textColor;
+  private final int horizontalAlignment;
+  private boolean isInaccessible = false;
 
   public BackgroundCellRenderer(
-      final Color backgroundColor, final Color textColor, final int horizontalAlignment) {
+      Font font, Color backgroundColor, Color textColor, int horizontalAlignment) {
+    this.font = font;
     this.backgroundColor = backgroundColor;
     this.textColor = textColor;
     this.horizontalAlignment = horizontalAlignment;
@@ -31,15 +34,19 @@ public class BackgroundCellRenderer extends AbstractTableCellRenderer {
       final int column) {
     buildAndSetToolTip(table, row);
 
-    setFont(!isBoldFont(table, row) ? NORMAL_FONT : BOLD_FONT);
+    Font font = this.font;
+    if (isBoldFont(table, row)) {
+      font = font.deriveFont(Font.BOLD);
+    }
+    setFont(font);
 
     final String text;
     if (value instanceof String) {
       text = (String) value;
-      isNotAccessable = text.equals("");
+      isInaccessible = text.equals("");
     } else if (value instanceof Double) {
       text = Double.toString((Double) value);
-      isNotAccessable = (Double) value == -1;
+      isInaccessible = (Double) value == -1;
     } else if (value instanceof Integer) {
       text = Integer.toString((Integer) value);
     } else if (value instanceof IAddress) {
@@ -55,10 +62,10 @@ public class BackgroundCellRenderer extends AbstractTableCellRenderer {
 
     setIcon(
         new BackgroundIcon(
-            isNotAccessable ? NON_ACCESSIBLE_TEXT : text,
+            isInaccessible ? NON_ACCESSIBLE_TEXT : text,
             horizontalAlignment,
             textColor,
-            isNotAccessable ? NON_ACCESSIBLE_COLOR : backgroundColor,
+            isInaccessible ? NON_ACCESSIBLE_COLOR : backgroundColor,
             table.getSelectionBackground(),
             selected,
             0 - 1,

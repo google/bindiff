@@ -3,25 +3,20 @@
 package com.google.security.zynamics.zylib.gui.tables;
 
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
-
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-
 /**
  * Can be used to render cells using the default monospaced font.
  */
 public class CMonospaceRenderer extends JLabel implements TableCellRenderer {
-  private static final long serialVersionUID = -9211438577833845874L;
-
-  private static final Font INSTRUCTION_FONT = new Font(GuiHelper.getMonospaceFont(), 0, 12);
+  private static final Font INSTRUCTION_FONT = GuiHelper.getMonospacedFont();
 
   private Border unselectedBorder = null;
   private Border selectedBorder = null;

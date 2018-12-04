@@ -1,7 +1,9 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
-
 package com.google.security.zynamics.zylib.gui.JStackView;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
+import com.google.security.zynamics.zylib.gui.JHexPanel.JHexView.DefinitionStatus;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,22 +11,12 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-
 import javax.swing.AbstractAction;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
-import com.google.security.zynamics.zylib.gui.JHexPanel.JHexView.DefinitionStatus;
-
-/**
- * This class can be used to display the stack of a target process.
- */
+/** This class can be used to display the stack of a target process. */
 public final class JStackPanel extends JPanel {
-  private static final long serialVersionUID = -7850318708757157383L;
-
   private static final int PADDING_OFFSETVIEW = 20;
 
   private static final int PADDING_LEFT = 10;
@@ -33,86 +25,60 @@ public final class JStackPanel extends JPanel {
 
   private static final int SIZEOF_QWORD = 8;
 
-  /**
-   * Provides the stack data that is displayed in the view.
-   */
-  private final IStackModel m_model;
+  /** Provides the stack data that is displayed in the view. */
+  private final IStackModel model;
 
-  /**
-   * Font used to draw the data.
-   */
-  private final Font m_font = new Font(GuiHelper.getMonospaceFont(), 0, 12);
+  /** Font used to draw the data. */
+  private final Font font = GuiHelper.getMonospacedFont();
 
-  /**
-   * Height of individual rows in the display.
-   */
-  private int m_rowHeight;
+  /** Height of individual rows in the display. */
+  private int rowHeight;
 
-  /**
-   * Height of a single char in the display.
-   */
-  private int m_charHeight;
+  /** Height of a single char in the display. */
+  private int charHeight;
 
-  /**
-   * Width of a single char in the view.
-   */
-  private int m_charWidth;
+  /** Width of a single char in the view. */
+  private int charWidth;
 
-  /**
-   * Width of the offset view.
-   */
-  private int m_offsetViewWidth;
+  /** Width of the offset view. */
+  private int offsetViewWidth;
 
-  private boolean m_firstDraw = true;
+  private boolean firstDraw = true;
 
-  private static final int m_hexElementWidth = 10;
+  private static final int hexElementWidth = 10;
 
-  /**
-   * Default internal listener that is used to handle various events.
-   */
-  private final InternalListener m_listener = new InternalListener();
+  /** Default internal listener that is used to handle various events. */
+  private final InternalListener listener = new InternalListener();
 
-  /**
-   * The first visible row.
-   */
-  private int m_firstRow = 0;
+  /** The first visible row. */
+  private int firstRow = 0;
 
-  /**
-   * Top-padding of all views in pixels.
-   */
-  private static final int m_paddingTop = 16;
+  /** Top-padding of all views in pixels. */
+  private static final int paddingTop = 16;
 
-  /**
-   * Font color of the offset view.
-   */
-  private final Color m_fontColorOffsets = Color.WHITE;
+  /** Font color of the offset view. */
+  private final Color fontColorOffsets = Color.WHITE;
 
-  private final Color m_fontColorValues = Color.BLACK;
+  private final Color fontColorValues = Color.BLACK;
 
-  /**
-   * Color that is used to draw all text in disabled components.
-   */
-  private final Color m_disabledColor = Color.GRAY;
+  /** Color that is used to draw all text in disabled components. */
+  private final Color disabledColor = Color.GRAY;
 
-  /**
-   * Background color of the offset view.
-   */
-  private final Color m_bgColorOffset = Color.GRAY;
+  /** Background color of the offset view. */
+  private final Color bgColorOffset = Color.GRAY;
 
-  /**
-   * Timer that is used to refresh the component if no data for the selected range is available.
-   */
-  private Timer m_updateTimer;
+  /** Timer that is used to refresh the component if no data for the selected range is available. */
+  private Timer updateTimer;
 
-  private DefinitionStatus m_status = DefinitionStatus.UNDEFINED;
+  private DefinitionStatus status = DefinitionStatus.UNDEFINED;
 
-  private final AddressMode m_addressMode = AddressMode.BIT32;
+  private final AddressMode addressMode = AddressMode.BIT32;
 
-  private int m_firstColumn = 0;
+  private int firstColumn = 0;
 
   /**
    * Creates a new stack view.
-   * 
+   *
    * @param model The model that provides the data displayed in the view.
    */
   public JStackPanel(final IStackModel model) {
@@ -120,24 +86,23 @@ public final class JStackPanel extends JPanel {
 
     Preconditions.checkNotNull(model, "Error: Model argument can not be null");
 
-    m_model = model;
+    this.model = model;
 
-    m_model.addListener(m_listener);
+    this.model.addListener(listener);
 
     // Necessary to receive input
     setFocusable(true);
 
     // Set the initial font
-    setFont(m_font);
+    setFont(font);
 
     setPreferredSize(new Dimension(400, 400));
   }
 
   /**
    * Returns the character size of a single character on the given graphics context.
-   * 
+   *
    * @param g The graphics context.
-   * 
    * @return The size of a single character.
    */
   private static int getCharacterWidth(final Graphics g) {
@@ -146,9 +111,8 @@ public final class JStackPanel extends JPanel {
 
   /**
    * Determines the height of a character in a graphical context.
-   * 
+   *
    * @param g The graphical context.
-   * 
    * @return The height of a character in the graphical context.
    */
   private static int getCharHeight(final Graphics g) {
@@ -157,9 +121,8 @@ public final class JStackPanel extends JPanel {
 
   /**
    * Determines the height of the current font in a graphical context.
-   * 
+   *
    * @param g The graphical context.
-   * 
    * @return The height of the current font in the graphical context.
    */
   private static int getRowHeight(final Graphics g) {
@@ -168,45 +131,45 @@ public final class JStackPanel extends JPanel {
 
   /**
    * Calculates current character and row sizes.
-   * 
+   *
    * @param g The graphical context.
    */
   private void calculateSizes(final Graphics g) {
-    m_rowHeight = getRowHeight(g);
-    m_charHeight = getCharHeight(g);
-    m_charWidth = getCharacterWidth(g);
+    rowHeight = getRowHeight(g);
+    charHeight = getCharHeight(g);
+    charWidth = getCharacterWidth(g);
   }
 
   /**
    * Draws the background of the view.
-   * 
+   *
    * @param g The graphics context of the view.
    */
   private void drawBackground(final Graphics g) {
     // Draw the background of the offset view
-    g.setColor(m_bgColorOffset);
-    g.fillRect(-m_firstColumn * m_charWidth, 0, m_offsetViewWidth, getHeight());
+    g.setColor(bgColorOffset);
+    g.fillRect(-firstColumn * charWidth, 0, offsetViewWidth, getHeight());
   }
 
   /**
    * Draws the stack values onto the screen.
-   * 
+   *
    * @param g The graphics context to paint on.
    */
   private void drawElements(final Graphics g) {
     if (isEnabled()) {
       // Choose the right color for the offset text
-      g.setColor(m_fontColorValues);
+      g.setColor(fontColorValues);
     } else {
-      g.setColor(m_disabledColor != m_bgColorOffset ? m_disabledColor : Color.WHITE);
+      g.setColor(disabledColor != bgColorOffset ? disabledColor : Color.WHITE);
     }
 
-    final int x = (10 + m_offsetViewWidth) - (m_charWidth * m_firstColumn);
+    final int x = (10 + offsetViewWidth) - (charWidth * firstColumn);
 
     int linesToDraw = getNumberOfVisibleRows();
 
-    if ((m_firstRow + linesToDraw) >= m_model.getNumberOfEntries()) {
-      linesToDraw = m_model.getNumberOfEntries() - m_firstRow; // TODO: This can make linesToDraw
+    if ((firstRow + linesToDraw) >= model.getNumberOfEntries()) {
+      linesToDraw = model.getNumberOfEntries() - firstRow; // TODO: This can make linesToDraw
       // negative
 
       if (linesToDraw < 0) {
@@ -219,29 +182,29 @@ public final class JStackPanel extends JPanel {
       }
     }
 
-    if (m_model.getStartAddress() == -1) {
+    if (model.getStartAddress() == -1) {
       return;
     }
 
     final long elementSize = getElementSize();
 
-    if (m_status == DefinitionStatus.DEFINED) {
-      final long startAddress = m_model.getStartAddress() + (m_firstRow * elementSize);
+    if (status == DefinitionStatus.DEFINED) {
+      final long startAddress = model.getStartAddress() + (firstRow * elementSize);
 
       final long numberOfBytes = linesToDraw * elementSize;
 
-      if (!m_model.hasData(startAddress, numberOfBytes)) {
+      if (!model.hasData(startAddress, numberOfBytes)) {
         setDefinitionStatus(DefinitionStatus.UNDEFINED);
         setEnabled(false);
 
-        if (m_updateTimer != null) {
-          m_updateTimer.setRepeats(false);
-          m_updateTimer.stop();
+        if (updateTimer != null) {
+          updateTimer.setRepeats(false);
+          updateTimer.stop();
         }
 
-        m_updateTimer = new Timer(1000, new WaitingForDataAction(startAddress, numberOfBytes));
-        m_updateTimer.setRepeats(true);
-        m_updateTimer.start();
+        updateTimer = new Timer(1000, new WaitingForDataAction(startAddress, numberOfBytes));
+        updateTimer.setRepeats(true);
+        updateTimer.start();
 
         return;
       }
@@ -250,66 +213,64 @@ public final class JStackPanel extends JPanel {
       for (int i = 0; i < linesToDraw; i++) {
         final long elementAddress = startAddress + (i * elementSize);
 
-        g.drawString(m_model.getElement(elementAddress), x, m_paddingTop + (i * m_rowHeight));
+        g.drawString(model.getElement(elementAddress), x, paddingTop + (i * rowHeight));
       }
     } else {
       // Iterate over the data and print the offsets
       for (int i = 0; i < linesToDraw; i++) {
-        g.drawString(
-            Strings.repeat("?", 2 * getElementSize()), x, m_paddingTop
-            + (i * m_rowHeight));
+        g.drawString(Strings.repeat("?", 2 * getElementSize()), x, paddingTop + (i * rowHeight));
       }
     }
   }
 
   /**
    * Draws the offsets in the offset view.
-   * 
+   *
    * @param g The graphics context of the hex panel.
    */
   private void drawOffsets(final Graphics g) {
     final int linesToDraw = getNumberOfVisibleRows();
 
-    final String formatString = m_addressMode == AddressMode.BIT32 ? "%08X" : "%016X";
+    final String formatString = addressMode == AddressMode.BIT32 ? "%08X" : "%016X";
     final long elementSize = getElementSize();
 
-    final long baseAddress = m_model.getStartAddress() == -1 ? 0 : m_model.getStartAddress();
+    final long baseAddress = model.getStartAddress() == -1 ? 0 : model.getStartAddress();
 
     // Iterate over the data and print the offsets
     for (int i = 0; i < linesToDraw; i++) {
-      final int elementIndex = m_firstRow + i;
+      final int elementIndex = firstRow + i;
 
       final long elementAddress = baseAddress + (elementIndex * elementSize);
 
       final String offsetString = String.format(formatString, elementAddress);
 
-      if (elementAddress == m_model.getStackPointer()) {
+      if (elementAddress == model.getStackPointer()) {
         highlightStackPointer(g, i);
       }
 
       if (isEnabled()) {
-        g.setColor(m_fontColorOffsets);
+        g.setColor(fontColorOffsets);
       } else {
-        g.setColor(m_disabledColor != m_bgColorOffset ? m_disabledColor : Color.WHITE);
+        g.setColor(disabledColor != bgColorOffset ? disabledColor : Color.WHITE);
       }
 
-      g.drawString(offsetString, PADDING_LEFT - (m_charWidth * m_firstColumn), m_paddingTop
-          + (i * m_rowHeight));
+      g.drawString(
+          offsetString, PADDING_LEFT - (charWidth * firstColumn), paddingTop + (i * rowHeight));
     }
   }
 
   /**
    * Returns the size in bytes of a single stack element.
-   * 
+   *
    * @return The size in bytes of a single stack element.
    */
   private int getElementSize() {
-    return m_addressMode == AddressMode.BIT32 ? SIZEOF_DWORD : SIZEOF_QWORD;
+    return addressMode == AddressMode.BIT32 ? SIZEOF_DWORD : SIZEOF_QWORD;
   }
 
   /**
    * Highlights the address of the stack pointer.
-   * 
+   *
    * @param g The graphics context to draw to.
    * @param row Row where the stack pointer is shown.
    */
@@ -319,8 +280,11 @@ public final class JStackPanel extends JPanel {
     final double width =
         g.getFontMetrics().getStringBounds(Strings.repeat("0", 2 * getElementSize()), g).getWidth();
 
-    g.fillRect(PADDING_LEFT - 2 - (m_charWidth * m_firstColumn),
-        (m_paddingTop + (row * m_rowHeight)) - m_charHeight, (int) width + 4, m_charHeight + 2);
+    g.fillRect(
+        PADDING_LEFT - 2 - (charWidth * firstColumn),
+        (paddingTop + (row * rowHeight)) - charHeight,
+        (int) width + 4,
+        charHeight + 2);
   }
 
   /**
@@ -328,63 +292,61 @@ public final class JStackPanel extends JPanel {
    * mode.
    */
   private void updateOffsetViewWidth() {
-    final int addressBytes = m_addressMode == AddressMode.BIT32 ? 8 : 16;
-    m_offsetViewWidth = PADDING_OFFSETVIEW + (m_charWidth * addressBytes);
+    final int addressBytes = addressMode == AddressMode.BIT32 ? 8 : 16;
+    offsetViewWidth = PADDING_OFFSETVIEW + (charWidth * addressBytes);
   }
 
-  /**
-   * Calculates and sets the preferred size of the component.
-   */
+  /** Calculates and sets the preferred size of the component. */
   private void updatePreferredSize() {
     // TODO: Improve this
-    final int width = m_offsetViewWidth + m_hexElementWidth + (18 * m_charWidth);
+    final int width = offsetViewWidth + hexElementWidth + (18 * charWidth);
     setPreferredSize(new Dimension(width, getHeight()));
     revalidate();
   }
 
   /**
    * Returns the number of visible rows.
-   * 
+   *
    * @return The number of visible rows.
    */
   protected int getNumberOfVisibleRows() {
-    if (m_rowHeight == 0) {
+    if (rowHeight == 0) {
       return 0;
     }
 
-    final int rawHeight = getHeight() - m_paddingTop;
-    return (rawHeight / m_rowHeight) + ((rawHeight % m_rowHeight) == 0 ? 0 : 1);
+    final int rawHeight = getHeight() - paddingTop;
+    return (rawHeight / rowHeight) + ((rawHeight % rowHeight) == 0 ? 0 : 1);
   }
 
   protected void setFirstRow(final int value) {
-    m_firstRow = value;
+    firstRow = value;
 
     repaint();
   }
 
   public int getCharWidth() {
-    return m_charWidth;
+    return charWidth;
   }
 
   public int getOffsetViewWidth() {
-    return m_offsetViewWidth;
+    return offsetViewWidth;
   }
 
   public String getValueAt(final Point point) {
-    final int line = ((point.y - m_paddingTop) + m_rowHeight) / m_rowHeight;
+    final int line = ((point.y - paddingTop) + rowHeight) / rowHeight;
 
     final long elementSize = getElementSize();
 
-    final long startAddress = m_model.getStartAddress() + (m_firstRow * elementSize);
+    final long startAddress = model.getStartAddress() + (firstRow * elementSize);
 
     final long elementAddress = startAddress + (line * elementSize);
 
-    return m_model.hasData(elementAddress, elementSize) ? m_model.getElement(elementAddress) : null;
+    return model.hasData(elementAddress, elementSize) ? model.getElement(elementAddress) : null;
   }
 
   /**
    * Scrolls to the given offset.
-   * 
+   *
    * @param offset The offset to scroll to.
    */
   public void gotoOffset(final long offset) {
@@ -400,8 +362,8 @@ public final class JStackPanel extends JPanel {
 
     updateOffsetViewWidth();
 
-    if (m_firstDraw) {
-      m_firstDraw = false;
+    if (firstDraw) {
+      firstDraw = false;
 
       // The first time the component is drawn, its size must be set.
       updatePreferredSize();
@@ -418,19 +380,19 @@ public final class JStackPanel extends JPanel {
 
   /**
    * Changes the definition status of the view data.
-   * 
+   *
    * @param status The new definition status.
    */
   public void setDefinitionStatus(final DefinitionStatus status) {
     Preconditions.checkNotNull(status, "Error: Status argument can not be null");
 
-    m_status = status;
+    this.status = status;
 
     repaint();
   }
 
   public void setFirstColumn(final int value) {
-    m_firstColumn = value;
+    firstColumn = value;
   }
 
   private class InternalListener implements IStackModelListener {
@@ -452,12 +414,12 @@ public final class JStackPanel extends JPanel {
 
     @Override
     public void actionPerformed(final ActionEvent event) {
-      if (m_model.hasData(m_startAddress, m_numberOfBytes)) {
+      if (model.hasData(m_startAddress, m_numberOfBytes)) {
         JStackPanel.this.setEnabled(true);
         setDefinitionStatus(DefinitionStatus.DEFINED);
 
         ((Timer) event.getSource()).stop();
-      } else if (!m_model.keepTrying()) {
+      } else if (!model.keepTrying()) {
         ((Timer) event.getSource()).stop();
       }
     }

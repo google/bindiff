@@ -9,6 +9,7 @@ import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.tables.CTableSorter;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
@@ -73,17 +74,21 @@ public class UnmatchedFunctionViewsTable extends AbstractTable {
     jumps.setPreferredWidth(50);
     instructions.setPreferredWidth(50);
 
-    final BackgroundCellRenderer backgroundRenderer =
-        new BackgroundCellRenderer(Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+    final BackgroundCellRenderer nameAndAddressRenderer =
+        new BackgroundCellRenderer(
+            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+    final BackgroundCellRenderer numberRenderer =
+        new BackgroundCellRenderer(
+            GuiHelper.getDefaultFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
 
-    address.setCellRenderer(backgroundRenderer);
-    name.setCellRenderer(backgroundRenderer);
+    address.setCellRenderer(nameAndAddressRenderer);
+    name.setCellRenderer(nameAndAddressRenderer);
     type.setCellRenderer(new FunctionTypeCellRenderer());
-    callers.setCellRenderer(backgroundRenderer);
-    basicBlocks.setCellRenderer(backgroundRenderer);
-    jumps.setCellRenderer(backgroundRenderer);
-    instructions.setCellRenderer(backgroundRenderer);
-    calls.setCellRenderer(backgroundRenderer);
+    callers.setCellRenderer(numberRenderer);
+    basicBlocks.setCellRenderer(numberRenderer);
+    jumps.setCellRenderer(numberRenderer);
+    instructions.setCellRenderer(numberRenderer);
+    calls.setCellRenderer(numberRenderer);
   }
 
   @Override

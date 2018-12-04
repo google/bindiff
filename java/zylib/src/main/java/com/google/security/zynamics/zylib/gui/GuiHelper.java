@@ -3,32 +3,31 @@ package com.google.security.zynamics.zylib.gui;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
 import java.awt.Font;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.Window;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowStateListener;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
 public class GuiHelper implements WindowStateListener {
-  public static final int DEFAULT_FONTSIZE = 12;
+  public static final int DEFAULT_FONTSIZE = 13;
 
-  public static final Font MONOSPACED_FONT =
-      new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONTSIZE);
-
-  public static final Font DEFAULT_FONT = new Font(Font.SANS_SERIF, Font.PLAIN, DEFAULT_FONTSIZE);
+  private static final GuiHelper instance = new GuiHelper();
 
   // Fields needed by the applyWindowFix() method and its workaround.
-  private static final GuiHelper instance = new GuiHelper();
   private Field metacityWindowManager = null;
   private Field awtWindowManager = null;
   private boolean needsWindowFix = false;
+
+  // Application-global font settings
+  private Font defaultFont = new Font(Font.SANS_SERIF, Font.PLAIN, DEFAULT_FONTSIZE);
+  private Font monospacedFont = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONTSIZE);
 
   /** Private constructor to prevent public instantiation. */
   private GuiHelper() {
@@ -158,12 +157,20 @@ public class GuiHelper implements WindowStateListener {
     return null;
   }
 
-  public static String getDefaultFont() {
-    return DEFAULT_FONT.getName();
+  public static void setDefaultFont(Font font) {
+    instance.defaultFont = font;
   }
 
-  public static String getMonospaceFont() {
-    return MONOSPACED_FONT.getName();
+  public static Font getDefaultFont() {
+    return instance.defaultFont;
+  }
+
+  public static void setMonospacedFont(Font font) {
+    instance.monospacedFont = font;
+  }
+
+  public static Font getMonospacedFont() {
+    return instance.monospacedFont;
   }
 
   public interface ComponentFilter {

@@ -17,9 +17,6 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
 public class SingleTreeNodeRenderer extends DefaultTreeCellRenderer {
-  private static final Font NORMAL_FONT = GuiHelper.DEFAULT_FONT;
-  private static final Font BOLD_FONT =
-      new Font(NORMAL_FONT.getName(), Font.BOLD, NORMAL_FONT.getSize());
 
   public SingleTreeNodeRenderer() {
     setBackgroundSelectionColor(Color.WHITE);
@@ -45,7 +42,10 @@ public class SingleTreeNodeRenderer extends DefaultTreeCellRenderer {
       setIcon(icon);
     }
 
-    setFont(node.isSelected() ? BOLD_FONT : NORMAL_FONT);
+    setFont(
+        node.isSelected()
+            ? GuiHelper.getDefaultFont().deriveFont(Font.BOLD)
+            : GuiHelper.getDefaultFont());
     setForeground(node.isVisible() ? Color.BLACK : Color.GRAY);
 
     Color background = Color.WHITE;

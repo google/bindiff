@@ -5,16 +5,13 @@ package com.google.security.zynamics.zylib.gui.scripting;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.scripting.console.ConsoleStdoutDocument;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.LayoutManager;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-
 import javax.script.ScriptEngineManager;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -22,7 +19,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTextPane;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
-
 
 public abstract class AbstractScriptPanel extends JPanel implements IScriptPanel {
   private static final long serialVersionUID = 8553550256320119608L;
@@ -49,7 +45,7 @@ public abstract class AbstractScriptPanel extends JPanel implements IScriptPanel
 
     m_inputPane.setEditable(true);
     m_inputPane.setBackground(new Color((float) .97, (float) .97, 1));
-    m_inputPane.setFont(new Font(GuiHelper.getMonospaceFont(), 0, 13));
+    m_inputPane.setFont(GuiHelper.getMonospacedFont());
 
     m_OutputPane.setDocument(m_PythonStdoutDocument);
 

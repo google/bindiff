@@ -17,9 +17,8 @@ public abstract class AbstractTableCellRenderer extends DefaultTableCellRenderer
   public static Color NON_ACCESSIBLE_COLOR = Colors.GRAY250;
   public static String NON_ACCESSIBLE_TEXT = "";
 
-  protected static Font NORMAL_FONT = GuiHelper.DEFAULT_FONT;
-  protected static Font BOLD_FONT =
-      new Font(NORMAL_FONT.getName(), Font.BOLD, NORMAL_FONT.getSize());
+  protected static Font NORMAL_FONT = GuiHelper.getDefaultFont();
+  protected static Font BOLD_FONT = GuiHelper.getDefaultFont().deriveFont(Font.BOLD);
 
   protected boolean isBoldFont(final JTable table, final int row) {
     if (!(table instanceof AbstractTable)) {

@@ -11,6 +11,7 @@ import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.tables.CTableSorter;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
@@ -93,12 +94,14 @@ public class MatchedFunctionViewsTable extends AbstractTable {
     confidence.setCellRenderer(similarityConfidenceRenderer);
 
     final BackgroundCellRenderer primaryBackgroundRenderer =
-        new BackgroundCellRenderer(Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+        new BackgroundCellRenderer(
+            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
     primaryAddr.setCellRenderer(primaryBackgroundRenderer);
     primaryName.setCellRenderer(primaryBackgroundRenderer);
 
     final BackgroundCellRenderer secondaryBackgroundRenderer =
-        new BackgroundCellRenderer(Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+        new BackgroundCellRenderer(
+            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
     secondaryAddr.setCellRenderer(secondaryBackgroundRenderer);
     secondaryName.setCellRenderer(secondaryBackgroundRenderer);
 

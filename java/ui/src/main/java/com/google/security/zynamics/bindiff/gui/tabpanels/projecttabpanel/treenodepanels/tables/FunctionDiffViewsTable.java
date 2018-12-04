@@ -8,10 +8,12 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.resources.Colors;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 public class FunctionDiffViewsTable extends AbstractTable {
   public FunctionDiffViewsTable(
@@ -22,23 +24,18 @@ public class FunctionDiffViewsTable extends AbstractTable {
   }
 
   private void init() {
-    final TableColumn viewName = getColumnModel().getColumn(FunctionDiffViewsTableModel.VIEWNAME);
-    final TableColumn primaryAddr =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.PRIMARY_ADDRESS);
-    final TableColumn primaryName =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.PRIMARY_NAME);
+    final TableColumnModel model = getColumnModel();
+    final TableColumn viewName = model.getColumn(FunctionDiffViewsTableModel.VIEWNAME);
+    final TableColumn primaryAddr = model.getColumn(FunctionDiffViewsTableModel.PRIMARY_ADDRESS);
+    final TableColumn primaryName = model.getColumn(FunctionDiffViewsTableModel.PRIMARY_NAME);
     final TableColumn basicblockMatches =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.BASICBLOCK_MATCHES);
-    final TableColumn similarity =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.SIMILARITY);
-    final TableColumn confidence =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.CONFIDENCE);
-    final TableColumn jumpMatches =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.JUMP_MATCHES);
-    final TableColumn secondaryName =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.SECONDARY_NAME);
+        model.getColumn(FunctionDiffViewsTableModel.BASICBLOCK_MATCHES);
+    final TableColumn similarity = model.getColumn(FunctionDiffViewsTableModel.SIMILARITY);
+    final TableColumn confidence = model.getColumn(FunctionDiffViewsTableModel.CONFIDENCE);
+    final TableColumn jumpMatches = model.getColumn(FunctionDiffViewsTableModel.JUMP_MATCHES);
+    final TableColumn secondaryName = model.getColumn(FunctionDiffViewsTableModel.SECONDARY_NAME);
     final TableColumn secondaryAddr =
-        getColumnModel().getColumn(FunctionDiffViewsTableModel.SECONDARY_ADDRESS);
+        model.getColumn(FunctionDiffViewsTableModel.SECONDARY_ADDRESS);
 
     viewName.setMinWidth(80);
     primaryAddr.setMinWidth(68);
@@ -66,17 +63,24 @@ public class FunctionDiffViewsTable extends AbstractTable {
     confidence.setCellRenderer(similarityConfidenceRenderer);
 
     final BackgroundCellRenderer whiteBackgroundRenderer =
-        new BackgroundCellRenderer(Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+        new BackgroundCellRenderer(
+            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
     viewName.setCellRenderer(whiteBackgroundRenderer);
     final BackgroundCellRenderer primaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND, Colors.GRAY32, SwingConstants.LEFT);
+            GuiHelper.getMonospacedFont(),
+            Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND,
+            Colors.GRAY32,
+            SwingConstants.LEFT);
     primaryAddr.setCellRenderer(primaryBackgroundRenderer);
     primaryName.setCellRenderer(primaryBackgroundRenderer);
 
     final BackgroundCellRenderer secondaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND, Colors.GRAY32, SwingConstants.LEFT);
+            GuiHelper.getMonospacedFont(),
+            Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND,
+            Colors.GRAY32,
+            SwingConstants.LEFT);
     secondaryAddr.setCellRenderer(secondaryBackgroundRenderer);
     secondaryName.setCellRenderer(secondaryBackgroundRenderer);
 

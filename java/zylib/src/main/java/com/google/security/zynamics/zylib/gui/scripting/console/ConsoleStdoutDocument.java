@@ -3,13 +3,11 @@
 package com.google.security.zynamics.zylib.gui.scripting.console;
 
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.Color;
-
+import java.awt.Font;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-
 
 /**
  * Document style for the syntax highlighted Python interpreter output.
@@ -26,16 +24,20 @@ public class ConsoleStdoutDocument extends DefaultStyledDocument {
   SimpleAttributeSet outputAttr;
 
   public ConsoleStdoutDocument() {
-    StyleConstants.setFontFamily(outputAttrA, GuiHelper.getMonospaceFont());
-    StyleConstants.setFontSize(outputAttrA, 11);
+    final Font monospacedFont = GuiHelper.getMonospacedFont();
+    final String monospacedFamily = monospacedFont.getFamily();
+    final int monospacedSize = monospacedFont.getSize();
+
+    StyleConstants.setFontFamily(outputAttrA, monospacedFamily);
+    StyleConstants.setFontSize(outputAttrA, monospacedSize);
     StyleConstants.setForeground(outputAttrA, new Color((float) .4, (float) .4, (float) .4));
 
-    StyleConstants.setFontFamily(outputAttrB, GuiHelper.getMonospaceFont());
-    StyleConstants.setFontSize(outputAttrB, 11);
+    StyleConstants.setFontFamily(outputAttrB, monospacedFamily);
+    StyleConstants.setFontSize(outputAttrB, monospacedSize);
     StyleConstants.setForeground(outputAttrB, new Color((float) .1, (float) .1, (float) .1));
 
-    StyleConstants.setFontFamily(outputErrAttr, GuiHelper.getMonospaceFont());
-    StyleConstants.setFontSize(outputErrAttr, 11);
+    StyleConstants.setFontFamily(outputErrAttr, monospacedFamily);
+    StyleConstants.setFontSize(outputErrAttr, monospacedSize);
     StyleConstants.setForeground(outputErrAttr, new Color(1, (float) .2, (float) .2));
 
     lastPosition = 0;

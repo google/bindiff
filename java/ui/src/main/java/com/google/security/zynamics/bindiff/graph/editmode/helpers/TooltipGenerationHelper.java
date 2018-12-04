@@ -17,7 +17,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -215,7 +214,7 @@ public class TooltipGenerationHelper {
       strings.add("...");
     }
 
-    return HtmlGenerator.getHtml(strings, GuiHelper.getMonospaceFont(), false);
+    return HtmlGenerator.getHtml(strings, GuiHelper.getMonospacedFont().getFontName(), false);
   }
 
   public static <NodeType extends ZyGraphNode<?>> String generateProximityNodeTooltip(

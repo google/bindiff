@@ -19,13 +19,11 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNo
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeLabel;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyProximityNodeRealizer;
-
-import y.base.Edge;
-import y.base.Node;
-
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import y.base.Edge;
+import y.base.Node;
 
 /**
  * This class is used to generate the tooltips of nodes and edges of a graph.
@@ -89,7 +87,7 @@ public final class TooltipGenerator {
       strings.add("...");
     }
 
-    return HtmlGenerator.getHtml(strings, GuiHelper.getMonospaceFont(), false);
+    return HtmlGenerator.getHtml(strings, GuiHelper.getMonospacedFont().getFontName(), false);
   }
 
   /**
@@ -137,8 +135,9 @@ public final class TooltipGenerator {
 
       text +=
           "<hr>"
-              + HtmlGenerator.getHtml(content, GuiHelper.getMonospaceFont(), false)
-                  .replace("<html>", "").replace("</html>", "");
+              + HtmlGenerator.getHtml(content, GuiHelper.getMonospacedFont().getFontName(), false)
+                  .replace("<html>", "")
+                  .replace("</html>", "");
     }
 
     text += "<hr>" + createTooltip(graph, edge.target()).replace("<html>", "");
@@ -148,12 +147,10 @@ public final class TooltipGenerator {
 
   /**
    * Creates the tooltip for a node in a graph.
-   * 
+   *
    * @param <NodeType> Type of the nodes in the graph.
-   * 
    * @param graph The graph the node belongs to.
    * @param node The node the tooltip is created for.
-   * 
    * @return The created tooltip text.
    */
   public static <NodeType extends ZyGraphNode<?>> String createTooltip(
@@ -164,13 +161,13 @@ public final class TooltipGenerator {
     final IZyNodeRealizer realizer = (IZyNodeRealizer) graph.getGraph().getRealizer(node);
 
     if (realizer instanceof ZyProximityNodeRealizer<?>) {
-      return generateProximityNodeRealizer(graph, (ZyProximityNode<?>) realizer.getUserData()
-          .getNode());
-    } else {
-      final ZyLabelContent content = realizer.getNodeContent();
-      final boolean boldFirstLine = requiresBoldFirstLine(graph.getNode(node));
-
-      return HtmlGenerator.getHtml(content, GuiHelper.getMonospaceFont(), boldFirstLine);
+      return generateProximityNodeRealizer(
+          graph, (ZyProximityNode<?>) realizer.getUserData().getNode());
     }
+    final ZyLabelContent content = realizer.getNodeContent();
+    final boolean boldFirstLine = requiresBoldFirstLine(graph.getNode(node));
+
+    return HtmlGenerator.getHtml(
+        content, GuiHelper.getMonospacedFont().getFontName(), boldFirstLine);
   }
 }

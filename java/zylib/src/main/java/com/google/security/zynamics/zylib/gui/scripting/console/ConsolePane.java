@@ -15,9 +15,7 @@ import com.google.security.zynamics.zylib.gui.scripting.IScriptConsole;
 import com.google.security.zynamics.zylib.gui.scripting.InitStringFactory;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import com.google.security.zynamics.zylib.resources.Constants;
-
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -27,7 +25,6 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
-
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import javax.swing.border.EmptyBorder;
@@ -79,7 +76,7 @@ public class ConsolePane extends AbstractScriptPanel {
 
     getInputPane().addKeyListener(m_KeyListener);
     getDocument().setInputKeyListener(m_KeyListener);
-    getOutputPane().setFont(new Font(GuiHelper.getMonospaceFont(), 0, 12));
+    getOutputPane().setFont(GuiHelper.getMonospacedFont());
 
     setBorder(new EmptyBorder(5, 5, 5, 5));
   }

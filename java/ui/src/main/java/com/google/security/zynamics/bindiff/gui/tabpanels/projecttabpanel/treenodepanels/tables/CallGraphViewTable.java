@@ -6,6 +6,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.renderers.PercentageThreeBarCellRenderer;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.renderers.SimilarityConfidenceCellRenderer;
 import com.google.security.zynamics.bindiff.resources.Colors;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableColumn;
@@ -45,12 +46,18 @@ public class CallGraphViewTable extends AbstractTable {
 
     final BackgroundCellRenderer primaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND, Colors.GRAY32, SwingConstants.LEFT);
+            GuiHelper.getMonospacedFont(),
+            Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND,
+            Colors.GRAY32,
+            SwingConstants.LEFT);
     primaryName.setCellRenderer(primaryBackgroundRenderer);
 
     final BackgroundCellRenderer secondaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND, Colors.GRAY32, SwingConstants.LEFT);
+            GuiHelper.getMonospacedFont(),
+            Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND,
+            Colors.GRAY32,
+            SwingConstants.LEFT);
     secondaryName.setCellRenderer(secondaryBackgroundRenderer);
 
     final PercentageThreeBarCellRenderer functionCellRenderer =
