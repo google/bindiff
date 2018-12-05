@@ -94,7 +94,7 @@ void PrintMessage(absl::string_view message) {
   fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
 #ifdef GOOGLE
   // If writing to logfiles is enabled, log the message.
-  LOG_IF(INFO, base::GetFlag(FLAGS_logtostderr)) << message;
+  LOG_IF(INFO, absl::GetFlag(FLAGS_logtostderr)) << message;
 #endif
 }
 
@@ -104,7 +104,7 @@ void PrintErrorMessage(absl::string_view message) {
   fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
 #ifdef GOOGLE
   // If writing to logfiles is enabled, log the message.
-  LOG_IF(ERROR, base::GetFlag(FLAGS_logtostderr)) << message;
+  LOG_IF(ERROR, absl::GetFlag(FLAGS_logtostderr)) << message;
 #endif
 }
 
