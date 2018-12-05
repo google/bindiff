@@ -8,6 +8,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.action
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.CloseViewAction;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -38,6 +39,7 @@ public class TabButtonComponent extends JPanel {
     closeButton = new TabButton(pane, this, enableClose);
 
     label = new TabLabel(pane, this);
+    label.setFont(GuiHelper.getDefaultFont().deriveFont(GuiHelper.getDefaultFont().getSize() + 2.0f));
     if (icon != null) {
       label.setIcon(icon);
     }

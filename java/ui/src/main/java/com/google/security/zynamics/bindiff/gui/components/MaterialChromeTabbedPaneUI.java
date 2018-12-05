@@ -9,6 +9,7 @@ import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.geom.GeneralPath;
 import javax.swing.Icon;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
 import sun.swing.SwingUtilities2;
@@ -40,10 +41,10 @@ public class MaterialChromeTabbedPaneUI extends BasicTabbedPaneUI {
   @Override
   protected void installDefaults() {
     super.installDefaults();
-    tabInsets = new Insets(4, 8, 4, 8);
+    tabInsets = new Insets(4, 20, 4, 16);
     selectedTabPadInsets = tabInsets;
     tabOverlap = tabInsets.right;
-    tabAreaInsets = new Insets(4, 4, 0, 4);
+    tabAreaInsets = new Insets(4, 0, 0, 0);
     contentBorderInsets = new Insets(0, 0, 0, 0);
   }
 
@@ -117,34 +118,63 @@ public class MaterialChromeTabbedPaneUI extends BasicTabbedPaneUI {
     g2d.setRenderingHints(
         new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON));
 
-    final int[] xPoints =
-        new int[] {
-          tabRect.x,
-          tabRect.x + tabInsets.left,
-          tabRect.x + tabRect.width - tabInsets.right,
-          tabRect.x + tabRect.width
-        };
-    final int[] yPoints =
-        new int[] {
-          tabRect.y + tabRect.height, tabRect.y, tabRect.y, tabRect.y + tabRect.height,
-        };
+    final GeneralPath path = new GeneralPath();
+    path.moveTo(tabRect.x, tabRect.y + tabRect.height); // Bottom left
+    path.curveTo(
+        tabRect.x,
+        tabRect.y + tabRect.height,
+        tabRect.x + 8,
+        tabRect.y + tabRect.height,
+        tabRect.x + 8,
+        tabRect.y + tabRect.height - 8);
+    path.lineTo(tabRect.x + 8, tabRect.y + 8); // Left line
+    path.curveTo(
+        tabRect.x + 8,
+        tabRect.y + 8,
+        tabRect.x + 8,
+        tabRect.y,
+        tabRect.x + 16,
+        tabRect.y); // Top left
+    path.lineTo(tabRect.x + tabRect.width - 16, tabRect.y); // Top line
+    path.curveTo(
+        tabRect.x + tabRect.width - 16,
+        tabRect.y,
+        tabRect.x + tabRect.width - 8,
+        tabRect.y,
+        tabRect.x + tabRect.width - 8,
+        tabRect.y + 8); // Top right
+    path.lineTo(tabRect.x + tabRect.width - 8, tabRect.y + tabRect.height - 8); // Right line
+    path.curveTo(
+        tabRect.x + tabRect.width - 8,
+        tabRect.y + tabRect.height - 8,
+        tabRect.x + tabRect.width - 8,
+        tabRect.y + tabRect.height,
+        tabRect.x + tabRect.width,
+        tabRect.y + tabRect.height); // Bottom right
+    path.closePath(); // Bottom line
+
     Color tabColor = tabPane.getBackgroundAt(tabIndex);
     if (!isSelected) {
       tabColor = darker(tabColor);
     }
     g2d.setColor(tabColor);
-    g2d.fillPolygon(xPoints, yPoints, xPoints.length);
+    g2d.fill(path);
+
     g2d.setColor(darkShadow);
-    g2d.drawPolygon(xPoints, yPoints, xPoints.length);
+    if (isSelected) {
+      g2d.draw(path);
+    } else if (tabIndex > 0) {
+      g2d.drawLine(
+          tabRect.x + 8, tabRect.y + 8, tabRect.x + 8, tabRect.y + tabRect.height - 8); // Left line
+    }
 
     final String title = tabPane.getTitleAt(tabIndex);
     final Font font = tabPane.getFont();
     final FontMetrics metrics = SwingUtilities2.getFontMetrics(tabPane, g, font);
     final Icon icon = getIconForTab(tabIndex);
 
-    layoutLabel(TOP, metrics, tabIndex, title, icon, tabRect, iconRect, textRect, isSelected);
-
     if (tabPane.getTabComponentAt(tabIndex) == null) {
+      layoutLabel(TOP, metrics, tabIndex, title, icon, tabRect, iconRect, textRect, isSelected);
       final String clippedTitle =
           SwingUtilities2.clipStringIfNecessary(null, metrics, title, textRect.width);
       paintText(g, TOP, font, metrics, tabIndex, clippedTitle, textRect, isSelected);

@@ -21,12 +21,13 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicButtonUI;
 
+/** A tab button similar in style to the one used in Google Chrome. */
 public class TabButton extends JButton {
   // Colors from Google Chrome
-  private static final Color CROSS_COLOR = new Color(0x5a5a5a);
-  private static final Color CROSS_COLOR_ROLLOVER = Color.WHITE;
-  private static final Color CROSS_BACKGROUND_ROLLOVER = new Color(0xdb4437);
-  private static final Color CROSS_BACKGROUND_PRESSED = new Color(0xa8352a);
+  private static final Color CROSS_COLOR = new Color(0x5d6063);
+  private static final Color CROSS_COLOR_ROLLOVER = new Color(0x5d6166);
+  private static final Color CROSS_BACKGROUND_ROLLOVER = new Color(0xe8eaed);
+  private static final Color CROSS_BACKGROUND_PRESSED = new Color(0xdadce0);
 
   private final ListenerProvider<ICloseTabButtonListener> closeTabButtonListeners =
       new ListenerProvider<>();
