@@ -1094,7 +1094,7 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, string* message) {
     return false;
   }
 
-  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
+  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
   diff_database_id_++;
   string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
   string database_file;
@@ -1123,7 +1123,7 @@ bool Results::PrepareVisualDiff(size_t index, string* message) {
     return false;
   }
 
-  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
+  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
 
   FlowGraphInfo empty{0};
   const FlowGraphInfo& primary_info(
@@ -1292,7 +1292,7 @@ int Results::PortComments(Address start_address_source,
                           Address end_address_target, double min_confidence,
                           double min_similarity) {
   for (size_t index = 1; index <= indexed_fixed_points_.size(); ++index) {
-    FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
+    FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
     if (get_func(static_cast<ea_t>(fixed_point_info.primary))) {
       if (IsInComplete()) {
         FlowGraph primary, secondary;
