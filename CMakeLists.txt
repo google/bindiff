@@ -1,13 +1,21 @@
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.7)
+if(POLICY CMP0069)  # For CheckIPOSupported
+  cmake_policy(SET CMP0069 NEW)
+endif()
 project(bindiff VERSION 5.0.0)
 
 set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
 set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
 set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
 
-include(CheckIPOSupported)
+# CheckIPOSupported requires at least CMake 3.9
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT _bindiff_ipo_supported)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
 include(${BinExport_DIR}/util.cmake)
@@ -30,7 +38,6 @@ include(${BinExport_DIR}/googletest.cmake)
 include(${BinExport_DIR}/absl.cmake)
 
 enable_testing()
-check_ipo_supported(RESULT _bindiff_ipo_supported)
 
 # Make Google-style includes work
 set(_bindiff_src ${PROJECT_BINARY_DIR}/src_include/third_party/zynamics)
