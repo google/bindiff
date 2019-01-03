@@ -1,13 +1,13 @@
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
-cmake_minimum_required(VERSION 3.7)
-cmake_policy(VERSION 3.7)
+cmake_minimum_required(VERSION 3.9)
 project(bindiff VERSION 5.0.0)
 
 set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
 set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
 set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
 
+include(CheckIPOSupported)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
 include(${BinExport_DIR}/util.cmake)
@@ -30,6 +30,7 @@ include(${BinExport_DIR}/googletest.cmake)
 include(${BinExport_DIR}/absl.cmake)
 
 enable_testing()
+check_ipo_supported(RESULT _bindiff_ipo_supported)
 
 # Make Google-style includes work
 set(_bindiff_src ${PROJECT_BINARY_DIR}/src_include/third_party/zynamics)
@@ -89,12 +90,16 @@ target_link_libraries(binexport_shared
 if(WIN32)
   target_link_libraries(binexport_shared shlwapi.lib)
 endif()
+set_target_properties(binexport_shared PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
 # XML configuration library
 add_library(xmlconfig STATIC xmlconfig.cc
                              xmlconfig.h)
 target_link_libraries(xmlconfig binexport_shared
                                 tinyxpath)
+set_target_properties(xmlconfig PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
 add_executable(xmlconfig_test xmlconfig_test.cc)
 target_link_libraries(xmlconfig_test
@@ -184,6 +189,8 @@ target_link_libraries(bindiff_shared
   binexport_shared
   sqlite
   xmlconfig)
+set_target_properties(bindiff_shared PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
 add_executable(utility_test utility_test.cc)
 target_link_libraries(utility_test
@@ -229,8 +236,9 @@ ida_target_link_libraries(${bindiff_plugin_name}
   absl::time
   ${bindiff_plugin_libraries}
 )
-set_ida_target_properties(${bindiff_plugin_name}
-  PROPERTIES POSITION_INDEPENDENT_CODE ON
+set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
+  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported}
 )
 ida_install(TARGETS ${bindiff_plugin_name}
             ARCHIVE DESTINATION bindiff-prefix
@@ -243,4 +251,6 @@ target_link_libraries(bindiff
   absl::time
   gflags
 )
+set_target_properties(bindiff PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
