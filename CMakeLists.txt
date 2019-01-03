@@ -14,6 +14,8 @@ set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
 if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
   include(CheckIPOSupported)
   check_ipo_supported(RESULT _bindiff_ipo_supported)
+else()
+  set(_bindiff_ipo_supported FALSE)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
