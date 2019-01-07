@@ -391,7 +391,7 @@ Results::UnmatchedDescription Results::GetUnmatchedDescriptionSecondary(
 
 Results::UnmatchedDescription Results::GetUnmatchedDescription(
     const IndexedFlowGraphs& flow_graphs, size_t index) const {
-  if (index < 0 || index >= flow_graphs.size()) {
+  if (index >= flow_graphs.size()) {
     return {};
   }
 
@@ -416,24 +416,24 @@ Results::UnmatchedDescription Results::GetUnmatchedDescription(
 }
 
 Address Results::GetSecondaryAddress(size_t index) const {
-  if (!index || index > indexed_flow_graphs2_.size()) {
+  if (index >= indexed_flow_graphs2_.size()) {
     return 0;
   }
-  return indexed_flow_graphs2_[index - 1]->address;
+  return indexed_flow_graphs2_[index]->address;
 }
 
 Address Results::GetPrimaryAddress(size_t index) const {
-  if (!index || index > indexed_flow_graphs1_.size()) {
+  if (index >= indexed_flow_graphs1_.size()) {
     return 0;
   }
-  return indexed_flow_graphs1_[index - 1]->address;
+  return indexed_flow_graphs1_[index]->address;
 }
 
 Address Results::GetMatchPrimaryAddress(size_t index) const {
-  if (!index || index > indexed_fixed_points_.size()) {
+  if (index >= indexed_fixed_points_.size()) {
     return 0;
   }
-  return indexed_fixed_points_[index - 1]->primary;
+  return indexed_fixed_points_[index]->primary;
 }
 
 bool Results::IncrementalDiff() {
@@ -932,7 +932,7 @@ Results::MatchDescription Results::GetMatchDescription(int index) const {
     return {};
   }
 
-  const FixedPointInfo& fixed_point(*indexed_fixed_points_[index]);
+  const FixedPointInfo& fixed_point = *indexed_fixed_points_[index];
   UpdateName(const_cast<CallGraph*>(&call_graph1_), fixed_point.primary);
 
   FlowGraphInfo empty{0};
@@ -1090,13 +1090,13 @@ void Results::DeleteTemporaryFlowGraphs() {
 }
 
 bool Results::PrepareVisualCallGraphDiff(size_t index, string* message) {
-  if (!index || index > indexed_fixed_points_.size()) {
+  if (index >= indexed_fixed_points_.size()) {
     return false;
   }
 
   const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
-  diff_database_id_++;
-  string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
+  ++diff_database_id_;
+  string name = absl::StrCat("visual_diff", diff_database_id_, ".database");
   string database_file;
   // TODO(cblichmann): Bug: if matches have been manually modified in the
   //                   meantime we are hosed!
@@ -1112,14 +1112,14 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, string* message) {
   }
 
   *message = VisualDiffMessage(
-      /* call_graph_match */ true, database_file, call_graph1_.GetFilePath(),
+      /*call_graph_match=*/true, database_file, call_graph1_.GetFilePath(),
       fixed_point_info.primary, call_graph2_.GetFilePath(),
       fixed_point_info.secondary);
   return true;
 }
 
 bool Results::PrepareVisualDiff(size_t index, string* message) {
-  if (!index || index > indexed_fixed_points_.size()) {
+  if (index >= indexed_fixed_points_.size()) {
     return false;
   }
 
@@ -1161,7 +1161,7 @@ bool Results::PrepareVisualDiff(size_t index, string* message) {
   flow_graphs2.insert(fixed_point.GetSecondary());
   fixed_points.insert(fixed_point);
 
-  diff_database_id_++;
+  ++diff_database_id_;
   string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
   DatabaseWriter writer(name, true);
   writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
@@ -1169,7 +1169,7 @@ bool Results::PrepareVisualDiff(size_t index, string* message) {
   const string& database_file = writer.GetFilename();
 
   *message = VisualDiffMessage(
-      /* call_graph_match */ false, database_file, call_graph1_.GetFilePath(),
+      /*call_graph_match=*/false, database_file, call_graph1_.GetFilePath(),
       fixed_point.GetPrimary()->GetEntryPointAddress(),
       call_graph2_.GetFilePath(),
       fixed_point.GetSecondary()->GetEntryPointAddress());
@@ -1394,11 +1394,11 @@ int Results::ConfirmMatch(int index) {
 }
 
 int Results::CopyPrimaryAddress(int index) const {
-  if (index < 1 || index > static_cast<int>(indexed_fixed_points_.size())) {
+  if (index < 0 || index >= static_cast<int>(indexed_fixed_points_.size())) {
     return 0;
   }
 
-  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
+  const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
   enum { kBufferSize = 32 };
   char buffer[kBufferSize];
   memset(buffer, 0, kBufferSize);
@@ -1410,11 +1410,11 @@ int Results::CopyPrimaryAddress(int index) const {
 }
 
 int Results::CopySecondaryAddress(int index) const {
-  if (index < 1 || index > static_cast<int>(indexed_fixed_points_.size())) {
+  if (index < 0 || index >= static_cast<int>(indexed_fixed_points_.size())) {
     return 0;
   }
 
-  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
+  const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
   enum { kBufferSize = 32 };
   char buffer[kBufferSize];
   memset(buffer, 0, kBufferSize);
@@ -1426,11 +1426,11 @@ int Results::CopySecondaryAddress(int index) const {
 }
 
 int Results::CopyPrimaryAddressUnmatched(int index) const {
-  if (index < 1 || index > static_cast<int>(indexed_flow_graphs1_.size())) {
+  if (index < 0 || index >= static_cast<int>(indexed_flow_graphs1_.size())) {
     return 0;
   }
 
-  const FlowGraphInfo& flowGraphInfo(*indexed_flow_graphs1_[index - 1]);
+  const FlowGraphInfo& flowGraphInfo = *indexed_flow_graphs1_[index];
   enum { kBufferSize = 32 };
   char buffer[kBufferSize];
   memset(buffer, 0, kBufferSize);
@@ -1442,11 +1442,11 @@ int Results::CopyPrimaryAddressUnmatched(int index) const {
 }
 
 int Results::CopySecondaryAddressUnmatched(int index) const {
-  if (index < 1 || index > static_cast<int>(indexed_flow_graphs2_.size())) {
+  if (index < 0 || index >= static_cast<int>(indexed_flow_graphs2_.size())) {
     return 0;
   }
 
-  const FlowGraphInfo& flowGraphInfo(*indexed_flow_graphs2_[index - 1]);
+  const FlowGraphInfo& flowGraphInfo = *indexed_flow_graphs2_[index];
   enum { kBufferSize = 32 };
   char buffer[kBufferSize];
   memset(buffer, 0, kBufferSize);

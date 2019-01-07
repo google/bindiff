@@ -5,7 +5,6 @@
 #include <memory>
 #include <thread>  // NOLINT(build/c++11)
 
-#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <diskio.hpp>                                           // NOLINT
@@ -30,6 +29,7 @@
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
