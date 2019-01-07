@@ -18,7 +18,7 @@ constexpr const char MatchedFunctionsChooser::kViewFlowGraphsAction[];
 constexpr const char MatchedFunctionsChooser::kImportSymbolsCommentsAction[];
 constexpr const char
     MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction[];
-constexpr const char MatchedFunctionsChooser::kConfirmMatchAction[];
+constexpr const char MatchedFunctionsChooser::kConfirmMatchesAction[];
 constexpr const char MatchedFunctionsChooser::kCopyPrimaryAddressAction[];
 constexpr const char MatchedFunctionsChooser::kCopySecondaryAddressAction[];
 
@@ -35,7 +35,7 @@ bool MatchedFunctionsChooser::AttachActionsToPopup(TWidget* widget,
   }
   for (const auto& action :
        {kDeleteAction, kViewFlowGraphsAction, kImportSymbolsCommentsAction,
-        kImportSymbolsCommentsExternalAction, kConfirmMatchAction,
+        kImportSymbolsCommentsExternalAction, kConfirmMatchesAction,
         kCopyPrimaryAddressAction, kCopySecondaryAddressAction}) {
     attach_action_to_popup(widget, popup_handle, action);
   }

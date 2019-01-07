@@ -5,6 +5,7 @@
 #include <memory>
 #include <thread>  // NOLINT(build/c++11)
 
+#include "third_party/absl/types/span.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <diskio.hpp>                                           // NOLINT
@@ -510,7 +511,7 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
         // the diff results would be back. As it is we lose the results but
         // at least leave windows/internal data structures in a consistent
         // state.
-        refresh_chooser("Matched Functions");
+        MatchedFunctionsChooser::Refresh();
         refresh_chooser("Primary Unmatched");
         refresh_chooser("Secondary Unmatched");
         refresh_chooser("Statistics");
@@ -827,7 +828,7 @@ bool DoPortComments() {
     g_results->PortComments(start_address_source, end_address_source,
                             start_address_target, end_address_target,
                             min_confidence, min_similarity);
-    refresh_chooser("Matched Functions");
+    MatchedFunctionsChooser::Refresh();
     refresh_chooser("Primary Unmatched");
     LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
                               " for comment porting");
@@ -1267,28 +1268,22 @@ class ViewFlowGraphsAction : public ActionHandler<ViewFlowGraphsAction> {
   }
 };
 
-class ConfirmMatchAction : public ActionHandler<ConfirmMatchAction> {
+class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
         LOG(INFO) << " " << context->action;
     if (!g_results) {
       return 0;
     }
-    try {
-      // TODO(cblichmann): Efficient bulk actions in Results class
-      for (const auto& index : context->chooser_selection) {
-        LOG(INFO) << " index: " << index;
-        g_results->ConfirmMatch(index);
-      }
-      return 1;
-    } catch (const std::exception& message) {
-      LOG(INFO) << "Error: " << message.what();
-      warning("Error: %s\n", message.what());
-      return 0;
-    } catch (...) {
-      LOG(INFO) << "Unknown error while confirming match";
-      warning("Unknown error while confirming match\n");
+    const auto& ida_selection = context->chooser_selection;
+    auto status = g_results->ConfirmMatches(
+        absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
+    if (!status.ok()) {
+      LOG(INFO) << "Error: " << status.error_message();
+      warning("Error: %s\n", string(status.error_message()).c_str());
       return 0;
     }
+    MatchedFunctionsChooser::Refresh();
+    return 1;
   }
 };
 
@@ -1391,8 +1386,8 @@ void InitActions() {
       MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction,
       "Import symbols/comments as ~e~xternal library", "",
       /*tooltip=*/nullptr, /*icon=*/-1));
-  register_action(ConfirmMatchAction::MakeActionDesc(
-      MatchedFunctionsChooser::kConfirmMatchAction, "~C~onfirm match", "",
+  register_action(ConfirmMatchesAction::MakeActionDesc(
+      MatchedFunctionsChooser::kConfirmMatchesAction, "~C~onfirm match(es)", "",
       /*tooltip=*/nullptr, /*icon=*/-1));
 }
 

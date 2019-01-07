@@ -1366,31 +1366,27 @@ int Results::PortComments(int index, bool as_external) {
 #endif
 }
 
-int Results::ConfirmMatch(int index) {
-  // TODO(cblichmann): Port this over to the new IDA 7 API
-  return 0;
-#if 0
-  if (index == START_SEL || index == END_SEL) {
-    // multiselection support. we must return OK, but cannot do anything yet
-    return 1;
+util::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
+  if (indices.empty()) {
+    return util::OkStatus();
   }
+  for (const auto& index : indices) {
+    if (index >= indexed_fixed_points_.size()) {
+      return util::Status{absl::StatusCode::kInvalidArgument,
+                          absl::StrCat("Index out of range: ", index)};
+    }
 
-  if (!index || index > static_cast<int>(indexed_fixed_points_.size())) {
-    return 0;
-  }
-
-  FixedPointInfo* fixed_point_info(indexed_fixed_points_[index - 1]);
-  fixed_point_info->algorithm = FindString(MatchingStep::kFunctionManualName);
-  fixed_point_info->confidence = 1.0;
-  if (!IsInComplete()) {
-    FixedPoint* fixed_point(FindFixedPoint(*fixed_point_info));
-    fixed_point->SetMatchingStep(*fixed_point_info->algorithm);
-    fixed_point->SetConfidence(fixed_point_info->confidence);
+    FixedPointInfo* fixed_point_info(indexed_fixed_points_[index]);
+    fixed_point_info->algorithm = FindString(MatchingStep::kFunctionManualName);
+    fixed_point_info->confidence = 1.0;
+    if (!IsInComplete()) {
+      FixedPoint* fixed_point(FindFixedPoint(*fixed_point_info));
+      fixed_point->SetMatchingStep(*fixed_point_info->algorithm);
+      fixed_point->SetConfidence(fixed_point_info->confidence);
+    }
   }
   SetDirty();
-
-  return 1;
-#endif
+  return util::OkStatus();
 }
 
 int Results::CopyPrimaryAddress(int index) const {

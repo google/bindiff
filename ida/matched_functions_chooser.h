@@ -21,7 +21,8 @@ class MatchedFunctionsChooser : public chooser_multi_t {
       "bindiff:import_symbols_comments";
   static constexpr const char kImportSymbolsCommentsExternalAction[] =
       "bindiff:import_symbols_comments_external";
-  static constexpr const char kConfirmMatchAction[] = "bindiff:confirm_match";
+  static constexpr const char kConfirmMatchesAction[] =
+      "bindiff:confirm_matches";
   static constexpr const char kCopyPrimaryAddressAction[] =
       "bindiff:copy_primary_address";
   static constexpr const char kCopySecondaryAddressAction[] =
@@ -35,6 +36,9 @@ class MatchedFunctionsChooser : public chooser_multi_t {
   // Attaches the chooser actions to IDA's popup menu. To be called from a HT_UI
   // notification point.
   static bool AttachActionsToPopup(TWidget* widget, TPopupMenu* popup_handle);
+
+  // Refreshes the display of this chooser if visible. Does nothing otherwise.
+  static void Refresh() { refresh_chooser(kTitle); }
 
  private:
   static constexpr const int kColumnWidths[] = {

@@ -8,6 +8,7 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/integral_types.h"
+#include "third_party/absl/types/span.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
 #include "third_party/zynamics/bindiff/differ.h"
@@ -16,6 +17,7 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/types.h"
+#include "util/task/status.h"
 
 namespace security {
 namespace bindiff {
@@ -101,7 +103,9 @@ class Results {
   int CopySecondaryAddress(int index) const;
   int CopyPrimaryAddressUnmatched(int index) const;
   int CopySecondaryAddressUnmatched(int index) const;
-  int ConfirmMatch(int index);
+
+  util::Status ConfirmMatches(absl::Span<const size_t> indices);
+
   int PortComments(int index, bool as_external);
   int PortComments(Address start_address_source, Address end_address_source,
                    Address start_address_target, Address end_address_target,
