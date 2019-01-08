@@ -5,6 +5,7 @@
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
+#include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
@@ -14,9 +15,9 @@ namespace bindiff {
 class StatisticsChooser : public chooser_t {
  public:
   explicit StatisticsChooser(Results* results)
-      : chooser_t(CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
-                  kColumnNames, kTitle),
-        results_(results) {}
+      : chooser_t{CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
+                  kColumnNames, kTitle},
+        results_{ABSL_DIE_IF_NULL(results)} {}
 
   // Refreshes the display of this chooser if visible. Does nothing otherwise.
   static void Refresh() { refresh_chooser(kTitle); }

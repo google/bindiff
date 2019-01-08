@@ -5,6 +5,7 @@
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
+#include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
@@ -14,10 +15,10 @@ namespace bindiff {
 class UnmatchedFunctionsChooserBase : public chooser_multi_t {
  protected:
   UnmatchedFunctionsChooserBase(const char* title, Results* results)
-      : chooser_multi_t(CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
-                        kColumnNames, title),
-        results_(results),
-        title_(title) {}
+      : chooser_multi_t{CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
+                        kColumnNames, title},
+        results_{ABSL_DIE_IF_NULL(results)},
+        title_{title} {}
 
   Results* results_;
 
@@ -54,6 +55,10 @@ class UnmatchedFunctionsChooserPrimary : public UnmatchedFunctionsChooserBase {
   static constexpr const char kTitle[] = "Primary Unmatched";
 
   size_t get_count() const override;
+
+  // Default action if the user pressed the enter key/double clicked on a match.
+  ea_t get_ea(size_t n) const override;
+
   Results::UnmatchedDescription GetDescription(size_t index) const override;
 };
 

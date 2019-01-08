@@ -16,17 +16,13 @@ const void* StatisticsChooser::get_obj_id(size_t* len) const {
 }
 
 size_t StatisticsChooser::get_count() const {
-  return results_ ? results_->GetNumStatistics() : 0;
+  return results_->GetNumStatistics();
 }
 
 void StatisticsChooser::get_row(qstrvec_t* cols, int* /* icon_ */,
                                 chooser_item_attrs_t* /* attrs */,
                                 size_t n) const {
-  if (!results_) {
-    return;
-  }
-  Results::StatisticDescription statistic =
-      results_->GetStatisticDescription(n);
+  auto statistic = results_->GetStatisticDescription(n);
   (*cols)[0] = statistic.name.c_str();
   (*cols)[1] = (statistic.is_count ? std::to_string(statistic.count)
                                    : std::to_string(statistic.value))

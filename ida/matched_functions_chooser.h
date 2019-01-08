@@ -5,6 +5,7 @@
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
+#include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
@@ -29,9 +30,9 @@ class MatchedFunctionsChooser : public chooser_multi_t {
       "bindiff:copy_secondary_address";
 
   explicit MatchedFunctionsChooser(Results* results)
-      : chooser_multi_t(CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
-                        kColumnNames, kTitle),
-        results_(results) {}
+      : chooser_multi_t{CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
+                        kColumnNames, kTitle},
+        results_{ABSL_DIE_IF_NULL(results)} {}
 
   // Attaches the chooser actions to IDA's popup menu. To be called from a HT_UI
   // notification point.
@@ -75,6 +76,10 @@ class MatchedFunctionsChooser : public chooser_multi_t {
   size_t get_count() const override;
   void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
                size_t n) const override;
+
+  // Default action if the user pressed the enter key/double clicked on a match.
+  ea_t get_ea(size_t n) const override;
+
   chooser_t::cbres_t refresh(sizevec_t* sel) override;
 
   Results* results_;

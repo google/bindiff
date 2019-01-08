@@ -24,11 +24,7 @@ const void* UnmatchedFunctionsChooserBase::get_obj_id(size_t* len) const {
 void UnmatchedFunctionsChooserBase::get_row(qstrvec_t* cols, int* /* icon_ */,
                                             chooser_item_attrs_t* /* attrs */,
                                             size_t n) const {
-  if (!results_) {
-    return;
-  }
-  Results::UnmatchedDescription desc = GetDescription(n);
-
+  const Results::UnmatchedDescription desc = GetDescription(n);
   (*cols)[0] = FormatAddress(desc.address).c_str();
   (*cols)[1] = desc.name.c_str();
   (*cols)[2] = std::to_string(desc.basic_block_count).c_str();
@@ -36,8 +32,14 @@ void UnmatchedFunctionsChooserBase::get_row(qstrvec_t* cols, int* /* icon_ */,
   (*cols)[4] = std::to_string(desc.edge_count).c_str();
 }
 
+constexpr const char UnmatchedFunctionsChooserPrimary::kTitle[];
+
 size_t UnmatchedFunctionsChooserPrimary::get_count() const {
-  return results_ ? results_->GetNumUnmatchedPrimary() : 0;
+  return results_->GetNumUnmatchedPrimary();
+}
+
+ea_t UnmatchedFunctionsChooserPrimary::get_ea(size_t n) const {
+  return results_->GetMatchDescription(n).address_primary;
 }
 
 Results::UnmatchedDescription UnmatchedFunctionsChooserPrimary::GetDescription(
@@ -45,17 +47,16 @@ Results::UnmatchedDescription UnmatchedFunctionsChooserPrimary::GetDescription(
   return results_->GetUnmatchedDescriptionPrimary(index);
 }
 
+constexpr const char UnmatchedFunctionsChooserSecondary::kTitle[];
+
 size_t UnmatchedFunctionsChooserSecondary::get_count() const {
-  return results_ ? results_->GetNumUnmatchedSecondary() : 0;
+  return results_->GetNumUnmatchedSecondary();
 }
 
 Results::UnmatchedDescription
 UnmatchedFunctionsChooserSecondary::GetDescription(size_t index) const {
   return results_->GetUnmatchedDescriptionSecondary(index);
 }
-
-constexpr const char UnmatchedFunctionsChooserPrimary::kTitle[];
-constexpr const char UnmatchedFunctionsChooserSecondary::kTitle[];
 
 }  // namespace bindiff
 }  // namespace security

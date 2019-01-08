@@ -49,17 +49,13 @@ const void* MatchedFunctionsChooser::get_obj_id(size_t* len) const {
 }
 
 size_t MatchedFunctionsChooser::get_count() const {
-  return results_ ? results_->GetNumMatches() : 0;
+  return results_->GetNumMatches();
 }
 
 void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* /*icon_*/,
                                       chooser_item_attrs_t* attrs,
                                       size_t n) const {
-  if (!results_) {
-    return;
-  }
-  Results::MatchDescription match = results_->GetMatchDescription(n);
-
+  const auto match = results_->GetMatchDescription(n);
   (*cols)[0] = absl::StrFormat("%.2f", match.similarity).c_str();
   (*cols)[1] = absl::StrFormat("%.2f", match.confidence).c_str();
   (*cols)[2] = GetChangeDescription(match.change_type).c_str();
@@ -84,6 +80,10 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* /*icon_*/,
   if (match.manual) {
     attrs->flags |= CHITEM_BOLD;
   }
+}
+
+ea_t MatchedFunctionsChooser::get_ea(size_t n) const {
+  return results_->GetMatchDescription(n).address_primary;
 }
 
 chooser_t::cbres_t MatchedFunctionsChooser::refresh(sizevec_t* sel) {
