@@ -41,7 +41,9 @@ public class BackgroundCellRenderer extends AbstractTableCellRenderer {
     setFont(font);
 
     final String text;
-    if (value instanceof String) {
+    if (value == null) {
+      text = "";
+    } else if (value instanceof String) {
       text = (String) value;
       isInaccessible = text.equals("");
     } else if (value instanceof Double) {
