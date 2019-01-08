@@ -21,8 +21,8 @@ const void* UnmatchedFunctionsChooserBase::get_obj_id(size_t* len) const {
   return title_.c_str();
 }
 
-void UnmatchedFunctionsChooserBase::get_row(qstrvec_t* cols, int* icon_,
-                                            chooser_item_attrs_t* attrs,
+void UnmatchedFunctionsChooserBase::get_row(qstrvec_t* cols, int* /* icon_ */,
+                                            chooser_item_attrs_t* /* attrs */,
                                             size_t n) const {
   if (!results_) {
     return;
@@ -53,6 +53,9 @@ Results::UnmatchedDescription
 UnmatchedFunctionsChooserSecondary::GetDescription(size_t index) const {
   return results_->GetUnmatchedDescriptionSecondary(index);
 }
+
+constexpr const char UnmatchedFunctionsChooserPrimary::kTitle[];
+constexpr const char UnmatchedFunctionsChooserSecondary::kTitle[];
 
 }  // namespace bindiff
 }  // namespace security

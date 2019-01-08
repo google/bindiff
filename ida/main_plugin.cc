@@ -424,7 +424,9 @@ uint32_t idaapi AddMatchPrimary(void* /* unused */, uint32_t index) {
 }
 
 uint32_t idaapi AddMatchSecondary(void* /* unused */, uint32_t index) {
-  if (!g_results) return 0;
+  if (!g_results) {
+    return 0;
+  }
 
   try {
     WaitBox wait_box("Performing basicblock diff...");
@@ -440,7 +442,9 @@ uint32_t idaapi AddMatchSecondary(void* /* unused */, uint32_t index) {
 }
 
 void idaapi JumpToMatchAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) return;
+  if (!g_results) {
+    return;
+  }
 
   jumpto(static_cast<ea_t>(g_results->GetMatchPrimaryAddress(index)));
 }
@@ -512,9 +516,9 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
         // at least leave windows/internal data structures in a consistent
         // state.
         MatchedFunctionsChooser::Refresh();
-        refresh_chooser("Primary Unmatched");
-        refresh_chooser("Secondary Unmatched");
-        refresh_chooser("Statistics");
+        UnmatchedFunctionsChooserPrimary::Refresh();
+        UnmatchedFunctionsChooserSecondary::Refresh();
+        StatisticsChooser::Refresh();
       }
       break;
     }
@@ -572,8 +576,6 @@ void ShowResults(const ResultFlags flags) {
       add_chooser_command("Matched Functions", "Copy Secondary Address",
                           &CopySecondaryAddress, -1, -1, CHOOSER_POPUP_MENU);
 #endif
-    } else {
-      refresh_chooser("Matched Functions");
     }
 #endif
   }
@@ -605,7 +607,6 @@ void ShowResults(const ResultFlags flags) {
                         &CopyPrimaryAddressUnmatched, -1, -1,
                         CHOOSER_POPUP_MENU);
 #endif
-    refresh_chooser("Primary Unmatched");
 #endif
   }
 
@@ -821,7 +822,7 @@ bool DoPortComments() {
                             start_address_target, end_address_target,
                             min_confidence, min_similarity);
     MatchedFunctionsChooser::Refresh();
-    refresh_chooser("Primary Unmatched");
+    UnmatchedFunctionsChooserPrimary::Refresh();
     LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
                               " for comment porting");
     return true;
@@ -1242,9 +1243,9 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
     }
     // Need to refresh all choosers
     MatchedFunctionsChooser::Refresh();
-    refresh_chooser("Primary Unmatched");
-    refresh_chooser("Secondary Unmatched");
-    refresh_chooser("Statistics");
+    UnmatchedFunctionsChooserPrimary::Refresh();
+    UnmatchedFunctionsChooserSecondary::Refresh();
+    StatisticsChooser::Refresh();
     return 1;
   }
 };

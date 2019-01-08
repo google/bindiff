@@ -14,8 +14,8 @@ namespace bindiff {
 class UnmatchedFunctionsChooserBase : public chooser_multi_t {
  protected:
   UnmatchedFunctionsChooserBase(const char* title, Results* results)
-      : chooser_multi_t(CH_KEEP | CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths),
-                        kColumnWidths, kColumnNames, title),
+      : chooser_multi_t(CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
+                        kColumnNames, title),
         results_(results),
         title_(title) {}
 
@@ -45,9 +45,14 @@ class UnmatchedFunctionsChooserBase : public chooser_multi_t {
 class UnmatchedFunctionsChooserPrimary : public UnmatchedFunctionsChooserBase {
  public:
   explicit UnmatchedFunctionsChooserPrimary(Results* results)
-      : UnmatchedFunctionsChooserBase("Primary Unmatched", results) {}
+      : UnmatchedFunctionsChooserBase(kTitle, results) {}
+
+  // Refreshes the display of this chooser if visible. Does nothing otherwise.
+  static void Refresh() { refresh_chooser(kTitle); }
 
  private:
+  static constexpr const char kTitle[] = "Primary Unmatched";
+
   size_t get_count() const override;
   Results::UnmatchedDescription GetDescription(size_t index) const override;
 };
@@ -56,9 +61,14 @@ class UnmatchedFunctionsChooserSecondary
     : public UnmatchedFunctionsChooserBase {
  public:
   explicit UnmatchedFunctionsChooserSecondary(Results* results)
-      : UnmatchedFunctionsChooserBase("Secondary Unmatched", results) {}
+      : UnmatchedFunctionsChooserBase(kTitle, results) {}
+
+  // Refreshes the display of this chooser if visible. Does nothing otherwise.
+  static void Refresh() { refresh_chooser(kTitle); }
 
  private:
+  static constexpr const char kTitle[] = "Secondary Unmatched";
+
   size_t get_count() const override;
   Results::UnmatchedDescription GetDescription(size_t index) const override;
 };

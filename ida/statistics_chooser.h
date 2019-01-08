@@ -14,9 +14,12 @@ namespace bindiff {
 class StatisticsChooser : public chooser_t {
  public:
   explicit StatisticsChooser(Results* results)
-      : chooser_t(CH_KEEP | CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths),
-                  kColumnWidths, kColumnNames, kTitle),
+      : chooser_t(CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
+                  kColumnNames, kTitle),
         results_(results) {}
+
+  // Refreshes the display of this chooser if visible. Does nothing otherwise.
+  static void Refresh() { refresh_chooser(kTitle); }
 
  private:
   static constexpr const int kColumnWidths[] = {
