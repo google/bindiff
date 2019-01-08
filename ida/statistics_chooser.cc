@@ -19,8 +19,9 @@ size_t StatisticsChooser::get_count() const {
   return results_ ? results_->GetNumStatistics() : 0;
 }
 
-void StatisticsChooser::get_row(qstrvec_t* cols, int* icon_,
-                                chooser_item_attrs_t* attrs, size_t n) const {
+void StatisticsChooser::get_row(qstrvec_t* cols, int* /* icon_ */,
+                                chooser_item_attrs_t* /* attrs */,
+                                size_t n) const {
   if (!results_) {
     return;
   }

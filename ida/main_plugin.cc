@@ -242,7 +242,7 @@ bool ExportIdbs() {
   if (primary_idb_path == secondary_idb_path) {
     throw std::runtime_error(
         "You cannot open the same IDB file twice. Please copy and rename one if"
-        " you want to diff against self.");
+        " you want to diff against itself.");
   } else if (ReplaceFileExtension(primary_idb_path, "") ==
              ReplaceFileExtension(secondary_idb_path, "")) {
     throw std::runtime_error(
@@ -532,12 +532,12 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
   return 0;
 }
 
-void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
-  if (!results || results != g_results) {
-    throw std::runtime_error("trying to show invalid results");
+void ShowResults(const ResultFlags flags) {
+  if (!g_results) {
+    return;
   }
 
-  results->CreateIndexedViews();
+  g_results->CreateIndexedViews();
 
   if (flags & kResultsShowMatched) {
     (new MatchedFunctionsChooser(g_results))->choose();
@@ -580,12 +580,6 @@ void ShowResults(Results* results, const ResultFlags flags = kResultsShowAll) {
 
   if (flags & kResultsShowStatistics) {
     (new StatisticsChooser(g_results))->choose();
-#if 0
-    if (!find_tform("Statistics")) {
-    } else {
-      refresh_chooser("Statistics");
-    }
-#endif
   }
 
   if (flags & kResultsShowPrimaryUnmatched) {
@@ -626,9 +620,7 @@ bool idaapi MenuItemShowResultsCallback(void* user_data) {
     return false;
   }
 
-  const ResultFlags flags =
-      static_cast<ResultFlags>(reinterpret_cast<int64_t>(user_data));
-  ShowResults(g_results, flags);
+  ShowResults(static_cast<ResultFlags>(reinterpret_cast<int64_t>(user_data)));
   return true;
 }
 
@@ -710,7 +702,7 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
                             " for matching.");
 
-  ShowResults(g_results);
+  ShowResults(kResultsShowAll);
   g_results->SetDirty();
 
   return true;
@@ -727,7 +719,7 @@ bool DoRediffDatabase() {
       return false;
     }
     const bool result = g_results->IncrementalDiff();
-    ShowResults(g_results);
+    ShowResults(kResultsShowAll);
     return result;
   } catch (const std::exception& message) {
     LOG(INFO) << "Error while diffing: " << message.what();
@@ -1084,7 +1076,7 @@ bool DoLoadResults() {
       throw std::runtime_error(message);
     }
 
-    ShowResults(g_results);
+    ShowResults(kResultsShowAll);
 
     LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                               ")");
@@ -1101,56 +1093,58 @@ bool DoLoadResults() {
   return false;
 }
 
-void idaapi ButtonDiffDatabaseCallback(int button_code,
+void idaapi ButtonDiffDatabaseCallback(int /* button_code */,
                                        form_actions_t& actions) {
   if (DoDiffDatabase(/*filtered=*/false)) {
     actions.close(/*close_normally=*/1);
   }
 }
 
-void idaapi ButtonDiffDatabaseFilteredCallback(int button_code,
+void idaapi ButtonDiffDatabaseFilteredCallback(int /* button_code */,
                                                form_actions_t& actions) {
   if (DoDiffDatabase(/*filtered=*/true)) {
     actions.close(/*close_normally=*/1);
   }
 }
 
-void idaapi ButtonRediffDatabaseCallback(int button_code,
+void idaapi ButtonRediffDatabaseCallback(int /* button_code */,
                                          form_actions_t& actions) {
   if (DoRediffDatabase()) {
     actions.close(/*close_normally=*/1);
   }
 }
 
-void idaapi ButtonLoadResultsCallback(int button_code,
+void idaapi ButtonLoadResultsCallback(int /* button_code */,
                                       form_actions_t& actions) {
   if (DoLoadResults()) {
     actions.close(/*close_normally=*/1);
   }
 }
 
-void idaapi ButtonSaveResultsCallback(int button_code,
+void idaapi ButtonSaveResultsCallback(int /* button_code */,
                                       form_actions_t& actions) {
   if (DoSaveResults()) {
     actions.close(/*close_normally=*/1);
   }
 }
 
-void idaapi ButtonSaveResultsLogCallback(int button_code,
+#ifndef NDEBUG
+void idaapi ButtonSaveResultsLogCallback(int /* button_code */,
                                          form_actions_t& actions) {
   if (DoSaveResultsLog()) {
     actions.close(/*close_normally=*/1);
   }
 }
 
-void idaapi ButtonSaveResultsDebugCallback(int button_code,
+void idaapi ButtonSaveResultsDebugCallback(int /* button_code */,
                                            form_actions_t& actions) {
   if (DoSaveResultsDebug()) {
     actions.close(/*close_normally=*/1);
   }
 }
+#endif
 
-void idaapi ButtonPortCommentsCallback(int button_code,
+void idaapi ButtonPortCommentsCallback(int /* button_code */,
                                        form_actions_t& actions) {
   if (DoPortComments()) {
     actions.close(/*close_normally=*/1);
@@ -1205,14 +1199,14 @@ class PortCommentsAction : public ActionHandler<PortCommentsAction> {
 
 class ShowMatchedAction : public ActionHandler<ShowMatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
-    ShowResults(g_results, kResultsShowMatched);
+    ShowResults(kResultsShowMatched);
     return 0;
   }
 };
 
 class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
   int idaapi activate(action_activation_ctx_t*) override {
-    ShowResults(g_results, kResultsShowStatistics);
+    ShowResults(kResultsShowStatistics);
     return 0;
   }
 };
@@ -1220,7 +1214,7 @@ class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
 class ShowPrimaryUnmatchedAction
     : public ActionHandler<ShowPrimaryUnmatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
-    ShowResults(g_results, kResultsShowPrimaryUnmatched);
+    ShowResults(kResultsShowPrimaryUnmatched);
     return 0;
   }
 };
@@ -1228,31 +1222,30 @@ class ShowPrimaryUnmatchedAction
 class ShowSecondaryUnmatchedAction
     : public ActionHandler<ShowSecondaryUnmatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
-    ShowResults(g_results, kResultsShowSecondaryUnmatched);
+    ShowResults(kResultsShowSecondaryUnmatched);
     return 0;
   }
 };
 
-class DeleteMatchAction : public ActionHandler<DeleteMatchAction> {
+class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
     if (!g_results) {
       return 0;
     }
-    try {
-      // TODO(cblichmann): Efficient bulk actions in Results class
-      for (const auto& index : context->chooser_selection) {
-        g_results->DeleteMatch(index);
-      }
-      return 1;
-    } catch (const std::exception& message) {
-      LOG(INFO) << "Error: " << message.what();
-      warning("Error: %s\n", message.what());
-      return 0;
-    } catch (...) {
-      LOG(INFO) << "Unknown error while deleting match";
-      warning("Unknown error while deleting match\n");
+    const auto ida_selection = context->chooser_selection;
+    auto status = g_results->DeleteMatches(
+        absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
+    if (!status.ok()) {
+      LOG(INFO) << "Error: " << status.error_message();
+      warning("Error: %s\n", string(status.error_message()).c_str());
       return 0;
     }
+    // Need to refresh all choosers
+    MatchedFunctionsChooser::Refresh();
+    refresh_chooser("Primary Unmatched");
+    refresh_chooser("Secondary Unmatched");
+    refresh_chooser("Statistics");
+    return 1;
   }
 };
 
@@ -1270,7 +1263,6 @@ class ViewFlowGraphsAction : public ActionHandler<ViewFlowGraphsAction> {
 
 class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
-        LOG(INFO) << " " << context->action;
     if (!g_results) {
       return 0;
     }
@@ -1372,22 +1364,24 @@ void InitActions() {
       /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
 
   // Matched Functions chooser
-  register_action(DeleteMatchAction::MakeActionDesc(
-      MatchedFunctionsChooser::kDeleteAction, "~D~elete match", "",
+  register_action(DeleteMatchesAction::MakeActionDesc(
+      MatchedFunctionsChooser::kDeleteAction, "~D~elete match(es)", "DEL",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(ViewFlowGraphsAction::MakeActionDesc(
-      MatchedFunctionsChooser::kViewFlowGraphsAction, "View flow graphs", "",
+      MatchedFunctionsChooser::kViewFlowGraphsAction, "~V~iew flow graphs",
+      /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(PortCommentsAction::MakeActionDesc(
       MatchedFunctionsChooser::kImportSymbolsCommentsAction,
-      "Im~p~ort symbols/comments", "",
+      "Im~p~ort symbols/comments", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(PortCommentsAction::MakeActionDesc(
       MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction,
-      "Import symbols/comments as ~e~xternal library", "",
+      "Import symbols/comments as ~e~xternal library", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(ConfirmMatchesAction::MakeActionDesc(
-      MatchedFunctionsChooser::kConfirmMatchesAction, "~C~onfirm match(es)", "",
+      MatchedFunctionsChooser::kConfirmMatchesAction, "~C~onfirm match(es)",
+      /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
 }
 

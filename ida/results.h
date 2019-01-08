@@ -82,7 +82,8 @@ class Results {
   Address GetSecondaryAddress(size_t index) const;
   Address GetMatchPrimaryAddress(size_t index) const;
 
-  int DeleteMatch(size_t index);
+  util::Status DeleteMatches(absl::Span<const size_t> indices);
+
   int AddMatchPrimary(size_t index);
   int AddMatchSecondary(size_t index);
   int AddMatch(Address primary, Address secondary);
@@ -104,6 +105,9 @@ class Results {
   int CopyPrimaryAddressUnmatched(int index) const;
   int CopySecondaryAddressUnmatched(int index) const;
 
+  // Marks the matches indicated by the given indices as manually confirmed.
+  // Returns an error if any of the indices are out of range. Matches already
+  // marked are not reset in that case.
   util::Status ConfirmMatches(absl::Span<const size_t> indices);
 
   int PortComments(int index, bool as_external);
@@ -115,6 +119,11 @@ class Results {
   bool IsDirty() const;
   bool IncrementalDiff();
   void MarkPortedCommentsInDatabase();
+
+  bool should_reset_selection() { return should_reset_selection_; }
+  void set_should_reset_selection(bool value) {
+    should_reset_selection_ = value;
+  }
 
   static void DeleteTemporaryFiles();
 
@@ -164,6 +173,9 @@ class Results {
   double similarity_;
   double confidence_;
   bool dirty_;
+
+  // Whether choosers should reset their item selection
+  bool should_reset_selection_;
   int diff_database_id_;
 };
 

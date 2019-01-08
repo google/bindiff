@@ -29,8 +29,8 @@ class MatchedFunctionsChooser : public chooser_multi_t {
       "bindiff:copy_secondary_address";
 
   explicit MatchedFunctionsChooser(Results* results)
-      : chooser_multi_t(CH_KEEP | CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths),
-                        kColumnWidths, kColumnNames, kTitle),
+      : chooser_multi_t(CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
+                        kColumnNames, kTitle),
         results_(results) {}
 
   // Attaches the chooser actions to IDA's popup menu. To be called from a HT_UI
@@ -44,13 +44,13 @@ class MatchedFunctionsChooser : public chooser_multi_t {
   static constexpr const int kColumnWidths[] = {
     5 | CHCOL_DEC,   // Similarity
     3 | CHCOL_DEC,   // Confidence
-    3,               // Change
+    4,               // Change
     10 | CHCOL_HEX,  // EA Primary
     30,              // Name Primary
     10 | CHCOL_HEX,  // EA Secondary
     30,              // Name Secondary
     1,               // Comments Ported
-    30,              // Algorithm
+    28,              // Algorithm
     5 | CHCOL_DEC,   // Matched Basic Blocks
     5 | CHCOL_DEC,   // Basic Blocks Primary
     5 | CHCOL_DEC,   // Basic Blocks Secondary
@@ -75,6 +75,7 @@ class MatchedFunctionsChooser : public chooser_multi_t {
   size_t get_count() const override;
   void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
                size_t n) const override;
+  chooser_t::cbres_t refresh(sizevec_t* sel) override;
 
   Results* results_;
 };

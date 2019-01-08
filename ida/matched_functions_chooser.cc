@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_format.h"
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
@@ -51,7 +52,7 @@ size_t MatchedFunctionsChooser::get_count() const {
   return results_ ? results_->GetNumMatches() : 0;
 }
 
-void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* icon_,
+void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* /*icon_*/,
                                       chooser_item_attrs_t* attrs,
                                       size_t n) const {
   if (!results_) {
@@ -59,9 +60,8 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* icon_,
   }
   Results::MatchDescription match = results_->GetMatchDescription(n);
 
-  // Round similarity/confidence to 2 digits
-  (*cols)[0] = std::to_string(match.similarity * 100 / 100).c_str();
-  (*cols)[1] = std::to_string(match.confidence * 100 / 100).c_str();
+  (*cols)[0] = absl::StrFormat("%.2f", match.similarity).c_str();
+  (*cols)[1] = absl::StrFormat("%.2f", match.confidence).c_str();
   (*cols)[2] = GetChangeDescription(match.change_type).c_str();
   (*cols)[3] = FormatAddress(match.address_primary).c_str();
   (*cols)[4] = match.name_primary.c_str();
@@ -84,6 +84,14 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* icon_,
   if (match.manual) {
     attrs->flags |= CHITEM_BOLD;
   }
+}
+
+chooser_t::cbres_t MatchedFunctionsChooser::refresh(sizevec_t* sel) {
+  if (sel && !sel->empty() && results_->should_reset_selection()) {
+    sel->resize(1);  // Only keep the first item in selection
+    results_->set_should_reset_selection(false);
+  }
+  return ALL_CHANGED;
 }
 
 }  // namespace bindiff

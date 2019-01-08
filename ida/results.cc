@@ -15,13 +15,14 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
+#include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/names.h"
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
-#include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security {
@@ -152,14 +153,16 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         uint8_t serial;
         if (is_enum0(get_full_flags(static_cast<ea_t>(address))) &&
             operand_id == 0) {
-          int id = get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
+          const auto id =
+              get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
           if (id != BADNODE) {
             set_enum_name(id, comment.comment.c_str());
           }
         }
         if (is_enum1(get_full_flags(static_cast<ea_t>(address))) &&
             operand_id == 1) {
-          int id = get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
+          const auto id =
+              get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
           if (id != BADNODE) {
             set_enum_name(id, comment.comment.c_str());
           }
@@ -337,21 +340,22 @@ string VisualDiffMessage(bool call_graph_match,
 }  // namespace
 
 Results::Results()
-    : temp_database_("temporary.database", true),
-      incomplete_results_(false),  // Set when we have loaded from disk.
-      similarity_(0.0),
-      confidence_(0.0),
-      dirty_(false),
+    : temp_database_{"temporary.database", true},
+      incomplete_results_{false},  // Set when we have loaded from disk.
+      similarity_{0.0},
+      confidence_{0.0},
+      dirty_{false},
+      should_reset_selection_{false},
       diff_database_id_(0) {}
 
 Results::~Results() {
-  // we need to close this explicitly here as otherwise the
-  // DeleteTemporaryFiles() call below will fail due to locked db file
+  // Need to close this explicitly here as otherwise the DeleteTemporaryFiles()
+  // call below will fail (on Windows) due to locked db file.
   temp_database_.Close();
   DeleteFlowGraphs(&flow_graphs1_);
   DeleteFlowGraphs(&flow_graphs2_);
   DatabaseTransmuter::DeleteTempFile();
-  Results::DeleteTemporaryFiles();
+  DeleteTemporaryFiles();
 }
 
 void Results::SetDirty() { dirty_ = true; }
@@ -602,117 +606,108 @@ Results::StatisticDescription Results::GetStatisticDescription(
   return desc;
 }
 
-int Results::DeleteMatch(size_t index) {
-  // TODO(cblichmann): Port this over to the new IDA 7 API
-  return 0;
-#if 0
-  if (index == static_cast<size_t>(START_SEL) || !index) {
-    return 1;
+util::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
+  if (indices.empty()) {
+    return util::OkStatus();
   }
-  if (index == static_cast<size_t>(END_SEL)) {
-    // Refresh GUI when operation is done.
-    // refresh_chooser("Matched Functions");
-    refresh_chooser("Primary Unmatched");
-    refresh_chooser("Secondary Unmatched");
-    refresh_chooser("Statistics");
-    return 1;
-  }
-  --index;
-  if (index >= indexed_fixed_points_.size()) {
-    return 0;
-  }
-
-  // This is real nasty:
-  // - recalculate statistics
-  // - remove fixedpointinfo
-  // - remove matching flowgraph pointer from both graphs if loaded
-  // - remove fixedpoint if loaded
-  // ( - recalculate similarity and confidence )
-  // - update all views
-  // - be prepared to save .bindiff result file (again, tricky if it wasn't
-  //   loaded fully)
-
-  const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
-
-  temp_database_.DeleteFromTempDatabase(fixed_point_info.primary,
-                                        fixed_point_info.secondary);
-
-  if (call_graph2_.IsLibrary(
-          call_graph2_.GetVertex(fixed_point_info.secondary)) ||
-      flow_graph_infos2_.find(fixed_point_info.secondary) ==
-          flow_graph_infos2_.end() ||
-      call_graph1_.IsLibrary(
-          call_graph1_.GetVertex(fixed_point_info.primary)) ||
-      flow_graph_infos1_.find(fixed_point_info.primary) ==
-          flow_graph_infos1_.end()) {
-    counts_["function matches (library)"] -= 1;
-    counts_["basicBlock matches (library)"] -=
-        fixed_point_info.basic_block_count;
-    counts_["instruction matches (library)"] -=
-        fixed_point_info.instruction_count;
-    counts_["flowGraph edge matches (library)"] -= fixed_point_info.edge_count;
-  } else {
-    counts_["function matches (non-library)"] -= 1;
-    counts_["basicBlock matches (non-library)"] -=
-        fixed_point_info.basic_block_count;
-    counts_["instruction matches (non-library)"] -=
-        fixed_point_info.instruction_count;
-    counts_["flowGraph edge matches (non-library)"] -=
-        fixed_point_info.edge_count;
-  }
-  histogram_[*fixed_point_info.algorithm]--;
-
-  // Remove 0 entries from histogram.
-  for (auto i = histogram_.begin(), end = histogram_.end(); i != end;) {
-    if (!i->second) {
-      histogram_.erase(i++);
-    } else {
-      ++i;
+  auto num_indexed_fixed_points = indexed_fixed_points_.size();
+  for (const auto& index : indices) {
+    if (index >= num_indexed_fixed_points) {
+      return util::Status{absl::StatusCode::kInvalidArgument,
+                          absl::StrCat("Index out of range: ", index)};
     }
-  }
 
-  // TODO(soerenme) tree search, this is O(n^2) when deleting all matches
-  if (!IsInComplete()) {
-    for (auto i = fixed_points_.cbegin(), end = fixed_points_.cend(); i != end;
-         ++i) {
-      const FixedPoint& fixed_point = *i;
-      if (fixed_point.GetPrimary()->GetEntryPointAddress() ==
-              fixed_point_info.primary &&
-          fixed_point.GetSecondary()->GetEntryPointAddress() ==
-              fixed_point_info.secondary) {
-        FlowGraph* primary = fixed_point.GetPrimary();
-        FlowGraph* secondary = fixed_point.GetSecondary();
-        fixed_points_.erase(i);
-        primary->ResetMatches();
-        secondary->ResetMatches();
-        break;
+    // This is quite involved, especially if results were loaded and not
+    // calculated:
+    // - Recalculate statistics
+    // - Remove fixed point information
+    // - Remove matching flow graph pointer from both graphs if loaded
+    // - Remove fixed point if loaded
+    //   [ - Recalculate similarity and confidence ]
+    // - Update all views
+    // - Be prepared to save .BinDiff result file (again, tricky if it wasn't
+    //   loaded fully)
+
+    const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
+    const auto primary_address = fixed_point_info.primary;
+    const auto secondary_address = fixed_point_info.secondary;
+
+    auto flow_graph_info_entry1 = flow_graph_infos1_.find(primary_address);
+    DCHECK(flow_graph_info_entry1 != flow_graph_infos1_.end());
+    auto flow_graph_info_entry2 = flow_graph_infos2_.find(secondary_address);
+    DCHECK(flow_graph_info_entry2 != flow_graph_infos2_.end());
+
+    temp_database_.DeleteFromTempDatabase(primary_address, secondary_address);
+
+    if (call_graph2_.IsLibrary(call_graph2_.GetVertex(secondary_address)) ||
+        call_graph1_.IsLibrary(call_graph1_.GetVertex(primary_address))) {
+      counts_["function matches (library)"] -= 1;
+      counts_["basicBlock matches (library)"] -=
+          fixed_point_info.basic_block_count;
+      counts_["instruction matches (library)"] -=
+          fixed_point_info.instruction_count;
+      counts_["flowGraph edge matches (library)"] -=
+          fixed_point_info.edge_count;
+    } else {
+      counts_["function matches (non-library)"] -= 1;
+      counts_["basicBlock matches (non-library)"] -=
+          fixed_point_info.basic_block_count;
+      counts_["instruction matches (non-library)"] -=
+          fixed_point_info.instruction_count;
+      counts_["flowGraph edge matches (non-library)"] -=
+          fixed_point_info.edge_count;
+    }
+    auto& algorithm_count = histogram_[*fixed_point_info.algorithm];
+    if (algorithm_count > 0) {
+      --algorithm_count;
+    }
+
+    // TODO(cblichmann): Tree search, this is O(n^2) when deleting all matches.
+    if (!IsInComplete()) {
+      for (auto it = fixed_points_.begin(), end = fixed_points_.end();
+           it != end; ++it) {
+        auto* primary_flow_graph = it->GetPrimary();
+        auto* secondary_flow_graph = it->GetSecondary();
+        if (primary_flow_graph->GetEntryPointAddress() == primary_address &&
+            secondary_flow_graph->GetEntryPointAddress() == secondary_address) {
+          fixed_points_.erase(it);
+          primary_flow_graph->ResetMatches();
+          secondary_flow_graph->ResetMatches();
+          break;
+        }
       }
     }
+
+    indexed_flow_graphs1_.push_back(&flow_graph_info_entry1->second);
+    indexed_flow_graphs2_.push_back(&flow_graph_info_entry2->second);
+
+    indexed_fixed_points_[index] = nullptr;  // Mark for deletion
+
+    DCHECK(fixed_point_infos_.find(fixed_point_info) !=
+           fixed_point_infos_.end());
+    fixed_point_infos_.erase(fixed_point_info);
   }
 
-  CHECK(flow_graph_infos1_.find(fixed_point_info.primary) !=
-        flow_graph_infos1_.end());
-  CHECK(flow_graph_infos2_.find(fixed_point_info.secondary) !=
-        flow_graph_infos2_.end());
-  FlowGraphInfo& primary(
-      flow_graph_infos1_.find(fixed_point_info.primary)->second);
-  FlowGraphInfo& secondary(
-      flow_graph_infos2_.find(fixed_point_info.secondary)->second);
-  indexed_flow_graphs1_.push_back(&primary);
-  indexed_flow_graphs2_.push_back(&secondary);
+  // Clear out zero entries from histogram.
+  for (auto it = histogram_.begin(), end = histogram_.end(); it != end;) {
+    if (it->second == 0) {
+      histogram_.erase(it++);
+    } else {
+      ++it;
+    }
+  }
 
-  CHECK(fixed_point_infos_.find(fixed_point_info) != fixed_point_infos_.end());
-  indexed_fixed_points_.erase(indexed_fixed_points_.begin() + index);
-
-  fixed_point_infos_.erase(fixed_point_info);
-
-  CHECK(indexed_fixed_points_.size() == fixed_point_infos_.size());
-  CHECK(IsInComplete() || indexed_fixed_points_.size() == fixed_points_.size());
+  // Erase indexed fixed points that were marked for deletion.
+  indexed_fixed_points_.erase(std::remove(indexed_fixed_points_.begin(),
+                                          indexed_fixed_points_.end(), nullptr),
+                              indexed_fixed_points_.end());
+  num_indexed_fixed_points = indexed_fixed_points_.size();
+  DCHECK(num_indexed_fixed_points == fixed_point_infos_.size());
+  DCHECK(IsInComplete() || num_indexed_fixed_points == fixed_points_.size());
 
   SetDirty();
-
-  return 1;
-#endif
+  should_reset_selection_ = true;
+  return util::OkStatus();
 }
 
 FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
@@ -866,7 +861,7 @@ int Results::AddMatch(Address primary, Address secondary) {
                                         indexed_flow_graphs2_.end(),
                                         &secondary_info));
 
-  refresh_chooser("Matched Functions");
+  MatchedFunctionsChooser::Refresh();
   refresh_chooser("Primary Unmatched");
   refresh_chooser("Secondary Unmatched");
   refresh_chooser("Statistics");
@@ -1218,9 +1213,9 @@ void Results::Read(Reader* reader) {
   confidence_ = reader->GetConfidence();
   dirty_ = false;
 
-  // TODO(soerenme): Iterate over all fixedpoints that have been added manually
-  //                 by the Java UI and evaluate them (add basic
-  //                 block/instruction matches).
+  // TODO(cblichmann): Iterate over all fixedpoints that have been added
+  //                   manually by the Java UI and evaluate them (add basic
+  //                   block/instruction matches).
 }
 
 void Results::Write(Writer* writer) {

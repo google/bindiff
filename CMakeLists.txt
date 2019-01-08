@@ -242,6 +242,7 @@ endif()
 ida_target_link_libraries(${bindiff_plugin_name}
   bindiff_base
   bindiff_shared
+  absl::str_format
   absl::time
   ${bindiff_plugin_libraries}
 )
