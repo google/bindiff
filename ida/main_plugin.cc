@@ -42,6 +42,7 @@
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
+#include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
@@ -346,19 +347,6 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
   }
 }
 
-uint32_t idaapi PortCommentsSelectionAsLib(void* /* unused */, uint32_t index) {
-  try {
-    return g_results->PortComments(index, true /* as_external */);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error: " << message.what();
-    warning("Error: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while porting comments";
-    warning("Unknown error while porting comments\n");
-  }
-  return 0;
-}
-
 uint32_t idaapi CopyPrimaryAddress(void* /* unused */, uint32_t index) {
   if (!g_results) {
     return 0;
@@ -411,7 +399,7 @@ uint32_t idaapi AddMatchPrimary(void* /* unused */, uint32_t index) {
   if (!g_results) return 0;
 
   try {
-    WaitBox wait_box("Performing basicblock diff...");
+    WaitBox wait_box("Performing basic block diff...");
     return g_results->AddMatchPrimary(index);
   } catch (const std::exception& message) {
     LOG(INFO) << "Error: " << message.what();
@@ -439,14 +427,6 @@ uint32_t idaapi AddMatchSecondary(void* /* unused */, uint32_t index) {
     warning("Unknown error while adding match\n");
   }
   return 0;
-}
-
-void idaapi JumpToMatchAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return;
-  }
-
-  jumpto(static_cast<ea_t>(g_results->GetMatchPrimaryAddress(index)));
 }
 
 void SaveAndDiscardResults() {
@@ -540,44 +520,10 @@ void ShowResults(const ResultFlags flags) {
   if (!g_results) {
     return;
   }
-
   g_results->CreateIndexedViews();
 
   if (flags & kResultsShowMatched) {
     (new MatchedFunctionsChooser(g_results))->choose();
-#if 0
-    if (!find_tform("Matched Functions")) {
-      static const char* popups[] =  // insert, delete, edit, refresh
-          {"Delete Match", "Delete Match", "View Flowgraphs", "Refresh"};
-      close_chooser("Matched Functions");
-              &DeleteMatch,            // delete callback
-              0,                       // insert callback
-              0,                       // update callback
-              &VisualDiffCallback,     // edit callback (visual diff)
-              &JumpToMatchAddress,     // enter callback (jump to)
-              nullptr,                 // destroy callback
-              popups,                  // popups (insert, delete, edit, refresh)
-              0);
-      // not currently implemented/used
-      // add_chooser_command( "Matched Functions", "View Call graphs",
-      //    &VisualCallGraphDiffCallback, -1, -1, CHOOSER_POPUP_MENU );
-      add_chooser_command("Matched Functions", "Import Symbols and Comments",
-                          &PortCommentsSelection, -1, -1,
-                          CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
-      add_chooser_command("Matched Functions",
-                          "Import Symbols and Comments as external lib",
-                          &PortCommentsSelectionAsLib, -1, -1,
-                          CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
-      add_chooser_command("Matched Functions", "Confirm Match", &ConfirmMatch,
-                          -1, -1, CHOOSER_POPUP_MENU | CHOOSER_MULTI_SELECTION);
-#ifdef WIN32
-      add_chooser_command("Matched Functions", "Copy Primary Address",
-                          &CopyPrimaryAddress, -1, -1, CHOOSER_POPUP_MENU);
-      add_chooser_command("Matched Functions", "Copy Secondary Address",
-                          &CopySecondaryAddress, -1, -1, CHOOSER_POPUP_MENU);
-#endif
-    }
-#endif
   }
 
   if (flags & kResultsShowStatistics) {
@@ -784,56 +730,49 @@ bool DoPortComments() {
     return false;
   }
 
-  try {
-    static const char kDialog[] =
-        "STARTITEM 0\n"
-        "Import Symbols and Comments\n"
-        "Address range (default: all)\n\n"
-        "  <Start address (source):$::16::>\n"
-        "  <End address (source):$::16::>\n"
-        "  <Start address (target):$::16::>\n"
-        "  <End address (target):$::16::>\n\n"
-        "Minimum confidence required (default: none)\n\n"
-        "  <confidence:A::16::>\n\n"
-        "Minimum similarity required (default: none)\n\n"
-        "  <similarity:A::16::>\n\n";
+  static const char kDialog[] =
+      "STARTITEM 0\n"
+      "Import Symbols/Comments\n"
+      "Address range (default: all)\n\n"
+      "  <Start address (source):$::16::>\n"
+      "  <End address (source):$::16::>\n"
+      "  <Start address (target):$::16::>\n"
+      "  <End address (target):$::16::>\n\n"
+      "Minimum confidence required (default: none)\n\n"
+      "  <confidence:A::16::>\n\n"
+      "Minimum similarity required (default: none)\n\n"
+      "  <similarity:A::16::>\n\n";
 
-    // Default to full address range.
-    ea_t start_address_source = 0;
-    ea_t end_address_source = std::numeric_limits<ea_t>::max() - 1;
-    ea_t start_address_target = 0;
-    ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
-    char buffer1[MAXSTR];
-    memset(buffer1, 0, MAXSTR);
-    buffer1[0] = '0';
-    char buffer2[MAXSTR];
-    memset(buffer2, 0, MAXSTR);
-    buffer2[0] = '0';
-    if (!ask_form(kDialog, &start_address_source, &end_address_source,
-                        &start_address_target, &end_address_target, buffer1,
-                        buffer2)) {
-      return false;
-    }
-
-    Timer<> timer;
-    const double min_confidence = std::stod(buffer1);
-    const double min_similarity = std::stod(buffer2);
-    g_results->PortComments(start_address_source, end_address_source,
-                            start_address_target, end_address_target,
-                            min_confidence, min_similarity);
-    MatchedFunctionsChooser::Refresh();
-    UnmatchedFunctionsChooserPrimary::Refresh();
-    LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
-                              " for comment porting");
-    return true;
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error while porting comments: " << message.what();
-    warning("Error while porting comments: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while porting comments.";
-    warning("Unknown error while porting comments.");
+  // Default to full address range.
+  ea_t start_address_source = 0;
+  ea_t end_address_source = std::numeric_limits<ea_t>::max() - 1;
+  ea_t start_address_target = 0;
+  ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
+  char buffer1[MAXSTR]{0};
+  buffer1[0] = '0';
+  char buffer2[MAXSTR]{0};
+  buffer2[0] = '0';
+  if (!ask_form(kDialog, &start_address_source, &end_address_source,
+                &start_address_target, &end_address_target, buffer1, buffer2)) {
+    return false;
   }
-  return false;
+
+  Timer<> timer;
+  const double min_confidence = std::stod(buffer1);
+  const double min_similarity = std::stod(buffer2);
+  auto status = g_results->PortComments(
+      start_address_source, end_address_source, start_address_target,
+      end_address_target, min_confidence, min_similarity);
+  if (!status.ok()) {
+    LOG(INFO) << "Error: " << status.error_message();
+    warning("Error: %s\n", string(status.error_message()).c_str());
+    return false;
+  }
+  MatchedFunctionsChooser::Refresh();
+  UnmatchedFunctionsChooserPrimary::Refresh();
+  LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                            " for comment porting");
+  return true;
 }
 
 error_t idaapi IdcBinDiffDatabase(idc_value_t* argument, idc_value_t*) {
@@ -871,7 +810,7 @@ bool WriteResults(const string& path) {
   const string temp_dir = std::move(temp_dir_or).ValueOrDie();
   const string out_dir(Dirname(path));
 
-  if (!g_results->IsInComplete()) {
+  if (!g_results->IsIncomplete()) {
     DatabaseWriter writer(path);
     g_results->Write(&writer);
   } else {
@@ -910,7 +849,7 @@ bool DoSaveResultsLog() {
     vinfo("Please perform a diff first", 0);
     return false;
   }
-  if (g_results->IsInComplete()) {
+  if (g_results->IsIncomplete()) {
     vinfo("Saving to log is not supported for loaded results", 0);
     return false;
   }
@@ -1172,27 +1111,29 @@ class SaveResultsAction : public ActionHandler<SaveResultsAction> {
 
 class PortCommentsAction : public ActionHandler<PortCommentsAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
-    int num_selected = context->chooser_selection.size();
-    if (g_results && num_selected > 0) {
-      try {
-        const bool as_external_lib =
-            absl::string_view{context->action} ==
-            MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction;
-        // TODO(cblichmann): Efficient bulk actions in Results class
-        for (const auto& index : context->chooser_selection) {
-          g_results->PortComments(index, as_external_lib);
-        }
-        return 1;
-      } catch (const std::exception& message) {
-        LOG(INFO) << "Error: " << message.what();
-        warning("Error: %s\n", message.what());
-        return 0;
-      } catch (...) {
-        LOG(INFO) << "Unknown error while porting comments";
-        warning("Unknown error while porting comments\n");
+    if (g_results) {
+      const auto ida_selection = context->chooser_selection;
+      const auto as_external_lib =
+          absl::string_view{context->action} ==
+                  MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction
+              ? Results::kAsExternalLib
+              : Results::kNormal;
+      auto status = g_results->PortComments(
+          absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()),
+          as_external_lib);
+      if (!status.ok()) {
+        LOG(INFO) << "Error: " << status.error_message();
+        warning("Error: %s\n", string(status.error_message()).c_str());
         return 0;
       }
+      // Need to refresh all choosers
+      MatchedFunctionsChooser::Refresh();
+      UnmatchedFunctionsChooserPrimary::Refresh();
+      UnmatchedFunctionsChooserSecondary::Refresh();
+      StatisticsChooser::Refresh();
+      return 1;
     }
+
     // Not called from the chooser, display dialog.
     return DoPortComments();  // Refresh if user did not cancel
   }

@@ -419,18 +419,18 @@ Results::UnmatchedDescription Results::GetUnmatchedDescription(
   return desc;
 }
 
-Address Results::GetSecondaryAddress(size_t index) const {
-  if (index >= indexed_flow_graphs2_.size()) {
-    return 0;
-  }
-  return indexed_flow_graphs2_[index]->address;
-}
-
 Address Results::GetPrimaryAddress(size_t index) const {
   if (index >= indexed_flow_graphs1_.size()) {
     return 0;
   }
   return indexed_flow_graphs1_[index]->address;
+}
+
+Address Results::GetSecondaryAddress(size_t index) const {
+  if (index >= indexed_flow_graphs2_.size()) {
+    return 0;
+  }
+  return indexed_flow_graphs2_[index]->address;
 }
 
 Address Results::GetMatchPrimaryAddress(size_t index) const {
@@ -440,10 +440,17 @@ Address Results::GetMatchPrimaryAddress(size_t index) const {
   return indexed_fixed_points_[index]->primary;
 }
 
+Address Results::GetMatchSecondaryAddress(size_t index) const {
+  if (index >= indexed_fixed_points_.size()) {
+    return 0;
+  }
+  return indexed_fixed_points_[index]->secondary;
+}
+
 bool Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
-  if (IsInComplete()) {
+  if (IsIncomplete()) {
     auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
     if (!temp_dir_or.ok()) {
       return false;
@@ -663,7 +670,7 @@ util::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
     }
 
     // TODO(cblichmann): Tree search, this is O(n^2) when deleting all matches.
-    if (!IsInComplete()) {
+    if (!IsIncomplete()) {
       for (auto it = fixed_points_.begin(), end = fixed_points_.end();
            it != end; ++it) {
         auto* primary_flow_graph = it->GetPrimary();
@@ -703,7 +710,7 @@ util::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
                               indexed_fixed_points_.end());
   num_indexed_fixed_points = indexed_fixed_points_.size();
   DCHECK(num_indexed_fixed_points == fixed_point_infos_.size());
-  DCHECK(IsInComplete() || num_indexed_fixed_points == fixed_points_.size());
+  DCHECK(IsIncomplete() || num_indexed_fixed_points == fixed_points_.size());
 
   SetDirty();
   should_reset_selection_ = true;
@@ -735,7 +742,7 @@ int Results::AddMatch(Address primary, Address secondary) {
   fixed_point_info.comments_ported = false;
   // Results have been loaded: we need to reload flow graphs and recreate
   // basic block fixed points.
-  if (IsInComplete()) {
+  if (IsIncomplete()) {
     FlowGraph primary_graph;
     FlowGraph secondary_graph;
     FixedPoint fixed_point;
@@ -1037,6 +1044,10 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
                                        FlowGraph& primary, FlowGraph& secondary,
                                        FixedPoint& fixed_point,
                                        bool create_instruction_matches) {
+  // TODO(cblichmann): Cache the temporary flow graphs. Comment porting should
+  //                   not need to re-parse the full BinExport2 for each match.
+  //                   In the BinExport1 format, it was necessary and efficient
+  //                   to it this way.
   instruction_cache_.clear();
   try {
     ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_, &call_graph1_,
@@ -1095,7 +1106,7 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, string* message) {
   string database_file;
   // TODO(cblichmann): Bug: if matches have been manually modified in the
   //                   meantime we are hosed!
-  if (IsInComplete()) {
+  if (IsIncomplete()) {
     database_file = input_filename_;
   } else {
     // TODO(cblichmann): This is insanely inefficient: every single call graph
@@ -1143,7 +1154,7 @@ bool Results::PrepareVisualDiff(size_t index, string* message) {
   FixedPoints fixed_points;
   FlowGraph primary;
   FlowGraph secondary;
-  if (IsInComplete()) {
+  if (IsIncomplete()) {
     LOG(INFO) << "Loading incomplete flow graphs";
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed_points.
@@ -1168,7 +1179,7 @@ bool Results::PrepareVisualDiff(size_t index, string* message) {
       fixed_point.GetPrimary()->GetEntryPointAddress(),
       call_graph2_.GetFilePath(),
       fixed_point.GetSecondary()->GetEntryPointAddress());
-  if (IsInComplete()) {
+  if (IsIncomplete()) {
     DeleteTemporaryFlowGraphs();
   }
   return true;
@@ -1281,84 +1292,108 @@ void Results::MarkPortedCommentsInDatabase() {
   }
 }
 
-int Results::PortComments(Address start_address_source,
-                          Address end_address_source,
-                          Address start_address_target,
-                          Address end_address_target, double min_confidence,
-                          double min_similarity) {
-  for (size_t index = 1; index <= indexed_fixed_points_.size(); ++index) {
-    FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
-    if (get_func(static_cast<ea_t>(fixed_point_info.primary))) {
-      if (IsInComplete()) {
-        FlowGraph primary, secondary;
-        FixedPoint fixed_point;
-        SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary,
-                                 fixed_point, false);
+util::Status Results::PortComments(Address start_address_source,
+                                   Address end_address_source,
+                                   Address start_address_target,
+                                   Address end_address_target,
+                                   double min_confidence,
+                                   double min_similarity) {
+  // TODO(cblichmann): Merge with the vector version of PortComments().
+  try {
+    for (auto* fixed_point_info : indexed_fixed_points_) {
+      if (get_func(static_cast<ea_t>(fixed_point_info->primary))) {
+        if (IsIncomplete()) {
+          FlowGraph primary;
+          FlowGraph secondary;
+          FixedPoint fixed_point;
+          SetupTemporaryFlowGraphs(*fixed_point_info, primary, secondary,
+                                   fixed_point,
+                                   /*create_instruction_matches=*/false);
 
-        SetComments(&fixed_point, call_graph2_.GetComments(),
-                    start_address_target, end_address_target,
-                    start_address_source, end_address_source, min_confidence,
-                    min_similarity);
+          SetComments(&fixed_point, call_graph2_.GetComments(),
+                      start_address_target, end_address_target,
+                      start_address_source, end_address_source, min_confidence,
+                      min_similarity);
 
-        DeleteTemporaryFlowGraphs();
-      } else {
-        SetComments(FindFixedPoint(fixed_point_info),
-                    call_graph2_.GetComments(), start_address_target,
-                    end_address_target, start_address_source,
-                    end_address_source, min_confidence, min_similarity);
+          DeleteTemporaryFlowGraphs();
+        } else {
+          SetComments(FindFixedPoint(*fixed_point_info),
+                      call_graph2_.GetComments(), start_address_target,
+                      end_address_target, start_address_source,
+                      end_address_source, min_confidence, min_similarity);
+        }
       }
+      fixed_point_info->comments_ported = true;
     }
-    fixed_point_info.comments_ported = true;
+    MarkPortedCommentsInTempDatabase();
+  } catch (const std::exception& message) {
+    return util::Status{
+        absl::StatusCode::kInternal,
+        absl::StrCat("Importing symbols/comments: ", message.what())};
+  } catch (...) {
+    return util::Status{absl::StatusCode::kUnknown,
+                        "Importing symbols/comments"};
   }
-  MarkPortedCommentsInTempDatabase();
-  return 1;  // IDA API 1 == ok
+  return util::OkStatus();
 }
 
-int Results::PortComments(int index, bool as_external) {
-  // TODO(cblichmann): Port this over to the new IDA 7 API
-  return 0;
-#if 0
-  if (index == START_SEL) {
-    // multiselection support. we must return OK, but cannot do anything yet
-    return 1;
+util::Status Results::PortComments(absl::Span<const size_t> indices,
+                                   Results::PortCommentsKind how) {
+  if (indices.empty()) {
+    return util::OkStatus();
   }
-  if (index == END_SEL) {
+  try {
+    for (const size_t index : indices) {
+      if (index >= indexed_fixed_points_.size()) {
+        return util::Status{absl::StatusCode::kInvalidArgument,
+                            absl::StrCat("Index out of range: ", index)};
+      }
+      FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
+      const ea_t start_address_target = 0;
+      const ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
+      const ea_t start_address_source = fixed_point_info.primary;
+      func_t* function = get_func(static_cast<ea_t>(start_address_source));
+      if (function) {
+        const ea_t end_address_source = function->end_ea;
+        if (how == kAsExternalLib) {
+          function->flags |= FUNC_LIB;
+        }
+        if (IsIncomplete()) {
+          FlowGraph primary;
+          FlowGraph secondary;
+          FixedPoint fixed_point;
+          // TODO(cblichmann): See comment in SetupTemporaryFlowGraphs(), cache
+          //                   the BinExport2.
+          SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary,
+                                   fixed_point,
+                                   /*create_instruction_matches=*/false);
+
+          SetComments(&fixed_point, call_graph2_.GetComments(),
+                      start_address_target, end_address_target,
+                      start_address_source, end_address_source,
+                      /*min_confidence=*/0.0, /*min_similarity=*/0.0);
+
+          DeleteTemporaryFlowGraphs();
+        } else {
+          SetComments(FindFixedPoint(fixed_point_info),
+                      call_graph2_.GetComments(), start_address_target,
+                      end_address_target, start_address_source,
+                      end_address_source, /*min_confidence=*/0.0,
+                      /*min_similarity=*/0.0);
+        }
+      }
+      fixed_point_info.comments_ported = true;
+    }
     MarkPortedCommentsInTempDatabase();
-    return 1;
+  } catch (const std::exception& message) {
+    return util::Status{
+        absl::StatusCode::kInternal,
+        absl::StrCat("Importing symbols/comments: ", message.what())};
+  } catch (...) {
+    return util::Status{absl::StatusCode::kUnknown,
+                        "Importing symbols/comments"};
   }
-  if (!index || index > static_cast<int>(indexed_fixed_points_.size())) {
-    return 0;
-  }
-
-  FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index - 1]);
-  const Address start_address_target = 0;
-  const Address end_address_target = std::numeric_limits<ea_t>::max() - 1;
-  const Address start_address_source = fixed_point_info.primary;
-  if (func_t* function = get_func(static_cast<ea_t>(start_address_source))) {
-    const ea_t end_address_source = function->end_ea;
-    if (as_external) {
-      function->flags |= FUNC_LIB;
-    }
-    if (IsInComplete()) {
-      FlowGraph primary, secondary;
-      FixedPoint fixed_point;
-      SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary,
-                               fixed_point, false);
-
-      SetComments(&fixed_point, call_graph2_.GetComments(),
-                  start_address_target, end_address_target,
-                  start_address_source, end_address_source, 0.0, 0.0);
-
-      DeleteTemporaryFlowGraphs();
-    } else {
-      SetComments(FindFixedPoint(fixed_point_info), call_graph2_.GetComments(),
-                  start_address_target, end_address_target,
-                  start_address_source, end_address_source, 0.0, 0.0);
-    }
-  }
-  fixed_point_info.comments_ported = true;
-  return 1;
-#endif
+  return util::OkStatus();
 }
 
 util::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
@@ -1374,7 +1409,7 @@ util::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
     FixedPointInfo* fixed_point_info(indexed_fixed_points_[index]);
     fixed_point_info->algorithm = FindString(MatchingStep::kFunctionManualName);
     fixed_point_info->confidence = 1.0;
-    if (!IsInComplete()) {
+    if (!IsIncomplete()) {
       FixedPoint* fixed_point(FindFixedPoint(*fixed_point_info));
       fixed_point->SetMatchingStep(*fixed_point_info->algorithm);
       fixed_point->SetConfidence(fixed_point_info->confidence);
@@ -1448,7 +1483,7 @@ int Results::CopySecondaryAddressUnmatched(int index) const {
   return 1;
 }
 
-bool Results::IsInComplete() const { return incomplete_results_; }
+bool Results::IsIncomplete() const { return incomplete_results_; }
 
 void Results::InitializeIndexedVectors() {
   std::set<Address> matched_primaries;

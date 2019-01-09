@@ -81,6 +81,7 @@ class Results {
   Address GetPrimaryAddress(size_t index) const;
   Address GetSecondaryAddress(size_t index) const;
   Address GetMatchPrimaryAddress(size_t index) const;
+  Address GetMatchSecondaryAddress(size_t index) const;
 
   util::Status DeleteMatches(absl::Span<const size_t> indices);
 
@@ -110,11 +111,22 @@ class Results {
   // marked are not reset in that case.
   util::Status ConfirmMatches(absl::Span<const size_t> indices);
 
-  int PortComments(int index, bool as_external);
-  int PortComments(Address start_address_source, Address end_address_source,
-                   Address start_address_target, Address end_address_target,
-                   double min_confidence, double min_similarity);
-  bool IsInComplete() const;
+  // Imports symbols and comments from matches in other binary into the current
+  // database. If specified, mark the imported symbols/comments as coming from
+  // an external library.
+  enum PortCommentsKind { kNormal, kAsExternalLib };
+  util::Status PortComments(absl::Span<const size_t> indices,
+                            PortCommentsKind how);
+
+  // Like the vector version of PortComments(), but instead of importing from
+  // matches, imports by address ranges.
+  util::Status PortComments(Address start_address_source,
+                            Address end_address_source,
+                            Address start_address_target,
+                            Address end_address_target, double min_confidence,
+                            double min_similarity);
+
+  bool IsIncomplete() const;
   void SetDirty();
   bool IsDirty() const;
   bool IncrementalDiff();
