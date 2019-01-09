@@ -9,7 +9,13 @@
 #include <cmath>
 #include <limits>
 
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <expr.hpp>                                             // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+
 #include "third_party/absl/base/macros.h"
+#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_replace.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
 namespace security {
@@ -72,29 +78,29 @@ uint32_t GetMatchColor(double value) {
          (reverse_color >> 16);
 }
 
-void CopyToClipboard(const string& data) {
+util::Status CopyToClipboard(absl::string_view data) {
 #ifdef WIN32
   if (!OpenClipboard(0)) {
-    throw std::runtime_error(GetLastOsError());
+    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
   }
   struct ClipboardCloser {
     ~ClipboardCloser() { CloseClipboard(); }
   } deleter;
 
   if (!EmptyClipboard()) {
-    throw std::runtime_error(GetLastOsError());
+    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
   }
 
   HGLOBAL buffer_handle =
       GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size());
   if (!buffer_handle) {
-    throw std::runtime_error(GetLastOsError());
+    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
   }
 
   bool fail = true;
-  char* buffer = static_cast<char*>(GlobalLock(buffer_handle));
+  auto* buffer = static_cast<char*>(GlobalLock(buffer_handle));
   if (buffer) {
-    memcpy(buffer, data.c_str(), data.size());
+    memcpy(buffer, data.data(), data.size());
     if (GlobalUnlock(buffer) &&
         SetClipboardData(CF_TEXT, buffer_handle /* Transfer ownership */)) {
       fail = false;
@@ -103,13 +109,35 @@ void CopyToClipboard(const string& data) {
   if (fail) {
     // Only free on failure, as SetClipboardData() takes ownership.
     GlobalFree(buffer_handle);
-    throw std::runtime_error(GetLastOsError());
+    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
   }
 #else
-  // TODO(cblichmann): Implement copy to clipboard for Linux/macOS.
-  //                   Linux: Pipe to "xsel -b"
-  //                   macOS: Pipe to "pbcopy"
+  // Clipboard handling on Linux is complicated. Luckily, IDA uses Qt and
+  // exposes Python bindings. Since Qt abstracts away all the platform
+  // differences, we just use a tiny IDAPython script to copy plain text data
+  // to clipboard.
+  extlang_object_t python = find_extlang_by_name("Python");
+  if (python.operator->() == nullptr) {  // Need to call operator -> directly
+    return util::Status{absl::StatusCode::kInternal, "Cannot find IDAPyton"};
+  }
+  qstring error;
+  string escaped_snippet;
+  escaped_snippet.reserve(data.size() * 4);
+  for (const auto& c : data) {
+    // Unconditionally convert to Python hex escape sequence to be binary safe.
+    absl::StrAppend(&escaped_snippet, "\\x", absl::Hex(c, absl::kZeroPad2));
+  }
+  if (!python->eval_snippet(
+          absl::StrCat(
+              "from PyQt5 import Qt; cb = Qt.QApplication.clipboard(); "
+              "cb.setText('",
+              escaped_snippet, "', mode=cb.Clipboard)")
+              .c_str(),
+          &error)) {
+    return util::Status{absl::StatusCode::kInternal, error.c_str()};
+  }
 #endif
+  return util::OkStatus();
 }
 
 }  // namespace bindiff

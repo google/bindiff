@@ -347,56 +347,10 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
   }
 }
 
-uint32_t idaapi CopyPrimaryAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->CopyPrimaryAddress(index);
-}
-
-uint32_t idaapi CopySecondaryAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->CopySecondaryAddress(index);
-}
-
-uint32_t idaapi CopyPrimaryAddressUnmatched(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->CopyPrimaryAddressUnmatched(index);
-}
-
-uint32_t idaapi CopySecondaryAddressUnmatched(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->CopySecondaryAddressUnmatched(index);
-}
-
-uint32_t idaapi GetNumUnmatchedPrimary(void* /* unused */) {
-  if (!g_results) return 0;
-
-  return g_results->GetNumUnmatchedPrimary();
-}
-
-uint32_t idaapi GetNumUnmatchedSecondary(void* /* unused */) {
-  if (!g_results) {
-    return 0;
-  }
-  return g_results->GetNumUnmatchedSecondary();
-}
-
-void idaapi jumpToUnmatchedPrimaryAddress(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return;
-  }
-  jumpto(static_cast<ea_t>(g_results->GetPrimaryAddress(index)));
-}
-
 uint32_t idaapi AddMatchPrimary(void* /* unused */, uint32_t index) {
-  if (!g_results) return 0;
+  if (!g_results) {
+    return 0;
+  }
 
   try {
     WaitBox wait_box("Performing basic block diff...");
@@ -1221,6 +1175,31 @@ class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
   }
 };
 
+class CopyAddressAction : public ActionHandler<CopyAddressAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    if (!g_results || context->chooser_selection.empty()) {
+      return 0;
+    }
+    absl::string_view action{context->action};
+    const auto index = context->chooser_selection.front();
+    Address address;
+    if (action == MatchedFunctionsChooser::kCopyPrimaryAddressAction) {
+      address = g_results->GetMatchPrimaryAddress(index);
+    } else if (action == MatchedFunctionsChooser::kCopySecondaryAddressAction) {
+      address = g_results->GetMatchSecondaryAddress(index);
+    } else {  // TODO(cblichmann): Same for unmatched
+      return 0;
+    }
+    auto status = CopyToClipboard(FormatAddress(address));
+    if (!status.ok()) {
+      LOG(INFO) << "Error: " << status.error_message();
+      warning("Error: %s\n", string(status.error_message()).c_str());
+      return 0;
+    }
+    return 1;
+  }
+};
+
 void InitConfig() {
   const string config_filename("bindiff_core.xml");
 
@@ -1325,6 +1304,12 @@ void InitActions() {
       MatchedFunctionsChooser::kConfirmMatchesAction, "~C~onfirm match(es)",
       /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(CopyAddressAction::MakeActionDesc(
+      MatchedFunctionsChooser::kCopyPrimaryAddressAction,
+      "Copy primary address", /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+  register_action(CopyAddressAction::MakeActionDesc(
+      MatchedFunctionsChooser::kCopySecondaryAddressAction,
+      "Copy secondary address", /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
 }
 
 void InitMenus() {

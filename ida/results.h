@@ -22,12 +22,6 @@
 namespace security {
 namespace bindiff {
 
-#ifndef __EA64__
-#define HEX_ADDRESS "%08X"
-#else
-#define HEX_ADDRESS "%016llX"
-#endif
-
 class Results {
  public:
   struct StatisticDescription {
@@ -101,10 +95,6 @@ class Results {
   void Write(Writer* writer);
   void WriteFromIncompleteResults();
   void CreateIndexedViews();
-  int CopyPrimaryAddress(int index) const;
-  int CopySecondaryAddress(int index) const;
-  int CopyPrimaryAddressUnmatched(int index) const;
-  int CopySecondaryAddressUnmatched(int index) const;
 
   // Marks the matches indicated by the given indices as manually confirmed.
   // Returns an error if any of the indices are out of range. Matches already
