@@ -10,7 +10,7 @@
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "util/task/status.h"
+#include "third_party/zynamics/binexport/util/status.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
@@ -25,6 +25,7 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "util/gtl/ptr_util.h"
 #include "util/task/canonical_errors.h"
+#include "util/task/status.h"
 // Google3 uses different namespaces than the open source proto version. This is
 // a hack to make them compatible.
 namespace google {
@@ -190,7 +191,7 @@ void Read(const string& filename, CallGraph* call_graph,
   enum { kMinFileSize = 8 };
   auto file_size_or = GetFileSize(filename);
   if (!file_size_or.ok()) {
-    throw std::runtime_error{file_size_or.status().error_message()};
+    throw std::runtime_error{string(file_size_or.status().error_message())};
   }
   if (file_size_or.ValueOrDie() <= kMinFileSize) {
     throw std::runtime_error{absl::StrCat("file too small: ", filename)};

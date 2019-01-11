@@ -84,17 +84,25 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/binexport.h
   ${BinExport_DIR}/hash.cc
   ${BinExport_DIR}/hash.h
+  ${BinExport_DIR}/util/canonical_errors.cc
+  ${BinExport_DIR}/util/canonical_errors.h
   ${BinExport_DIR}/util/filesystem.cc
   ${BinExport_DIR}/util/filesystem.h
   ${BinExport_DIR}/util/format.cc
   ${BinExport_DIR}/util/format.h
+  ${BinExport_DIR}/util/status.cc
+  ${BinExport_DIR}/util/status.h
+  ${BinExport_DIR}/util/status_macros.h
+  ${BinExport_DIR}/util/statusor.h
   ${BinExport_DIR}/util/timer.h
 )
 target_link_libraries(binexport_shared
-  bindiff_base
+  absl::bad_optional_access
+  absl::optional
   absl::strings
   absl::time
-  OpenSSL::SSL
+  absl::variant
+  bindiff_base
 )
 if(WIN32)
   target_link_libraries(binexport_shared shlwapi.lib)

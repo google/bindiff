@@ -3,7 +3,7 @@
 
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "util/task/status.h"
+#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security {
 namespace bindiff {
@@ -18,7 +18,7 @@ uint32_t GetMatchColor(double value);
 // Copies a short unformatted plain text string to clipboard. Short in this
 // context means no more than a few kilobytes. There is no hard limit, but due
 // to escaping there might be some memory blow-up.
-util::Status CopyToClipboard(absl::string_view data);
+not_absl::Status CopyToClipboard(absl::string_view data);
 
 }  // namespace bindiff
 }  // namespace security

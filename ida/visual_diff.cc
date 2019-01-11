@@ -1,8 +1,6 @@
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #define _WIN32_WINNT 0x0501
 #include <windows.h>  // NOLINT
 #include <winsock2.h>
@@ -156,7 +154,7 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   auto err = getaddrinfo(string(server).c_str(), std::to_string(port).c_str(),
                          &hints, &address_info);
   if (err != 0) {
-    // TODO(cblichmann): This function should return a util::Status and use
+    // TODO(cblichmann): This function should return a not_absl::Status and use
     //                   gai_strerror(err).
     return false;
   }

@@ -5,7 +5,6 @@
 #include <memory>
 #include <thread>  // NOLINT(build/c++11)
 
-#include "third_party/absl/types/span.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <diskio.hpp>                                           // NOLINT
@@ -29,9 +28,10 @@
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
-#include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
+#include "third_party/absl/types/span.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -50,19 +50,22 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
-#include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
-#include "util/task/status_macros.h"
-#include "util/task/statusor.h"
+#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/canonical_errors.h"
+#include "third_party/zynamics/binexport/util/statusor.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security {
 
 using binexport::FormatAddress;
+using binexport::GetInputFileMd5;
+using binexport::GetInputFileSha256;
 using binexport::HumanReadableDuration;
 
 namespace bindiff {
@@ -136,12 +139,12 @@ class ExporterThread {
     bool headless_export_mode = false;
   };
 
-  static util::StatusOr<ExporterThread> Create(const string& temp_dir,
-                                               const string& idb_path,
-                                               Options options) {
+  static not_absl::StatusOr<ExporterThread> Create(const string& temp_dir,
+                                                   const string& idb_path,
+                                                   Options options) {
     string secondary_temp_dir = JoinPath(temp_dir, "secondary");
     RemoveAll(secondary_temp_dir);
-    RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
+    NA_RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
 
     string idc_file = JoinPath(temp_dir, "export_secondary.idc");
     if (!options.headless_export_mode) {
@@ -155,8 +158,7 @@ class ExporterThread {
            << "\tExit(0);\n"
            << "}\n";
       if (!file) {
-        return util::Status{absl::StatusCode::kUnknown,
-                            "error writing helper IDC script"};
+        return not_absl::UnknownError("error writing helper IDC script");
       }
     }
     ExporterThread result;
@@ -205,13 +207,14 @@ class ExporterThread {
 
   bool success() const { return success_or_.ok(); }
 
-  string status() const { return success_or_.status().error_message(); }
+  string status() const { return string(success_or_.status().message()); }
 
  private:
-  friend class util::StatusOr<ExporterThread>;
+  friend class not_absl::StatusOr<ExporterThread>;
   ExporterThread() = default;
 
-  util::StatusOr<int> success_or_;  // Defaults to absl::StatusCode::kUnknown.
+  not_absl::StatusOr<int>
+      success_or_;  // Defaults to not_absl::StatusCode::kUnknown.
   string secondary_idb_path_;
   string secondary_temp_dir_;
   string idc_file_;
@@ -281,7 +284,7 @@ bool ExportIdbs() {
     if (!exporter_or.ok()) {
       throw std::runtime_error{
           absl::StrCat("Export of the current database failed: ",
-                       string(exporter_or.status().error_message()))};
+                       exporter_or.status().message())};
     }
     auto exporter = std::move(exporter_or).ValueOrDie();
     std::thread thread(std::ref(exporter));
@@ -290,7 +293,7 @@ bool ExportIdbs() {
     RemoveAll(primary_temp_dir);
     auto status = CreateDirectories(primary_temp_dir);
     if (!status.ok()) {
-      throw std::runtime_error(status.error_message());
+      throw std::runtime_error{string(status.message())};
     }
 
     qstring errbuf;
@@ -305,8 +308,8 @@ bool ExportIdbs() {
 
     thread.join();
     if (!exporter.success()) {
-      throw std::runtime_error(absl::StrCat(
-          "Failed to spawn second IDA instance: ", exporter.status()));
+      throw std::runtime_error{absl::StrCat(
+          "Failed to spawn second IDA instance: ", exporter.status())};
     }
   }
 
@@ -525,7 +528,7 @@ bool idaapi MenuItemShowResultsCallback(void* user_data) {
   return true;
 }
 
-// deletes all nodes from callgraph (and corresponding flow graphs) that are
+// Deletes all nodes from callgraph (and corresponding flow graphs) that are
 // not within the specified range
 void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
                      FlowGraphs* flow_graphs,
@@ -718,8 +721,9 @@ bool DoPortComments() {
       start_address_source, end_address_source, start_address_target,
       end_address_target, min_confidence, min_similarity);
   if (!status.ok()) {
-    LOG(INFO) << "Error: " << status.error_message();
-    warning("Error: %s\n", string(status.error_message()).c_str());
+    const string message(status.message());
+    LOG(INFO) << "Error: " << message;
+    warning("Error: %s\n", message.c_str());
     return false;
   }
   MatchedFunctionsChooser::Refresh();
@@ -959,7 +963,7 @@ bool DoLoadResults() {
       }
     }
     if (hash.empty()) {
-      throw std::runtime_error{status.error_message()};
+      throw std::runtime_error{string(status.message())};
     }
     if (hash != absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
       const string message = absl::StrCat(
@@ -1076,8 +1080,9 @@ class PortCommentsAction : public ActionHandler<PortCommentsAction> {
           absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()),
           as_external_lib);
       if (!status.ok()) {
-        LOG(INFO) << "Error: " << status.error_message();
-        warning("Error: %s\n", string(status.error_message()).c_str());
+        const string message(status.message());
+        LOG(INFO) << "Error: " << message;
+        warning("Error: %s\n", message.c_str());
         return 0;
       }
       // Need to refresh all choosers
@@ -1132,8 +1137,9 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
     auto status = g_results->DeleteMatches(
         absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
     if (!status.ok()) {
-      LOG(INFO) << "Error: " << status.error_message();
-      warning("Error: %s\n", string(status.error_message()).c_str());
+      const string message(status.message());
+      LOG(INFO) << "Error: " << message;
+      warning("Error: %s\n", message.c_str());
       return 0;
     }
     // Need to refresh all choosers
@@ -1166,8 +1172,9 @@ class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
     auto status = g_results->ConfirmMatches(
         absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
     if (!status.ok()) {
-      LOG(INFO) << "Error: " << status.error_message();
-      warning("Error: %s\n", string(status.error_message()).c_str());
+      const string message(status.message());
+      LOG(INFO) << "Error: " << message;
+      warning("Error: %s\n", message.c_str());
       return 0;
     }
     MatchedFunctionsChooser::Refresh();
@@ -1192,8 +1199,9 @@ class CopyAddressAction : public ActionHandler<CopyAddressAction> {
     }
     auto status = CopyToClipboard(FormatAddress(address));
     if (!status.ok()) {
-      LOG(INFO) << "Error: " << status.error_message();
-      warning("Error: %s\n", string(status.error_message()).c_str());
+      const string message(status.message());
+      LOG(INFO) << "Error: " << message;
+      warning("Error: %s\n", message.c_str());
       return 0;
     }
     return 1;
@@ -1510,7 +1518,7 @@ bool idaapi PluginRun(size_t /* arg */) {
     // the meantime
     auto sha256_or = GetInputFileSha256();
     if (!sha256_or.ok()) {
-      throw std::runtime_error{sha256_or.status().error_message()};
+      throw std::runtime_error{string(sha256_or.status().message())};
     }
     if (sha256_or.ValueOrDie() !=
         absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {

@@ -1,8 +1,6 @@
 #include "third_party/zynamics/bindiff/ida/ui.h"
 
 #ifdef WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
 #include <windows.h>
 #endif
 
@@ -17,6 +15,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/util/canonical_errors.h"
 
 namespace security {
 namespace bindiff {
@@ -78,23 +77,23 @@ uint32_t GetMatchColor(double value) {
          (reverse_color >> 16);
 }
 
-util::Status CopyToClipboard(absl::string_view data) {
+not_absl::Status CopyToClipboard(absl::string_view data) {
 #ifdef WIN32
   if (!OpenClipboard(0)) {
-    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
+    return not_absl::UnknownError(GetLastOsError());
   }
   struct ClipboardCloser {
     ~ClipboardCloser() { CloseClipboard(); }
   } deleter;
 
   if (!EmptyClipboard()) {
-    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
+    return not_absl::UnknownError(GetLastOsError());
   }
 
   HGLOBAL buffer_handle =
       GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size());
   if (!buffer_handle) {
-    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
+    return not_absl::UnknownError(GetLastOsError());
   }
 
   bool fail = true;
@@ -109,7 +108,7 @@ util::Status CopyToClipboard(absl::string_view data) {
   if (fail) {
     // Only free on failure, as SetClipboardData() takes ownership.
     GlobalFree(buffer_handle);
-    return util::Status{absl::StatusCode::kUnknown, GetLastOsError()};
+    return not_absl::UnknownError(GetLastOsError());
   }
 #else
   // Clipboard handling on Linux is complicated. Luckily, IDA uses Qt and
@@ -118,7 +117,7 @@ util::Status CopyToClipboard(absl::string_view data) {
   // to clipboard.
   extlang_object_t python = find_extlang_by_name("Python");
   if (python.operator->() == nullptr) {  // Need to call operator -> directly
-    return util::Status{absl::StatusCode::kInternal, "Cannot find IDAPyton"};
+    return not_absl::InternalError("Cannot find IDAPyton");
   }
   qstring error;
   string escaped_snippet;
@@ -134,10 +133,10 @@ util::Status CopyToClipboard(absl::string_view data) {
               escaped_snippet, "', mode=cb.Clipboard)")
               .c_str(),
           &error)) {
-    return util::Status{absl::StatusCode::kInternal, error.c_str()};
+    return not_absl::InternalError(error.c_str());
   }
 #endif
-  return util::OkStatus();
+  return not_absl::OkStatus();
 }
 
 }  // namespace bindiff

@@ -17,7 +17,7 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "util/task/status.h"
+#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security {
 namespace bindiff {
@@ -77,7 +77,7 @@ class Results {
   Address GetMatchPrimaryAddress(size_t index) const;
   Address GetMatchSecondaryAddress(size_t index) const;
 
-  util::Status DeleteMatches(absl::Span<const size_t> indices);
+  not_absl::Status DeleteMatches(absl::Span<const size_t> indices);
 
   int AddMatchPrimary(size_t index);
   int AddMatchSecondary(size_t index);
@@ -99,22 +99,22 @@ class Results {
   // Marks the matches indicated by the given indices as manually confirmed.
   // Returns an error if any of the indices are out of range. Matches already
   // marked are not reset in that case.
-  util::Status ConfirmMatches(absl::Span<const size_t> indices);
+  not_absl::Status ConfirmMatches(absl::Span<const size_t> indices);
 
   // Imports symbols and comments from matches in other binary into the current
   // database. If specified, mark the imported symbols/comments as coming from
   // an external library.
   enum PortCommentsKind { kNormal, kAsExternalLib };
-  util::Status PortComments(absl::Span<const size_t> indices,
-                            PortCommentsKind how);
+  not_absl::Status PortComments(absl::Span<const size_t> indices,
+                                PortCommentsKind how);
 
   // Like the vector version of PortComments(), but instead of importing from
   // matches, imports by address ranges.
-  util::Status PortComments(Address start_address_source,
-                            Address end_address_source,
-                            Address start_address_target,
-                            Address end_address_target, double min_confidence,
-                            double min_similarity);
+  not_absl::Status PortComments(Address start_address_source,
+                                Address end_address_source,
+                                Address start_address_target,
+                                Address end_address_target,
+                                double min_confidence, double min_similarity);
 
   bool IsIncomplete() const;
   void SetDirty();

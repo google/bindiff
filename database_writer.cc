@@ -9,8 +9,8 @@
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "util/task/status_macros.h"
-#include "util/task/statusor.h"
+#include "third_party/zynamics/binexport/util/status.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security {
 namespace bindiff {
@@ -80,7 +80,7 @@ DatabaseWriter::DatabaseWriter(const string& path, bool recreate) {
   auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
   if (!tempdir_or.ok()) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error{tempdir_or.status().error_message()};
+    throw std::runtime_error{string(tempdir_or.status().error_message())};
   }
   filename_ = JoinPath(tempdir_or.ValueOrDie(), Basename(path));
   if (recreate) {
@@ -499,9 +499,9 @@ void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
   }
 }
 
-util::StatusOr<string> GetTempFileName() {
+not_absl::StatusOr<string> GetTempFileName() {
   string temp_dir;
-  ASSIGN_OR_RETURN(temp_dir, GetOrCreateTempDirectory("BinDiff"));
+  NA_ASSIGN_OR_RETURN(temp_dir, GetOrCreateTempDirectory("BinDiff"));
   return JoinPath(temp_dir, "temporary.database");
 }
 
@@ -553,8 +553,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   // Step 2: Merge new matches from temp database.
   auto temp_file_or = GetTempFileName();
   if (!temp_file_or.ok()) {
-    // TODO(cblichmann): Refactor Writer interface to return util::Status.
-    throw std::runtime_error{temp_file_or.status().error_message()};
+    // TODO(cblichmann): Refactor Writer interface to return not_absl::Status.
+    throw std::runtime_error{string(temp_file_or.status().error_message())};
   }
   const auto temp_file = std::move(temp_file_or).ValueOrDie();
   if (FileExists(temp_file)) {
