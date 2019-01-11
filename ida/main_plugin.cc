@@ -813,7 +813,7 @@ bool DoSaveResultsLog() {
       g_results->call_graph2_.GetFilename() + ".results");
   const char* filename = ask_file(
       /*for_saving=*/true, default_filename.c_str(), "%s",
-      absl::StrCat("FILDER BinDiff Result Log files|*.results|All files",
+      absl::StrCat("FILTER BinDiff Result Log files|*.results|All files",
                    kAllFilesFilter, "\nSave Log As")
           .c_str());
   if (!filename) {
