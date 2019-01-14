@@ -79,15 +79,15 @@ class Results {
 
   not_absl::Status DeleteMatches(absl::Span<const size_t> indices);
 
-  int AddMatchPrimary(size_t index);
-  int AddMatchSecondary(size_t index);
-  int AddMatch(Address primary, Address secondary);
+  // Creates a new match for the functions given by their respective addresses
+  // in the primary and secondary database.
+  not_absl::Status AddMatch(Address primary, Address secondary);
 
   size_t GetNumStatistics() const;
   StatisticDescription GetStatisticDescription(size_t index) const;
 
   size_t GetNumMatches() const;
-  MatchDescription GetMatchDescription(int index) const;
+  MatchDescription GetMatchDescription(size_t index) const;
 
   bool PrepareVisualDiff(size_t index, string* message);
   bool PrepareVisualCallGraphDiff(size_t index, string* message);

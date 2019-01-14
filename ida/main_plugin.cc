@@ -267,8 +267,6 @@ bool ExportIdbs() {
       return false;
     }
   }
-  delete g_results;
-  g_results = nullptr;
 
   LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
             << Basename(secondary_idb_path);
@@ -291,7 +289,7 @@ bool ExportIdbs() {
 
     string primary_temp_dir(JoinPath(temp_dir, "primary"));
     RemoveAll(primary_temp_dir);
-    auto status = CreateDirectories(primary_temp_dir);
+    not_absl::Status status = CreateDirectories(primary_temp_dir);
     if (!status.ok()) {
       throw std::runtime_error{string(status.message())};
     }
@@ -350,54 +348,31 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
   }
 }
 
-uint32_t idaapi AddMatchPrimary(void* /* unused */, uint32_t index) {
+void DiscardResults() {
   if (!g_results) {
-    return 0;
+    return;
   }
 
-  try {
-    WaitBox wait_box("Performing basic block diff...");
-    return g_results->AddMatchPrimary(index);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error: " << message.what();
-    warning("Error: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while adding match";
-    warning("Unknown error while adding match\n");
-  }
-  return 0;
-}
+  MatchedFunctionsChooser::Close();
+  UnmatchedFunctionsChooserPrimary::Close();
+  UnmatchedFunctionsChooserSecondary::Close();
+  StatisticsChooser::Close();
 
-uint32_t idaapi AddMatchSecondary(void* /* unused */, uint32_t index) {
-  if (!g_results) {
-    return 0;
-  }
-
-  try {
-    WaitBox wait_box("Performing basicblock diff...");
-    return g_results->AddMatchSecondary(index);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error: " << message.what();
-    warning("Error: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while adding match";
-    warning("Unknown error while adding match\n");
-  }
-  return 0;
+  delete g_results;
+  g_results = nullptr;
 }
 
 void SaveAndDiscardResults() {
   if (g_results && g_results->IsDirty()) {
-    const int answer(ask_yn(ASKBTN_YES,
-                            "HIDECANCEL\nCurrent diff results have not been"
-                            " saved - save before closing?"));
-    if (answer == 1) {  // Yes
+    const auto answer = ask_yn(ASKBTN_YES,
+                               "HIDECANCEL\nCurrent diff results have not been"
+                               " saved - save before closing?");
+    if (answer == ASKBTN_YES) {  // Yes
       DoSaveResults();
     }
   }
 
-  delete g_results;
-  g_results = 0;
+  DiscardResults();
 }
 
 ssize_t idaapi ProcessorHook(void*, int event_id, va_list /*arguments*/) {
@@ -414,6 +389,9 @@ ssize_t idaapi ProcessorHook(void*, int event_id, va_list /*arguments*/) {
 ssize_t idaapi IdbHook(void*, int event_id, va_list /*arguments*/) {
   switch (event_id) {
     case idb_event::closebase:
+      // This is not strictly necessary as the "CloseBase" action will be caught
+      // in UiHook(). Action names are not guaranteed to be stable, take the
+      // last opportunity to ask whether to save the results.
       SaveAndDiscardResults();
       break;
   }
@@ -427,42 +405,39 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
       if (name == "LoadFile" || name == "NewFile" || name == "CloseBase" ||
           name == "Quit") {
         if (g_results && g_results->IsDirty()) {
-          const int answer(ask_yn(ASKBTN_YES,
-                                  "Current diff results have not been saved -"
-                                  " save before closing?"));
-          if (answer == 1) {
+          const int answer = ask_yn(ASKBTN_YES,
+                                    "Current diff results have not been saved -"
+                                    " save before closing?");
+          if (answer == ASKBTN_YES) {
             // Yes
             DoSaveResults();
-          } else if (answer == -1) {
+          } else if (answer == ASKBTN_CANCEL) {
             // Cancel
             // Return that we handled the command ourselves, this will
             // not even show IDA's close dialog
             return 1;
           }
         }
-        // delete old results if they weren't dirty of if the user
+        // Delete old results if they weren't dirty or if the user
         // saved/discarded them
-        delete g_results;
-        g_results = nullptr;
-        // Refreshing the choosers here is important as after our
-        // "Save results?" confirmation dialog IDA will open its own
-        // confirmation. The user can cancel in that dialog. So a "bad"
-        // sequence of events is: don't save diff results, but cancel the
-        // closing operation in the following IDA dialog. In an ideal world
-        // the diff results would be back. As it is we lose the results but
-        // at least leave windows/internal data structures in a consistent
-        // state.
-        MatchedFunctionsChooser::Refresh();
-        UnmatchedFunctionsChooserPrimary::Refresh();
-        UnmatchedFunctionsChooserSecondary::Refresh();
-        StatisticsChooser::Refresh();
+        DiscardResults();
+
+        // After our "Save results?" confirmation dialog IDA will open its own
+        // confirmation. The user can cancel in that dialog. So a "bad" sequence
+        // of events is: don't save diff results, but cancel the closing
+        // operation in the following IDA dialog. In an ideal world the diff
+        // results would be back. As it is we lose the results but at least
+        // leave windows/internal data structures in a consistent state.
       }
       break;
     }
     case ui_finish_populating_widget_popup: {
       auto* widget = va_arg(arguments, TWidget*);
       auto* popup_handle = va_arg(arguments, TPopupMenu*);
-      for (auto& attach : {MatchedFunctionsChooser::AttachActionsToPopup}) {
+      for (auto& attach :
+           {MatchedFunctionsChooser::AttachActionsToPopup,
+            UnmatchedFunctionsChooserPrimary::AttachActionsToPopup,
+            UnmatchedFunctionsChooserSecondary::AttachActionsToPopup}) {
         if (attach(widget, popup_handle)) {
           break;
         }
@@ -480,41 +455,16 @@ void ShowResults(const ResultFlags flags) {
   g_results->CreateIndexedViews();
 
   if (flags & kResultsShowMatched) {
-    (new MatchedFunctionsChooser(g_results))->choose();
+    (new MatchedFunctionsChooser{g_results})->choose();
   }
-
   if (flags & kResultsShowStatistics) {
-    (new StatisticsChooser(g_results))->choose();
+    (new StatisticsChooser{g_results})->choose();
   }
-
   if (flags & kResultsShowPrimaryUnmatched) {
-    (new UnmatchedFunctionsChooserPrimary(g_results))->choose();
-#if 0
-    choose2(0, -1, -1, -1, -1, static_cast<void*>(0),
-            sizeof(widths) / sizeof(widths[0]), widths,
-            &GetNumUnmatchedPrimary, &GetUnmatchedPrimaryDescription,
-            "Primary Unmatched", -1,         // icon
-            1,                               // default
-            0,                               // delete callback
-            0,                               // new callback
-            0,                               // update callback
-            0,                               // edit callback
-            &jumpToUnmatchedPrimaryAddress,  // enter callback
-            nullptr,                         // destroy callback
-            popups,  // popups (insert, delete, edit, refresh)
-            0);
-    add_chooser_command("Primary Unmatched", "Add Match", &AddMatchPrimary,
-                        -1, -1, CHOOSER_POPUP_MENU);
-#ifdef WIN32
-    add_chooser_command("Primary Unmatched", "Copy Address",
-                        &CopyPrimaryAddressUnmatched, -1, -1,
-                        CHOOSER_POPUP_MENU);
-#endif
-#endif
+    (new UnmatchedFunctionsChooserPrimary{g_results})->choose();
   }
-
   if (flags & kResultsShowSecondaryUnmatched) {
-    (new UnmatchedFunctionsChooserSecondary(g_results))->choose();
+    (new UnmatchedFunctionsChooserSecondary{g_results})->choose();
   }
 }
 
@@ -550,15 +500,10 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
 
 bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
                       ea_t start_address_target, ea_t end_address_target) {
+  DiscardResults();
   Timer<> timer;
-  try {
-    if (!ExportIdbs()) {
-      return false;
-    }
-  } catch (...) {
-    delete g_results;
-    g_results = nullptr;
-    throw;
+  if (!ExportIdbs()) {
+    return false;
   }
 
   LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
@@ -571,7 +516,7 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   timer.restart();
 
   WaitBox wait_box("Performing diff...");
-  g_results = new Results();
+  g_results = new Results{};
   auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
   if (!temp_dir_or.ok()) {
     return false;
@@ -638,13 +583,12 @@ bool DoRediffDatabase() {
 bool DoDiffDatabase(bool filtered) {
   try {
     if (g_results && g_results->IsDirty()) {
-      const int answer =
-          ask_yn(ASKBTN_YES,
-                 "HIDECANCEL\nCurrent diff results have not been saved - save "
-                 "before closing?");
-      if (answer == 1) {  // yes
+      const int answer = ask_yn(
+          ASKBTN_YES,
+          "Current diff results have not been saved - save before closing?");
+      if (answer == ASKBTN_YES) {
         DoSaveResults();
-      } else if (answer == -1) {  // cancel
+      } else if (answer == ASKBTN_CANCEL) {  // cancel
         return false;
       }
     }
@@ -717,7 +661,7 @@ bool DoPortComments() {
   Timer<> timer;
   const double min_confidence = std::stod(buffer1);
   const double min_similarity = std::stod(buffer2);
-  auto status = g_results->PortComments(
+  not_absl::Status status = g_results->PortComments(
       start_address_source, end_address_source, start_address_target,
       end_address_target, min_confidence, min_similarity);
   if (!status.ok()) {
@@ -1076,7 +1020,7 @@ class PortCommentsAction : public ActionHandler<PortCommentsAction> {
                   MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction
               ? Results::kAsExternalLib
               : Results::kNormal;
-      auto status = g_results->PortComments(
+      not_absl::Status status = g_results->PortComments(
           absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()),
           as_external_lib);
       if (!status.ok()) {
@@ -1134,7 +1078,7 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
       return 0;
     }
     const auto ida_selection = context->chooser_selection;
-    auto status = g_results->DeleteMatches(
+    not_absl::Status status = g_results->DeleteMatches(
         absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
     if (!status.ok()) {
       const string message(status.message());
@@ -1169,7 +1113,7 @@ class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
       return 0;
     }
     const auto& ida_selection = context->chooser_selection;
-    auto status = g_results->ConfirmMatches(
+    not_absl::Status status = g_results->ConfirmMatches(
         absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
     if (!status.ok()) {
       const string message(status.message());
@@ -1194,16 +1138,61 @@ class CopyAddressAction : public ActionHandler<CopyAddressAction> {
       address = g_results->GetMatchPrimaryAddress(index);
     } else if (action == MatchedFunctionsChooser::kCopySecondaryAddressAction) {
       address = g_results->GetMatchSecondaryAddress(index);
-    } else {  // TODO(cblichmann): Same for unmatched
+    } else if (action == UnmatchedFunctionsChooserPrimary::kCopyAddressAction) {
+      address = g_results->GetUnmatchedDescriptionPrimary(index).address;
+    } else if (action ==
+               UnmatchedFunctionsChooserSecondary::kCopyAddressAction) {
+      address = g_results->GetUnmatchedDescriptionSecondary(index).address;
+    } else {
       return 0;
     }
-    auto status = CopyToClipboard(FormatAddress(address));
+
+    not_absl::Status status = CopyToClipboard(FormatAddress(address));
     if (!status.ok()) {
       const string message(status.message());
       LOG(INFO) << "Error: " << message;
       warning("Error: %s\n", message.c_str());
       return 0;
     }
+    return 1;
+  }
+};
+
+class AddMatchAction : public ActionHandler<AddMatchAction> {
+  int idaapi activate(action_activation_ctx_t* context) override {
+    if (!g_results || context->chooser_selection.empty()) {
+      return 0;
+    }
+    absl::string_view action{context->action};
+    ssize_t index_primary = chooser_base_t::NO_SELECTION;
+    ssize_t index_secondary = chooser_base_t::NO_SELECTION;
+    if (action == UnmatchedFunctionsChooserPrimary::kAddMatchAction) {
+      index_primary = context->chooser_selection.front();
+      index_secondary =
+          UnmatchedFunctionsAddMatchChooserSecondary{g_results}.choose();
+    } else if (action == UnmatchedFunctionsChooserSecondary::kAddMatchAction) {
+      index_primary =
+          UnmatchedFunctionsAddMatchChooserPrimary{g_results}.choose();
+      index_secondary = context->chooser_selection.front();
+    }
+    if (index_primary == chooser_base_t::NO_SELECTION ||
+        index_secondary == chooser_base_t::NO_SELECTION) {
+      return 0;  // User cancelled
+    }
+    WaitBox wait_box("Performing basic block diff...");
+    not_absl::Status status =
+        g_results->AddMatch(g_results->GetPrimaryAddress(index_primary),
+                            g_results->GetSecondaryAddress(index_secondary));
+    if (!status.ok()) {
+      const string message(status.message());
+      LOG(INFO) << "Error: " << message;
+      warning("Error: %s\n", message.c_str());
+      return 0;
+    }
+    MatchedFunctionsChooser::Refresh();
+    UnmatchedFunctionsChooserPrimary::Refresh();
+    UnmatchedFunctionsChooserSecondary::Refresh();
+    StatisticsChooser::Refresh();
     return 1;
   }
 };
@@ -1318,6 +1307,20 @@ void InitActions() {
   register_action(CopyAddressAction::MakeActionDesc(
       MatchedFunctionsChooser::kCopySecondaryAddressAction,
       "Copy secondary address", /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+
+  // Unmatched choosers
+  register_action(CopyAddressAction::MakeActionDesc(
+      UnmatchedFunctionsChooserPrimary::kCopyAddressAction, "Copy ~a~ddress",
+      /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+  register_action(AddMatchAction::MakeActionDesc(
+      UnmatchedFunctionsChooserPrimary::kAddMatchAction, "Add ~m~atch",
+      /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+  register_action(CopyAddressAction::MakeActionDesc(
+      UnmatchedFunctionsChooserSecondary::kCopyAddressAction, "Copy ~a~ddress",
+      /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+  register_action(AddMatchAction::MakeActionDesc(
+      UnmatchedFunctionsChooserSecondary::kAddMatchAction, "Add ~m~atch",
+      /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
 }
 
 void InitMenus() {
@@ -1418,10 +1421,9 @@ void idaapi PluginTerminate() {
   if (g_init_done) {
     TermMenus();
     SaveAndDiscardResults();
+  } else {
+    DiscardResults();
   }
-
-  delete g_config;
-  g_config = nullptr;
 
   ShutdownLogging();
 }
@@ -1523,14 +1525,7 @@ bool idaapi PluginRun(size_t /* arg */) {
     if (sha256_or.ValueOrDie() !=
         absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
-
-      delete g_results;
-      g_results = 0;
-
-      close_chooser("Matched Functions");
-      close_chooser("Primary Unmatched");
-      close_chooser("Secondary Unmatched");
-      close_chooser("Statistics");
+      DiscardResults();
     }
   }
 

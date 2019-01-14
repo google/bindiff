@@ -8,50 +8,103 @@
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security {
+
+using binexport::FormatAddress;
+
 namespace bindiff {
+namespace internal {
 
-class UnmatchedFunctionsChooserBase : public chooser_multi_t {
+static constexpr const int kUnmatchedChooserColumnWidths[] = {
+    10 | CHCOL_HEX,  // EA
+    30,              // Name
+    5 | CHCOL_DEC,   // Basic Blocks
+    6 | CHCOL_DEC,   // Instructions
+    5 | CHCOL_DEC,   // Edges
+};
+
+static constexpr const char* const kUnmatchedChooserColumnNames[] = {
+    "EA", "Name", "Basic Blocks", "Instructions", "Edges",
+};
+
+void UnmatchedDescriptionToIdaRow(const Results::UnmatchedDescription& desc,
+                                  qstrvec_t* cols, int* icon,
+                                  chooser_item_attrs_t* attrs);
+
+}  // namespace internal
+
+// Base class for non-modal multi-selection choosers for displaying unmatched
+// functions. This is using CRTP to prevent code duplication in the static
+// methods.
+template <typename ChooserT>
+class UnmatchedChooserMultiBase : public chooser_multi_t {
+ public:
+  // Attaches the chooser actions to IDA's popup menu. To be called from a HT_UI
+  // notification point.
+  static bool AttachActionsToPopup(TWidget* widget, TPopupMenu* popup_handle);
+
+  // Refreshes the display of this chooser if visible. Does nothing otherwise.
+  static void Refresh() { refresh_chooser(ChooserT::kTitle); }
+
+  // Closes this chooser if visible.
+  static void Close() { close_chooser(ChooserT::kTitle); }
+
+  explicit UnmatchedChooserMultiBase(Results* results)
+      : chooser_multi_t{
+            CH_ATTRS, ABSL_ARRAYSIZE(internal::kUnmatchedChooserColumnWidths),
+            internal::kUnmatchedChooserColumnWidths,
+            internal::kUnmatchedChooserColumnNames, ChooserT::kTitle},
+        results_{ABSL_DIE_IF_NULL(results)} {}
+
  protected:
-  UnmatchedFunctionsChooserBase(const char* title, Results* results)
-      : chooser_multi_t{CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
-                        kColumnNames, title},
-        results_{ABSL_DIE_IF_NULL(results)},
-        title_{title} {}
-
   Results* results_;
 
  private:
-  static constexpr const int kColumnWidths[] = {
-      10 | CHCOL_HEX,  // EA
-      30,              // Name
-      5 | CHCOL_DEC,   // Basic Blocks
-      6 | CHCOL_DEC,   // Instructions
-      5 | CHCOL_DEC,   // Edges
-  };
-  static constexpr const char* const kColumnNames[] = {
-      "EA", "Name", "Basic Blocks", "Instructions", "Edges",
-  };
-
   virtual Results::UnmatchedDescription GetDescription(size_t index) const = 0;
 
-  const void* get_obj_id(size_t* len) const override;
-  void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
-               size_t n) const override;
+  const void* get_obj_id(size_t* len) const override {
+    *len = strlen(ChooserT::kTitle);
+    return ChooserT::kTitle;
+  }
 
-  string title_;
+  void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
+               size_t n) const override {
+    internal::UnmatchedDescriptionToIdaRow(GetDescription(n), cols, icon_,
+                                           attrs);
+  }
 };
 
-class UnmatchedFunctionsChooserPrimary : public UnmatchedFunctionsChooserBase {
- public:
-  explicit UnmatchedFunctionsChooserPrimary(Results* results)
-      : UnmatchedFunctionsChooserBase(kTitle, results) {}
+template <typename ChooserT>
+inline bool UnmatchedChooserMultiBase<ChooserT>::AttachActionsToPopup(
+    TWidget* widget, TPopupMenu* popup_handle) {
+  qstring title;
+  if (get_widget_type(widget) != BWN_CHOOSER ||
+      !get_widget_title(&title, widget) || title != ChooserT::kTitle) {
+    return false;
+  }
+  for (const auto& action :
+       {ChooserT::kCopyAddressAction, ChooserT::kAddMatchAction}) {
+    attach_action_to_popup(widget, popup_handle, action);
+  }
+  return true;
+}
 
-  // Refreshes the display of this chooser if visible. Does nothing otherwise.
-  static void Refresh() { refresh_chooser(kTitle); }
+class UnmatchedFunctionsChooserPrimary
+    : public UnmatchedChooserMultiBase<UnmatchedFunctionsChooserPrimary> {
+ public:
+  // Action names
+  static constexpr const char kCopyAddressAction[] =
+      "bindiff:primary_unmatched_copy_address";
+  static constexpr const char kAddMatchAction[] =
+      "bindiff:primary_unmatched_add_match";
+
+  using UnmatchedChooserMultiBase::UnmatchedChooserMultiBase;
 
  private:
+  friend class UnmatchedChooserMultiBase<UnmatchedFunctionsChooserPrimary>;
+
   static constexpr const char kTitle[] = "Primary Unmatched";
 
   size_t get_count() const override;
@@ -63,18 +116,81 @@ class UnmatchedFunctionsChooserPrimary : public UnmatchedFunctionsChooserBase {
 };
 
 class UnmatchedFunctionsChooserSecondary
-    : public UnmatchedFunctionsChooserBase {
+    : public UnmatchedChooserMultiBase<UnmatchedFunctionsChooserSecondary> {
  public:
-  explicit UnmatchedFunctionsChooserSecondary(Results* results)
-      : UnmatchedFunctionsChooserBase(kTitle, results) {}
+  // Action names
+  static constexpr const char kCopyAddressAction[] =
+      "bindiff:secondary_unmatched_copy_address";
+  static constexpr const char kAddMatchAction[] =
+      "bindiff:secondary_unmatched_add_match";
 
-  // Refreshes the display of this chooser if visible. Does nothing otherwise.
-  static void Refresh() { refresh_chooser(kTitle); }
+  using UnmatchedChooserMultiBase::UnmatchedChooserMultiBase;
 
  private:
+  friend class UnmatchedChooserMultiBase<UnmatchedFunctionsChooserSecondary>;
+
   static constexpr const char kTitle[] = "Secondary Unmatched";
 
   size_t get_count() const override;
+
+  Results::UnmatchedDescription GetDescription(size_t index) const override;
+};
+
+// Base class for the modal choosers that allow selecting an unmachted function
+// to assign a manual match to. The derived classes show the same data but do
+// not feature a context menu.
+template <typename ChooserT>
+class UnmatchedChooserBase : public chooser_t {
+ public:
+  explicit UnmatchedChooserBase(Results* results)
+      : chooser_t{CH_MODAL | CH_KEEP,
+                  ABSL_ARRAYSIZE(internal::kUnmatchedChooserColumnWidths),
+                  internal::kUnmatchedChooserColumnWidths,
+                  internal::kUnmatchedChooserColumnNames, ChooserT::kTitle},
+        results_{ABSL_DIE_IF_NULL(results)} {}
+
+ protected:
+  Results* results_;
+
+ private:
+  virtual Results::UnmatchedDescription GetDescription(size_t index) const = 0;
+
+  void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
+               size_t n) const override{
+    internal::UnmatchedDescriptionToIdaRow(GetDescription(n), cols, icon_,
+                                           attrs);
+  }
+};
+
+class UnmatchedFunctionsAddMatchChooserPrimary
+    : public UnmatchedChooserBase<UnmatchedFunctionsAddMatchChooserPrimary> {
+ public:
+  using UnmatchedChooserBase::UnmatchedChooserBase;
+
+ private:
+  friend class UnmatchedChooserBase<UnmatchedFunctionsAddMatchChooserPrimary>;
+
+  static constexpr const char kTitle[] =
+      "Select unmatched function in primary";
+
+  size_t get_count() const override;
+
+  Results::UnmatchedDescription GetDescription(size_t index) const override;
+};
+
+class UnmatchedFunctionsAddMatchChooserSecondary
+    : public UnmatchedChooserBase<UnmatchedFunctionsAddMatchChooserSecondary> {
+ public:
+  using UnmatchedChooserBase::UnmatchedChooserBase;
+
+ private:
+  friend class UnmatchedChooserBase<UnmatchedFunctionsAddMatchChooserSecondary>;
+
+  static constexpr const char kTitle[] =
+      "Select unmatched function in secondary";
+
+  size_t get_count() const override;
+
   Results::UnmatchedDescription GetDescription(size_t index) const override;
 };
 

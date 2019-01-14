@@ -41,6 +41,9 @@ class MatchedFunctionsChooser : public chooser_multi_t {
   // Refreshes the display of this chooser if visible. Does nothing otherwise.
   static void Refresh() { refresh_chooser(kTitle); }
 
+  // Closes this chooser if visible.
+  static void Close() { close_chooser(kTitle); }
+
  private:
   static constexpr const int kColumnWidths[] = {
     5 | CHCOL_DEC,   // Similarity

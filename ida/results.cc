@@ -366,14 +366,12 @@ bool Results::IsDirty() const { return dirty_; }
 void Results::DeleteTemporaryFiles() {
   // Extremely dangerous, make very sure GetDirectory _never_ returns something
   // like "C:".
-  try {
-    auto temp_dir_or = GetTempDirectory("BinDiff");
-    if (!temp_dir_or.ok()) {
-      return;
-    }
-    RemoveAll(temp_dir_or.ValueOrDie());
-  } catch (...) {  // We don't care if it failed-only litters the temp dir a bit
+  auto temp_dir_or = GetTempDirectory("BinDiff");
+  if (!temp_dir_or.ok()) {
+    return;
   }
+  RemoveAll(temp_dir_or.ValueOrDie());
+  // Don't care if the above failed - only litters the temp dir a bit.
 }
 
 size_t Results::GetNumUnmatchedPrimary() const {
@@ -720,7 +718,7 @@ not_absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
 
 FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
                      Address address) {
-  // TODO(soerenme): Graphs are sorted, we don't need to search the whole thing.
+  // TODO(cblichmann): Graphs are sorted, we don't need to search everything.
   for (auto i = graphs.begin(), end = graphs.end(); i != end; ++i) {
     if ((*i)->GetEntryPointAddress() == address) {
       return *i;
@@ -729,209 +727,162 @@ FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
   return 0;
 }
 
-int Results::AddMatch(Address primary, Address secondary) {
-  FixedPointInfo fixed_point_info;
-  fixed_point_info.algorithm = FindString(MatchingStep::kFunctionManualName);
-  fixed_point_info.confidence = 1.0;
-  fixed_point_info.basic_block_count = 0;
-  fixed_point_info.edge_count = 0;
-  fixed_point_info.instruction_count = 0;
-  fixed_point_info.primary = primary;
-  fixed_point_info.secondary = secondary;
-  fixed_point_info.similarity = 0.0;
-  fixed_point_info.flags = 0;
-  fixed_point_info.comments_ported = false;
-  // Results have been loaded: we need to reload flow graphs and recreate
-  // basic block fixed points.
-  if (IsIncomplete()) {
-    FlowGraph primary_graph;
-    FlowGraph secondary_graph;
-    FixedPoint fixed_point;
-    SetupTemporaryFlowGraphs(fixed_point_info, primary_graph, secondary_graph,
-                             fixed_point, true);
+not_absl::Status Results::AddMatch(Address primary, Address secondary) {
+  try {
+    FixedPointInfo fixed_point_info;
+    fixed_point_info.algorithm = FindString(MatchingStep::kFunctionManualName);
+    fixed_point_info.confidence = 1.0;
+    fixed_point_info.basic_block_count = 0;
+    fixed_point_info.edge_count = 0;
+    fixed_point_info.instruction_count = 0;
+    fixed_point_info.primary = primary;
+    fixed_point_info.secondary = secondary;
+    fixed_point_info.similarity = 0.0;
+    fixed_point_info.flags = 0;
+    fixed_point_info.comments_ported = false;
+    // Results have been loaded: we need to reload flow graphs and recreate
+    // basic block fixed points.
+    if (IsIncomplete()) {
+      FlowGraph primary_graph;
+      FlowGraph secondary_graph;
+      FixedPoint fixed_point;
+      SetupTemporaryFlowGraphs(fixed_point_info, primary_graph, secondary_graph,
+                               fixed_point, true);
 
-    Counts counts;
-    Histogram histogram;
-    FlowGraphs dummy1;
-    dummy1.insert(&primary_graph);
-    FlowGraphs dummy2;
-    dummy2.insert(&secondary_graph);
-    FixedPoints dummy3;
-    dummy3.insert(fixed_point);
-    GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
+      Counts counts;
+      Histogram histogram;
+      FlowGraphs dummy1;
+      dummy1.insert(&primary_graph);
+      FlowGraphs dummy2;
+      dummy2.insert(&secondary_graph);
+      FixedPoints dummy3;
+      dummy3.insert(fixed_point);
+      GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
 
-    fixed_point.SetMatchingStep(MatchingStep::kFunctionManualName);
-    fixed_point.SetSimilarity(
-        GetSimilarityScore(primary_graph, secondary_graph, histogram, counts));
-    ClassifyChanges(&fixed_point);
-    fixed_point_info.basic_block_count =
-        counts["basicBlock matches (library)"] +
-        counts["basicBlock matches (non-library)"];
-    fixed_point_info.instruction_count =
-        counts["instruction matches (library)"] +
-        counts["instruction matches (non-library)"];
-    fixed_point_info.edge_count =
-        counts["flowGraph edge matches (library)"] +
-        counts["flowGraph edge matches (non-library)"];
-    fixed_point_info.similarity = fixed_point.GetSimilarity();
-    fixed_point_info.flags = fixed_point.GetFlags();
+      fixed_point.SetMatchingStep(MatchingStep::kFunctionManualName);
+      fixed_point.SetSimilarity(GetSimilarityScore(
+          primary_graph, secondary_graph, histogram, counts));
+      ClassifyChanges(&fixed_point);
+      fixed_point_info.basic_block_count =
+          counts["basicBlock matches (library)"] +
+          counts["basicBlock matches (non-library)"];
+      fixed_point_info.instruction_count =
+          counts["instruction matches (library)"] +
+          counts["instruction matches (non-library)"];
+      fixed_point_info.edge_count =
+          counts["flowGraph edge matches (library)"] +
+          counts["flowGraph edge matches (non-library)"];
+      fixed_point_info.similarity = fixed_point.GetSimilarity();
+      fixed_point_info.flags = fixed_point.GetFlags();
 
-    temp_database_.WriteToTempDatabase(fixed_point);
+      temp_database_.WriteToTempDatabase(fixed_point);
 
-    DeleteTemporaryFlowGraphs();
-  } else {
-    FlowGraph* primary_graph = FindGraph(flow_graphs1_, primary);
-    FlowGraph* secondary_graph = FindGraph(flow_graphs2_, secondary);
-    if (!primary_graph || primary_graph->GetEntryPointAddress() != primary ||
-        !secondary_graph ||
-        secondary_graph->GetEntryPointAddress() != secondary) {
-      LOG(INFO) << "invalid graphs in addmatch";
-      return 0;
+      DeleteTemporaryFlowGraphs();
+    } else {
+      FlowGraph* primary_graph = FindGraph(flow_graphs1_, primary);
+      FlowGraph* secondary_graph = FindGraph(flow_graphs2_, secondary);
+      if (!primary_graph || primary_graph->GetEntryPointAddress() != primary ||
+          !secondary_graph ||
+          secondary_graph->GetEntryPointAddress() != secondary) {
+        return not_absl::InternalError("Invalid graphs in AddMatch()");
+      }
+      FixedPoint& fixed_point(const_cast<FixedPoint&>(
+          *fixed_points_
+               .insert(FixedPoint(primary_graph, secondary_graph,
+                                  MatchingStep::kFunctionManualName))
+               .first));
+      MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
+                              flow_graphs2_, fixed_points_);
+      primary_graph->SetFixedPoint(&fixed_point);
+      secondary_graph->SetFixedPoint(&fixed_point);
+      FindFixedPointsBasicBlock(&fixed_point, &context,
+                                GetDefaultMatchingStepsBasicBlock());
+
+      Counts counts;
+      Histogram histogram;
+      FlowGraphs dummy1;
+      dummy1.insert(primary_graph);
+      FlowGraphs dummy2;
+      dummy2.insert(secondary_graph);
+      FixedPoints dummy3;
+      dummy3.insert(fixed_point);
+      GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
+
+      fixed_point.SetSimilarity(GetSimilarityScore(
+          *primary_graph, *secondary_graph, histogram, counts));
+      fixed_point.SetConfidence(fixed_point_info.confidence);
+      ClassifyChanges(&fixed_point);
+      fixed_point_info.basic_block_count =
+          counts["basicBlock matches (library)"] +
+          counts["basicBlock matches (non-library)"];
+      fixed_point_info.instruction_count =
+          counts["instruction matches (library)"] +
+          counts["instruction matches (non-library)"];
+      fixed_point_info.edge_count =
+          counts["flowGraph edge matches (library)"] +
+          counts["flowGraph edge matches (non-library)"];
+      fixed_point_info.similarity = fixed_point.GetSimilarity();
+      fixed_point_info.flags = fixed_point.GetFlags();
     }
-    FixedPoint& fixed_point(const_cast<FixedPoint&>(
-        *fixed_points_
-             .insert(FixedPoint(primary_graph, secondary_graph,
-                                MatchingStep::kFunctionManualName))
-             .first));
-    MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
-                            flow_graphs2_, fixed_points_);
-    primary_graph->SetFixedPoint(&fixed_point);
-    secondary_graph->SetFixedPoint(&fixed_point);
-    FindFixedPointsBasicBlock(&fixed_point, &context,
-                              GetDefaultMatchingStepsBasicBlock());
 
-    Counts counts;
-    Histogram histogram;
-    FlowGraphs dummy1;
-    dummy1.insert(primary_graph);
-    FlowGraphs dummy2;
-    dummy2.insert(secondary_graph);
-    FixedPoints dummy3;
-    dummy3.insert(fixed_point);
-    GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
+    fixed_point_infos_.insert(fixed_point_info);
+    indexed_fixed_points_.push_back(const_cast<FixedPointInfo*>(
+        &*fixed_point_infos_.find(fixed_point_info)));
+    std::sort(indexed_fixed_points_.begin(), indexed_fixed_points_.end(),
+              &SortBySimilarity);
 
-    fixed_point.SetSimilarity(GetSimilarityScore(
-        *primary_graph, *secondary_graph, histogram, counts));
-    fixed_point.SetConfidence(fixed_point_info.confidence);
-    ClassifyChanges(&fixed_point);
-    fixed_point_info.basic_block_count =
-        counts["basicBlock matches (library)"] +
-        counts["basicBlock matches (non-library)"];
-    fixed_point_info.instruction_count =
-        counts["instruction matches (library)"] +
-        counts["instruction matches (non-library)"];
-    fixed_point_info.edge_count =
-        counts["flowGraph edge matches (library)"] +
-        counts["flowGraph edge matches (non-library)"];
-    fixed_point_info.similarity = fixed_point.GetSimilarity();
-    fixed_point_info.flags = fixed_point.GetFlags();
+    if (call_graph2_.IsLibrary(
+            call_graph2_.GetVertex(fixed_point_info.secondary)) ||
+        flow_graph_infos2_.find(fixed_point_info.secondary) ==
+            flow_graph_infos2_.end() ||
+        call_graph1_.IsLibrary(
+            call_graph1_.GetVertex(fixed_point_info.primary)) ||
+        flow_graph_infos1_.find(fixed_point_info.primary) ==
+            flow_graph_infos1_.end()) {
+      counts_["function matches (library)"] += 1;
+      counts_["basicBlock matches (library)"] +=
+          fixed_point_info.basic_block_count;
+      counts_["instruction matches (library)"] +=
+          fixed_point_info.instruction_count;
+      counts_["flowGraph edge matches (library)"] +=
+          fixed_point_info.edge_count;
+    } else {
+      counts_["function matches (non-library)"] += 1;
+      counts_["basicBlock matches (non-library)"] +=
+          fixed_point_info.basic_block_count;
+      counts_["instruction matches (non-library)"] +=
+          fixed_point_info.instruction_count;
+      counts_["flowGraph edge matches (non-library)"] +=
+          fixed_point_info.edge_count;
+    }
+    histogram_[*fixed_point_info.algorithm]++;
+
+    FlowGraphInfo& primary_info(
+        flow_graph_infos1_.find(fixed_point_info.primary)->second);
+    FlowGraphInfo& secondary_info(
+        flow_graph_infos2_.find(fixed_point_info.secondary)->second);
+    indexed_flow_graphs1_.erase(std::find(indexed_flow_graphs1_.begin(),
+                                          indexed_flow_graphs1_.end(),
+                                          &primary_info));
+    indexed_flow_graphs2_.erase(std::find(indexed_flow_graphs2_.begin(),
+                                          indexed_flow_graphs2_.end(),
+                                          &secondary_info));
+    SetDirty();
+  } catch (const std::exception& message) {
+    return not_absl::InternalError(
+        absl::StrCat("Error adding manual match: ", message.what()));
+  } catch (...) {
+    return not_absl::UnknownError("Error adding manual match");
   }
-
-  fixed_point_infos_.insert(fixed_point_info);
-  indexed_fixed_points_.push_back(
-      const_cast<FixedPointInfo*>(&*fixed_point_infos_.find(fixed_point_info)));
-  std::sort(indexed_fixed_points_.begin(), indexed_fixed_points_.end(),
-            &SortBySimilarity);
-
-  if (call_graph2_.IsLibrary(
-          call_graph2_.GetVertex(fixed_point_info.secondary)) ||
-      flow_graph_infos2_.find(fixed_point_info.secondary) ==
-          flow_graph_infos2_.end() ||
-      call_graph1_.IsLibrary(
-          call_graph1_.GetVertex(fixed_point_info.primary)) ||
-      flow_graph_infos1_.find(fixed_point_info.primary) ==
-          flow_graph_infos1_.end()) {
-    counts_["function matches (library)"] += 1;
-    counts_["basicBlock matches (library)"] +=
-        fixed_point_info.basic_block_count;
-    counts_["instruction matches (library)"] +=
-        fixed_point_info.instruction_count;
-    counts_["flowGraph edge matches (library)"] += fixed_point_info.edge_count;
-  } else {
-    counts_["function matches (non-library)"] += 1;
-    counts_["basicBlock matches (non-library)"] +=
-        fixed_point_info.basic_block_count;
-    counts_["instruction matches (non-library)"] +=
-        fixed_point_info.instruction_count;
-    counts_["flowGraph edge matches (non-library)"] +=
-        fixed_point_info.edge_count;
-  }
-  histogram_[*fixed_point_info.algorithm]++;
-
-  FlowGraphInfo& primary_info(
-      flow_graph_infos1_.find(fixed_point_info.primary)->second);
-  FlowGraphInfo& secondary_info(
-      flow_graph_infos2_.find(fixed_point_info.secondary)->second);
-  indexed_flow_graphs1_.erase(std::find(indexed_flow_graphs1_.begin(),
-                                        indexed_flow_graphs1_.end(),
-                                        &primary_info));
-  indexed_flow_graphs2_.erase(std::find(indexed_flow_graphs2_.begin(),
-                                        indexed_flow_graphs2_.end(),
-                                        &secondary_info));
-
-  MatchedFunctionsChooser::Refresh();
-  refresh_chooser("Primary Unmatched");
-  refresh_chooser("Secondary Unmatched");
-  refresh_chooser("Statistics");
-  SetDirty();
-
-  return 1;
-}
-
-int Results::AddMatchPrimary(size_t index) {
-  // TODO(cblichmann): Port this over to the new IDA 7 API
-  return 0;
-#if 0
-  static const int widths[] = {10, 30, 5, 6, 5};
-  static const char* popups[] = {0, 0, 0, 0};
-  const int index2 = choose2(
-      CH_MODAL, /*x0=*/-1, /*y0=*/-1, /*x1=*/-1, /*y1=*/-1,
-      /*obj=*/reinterpret_cast<void*>(this), sizeof(widths) / sizeof(widths[0]),
-      widths,
-      /*sizer=*/&::GetNumUnmatchedSecondary,
-      /*getl=*/&::GetUnmatchedSecondaryDescription, "Secondary Unmatched",
-      /*icon=*/-1, /*deflt=*/1, /*del=*/nullptr,
-      /*ins=*/nullptr, /*update=*/nullptr, /*edit=*/nullptr,
-      /*enter=*/nullptr, /*destroy=*/nullptr,
-      /*popup_names=*/popups, /*get_icon=*/nullptr);
-  if (index2 > 0) {
-    const Address primary = GetPrimaryAddress(index);
-    const Address secondary = GetSecondaryAddress(index2);
-    return AddMatch(primary, secondary);
-  }
-#endif
-}
-
-int Results::AddMatchSecondary(size_t index) {
-  // TODO(cblichmann): Port this over to the new IDA 7 API
-  return 0;
-#if 0
-  static const int widths[] = {10, 30, 5, 6, 5};
-  static const char* popups[] = {0, 0, 0, 0};
-  const int index2 =
-      choose2(CH_MODAL, /*x0=*/-1, /*y0=*/-1, /*x1=*/-1, /*y1=*/-1,
-              /*obj=*/reinterpret_cast<void*>(this),
-              sizeof(widths) / sizeof(widths[0]), widths,
-              /*sizer=*/&::GetNumUnmatchedPrimary,
-              /*getl=*/&::GetUnmatchedPrimaryDescription, "Primary Unmatched",
-              /*icon=*/-1, /*deflt=*/1, /*del=*/nullptr,
-              /*ins=*/nullptr, /*update=*/nullptr, /*edit=*/nullptr,
-              /*enter=*/nullptr, /*destroy=*/nullptr,
-              /*popup_names=*/popups, /*get_icon=*/nullptr);
-  if (index2 > 0) {
-    const Address secondary = GetSecondaryAddress(index);
-    const Address primary = GetPrimaryAddress(index2);
-    return AddMatch(primary, secondary);
-  }
-#endif
+  return not_absl::OkStatus();
 }
 
 size_t Results::GetNumMatches() const {
   return indexed_fixed_points_.size();
 }
 
-Results::MatchDescription Results::GetMatchDescription(int index) const {
-  if (index < 0 || index >= indexed_fixed_points_.size()) {
+Results::MatchDescription Results::GetMatchDescription(size_t index) const {
+  if (index >= indexed_fixed_points_.size()) {
     return {};
   }
 
