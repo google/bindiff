@@ -31,7 +31,7 @@ public final class Constants {
   // About, License Help and Support Dialog
   public static final String MANUAL_URL = "https://www.zynamics.com/bindiff/manual/index.html";
   public static final String COPYRIGHT_TEXT =
-      "\nCopyright \u00a92004-2011 zynamics GmbH\nCopyright \u00a92011-2018 Google LLC.\n";
+      "\nCopyright \u00a92004-2011 zynamics GmbH\nCopyright \u00a92011-2019 Google LLC.\n";
   public static final String ZYNAMICS_HOME_URL = "https://www.zynamics.com";
   public static final String ZYNAMICS_BINDIFF_PRODUCT_SITE_URL =
       "http://www.zynamics.com/bindiff.html";

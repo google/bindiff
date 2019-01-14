@@ -80,7 +80,7 @@ constexpr char kComment[] =
     "Structural comparison of executable objects";  // Status line
 constexpr char kHotKey[] = "CTRL-6";
 constexpr char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
 
 bool g_init_done = false;  // Used in PluginTerminate()
 bool g_alsologtostderr = false;
