@@ -434,6 +434,7 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
     case ui_finish_populating_widget_popup: {
       auto* widget = va_arg(arguments, TWidget*);
       auto* popup_handle = va_arg(arguments, TPopupMenu*);
+      attach_action_to_popup(widget, popup_handle, nullptr);  // Add separator
       for (auto& attach :
            {MatchedFunctionsChooser::AttachActionsToPopup,
             UnmatchedFunctionsChooserPrimary::AttachActionsToPopup,
@@ -442,6 +443,8 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
           break;
         }
       }
+      // Add separator before "Font..."
+      attach_action_to_popup(widget, popup_handle, nullptr);
       break;
     }
   }
@@ -1334,6 +1337,8 @@ void InitMenus() {
   attach_action_to_menu("Edit/Comments/InsertPredefinedComment",
                         "bindiff:port_comments", SETMENU_APP);
 
+  // TODO(cblichmann): Use create_menu() in IDA 7.3
+  attach_action_to_menu("View", nullptr, SETMENU_APP);
   attach_action_to_menu("View/BinDiff/", "bindiff:show_matched",
                         SETMENU_FIRST);
   attach_action_to_menu("View/BinDiff/MatchedFunctions",
