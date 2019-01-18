@@ -315,19 +315,17 @@ bool ExportIdbs() {
 }
 
 void DoVisualDiff(uint32_t index, bool call_graph_diff) {
+  if (!g_results) {
+    return;
+  }
   try {
     string message;
-    if (!g_results) {
+    const bool result =
+        !call_graph_diff
+            ? g_results->PrepareVisualDiff(index, &message)
+            : g_results->PrepareVisualCallGraphDiff(index, &message);
+    if (!result) {
       return;
-    }
-    if (!call_graph_diff) {
-      if (!g_results->PrepareVisualDiff(index, &message)) {
-        return;
-      }
-    } else {
-      if (!g_results->PrepareVisualCallGraphDiff(index, &message)) {
-        return;
-      }
     }
 
     LOG(INFO) << "Sending result to BinDiff GUI...";
@@ -335,7 +333,7 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
         g_config->ReadInt("/BinDiff/Gui/@retries", 20),
         g_config->ReadString("/BinDiff/Gui/@directory",
                              // TODO(cblichmann): Use better defaults
-                             "C:\\Program Files\\zynamics\\BinDiff 4.3\\bin"),
+                             "C:\\Program Files\\zynamics\\BinDiff 5.0\\bin"),
         g_config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
         static_cast<uint16_t>(g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
         message, nullptr);
