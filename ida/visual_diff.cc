@@ -1,6 +1,6 @@
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #define _WIN32_WINNT 0x0501
 #include <windows.h>  // NOLINT
 #include <winsock2.h>
@@ -43,9 +43,9 @@ namespace bindiff {
 
 constexpr char kGuiJarName[] = "bindiff.jar";
 
-#ifdef WIN32
+#ifdef _WIN32
 // Minimum required version of the JRE
-constexpr double kMinJavaVersion = 1.8;
+constexpr double kMinJavaVersion = 9;
 
 bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
                          int bufsize) {
@@ -68,29 +68,37 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
 }
 
 string GetJavaHomeDir() {
-  // The JRE's registry key under HKEY_LOCAL_MACHINE
-  constexpr char kRegkeyHklmJreRoot[] =
-      "SOFTWARE\\JavaSoft\\Java Runtime Environment";
+  char buffer[MAX_PATH] = {0};
 
-  HKEY key = 0;
+  // Try environment variable first.
+  int size = GetEnvironmentVariable("JAVA_HOME", &buffer[0], MAX_PATH);
+  if (size != 0 && size < MAX_PATH) {
+    return buffer;
+  }
 
-  // Try 64-bit registry view first
-  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, kRegkeyHklmJreRoot, 0,
-                   KEY_READ | KEY_WOW64_64KEY, &key) != ERROR_SUCCESS) {
-    // Not found, return empty path
-    return "";
+  HKEY key;
+  // Try JDK key first, as newer Java versions (>=10) do not ship the JRE
+  // separately anymore.
+  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\JavaSoft\\JDK", 0, KEY_READ,
+                   &key) != ERROR_SUCCESS) {
+    // Not found, try JRE key next.
+    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
+                     "SOFTWARE\\JavaSoft\\Java Runtime Environment", 0,
+                     KEY_READ, &key) != ERROR_SUCCESS) {
+      return "";
+    }
   }
 
   string result;
-  char buffer[MAX_PATH];
-  if (RegQueryStringValue(key, "CurrentVersion", buffer, MAX_PATH)) {
-    const double cur_var = strtod(buffer, 0);
+  if (RegQueryStringValue(key, "CurrentVersion", &buffer[0], MAX_PATH)) {
+    // Parse the first part of the version (e.g. 11.0) and ignore everything
+    // else.
+    const double cur_var = strtod(buffer, nullptr);
     HKEY subkey(0);
     if (cur_var >= kMinJavaVersion &&
-        RegOpenKeyEx(key, buffer, 0, KEY_READ | KEY_WOW64_64KEY, &subkey) ==
-            ERROR_SUCCESS) {
-      if (RegQueryStringValue(subkey, "JavaHome", buffer, MAX_PATH)) {
-        result = string(buffer);
+        RegOpenKeyEx(key, buffer, 0, KEY_READ, &subkey) == ERROR_SUCCESS) {
+      if (RegQueryStringValue(subkey, "JavaHome", &buffer[0], MAX_PATH)) {
+        result = buffer;
       }
       RegCloseKey(subkey);
     }
@@ -102,7 +110,7 @@ string GetJavaHomeDir() {
 #endif
 
 uint64_t GetPhysicalMemSize() {
-#if defined(WIN32)
+#if defined(_WIN32)
   MEMORYSTATUSEX mi;
   mi.dwLength = sizeof(MEMORYSTATUSEX);
   GlobalMemoryStatusEx(&mi);
@@ -124,7 +132,7 @@ uint64_t GetPhysicalMemSize() {
 
 bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
                          absl::string_view arguments) {
-#ifdef WIN32
+#ifdef _WIN32
   static int winsock_status = []() -> int {
     WSADATA wsa_data;
     return WSAStartup(MAKEWORD(2, 2), &wsa_data);
@@ -195,8 +203,8 @@ void DoStartGui(absl::string_view gui_dir) {
   if (!java_binary.empty()) {
     argv.push_back(java_binary);
   } else {
-#ifdef WIN32
-    string java_exe(GetJavaHomeDir());
+#ifdef _WIN32
+    string java_exe = GetJavaHomeDir();
     if (!java_exe.empty()) {
       absl::StrAppend(&java_exe, kPathSeparator, "bin");
     }

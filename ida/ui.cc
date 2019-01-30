@@ -78,7 +78,7 @@ uint32_t GetMatchColor(double value) {
 }
 
 not_absl::Status CopyToClipboard(absl::string_view data) {
-#ifdef WIN32
+#ifdef _WIN32
   if (!OpenClipboard(0)) {
     return not_absl::UnknownError(GetLastOsError());
   }
@@ -90,8 +90,10 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
     return not_absl::UnknownError(GetLastOsError());
   }
 
+  // Allocate one byte more than the string size because the CF_TEXT format
+  // expects a NUL byte at the end.
   HGLOBAL buffer_handle =
-      GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size());
+      GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size() + 1);
   if (!buffer_handle) {
     return not_absl::UnknownError(GetLastOsError());
   }
