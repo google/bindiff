@@ -2,7 +2,8 @@
 
 #include <string>
 
-#include "base/logging.h"
+#include "third_party/absl/base/attributes.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
@@ -10,45 +11,8 @@
 namespace security {
 namespace bindiff {
 
-void UpdateFixedPointConfidence(FixedPoint& fixed_point) {
-  FlowGraphs flow_graphs1, flow_graphs2;
-  CHECK(flow_graphs1.insert(fixed_point.GetPrimary()).second);
-  CHECK(flow_graphs2.insert(fixed_point.GetSecondary()).second);
-  FixedPoints fixed_points;
-  CHECK(fixed_points.insert(fixed_point).second);
-  Histogram histogram;
-  Counts counts;
-  GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
-                        &counts);
-  Confidences confidences;
-  fixed_point.SetConfidence(GetConfidence(histogram, &confidences));
-  fixed_point.SetSimilarity(GetSimilarityScore(*fixed_point.GetPrimary(),
-                                               *fixed_point.GetSecondary(),
-                                               histogram, counts));
-}
-
-MatchingContext::MatchingContext(CallGraph& call_graph1, CallGraph& call_graph2,
-                                 FlowGraphs& flow_graphs1,
-                                 FlowGraphs& flow_graphs2,
-                                 FixedPoints& fixed_points)
-    : primary_call_graph_(call_graph1),
-      secondary_call_graph_(call_graph2),
-      primary_flow_graphs_(flow_graphs1),
-      secondary_flow_graphs_(flow_graphs2),
-      fixed_points_(fixed_points),
-      new_fixed_points_() {}
-
-MatchingContext::~MatchingContext() {
-  // Cleanup for all the cached features
-  for (int i = 0; i < kMaxFeature; ++i) {
-    if (features_[i].destructor) {
-      features_[i].destructor(features_[i].features);
-    }
-  }
-}
-
-XmlConfig& GetConfig() {
-  static constexpr char kDefaultConfig[] = R"raw(<?xml version="1.0"?>
+ABSL_CONST_INIT const absl::string_view kDefaultConfig =
+    R"raw(<?xml version="1.0"?>
 <BinDiff configVersion="4">
     <Gui directory="C:\Program Files\zynamics\BinDiff 5" server="127.0.0.1" port="2000" retries="20" />
     <Ida directory="C:\Program Files\IDA" executable="ida.exe" executable64="ida64.exe" />
@@ -95,12 +59,41 @@ XmlConfig& GetConfig() {
     </BasicBlockMatching>
 </BinDiff>)raw";
 
-  static XmlConfig* config =
-      (XmlConfig::GetDefaultFilename().empty()
-           ? XmlConfig::LoadFromString(kDefaultConfig)
-           : XmlConfig::LoadFromFile(XmlConfig::GetDefaultFilename()))
-          .release();
-  return *config;
+void UpdateFixedPointConfidence(FixedPoint& fixed_point) {
+  FlowGraphs flow_graphs1, flow_graphs2;
+  CHECK(flow_graphs1.insert(fixed_point.GetPrimary()).second);
+  CHECK(flow_graphs2.insert(fixed_point.GetSecondary()).second);
+  FixedPoints fixed_points;
+  CHECK(fixed_points.insert(fixed_point).second);
+  Histogram histogram;
+  Counts counts;
+  GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
+                        &counts);
+  Confidences confidences;
+  fixed_point.SetConfidence(GetConfidence(histogram, &confidences));
+  fixed_point.SetSimilarity(GetSimilarityScore(*fixed_point.GetPrimary(),
+                                               *fixed_point.GetSecondary(),
+                                               histogram, counts));
+}
+
+MatchingContext::MatchingContext(CallGraph& call_graph1, CallGraph& call_graph2,
+                                 FlowGraphs& flow_graphs1,
+                                 FlowGraphs& flow_graphs2,
+                                 FixedPoints& fixed_points)
+    : primary_call_graph_(call_graph1),
+      secondary_call_graph_(call_graph2),
+      primary_flow_graphs_(flow_graphs1),
+      secondary_flow_graphs_(flow_graphs2),
+      fixed_points_(fixed_points),
+      new_fixed_points_() {}
+
+MatchingContext::~MatchingContext() {
+  // Cleanup for all the cached features
+  for (int i = 0; i < kMaxFeature; ++i) {
+    if (features_[i].destructor) {
+      features_[i].destructor(features_[i].features);
+    }
+  }
 }
 
 std::pair<FixedPoints::iterator, bool> MatchingContext::AddFixedPoint(

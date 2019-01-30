@@ -113,8 +113,12 @@ set_target_properties(binexport_shared PROPERTIES
 # XML configuration library
 add_library(xmlconfig STATIC xmlconfig.cc
                              xmlconfig.h)
-target_link_libraries(xmlconfig binexport_shared
-                                tinyxpath)
+target_link_libraries(xmlconfig
+  binexport_shared
+  absl::container
+  absl::hash
+  tinyxpath
+)
 set_target_properties(xmlconfig PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
@@ -158,6 +162,8 @@ add_library(bindiff_shared STATIC
   call_graph_match_function_string_refs.h
   change_classifier.cc
   change_classifier.h
+  config.cc
+  config.h
   comments.h
   database_writer.cc
   database_writer.h

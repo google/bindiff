@@ -21,14 +21,15 @@
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_prime.h"
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_self_loop.h"
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_string_refs.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
+#include "third_party/zynamics/bindiff/config.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 
 namespace security {
 namespace bindiff {
 namespace {
 
 double GetConfidenceFromConfig(const string& name) {
-  return GetConfig().ReadDouble(
+  return GetConfig()->ReadDouble(
       absl::StrCat("/BinDiff/BasicBlockMatching/Step[@algorithm=\"", name,
                    "\"]/@confidence"),
       /*default_value=*/-1.0 /* Not found/commented out */);
@@ -222,7 +223,7 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
   }();
 
   MatchingStepsFlowGraph matching_steps_basic_block;
-  TinyXPath::xpath_processor processor(GetConfig().GetDocument()->RootElement(),
+  TinyXPath::xpath_processor processor(GetConfig()->document()->RootElement(),
                                        "/BinDiff/BasicBlockMatching/Step");
   const size_t num_nodes = processor.u_compute_xpath_node_set();
   for (size_t i = 0; i < num_nodes; ++i) {

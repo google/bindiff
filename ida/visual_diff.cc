@@ -31,11 +31,11 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"
+#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
 namespace security {
@@ -189,9 +189,9 @@ void DoStartGui(absl::string_view gui_dir) {
   // our config file. If we cannot reach it we launch BinDiff GUI locally...
   // This will be the most common setup by far, so I guess it's ok.
 
-  extern XmlConfig* g_config;
+  const auto* config = GetConfig();
   std::vector<string> argv;
-  string java_binary(g_config->ReadString("/BinDiff/Gui/@java_binary", ""));
+  string java_binary(config->ReadString("/BinDiff/Gui/@java_binary", ""));
   if (!java_binary.empty()) {
     argv.push_back(java_binary);
   } else {
@@ -215,7 +215,7 @@ void DoStartGui(absl::string_view gui_dir) {
   // Note: When using 32-bit Java on a 64-bit machine with more than 4GiB of
   //       RAM, the calculated value will be too large. In that case, we simply
   //       try again without setting any heap size.
-  int config_max_heap_mb(g_config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1));
+  int config_max_heap_mb(config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1));
   uint64_t max_heap_mb(
       config_max_heap_mb > 0
           ? config_max_heap_mb

@@ -6,7 +6,9 @@
 #include <string>
 #include <utility>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/statusor.h"
 
 class TiXmlDocument;
 
@@ -15,57 +17,33 @@ namespace bindiff {
 
 class XmlConfig {
  public:
-  XmlConfig(const XmlConfig&) = delete;
-  const XmlConfig& operator=(const XmlConfig&) = delete;
-
+  XmlConfig();
   virtual ~XmlConfig();
 
-  double ReadDouble(const string& key, double default_value);
-  int ReadInt(const string& key, int default_value);
-  string ReadString(const string& key, const string& default_value);
-  bool ReadBool(const string& key, bool default_value);
+  XmlConfig& operator=(XmlConfig&&);
 
-  void WriteDouble(const string& key, double value);
-  void WriteInt(const string& key, int value);
-  void WriteString(const string& key, const string& value);
-  void WriteBool(const string& key, bool value);
+  // Initializes the configuration from an XML string.
+  not_absl::Status LoadFromString(const string& data);
 
-  void Dump(const string& filename) const;
-  void SetSaveFileName(const string& filename);
-  void Save();
-  TiXmlDocument* GetDocument();
-  const TiXmlDocument* GetDocument() const;
+  not_absl::Status LoadFromFile(const string& filename);
+  not_absl::Status LoadFromFileWithDefaults(const string& filename,
+                                            const string& defaults);
 
-  // Re-initializes the config file with the given content.
-  void SetData(const string& data);
+  double ReadDouble(const string& key, double default_value) const;
+  int ReadInt(const string& key, int default_value) const;
+  string ReadString(const string& key, const string& default_value) const;
+  bool ReadBool(const string& key, bool default_value) const;
 
-  static std::unique_ptr<XmlConfig> LoadFromString(const string& data);
-  static std::unique_ptr<XmlConfig> LoadFromFile(const string& filename);
-
-  static const string& SetDefaultFilename(string filename);
-  static const string& GetDefaultFilename();
+  // Access to the underlying raw document object.
+  TiXmlDocument* document();
+  const TiXmlDocument* document() const;
 
  private:
-  template <typename T>
-  struct CacheValue {
-    using value_type = T;
-    T value;
-    bool modified;
-  };
-
-  XmlConfig();
-
-  static string* default_filename_;
-
   std::unique_ptr<TiXmlDocument> document_;
-  string filename_;
-  bool modified_ = false;
-  std::map<string, CacheValue<double>> double_cache_;
-  std::map<string, CacheValue<int>> int_cache_;
-  std::map<string, CacheValue<string>> string_cache_;
-  std::map<string, CacheValue<bool>> bool_cache_;
-
-  void WriteNode(const string& key, const string& value);
+  mutable absl::flat_hash_map<string, double> double_cache_;
+  mutable absl::flat_hash_map<string, int> int_cache_;
+  mutable absl::flat_hash_map<string, string> string_cache_;
+  mutable absl::flat_hash_map<string, bool> bool_cache_;
 };
 
 }  // namespace bindiff

@@ -24,7 +24,7 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
+#include "third_party/zynamics/bindiff/config.h"
 
 namespace security {
 namespace bindiff {
@@ -44,7 +44,7 @@ bool KeyLessThan(const EdgeFeature& one, const EdgeFeature& two) {
 }
 
 double GetConfidenceFromConfig(const string& name) {
-  return GetConfig().ReadDouble(
+  return GetConfig()->ReadDouble(
       absl::StrCat("/BinDiff/FunctionMatching/Step[@algorithm=\"", name,
                    "\"]/@confidence"),
       /*default_value=*/-1.0 /* Not found/commented out */);
@@ -373,7 +373,7 @@ MatchingSteps GetDefaultMatchingSteps() {
   }();
 
   MatchingSteps matching_steps;
-  TinyXPath::xpath_processor processor(GetConfig().GetDocument()->RootElement(),
+  TinyXPath::xpath_processor processor(GetConfig()->document()->RootElement(),
                                        "/BinDiff/FunctionMatching/Step");
   const size_t num_nodes = processor.u_compute_xpath_node_set();
   for (size_t i = 0; i < num_nodes; ++i) {

@@ -4,6 +4,7 @@
 #include <list>
 #include <unordered_map>
 
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
@@ -19,6 +20,9 @@ class MatchingStepFlowGraph;
 
 using MatchingSteps = std::list<MatchingStep*>;
 using MatchingStepsFlowGraph = std::list<MatchingStepFlowGraph*>;
+
+// BinDiff default configuration.
+extern const absl::string_view kDefaultConfig;
 
 enum Direction {
   kTopDown,
@@ -112,9 +116,6 @@ class MatchingContext {
   FixedPointByAddress fixed_points_by_secondary_;
   FeatureRecord features_[kMaxFeature] = {};
 };
-
-class XmlConfig;
-XmlConfig& GetConfig();
 
 }  // namespace bindiff
 }  // namespace security

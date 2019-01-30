@@ -19,13 +19,14 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/bindiff.pb.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
+#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 #include "util/task/status.h"
 
-using testing::IsTrue;
+using ::testing::IsTrue;
 
 namespace security {
 namespace bindiff {
@@ -37,7 +38,8 @@ static constexpr const char kFixturesPath[] =
 // We shouldn't be using the built-in default configuration as it has name
 // matching enabled which makes the tests pointless (both binaries contain full
 // symbols and the differ will simply match everything based on that).
-static constexpr const char kDefaultConfiguration[] = R"raw(<?xml version="1.0"?>
+static constexpr absl::string_view kDefaultConfigForTesting =
+    R"raw(<?xml version="1.0"?>
 <BinDiff configVersion="4">
   <FunctionMatching>
     <!-- <Step confidence="1.0" algorithm="function: name hash matching" /> -->
@@ -268,10 +270,8 @@ void Diff(const string& name, const string& primary_path,
 class GroundtruthIntegrationTest : public ::testing::Test {
  protected:
   static void SetUpTestCase() {
-    GetConfig().SetData(kDefaultConfiguration);
+    GetConfig()->LoadFromString(string(kDefaultConfigForTesting));
   }
-
-  static void TearDownTestCase() {}
 };
 
 TEST_F(GroundtruthIntegrationTest, Run) {

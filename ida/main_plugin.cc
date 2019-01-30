@@ -28,12 +28,13 @@
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
-#include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/absl/types/span.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
+#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
@@ -49,17 +50,16 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/version.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
-#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
+#include "third_party/zynamics/binexport/util/statusor.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security {
 
@@ -69,9 +69,6 @@ using binexport::GetInputFileSha256;
 using binexport::HumanReadableDuration;
 
 namespace bindiff {
-
-XmlConfig* g_config = nullptr;  // Used in visual_diff.cc
-
 namespace {
 
 constexpr char kBinExportVersion[] = "10";  // Exporter version to use.
@@ -272,13 +269,13 @@ bool ExportIdbs() {
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
   {
-    auto exporter_or =
-        ExporterThread::Create(temp_dir, secondary_idb_path,
-                               ExporterThread::Options{}
-                                   .set_alsologtostderr(g_alsologtostderr)
-                                   .set_headless_export_mode(g_config->ReadBool(
-                                       "/BinDiff/Ida/headlessExport",
-                                       /*default_value=*/false)));
+    auto exporter_or = ExporterThread::Create(
+        temp_dir, secondary_idb_path,
+        ExporterThread::Options{}
+            .set_alsologtostderr(g_alsologtostderr)
+            .set_headless_export_mode(
+                GetConfig()->ReadBool("/BinDiff/Ida/headlessExport",
+                                      /*default_value=*/false)));
     if (!exporter_or.ok()) {
       throw std::runtime_error{
           absl::StrCat("Export of the current database failed: ",
@@ -329,13 +326,14 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
     }
 
     LOG(INFO) << "Sending result to BinDiff GUI...";
+    const auto* config = GetConfig();
     SendGuiMessage(
-        g_config->ReadInt("/BinDiff/Gui/@retries", 20),
-        g_config->ReadString("/BinDiff/Gui/@directory",
-                             // TODO(cblichmann): Use better defaults
-                             "C:\\Program Files\\zynamics\\BinDiff 5.0\\bin"),
-        g_config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
-        static_cast<uint16_t>(g_config->ReadInt("/BinDiff/Gui/@port", 2000)),
+        config->ReadInt("/BinDiff/Gui/@retries", 20),
+        config->ReadString("/BinDiff/Gui/@directory",
+                           // TODO(cblichmann): Use better defaults
+                           "C:\\Program Files\\zynamics\\BinDiff 5.0\\bin"),
+        config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
+        static_cast<uint16_t>(config->ReadInt("/BinDiff/Gui/@port", 2000)),
         message, nullptr);
   } catch (const std::runtime_error& message) {
     LOG(INFO) << "Error while calling BinDiff GUI: " << message.what();
@@ -1198,59 +1196,6 @@ class AddMatchAction : public ActionHandler<AddMatchAction> {
   }
 };
 
-void InitConfig() {
-  const string config_filename("bindiff_core.xml");
-
-  const string user_path = absl::StrCat(
-      GetDirectory(PATH_APPDATA, "BinDiff", /*create=*/true), config_filename);
-  const string common_path = absl::StrCat(
-      GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /*create=*/false),
-      config_filename);
-
-  bool have_user_config = false;
-  bool have_common_config = false;
-  std::unique_ptr<XmlConfig> user_config;
-  std::unique_ptr<XmlConfig> common_config;
-
-  // Try to read user's local config
-  try {
-    user_config = XmlConfig::LoadFromFile(user_path);
-    user_config->SetSaveFileName("");  // Prevent saving in destructor
-    have_user_config = true;
-  } catch (const std::runtime_error&) {
-    have_user_config = false;
-  }
-
-  // Try to read machine config
-  try {
-    common_config = XmlConfig::LoadFromFile(common_path);
-    common_config->SetSaveFileName("");  // Prevent saving in destructor
-    have_common_config = true;
-  } catch (const std::runtime_error&) {
-    have_common_config = false;
-  }
-
-  bool use_common_config = false;
-  if (have_user_config && have_common_config) {
-    use_common_config = user_config->ReadInt("/BinDiff/@configVersion", 0) <
-                        common_config->ReadInt("/BinDiff/@configVersion", 0);
-  } else if (have_user_config) {
-    use_common_config = false;
-  } else if (have_common_config) {
-    use_common_config = true;
-  }
-
-  if (use_common_config) {
-    XmlConfig::SetDefaultFilename(common_path);
-    g_config = common_config.release();
-    std::remove(user_path.c_str());
-    g_config->SetSaveFileName(user_path);
-  } else {
-    XmlConfig::SetDefaultFilename(user_path);
-    g_config = user_config.release();
-  }
-}
-
 void InitActions() {
   const int bindiff_icon_id =
       load_custom_icon(kBinDiffIcon.data(), kBinDiffIcon.size(), "png");
@@ -1402,10 +1347,8 @@ int idaapi PluginInit() {
     return PLUGIN_SKIP;
   }
 
-  try {
-    InitConfig();
-  } catch (const std::runtime_error&) {
-    LOG(INFO)
+  if (!InitConfig().ok()) {
+    LOG(ERROR)
         << "Error: Could not load configuration file, skipping BinDiff plugin.";
     return PLUGIN_SKIP;
   }
