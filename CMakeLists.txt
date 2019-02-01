@@ -222,7 +222,7 @@ target_link_libraries(utility_test
 )
 add_test(AllTestsInUtility utility_test)
 
-# Plugins will be named "bindiff50.so" and "bindiff5064.so"
+# Plugins will be named "bindiff5.so" and "bindiff564.so" (or .dll or .dylib)
 set(bindiff_plugin_name
   bindiff${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR})
 add_ida_plugin(${bindiff_plugin_name}
