@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 #include <cstdint>
 #include <map>
 #include <tuple>
-#include <unordered_set>
 
+#include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/edge.h"
 #include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/instruction.h"
@@ -40,11 +40,15 @@ class FlowGraph {
   };
 
   // Instruction address, operand number, expression id
-  using Ref = std::tuple<Address, uint8, int>;
-  using Substitutions = std::map<Ref, const string*>;
+  using Ref = std::tuple<Address, uint8_t, int>;
+  using Substitutions = std::map<Ref, const std::string*>;
   using Edges = std::vector<FlowGraphEdge>;
 
   FlowGraph() = default;
+
+  FlowGraph(const FlowGraph&) = delete;
+  FlowGraph& operator=(const FlowGraph&) = delete;
+
   ~FlowGraph();
 
   void AddEdge(const FlowGraphEdge& edge);
@@ -57,19 +61,16 @@ class FlowGraph {
   void ReconstructFunctions(detego::Instructions* instructions,
                             CallGraph* call_graph);
   void PruneFlowGraphEdges();
-  void AddExpressionSubstitution(Address address, uint8 operator_num,
+  void AddExpressionSubstitution(Address address, uint8_t operator_num,
                                  int expression_id,
-                                 const string& substitution);
+                                 const std::string& substitution);
   const Substitutions& GetSubstitutions() const;
   // Note: Keep the detego namespace, plain "Instructions" clashes with IDA.
   void MarkOrphanInstructions(detego::Instructions* instructions) const;
   void Render(std::ostream* stream, const CallGraph& call_graph) const;
 
  private:
-  using StringCache = std::unordered_set<string>;
-
-  FlowGraph(const FlowGraph& graph) = delete;
-  const FlowGraph& operator=(const FlowGraph& graph) = delete;
+  using StringCache = absl::node_hash_set<std::string>;
 
   std::vector<Address> FindBasicBlockBreaks(detego::Instructions* instructions,
                                             CallGraph* call_graph);

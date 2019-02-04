@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,8 +27,10 @@
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
+
+namespace security {
+namespace binexport {
 
 // The condition code of the instruction will be kept in instruction.segpref:
 #define ARM_cond segpref
@@ -121,12 +123,12 @@ const char* GetShift(size_t shift_type) {
 }
 
 // Returns the name for a co processor register in the form "c" + register id.
-string GetCoprocessorRegisterName(size_t register_id) {
+std::string GetCoprocessorRegisterName(size_t register_id) {
   return "c" + std::to_string(register_id);
 }
 
 // Returns the name of a co processor in the form "p" + processor id.
-string GetCoprocessorName(size_t processor_id) {
+std::string GetCoprocessorName(size_t processor_id) {
   return "p" + std::to_string(processor_id);
 }
 
@@ -136,7 +138,7 @@ Operands DecodeOperandsArm(const insn_t& instruction) {
   bool co_processor = (instruction.auxpref & aux_coproc) != 0;
 
   Operands operands;
-  for (uint8 operand_position = 0;
+  for (uint8_t operand_position = 0;
        operand_position < UA_MAXOP &&
        instruction.ops[operand_position].type != o_void;
        ++operand_position) {
@@ -400,7 +402,7 @@ Operands DecodeOperandsArm(const insn_t& instruction) {
                 expression,
                 GetRegisterName(static_cast<size_t>(i),
                                 GetOperandByteSize(instruction, operand)),
-                0, Expression::TYPE_REGISTER, static_cast<uint8>(i)));
+                0, Expression::TYPE_REGISTER, static_cast<uint8_t>(i)));
           }
         }
         break;
@@ -451,7 +453,7 @@ Operands DecodeOperandsArm(const insn_t& instruction) {
               expression,
               GetRegisterName(static_cast<size_t>(operand.reg + i),
                               GetOperandByteSize(instruction, operand)),
-              0, Expression::TYPE_REGISTER, static_cast<uint8>(i)));
+              0, Expression::TYPE_REGISTER, static_cast<uint8_t>(i)));
         }
         break;
       }
@@ -497,7 +499,7 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic(GetMnemonic(instruction.ea));
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
@@ -708,7 +710,7 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
       break;
   }
 
-  // add prefix (if any) to string instructions
+  // add prefix (if any) to std::string instructions
   if (instruction.auxpref & aux_cond) mnemonic += "S";
   if (instruction.auxpref & aux_byte) mnemonic += "B";
   if (instruction.auxpref & aux_npriv) mnemonic += "T";
@@ -735,7 +737,7 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
     const op_t& operand = instruction.ops[0];
     if (GetRegisterName(operand.reg,
                         GetOperandByteSize(instruction, operand)) ==
-            string("SP") &&
+            std::string("SP") &&
         instruction.itype != ARM_srs) {
       mnemonic += stack[n];
     } else {
@@ -906,3 +908,6 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
   return Instruction(instruction.ea, next_instruction, instruction.size,
                      mnemonic, DecodeOperandsArm(instruction));
 }
+
+}  // namespace binexport
+}  // namespace security

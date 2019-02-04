@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ void UpdateInstructionInDegree(Instructions* instructions,
     if (j != instructions->end()) {
       j->AddInEdge();
     } else {
-      // TODO(user) When does this happen? If we have hit a stop block
+      // TODO(soerenme) When does this happen? If we have hit a stop block
       // instruction? Otherwise all target instructions should be valid and in
       // here...
     }

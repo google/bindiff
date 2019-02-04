@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,9 +30,11 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
-string GetCoprocessorRegisterName(int index) {
+std::string GetCoprocessorRegisterName(int index) {
   switch (index) {
     case 0:
       return "Index";
@@ -102,13 +104,13 @@ string GetCoprocessorRegisterName(int index) {
   return "unknown coprocessor register";
 }
 
-string GetFloatingPointRegisterName(const size_t register_id) {
+std::string GetFloatingPointRegisterName(const size_t register_id) {
   return "$f" + std::to_string(register_id);
 }
 
 Operands DecodeOperandsMips(const insn_t& instruction) {
   Operands operands;
-  for (uint8 operand_position = 0;
+  for (uint8_t operand_position = 0;
        operand_position < UA_MAXOP &&
        instruction.ops[operand_position].type != o_void;
        ++operand_position) {
@@ -286,7 +288,7 @@ Instruction ParseInstructionIdaMips(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic(GetMnemonic(instruction.ea));
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
@@ -323,3 +325,6 @@ Instruction ParseInstructionIdaMips(const insn_t& instruction,
   return Instruction(instruction.ea, next_instruction, instruction.size,
                      mnemonic, DecodeOperandsMips(instruction));
 }
+
+}  // namespace binexport
+}  // namespace security

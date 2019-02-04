@@ -1,4 +1,4 @@
-# Copyright 2011-2018 Google LLC. All Rights Reserved.
+# Copyright 2011-2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@ project(tools CXX)
 
 add_executable(binexport2dump binexport2dump.cc)
 target_link_libraries(binexport2dump
-  absl::hash
   absl::container
+  absl::hash
+  absl::time
   binexport_base
   binexport_shared
 )

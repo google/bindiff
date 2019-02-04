@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include "base/logging.h"
 
-int LibraryManager::AddKnownLibrary(const string& library_name,
+int LibraryManager::AddKnownLibrary(const std::string& library_name,
                                     Linkage linkage) {
   LibraryRecord library(library_name, linkage, library_list_.size());
   for (const auto& element : library_list_) {
@@ -28,8 +28,8 @@ int LibraryManager::AddKnownLibrary(const string& library_name,
   return library.library_index;
 }
 
-void LibraryManager::AddKnownFunction(const string& module_name,
-                                      const string& function_name,
+void LibraryManager::AddKnownFunction(const std::string& module_name,
+                                      const std::string& function_name,
                                       int library_index, Address address) {
   // To keep behavior compatible with what Detego did earlier, we have to use
   // operator [] and not emplace() to add new element.
@@ -37,8 +37,8 @@ void LibraryManager::AddKnownFunction(const string& module_name,
       FunctionInfo(module_name, function_name, library_index);
 }
 
-Address LibraryManager::AddImportedFunction(const string& module_name,
-                                            const string& function_name,
+Address LibraryManager::AddImportedFunction(const std::string& module_name,
+                                            const std::string& function_name,
                                             int library_index) {
   Address address = --current_imported_address_;
   AddKnownFunction(module_name, function_name, library_index, address);
@@ -79,7 +79,7 @@ void LibraryManager::UseFunction(Address address, int library_index) {
   used_libraries_.insert(library_index);
 }
 
-int LibraryManager::UseLibrary(const string& library, Linkage linkage) {
+int LibraryManager::UseLibrary(const std::string& library, Linkage linkage) {
   int library_index = AddKnownLibrary(library, linkage);
   used_libraries_.insert(library_index);
   return library_index;

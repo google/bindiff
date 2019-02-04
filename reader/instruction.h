@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,12 +31,11 @@ namespace binexport {
 
 class Instruction {
  public:
-  Instruction(Address address, const string& mnemonic);
-  const string& mnemonic() const { return mnemonic_; }
+  Instruction(Address address, const std::string& mnemonic);
+  const std::string& mnemonic() const { return mnemonic_; }
   Address address() const { return address_; }
   const std::vector<int>& operands() const { return operand_indices_; }
   void set_operands(const std::vector<int>& operand_indices);
-
   using CallTargets = std::vector<Address>;
 
   const CallTargets& call_targets() const { return call_targets_; }
@@ -44,7 +43,7 @@ class Instruction {
 
  private:
   Address address_;
-  string mnemonic_;
+  std::string mnemonic_;
 
   // Operand indices from the BinExport2 protocol buffer they where loaded from.
   std::vector<int> operand_indices_;

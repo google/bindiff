@@ -1,0 +1,83 @@
+# Format: google3/devtools/metadata/metadata.proto (go/google3metadata)
+
+name: "binexport"
+description:
+  "BinExport is a component of both BinNavi (go/zynamics/binnavi) and "
+  "VxClass which takes disassembly input and performs flow analysis in order "
+  "to create flow graphs and call graphs of an executable binary. In case "
+  "of BinNavi, this is compiled into a plugin for the commercial IDA Pro "
+  "disassembler. In case of VxClass, parts of this code are compiled into "
+  "the Detego disassembler component, which is a Google3 binary."
+
+third_party {
+  url {
+    type: GIT
+    value: "http://github.com/google/binexport"
+  }
+  version: "10"
+  last_upgrade_date { year: 2019 month: 1 day: 11 }
+}
+
+presubmit: {
+  path_expression_exclusion: "//depot/.../OWNERS"
+  path_expression_exclusion: "//depot/.../METADATA"
+  path_regexp_exclusion: ".*[.]md"
+  path_regexp_exclusion: "moe_.*[.]txt"
+  # Define presubmit services: Compile binaries on macOS, Linux and Windows.
+  check_presubmit_service: {
+    base: {
+      id: "CheckKokoroPresubmit"
+      disable_tags: "SKIP_KOKORO"
+      disable_tags: "SKIP_KOKORO_MACOS"
+    }
+    action: REVIEW
+    streaming: true
+    timeout: 3600
+    failure_status: ERROR
+    include_all_opened_files: true
+    include_deleted_files: true
+    address: "blade:kokoro-presubmit"
+    options: "job=zynamics/binexport/macos/presubmit"
+  }
+  check_presubmit_service: {
+    base: {
+      id: "CheckKokoroPresubmit"
+      disable_tags: "SKIP_KOKORO"
+      disable_tags: "SKIP_KOKORO_UBUNTU"
+    }
+    action: REVIEW
+    streaming: true
+    timeout: 3600
+    failure_status: ERROR
+    include_all_opened_files: true
+    include_deleted_files: true
+    address: "blade:kokoro-presubmit"
+    options: "job=zynamics/binexport/ubuntu/presubmit"
+  }
+  check_presubmit_service: {
+    base: {
+      id: "CheckKokoroPresubmit"
+      disable_tags: "SKIP_KOKORO"
+      disable_tags: "SKIP_KOKORO_WINDOWS"
+    }
+    action: REVIEW
+    streaming: true
+    timeout: 3600
+    failure_status: ERROR
+    include_all_opened_files: true
+    include_deleted_files: true
+    address: "blade:kokoro-presubmit"
+    options: "job=zynamics/binexport/windows/presubmit"
+  }
+}
+presubmit: {
+  path_expression: "....proto"
+  check_presubmit_service: {
+    base: { id: "CheckClangFormat" }
+    address: "blade:cxx-format"
+  }
+}
+
+presubmit: {
+  include_presubmit: "//depot/google3/security/vxclass/bindetego/METADATA"
+}

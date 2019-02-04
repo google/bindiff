@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 
 #include "base/integral_types.h"
 
-using Byte = uint8;
-using Address = uint64;
-using Offset = int64;
+using Byte = uint8_t;
+using Address = uint64_t;
+using Offset = int64_t;
 
 // For compatibility with Google-style string
 #ifndef HAS_GLOBAL_STRING

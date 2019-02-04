@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,13 +23,13 @@ struct LoggingOptions {
     return *this;
   }
 
-  LoggingOptions& set_log_filename(const string& filename) {
+  LoggingOptions& set_log_filename(const std::string& filename) {
     log_filename = filename;
     return *this;
   }
 
   bool alsologtostderr = false;
-  string log_filename;
+  std::string log_filename;
 };
 
 // Initializes logging. Not thread safe.

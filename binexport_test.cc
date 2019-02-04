@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace security {
 namespace binexport {
 namespace {
 
-Address AddInstruction(Address start_address, int8 size, BinExport2* proto) {
+Address AddInstruction(Address start_address, int8_t size, BinExport2* proto) {
   auto* instruction = proto->add_instruction();
   if (start_address != 0) {
     instruction->set_address(start_address);

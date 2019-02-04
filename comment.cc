@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ bool SortComments(const Comment& lhs, const Comment& rhs) {
   return lhs.address_ < rhs.address_;
 }
 
-Comment::Comment(Address address, size_t operand_num, const string* comment,
+Comment::Comment(Address address, size_t operand_num, const std::string* comment,
                  Type type, bool repeatable)
     : address_(address),
       operand_num_(operand_num),

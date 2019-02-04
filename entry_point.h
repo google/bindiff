@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class EntryPoint {
 
   EntryPoint(Address address, EntryPoint::Source source);
 
-  string SourceToString();
+  std::string SourceToString();
 
   bool IsFunctionPrologue() const {
     return source_ == Source::FUNCTION_PROLOGUE ||
@@ -72,12 +72,12 @@ typedef std::vector<EntryPoint> EntryPoints;
 
 class EntryPointAdder {
  public:
-  EntryPointAdder(EntryPointAdder* parent, string name)
+  EntryPointAdder(EntryPointAdder* parent, std::string name)
       : parent_(parent),
         entry_points_(parent->entry_points_),
         count_(0),
         name_(name) {}
-  EntryPointAdder(EntryPoints* entry_points, string name)
+  EntryPointAdder(EntryPoints* entry_points, std::string name)
       : parent_(nullptr), entry_points_(entry_points), count_(0), name_(name) {}
 
   ~EntryPointAdder();
@@ -90,7 +90,7 @@ class EntryPointAdder {
   EntryPointAdder* parent_;
   EntryPoints* entry_points_;
   size_t count_;
-  string name_;
+  std::string name_;
 };
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_ENTRY_POINT_H_

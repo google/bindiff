@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 
 #include <iosfwd>
 #include <set>
-#include <unordered_map>
-#include <unordered_set>
 
+#include "third_party/absl/container/node_hash_map.h"
+#include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/library_manager.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -39,14 +39,19 @@ struct EdgeInfo {
 
 class CallGraph {
  public:
+  // This set should be sorted.
   using FunctionEntryPoints = std::set<Address>;
+
   using Edges = std::vector<EdgeInfo>;
-  using StringReferences = std::unordered_map<Address, size_t>;
+  using StringReferences = absl::node_hash_map<Address, size_t>;
 
   CallGraph();
+
+  CallGraph(const CallGraph&) = delete;
+  CallGraph& operator=(const CallGraph&) = delete;
+
   ~CallGraph();
-  CallGraph(const CallGraph& graph);
-  CallGraph& operator=(const CallGraph& graph);
+
   void AddFunction(Address address);
   FunctionEntryPoints& GetFunctions();
   const FunctionEntryPoints& GetFunctions() const;
@@ -61,15 +66,15 @@ class CallGraph {
   // Note that this method appends a comment to the end of the comment vector.
   // Other functions, in particular GetComments(Address), expect the vector to
   // be sorted. So be careful and re-sort comments after adding to them.
-  void AddComment(Address address, size_t operand, const string& comment,
+  void AddComment(Address address, size_t operand, const std::string& comment,
                   Comment::Type type, bool repeatable);
   const Comments& GetComments() const;
   Comments& GetComments();
   std::pair<Comments::const_iterator, Comments::const_iterator> GetComments(
       Address address) const;
-  void AddStringReference(Address address, const string& string);
+  void AddStringReference(Address address, const std::string& std::string);
   size_t GetStringReference(Address address) const;
-  static const string* CacheString(const string& text);
+  static const std::string* CacheString(const std::string& text);
   void Render(std::ostream* stream, const FlowGraph& flow_graph) const;
   int DeleteInvalidFunctions(FlowGraph* flow_graph);
   void PostProcessComments();
@@ -78,7 +83,7 @@ class CallGraph {
   const LibraryManager& GetLibraryManager() const { return library_manager_; }
 
  private:
-  using StringCache = std::unordered_set<string>;
+  using StringCache = absl::node_hash_set<std::string>;
   void FoldComments();
 
   FunctionEntryPoints functions_;

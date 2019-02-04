@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_LOGGING_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_LOGGING_H_
-
 #include <google/protobuf/stubs/logging.h>
 
 // Map names from the Protocol Buffers stubs into the global namespace.
@@ -32,7 +31,7 @@ using ::google::protobuf::SetLogHandler;
 #define CHECK_LE GOOGLE_CHECK_LE
 #define CHECK_GT GOOGLE_CHECK_GT
 #define CHECK_GE GOOGLE_CHECK_GE
-#define CHECK_NOTNULL GOOGLE_CHECK_NOTNULL
+#define ABSL_DIE_IF_NULL GOOGLE_CHECK_NOTNULL
 
 #define DLOG GOOGLE_DLOG
 #define DCHECK GOOGLE_DCHECK

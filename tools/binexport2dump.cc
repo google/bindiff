@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,9 @@
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -36,8 +38,11 @@ namespace {
 void RenderExpression(const BinExport2& proto,
                       const BinExport2::Operand& operand, int index,
                       std::string* output) {
-  const auto& expression = proto.expression(operand.expression_index(index));
-  const auto& symbol = expression.symbol();
+  const int expression_index = operand.expression_index(index);
+  const auto& expression = proto.expression(expression_index);
+  const auto& expression_symbol = expression.symbol();
+  const bool long_mode =
+      absl::EndsWith(proto.meta_information().architecture_name(), "64");
   switch (expression.type()) {
     case BinExport2::Expression::OPERATOR: {
       std::vector<int> children;
@@ -45,15 +50,15 @@ void RenderExpression(const BinExport2& proto,
       for (int i = index + 1;
            i < operand.expression_index_size() &&
            proto.expression(operand.expression_index(i)).parent_index() ==
-               operand.expression_index(index);
-           i++) {
-        children.push_back(operand.expression_index(i));
+               expression_index;
+           ++i) {
+        children.push_back(i);
       }
       auto num_children = children.size();
-      if (symbol == "{") {  // ARM Register lists
+      if (expression_symbol == "{") {  // ARM Register lists
         absl::StrAppend(output, "{");
-        for (int i = 0; i < num_children; i++) {
-          RenderExpression(proto, operand, index + 1 + i, output);
+        for (int i = 0; i < num_children; ++i) {
+          RenderExpression(proto, operand, children[i], output);
           if (i != num_children - 1) {
             absl::StrAppend(output, ",");
           }
@@ -62,29 +67,44 @@ void RenderExpression(const BinExport2& proto,
       } else if (num_children == 1) {
         // Only a single child, treat expression as prefix operator (like
         // 'ss:').
-        absl::StrAppend(output, symbol);
-        RenderExpression(proto, operand, index + 1, output);
+        absl::StrAppend(output, expression_symbol);
+        RenderExpression(proto, operand, children[0], output);
       } else if (num_children > 1) {
         // Multiple children, treat expression as infix operator ('+' or '*').
-        // TODO(cblichmann): Deal with negative numbers.
-        RenderExpression(proto, operand, index + 1, output);
-        for (int i = 1; i < num_children; i++) {
-          absl::StrAppend(output, symbol);
-          RenderExpression(proto, operand, index + 1 + i, output);
+        for (int i = 0; i < num_children; ++i) {
+          RenderExpression(proto, operand, children[i], output);
+          if (i != num_children - 1) {
+            const auto& child_expression =
+                proto.expression(operand.expression_index(children[i + 1]));
+            const auto child_type = child_expression.type();
+            if (expression_symbol == "+" &&
+                (child_type == BinExport2::Expression::IMMEDIATE_INT ||
+                 child_type == BinExport2::Expression::IMMEDIATE_FLOAT)) {
+              const int64_t child_immediate =
+                  long_mode ? child_expression.immediate()
+                            : static_cast<int32_t>(child_expression.immediate());
+              if (child_immediate < 0 && child_expression.symbol().empty()) {
+                continue;  // Don't render anything or we'll get: eax+-12
+              }
+              if (child_immediate == 0) {
+                ++i;  // Skip "+0"
+                continue;
+              }
+            }
+            absl::StrAppend(output, expression_symbol);
+          }
         }
       }
       break;
     }
     case BinExport2::Expression::SYMBOL:
     case BinExport2::Expression::REGISTER:
-      absl::StrAppend(output, symbol);
+      absl::StrAppend(output, expression_symbol);
       break;
     case BinExport2::Expression::SIZE_PREFIX: {
-      absl::string_view architecture_name(
-          proto.meta_information().architecture_name());
-      bool long_mode = absl::EndsWith(architecture_name, "64");
-      if ((long_mode && symbol != "b8") || (!long_mode && symbol != "b4")) {
-        absl::StrAppend(output, symbol, " ");
+      if ((long_mode && expression_symbol != "b8") ||
+          (!long_mode && expression_symbol != "b4")) {
+        absl::StrAppend(output, expression_symbol, " ");
       }
       RenderExpression(proto, operand, index + 1, output);
       break;
@@ -98,8 +118,18 @@ void RenderExpression(const BinExport2& proto,
       break;
     case BinExport2::Expression::IMMEDIATE_INT:
     case BinExport2::Expression::IMMEDIATE_FLOAT:
-    default:
-      absl::StrAppend(output, "0x", absl::Hex(expression.immediate()));
+      if (expression_symbol.empty()) {
+        const int64_t expression_immediate =
+            long_mode ? expression.immediate()
+                      : static_cast<int32_t>(expression.immediate());
+        if (expression_immediate <= 9) {
+          absl::StrAppend(output, expression_immediate);
+        } else {
+          absl::StrAppend(output, "0x", absl::Hex(expression_immediate));
+        }
+      } else {
+        absl::StrAppend(output, expression_symbol);
+      }
       break;
   }
 }
@@ -107,14 +137,11 @@ void RenderExpression(const BinExport2& proto,
 void DumpBinExport2(const BinExport2& proto) {
   {
     const auto& meta = proto.meta_information();
-    printf("Original executable name: %s\n", meta.executable_name().c_str());
-    printf("Executable Id:            %s\n", meta.executable_id().c_str());
-    printf("Architecture:             %s\n", meta.architecture_name().c_str());
-    std::time_t timestamp = meta.timestamp();
-    char formatted[100] = {0};
-    CHECK(std::strftime(formatted, sizeof(formatted), "%Y-%m-%d %H:%M:%S",
-                        std::localtime(&timestamp)));
-    printf("Creation time (local):    %s\n", formatted);
+    absl::PrintF("Original executable name: %s\n", meta.executable_name());
+    absl::PrintF("Executable Id:            %s\n", meta.executable_id());
+    absl::PrintF("Architecture:             %s\n", meta.architecture_name());
+    absl::PrintF("Creation time (local):    %s\n",
+                 absl::FormatTime(absl::FromTimeT(meta.timestamp())));
   }
 
   // Read address comments.
@@ -123,11 +150,10 @@ void DumpBinExport2(const BinExport2& proto) {
     comment_index_map[reference.instruction_index()] =
         reference.string_table_index();
   }
-
   const auto& call_graph = proto.call_graph();
   printf("\nFunctions:\n");
   constexpr const char kFunctionType[] = "nlit!";
-  absl::flat_hash_map<Address, string> function_names;
+  absl::flat_hash_map<Address, std::string> function_names;
   for (int i = 0; i < call_graph.vertex_size(); ++i) {
     const auto& vertex = call_graph.vertex(i);
     const auto address = vertex.address();
@@ -200,7 +226,7 @@ void DumpBinExport2(const BinExport2& proto) {
             }
           }
 
-          string comment;
+          std::string comment;
           auto address_comment = comment_index_map.find(i);
           if (address_comment != comment_index_map.end()) {
             comment = absl::StrCat(" ; ",

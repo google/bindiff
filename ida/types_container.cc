@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 #include "third_party/zynamics/binexport/ida/types_container.h"
 
-#include <boost/iterator/iterator_facade.hpp>
+#include <boost/iterator/iterator_facade.hpp>  // NOLINT
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <enum.hpp>                                             // NOLINT
@@ -32,6 +32,8 @@
 #include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
 static const char kVoidPtrName[] = "void *";
@@ -171,9 +173,9 @@ struct IdaFrameStructures {
   FrameIterator end_;
 };
 
-string GetTypeName(const tinfo_t& tif) {
+std::string GetTypeName(const tinfo_t& tif) {
   qstring type_name;
-  return string(tif.print(&type_name) ? type_name.c_str() : "");
+  return std::string(tif.print(&type_name) ? type_name.c_str() : "");
 }
 
 const BaseType* GetKnownType(
@@ -355,7 +357,7 @@ void IdaTypesContainer::InitializeBuiltinTypes() {
   CreateVoidPointerType();
 }
 
-void IdaTypesContainer::CreateIdaType(const string& name,
+void IdaTypesContainer::CreateIdaType(const std::string& name,
                                       size_t bit_size) {
   BaseType* new_base_type = new BaseType();
   new_base_type->SetSigned(true);
@@ -452,7 +454,7 @@ void IdaTypesContainer::CollectCompoundTypes(T start_it, T end_it) {
   // IDA has cases where members are believed to be in a stack frame of a
   // function where this is really a disassembly error. Therefore we try to
   // raise awareness to this issue here.
-  const int kMaxStructSize = std::numeric_limits<int32>::max();
+  const int kMaxStructSize = std::numeric_limits<int32_t>::max();
   for (T it = start_it; it != end_it; ++it) {
     const tid_t struct_id = it->id;
     const asize_t struct_size = static_cast<size_t>(get_struc_size(struct_id)) *
@@ -553,7 +555,7 @@ void IdaTypesContainer::GatherTypes() {
 IdaTypesContainer::~IdaTypesContainer() { Cleanup(); }
 
 TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
-    Address address, size_t operand_num, int64 displacement) const {
+    Address address, size_t operand_num, int64_t displacement) const {
   func_t* function = get_func(address);
   if (!function) {
     return TypeReference::CreateEmptyReference();
@@ -586,7 +588,7 @@ TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
 }
 
 TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
-    Address address, size_t operand_num, int64 displacement) const {
+    Address address, size_t operand_num, int64_t displacement) const {
   // For negative displacements we give up and return an empty reference, since
   // there is no way to obtain a unique base structure in the general case:
   // the obtained base type could be nested in arbitrarily many other
@@ -625,9 +627,9 @@ TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
 
 TypesContainer::TypeReference IdaTypesContainer::ResolveDisplacedTypeReference(
     Address address, Address displacement, size_t operand_num) const {
-  int64 signed_displacement = Instruction::IsNegativeValue(displacement)
-                                    ? static_cast<int32>(displacement)
-                                    : static_cast<int64>(displacement);
+  int64_t signed_displacement = Instruction::IsNegativeValue(displacement)
+                                    ? static_cast<int32_t>(displacement)
+                                    : static_cast<int64_t>(displacement);
   if (is_stkvar(get_flags(address), operand_num)) {
     return CreateStackReference(address, operand_num, signed_displacement);
   }
@@ -758,3 +760,6 @@ const BaseType* IdaTypesContainer::GetFunctionPrototype(
   auto cit = prototypes_by_address_.find(function.GetEntryPoint());
   return (cit != prototypes_by_address_.end()) ? cit->second : nullptr;
 }
+
+}  // namespace binexport
+}  // namespace security

@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,18 +38,18 @@ struct TreeNode {
 
 typedef std::vector<std::shared_ptr<TreeNode>> Tree;
 
-// TODO(user): immediate_float are rendered as hex and aren't properly
+// TODO(soerenme): immediate_float are rendered as hex and aren't properly
 //                 checked for their sign.
 void RenderExpression(std::ostream* stream, const TreeNode& node,
-                      int substitution_id, const string& substitution) {
+                      int substitution_id, const std::string& substitution) {
   CHECK(node.expression != nullptr);
   const auto& expression = *node.expression;
   if (expression.GetId() == substitution_id) {
     *stream << substitution;
     return;
   }
-  int8 expression_type = expression.GetType();
-  const string& expression_symbol = expression.GetSymbol();
+  int8_t expression_type = expression.GetType();
+  const std::string& expression_symbol = expression.GetSymbol();
   switch (expression_type) {
     case Expression::TYPE_SIZEPREFIX: {
       if ((expression_symbol != "b4" && Instruction::GetBitness() == 32) ||
@@ -120,14 +120,14 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
     case Expression::TYPE_IMMEDIATE_INT:
     case Expression::TYPE_IMMEDIATE_FLOAT: {
       if (expression_symbol.empty()) {
-        int64 expression_immediate = expression.GetImmediate();
+        int64_t expression_immediate = expression.GetImmediate();
         if ((Instruction::IsNegativeValue(expression_immediate) &&
              expression.GetParent() &&
              expression.GetParent()->GetSymbol() == "+") ||
             expression.GetImmediate() <= 9) {
           *stream << std::dec << std::setw(0)
                   << (Instruction::GetBitness() == 32
-                          ? static_cast<int32>(expression_immediate)
+                          ? static_cast<int32_t>(expression_immediate)
                           : expression_immediate);
         } else {
           *stream << "0x" << std::hex << std::uppercase << expression_immediate;
@@ -146,7 +146,7 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
       break;
     }
     default: {
-      string error("Unknown expression type in RenderExpression.");
+      std::string error("Unknown expression type in RenderExpression.");
       *stream << error;
       LOG(INFO) << error;
       break;
@@ -157,7 +157,7 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
 FlowGraph::Substitutions::const_iterator GetSubstitution(
     Address address, int operand_num,
     FlowGraph::Substitutions::const_iterator subst_begin,
-    FlowGraph::Substitutions::const_iterator subst_end, string* substitution,
+    FlowGraph::Substitutions::const_iterator subst_end, std::string* substitution,
     int* expression_id) {
   auto it = subst_begin;
   while (it != subst_end && std::get<0>(it->first) == address &&
@@ -177,7 +177,7 @@ FlowGraph::Substitutions::const_iterator GetSubstitution(
 
 }  // namespace
 
-string RenderOperands(const Instruction& instruction,
+std::string RenderOperands(const Instruction& instruction,
                       const FlowGraph& flow_graph) {
   if (!instruction.GetOperandCount()) {
     return "";
@@ -207,7 +207,7 @@ string RenderOperands(const Instruction& instruction,
     }
 
     if (!tree.empty()) {
-      string substitution;
+      std::string substitution;
       int expression_id = 0;
       subst_it =
           GetSubstitution(instruction.GetAddress(), operand_index, subst_it,
@@ -287,7 +287,7 @@ AddressSpace* Instruction::flags_ = nullptr;
 AddressSpace* Instruction::virtual_memory_ = nullptr;
 
 Instruction::Instruction(Address address, Address next_instruction,
-                         uint16 size, const string& mnemonic,
+                         uint16_t size, const std::string& mnemonic,
                          const Operands& operands)
     : mnemonic_(CacheString(mnemonic)),
       address_(address),
@@ -359,17 +359,17 @@ Address Instruction::GetAddress() const { return address_; }
 
 int Instruction::GetSize() const { return size_; }
 
-const string& Instruction::GetMnemonic() const {
+const std::string& Instruction::GetMnemonic() const {
   assert(mnemonic_);
   return *mnemonic_;
 }
 
-string Instruction::GetBytes() const {
+std::string Instruction::GetBytes() const {
   if (!get_bytes_callback_ && virtual_memory_) {
-    // TODO(user) Optimize this so we don't need a call to GetMemoryBlock
+    // TODO(soerenme) Optimize this so we don't need a call to GetMemoryBlock
     //     for each instruction.
     const auto memory_block = virtual_memory_->GetMemoryBlock(address_);
-    return string(reinterpret_cast<const char*>(&*memory_block->second.begin() +
+    return std::string(reinterpret_cast<const char*>(&*memory_block->second.begin() +
                                                 address_ - memory_block->first),
                   size_);
   }
@@ -391,14 +391,14 @@ Address Instruction::GetNextInstruction() const {
   return address_ + size_;
 }
 
-const string* Instruction::CacheString(const string& string) {
-  return &*string_cache_.insert(string).first;
+const std::string* Instruction::CacheString(const std::string& std::string) {
+  return &*string_cache_.insert(std::string).first;
 }
 
-uint16 Instruction::GetInDegree() const { return in_degree_; }
+uint16_t Instruction::GetInDegree() const { return in_degree_; }
 
 void Instruction::AddInEdge() {
-  if (in_degree_ < std::numeric_limits<uint16>::max()) {
+  if (in_degree_ < std::numeric_limits<uint16_t>::max()) {
     in_degree_++;
 #ifdef _DEBUG
   } else {
@@ -407,7 +407,7 @@ void Instruction::AddInEdge() {
   }
 }
 
-uint8 Instruction::GetOperandCount() const { return operand_count_; }
+uint8_t Instruction::GetOperandCount() const { return operand_count_; }
 
 Operands::const_iterator Instruction::cbegin() const {
   return operands_.begin() + operand_index_;
@@ -451,7 +451,7 @@ void Instruction::SetExported(bool exported) {
   }
 }
 
-void Instruction::SetFlag(uint8 flag, bool value) {
+void Instruction::SetFlag(uint8_t flag, bool value) {
   if (value) {
     (*flags_)[address_] |= flag;
   } else {
@@ -459,11 +459,11 @@ void Instruction::SetFlag(uint8 flag, bool value) {
   }
 }
 
-bool Instruction::HasFlag(uint8 flag) const {
+bool Instruction::HasFlag(uint8_t flag) const {
   return ((*flags_)[address_] & flag) != 0;
 }
 
-bool Instruction::IsNegativeValue(int64 value) {
-  return Instruction::GetBitness() == 32 ? static_cast<int32>(value) < 0
-                                         : static_cast<int64>(value) < 0;
+bool Instruction::IsNegativeValue(int64_t value) {
+  return Instruction::GetBitness() == 32 ? static_cast<int32_t>(value) < 0
+                                         : static_cast<int64_t>(value) < 0;
 }

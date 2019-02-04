@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@
 #include <cinttypes>
 #include <iterator>
 #include <list>
-#include <set>
 #include <stack>
+#include <unordered_map>
 
 #include "base/logging.h"
+#include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/comment.h"
@@ -87,9 +88,9 @@ void FlowGraph::MarkOrphanInstructions(Instructions* instructions) const {
   }
 }
 
-void FlowGraph::AddExpressionSubstitution(Address address, uint8 operator_num,
+void FlowGraph::AddExpressionSubstitution(Address address, uint8_t operator_num,
                                           int expression_id,
-                                          const string& substitution) {
+                                          const std::string& substitution) {
   substitutions_[std::make_tuple(address, operator_num, expression_id)] =
       &*string_cache_.insert(substitution).first;
 }
@@ -106,7 +107,7 @@ std::vector<Address> FlowGraph::FindBasicBlockBreaks(
   // Find non-returning calls. We simply assume any call followed by an invalid
   // instruction or a multi-byte padding (nop) instruction to be non-returning.
   // For a rationale for the nop instruction, please refer to b/24084521.
-  // TODO(user) Mark the target function as non-returning and use that
+  // TODO(soerenme) Mark the target function as non-returning and use that
   // information for all future calls to the function, even if those calls are
   // not followed by an invalid or nop instruction. This is a bit dangerous, as
   // it introduces an order dependency on the disassembly - do we already know
@@ -148,7 +149,7 @@ std::vector<Address> FlowGraph::FindBasicBlockBreaks(
   // Addresses where a basic block break should occur.
   std::vector<Address> basic_block_breaks;
 
-  // Find resyncronization points. Typically there should only ever be one
+  // Find resynchronization points. Typically there should only ever be one
   // incoming code flow per instruction. Except when we have overlapping
   // instructions. A synchronization point is when two such sequences of
   // overlapping instructions eventually align again and merge into a single
@@ -159,26 +160,32 @@ std::vector<Address> FlowGraph::FindBasicBlockBreaks(
   // basic block breaks that are not warranted by any of the functions in the
   // final disassembly. This is unfortunate, but not dangerous, as the
   // disassembly is still correct, just with spurious edges.
+  // Note: we cannot use [flat, node]_hash_map here since we repeatedly iterate
+  // over a map from which (possibly) a lot of elements have been erased.
+  // This has a complexity of O(num_elements) for unordered_map, but has
+  // O(num_deleted_elements + num_elements) complexity for the other maps.
+  // TODO(jannewger): performance of the algorithm below is non-ideal and should
+  // be improved.
   std::unordered_map<Address, int> incoming_code_flows;
   for (const auto& instruction : *instructions) {
     const Address address = instruction.GetAddress();
     const Address flow_address = instruction.GetNextInstruction();
-    for (auto i = incoming_code_flows.begin();
-         i != incoming_code_flows.end();) {
-      if (i->second > 1) {
+    for (auto it = incoming_code_flows.begin(), end = incoming_code_flows.end();
+         it != end;) {
+      if (it->second > 1) {
         // More than one incoming code flow to this instruction -> the preceding
         // instructions must have been overlapping.
-        basic_block_breaks.emplace_back(i->first);
-      } else if (i->first + 32 > address) {
+        basic_block_breaks.emplace_back(it->first);
+      } else if (it->first + 32 > address) {
         // We are still within a 32 bytes trailing window of the current
         // instruction, thus we keep the instruction in the map as it could
         // potentially still overlap.
         break;
       }
-      i = incoming_code_flows.erase(i);
+      it = incoming_code_flows.erase(it);
     }
     if (instruction.IsFlow()) {
-      incoming_code_flows[flow_address]++;
+      ++incoming_code_flows[flow_address];
     }
   }
 
@@ -230,7 +237,7 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
     instruction.SetFlag(FLAG_VISITED, false);
   }
 
-  std::unordered_set<Address> invalid_functions;
+  absl::flat_hash_set<Address> invalid_functions;
   // Start with every known function entry point address and follow flow from
   // there. Create new functions and add basic blocks and edges to them.
   for (Address entry_point : call_graph->GetFunctions()) {
@@ -244,7 +251,7 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
     int current_bb_number = 0;
     int number_of_instructions = 0;
     // Keep track of basic blocks already added to this function.
-    std::unordered_set<Address> function_basic_blocks;
+    absl::flat_hash_set<Address> function_basic_blocks;
     while (!address_stack.empty()) {
       Address address = address_stack.top();
       address_stack.pop();
@@ -284,6 +291,8 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
                                        absl::Hex(address, absl::kZeroPad8));
           continue;
         }
+      } else {
+        number_of_instructions += basic_block->GetInstructionCount();
       }
       CHECK(basic_block != nullptr);
       ++current_bb_number;
@@ -295,7 +304,8 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
       if ((current_bb_number > kMaxFunctionEarlyBasicBlocks) ||
           (number_of_instructions > kMaxFunctionInstructions)) {
         if (initial_edge_number < new_edges.size()) {
-          new_edges.erase(new_edges.begin() + initial_edge_number);
+          new_edges.erase(new_edges.begin() + initial_edge_number,
+                          new_edges.end());
         }
         invalid_functions.insert(entry_point);
         break;
@@ -380,10 +390,10 @@ void FlowGraph::MergeBasicBlocks(const CallGraph& call_graph) {
 
     BasicBlock* target_basic_block = BasicBlock::Find(edge.target);
     if (!target_basic_block) {
-      LOG(INFO) << absl::StrCat("No target basic block for edge ",
-                                   absl::Hex(edge.source, absl::kZeroPad8),
-                                   " -> ",
-                                   absl::Hex(edge.target, absl::kZeroPad8));
+      DLOG(INFO) << absl::StrCat("No target basic block for edge ",
+                                 absl::Hex(edge.source, absl::kZeroPad8),
+                                 " -> ",
+                                 absl::Hex(edge.target, absl::kZeroPad8));
       return true;
     }
 
@@ -448,12 +458,13 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
     std::unique_ptr<Function> function(new Function(entry_point));
     size_t num_instructions = 0;
     // Keep track of basic blocks and edges already added to this function.
-    std::unordered_set<Address> function_basic_blocks;
-    // TODO(user) Encountering the same basic block multiple times during
-    // traversal is expected and OK. Encountering the same edge is not. This is
-    // just inefficient - why did we add it twice in the first place? Only the
-    // ARM disassembler produces redundant edges atm.
-    std::unordered_set<FlowGraphEdge, FlowGraphEdgeHash> done_edges;
+    absl::flat_hash_set<Address> function_basic_blocks;
+    // TODO(cblichmann): Encountering the same basic block multiple times during
+    //                   traversal is expected and ok. Encountering the same
+    //                   edge is not. This is just inefficient - why did we add
+    //                   it twice in the first place? Only the ARM disassembler
+    //                   produces redundant edges atm.
+    absl::flat_hash_set<FlowGraphEdge, FlowGraphEdgeHash> done_edges;
     while (!address_stack.empty()) {
       Address address = address_stack.top();
       address_stack.pop();
@@ -479,7 +490,7 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
                            [](const FlowGraphEdge& edge, Address address) {
                              return edge.source < address;
                            });
-      uint64 dropped_edges = 0;
+      uint64_t dropped_edges = 0;
       for (; edge != edges_.end() && edge->source == source_address; ++edge) {
         if (!BasicBlock::Find(edge->target)) {
           DLOG(INFO) << absl::StrCat(
@@ -502,7 +513,7 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
     if (function_basic_blocks.size() >= kMaxFunctionBasicBlocks ||
         function->GetEdges().size() >= kMaxFunctionEdges ||
         num_instructions >= kMaxFunctionInstructions) {
-      LOG(INFO) << absl::StrCat(
+      DLOG(INFO) << absl::StrCat(
           "Discarding excessively large function ",
           absl::Hex(entry_point, absl::kZeroPad8), ": ",
           function_basic_blocks.size(), " basic blocks, ",

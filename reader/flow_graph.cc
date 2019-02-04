@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ namespace binexport {
 namespace {
 
 absl::optional<Architecture> GetSupportedArchitecture(const BinExport2& proto) {
-  const string& architecture = proto.meta_information().architecture_name();
+  const std::string& architecture = proto.meta_information().architecture_name();
   if (architecture == "arm") {
     return Architecture::kArm;
   }
@@ -52,7 +52,7 @@ absl::optional<Architecture> GetSupportedArchitecture(const BinExport2& proto) {
   return absl::nullopt;
 }
 
-uint32 GetEdgeTypeFromProto(BinExport2::FlowGraph::Edge::Type type) {
+uint32_t GetEdgeTypeFromProto(BinExport2::FlowGraph::Edge::Type type) {
   switch (type) {
     case BinExport2::FlowGraph::Edge::CONDITION_TRUE:
       return FlowGraph::kEdgeTrue;
@@ -70,7 +70,7 @@ uint32 GetEdgeTypeFromProto(BinExport2::FlowGraph::Edge::Type type) {
 void EdgesFromEdgeProto(
     const BinExport2& proto, const BinExport2::FlowGraph& flow_graph_proto,
     const std::vector<Address>& addresses,
-    const std::vector<uint64>& instruction_addresses,
+    const std::vector<uint64_t>& instruction_addresses,
     std::vector<std::pair<FlowGraph::Graph::edges_size_type,
                           FlowGraph::Graph::edges_size_type>>* edges,
     std::vector<FlowGraph::EdgeProperty>* edge_properties) {
@@ -166,7 +166,7 @@ std::unique_ptr<FlowGraph> FlowGraph::FromBinExport2Proto(
            instruction_index < instruction_end_index; ++instruction_index) {
         const auto& instruction_proto(proto.instruction(instruction_index));
         Address instruction_address = instruction_addresses[instruction_index];
-        const string& mnemonic(
+        const std::string& mnemonic(
             proto.mnemonic(instruction_proto.mnemonic_index()).name());
         flow_graph->instructions_.emplace_back(instruction_address, mnemonic);
 

@@ -1,4 +1,4 @@
-# Copyright 2011-2018 Google LLC. All Rights Reserved.
+# Copyright 2011-2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -81,8 +81,8 @@ target_link_libraries(binexport_base INTERFACE
 )
 
 # Interface library to be used by tests that don't need data files
-add_library(binexport_test INTERFACE)
-target_link_libraries(binexport_test INTERFACE
+add_library(binexport_test_base INTERFACE)
+target_link_libraries(binexport_test_base INTERFACE
   gtest_main
   gmock
 )
@@ -96,15 +96,26 @@ add_library(binexport_shared STATIC
   ${binexport2_proto}
   binexport.cc
   binexport.h
-  util/format.cc
-  util/format.h
-  util/timer.h
+  hash.cc
+  hash.h
+  util/canonical_errors.cc
+  util/canonical_errors.h
   util/filesystem.cc
   util/filesystem.h
+  util/format.cc
+  util/format.h
+  util/status.cc
+  util/status.h
+  util/status_macros.h
+  util/statusor.h
+  util/timer.h
 )
 target_link_libraries(binexport_shared PUBLIC
+  absl::bad_optional_access
+  absl::optional
   absl::strings
   absl::time
+  absl::variant
   binexport_base
 )
 if(WIN32)
@@ -115,13 +126,28 @@ endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
   util/format_test.cc
+  util/status_macros_test.cc
+  util/status_test.cc
+  util/statusor_test.cc
   util/timer_test.cc
 )
 target_link_libraries(binexport_shared_test PUBLIC
-  binexport_test
+  binexport_test_base
   binexport_shared
 )
 add_test(BinExportSharedTests binexport_shared_test)
+
+# General BinExport tests
+add_executable(binexport_test
+  binexport_test_util.cc
+  binexport_test_util.h
+)
+target_link_libraries(binexport_test PUBLIC
+  binexport_test_base
+  binexport_shared
+  absl::memory
+)
+add_test(BinExportTests binexport_test)
 
 # binexport2dump tool
 add_subdirectory(tools)
@@ -221,10 +247,12 @@ if(WIN32)
                                   wldap32.lib)
 endif()
 ida_target_link_libraries(${binexport_plugin_name}
+  absl::bad_optional_access
+  absl::container
+  absl::hash
+  absl::optional
   absl::strings
   absl::time
-  absl::optional
-  absl::bad_optional_access
   binexport_shared
   binexport_plugin_shared
   ${PostgreSQL_LIBRARIES}

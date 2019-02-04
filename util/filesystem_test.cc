@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,47 +17,57 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/binexport/util/status_matchers.h"
 
+using ::testing::IsEmpty;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
+using ::testing::StrEq;
 
 namespace security {
 namespace binexport {
 namespace {
 
 TEST(FileSystemTest, Filenames) {
-  EXPECT_EQ("filename.ext",
-            Basename(absl::StrCat(kPathSeparator, "subdir", kPathSeparator,
-                                  "filename.ext")));
+  EXPECT_THAT(Basename(absl::StrCat(kPathSeparator, "subdir", kPathSeparator,
+                                    "filename.ext")),
+              StrEq("filename.ext"));
 
-  EXPECT_EQ(absl::StrCat("subdir1", kPathSeparator, "subdir2"),
-            Dirname(absl::StrCat("subdir1", kPathSeparator, "subdir2",
-                                 kPathSeparator, "filename.ext")));
+  EXPECT_THAT(Dirname(absl::StrCat("subdir1", kPathSeparator, "subdir2",
+                                   kPathSeparator, "filename.ext")),
+              StrEq(absl::StrCat("subdir1", kPathSeparator, "subdir2")));
 
-  EXPECT_EQ(".ext", GetFileExtension(absl::StrCat("subdir", kPathSeparator,
-                                                  "filename.ext")));
+  EXPECT_THAT(
+      GetFileExtension(absl::StrCat("subdir", kPathSeparator, "filename.ext")),
+      StrEq(".ext"));
+  EXPECT_THAT(GetFileExtension("filename_noext"), IsEmpty());
 
-  EXPECT_EQ(
-      absl::StrCat("subdir", kPathSeparator, "filename.new"),
+  EXPECT_THAT(
       ReplaceFileExtension(
-          absl::StrCat("subdir", kPathSeparator, "filename.ext"), ".new"));
-  EXPECT_EQ(
-      absl::StrCat("subdir", kPathSeparator, "filename_noext.new"),
+          absl::StrCat("subdir", kPathSeparator, "filename.ext"), ".new"),
+      StrEq(absl::StrCat("subdir", kPathSeparator, "filename.new")));
+  EXPECT_THAT(
       ReplaceFileExtension(
-          absl::StrCat("subdir", kPathSeparator, "filename_noext"), ".new"));
+          absl::StrCat("subdir", kPathSeparator, "filename_noext"), ".new"),
+      StrEq(absl::StrCat("subdir", kPathSeparator, "filename_noext.new")));
+  // Test that directories with a "." in them don't throw of extension
+  // replacement.
+  EXPECT_THAT(
+      ReplaceFileExtension(
+          absl::StrCat("sub.dir", kPathSeparator, "filename_noext"), ".new"),
+      StrEq(absl::StrCat("sub.dir", kPathSeparator, "filename_noext.new")));
 }
 
 TEST(FileSystemTest, JoinPaths) {
-  EXPECT_EQ(absl::StrCat("a", kPathSeparator, "b"), JoinPath("a", "b"));
-#ifndef WIN32
-  EXPECT_EQ("/a/b", JoinPath("/a", "b"));
+  EXPECT_THAT(JoinPath("a", "b"),
+              StrEq(absl::StrCat("a", kPathSeparator, "b")));
+#ifndef _WIN32
+  EXPECT_THAT(JoinPath("/a", "b"), StrEq("/a/b"));
 #endif
 }
 
 TEST(FileSystemTest, CreateAndRemoveDirectories) {
-  auto temp_dir_or = GetOrCreateTempDirectory("test");
-  ASSERT_THAT(temp_dir_or.ok(), IsTrue());
-  auto temp_dir = std::move(temp_dir_or).ValueOrDie();
+  NA_ASSERT_OK_AND_ASSIGN(std::string temp_dir, GetOrCreateTempDirectory("test"));
 
   const auto test_path = JoinPath(temp_dir, "sub", "dir", "s2");
   EXPECT_THAT(CreateDirectories(test_path).ok(), IsTrue());

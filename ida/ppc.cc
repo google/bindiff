@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
 // Various bit definitions:
@@ -49,25 +51,25 @@ enum {
   PPC_aux_minus = 0x1000  // predict branch to be not taken       -
 };
 
-string GetDeviceControlRegisterName(const Address register_index) {
+std::string GetDeviceControlRegisterName(const Address register_index) {
   return absl::StrCat("DCR", absl::Hex(register_index));
 }
 
-string GetUnknownRegisterNameString(const Address address,
+std::string GetUnknownRegisterNameString(const Address address,
                                          const Address register_index) {
   return absl::StrCat("unknown special purpose register ", register_index,
                       " at ", absl::Hex(address, absl::kZeroPad8));
 }
 
-string GetUnknownRegisterName(const Address register_index) {
+std::string GetUnknownRegisterName(const Address register_index) {
   return absl::StrCat("0x", absl::Hex(register_index));
 }
 
-string GetConditionRegisterName(const size_t register_id) {
+std::string GetConditionRegisterName(const size_t register_id) {
   return absl::StrCat("cr", register_id);
 }
 
-string GetSpecialPurposeRegisterName(const Address /*address*/,
+std::string GetSpecialPurposeRegisterName(const Address /*address*/,
                                           const Address register_index) {
   // copied over from Ero's Python exporter:
   //# Special Purpose Registers. Looked up in GDB's source code,
@@ -385,7 +387,7 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
 
 Operands DecodeOperandsPpc(const insn_t& instruction) {
   Operands operands;
-  for (uint8 operand_position = 0;
+  for (uint8_t operand_position = 0;
        operand_position < UA_MAXOP &&
        instruction.ops[operand_position].type != o_void;
        ++operand_position) {
@@ -633,7 +635,7 @@ Instruction ParseInstructionIdaPpc(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic(GetMnemonic(instruction.ea));
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
@@ -677,3 +679,6 @@ Instruction ParseInstructionIdaPpc(const insn_t& instruction,
   return Instruction(instruction.ea, next_instruction, instruction.size,
                      mnemonic, operands);
 }
+
+}  // namespace binexport
+}  // namespace security
