@@ -3,6 +3,7 @@
 #include <fstream>
 #include <limits>
 #include <memory>
+#include <stdexcept>
 #include <thread>  // NOLINT(build/c++11)
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
@@ -46,6 +47,7 @@
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
+#include "third_party/zynamics/bindiff/idb_export.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/utility.h"
@@ -57,6 +59,7 @@
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 #include "third_party/zynamics/binexport/util/timer.h"
@@ -71,7 +74,6 @@ using binexport::HumanReadableDuration;
 namespace bindiff {
 namespace {
 
-constexpr char kBinExportVersion[] = "10";  // Exporter version to use.
 constexpr char kName[] = "BinDiff 5";
 constexpr char kComment[] =
     "Structural comparison of executable objects";  // Status line
@@ -118,105 +120,6 @@ bool EnsureIdb() {
   }
   return result;
 }
-
-class ExporterThread {
- public:
-  struct Options {
-    Options& set_alsologtostderr(bool value) {
-      alsologtostderr = value;
-      return *this;
-    }
-
-    Options& set_headless_export_mode(bool value) {
-      headless_export_mode = value;
-      return *this;
-    }
-
-    bool alsologtostderr = false;
-    bool headless_export_mode = false;
-  };
-
-  static not_absl::StatusOr<ExporterThread> Create(const string& temp_dir,
-                                                   const string& idb_path,
-                                                   Options options) {
-    string secondary_temp_dir = JoinPath(temp_dir, "secondary");
-    RemoveAll(secondary_temp_dir);
-    NA_RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
-
-    string idc_file = JoinPath(temp_dir, "export_secondary.idc");
-    if (!options.headless_export_mode) {
-      std::ofstream file{idc_file, std::ios::binary | std::ios::trunc};
-      file << "#include <idc.idc>\n"
-           << "static main()\n"
-           << "{\n"
-           << "\tBatch(0);\n"
-           << "\tWait();\n"
-           << "\tRunPlugin(\"binexport" << kBinExportVersion << "\", 2);\n"
-           << "\tExit(0);\n"
-           << "}\n";
-      if (!file) {
-        return not_absl::UnknownError("error writing helper IDC script");
-      }
-    }
-    ExporterThread result;
-    result.secondary_idb_path_ = idb_path;
-    result.secondary_temp_dir_ = std::move(secondary_temp_dir);
-    result.idc_file_ = std::move(idc_file);
-    result.options_ = std::move(options);
-    return result;
-  }
-
-  void operator()() {
-    const bool is_64bit =
-        absl::EndsWith(absl::AsciiStrToUpper(secondary_idb_path_), ".I64");
-    std::vector<string> args = {
-        JoinPath(idadir(0), is_64bit ? "ida64" : "ida")};
-#ifdef WIN32
-    args[0] = ReplaceFileExtension(args[0], ".exe");
-#endif
-
-    args.push_back("-A");
-    args.push_back(absl::StrCat("-OBinExportModule:", secondary_temp_dir_));
-
-    if (options_.alsologtostderr) {
-      args.push_back("-OBinExportAlsoLogToStdErr:TRUE");
-    }
-
-    if (!options_.headless_export_mode) {
-      // Script parameter: We only support the Qt version.
-#ifdef WIN32
-      args.push_back(absl::StrCat("-S\"", idc_file_, "\""));
-#else
-      args.push_back(absl::StrCat("-S", idc_file_));
-#endif
-    } else {
-      SetEnvironmentVariable("TVHEADLESS", "1");
-      args.push_back("-OBinExportAutoAction:BinExportBinary");
-    }
-
-    args.push_back(secondary_idb_path_);
-
-    success_or_ = SpawnProcessAndWait(args);
-
-    // Reset environment variable.
-    SetEnvironmentVariable("TVHEADLESS", /*value=*/"");
-  }
-
-  bool success() const { return success_or_.ok(); }
-
-  string status() const { return string(success_or_.status().message()); }
-
- private:
-  friend class not_absl::StatusOr<ExporterThread>;
-  ExporterThread() = default;
-
-  not_absl::StatusOr<int>
-      success_or_;  // Defaults to not_absl::StatusCode::kUnknown.
-  string secondary_idb_path_;
-  string secondary_temp_dir_;
-  string idc_file_;
-  Options options_;
-};
 
 bool ExportIdbs() {
   if (!EnsureIdb()) {
@@ -268,43 +171,58 @@ bool ExportIdbs() {
   LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
+
+  const string primary_temp_dir = JoinPath(temp_dir, "primary");
+  RemoveAll(primary_temp_dir).IgnoreError();
+  not_absl::Status status = CreateDirectories(primary_temp_dir);
+  if (!status.ok()) {
+    throw std::runtime_error{string(status.message())};
+  }
+
+  const string secondary_temp_dir = JoinPath(temp_dir, "secondary");
+  RemoveAll(secondary_temp_dir).IgnoreError();
+  status = CreateDirectories(secondary_temp_dir);
+  if (!status.ok()) {
+    throw std::runtime_error{string(status.message())};
+  }
+
   {
-    auto exporter_or = ExporterThread::Create(
-        temp_dir, secondary_idb_path,
-        ExporterThread::Options{}
+    const auto* config = GetConfig();
+    auto exporter_or = IdbExporter::Create(
+        IdbExporter::Options{}
+            .set_export_dir(secondary_temp_dir)
+            .set_ida_dir(idadir(0))
+            .set_ida_exe(config->ReadString("/BinDiff/Ida/@executable", ""))
+            .set_ida_exe64(config->ReadString("/BinDiff/Ida/@executable64", ""))
             .set_alsologtostderr(g_alsologtostderr)
             .set_headless_export_mode(
-                GetConfig()->ReadBool("/BinDiff/Ida/headlessExport",
-                                      /*default_value=*/false)));
+                config->ReadBool("/BinDiff/Ida/headlessExport",
+                                 /*default_value=*/false)));
     if (!exporter_or.ok()) {
       throw std::runtime_error{
           absl::StrCat("Export of the current database failed: ",
                        exporter_or.status().message())};
     }
     auto exporter = std::move(exporter_or).ValueOrDie();
-    std::thread thread(std::ref(exporter));
+    exporter->AddDatabase(secondary_idb_path);
 
-    string primary_temp_dir(JoinPath(temp_dir, "primary"));
-    RemoveAll(primary_temp_dir);
-    not_absl::Status status = CreateDirectories(primary_temp_dir);
-    if (!status.ok()) {
-      throw std::runtime_error{string(status.message())};
-    }
+    std::thread export_thread(
+        [&status, &exporter]() { status = exporter->Export(); });
 
     qstring errbuf;
-    idc_value_t arg(primary_temp_dir.c_str());
+    idc_value_t arg = primary_temp_dir.c_str();
     if (!call_idc_func(
             /*result=*/nullptr, "BinExportBinary", &arg,
             /*argsnum=*/1, &errbuf, /*resolver=*/nullptr)) {
-      thread.detach();
+      export_thread.detach();
       throw std::runtime_error(absl::StrCat(
-          "Export of the current database failed: ", errbuf.c_str()));
+          "Export of the primary database failed: ", errbuf.c_str()));
     }
 
-    thread.join();
-    if (!exporter.success()) {
+    export_thread.join();
+    if (!status.ok()) {
       throw std::runtime_error{absl::StrCat(
-          "Failed to spawn second IDA instance: ", exporter.status())};
+          "Export of the secondary database failed: ", status.message())};
     }
   }
 

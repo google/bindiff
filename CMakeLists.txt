@@ -115,7 +115,7 @@ add_library(xmlconfig STATIC xmlconfig.cc
                              xmlconfig.h)
 target_link_libraries(xmlconfig
   binexport_shared
-  absl::container
+  absl::flat_hash_map
   absl::hash
   tinyxpath
 )
@@ -190,6 +190,8 @@ add_library(bindiff_shared STATIC
   flow_graph_match_basic_block_string_refs.h
   groundtruth_writer.cc
   groundtruth_writer.h
+  idb_export.cc
+  idb_export.h
   instruction.cc
   instruction.h
   log_writer.cc
@@ -208,6 +210,9 @@ add_library(bindiff_shared STATIC
   writer.h
 )
 target_link_libraries(bindiff_shared
+  absl::flat_hash_map
+  absl::hash
+  absl::str_format
   absl::strings
   binexport_shared
   sqlite
@@ -272,6 +277,7 @@ ida_install(TARGETS ${bindiff_plugin_name}
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
   bindiff_shared
+  absl::flat_hash_set
   absl::time
   gflags
 )
