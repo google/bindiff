@@ -5,22 +5,17 @@
 #include <windows.h>  // NOLINT
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <cstdio>
-#include <cstdlib>
 #else
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-#ifdef __APPLE__
-#include <sys/sysctl.h>
-#else
-#include <sys/sysinfo.h>  // For sysinfo struct
-#endif
 #endif
 
 #include <algorithm>
 #include <cstdint>
+#include <cstdio>
+#include <cstdlib>
 #include <iomanip>
 #include <iterator>
 #include <map>
@@ -35,100 +30,12 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/start_ui.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
 namespace security {
 namespace bindiff {
-
-constexpr char kGuiJarName[] = "bindiff.jar";
-
-#ifdef _WIN32
-// Minimum required version of the JRE
-constexpr double kMinJavaVersion = 9;
-
-bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
-                         int bufsize) {
-  DWORD type;
-  DWORD size;
-
-  // Do we have a value of that name?
-  if (RegQueryValueEx(key, name, 0, &type, 0, &size) != ERROR_SUCCESS) {
-    return false;
-  }
-
-  // Is it the right type and not too large?
-  if (type != REG_SZ || (size >= static_cast<uint32_t>(bufsize))) {
-    return false;
-  }
-
-  // Finally read the string and return status
-  return RegQueryValueEx(key, name, 0, 0, reinterpret_cast<uint8_t*>(buffer),
-                         &size) == ERROR_SUCCESS;
-}
-
-string GetJavaHomeDir() {
-  char buffer[MAX_PATH] = {0};
-
-  // Try environment variable first.
-  int size = GetEnvironmentVariable("JAVA_HOME", &buffer[0], MAX_PATH);
-  if (size != 0 && size < MAX_PATH) {
-    return buffer;
-  }
-
-  HKEY key;
-  // Try JDK key first, as newer Java versions (>=10) do not ship the JRE
-  // separately anymore.
-  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\JavaSoft\\JDK", 0, KEY_READ,
-                   &key) != ERROR_SUCCESS) {
-    // Not found, try JRE key next.
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                     "SOFTWARE\\JavaSoft\\Java Runtime Environment", 0,
-                     KEY_READ, &key) != ERROR_SUCCESS) {
-      return "";
-    }
-  }
-
-  string result;
-  if (RegQueryStringValue(key, "CurrentVersion", &buffer[0], MAX_PATH)) {
-    // Parse the first part of the version (e.g. 11.0) and ignore everything
-    // else.
-    const double cur_var = strtod(buffer, nullptr);
-    HKEY subkey(0);
-    if (cur_var >= kMinJavaVersion &&
-        RegOpenKeyEx(key, buffer, 0, KEY_READ, &subkey) == ERROR_SUCCESS) {
-      if (RegQueryStringValue(subkey, "JavaHome", &buffer[0], MAX_PATH)) {
-        result = buffer;
-      }
-      RegCloseKey(subkey);
-    }
-  }
-  RegCloseKey(key);
-
-  return result;
-}
-#endif
-
-uint64_t GetPhysicalMemSize() {
-#if defined(_WIN32)
-  MEMORYSTATUSEX mi;
-  mi.dwLength = sizeof(MEMORYSTATUSEX);
-  GlobalMemoryStatusEx(&mi);
-  return mi.ullTotalPhys;
-#elif defined(__APPLE__)
-  uint64_t result;
-  int param[2];
-  param[0] = CTL_HW;
-  param[1] = HW_MEMSIZE;
-  size_t length = sizeof(uint64_t);
-  sysctl(param, 2, &result, &length, nullptr, 0);
-  return result;
-#else
-  struct sysinfo mi;
-  sysinfo(&mi);
-  return static_cast<uint64_t>(mi.totalram) * mi.mem_unit;
-#endif
-}
 
 bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
                          absl::string_view arguments) {
@@ -192,72 +99,6 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   return success;
 }
 
-void DoStartGui(absl::string_view gui_dir) {
-  // This is not strictly correct: we allow specifying a server by IP address in
-  // our config file. If we cannot reach it we launch BinDiff GUI locally...
-  // This will be the most common setup by far, so I guess it's ok.
-
-  const auto* config = GetConfig();
-  std::vector<string> argv;
-  string java_binary(config->ReadString("/BinDiff/Gui/@java_binary", ""));
-  if (!java_binary.empty()) {
-    argv.push_back(java_binary);
-  } else {
-#ifdef _WIN32
-    string java_exe = GetJavaHomeDir();
-    if (!java_exe.empty()) {
-      absl::StrAppend(&java_exe, kPathSeparator, "bin");
-    }
-    absl::StrAppend(&java_exe, kPathSeparator, "javaw.exe");
-    argv.push_back(java_exe);
-#else
-    argv.push_back("java");
-#endif
-  }
-  argv.push_back("-Xms128m");
-#ifdef __APPLE__
-  argv.push_back("-Xdock:name=BinDiff");
-#endif
-
-  // Set max heap size to 75% of available physical memory if unset.
-  // Note: When using 32-bit Java on a 64-bit machine with more than 4GiB of
-  //       RAM, the calculated value will be too large. In that case, we simply
-  //       try again without setting any heap size.
-  int config_max_heap_mb(config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1));
-  uint64_t max_heap_mb(
-      config_max_heap_mb > 0
-          ? config_max_heap_mb
-          : std::max(static_cast<uint64_t>(512),
-                     (GetPhysicalMemSize() / 1024 / 1024) * 3 / 4));
-  int max_heap_index = argv.size();
-  argv.push_back("-Xmx" + std::to_string(max_heap_mb) + "m");
-
-  argv.push_back("-jar");
-  auto jar_file = JoinPath(gui_dir, "bin", kGuiJarName);
-  if (!FileExists(jar_file)) {
-    // Try again without the "bin" dir (b/63617055).
-    // TODO(cblichmann): We should instead make the JAR file configurable.
-    jar_file = JoinPath(gui_dir, kGuiJarName);
-    if (!FileExists(jar_file)) {
-      throw std::runtime_error(absl::StrCat(
-          "Cannot launch BinDiff user interface. Missing JAR file: ",
-          jar_file));
-    }
-  }
-  argv.push_back(jar_file);
-
-  if (!SpawnProcess(argv).ok()) {
-    // Try again without the max heap size argument.
-    argv.erase(argv.begin() + max_heap_index - 1);
-
-    if (!SpawnProcess(argv).ok()) {
-      throw std::runtime_error(absl::StrCat(
-          "Cannot launch BinDiff user interface. Process creation failed: ",
-          GetLastOsError()));
-    }
-  }
-}
-
 bool SendGuiMessage(int retries, absl::string_view gui_dir,
                     absl::string_view server, uint16_t port,
                     absl::string_view arguments,
@@ -265,7 +106,21 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
   if (DoSendGuiMessageTCP(server, port, arguments)) {
     return true;
   }
-  DoStartGui(gui_dir);
+  const auto* config = GetConfig();
+  not_absl::Status status = StartUiWithOptions(
+      /*extra_args=*/{},
+      StartUiOptions{}
+          .set_java_binary(config->ReadString("/BinDiff/Gui/@java_binary", ""))
+          .set_java_vm_options(
+              config->ReadString("/BinDiff/Gui/@java_vm_options", ""))
+          .set_max_heap_size_mb(
+              config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1))
+          .set_gui_dir(config->ReadString("/BinDiff/Gui/@directory", "")));
+  if (!status.ok()) {
+    throw std::runtime_error{absl::StrCat(
+        "Cannot launch BinDiff user interface. Process creation failed: ",
+        status.message())};
+  }
 
   for (int retry = 0; retry < retries * 10; ++retry) {
     if (DoSendGuiMessageTCP(server, port, arguments)) {

@@ -204,6 +204,8 @@ add_library(bindiff_shared STATIC
   reader.h
   sqlite.cc
   sqlite.h
+  start_ui.cc
+  start_ui.h
   utility.cc
   utility.h
   writer.cc

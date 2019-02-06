@@ -56,6 +56,7 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/bindiff/idb_export.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/start_ui.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -65,6 +66,7 @@ using google::ShowUsageWithFlags;
 
 // TODO(cblichmann): Migrate to Abseil's flags once they become available.
 DEFINE_bool(nologo, false, "do not display version/copyright information");
+DEFINE_bool(ui, false, "launch the BinDiff UI");
 DEFINE_string(primary, "", "primary input file or path in batch mode");
 DEFINE_string(secondary, "", "secondary input file (optional)");
 DEFINE_string(output_dir, "", "output path, defaults to current directory");
@@ -304,7 +306,6 @@ void ListFiles(const string& path) {
   std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
 
-  absl::flat_hash_set<string> files;
   for (const auto& entry : entries) {
     const auto file_path(JoinPath(path, entry));
     if (IsDirectory(file_path)) {
@@ -331,7 +332,7 @@ void BatchDiff(const string& path, const string& reference_file,
   // Collect idb files to diff.
   std::vector<string> entries;
   GetDirectoryEntries(path, &entries);
-  absl::flat_hash_set<string> idb_files;
+  std::vector<string> idb_files;
   absl::flat_hash_set<string> diff_files;
   for (const auto& entry : entries) {
     string file_path = JoinPath(path, entry);
@@ -343,7 +344,7 @@ void BatchDiff(const string& path, const string& reference_file,
     if (extension == ".IDB" || extension == ".I64") {
       auto file_size_or = GetFileSize(file_path);
       if (file_size_or.ok() && file_size_or.ValueOrDie() > 0) {
-        idb_files.insert(Basename(file_path));
+        idb_files.push_back(Basename(file_path));
       } else {
         PrintMessage(absl::StrCat("Warning: skipping empty file ", file_path));
       }
@@ -483,58 +484,79 @@ int BinDiffMain(int argc, char** argv) {
 #endif
   signal(SIGINT, SignalHandler);
 
-  const string current_path(GetCurrentDirectory());
+  const string current_path = GetCurrentDirectory();
   SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
                                SET_FLAGS_DEFAULT);
 
-  int exit_code = 0;
-  try {
-    string binary_name(Basename(argv[0]));
-    string usage(
-        "Finds similarities in binary code.\n"
-        "Usage:\n");
-    usage +=
-        "  " + binary_name +
-        " --primary=PRIMARY [--secondary=SECONDARY]\n\n"
-        "Example command line to diff all files in a directory against each"
-        " other:\n" +
-        "  " + binary_name +
-        " \\\n"
-        "    --primary=/tmp --output_dir=/tmp/result\n"
-        "Note that if the directory contains IDA Pro databases these will \n"
-        "automatically be exported first.\n"
-        "For a single diff:\n" +
-        "  " + binary_name +
-        " \\\n"
-        "    --primary=/tmp/file1.BinExport "
-        "--secondary=/tmp/file2.BinExport \\\n"
-        "    --output_dir=/tmp/result";
+  string binary_name = Basename(argv[0]);
+  string usage = absl::StrFormat(
+      "Finds similarities in binary code.\n"
+      "Usage:\n"
+      "  %1$s --primary=PRIMARY [--secondary=SECONDARY]\n\n"
+      "Example command line to diff all files in a directory against each"
+      " other:\n"
+      "  %1$s \\\n"
+      "    --primary=/tmp --output_dir=/tmp/result\n"
+      "Note: if the directory contains IDA Pro databases these will \n"
+      "automatically be exported first.\n"
+      "For a single diff:\n"
+      "  %1$s \\\n"
+      "    --primary=/tmp/file1.BinExport "
+      "--secondary=/tmp/file2.BinExport \\\n"
+      "    --output_dir=/tmp/result",
+      binary_name);
 #ifdef GOOGLE
-    InitGoogle(usage.c_str(), &argc, &argv, /*remove_flags=*/true);
+  InitGoogle(usage.c_str(), &argc, &argv, /*remove_flags=*/true);
 #else
-    SetUsageMessage(usage);
-    ParseCommandLineFlags(&argc, &argv, /*remove_flags=*/true);
+  SetUsageMessage(usage);
+  ParseCommandLineFlags(&argc, &argv, /*remove_flags=*/true);
 
-    SetLogHandler(&UnprefixedLogHandler);
+  SetLogHandler(&UnprefixedLogHandler);
 #endif
 
-    if (!FLAGS_nologo) {
-      PrintMessage(absl::StrCat(
-          kProgramVersion,
+  if (!FLAGS_nologo) {
+    PrintMessage(
+        absl::StrCat(kProgramVersion,
 #ifdef _DEBUG
-          "debug build"
+                     "debug build"
 #endif
-          ", (c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC."));
-    }
+                     ", (c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC."));
+  }
 
-    not_absl::Status status =
-        !FLAGS_config.empty() ? status = GetConfig()->LoadFromFileWithDefaults(
-                                    FLAGS_config, string(kDefaultConfig))
-                              : InitConfig();
+  try {
+    auto config = GetConfig();
+    not_absl::Status status = !FLAGS_config.empty()
+                                  ? status = config->LoadFromFileWithDefaults(
+                                        FLAGS_config, string(kDefaultConfig))
+                                  : InitConfig();
     if (!status.ok()) {
       throw std::runtime_error(
           absl::StrCat("Config file invalid or not found: ", status.message()));
     }
+
+    // Launch Java UI if requested
+    if (binary_name == "bindiff_ui" || FLAGS_ui) {
+      std::vector<string> extra_args;
+      for (int i = 1; i < argc; ++i) {
+        extra_args.push_back(argv[i]);
+      }
+      status = StartUiWithOptions(
+          extra_args,
+          StartUiOptions{}
+              .set_java_binary(
+                  config->ReadString("/BinDiff/Gui/@java_binary", ""))
+              .set_java_vm_options(
+                  config->ReadString("/BinDiff/Gui/@java_vm_options", ""))
+              .set_max_heap_size_mb(
+                  config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1))
+              .set_gui_dir(config->ReadString("/BinDiff/Gui/@directory", "")));
+      if (!status.ok()) {
+        throw std::runtime_error{absl::StrCat(
+            "Cannot launch BinDiff user interface: ", status.message())};
+      }
+      return EXIT_SUCCESS;
+    }
+
     // This initializes static variables before the threads get to them.
     if (GetDefaultMatchingSteps().empty() ||
         GetDefaultMatchingStepsBasicBlock().empty()) {
@@ -685,13 +707,12 @@ int BinDiffMain(int argc, char** argv) {
     }
   } catch (const std::exception& error) {
     PrintErrorMessage(absl::StrCat("Error: ", error.what()));
-    exit_code = 1;
+    return EXIT_FAILURE;
   } catch (...) {
     PrintErrorMessage("Error: An unknown error occurred");
-    exit_code = 2;
+    return EXIT_FAILURE;
   }
-
-  return exit_code;
+  return EXIT_SUCCESS;
 }
 
 }  // namespace bindiff
