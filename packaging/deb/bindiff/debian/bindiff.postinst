@@ -23,9 +23,10 @@ set -e
 case "$1" in
     configure)
         # Install into alternatives system, priority is version times 100
-        update-alternatives \
-            --install /usr/bin/bindiff bindiff \
-            ${bindiff_root}/bin/bindiff.sh ${bindiff_release_prio}
+        update-alternatives --install \
+            /usr/bin/bindiff bindiff ${bindiff_root}/bin/bindiff \
+            ${bindiff_release_prio} \
+            --slave /usr/bin/bindiff_ui bindiff_ui ${bindiff_root}/bin/bindiff
 
         # Install .desktop file according to XDG spec.
         xdg-desktop-menu forceupdate --mode system
@@ -40,16 +41,10 @@ case "$1" in
                 "${idadir}/plugins/bindiff${bindiff_release}.so"
             ln -s ${bindiff_root}/plugins/bindiff${bindiff_release}64.so \
                 "${idadir}/plugins/bindiff${bindiff_release}64.so"
-
-            # Install symlink for BinExport
-            update-alternatives \
-                --install "${idadir}/plugins/binexport${binexport_release}.so" \
-                binexport10so \
-                ${bindiff_root}/plugins/binexport${binexport_release}.so \
-                ${binexport_release_prio} \
-                --slave "${idadir}/plugins/binexport${binexport_release}64.so" \
-                binexport1064so \
-                ${bindiff_root}/plugins/binexport${binexport_release}64.so
+            ln -s ${bindiff_root}/plugins/binexport${binexport_release}.so
+                "${idadir}/plugins/binexport${binexport_release}.so"
+            ln -s ${bindiff_root}/plugins/binexport${binexport_release}64.so \
+                "${idadir}/plugins/binexport${binexport_release}64.so"
 
             escidadir=$(echo $idadir | sed 's/\//\\\//g')
             sed -i "s/IDADIR/${escidadir}/" ${bindiff_etc}/bindiff_core.xml

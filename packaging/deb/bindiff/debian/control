@@ -2,13 +2,13 @@ Source: bindiff
 Section: java
 Priority: extra
 Maintainer: Christian Blichmann <cblichmann@google.com>
-Build-Depends: debhelper (>= 6.0.4), chrpath
-Standards-Version: 3.9.5
+Build-Depends: debhelper (>= 9), chrpath
+Standards-Version: 4.0.0
 
 Package: bindiff
 Architecture: amd64
 Pre-Depends: debconf
-Depends: jdk8-google-v7|openjdk-8-jre|openjdk-9-jre|java8-runtime|java9-runtime,
+Depends: jdk11-google|java8-runtime|java9-runtime|java10-runtime|java11-runtime|java12-runtime,
          xdg-utils,
          ${misc:Depends}
 Recommends: fonts-roboto

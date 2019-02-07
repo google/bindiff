@@ -27,8 +27,11 @@ case "$1" in
         if [ -x "${idadir}" ]; then
             # Remove symlinks to BinDiff plugin
             rm -f \
-                "${idadir}/plugins/bindiff50.so" \
-                "${idadir}/plugins/bindiff5064.so" 2>&1
+                "${idadir}/plugins/bindiff5.so" \
+                "${idadir}/plugins/bindiff564.so" \
+                "${idadir}/plugins/binexport10.so" \
+                "${idadir}/plugins/binexport1064.so" \
+                2>&1
         fi
     ;;
 

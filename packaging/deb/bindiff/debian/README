@@ -1,4 +1,4 @@
-BinDiff 4.3
+BinDiff 5.0
 -----------
 
 BinDiff is a comparison tool for binary files that helps to quickly find
@@ -11,4 +11,4 @@ example, malware binaries. This also helps to retain knowledge across teams
 of binary analysts where the individual workflows might vary from analyst to
 analyst.
 
- -- Christian Blichmann <cblichmann@google.com>  Mon, 10 Apr 2017 13:28:00 +0200
+ -- Christian Blichmann <cblichmann@google.com>  Fri, 11 Jan 2019 10:42:01 +0100

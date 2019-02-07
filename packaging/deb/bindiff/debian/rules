@@ -4,11 +4,12 @@
 	dh $@
 
 override_dh_strip:
-	strip debian/bindiff/opt/zynamics/bindiff/bin/bindiff \
-	    debian/bindiff/opt/zynamics/bindiff/plugins/*.so
-	chrpath -d debian/bindiff/opt/zynamics/bindiff/bin/bindiff \
-	    debian/bindiff/opt/zynamics/bindiff/plugins/*.so
+	strip debian/bindiff/opt/bindiff/bin/bindiff \
+	    debian/bindiff/opt/bindiff/plugins/*.so || true
+	chrpath -d debian/bindiff/opt/bindiff/bin/bindiff \
+	    debian/bindiff/opt/bindiff/plugins/*.so || true
 
 override_dh_fixperms:
 	dh_fixperms
-	chmod +x debian/bindiff/opt/zynamics/bindiff/bin/bindiff
+	chmod +x debian/bindiff/opt/bindiff/bin/bindiff
+	chmod +x debian/bindiff/opt/bindiff/bin/binexport2dump

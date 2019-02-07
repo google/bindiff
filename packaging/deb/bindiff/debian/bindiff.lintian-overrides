@@ -11,5 +11,6 @@ bindiff: shlib-with-non-pic-code
 bindiff: too-long-extended-description-in-templates
 bindiff: extra-license-file
 
-# US English only
+# US English only, do not translate the license agreement
 bindiff: untranslatable-debconf-templates
+bindiff: not-using-po-debconf

@@ -1,10 +1,10 @@
 [Desktop Entry]
-Version=4.3
+Version=5.0
 Name=BinDiff
 Comment=Quickly find differences and similarities in disassembled code.
 GenericName=BinDiff
-Exec=/opt/zynamics/BinDiff/bin/bindiff.sh
-Icon=/opt/zynamics/BinDiff/bin/bindiff-256x256-rgba.png
+Exec=/opt/bindiff/bin/bindiff_ui
+Icon=/opt/bindiff/bin/bindiff-256x256-rgba.png
 Terminal=false
 Type=Application
 StartupWMClass=com-google-security-zynamics-bindiff-Launcher
