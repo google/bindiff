@@ -99,6 +99,7 @@ add_library(binexport_shared STATIC
 target_link_libraries(binexport_shared
   absl::bad_optional_access
   absl::optional
+  absl::str_format
   absl::strings
   absl::time
   absl::variant
