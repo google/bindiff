@@ -5,16 +5,16 @@
   <!-- Never change the UpgradeCode after release -->
   <Product Id="*"
            UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
-           Name="BinDiff 5"
+           Name="BinDiff"
            Language="1033"
            Version="5.0.0"
-           Manufacturer="Google Inc.">
+           Manufacturer="Google LLC">
     <Package Id="*"
              Keywords="Installer"
              Platform="x64"
              Comments="This Installer database contains the logic and data required to install BinDiff."
-             Description="BinDiff 5 Installation package"
-             InstallerVersion="405"
+             Description="BinDiff Installation package"
+             InstallerVersion="500"
              InstallScope="perMachine"
              Compressed="yes" />
     <Media Id="1" Cabinet="bindiff.cab" EmbedCab="yes" />
@@ -44,17 +44,17 @@
                   Property="IDADIRECTORY" Value="[ProgramFilesFolder]IDA\" />
 
     <!-- Launch conditions -->
-    <Condition Message="[ProductName] can only be installed on Microsoft Windows 7 (x64) or higher.">
-      VersionNT64 >= 610
+    <Condition Message="[ProductName] can only be installed on Microsoft Windows 8.1 or later (x64).">
+      VersionNT64 >= 603
     </Condition>
     <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
       Privileged
     </Condition>
-    <!-- TODO(cblichmann): Ship with modularized Java 9 runtime? -->
-    <Condition Message="[ProductName] requires a working Java Runtime Environment (JRE). Install JRE 1.8 or higher first.">
+    <!-- TODO(cblichmann): Ship with modularized Java 11 runtime? -->
+    <Condition Message="[ProductName] requires a working Java Runtime Environment (JRE). Install JRE 9 or higher first.">
       Installed OR
-      JREVERSION = "1.8" OR
-      JREVERSION = "1.9"
+      JDKVERSION >= "10" OR
+      JREVERSION >= "1.9"
     </Condition>
 
     <!-- Properties -->
@@ -63,15 +63,24 @@
     <Property Id="ARPURLINFOABOUT" Value="https://www.zynamics.com/" />
 
     <Property Id="IDADIRECTORY">
-      <!-- Same for both IDA 7.0 and IDA 7.0 SP1 -->
-      <RegistrySearch Id="HexRaysIdaRegistry700" Type="raw" Win64="yes"
+      <!-- Same for both IDA 7.2 and 7.1 -->
+      <RegistrySearch Id="HexRaysIdaRegistry720" Type="raw" Win64="yes"
                       Root="HKLM"
-                      Key="SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.0_is1"
+                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.2_is1"
+                      Name="InstallLocation" />
+
+      <RegistrySearch Id="HexRaysIdaRegistry710" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.1_is1"
                       Name="InstallLocation" />
     </Property>
 
-    <Property Id="JREVERSION">
-      <RegistrySearch Id="JavaSoftRegistry" Type="raw" Win64="yes"
+    <Property Id="JDKVERSION">
+      <RegistrySearch Id="JavaSoftJDKRegistry" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\JavaSoft\JDK"
+                      Name="CurrentVersion" />
+      <RegistrySearch Id="JavaSoftJRERegistry" Type="raw" Win64="yes"
                       Root="HKLM"
                       Key="SOFTWARE\JavaSoft\Java Runtime Environment"
                       Name="CurrentVersion" />
@@ -108,97 +117,98 @@
 
     <!-- Directory structure -->
     <Directory Id="TARGETDIR" Name="SourceDir" FileSource="$(var.ProjectDir)SourceDir">
-      <Directory Id="ProgramFiles64Folder" Name="ProgramFiles64">
-        <Directory Id="ProgramFiles64_zynamics" Name="zynamics">
-          <Directory Id="INSTALLDIR" Name="BinDiff 5">
-            <Component Id="BinDiff_License"
-                       Guid="44B24AA7-0897-47FD-AD43-11C260EB8982">
-              <File Name="license.rtf" KeyPath="yes">
-                <Shortcut Id="BinDiff_License"
-                          Directory="ProgramMenu_BinDiff"
-                          Name="BinDiff License"
-                          Advertise="yes"
-                          Icon="Icons_License.rtf"
-                          IconIndex="0" />
-              </File>
-            </Component>
-            <Component Id="BinDiff_FontLicense"
-                       Guid="D2EAA1F5-9A02-44C6-B53F-DA387EF4288D">
-              <File Name="font-license.txt" KeyPath="yes">
-                <Shortcut Id="BinDiff_FontLicense"
-                          Directory="ProgramMenu_BinDiff"
-                          Name="Roboto Mono Font License"
-                          Advertise="yes"
-                          Icon="Icons_License.txt"
-                          IconIndex="0" />
-              </File>
-            </Component>
+      <Directory Id="ProgramFiles64Folder" Name="ProgramFiles">
+        <Directory Id="INSTALLDIR" Name="BinDiff">
+          <Component Id="BinDiff_License" Win64="yes"
+                     Guid="44B24AA7-0897-47FD-AD43-11C260EB8982">
+            <File Name="license.rtf" KeyPath="yes">
+              <Shortcut Id="BinDiff_License"
+                        Directory="ProgramMenu_BinDiff"
+                        Name="BinDiff License"
+                        Advertise="yes"
+                        Icon="Icons_License.rtf"
+                        IconIndex="0" />
+            </File>
+          </Component>
+          <Component Id="BinDiff_FontLicense" Win64="yes"
+                     Guid="D2EAA1F5-9A02-44C6-B53F-DA387EF4288D">
+            <File Name="font-license.txt" KeyPath="yes">
+              <Shortcut Id="BinDiff_FontLicense"
+                        Directory="ProgramMenu_BinDiff"
+                        Name="Roboto Mono Font License"
+                        Advertise="yes"
+                        Icon="Icons_License.txt"
+                        IconIndex="0" />
+            </File>
+          </Component>
 
-            <Directory Id="BinDiff_Bin" Name="bin">
-              <!-- Binaries -->
-              <Component Id="BinDiff_Bin_BindiffCMD"
-                         Guid="36CC130A-BB83-4A48-8BD2-33B4A4DF0F70">
-                <File Name="bindiff.cmd" KeyPath="yes">
-                  <Shortcut Id="bindiff.cmd"
-                            Directory="ProgramMenu_BinDiff"
-                            Name="BinDiff 5"
-                            Advertise="yes"
-                            Icon="Icons_BinDiff.ico"
-                            IconIndex="0" />
-                </File>
-              </Component>
-              <Component Id="BinDiff_Bin_BindiffJAR"
-                         Guid="B9BA7E8F-C08C-4068-8717-A7BA3AE61692">
-                <File Name="bindiff.jar" KeyPath="yes" />
-              </Component>
-              <Component Id="BinDiff_Bin_BindiffEXE"
-                         Guid="849A24BB-5409-4405-A9B3-11669582CA99">
-                <File Name="bindiff.exe" KeyPath="yes" />
-              </Component>
-              <Component Id="BinDiff_Bin_AddToSystemPath"
-                         Guid="02A7BB60-AF84-4FDD-980F-E187DCE57264">
-                <RegistryValue Root="HKLM"
-                               Key="SOFTWARE\[Manufacturer]\[ProductName]\EnvironmentVariable"
-                               Type="string" Value="1"
-                               KeyPath="yes" />
-                <Environment Id="UpdatePath" Name="PATH"
-                             Action="set" Permanent="no"
-                             System="yes" Part="last"
-                             Value="[INSTALLDIR]bin" />
-              </Component>
-              <Component Id="BinDiff_Bin_WindowsFirewallRule"
-                         Guid="D50B9F79-5930-4C8E-96AE-C5A1D586EBA5">
-                <RegistryValue Root="HKLM"
-                               Key="SOFTWARE\[Manufacturer]\[ProductName]\FirewallRule"
-                               Type="string" Value="1"
-                               KeyPath="yes" />
-                <fire:FirewallException Id="Firewall_BinDiffLocalTCP2000"
-                                        Name="[ProductName]"
-                                        Port="2000" Protocol="tcp"
-                                        Scope="localSubnet" />
-              </Component>
-            </Directory>
+          <Directory Id="BinDiff_Bin" Name="bin">
+            <!-- Binaries -->
+            <Component Id="BinDiff_Bin_BindiffEXE" Win64="yes"
+                       Guid="849A24BB-5409-4405-A9B3-11669582CA99">
+              <File Name="bindiff.exe" KeyPath="yes">
+                <Shortcut Id="bindiff.exe"
+                          Arguments="--ui"
+                          Directory="ProgramMenu_BinDiff"
+                          Name="BinDiff"
+                          Advertise="yes"
+                          Icon="Icons_BinDiff.ico"
+                          IconIndex="0" />
+              </File>
+            </Component>
+            <Component Id="BinDiff_Bin_Bindiff_uiCMD" Win64="yes"
+                       Guid="F447E462-235B-46C9-8BF2-36F54A6DECDC">
+              <File Name="bindiff_ui.cmd" KeyPath="yes" />
+            </Component>
+            <Component Id="BinDiff_Bin_BindiffJAR" Win64="yes"
+                       Guid="B9BA7E8F-C08C-4068-8717-A7BA3AE61692">
+              <File Name="bindiff.jar" KeyPath="yes" />
+            </Component>
+            <Component Id="BinDiff_Bin_Binexport2dumpEXE" Win64="yes"
+                       Guid="5C1017A1-765B-463D-892A-D367E4D49FA3">
+              <File Name="binexport2dump.exe" KeyPath="yes" />
+            </Component>
+            <Component Id="BinDiff_Bin_AddToSystemPath" Win64="yes"
+                       Guid="02A7BB60-AF84-4FDD-980F-E187DCE57264">
+              <RegistryValue Root="HKLM"
+                             Key="SOFTWARE\[Manufacturer]\[ProductName]\EnvironmentVariable"
+                             Type="string" Value="1"
+                             KeyPath="yes" />
+              <Environment Id="UpdatePath" Name="PATH"
+                           Action="set" Permanent="no"
+                           System="yes" Part="last"
+                           Value="[INSTALLDIR]bin" />
+            </Component>
+            <Component Id="BinDiff_Bin_WindowsFirewallRule" Win64="yes"
+                       Guid="D50B9F79-5930-4C8E-96AE-C5A1D586EBA5">
+              <RegistryValue Root="HKLM"
+                             Key="SOFTWARE\[Manufacturer]\[ProductName]\FirewallRule"
+                             Type="string" Value="1"
+                             KeyPath="yes" />
+              <fire:FirewallException Id="Firewall_BinDiffLocalTCP2000"
+                                      Name="[ProductName]"
+                                      Port="2000" Protocol="tcp"
+                                      Scope="localSubnet" />
+            </Component>
           </Directory>
         </Directory>
-      </Directory>
 
-      <!-- IDA Pro plugins -->
-      <Directory Id="ProgramFilesFolder" Name="ProgramFiles">
-        <Directory Id="IDADIRECTORY" Name="IDA Pro">
+        <!-- IDA Pro plugins -->
+        <Directory Id="IDADIRECTORY" Name="IDA">
           <Directory Id="Ida_Plugins" Name="plugins">
-            <Component Id="Ida_Plugins_BinDiff"
+            <Component Id="Ida_Plugins_BinDiff" Win64="yes"
                        Guid="4F343273-7065-4826-A4B2-F3129B07EBF5">
               <File Name="bindiff5.dll" KeyPath="yes" />
             </Component>
-            <Component Id="Ida_Plugins_BinDiff64"
+            <Component Id="Ida_Plugins_BinDiff64" Win64="yes"
                        Guid="94CF1742-D057-48FE-860C-7750AFE2A936">
               <File Name="bindiff564.dll" KeyPath="yes" />
             </Component>
-            <Component Id="Ida_Plugins_BinExport"
+            <Component Id="Ida_Plugins_BinExport" Win64="yes"
                        Guid="D4F90320-C0AA-45A1-9C51-BBF582F008B1">
               <File Name="binexport10.dll" KeyPath="yes" />
             </Component>
-            <Component Id="Ida_Plugins_BinExport64"
+            <Component Id="Ida_Plugins_BinExport64" Win64="yes"
                        Guid="86D324CC-B553-4A7E-A5AA-A44B8C5B05BD">
               <File Name="binexport1064.dll" KeyPath="yes" />
             </Component>
@@ -208,7 +218,7 @@
 
       <!-- Start Menu entries -->
       <Directory Id="ProgramMenuFolder" Name="ProgramMenu">
-        <Directory Id="ProgramMenu_BinDiff" Name="BinDiff 5">
+        <Directory Id="ProgramMenu_BinDiff" Name="BinDiff">
           <Component Id="ProgramMenu_BinDiff_GoogleSecurityBlog"
                      Guid="8FA2FFB8-14E8-4770-8CEA-21A8477960B8">
             <RegistryValue Root="HKMU"
@@ -258,35 +268,33 @@
 
       <!-- Per-machine Configuration -->
       <Directory Id="CommonAppDataFolder" Name="CommonAppData">
-        <Directory Id="CommonAppData_zynamics" Name="zynamics">
-          <Directory Id="CommonAppData_BinDiff" Name="BinDiff">
-            <Component Id="CommonAppData_BinDiff_CoreConfig"
-                       Guid="006BD9D8-503B-49FB-8628-6D2BD5BB01DD">
-              <File Name="bindiff_core.xml" KeyPath="yes" />
-              <util:XmlFile Id="BinDiffCoreConfigModifyGuiDir"
-                            Action="setValue"
-                            File="[CommonAppDataFolder]zynamics\BinDiff\bindiff_core.xml"
-                            ElementPath="/BinDiff/Gui"
-                            Name="directory" Value="[INSTALLDIR]"
-                            Sequence="1" />
-              <util:XmlFile Id="BinDiffCoreConfigModifyIdaDir"
-                            Action="setValue"
-                            File="[CommonAppDataFolder]zynamics\BinDiff\bindiff_core.xml"
-                            ElementPath="/BinDiff/Ida"
-                            Name="directory" Value="[IDADIRECTORY]"
-                            Sequence="2" />
-            </Component>
-            <Component Id="CommonAppData_BinDiff_UIConfig"
-                       Guid="11365585-3C98-48B6-9C2B-0FB6AF6E287C">
-              <File Name="bindiff_ui.xml" KeyPath="yes" />
-              <util:XmlFile Id="BinDiffUIConfigModifyIdaDir"
-                            Action="setValue"
-                            File="[CommonAppDataFolder]zynamics\BinDiff\bindiff_ui.xml"
-                            ElementPath="/BinDiff/Ida"
-                            Name="directory" Value="[IDADIRECTORY]"
-                            Sequence="1" />
-            </Component>
-          </Directory>
+        <Directory Id="CommonAppData_BinDiff" Name="BinDiff">
+          <Component Id="CommonAppData_BinDiff_CoreConfig"
+                     Guid="006BD9D8-503B-49FB-8628-6D2BD5BB01DD">
+            <File Name="bindiff_core.xml" KeyPath="yes" />
+            <util:XmlFile Id="BinDiffCoreConfigModifyGuiDir"
+                          Action="setValue"
+                          File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
+                          ElementPath="/BinDiff/Gui"
+                          Name="directory" Value="[INSTALLDIR]"
+                          Sequence="1" />
+            <util:XmlFile Id="BinDiffCoreConfigModifyIdaDir"
+                          Action="setValue"
+                          File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
+                          ElementPath="/BinDiff/Ida"
+                          Name="directory" Value="[IDADIRECTORY]"
+                          Sequence="2" />
+          </Component>
+          <Component Id="CommonAppData_BinDiff_UIConfig"
+                     Guid="11365585-3C98-48B6-9C2B-0FB6AF6E287C">
+            <File Name="bindiff_ui.xml" KeyPath="yes" />
+            <util:XmlFile Id="BinDiffUIConfigModifyIdaDir"
+                          Action="setValue"
+                          File="[CommonAppDataFolder]BinDiff\bindiff_ui.xml"
+                          ElementPath="/BinDiff/Ida"
+                          Name="directory" Value="[IDADIRECTORY]"
+                          Sequence="1" />
+          </Component>
         </Directory>
       </Directory>
 
@@ -350,7 +358,7 @@
       <!-- These will generate ICE82 warnings, which is expected. See
            https://goo.gl/JNNPJF for details. -->
       <Merge Id="CRTx64" Language="0"
-             SourceFile="$(var.ProjectDir)SourceDir\MergeModules\Microsoft_VC140_CRT_x64.msm" />
+             SourceFile="$(var.ProjectDir)SourceDir\MergeModules\Microsoft_VC141_CRT_x64.msm" />
     </DirectoryRef>
 
     <!-- Start Menu entries -->
@@ -375,7 +383,7 @@
 
       <ComponentRef Id="ProgramMenu_BinDiff" />
       <ComponentRef Id="BinDiff_License" />
-      <ComponentRef Id="BinDiff_Bin_BindiffCMD" />
+      <ComponentRef Id="BinDiff_Bin_Bindiff_uiCMD" />
       <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
       <ComponentRef Id="Ida_Plugins_BinDiff" />
       <ComponentRef Id="Ida_Plugins_BinDiff64" />
@@ -394,6 +402,7 @@
                Absent="disallow"
                AllowAdvertise="no">
         <ComponentRef Id="BinDiff_Bin_BindiffEXE" />
+        <ComponentRef Id="BinDiff_Bin_Binexport2dumpEXE" />
       </Feature>
 
       <Feature Id="AddToSystemPath"
@@ -440,7 +449,7 @@
           SourceFile="$(var.ProjectDir)SourceDir\Icons\license.txt" />
 
     <WixVariable Id="WixUILicenseRtf"
-                 Value="$(var.ProjectDir)SourceDir\ProgramFiles64\zynamics\BinDiff 5\license.rtf" />
+                 Value="$(var.ProjectDir)SourceDir\ProgramFiles\BinDiff\license.rtf" />
     <WixVariable Id="WixUIBannerBmp"
                  Value="$(var.ProjectDir)SourceDir\Graphics\banner.bmp" />
     <WixVariable Id="WixUIDialogBmp"
