@@ -26,7 +26,7 @@ not_absl::Status InitConfig() {
   auto common_path_or = GetCommonAppDataDirectory(kBinDiff);
   const bool have_common_path = common_path_or.ok();
   if (have_common_path) {
-    JoinPath(std::move(common_path_or).ValueOrDie(), kConfigName);
+    common_path = JoinPath(std::move(common_path_or).ValueOrDie(), kConfigName);
   }
 
   XmlConfig user_config;
@@ -41,8 +41,8 @@ not_absl::Status InitConfig() {
   if (have_user_config && have_common_config) {
     use_common_config = user_config.ReadInt("/BinDiff/@configVersion", 0) <
                         common_config.ReadInt("/BinDiff/@configVersion", 0);
-    LOG(WARNING) << "BinDiff user config version is out of date, using "
-                    "per-machine config";
+    LOG_IF(WARNING, use_common_config)
+        << "User config version is out of date, using per-machine config";
   } else if (have_user_config) {
     use_common_config = false;
   } else if (have_common_config) {
