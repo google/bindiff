@@ -11,4 +11,4 @@ files/opt/bindiff/plugins/bindiff564.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport10.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport1064.so opt/bindiff/plugins
 files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications
-files/usr/share/bindiff/bindiff-config usr/share/bindiff/bindiff-config
+files/usr/share/bindiff/bindiff-config usr/share/bindiff

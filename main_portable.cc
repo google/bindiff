@@ -530,8 +530,7 @@ int BinDiffMain(int argc, char** argv) {
                                         FLAGS_config, string(kDefaultConfig))
                                   : InitConfig();
     if (!status.ok()) {
-      throw std::runtime_error(
-          absl::StrCat("Config file invalid or not found: ", status.message()));
+      throw std::runtime_error(string(status.message()));
     }
 
     // Launch Java UI if requested

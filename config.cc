@@ -9,25 +9,33 @@
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/status.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security {
 namespace bindiff {
 
 not_absl::Status InitConfig() {
-  const string config_filename = "bindiff_core.xml";
+  constexpr char kBinDiff[] = "BinDiff";
+  constexpr char kConfigName[] = "bindiff_core.xml";
 
-  const string user_path = absl::StrCat(
-      GetDirectory(PATH_APPDATA, "BinDiff", /*create=*/true), config_filename);
-  const string common_path = absl::StrCat(
-      GetDirectory(PATH_COMMONAPPDATA, "BinDiff", /*create=*/false),
-      config_filename);
+  string path;
+  NA_ASSIGN_OR_RETURN(path, GetOrCreateAppDataDirectory(kBinDiff));
+  const string user_path = JoinPath(path, kConfigName);
+
+  string common_path;
+  auto common_path_or = GetCommonAppDataDirectory(kBinDiff);
+  const bool have_common_path = common_path_or.ok();
+  if (have_common_path) {
+    JoinPath(std::move(common_path_or).ValueOrDie(), kConfigName);
+  }
 
   XmlConfig user_config;
   XmlConfig common_config;
   // Try to read user's local config
-  bool have_user_config = user_config.LoadFromFile(user_path).ok();
+  const bool have_user_config = user_config.LoadFromFile(user_path).ok();
   // Try to read machine config
-  bool have_common_config = common_config.LoadFromFile(common_path).ok();
+  const bool have_common_config =
+      have_common_path && common_config.LoadFromFile(common_path).ok();
 
   bool use_common_config = false;
   if (have_user_config && have_common_config) {

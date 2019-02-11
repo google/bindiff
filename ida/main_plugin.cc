@@ -1247,7 +1247,7 @@ int idaapi PluginInit() {
   addon_info.id = "com.google.bindiff";
   addon_info.name = kName;
   addon_info.producer = "Google";
-  addon_info.version = BINDIFF_MAJOR "." BINDIFF_MINOR "." BINDIFF_PATCH;
+  addon_info.version = BINDIFF_MAJOR;
   addon_info.url = "https://zynamics.com/bindiff.html";
   addon_info.freeform = kCopyright;
   register_addon(&addon_info);
