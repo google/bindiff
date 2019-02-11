@@ -1,14 +1,13 @@
 files/etc/opt/bindiff/bindiff_core.xml etc/opt/bindiff
 files/etc/opt/bindiff/bindiff_ui.xml etc/opt/bindiff
+files/opt/bindiff/LICENSE opt/bindiff
+files/opt/bindiff/bin/bindiff opt/bindiff/bin
 files/opt/bindiff/bin/bindiff-256x256-rgba.png opt/bindiff/bin
 files/opt/bindiff/bin/bindiff.jar opt/bindiff/bin
-files/opt/bindiff/bin/bindiff opt/bindiff/bin
 files/opt/bindiff/bin/binexport2dump opt/bindiff/bin
-files/opt/bindiff/LICENSE opt/bindiff
 files/opt/bindiff/plugins opt/bindiff
 files/opt/bindiff/plugins/bindiff5.so opt/bindiff/plugins
 files/opt/bindiff/plugins/bindiff564.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport10.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport1064.so opt/bindiff/plugins
 files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications
-files/usr/share/bindiff/bindiff-config usr/share/bindiff

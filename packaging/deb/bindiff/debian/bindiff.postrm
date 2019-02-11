@@ -19,6 +19,9 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
+bindiff_release=5
+binexport_release=10
+
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
         xdg-desktop-menu forceupdate --mode system
@@ -27,10 +30,10 @@ case "$1" in
         if [ -x "${idadir}" ]; then
             # Remove symlinks to BinDiff plugin
             rm -f \
-                "${idadir}/plugins/bindiff5.so" \
-                "${idadir}/plugins/bindiff564.so" \
-                "${idadir}/plugins/binexport10.so" \
-                "${idadir}/plugins/binexport1064.so" \
+                "${idadir}/plugins/bindiff${bindiff_release}.so" \
+                "${idadir}/plugins/bindiff${bindiff_release}64.so" \
+                "${idadir}/plugins/binexport${binexport_release}.so" \
+                "${idadir}/plugins/binexport${binexport_release}64.so" \
                 2>&1
         fi
     ;;

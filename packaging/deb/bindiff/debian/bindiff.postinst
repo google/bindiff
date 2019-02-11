@@ -18,16 +18,13 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-. /usr/share/bindiff/bindiff-config
+bindiff_root=/opt/bindiff
+bindiff_etc=/etc/opt/bindiff
+bindiff_release=5
+binexport_release=10
 
 case "$1" in
     configure)
-        # Install into alternatives system, priority is version times 100
-        update-alternatives --install \
-            /usr/bin/bindiff bindiff ${bindiff_root}/bin/bindiff \
-            ${bindiff_release_prio} \
-            --slave /usr/bin/bindiff_ui bindiff_ui ${bindiff_root}/bin/bindiff
-
         # Install .desktop file according to XDG spec.
         xdg-desktop-menu forceupdate --mode system
 
@@ -37,11 +34,11 @@ case "$1" in
         db_get zynamics/ida7_location && idadir=${RET}
         if [ -x "${idadir}" ]; then
             # Install symlink for BinDiff
-            ln -s ${bindiff_root}/plugins/bindiff${bindiff_release}.so
+            ln -s ${bindiff_root}/plugins/bindiff${bindiff_release}.so \
                 "${idadir}/plugins/bindiff${bindiff_release}.so"
             ln -s ${bindiff_root}/plugins/bindiff${bindiff_release}64.so \
                 "${idadir}/plugins/bindiff${bindiff_release}64.so"
-            ln -s ${bindiff_root}/plugins/binexport${binexport_release}.so
+            ln -s ${bindiff_root}/plugins/binexport${binexport_release}.so \
                 "${idadir}/plugins/binexport${binexport_release}.so"
             ln -s ${bindiff_root}/plugins/binexport${binexport_release}64.so \
                 "${idadir}/plugins/binexport${binexport_release}64.so"

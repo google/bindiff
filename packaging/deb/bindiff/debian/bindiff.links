@@ -1,2 +1,3 @@
 /opt/bindiff/bin/bindiff /opt/bindiff/bin/bindiff_ui
+/opt/bindiff/bin/bindiff /usr/bin/bindiff
 /opt/bindiff/bin/binexport2dump /usr/bin/binexport2dump
