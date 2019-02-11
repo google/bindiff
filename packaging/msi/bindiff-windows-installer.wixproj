@@ -2,7 +2,7 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">x64</Platform>
     <ProductVersion>3.0</ProductVersion>
     <ProjectGuid>{ccb6c541-d753-4515-8571-7d4d298aebf4}</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
@@ -10,21 +10,27 @@
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <DefineConstants>Debug</DefineConstants>
     <SuppressValidation>False</SuppressValidation>
     <SuppressIces>ICE03;ICE48;ICE50;ICE80</SuppressIces>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
     <SuppressIces>ICE03;ICE48;ICE50</SuppressIces>
     <SuppressAllWarnings>True</SuppressAllWarnings>
     <Pedantic>False</Pedantic>
+    <LinkerAdditionalOptions>-b SourceDir\Jre</LinkerAdditionalOptions>
+    <CompilerAdditionalOptions>
+    </CompilerAdditionalOptions>
+    <DefineConstants>
+    </DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Jre.wxs" />
     <Compile Include="Setup.wxs" />
   </ItemGroup>
   <ItemGroup>

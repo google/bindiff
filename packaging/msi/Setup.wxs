@@ -50,12 +50,6 @@
     <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
       Privileged
     </Condition>
-    <!-- TODO(cblichmann): Ship with modularized Java 11 runtime? -->
-    <Condition Message="[ProductName] requires a working Java Runtime Environment (JRE). Install JRE 9 or higher first.">
-      Installed OR
-      JDKVERSION >= "10" OR
-      JREVERSION >= "1.9"
-    </Condition>
 
     <!-- Properties -->
     <Property Id="ARPPRODUCTICON" Value="Icons_BinDiff.ico" />
@@ -276,14 +270,20 @@
                           Action="setValue"
                           File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
                           ElementPath="/BinDiff/Gui"
-                          Name="directory" Value="[INSTALLDIR]"
+                          Name="directory" Value="[INSTALLDIR]bin"
                           Sequence="1" />
+            <util:XmlFile Id="BinDiffCoreConfigModifyJavaBinary"
+                          Action="setValue"
+                          File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
+                          ElementPath="/BinDiff/Gui"
+                          Name="java_binary" Value="[INSTALLDIR]jre\bin\javaw.exe"
+                          Sequence="2" />
             <util:XmlFile Id="BinDiffCoreConfigModifyIdaDir"
                           Action="setValue"
                           File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
                           ElementPath="/BinDiff/Ida"
                           Name="directory" Value="[IDADIRECTORY]"
-                          Sequence="2" />
+                          Sequence="3" />
           </Component>
           <Component Id="CommonAppData_BinDiff_UIConfig"
                      Guid="11365585-3C98-48B6-9C2B-0FB6AF6E287C">
@@ -395,6 +395,14 @@
       <ComponentRef Id="ProgramMenu_BinDiff_ZynamicsHomePage" />
       <ComponentRef Id="CommonAppData_BinDiff_CoreConfig" />
       <ComponentRef Id="CommonAppData_BinDiff_UIConfig" />
+
+      <Feature Id="BinDiffJre"
+               Title="Bundled Java Runtime Environment"
+               Description="A trimmed down version of the Java Runtime Environment necessary to run the BinDiff GUI."
+               Absent="disallow"
+               AllowAdvertise="no">
+        <ComponentGroupRef Id="BinDiff_Jre" />
+      </Feature>
 
       <Feature Id="BinDiffCmdLine"
                Title="Standalone BinDiff"

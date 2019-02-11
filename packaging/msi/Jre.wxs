@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Directory Id="dir98E0A0B8A465977C24702859C145E9B9" Name="jre" />
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="BinDiff_Jre">
+      <Component Id="cmp18BB610B0330AFE5889A3830487B53EC" Directory="dir98E0A0B8A465977C24702859C145E9B9" Guid="0A5E8E4E-E101-4A9D-83F5-7744BF9DB3D4" KeyPath="yes">
+        <!-- Empty directory to speed up local testing -->
+        <CreateFolder />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

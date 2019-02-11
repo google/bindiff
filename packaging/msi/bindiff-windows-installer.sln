@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "bindiff-windows-installer", "bindiff-windows-installer.wixproj", "{CCB6C541-D753-4515-8571-7D4D298AEBF4}"
 EndProject
@@ -11,12 +11,15 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Debug|x64.ActiveCfg = Debug|x86
-		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Debug|x64.Build.0 = Debug|x86
-		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Release|x64.ActiveCfg = Release|x86
-		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Release|x64.Build.0 = Release|x86
+		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Debug|x64.ActiveCfg = Debug|x64
+		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Debug|x64.Build.0 = Debug|x64
+		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Release|x64.ActiveCfg = Release|x64
+		{CCB6C541-D753-4515-8571-7D4D298AEBF4}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9A76542E-4577-477C-8BE8-0C2E0FCC69C6}
 	EndGlobalSection
 EndGlobal
