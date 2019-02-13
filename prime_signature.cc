@@ -2,15 +2,18 @@
 
 #include <cassert>
 
+#include "third_party/absl/base/macros.h"
+
 namespace security {
 namespace bindiff {
-namespace {
 
-uint32_t ipow(uint32_t base, uint32_t exponent) {
-  return exponent ? base * ipow(base, exponent - 1) : 1;
+uint32_t IPow32(uint32_t base, uint32_t exponent) {
+  return exponent ? base * IPow32(base, exponent - 1) : 1;
 }
 
-static const size_t kPrimes[] = {
+namespace {
+
+static constexpr uint32_t kPrimes[] = {
     2,       3,       5,       7,       11,      13,      17,      19,
     23,      29,      31,      37,      41,      43,      47,      53,
     59,      61,      67,      71,      73,      79,      83,      89,
@@ -12513,12 +12516,11 @@ static const size_t kPrimes[] = {
     1299601, 1299631, 1299637, 1299647, 1299653, 1299673, 1299689, 1299709,
     1299721, 1299743, 1299763, 1299791, 1299811, 1299817, 1299821, 1299827};
 
-size_t GetPrimeTableSize() {
-  // The size should be prime to avoid collisions.
+constexpr size_t GetPrimeTableSize() {
+  static_assert(100003 <= ABSL_ARRAYSIZE(kPrimes),
+                "Table size should be prime to avoid collisions");
   // There are 100008 primes in the table, the largest prime < 100008 is 100003.
   // 100003 is at index 9592.
-  // return sizeof(kPrimes) / sizeof(kPrimes[0]);
-  static_assert(100003 <= sizeof(kPrimes) / sizeof(kPrimes[0]), "");
   return 100003;
 }
 
@@ -12538,7 +12540,7 @@ uint32_t GetPrime(const string& mnemonic) {
     // (ASCII table 32 is space).
     // TODO(cblichmann): Use proper Gödel numbers, i.e.:
     //                   prime[character_position] ^ character_value
-    prime *= ipow(GetPrime(mnemonic[i] - 32), i + 1);
+    prime *= IPow32(GetPrime(mnemonic[i] - 32), i + 1);
   }
   return prime;
 }

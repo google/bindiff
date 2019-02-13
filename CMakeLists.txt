@@ -223,6 +223,13 @@ target_link_libraries(bindiff_shared
 set_target_properties(bindiff_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
+add_executable(prime_signature_test prime_signature_test.cc)
+target_link_libraries(prime_signature_test
+  bindiff_tests_base
+  bindiff_shared
+)
+add_test(AllTestsInPrimeSignature prime_signature_test)
+
 add_executable(utility_test utility_test.cc)
 target_link_libraries(utility_test
   bindiff_tests_base
