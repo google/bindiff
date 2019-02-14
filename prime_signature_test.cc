@@ -1,11 +1,14 @@
 #include "third_party/zynamics/bindiff/prime_signature.h"
 
+#include <cmath>
+
 #ifndef GOOGLE
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #else
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "testing/base/public/benchmark.h"
 #endif
 
 #include "third_party/absl/container/flat_hash_set.h"
@@ -57,6 +60,31 @@ TEST(PrimeSignatureTest, GetPrimeCheckCollision) {
   // b/124334881: These should not have the same hash
   EXPECT_THAT(GetPrime("ITTEE NETEE NE"), Ne(GetPrime("ITETT LSETT LS")));
 }
+
+#ifdef GOOGLE
+void BM_IPow32(::benchmark::State& state) {
+  const uint32_t exp = state.range(0);
+  uint32_t base = 102345;
+  for (const auto _ : state) {
+    ::testing::DoNotOptimize(base);
+    const auto result = IPow32(base, exp);
+    ::testing::DoNotOptimize(result);
+  }
+}
+
+void BM_pow(::benchmark::State& state) {
+  const uint32_t exp = state.range(0);
+  uint32_t base = 102345;
+  for (const auto _ : state) {
+    ::testing::DoNotOptimize(base);
+    const auto result = pow(base, exp);
+    ::testing::DoNotOptimize(result);
+  }
+}
+
+BENCHMARK(BM_pow)->DenseRange(0, 64);
+BENCHMARK(BM_IPow32)->DenseRange(0, 64);
+#endif
 
 }  // namespace
 }  // namespace bindiff

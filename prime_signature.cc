@@ -7,8 +7,18 @@
 namespace security {
 namespace bindiff {
 
-uint32_t IPow32(uint32_t base, uint32_t exponent) {
-  return exponent ? base * IPow32(base, exponent - 1) : 1;
+uint32_t IPow32(uint32_t base, uint32_t exp) {
+  // Lifted from TensorFlow's math_util.h. This is the squared exponentiation
+  // method (a.k.a. double-and-add).
+  for (uint32_t result = 1;; base *= base) {
+    if ((exp & 1) != 0) {
+      result *= base;
+    }
+    exp >>= 1;
+    if (exp == 0) {
+      return result;
+    }
+  }
 }
 
 namespace {
