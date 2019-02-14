@@ -8,7 +8,11 @@
 #include "gtest/gtest.h"
 #endif
 
+#include "third_party/absl/container/flat_hash_set.h"
+
 using ::testing::Eq;
+using ::testing::Ne;
+using ::testing::SizeIs;
 
 namespace security {
 namespace bindiff {
@@ -39,17 +43,19 @@ TEST(PrimeSignatureTest, IPow32Overflow) {
   EXPECT_THAT(IPow32(1296829, 3600), Eq(454359873));
 }
 
-TEST(PrimeSignatureTest, GetPrimeX86Mnemonics) {
-  // A few X86 instructions
-  EXPECT_THAT(GetPrime("aeskeygenassist"), Eq(1655998781));
-  EXPECT_THAT(GetPrime("mov"), Eq(3449882749));
-  EXPECT_THAT(GetPrime("vfnmsubss"), Eq(1672159675));
+TEST(PrimeSignatureTest, GetPrimeDistinctX86Mnemonics) {
+  // A few X86 instructions. Make sure they don't map to the same value.
+  absl::flat_hash_set<uint32_t> distinct_mnemonics = {
+      GetPrime("add"), GetPrime("sub"),
+      GetPrime("xor"), GetPrime("aeskeygenassist"),
+      GetPrime("mov"), GetPrime("vfnmsubss"),
+  };
+  EXPECT_THAT(distinct_mnemonics, SizeIs(6));
 }
 
-TEST(PrimeSignatureTest, GetPrimeCollision) {
-  // TODO(b/124334881): These should not have the same hash
-  EXPECT_THAT(GetPrime("ITTEE NETEE NE"), Eq(4141088768));
-  EXPECT_THAT(GetPrime("ITETT LSETT LS"), Eq(4141088768));
+TEST(PrimeSignatureTest, GetPrimeCheckCollision) {
+  // b/124334881: These should not have the same hash
+  EXPECT_THAT(GetPrime("ITTEE NETEE NE"), Ne(GetPrime("ITETT LSETT LS")));
 }
 
 }  // namespace

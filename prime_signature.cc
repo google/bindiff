@@ -12524,25 +12524,23 @@ constexpr size_t GetPrimeTableSize() {
   return 100003;
 }
 
-size_t GetPrime(size_t index) {
-  assert(index < GetPrimeTableSize());
-  return kPrimes[index];
-}
-
 }  // namespace
 
 uint32_t GetPrime(const string& mnemonic) {
-  uint32_t prime = 1;
+  assert(mnemonic.size() < GetPrimeTableSize());
+  constexpr char kAsciiSpace = 32;
+  uint32_t id = 1;
   for (uint32_t i = 0; i < mnemonic.size(); ++i) {
-    // Compute a variant of Gödel number to uniquely identify a mnemonic string.
-    // prime[character_value] ^ character_position
-    // We subtract 32 from the character value to skip unprintable characters
-    // (ASCII table 32 is space).
-    // TODO(cblichmann): Use proper Gödel numbers, i.e.:
-    //                   prime[character_position] ^ character_value
-    prime *= IPow32(GetPrime(mnemonic[i] - 32), i + 1);
+    const char c = mnemonic[i];
+    if (c <= kAsciiSpace) {  // Skip unprintable characters
+      continue;
+    }
+    // Compute a variant of Gödel number to uniquely identify a mnemonic string:
+    //   prime[character_value] ^ character_position
+    // The substraction below is to make better use of the kPrimes table.
+    id *= IPow32(kPrimes[c - kAsciiSpace], i + 1);
   }
-  return prime;
+  return id;
 }
 
 }  // namespace bindiff
