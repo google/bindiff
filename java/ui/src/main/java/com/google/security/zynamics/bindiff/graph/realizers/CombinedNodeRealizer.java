@@ -5,21 +5,16 @@ import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyNodeRealizerListener;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyNodeRealizer;
-
-import y.view.LineType;
-import y.view.NodeRealizer;
-import y.view.ShapeNodeRealizer;
-
-import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import y.view.LineType;
+import y.view.NodeRealizer;
+import y.view.ShapeNodeRealizer;
 
 public class CombinedNodeRealizer extends ZyNodeRealizer<CombinedDiffNode> {
-  private static final byte SHADOW_SIZE = 8;
-  private static final Color SHADOW_COLOR = Color.GRAY;
   private static final int SEPARATOR_GAP = 12;
 
   private final ZyLabelContent leftContent;
@@ -34,13 +29,7 @@ public class CombinedNodeRealizer extends ZyNodeRealizer<CombinedDiffNode> {
     activeContentSide = leftContent != null ? ESide.PRIMARY : ESide.SECONDARY;
 
     setShapeType(ShapeNodeRealizer.ROUND_RECT);
-
     setLineType(LineType.LINE_2);
-
-    setDropShadowOffsetX(SHADOW_SIZE);
-    setDropShadowOffsetY(SHADOW_SIZE);
-
-    setDropShadowColor(SHADOW_COLOR);
 
     setNodeSize();
   }
@@ -64,22 +53,6 @@ public class CombinedNodeRealizer extends ZyNodeRealizer<CombinedDiffNode> {
     }
 
     setSize(bounds.getWidth(), bounds.getHeight());
-  }
-
-  @Override
-  protected void paintShadow(final Graphics2D gfx) {
-    if (!isSelected() && isDropShadowVisible()) {
-      gfx.setColor(SHADOW_COLOR);
-
-      setDropShadowOffsetX(SHADOW_SIZE);
-      setDropShadowOffsetY(SHADOW_SIZE);
-
-      gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.70f));
-
-      super.paintShadow(gfx);
-
-      gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.f));
-    }
   }
 
   @Override
@@ -170,8 +143,6 @@ public class CombinedNodeRealizer extends ZyNodeRealizer<CombinedDiffNode> {
   public void updateContentSelectionColor() {
     if (isUnmatched()) {
       super.updateContentSelectionColor();
-
-      return;
     }
   }
 }

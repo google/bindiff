@@ -32,10 +32,6 @@ import java.awt.geom.Rectangle2D;
  */
 public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupNodeRealizer
     implements IZyNodeRealizer {
-  private static final byte SHADOW_SIZE = 8;
-
-  private static final Color SHADOW_COLOR = Color.GRAY;
-
   /**
    * Content that is displayed in the realizer.
    */
@@ -59,18 +55,11 @@ public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupN
 
   public ZyGroupNodeRealizer(final ZyLabelContent content, final boolean collapsed) {
     setShapeType(ShapeNodeRealizer.ROUND_RECT);
-
     setLineType(LineType.LINE_2);
-
-    setDropShadowOffsetX(SHADOW_SIZE);
-    setDropShadowOffsetY(SHADOW_SIZE);
-
-    setDropShadowColor(SHADOW_COLOR);
 
     m_content = content;
 
     final Rectangle2D bounds = getNodeContent().getBounds();
-
     setSize(bounds.getWidth(), bounds.getHeight());
 
     setGroupClosed(collapsed);

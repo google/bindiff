@@ -17,7 +17,7 @@ import java.awt.Graphics2D;
  * Edge label class that is used to display edge comments.
  */
 public class ZyEdgeLabel extends EdgeLabel {
-  private static final int SHADOW_SIZE = 5;
+  private static final int RECT_ARC_SIZE = 5;
 
   private static Color m_backGroundColor = new Color(250, 250, 255);
   private static Color borderColor = Color.BLACK;
@@ -25,11 +25,9 @@ public class ZyEdgeLabel extends EdgeLabel {
   private final ZyLabelContent m_content;
 
   private final int m_roundedHeight;
-
   private final int m_roundedWidth;
 
   private final double m_height;
-
   private final double m_width;
 
   public ZyEdgeLabel(final ZyLabelContent content) {
@@ -54,9 +52,6 @@ public class ZyEdgeLabel extends EdgeLabel {
   @Override
   protected void paintBox(final Graphics2D gfx, final double x, final double y,
       final double width1, final double height2) {
-
-    // final Graph2D g = (Graph2D) this.getEdge().getGraph();
-
     final int roundedX = (int) (x - (m_width / 2));
     final int roundedY = (int) (y - (m_height / 2));
 
@@ -64,15 +59,16 @@ public class ZyEdgeLabel extends EdgeLabel {
     gfx.setStroke(new BasicStroke(oldStroke.getLineWidth()));
 
     gfx.setColor(m_backGroundColor);
-
     gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.80f));
-    gfx.fillRoundRect(roundedX, roundedY, m_roundedWidth, m_roundedHeight, 5, 5);
-    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.95f));
+    gfx.fillRoundRect(
+        roundedX, roundedY, m_roundedWidth, m_roundedHeight, RECT_ARC_SIZE, RECT_ARC_SIZE);
 
     gfx.setColor(borderColor);
-    gfx.drawRoundRect(roundedX, roundedY, m_roundedWidth, m_roundedHeight, SHADOW_SIZE, SHADOW_SIZE);
-    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.00f));
+    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.95f));
+    gfx.drawRoundRect(
+        roundedX, roundedY, m_roundedWidth, m_roundedHeight, RECT_ARC_SIZE, RECT_ARC_SIZE);
 
+    gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.00f));
     gfx.setStroke(oldStroke);
   }
 

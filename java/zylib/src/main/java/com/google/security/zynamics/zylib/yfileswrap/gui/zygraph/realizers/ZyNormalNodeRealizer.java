@@ -1,29 +1,21 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
-
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers;
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import y.view.LineType;
 import y.view.NodeRealizer;
 import y.view.ShapeNodeRealizer;
 
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-
 /**
  * Realizer class for default rectangular text nodes.
- * 
+ *
  * @param <NodeType>
  */
-public class ZyNormalNodeRealizer<NodeType extends ZyGraphNode<?>> extends ZyNodeRealizer<NodeType> {
-  private static final byte SHADOW_SIZE = 8;
-
-  private static final Color SHADOW_COLOR = Color.GRAY;
+public class ZyNormalNodeRealizer<NodeType extends ZyGraphNode<?>>
+    extends ZyNodeRealizer<NodeType> {
 
   /**
    * Content that is displayed in the realizer.
@@ -41,33 +33,10 @@ public class ZyNormalNodeRealizer<NodeType extends ZyGraphNode<?>> extends ZyNod
     m_content = content;
 
     setShapeType(ShapeNodeRealizer.ROUND_RECT);
-
     setLineType(LineType.LINE_2);
 
-    setDropShadowOffsetX(SHADOW_SIZE);
-    setDropShadowOffsetY(SHADOW_SIZE);
-
-    setDropShadowColor(SHADOW_COLOR);
-
     final Rectangle2D bounds = getNodeContent().getBounds();
-
     setSize(bounds.getWidth(), bounds.getHeight());
-  }
-
-  @Override
-  protected void paintShadow(final Graphics2D gfx) {
-    if (!isSelected() && isDropShadowVisible()) {
-      gfx.setColor(SHADOW_COLOR);
-
-      setDropShadowOffsetX(SHADOW_SIZE);
-      setDropShadowOffsetY(SHADOW_SIZE);
-
-      gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.70f));
-
-      super.paintShadow(gfx);
-
-      gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.f));
-    }
   }
 
   @Override

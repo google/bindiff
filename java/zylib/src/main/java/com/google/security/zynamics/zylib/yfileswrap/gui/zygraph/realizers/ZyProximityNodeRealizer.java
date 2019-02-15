@@ -31,13 +31,11 @@ public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>> extends
    */
   private final ZyLabelContent m_content;
 
-
   /**
    * Creates a new node realizer.
    * 
    * @param content Content of the realizer.
    */
-
   public ZyProximityNodeRealizer(final ZyLabelContent content) {
     Preconditions.checkNotNull(content, "Error: Node content can't be null.");
 
@@ -46,9 +44,6 @@ public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>> extends
     setShapeType(ShapeNodeRealizer.ELLIPSE);
 
     setLineType(LineType.LINE_2);
-
-    setDropShadowOffsetX((byte) 0);
-    setDropShadowOffsetY((byte) 0);
 
     setFillColor(m_backGroundColor);
     setSloppySelectionColor(m_backGroundColor);
@@ -65,11 +60,6 @@ public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>> extends
     gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.66f));
     super.paintFilledShape(gfx);
     gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.f));
-  }
-
-  @Override
-  public void addListener(final IZyNodeRealizerListener<? extends ZyGraphNode<?>> listener) {
-    // TODO Auto-generated method stub
   }
 
   @Override
@@ -107,9 +97,13 @@ public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>> extends
   }
 
   @Override
-  public void removeListener(final IZyNodeRealizerListener<? extends ZyGraphNode<?>> listener) {
-    // TODO Auto-generated method stub
+  public void addListener(final IZyNodeRealizerListener<? extends ZyGraphNode<?>> listener) {
+    // Do nothing
+  }
 
+  @Override
+  public void removeListener(final IZyNodeRealizerListener<? extends ZyGraphNode<?>> listener) {
+    // Do nothing
   }
 
   @Override
@@ -119,7 +113,6 @@ public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>> extends
 
   @Override
   public void setUpdater(final IRealizerUpdater<? extends ZyGraphNode<?>> updater) {
-    // TODO Auto-generated method stub
-
+    // Do nothing
   }
 }
