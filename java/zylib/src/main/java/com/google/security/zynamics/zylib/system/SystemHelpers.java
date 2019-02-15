@@ -18,36 +18,19 @@ public final class SystemHelpers {
    * @return the machine-wide application data directory
    */
   public static String getAllUsersApplicationDataDirectory() {
-    String result;
+    final String result;
     if (isRunningWindows()) {
-      // This should be the same as passing CSIDL_COMMON_APPDATA to the
-      // native SHGetFolderPath() Win32 function.
+      // This should be the same as passing CSIDL_COMMON_APPDATA to the native SHGetFolderPath()
+      // Win32 function.
       result = System.getenv("ProgramData");
-      if (result == null) {
-        // ProgramData should be unset on XP or lower, so the code
-        // below assumes we're running on Vista or higher. To find the
-        // "Application Data" folder for all users, we first determine
-        // the localized folder name and append that to the
-        // ALLUSERSPROFILE path.
-        final String appData = System.getenv("APPDATA");
-
-        result =
-            System.getenv("ALLUSERSPROFILE")
-                + (appData != null ? appData.substring(appData.lastIndexOf('\\'))
-                    : "\\Application Data");
-      }
     } else if (isRunningLinux()) {
       result = "/etc/opt";
     } else if (isRunningMacOSX()) {
-      // TODO(cblichmann): Change to "/Library/Application Support".
-      // For now, be consistent with the the CLI
-      // versions of BinDiff/BinDetego
-      result = "/etc/opt"; // Resolves to "/private/etc/opt"
+      result = "/Library/Application Support";
     } else {
       // Fallback to local user directory
       result = System.getProperty("user.home");
     }
-
     return FileUtils.ensureTrailingSlash(result);
   }
 
@@ -61,7 +44,8 @@ public final class SystemHelpers {
    * @return the machine-wide application data directory
    */
   public static String getAllUsersApplicationDataDirectory(final String product) {
-    return getAllUsersApplicationDataDirectory() + "zynamics" + File.separator + product
+    return getAllUsersApplicationDataDirectory()
+        + (isRunningWindows() ? product : "." + product.toLowerCase())
         + File.separator;
   }
 
@@ -72,8 +56,18 @@ public final class SystemHelpers {
    * @return the application data directory for the current platform.
    */
   public static String getApplicationDataDirectory() {
-    return FileUtils.ensureTrailingSlash(isRunningWindows() ? System.getenv("APPDATA") : System
-        .getProperty("user.home"));
+    String result;
+    if (isRunningWindows()) {
+      // This should be the same as passing CSIDL_APPDATA to the native SHGetFolderPath() Win32
+      // function.
+      result = System.getenv("APPDATA");
+    } else {
+      result = System.getProperty("user.home");
+      if (isRunningMacOSX()) {
+        result += "/Library/Application Support";
+      }
+    }
+    return FileUtils.ensureTrailingSlash(result);
   }
 
   /**
@@ -84,8 +78,9 @@ public final class SystemHelpers {
    * @return the application data directory for the current platform.
    */
   public static String getApplicationDataDirectory(final String product) {
-    return getApplicationDataDirectory() + (isRunningWindows() ? "" : ".") + "zynamics"
-        + File.separator + product + File.separator;
+    return getApplicationDataDirectory()
+        + (isRunningWindows() ? product : "." + product.toLowerCase())
+        + File.separator;
   }
 
   /**
@@ -106,7 +101,9 @@ public final class SystemHelpers {
    * @return The directory where to save temporary files in.
    */
   public static String getTempDirectory(final String product) {
-    return getTempDirectory() + "zynamics" + File.separator + product + File.separator;
+    return getTempDirectory()
+        + (isRunningWindows() ? product : product.toLowerCase())
+        + File.separator;
   }
 
   /**
