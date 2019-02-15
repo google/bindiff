@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
   <allowed-os-versions>
-    <os-version min="10.10"/>
+    <os-version min="10.12"/>
   </allowed-os-versions>
   <welcome file="welcome.rtf"/>
   <background alignment="bottomleft" file="background.tiff" scaling="proportional"/>
