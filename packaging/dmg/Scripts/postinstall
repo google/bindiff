@@ -38,10 +38,10 @@ ln -sf "$APP_DIR/Contents/MacOS/bin/bindiff" /usr/local/bin/bindiff
 
 # Setup install location in config file.
 sed -i "" "s,BINDIFF_DIR,$APP_DIR/Contents/Java," \
-  /Library/Preferences/zynamics/BinDiff/bindiff_core.xml \
-  /Library/Preferences/zynamics/BinDiff/bindiff_ui.xml
+  /Library/Application Support/BinDiff/bindiff_core.xml \
+  /Library/Application Support/BinDiff/bindiff_ui.xml
 
 escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
 sed -i "" "s/IDADIR/${escidadir}/" \
-  /Library/Preferences/zynamics/BinDiff/bindiff_core.xml \
-  /Library/Preferences/zynamics/BinDiff/bindiff_ui.xml
+  /Library/Application Support/BinDiff/bindiff_core.xml \
+  /Library/Application Support/BinDiff/bindiff_ui.xml
