@@ -34,7 +34,12 @@ do
   chmod +x "$APP_DIR/Contents/MacOS/plugins/$plugin"
   ln -sf "$APP_DIR/Contents/MacOS/plugins/$plugin" "$IDA_PLUGINS_DIR/"
 done
-ln -sf "$APP_DIR/Contents/MacOS/bin/bindiff" /usr/local/bin/bindiff
+for exe in \
+  bindiff \
+  binexport2dump
+do
+  ln -sf "$APP_DIR/Contents/MacOS/bin/$exe" /usr/local/bin/
+done
 
 # Setup install location in config file.
 sed -i "" "s,BINDIFF_DIR,$APP_DIR/Contents/Java," \
