@@ -126,8 +126,7 @@ bool PortFunctionName(FixedPoint* fixed_point) {
 size_t SetComments(Address source, Address target, const Comments& comments,
                    FixedPoint* fixed_point = nullptr) {
   int comment_count = 0;
-  const OperatorId begin(std::make_pair(source, 0));
-  for (auto i = comments.lower_bound(begin);
+  for (auto i = comments.lower_bound({source, 0});
        i != comments.end() && i->first.first == source; ++i, ++comment_count) {
     CHECK(source == i->first.first);
     const Comment& comment = i->second;
@@ -143,8 +142,9 @@ size_t SetComments(Address source, Address target, const Comments& comments,
       continue;
     }
 
-    // TODO(b/63693724): comment.type will only ever be REGULAR, due to changed
-    //                   behavior in BinExport2.
+    // TODO(cblichmann): comment.type will only never be ENUM, LOCATION,
+    //                   GLOBALREFERENCE or LOCALREFERENCE, due to changed
+    //                   behavior in BinExport2. See b/63693724 for context.
     switch (comment.type) {
       case Comment::REGULAR:
         set_cmt(static_cast<ea_t>(address), comment.comment.c_str(),
@@ -183,18 +183,20 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         }
         break;
       case Comment::ANTERIOR: {
-        const string existing_comment = GetLineComments(address, -1);
+        const string existing_comment =
+            GetLineComments(address, LineComment::kAnterior);
         if (existing_comment.rfind(comment.comment) == string::npos) {
-          add_extra_line(static_cast<ea_t>(address), true, "%s",
-                         comment.comment.c_str());
+          add_extra_cmt(static_cast<ea_t>(address), /*isprev=*/true, "%s",
+                        comment.comment.c_str());
         }
         break;
       }
       case Comment::POSTERIOR: {
-        const string existing_comment = GetLineComments(address, +1);
+        const string existing_comment =
+            GetLineComments(address, LineComment::kPosterior);
         if (existing_comment.rfind(comment.comment) == string::npos) {
-          add_extra_line(static_cast<ea_t>(address), false, "%s",
-                         comment.comment.c_str());
+          add_extra_cmt(static_cast<ea_t>(address), /*isprev=*/false, "%s",
+                        comment.comment.c_str());
         }
         break;
       }
@@ -204,7 +206,7 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         for (bool ok = xb.first_from(static_cast<ea_t>(address), XREF_DATA); ok;
              ok = xb.next_from(), ++count) {
           if (count == operand_id - UA_MAXOP - 1024) {
-            qstring current_name = get_name(xb.to, /*flags=*/0);
+            qstring current_name = get_name(xb.to, /*gtn_flags=*/0);
             if (absl::string_view(current_name.c_str(),
                                   current_name.length()) == comment.comment) {
               set_name(xb.to, comment.comment.c_str(), SN_NOWARN | SN_CHECK);

@@ -10,7 +10,12 @@ namespace bindiff {
 
 string GetName(Address address);
 string GetDemangledName(Address address);
-string GetLineComments(Address address, int direction);
+
+enum class LineComment {
+  kAnterior,
+  kPosterior
+};
+string GetLineComments(Address address, LineComment kind);
 
 }  // namespace bindiff
 }  // namespace security

@@ -22,8 +22,9 @@
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
 #include "third_party/zynamics/binexport/binexport.h"
-#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/hash.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security {
 
@@ -175,6 +176,23 @@ bool FlowGraph::HasRealName() const {
   return call_graph_->HasRealName(call_graph_vertex_);
 }
 
+// Translates from the BinExport2 comment type to the one used internally.
+Comment::Type ToCommentType(BinExport2::Comment::Type type) {
+  switch (type) {
+    case BinExport2::Comment::DEFAULT:
+      return Comment::REGULAR;
+    case BinExport2::Comment::ANTERIOR:
+      return Comment::ANTERIOR;
+    case BinExport2::Comment::POSTERIOR:
+      return Comment::POSTERIOR;
+    case BinExport2::Comment::FUNCTION:
+      return Comment::FUNCTION;
+    default:
+      LOG(QFATAL) << "Invalid comment type: " << type;
+      return Comment::REGULAR;  // Not reached
+  }
+}
+
 void FlowGraph::Read(const BinExport2& proto,
                      const BinExport2::FlowGraph& proto_flow_graph,
                      CallGraph* call_graph,
@@ -191,8 +209,8 @@ void FlowGraph::Read(const BinExport2& proto,
 
   prime_ = 0;  // Sum of basic block primes.
 
-  // TODO(soerenme) We don't export string references yet (BinDetego doesn't
-  //     have them, only the IDA plugin).
+  // TODO(cblichmann): We don't export string references yet (BinDetego doesn't
+  //                   have them, only the IDA plugin).
   string_references_ = 1;
 
   Address computed_instruction_address = 0;
@@ -201,6 +219,7 @@ void FlowGraph::Read(const BinExport2& proto,
   std::vector<VertexInfo> temp_vertices(
       proto_flow_graph.basic_block_index_size());
   std::vector<Address> temp_addresses(temp_vertices.size());
+  auto& comments = call_graph_->GetComments();
   for (int basic_block_index = 0;
        basic_block_index < proto_flow_graph.basic_block_index_size();
        ++basic_block_index) {
@@ -217,8 +236,8 @@ void FlowGraph::Read(const BinExport2& proto,
     // used is VERTEX_LOOPENTRY.
     vertex_info.flags_ = 0;
 
-    // TODO(soerenme) We don't export string references yet (BinDetego doesn't
-    //     have them, only the IDA plugin).
+    // TODO(cblichmann): We don't export string references yet (BinDetego
+    //                   doesn't have them, only the IDA plugin).
     vertex_info.string_hash_ = 0;
     vertex_info.call_target_start_ = std::numeric_limits<uint32_t>::max();
     CHECK(proto_basic_block.instruction_index_size());
@@ -261,6 +280,16 @@ void FlowGraph::Read(const BinExport2& proto,
         for (int i = 0; i < proto_instruction.call_target_size(); ++i) {
           call_targets_.push_back(proto_instruction.call_target(i));
         }
+
+        for (const auto& comment_index : proto_instruction.comment_index()) {
+          const BinExport2::Comment& proto_comment =
+              proto.comment(comment_index);
+          auto& comment = comments[{instruction_address, 0}];
+          comment.comment =
+              proto.string_table(proto_comment.string_table_index());
+          comment.repeatable = proto_comment.repeatable();
+          comment.type = ToCommentType(proto_comment.type());
+        }
       }
     }
 
@@ -277,8 +306,8 @@ void FlowGraph::Read(const BinExport2& proto,
     throw std::runtime_error("Basic blocks not sorted by address!");
   }
 
-  typedef std::pair<Graph::edges_size_type, Graph::edges_size_type>
-      EdgeDescriptor;
+  using EdgeDescriptor =
+      std::pair<Graph::edges_size_type, Graph::edges_size_type>;
   std::vector<EdgeDescriptor> edges(proto_flow_graph.edge_size());
   std::vector<EdgeInfo> edge_properties(proto_flow_graph.edge_size());
   for (int i = 0; i < proto_flow_graph.edge_size(); ++i) {
@@ -422,10 +451,10 @@ void FlowGraph::CalculateCallLevels() {
   }
   level_for_call_.shrink_to_fit();
   // Warning: Stable sort is required here as call levels are not necessarily
-  //          unique. I actually encountered differing diff results between
-  //          Linux and Windows versions because of this.
-  // TODO(soerenme) Check whether we should be sorting by level in addition to
-  //     source address (what we are currently doing).
+  //          unique. There were differing diff results between Linux and
+  //          Windows versions because of this.
+  // TODO(cblichmann): Check whether we should be sorting by level in addition
+  //                   to source address (what we are currently doing).
   std::stable_sort(level_for_call_.begin(), level_for_call_.end(),
                    &SortByAddressLevel);
 }
