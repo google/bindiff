@@ -141,13 +141,15 @@
             <Component Id="BinDiff_Bin_BindiffEXE" Win64="yes"
                        Guid="849A24BB-5409-4405-A9B3-11669582CA99">
               <File Name="bindiff.exe" KeyPath="yes">
+                <!-- Show minimized to avoid flashing the console window -->
                 <Shortcut Id="bindiff.exe"
                           Arguments="--ui"
                           Directory="ProgramMenu_BinDiff"
                           Name="BinDiff"
                           Advertise="yes"
                           Icon="Icons_BinDiff.ico"
-                          IconIndex="0" />
+                          IconIndex="0"
+                          Show="minimized" />
               </File>
             </Component>
             <Component Id="BinDiff_Bin_Bindiff_uiCMD" Win64="yes"

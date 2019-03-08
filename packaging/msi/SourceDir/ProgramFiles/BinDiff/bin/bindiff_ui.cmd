@@ -1,1 +1,1 @@
-@%~dp0bindiff.exe --ui %*
+@"%~dp0bindiff.exe" --ui %*
