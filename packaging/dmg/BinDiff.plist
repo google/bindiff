@@ -12,7 +12,7 @@
       <key>BundleOverwriteAction</key>
       <string>upgrade</string>
       <key>RootRelativeBundlePath</key>
-      <string>Applications/BinDiff.app</string>
+      <string>Applications/BinDiff/BinDiff.app</string>
     </dict>
   </array>
 </plist>

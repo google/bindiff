@@ -1,28 +1,24 @@
-#!/bin/sh
+#!/bin/bash
+set -eux
 
-# Kown temp file that contains a single line with the IDA plugins directory
+# Temporary file created by the installer plugin that contains a single line
+# with the IDA plugins directory.
 TMPFILE=/tmp/__38F74084-9DF1-4C5D-91E1-0E63780ADC57_zy__
-
-# Application directory
-APP_DIR="/Applications/BinDiff.app"
 
 # If the file does not exist, bail out
 [ ! -f "$TMPFILE" ] && exit 1
 
 # Schedule file to be removed at end of script
 trap "rm -f \"$TMPFILE\"" INT TERM EXIT
-set -e
 
 # If the application directory does not exist, exit
-[ ! -d "$APP_DIR" ] && exit 2
+APP_DIR=/Applications/BinDiff
+cd "$APP_DIR" || exit 2
 
 # If the plugins directory does not exist, exit
 IDA_DIR=$(sed 's,/plugins$,,' $TMPFILE)
 IDA_PLUGINS_DIR=$(cat $TMPFILE)
 [ ! -d "$IDA_PLUGINS_DIR" ] && exit 3
-
-# Ensure the binaries are executable
-chmod +x "$APP_DIR/Contents/MacOS/bin/bindiff"
 
 # Create symlinks for the IDA Pro plugins/differ
 for plugin in \
@@ -31,22 +27,24 @@ for plugin in \
   binexport10.dylib \
   binexport1064.dylib
 do
-  chmod +x "$APP_DIR/Contents/MacOS/plugins/$plugin"
-  ln -sf "$APP_DIR/Contents/MacOS/plugins/$plugin" "$IDA_PLUGINS_DIR/"
+  chmod +x "${APP_DIR}/Plugins/$plugin"
+  ln -sf "${APP_DIR}/Plugins/$plugin" "$IDA_PLUGINS_DIR/"
 done
 for exe in \
   bindiff \
   binexport2dump
 do
-  ln -sf "$APP_DIR/Contents/MacOS/bin/$exe" /usr/local/bin/
+  chmod +x "${APP_DIR}/BinDiff.app/Contents/MacOS/bin/$exe"
+  ln -sf "${APP_DIR}/BinDiff.app/Contents/MacOS/bin/$exe" /usr/local/bin/
 done
+ln -s "BinDiff.app/Contents/MacOS/bin" bin
 
 # Setup install location in config file.
-sed -i "" "s,BINDIFF_DIR,$APP_DIR/Contents/Java," \
-  /Library/Application Support/BinDiff/bindiff_core.xml \
-  /Library/Application Support/BinDiff/bindiff_ui.xml
+sed -i "" "s,BINDIFF_DIR,$APP_DIR/BinDiff.app/Contents/Java," \
+  "/Library/Application Support/BinDiff/bindiff_core.xml" \
+  "/Library/Application Support/BinDiff/bindiff_ui.xml"
 
 escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
 sed -i "" "s/IDADIR/${escidadir}/" \
-  /Library/Application Support/BinDiff/bindiff_core.xml \
-  /Library/Application Support/BinDiff/bindiff_ui.xml
+  "/Library/Application Support/BinDiff/bindiff_core.xml" \
+  "/Library/Application Support/BinDiff/bindiff_ui.xml"
