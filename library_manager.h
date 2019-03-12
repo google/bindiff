@@ -38,6 +38,7 @@
 class LibraryManager {
  public:
   enum class Linkage { kDynamic, kStatic };
+  enum class UpdateKind { kNoUpdate, kUpdateUsedLibraries };
 
   struct LibraryRecord {
     LibraryRecord(const std::string& name, Linkage linkage, int library_index)
@@ -102,12 +103,16 @@ class LibraryManager {
   // Enumerates all used libraries.
   void GetUsedLibraries(std::vector<const LibraryRecord*>* used) const;
 
+  // Updates used libraries
+  void UpdateUsedLibraries();
+
   // Finds library index for a given address, -1 if none.
   int GetLibraryIndex(Address address) const;
 
   // Informs manager that 'address' is associated with the library with
   // provided library index.
-  void UseFunction(Address address, int library_index);
+  void UseFunction(Address address, int library_index,
+                   UpdateKind update_kind = UpdateKind::kUpdateUsedLibraries);
 
   // Marks provided library as used.
   int UseLibrary(const std::string& library, Linkage linkage);

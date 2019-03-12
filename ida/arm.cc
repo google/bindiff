@@ -28,6 +28,7 @@
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/ida/names.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security {
 namespace binexport {
@@ -56,36 +57,26 @@ enum {
   aux_wide = 0x8000,      // thumb32 instruction (.W suffix)
 };
 
-enum neon_datatype_t ENUM_SIZE(char){
-    DT_NONE = 0, DT_8,  DT_16,  DT_32,  DT_64,  DT_S8,  DT_S16, DT_S32,
-    DT_S64,      DT_U8, DT_U16, DT_U32, DT_U64, DT_I8,  DT_I16, DT_I32,
-    DT_I64,      DT_P8, DT_P16, DT_F16, DT_F32, DT_F64,
-};
-
-enum shift_t {
-  LSL,  // logical left         LSL #0 - don't shift
-  LSR,  // logical right        LSR #0 means LSR #32
-  ASR,  // arithmetic right     ASR #0 means ASR #32
-  ROR,  // rotate right         ROR #0 means RRX
-  RRX,  // extended rotate right
-
-  // ARMv8 shifts
-  MSL,  // masked shift left (ones are shifted in from the right)
-
-  // Extending register operations.
-  UXTB,
-  UXTH,
-  UXTW,
-  UXTX,  // Alias for LSL
-  SXTB,
-  SXTH,
-  SXTW,
-  SXTX,
-};
-
 // Returns the string representation for a given barrel shifter type.
 const char* GetShift(size_t shift_type) {
-  // TODO(cblichmann): We should be using shift_t from arm.hpp
+  // Defined in IDA SDK module/arm/arm.hpp
+  enum shift_t {
+    LSL,
+    LSR,
+    ASR,
+    ROR,
+    RRX,
+    MSL,
+    UXTB,
+    UXTH,
+    UXTW,
+    UXTX,
+    SXTB,
+    SXTH,
+    SXTW,
+    SXTX,
+  };
+
   switch (shift_type) {
     case LSL:
       return "LSL";
@@ -106,7 +97,7 @@ const char* GetShift(size_t shift_type) {
     case UXTW:
       return "UXTW";
     case UXTX:
-      return "UXTX";  // Same as LSL.
+      return "UXTX";  // Same as LSL
     case SXTB:
       return "SXTB";
     case SXTH:
@@ -116,9 +107,8 @@ const char* GetShift(size_t shift_type) {
     case SXTX:
       return "SXTX";
     default:
-      throw std::runtime_error("unsupported shift type: " +
-                               std::to_string(shift_type) +
-                               " in ARM->getShift()");
+      throw std::runtime_error(
+          absl::StrCat(__FUNCTION__, ": unsupported shift type: ", shift_type));
   }
 }
 
@@ -138,7 +128,7 @@ Operands DecodeOperandsArm(const insn_t& instruction) {
   bool co_processor = (instruction.auxpref & aux_coproc) != 0;
 
   Operands operands;
-  for (uint8_t operand_position = 0;
+  for (int operand_position = 0;
        operand_position < UA_MAXOP &&
        instruction.ops[operand_position].type != o_void;
        ++operand_position) {
@@ -469,15 +459,14 @@ Operands DecodeOperandsArm(const insn_t& instruction) {
       case o_idpspec5 + 1: {
         // Arbitrary text stored in the operand structure starting at the
         // 'value' field up to 16 bytes (with terminating zero)
-        LOG(INFO) << absl::StrCat("warning: text storage not yet supported (",
-                                  absl::Hex(instruction.ea, absl::kZeroPad8),
-                                  ")");
+        LOG(INFO) << absl::StrCat("Warning: text storage not supported at ",
+                                  FormatAddress(instruction.ea));
         break;
       }
       default: {
-        LOG(INFO) << absl::StrCat("warning: unknown operand type ",
+        LOG(INFO) << absl::StrCat("Warning: unknown operand type ",
                                   operand.type, " at ",
-                                  absl::Hex(instruction.ea, absl::kZeroPad8));
+                                  FormatAddress(instruction.ea));
         break;
       }
     }
@@ -492,416 +481,21 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
                                    CallGraph* /* call_graph */,
                                    FlowGraph* /* flow_graph */,
                                    TypeSystem* /* type_system */) {
-  // Part of this code comes directly from support@hex-rays.com (Igor).
-  // It was changed according to our needs but reflects basically what IDA
-  // does.
-
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  std::string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic = GetMnemonic(instruction.ea);
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
 
   Address next_instruction = 0;
   xrefblk_t xref;
-  for (bool ok = xref.first_from(static_cast<ea_t>(instruction.ea), XREF_ALL);
-       ok && xref.iscode; ok = xref.next_from()) {
+  for (bool ok = xref.first_from(instruction.ea, XREF_ALL); ok && xref.iscode;
+       ok = xref.next_from()) {
     if (xref.type == fl_F) {
       next_instruction = xref.to;
       break;
-    }
-  }
-
-  char precision = 0;
-  switch (instruction.itype) {
-    case ARM_fldms:
-    case ARM_fstms:
-      precision = 'S';
-      break;
-    case ARM_fldmd:
-    case ARM_fstmd:
-      precision = 'D';
-      break;
-    case ARM_fldmx:
-    case ARM_fstmx:
-      precision = 'X';
-      break;
-  }
-
-  if (instruction.itype == ARM_it) {
-    int first_cond = (instruction.ARM_cond & 0x1);
-
-    switch (instruction.insnpref) {
-      case 0x0:
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    T    T    firstcond[0]    firstcond[0]    firstcond[0]    1
-      // E    E    E    NOT firstcond[0]  NOT firstcond[0]  NOT firstcond[0]  1
-      case 0x1:
-        first_cond == 0x1 ? mnemonic += "EEE " : mnemonic += "TTT ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    T    omitted firstcond[0]    firstcond[0]    1          0
-      // E    E    omitted NOT firstcond[0]  NOT firstcond[0]  1          0
-      case 0x2:
-        first_cond == 0x1 ? mnemonic += "EE " : mnemonic += "TT ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // E    E    T    NOT firstcond[0]  NOT firstcond[0]  firstcond[0]    1
-      // T    T    E    firstcond[0]    firstcond[0]    NOT firstcond[0]  1
-      case 0x3:
-        first_cond == 0x1 ? mnemonic += "EET " : mnemonic += "TTE ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    omitted omitted firstcond[0]    1          0          0
-      // E    omitted omitted NOT  firstcond[0]  1          0          0
-      case 0x4:
-        first_cond == 0x1 ? mnemonic += "E " : mnemonic += "T ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    E    T    firstcond[0]    NOT firstcond[0]  firstcond[0]    1
-      // E    T    E    NOT firstcond[0]  firstcond[0]    NOT firstcond[0]  1
-      case 0x5:
-        first_cond == 0x1 ? mnemonic += "ETE " : mnemonic += "TET ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // E    T    omitted NOT  firstcond[0]  firstcond[0]    1          0
-      // T    E    omitted firstcond[0]    NOT firstcond[0]  1          0
-      case 0x6:
-        first_cond == 0x1 ? mnemonic += "ET " : mnemonic += "TE ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // E    T    T    NOT firstcond[0]  firstcond[0]    firstcond[0]    1
-      // T    E    E    firstcond[0]    NOT firstcond[0]  NOT firstcond[0]  1
-      case 0x7:
-        first_cond == 0x1 ? mnemonic += "ETT " : mnemonic += "TEE ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // omitted omitted omitted  1          0          0          0
-      case 0x8:
-        mnemonic += " ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // E    T    T    NOT firstcond[0]  firstcond[0]    firstcond[0]    1
-      // T    E    E    firstcond[0]    NOT firstcond[0]  NOT firstcond[0]  1
-      case 0x9:
-        first_cond == 0x1 ? mnemonic += "TEE " : mnemonic += "ETT ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // E    T    omitted NOT  firstcond[0]  firstcond[0]    1          0
-      // T    E    omitted firstcond[0]    NOT firstcond[0]  1          0
-      case 0xa:
-        first_cond == 0x1 ? mnemonic += "TE " : mnemonic += "ET ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    E    T    firstcond[0]    NOT firstcond[0]  firstcond[0]    1
-      // E    T    E    NOT firstcond[0]  firstcond[0]    NOT firstcond[0]  1
-      case 0xb:
-        first_cond == 0x1 ? mnemonic += "TET " : mnemonic += "ETE ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    E    T    firstcond[0]    NOT firstcond[0]  firstcond[0]    1
-      // E    T    E    NOT firstcond[0]  firstcond[0]    NOT firstcond[0]  1
-      case 0xc:
-        first_cond == 0x1 ? mnemonic += "T " : mnemonic += "E ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // E    E    T    NOT firstcond[0]  NOT firstcond[0]  firstcond[0]    1
-      // T    T    E    firstcond[0]    firstcond[0]    NOT firstcond[0]  1
-      case 0xd:
-        first_cond == 0x1 ? mnemonic += "TTE " : mnemonic += "EET ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    T    omitted firstcond[0]    firstcond[0]    1          0
-      // E    E    omitted NOT firstcond[0]  NOT firstcond[0]  1          0
-      case 0xe:
-        first_cond == 0x1 ? mnemonic += "TT " : mnemonic += "EE ";
-        break;
-
-      // <x>    <y>    <z>    mask[3]        mask[2]        mask[1]
-      // mask[0]
-      // T    T    T    firstcond[0]    firstcond[0]    firstcond[0]    1
-      // E    E    E    NOT firstcond[0]  NOT firstcond[0]  NOT firstcond[0]  1
-      case 0xf:
-        first_cond == 0x1 ? mnemonic += "TTT " : mnemonic += "EEE ";
-        break;
-      default:
-        break;
-    }
-  }
-
-  switch (instruction.ARM_cond) {
-    case 0x0:
-      mnemonic += "EQ";
-      break;
-    case 0x1:
-      mnemonic += "NE";
-      break;
-    case 0x2:
-      mnemonic += "CS";
-      break;
-    case 0x3:
-      mnemonic += "CC";
-      break;
-    case 0x4:
-      mnemonic += "MI";
-      break;
-    case 0x5:
-      mnemonic += "PL";
-      break;
-    case 0x6:
-      mnemonic += "VS";
-      break;
-    case 0x7:
-      mnemonic += "VC";
-      break;
-    case 0x8:
-      mnemonic += "HI";
-      break;
-    case 0x9:
-      mnemonic += "LS";
-      break;
-    case 0xA:
-      mnemonic += "GE";
-      break;
-    case 0xB:
-      mnemonic += "LT";
-      break;
-    case 0xC:
-      mnemonic += "GT";
-      break;
-    case 0xD:
-      mnemonic += "LE";
-      break;
-    case 0xF:
-      mnemonic += "NV";
-      break;
-    default:
-      break;
-  }
-
-  // add prefix (if any) to std::string instructions
-  if (instruction.auxpref & aux_cond) mnemonic += "S";
-  if (instruction.auxpref & aux_byte) mnemonic += "B";
-  if (instruction.auxpref & aux_npriv) mnemonic += "T";
-  if (instruction.auxpref & aux_ltrans) mnemonic += "L";
-  if (instruction.auxpref & aux_sb) mnemonic += "SB";
-  if (instruction.auxpref & aux_sh) mnemonic += "SH";
-  if (instruction.auxpref & aux_h) mnemonic += "H";
-  if (instruction.auxpref & aux_p) mnemonic += "H";
-
-  if (instruction.itype == ARM_ldm || instruction.itype == ARM_stm ||
-      instruction.itype == ARM_fldmd || instruction.itype == ARM_fstmd ||
-      instruction.itype == ARM_fldms || instruction.itype == ARM_fstms ||
-      instruction.itype == ARM_fldmx || instruction.itype == ARM_fstmx ||
-      instruction.itype == ARM_vldm || instruction.itype == ARM_vstm ||
-      instruction.itype == ARM_rfe || instruction.itype == ARM_srs ||
-      precision != 0) {
-    size_t n = (instruction.auxpref & aux_negoff) ? 0 : 2;
-    if ((instruction.auxpref & aux_postidx) == 0) n |= 1;
-    if (instruction.itype == ARM_ldm || instruction.itype == ARM_rfe) n |= 4;
-    static const char* const other[] = {"DA", "DB", "IA", "IB",
-                                        "DA", "DB", "IA", "IB"};
-    static const char* const stack[] = {"ED", "FD", "EA", "FA",
-                                        "FA", "EA", "FD", "ED"};
-    const op_t& operand = instruction.ops[0];
-    if (GetRegisterName(operand.reg,
-                        GetOperandByteSize(instruction, operand)) ==
-            std::string("SP") &&
-        instruction.itype != ARM_srs) {
-      mnemonic += stack[n];
-    } else {
-      mnemonic += other[n];
-    }
-    if (precision != 0) {
-      mnemonic += precision;
-    }
-  }
-
-  if (instruction.itype == ARM_ldrd || instruction.itype == ARM_strd) {
-    mnemonic += "D";
-  }
-
-  if (instruction.auxpref & aux_wide) {
-    if (instruction.auxpref & aux_wimm) {
-      mnemonic += "W";
-    } else {
-      mnemonic += ".W";
-    }
-  }
-
-  if (instruction.insnpref & 0x80) {
-    switch (neon_datatype_t(instruction.insnpref & 0x7F)) {
-      case 0x0:
-        break;  // DT_NONE = 0,
-      case 0x1:
-        mnemonic += ".8";
-        break;  // DT_8,
-      case 0x2:
-        mnemonic += ".16";
-        break;  // DT_16,
-      case 0x3:
-        mnemonic += ".32";
-        break;  // DT_32,
-      case 0x4:
-        mnemonic += ".64";
-        break;  // DT_64,
-      case 0x5:
-        mnemonic += ".S8";
-        break;  // DT_S8,
-      case 0x6:
-        mnemonic += ".S16";
-        break;  // DT_S16,
-      case 0x7:
-        mnemonic += ".S32";
-        break;  // DT_S32,
-      case 0x8:
-        mnemonic += ".S64";
-        break;  // DT_S64,
-      case 0x9:
-        mnemonic += ".U8";
-        break;  // DT_U8,
-      case 0xa:
-        mnemonic += ".U16";
-        break;  // DT_U16,
-      case 0xb:
-        mnemonic += ".U32";
-        break;  // DT_U32,
-      case 0xc:
-        mnemonic += ".U64";
-        break;  // DT_U64,
-      case 0xd:
-        mnemonic += ".I8";
-        break;  // DT_I8,
-      case 0xe:
-        mnemonic += ".I16";
-        break;  // DT_I16,
-      case 0xf:
-        mnemonic += ".I32";
-        break;  // DT_I32,
-      case 0x10:
-        mnemonic += ".I64";
-        break;  // DT_I64,
-      case 0x11:
-        mnemonic += ".P8";
-        break;  // DT_P8,
-      case 0x12:
-        mnemonic += ".P16";
-        break;  // DT_P16,
-      case 0x13:
-        mnemonic += ".F16";
-        break;  // DT_F16,
-      case 0x14:
-        mnemonic += ".F32";
-        break;  // DT_F32,
-      case 0x15:
-        mnemonic += ".F64";
-        break;  // DT_F64,
-      default:
-        break;
-    }
-  }
-
-  if (instruction.itype == ARM_vcvt || instruction.itype == ARM_vcvtr ||
-      instruction.itype == ARM_vcvtb || instruction.itype == ARM_vcvtt) {
-    switch (neon_datatype_t(instruction.ops[0].specflag1)) {
-      case 0x0:
-        break;  // DT_NONE = 0,
-      case 0x1:
-        mnemonic += ".8";
-        break;  // DT_8,
-      case 0x2:
-        mnemonic += ".16";
-        break;  // DT_16,
-      case 0x3:
-        mnemonic += ".32";
-        break;  // DT_32,
-      case 0x4:
-        mnemonic += ".64";
-        break;  // DT_64,
-      case 0x5:
-        mnemonic += ".S8";
-        break;  // DT_S8,
-      case 0x6:
-        mnemonic += ".S16";
-        break;  // DT_S16,
-      case 0x7:
-        mnemonic += ".S32";
-        break;  // DT_S32,
-      case 0x8:
-        mnemonic += ".S64";
-        break;  // DT_S64,
-      case 0x9:
-        mnemonic += ".U8";
-        break;  // DT_U8,
-      case 0xa:
-        mnemonic += ".U16";
-        break;  // DT_U16,
-      case 0xb:
-        mnemonic += ".U32";
-        break;  // DT_U32,
-      case 0xc:
-        mnemonic += ".U64";
-        break;  // DT_U64,
-      case 0xd:
-        mnemonic += ".I8";
-        break;  // DT_I8,
-      case 0xe:
-        mnemonic += ".I16";
-        break;  // DT_I16,
-      case 0xf:
-        mnemonic += ".I32";
-        break;  // DT_I32,
-      case 0x10:
-        mnemonic += ".I64";
-        break;  // DT_I64,
-      case 0x11:
-        mnemonic += ".P8";
-        break;  // DT_P8,
-      case 0x12:
-        mnemonic += ".P16";
-        break;  // DT_P16,
-      case 0x13:
-        mnemonic += ".F16";
-        break;  // DT_F16,
-      case 0x14:
-        mnemonic += ".F32";
-        break;  // DT_F32,
-      case 0x15:
-        mnemonic += ".F64";
-        break;  // DT_F64,
-      default:
-        break;
     }
   }
 

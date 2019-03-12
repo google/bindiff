@@ -58,8 +58,8 @@ void Expression::EmptyCache() {
   global_id_ = 0;
 }
 
-const std::string* Expression::CacheString(const std::string& std::string) {
-  return &*string_cache_.insert(std::string).first;
+const std::string* Expression::CacheString(const std::string& value) {
+  return &*string_cache_.insert(value).first;
 }
 
 const Expression::ExpressionCache& Expression::GetExpressions() {

@@ -146,7 +146,7 @@ class Expression {
   //   compression/de-duping)
   Expression(Expression* parent, const std::string& symbol, int64_t immediate,
              Type type, uint16_t position, bool relocatable);
-  static const std::string* CacheString(const std::string& std::string);
+  static const std::string* CacheString(const std::string& value);
 
   const std::string* symbol_;
   int64_t immediate_;

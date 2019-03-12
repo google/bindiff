@@ -391,8 +391,8 @@ Address Instruction::GetNextInstruction() const {
   return address_ + size_;
 }
 
-const std::string* Instruction::CacheString(const std::string& std::string) {
-  return &*string_cache_.insert(std::string).first;
+const std::string* Instruction::CacheString(const std::string& value) {
+  return &*string_cache_.insert(value).first;
 }
 
 uint16_t Instruction::GetInDegree() const { return in_degree_; }

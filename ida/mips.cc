@@ -110,7 +110,7 @@ std::string GetFloatingPointRegisterName(const size_t register_id) {
 
 Operands DecodeOperandsMips(const insn_t& instruction) {
   Operands operands;
-  for (uint8_t operand_position = 0;
+  for (int operand_position = 0;
        operand_position < UA_MAXOP &&
        instruction.ops[operand_position].type != o_void;
        ++operand_position) {
@@ -288,38 +288,19 @@ Instruction ParseInstructionIdaMips(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  std::string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic = GetMnemonic(instruction.ea);
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
 
   Address next_instruction = 0;
   xrefblk_t xref;
-  for (bool ok = xref.first_from(static_cast<ea_t>(instruction.ea), XREF_ALL);
-       ok && xref.iscode; ok = xref.next_from()) {
+  for (bool ok = xref.first_from(instruction.ea, XREF_ALL); ok && xref.iscode;
+       ok = xref.next_from()) {
     if (xref.type == fl_F) {
       next_instruction = xref.to;
       break;
     }
-  }
-
-  enum {
-    aux_cop = 0x0003,   // Coprocessor number
-    aux_fpu = 0x0004,   // Known FPU instruction?
-    aux_dsp32 = 0x0008  // 32-bit displacement?
-  };
-
-  if ((instruction.auxpref & aux_fpu) &&
-      instruction.segpref != '\0' /* FPU format */) {
-    mnemonic += '.';
-    mnemonic += instruction.segpref;  // FPU format
-    if (instruction.segpref == 'p' /* FPU format */) {
-      mnemonic += 's';
-    }
-  } else if (instruction.itype == MIPS_pmfhl) {
-    static const char* const pmfhl_p[] = {".lw", ".uw", ".slw", ".lh", ".sh"};
-    int fmt = (get_dword(instruction.ea) >> 6) & 0x1F;
-    mnemonic += pmfhl_p[fmt];
   }
 
   return Instruction(instruction.ea, next_instruction, instruction.size,

@@ -14,7 +14,7 @@
 
 // Dumps the disassembly from BinExport files.
 
-#include <stdio.h>  // fileno()
+#include <cstdio>  // fileno()
 #include <ctime>
 #include <memory>
 #include <string>
@@ -30,6 +30,7 @@
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security {
 namespace binexport {
@@ -151,7 +152,7 @@ void DumpBinExport2(const BinExport2& proto) {
         reference.string_table_index();
   }
   const auto& call_graph = proto.call_graph();
-  printf("\nFunctions:\n");
+  absl::PrintF("\nFunctions:\n");
   constexpr const char kFunctionType[] = "nlit!";
   absl::flat_hash_map<Address, std::string> function_names;
   for (int i = 0; i < call_graph.vertex_size(); ++i) {
@@ -163,13 +164,13 @@ void DumpBinExport2(const BinExport2& proto) {
       name = vertex.mangled_name();
     }
     if (name.empty()) {
-      name = StrCat("sub_", absl::Hex(address, absl::kZeroPad8));
+      name = absl::StrCat("sub_", FormatAddress(address));
     }
     auto line =
-        absl::StrCat(absl::Hex(address, absl::kZeroPad8), " ",
+        absl::StrCat(FormatAddress(address), " ",
                      std::string(1, kFunctionType[vertex.type()]), " ", name);
     function_names[address] = name;
-    printf("%s\n", line.c_str());
+    absl::PrintF("%s\n", line);
   }
 
   for (const auto& flow_graph : proto.flow_graph()) {
@@ -177,9 +178,9 @@ void DumpBinExport2(const BinExport2& proto) {
         proto, proto.basic_block(flow_graph.entry_basic_block_index())
                    .instruction_index(0)
                    .begin_index());
-    const auto info = absl::StrCat(absl::Hex(function_address, absl::kZeroPad8),
-                                   " ; ", function_names[function_address]);
-    printf("\n%s\n", info.c_str());
+    const auto info = absl::StrCat(FormatAddress(function_address), " ; ",
+                                   function_names[function_address]);
+    absl::PrintF("\n%s\n", info);
 
     Address computed_instruction_address = 0;
     int last_instruction_index = 0;
@@ -204,9 +205,9 @@ void DumpBinExport2(const BinExport2& proto) {
           if (i == begin_index) {
             basic_block_address = instruction_address;
             const auto line =
-                absl::StrCat(absl::Hex(basic_block_address, absl::kZeroPad8),
+                absl::StrCat(FormatAddress(basic_block_address),
                              " ; ----------------------------------------");
-            printf("%s\n", line.c_str());
+            absl::PrintF("%s\n", line);
           }
 
           auto disassembly = absl::StrCat(
@@ -226,17 +227,21 @@ void DumpBinExport2(const BinExport2& proto) {
             }
           }
 
-          std::string comment;
-          auto address_comment = comment_index_map.find(i);
-          if (address_comment != comment_index_map.end()) {
-            comment = absl::StrCat(" ; ",
-                                   proto.string_table(address_comment->second));
+          std::string line = absl::StrCat(FormatAddress(instruction_address), " ",
+                                     disassembly);
+          absl::PrintF("%s", line.c_str());
+          if (instruction.comment_index_size() > 0) {
+            const auto indent = line.size();
+            for (int i = 0; i < instruction.comment_index_size(); ++i) {
+              int comment_index = instruction.comment_index(i);
+              const auto& proto_comment = proto.comment(comment_index);
+              comment_index = proto_comment.string_table_index();
+              absl::PrintF("%*s%s\n", (i > 0 ? indent : 0) + 3, " ; ",
+                           proto.string_table(comment_index));
+            }
+          } else {
+            absl::PrintF("\n");
           }
-
-          const auto line =
-              absl::StrCat(absl::Hex(instruction_address, absl::kZeroPad8), " ",
-                           disassembly, comment);
-          printf("%s\n", line.c_str());
 
           const auto& raw_bytes = instruction.raw_bytes();
           computed_instruction_address = instruction_address + raw_bytes.size();
@@ -253,11 +258,12 @@ void DumpBinExport2(const BinExport2& proto) {
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    fprintf(stderr, "Usage: %s BINEXPORT2\n", Basename(argv[0]).c_str());
+    absl::FPrintF(stderr, "Usage: %s BINEXPORT2\n", Basename(argv[0]));
     return EXIT_FAILURE;
   }
 
-  std::unique_ptr<FILE, int (*)(FILE*)> file(fopen(argv[1], "rb"), fclose);
+  std::unique_ptr<FILE, void (*)(FILE*)> file(fopen(argv[1], "rb"),
+                                              [](FILE* fp) { fclose(fp); });
   if (!file) {
     perror("could not open file");
     return EXIT_FAILURE;
@@ -265,7 +271,7 @@ int main(int argc, char* argv[]) {
 
   BinExport2 proto;
   if (!proto.ParseFromFileDescriptor(fileno(file.get()))) {
-    fprintf(stderr, "Failed to parse BinExport v2 data\n");
+    absl::FPrintF(stderr, "Failed to parse BinExport v2 data\n");
     return EXIT_FAILURE;
   }
 

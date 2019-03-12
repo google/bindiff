@@ -45,22 +45,22 @@ Status UnknownError(absl::string_view message);
 // canonical error code implied by the function's name. If necessary, the
 // status will be converted to the canonical error space to perform the
 // comparison.
-bool IsAborted(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsAlreadyExists(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsCancelled(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsDataLoss(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsDeadlineExceeded(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsFailedPrecondition(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsInternal(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsInvalidArgument(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsNotFound(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsOutOfRange(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsPermissionDenied(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsResourceExhausted(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsUnauthenticated(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsUnavailable(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsUnimplemented(const Status& status) ABSL_MUST_USE_RESULT;
-bool IsUnknown(const Status& status) ABSL_MUST_USE_RESULT;
+ABSL_MUST_USE_RESULT bool IsAborted(const Status& status);
+ABSL_MUST_USE_RESULT bool IsAlreadyExists(const Status& status);
+ABSL_MUST_USE_RESULT bool IsCancelled(const Status& status);
+ABSL_MUST_USE_RESULT bool IsDataLoss(const Status& status);
+ABSL_MUST_USE_RESULT bool IsDeadlineExceeded(const Status& status);
+ABSL_MUST_USE_RESULT bool IsFailedPrecondition(const Status& status);
+ABSL_MUST_USE_RESULT bool IsInternal(const Status& status);
+ABSL_MUST_USE_RESULT bool IsInvalidArgument(const Status& status);
+ABSL_MUST_USE_RESULT bool IsNotFound(const Status& status);
+ABSL_MUST_USE_RESULT bool IsOutOfRange(const Status& status);
+ABSL_MUST_USE_RESULT bool IsPermissionDenied(const Status& status);
+ABSL_MUST_USE_RESULT bool IsResourceExhausted(const Status& status);
+ABSL_MUST_USE_RESULT bool IsUnauthenticated(const Status& status);
+ABSL_MUST_USE_RESULT bool IsUnavailable(const Status& status);
+ABSL_MUST_USE_RESULT bool IsUnimplemented(const Status& status);
+ABSL_MUST_USE_RESULT bool IsUnknown(const Status& status);
 
 }  // namespace not_absl
 

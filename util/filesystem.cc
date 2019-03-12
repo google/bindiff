@@ -40,6 +40,7 @@
 #include <fstream>
 #include <string>
 
+#include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/string_view.h"
@@ -124,19 +125,20 @@ namespace {
 
 not_absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
     absl::string_view product_name, bool create) {
+  std::string path;
 #ifdef _WIN32
   char buffer[MAX_PATH] = {0};
   if (GetTempPath(MAX_PATH, buffer) == 0) {
     return not_absl::UnknownError("error getting temp directory");
   }
-  std::string path = absl::StrCat(buffer, "zynamics\\", product_name, "\\");
+  path = JoinPath(buffer, product_name);
 #else
-  std::string path = absl::StrCat("/tmp/zynamics/", product_name, "/");
+  path = JoinPath("/tmp", absl::AsciiStrToLower(product_name));
 #endif
   if (create) {
     NA_RETURN_IF_ERROR(CreateDirectories(path));
   }
-  return std::move(path);  // TODO(cblichmann): Need move due to VS2017 15.5
+  return path;
 }
 
 }  // namespace

@@ -48,7 +48,7 @@ class Comment {
 };
 #pragma pack(pop)
 
-typedef std::vector<Comment> Comments;
+using Comments = std::vector<Comment>;
 bool SortComments(const Comment& one, const Comment& two);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_COMMENT_H_

@@ -5,25 +5,16 @@
 #include <cstdio>
 
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_format.h"
 
 namespace security {
 namespace binexport {
 
 std::string FormatAddress(Address address) {
-  // TODO(cblichmann): Use absl::Format once it becomes available.
   if (address <= 0xFFFFFFFF) {
-    std::string result(9, '0');
-    // Note: need to cast to standard integer type for the PRIX macros to work.
-    std::snprintf(&result[0], 9, "%08" PRIX32,  // NOLINT(runtime/printf)
-                  static_cast<uint32_t>(address));
-    result.resize(8);
-    return result;
+    return absl::StrFormat("%08X", address);
   }
-  std::string result(17, '0');
-  std::snprintf(&result[0], 17, "%016" PRIX64,  // NOLINT(runtime/printf)
-                static_cast<uint64_t>(address));
-  result.resize(16);
-  return result;
+  return absl::StrFormat("%016X", address);
 }
 
 std::string HumanReadableDuration(double seconds) {
@@ -53,6 +44,9 @@ std::string HumanReadableDuration(double seconds) {
       absl::StrAppend(&result, ".", full_msec / 10);
     }
     absl::StrAppend(&result, "s");
+  }
+  if (result.empty()) {
+    absl::StrAppend(&result, "0s");
   }
   return result;
 }

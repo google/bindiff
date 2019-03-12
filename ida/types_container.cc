@@ -18,6 +18,7 @@
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <enum.hpp>                                             // NOLINT
+#include <funcs.hpp>                                            // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <ida.hpp>                                              // NOLINT
 #include <idp.hpp>                                              // NOLINT
@@ -96,29 +97,41 @@ struct FrameIterator
   FrameIterator() : current_index_(BADADDR), function_count_(0) {}
   explicit FrameIterator(size_t function_count)
       : current_index_(0), function_count_(function_count) {
-    current_index_ = first_valid_index(current_index_, function_count_);
+    current_index_ = FirstValidIndex(current_index_, function_count_);
   }
 
  private:
   friend class boost::iterator_core_access;
 
-  static sval_t first_valid_index(size_t start_index, size_t function_count) {
+  static sval_t FirstValidIndex(size_t start_index, size_t function_count) {
     if (start_index >= function_count) {
       return BADADDR;
     }
-    if (!get_frame(getn_func(start_index)->start_ea)) {
-      return next_valid_index(start_index, function_count);
+    func_t* func = getn_func(start_index);
+    if (!func) {
+      return BADADDR;
+    }
+    if (!get_frame(func)) {
+      return NextValidIndex(start_index, function_count);
     }
     return start_index;
   }
 
-  static sval_t next_valid_index(size_t index, size_t function_count) {
+  static sval_t NextValidIndex(size_t index, size_t function_count) {
     if (index == BADADDR) {
       return BADADDR;
     }
+    func_t* func{};
     while (index < function_count - 1) {
       ++index;
-      if (get_frame(getn_func(index)->start_ea)) {
+      func = getn_func(index);
+      if (!func) {
+        // Skip over IDA "ghost" functions, which are functions in the IDB that
+        // are invalid due to IDA having crashed at some point before. They
+        // cannot be deleted using IDA, so they need to be skipped here.
+        continue;
+      }
+      if (get_frame(func)) {
         return index;
       }
     }
@@ -130,13 +143,14 @@ struct FrameIterator
   }
 
   void increment() {
-    current_index_ = next_valid_index(current_index_, function_count_);
+    current_index_ = NextValidIndex(current_index_, function_count_);
   }
 
   struc_t& dereference() const {
-    struc_t* frame_struct = get_frame(getn_func(current_index_)->start_ea);
+    func_t* func = getn_func(current_index_);
+    struc_t* frame_struct = func ? get_frame(func) : nullptr;
     if (!frame_struct) {
-      throw std::runtime_error("Out of bounds access in FrameIterator.");
+      throw std::runtime_error("Out of bounds access in FrameIterator");
     }
     return *frame_struct;
   }

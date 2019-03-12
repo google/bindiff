@@ -72,7 +72,7 @@ class CallGraph {
   Comments& GetComments();
   std::pair<Comments::const_iterator, Comments::const_iterator> GetComments(
       Address address) const;
-  void AddStringReference(Address address, const std::string& std::string);
+  void AddStringReference(Address address, const std::string& ref);
   size_t GetStringReference(Address address) const;
   static const std::string* CacheString(const std::string& text);
   void Render(std::ostream* stream, const FlowGraph& flow_graph) const;

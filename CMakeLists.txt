@@ -58,6 +58,10 @@ if(GIT_FOUND)
                   OUTPUT_VARIABLE REVISION ERROR_QUIET)
   if(NOT ${REVISION} STREQUAL "")
     string(STRIP ${REVISION} REVISION)
+  # MOE:begin_strip
+  elseif(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
+    set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
+  # MOE:end_strip
   else()
     set(REVISION internal)
   endif()
@@ -70,8 +74,8 @@ add_library(binexport_base INTERFACE)
 target_include_directories(binexport_base INTERFACE
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/stubs
-  ${PROJECT_BINARY_DIR}/src_include
   ${PROJECT_BINARY_DIR}/gen_include
+  ${PROJECT_BINARY_DIR}/src_include
   ${Boost_INCLUDE_DIR}
   ${PostgreSQL_INCLUDE_DIRS}
   ${Protobuf_INCLUDE_DIRS}
@@ -113,6 +117,7 @@ add_library(binexport_shared STATIC
 target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access
   absl::optional
+  absl::str_format
   absl::strings
   absl::time
   absl::variant
@@ -137,10 +142,19 @@ target_link_libraries(binexport_shared_test PUBLIC
 )
 add_test(BinExportSharedTests binexport_shared_test)
 
-# General BinExport tests
-add_executable(binexport_test
+add_library(binexport_test_util
   binexport_test_util.cc
   binexport_test_util.h
+)
+target_link_libraries(binexport_test_util PUBLIC
+  binexport_test_base
+  binexport_shared
+  absl::memory
+)
+
+# General BinExport tests
+add_executable(binexport_test
+  binexport_test.cc
 )
 target_link_libraries(binexport_test PUBLIC
   binexport_test_base
@@ -248,8 +262,11 @@ if(WIN32)
 endif()
 ida_target_link_libraries(${binexport_plugin_name}
   absl::bad_optional_access
-  absl::container
+  absl::flat_hash_map
+  absl::flat_hash_set
   absl::hash
+  absl::node_hash_map
+  absl::node_hash_set
   absl::optional
   absl::strings
   absl::time

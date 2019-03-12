@@ -96,6 +96,8 @@ class Status {
 
   std::string ToString() const;
 
+  void IgnoreError() const {}
+
  private:
   template <typename Enum, typename StringViewT>
   void Set(Enum code, StringViewT message) {

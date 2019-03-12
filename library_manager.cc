@@ -64,6 +64,12 @@ void LibraryManager::GetUsedLibraries(
   }
 }
 
+void LibraryManager::UpdateUsedLibraries() {
+  for (const auto& used_function : used_functions_) {
+    used_libraries_.insert(used_function.second);
+  }
+}
+
 // Finds library index for a given address, -1 if none.
 int LibraryManager::GetLibraryIndex(Address address) const {
   auto it = used_functions_.find(address);
@@ -74,9 +80,12 @@ int LibraryManager::GetLibraryIndex(Address address) const {
   }
 }
 
-void LibraryManager::UseFunction(Address address, int library_index) {
-  used_functions_.emplace(address, library_index);
-  used_libraries_.insert(library_index);
+void LibraryManager::UseFunction(Address address, int library_index,
+                                 UpdateKind update_kind) {
+  used_functions_[address] = library_index;
+  if (update_kind == UpdateKind::kUpdateUsedLibraries) {
+    used_libraries_.insert(library_index);
+  }
 }
 
 int LibraryManager::UseLibrary(const std::string& library, Linkage linkage) {

@@ -100,8 +100,8 @@ void WriteMnemonics(const Instructions& instructions,
   std::sort(mnemonics->begin(), mnemonics->end(), &SortMnemonicsAlphabetically);
 }
 
-// Translates from BinDetego internal expression type to the expression type
-// used by the protocol buffer.
+// Translates from the internal expression type to the expression type used by
+// the BinExport2 proto format.
 BinExport2::Expression::Type ExpressionTypeToProtoType(Expression::Type type) {
   switch (type) {
     case Expression::TYPE_SYMBOL:
@@ -346,8 +346,8 @@ void WriteBasicBlocks(
   }
 }
 
-// Translates from BinDetego internal flow graph edge type to the edge type
-// used by the protocol buffer.
+// Translates from the internal flow graph edge type to the edge type used by
+// the protocol buffer.
 BinExport2::FlowGraph::Edge::Type FlowGraphEdgeTypeToProtoType(
     FlowGraphEdge::Type type) {
   switch (type) {
@@ -636,6 +636,31 @@ void WriteDataReferences(
   }
 }
 
+// Translates from the internal comment type to the one used by the BinExport2
+// proto.
+BinExport2::Comment::Type CommentTypeToProtoType(Comment::Type type) {
+  switch (type) {
+    case Comment::REGULAR:
+    case Comment::ENUM:
+    case Comment::LOCATION:
+    case Comment::GLOBALREFERENCE:
+    case Comment::LOCALREFERENCE:
+    case Comment::STRUCTURE:
+      return BinExport2::Comment::DEFAULT;
+
+    case Comment::ANTERIOR:
+      return BinExport2::Comment::ANTERIOR;
+    case Comment::POSTERIOR:
+      return BinExport2::Comment::POSTERIOR;
+    case Comment::FUNCTION:
+      return BinExport2::Comment::FUNCTION;
+
+    default:
+      LOG(QFATAL) << "Invalid comment type: " << type;
+      return BinExport2::Comment::DEFAULT;  // Not reached
+  }
+}
+
 void WriteComments(
     const CallGraph& call_graph,
     const std::vector<std::pair<Address, int32_t>>& instruction_indices,
@@ -647,17 +672,27 @@ void WriteComments(
     if (new_comment.second) {
       proto->add_string_table(*comment.comment_);
     }
-    auto* proto_comment = proto->add_address_comment();
     const auto instruction =
         lower_bound(instruction_indices.begin(), instruction_indices.end(),
                     std::make_pair(comment.address_, 0));
     QCHECK(instruction != instruction_indices.end());
+
+    const int string_table_index = new_comment.first->second;
+    auto* proto_address_comment = proto->add_address_comment();
+    proto_address_comment->set_instruction_index(instruction->second);
+    proto_address_comment->set_string_table_index(string_table_index);
+
+    // Write richer comment structure for BinDiff.
+    const int comment_index = proto->comment_size();
+    auto* proto_comment = proto->add_comment();
     proto_comment->set_instruction_index(instruction->second);
-    // TODO(cblichmann): Fill these properly once we actually have
-    //                   operand/expression comments.
-    //   proto_comment->set_instruction_operand_index(0);
-    //   proto_comment->set_operand_expression_index(0);
-    proto_comment->set_string_table_index(new_comment.first->second);
+    proto_comment->set_string_table_index(string_table_index);
+    proto_comment->set_type(CommentTypeToProtoType(comment.type_));
+    proto_comment->set_repeatable(comment.repeatable_);
+
+    // Add back reference to comment to instruction
+    proto->mutable_instruction(instruction->second)
+        ->add_comment_index(comment_index);
   }
 }
 
@@ -672,7 +707,6 @@ void WriteSections(const AddressSpace& address_space, BinExport2* proto) {
   }
 }
 
-#ifndef GOOGLE
 class BinExport2MetaWithDifferentOrder : public BinExport2_Meta {
  public:
   BinExport2MetaWithDifferentOrder(const BinExport2_Meta& from)
@@ -745,7 +779,6 @@ BinExport2MetaWithDifferentOrder::InternalSerializeWithCachedSizesToArray(
   }
   return target;
 }
-#endif
 
 // Writes a binary protocol buffer to the specified filename. Returns true if
 // successful. Logs an error and returns false if not.

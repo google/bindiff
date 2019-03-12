@@ -17,8 +17,9 @@ project(tools CXX)
 
 add_executable(binexport2dump binexport2dump.cc)
 target_link_libraries(binexport2dump
-  absl::container
+  absl::flat_hash_map
   absl::hash
+  absl::str_format
   absl::time
   binexport_base
   binexport_shared

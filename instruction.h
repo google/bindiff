@@ -80,7 +80,7 @@ class Instruction {
   Instruction(const Instruction&);
   ~Instruction();
 
-  static const std::string* CacheString(const std::string& std::string);
+  static const std::string* CacheString(const std::string& value);
   static void SetBitness(int bitness);
   static int GetBitness();
   static void SetGetBytesCallback(GetBytesCallback callback);

@@ -208,13 +208,13 @@ size_t CallGraph::GetStringReference(Address address) const {
   return 0;
 }
 
-void CallGraph::AddStringReference(Address address, const std::string& std::string) {
-  if (std::string.empty()) {
+void CallGraph::AddStringReference(Address address, const std::string& ref) {
+  if (ref.empty()) {
     return;
   }
 
   // TODO(jduart): Concat multiple hashes.
-  string_references_[address] = GetSdbmHash(std::string);
+  string_references_[address] = GetSdbmHash(ref);
 }
 
 // Fold the strings of all comments that are of type regular and share the same
