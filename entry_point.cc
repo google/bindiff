@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ bool operator==(const EntryPoint& lhs, const EntryPoint& rhs) {
   return lhs.address_ == rhs.address_;
 }
 
-string EntryPoint::SourceToString() {
+std::string EntryPoint::SourceToString() {
   switch (source_) {
     case Source::CODE_FLOW:
       return "CODE_FLOW";

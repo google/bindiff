@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,26 +18,33 @@
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/instruction.h"
-#include "util/task/status.h"
+#include "third_party/zynamics/binexport/util/status.h"
 
 class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
+namespace security {
+namespace binexport {
+
 class Writer {
  public:
   Writer() = default;
+
   Writer(const Writer&) = delete;
   const Writer& operator=(const Writer&) = delete;
 
   virtual ~Writer() = default;
 
-  virtual util::Status Write(const CallGraph& call_graph,
-                             const FlowGraph& flow_graph,
-                             const detego::Instructions& instructions,
-                             const AddressReferences& address_references,
-                             const TypeSystem* type_system,
-                             const AddressSpace& address_space) = 0;
+  virtual not_absl::Status Write(const CallGraph& call_graph,
+                                 const FlowGraph& flow_graph,
+                                 const detego::Instructions& instructions,
+                                 const AddressReferences& address_references,
+                                 const TypeSystem* type_system,
+                                 const AddressSpace& address_space) = 0;
 };
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_WRITER_H_

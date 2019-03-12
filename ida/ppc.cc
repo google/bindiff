@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,6 +30,8 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
 // Various bit definitions:
@@ -49,29 +51,22 @@ enum {
   PPC_aux_minus = 0x1000  // predict branch to be not taken       -
 };
 
-string GetDeviceControlRegisterName(const Address register_index) {
+std::string GetDeviceControlRegisterName(const Address register_index) {
   return absl::StrCat("DCR", absl::Hex(register_index));
 }
 
-string GetUnknownRegisterNameString(const Address address,
-                                         const Address register_index) {
-  return absl::StrCat("unknown special purpose register ", register_index,
-                      " at ", absl::Hex(address, absl::kZeroPad8));
-}
-
-string GetUnknownRegisterName(const Address register_index) {
+std::string GetUnknownRegisterName(const Address register_index) {
   return absl::StrCat("0x", absl::Hex(register_index));
 }
 
-string GetConditionRegisterName(const size_t register_id) {
+std::string GetConditionRegisterName(const size_t register_id) {
   return absl::StrCat("cr", register_id);
 }
 
-string GetSpecialPurposeRegisterName(const Address /*address*/,
+std::string GetSpecialPurposeRegisterName(const Address /*address*/,
                                           const Address register_index) {
-  // copied over from Ero's Python exporter:
-  //# Special Purpose Registers. Looked up in GDB's source code,
-  //# IDA and the Freescale's PowerPC MPC823e manual
+  // Taken from the original Python exporter: Special Purpose Registers. Looked
+  // up in GDB's source code, IDA and the Freescale's PowerPC MPC823e manual.
   switch (register_index) {
     case 0:
       return "mq";
@@ -85,9 +80,6 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
       return "lr";
     case 9:
       return "ctr";
-    //        case #9: "cnt";  // # IDA defines 9 to be CTR; I looked up
-    //              // # this from GDB"s source so I ignore if
-    //              // # CNT being 9 too is an error
     case 18:
       return "dsisr";
     case 19:
@@ -226,9 +218,6 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
       return "mi_twc";
     case 790:
       return "mi_rpn";
-    //        case 816: return "mi_cam";
-    //        case 817: return "mi_ram0";
-    //        case 818: return "mi_ram1";
     case 792:
       return "md_ctr";
     case 793:
@@ -251,13 +240,10 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
       return "mi_dbram0";
     case 818:
       return "mi_dbram1";
-    //        #824: return "md_dbcam";
     case 824:
       return "md_cam";
-    //        #825: return "md_dbram0";
     case 825:
       return "md_ram0";
-    //        #826: return "md_dbram1";
     case 826:
       return "md_ram1";
     case 936:
@@ -282,10 +268,8 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
       return "mmcr0";
     case 953:
       return "pmc1";
-    //        case 953: return "sgr";
     case 954:
       return "pmc2";
-    //        #954: return "dcwr";
     case 955:
       return "sia";
     case 956:
@@ -308,51 +292,38 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
       return "hash1";
     case 979:
       return "hash2";
-    //        #979: return "icdbdr";
-    //        #980: return "imiss";
     case 980:
       return "esr";
     case 981:
       return "icmp";
-    //        #981: return "dear";
-    //        case 982: return "rpa";
     case 982:
       return "evpr";
     case 983:
       return "cdbcr";
     case 984:
       return "tsr";
-    //        #984: return "602_tcr";
-    //        #986: return "403_tcr";
-    //        #986: return "ibr";
     case 986:
       return "tcr";
     case 987:
       return "pit";
     case 988:
       return "esasrr";
-    //        #988: return "tbhi";
     case 989:
       return "tblo";
     case 990:
       return "srr2";
-    //        #990: return "sebr";
     case 991:
       return "srr3";
-    //        #991: return "ser";
     case 1008:
       return "hid0";
-    //        #1008: return "dbsr";
     case 1009:
       return "hid1";
     case 1010:
       return "iabr";
-    //        #1010: return "dbcr";
     case 1012:
       return "iac1";
     case 1013:
       return "dabr";
-    //        #1013: return "iac2";
     case 1014:
       return "dac1";
     case 1015:
@@ -361,23 +332,16 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
       return "l2cr";
     case 1018:
       return "dccr";
-    //        #1019: return "ictc";
     case 1019:
       return "iccr";
-    //        #1020: return "thrm1";
     case 1020:
       return "pbl1";
-    //        #1021: return "thrm2";
     case 1021:
       return "pbu1";
-    //        #1022: return "thrm3";
     case 1022:
       return "pbl2";
-    //        #1022: return "fpecr";
-    //        #1022: return "lt";
     case 1023:
       return "pir";
-    //        #1023: return "pbu2"
     default:
       return GetUnknownRegisterName(register_index);
   }
@@ -385,7 +349,7 @@ string GetSpecialPurposeRegisterName(const Address /*address*/,
 
 Operands DecodeOperandsPpc(const insn_t& instruction) {
   Operands operands;
-  for (uint8 operand_position = 0;
+  for (int operand_position = 0;
        operand_position < UA_MAXOP &&
        instruction.ops[operand_position].type != o_void;
        ++operand_position) {
@@ -633,7 +597,7 @@ Instruction ParseInstructionIdaPpc(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic = GetMnemonic(instruction.ea);
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
@@ -648,32 +612,10 @@ Instruction ParseInstructionIdaPpc(const insn_t& instruction,
     }
   }
 
-  if (instruction.auxpref & PPC_aux_oe) {
-    mnemonic += "o";
-  }
-  if (instruction.auxpref & PPC_aux_ctr) {
-    mnemonic += "ctr";
-  }
-  if (instruction.auxpref & PPC_aux_rc) {
-    mnemonic += ".";
-  }
-  if (instruction.auxpref & PPC_aux_lr) {
-    mnemonic += "lr";
-  }
-  if (instruction.auxpref & PPC_aux_lk) {
-    mnemonic += "l";
-  }
-  if (instruction.auxpref & PPC_aux_aa) {
-    mnemonic += "a";
-  }
-  if (instruction.auxpref & PPC_aux_plus) {
-    mnemonic += "+";
-  }
-  if (instruction.auxpref & PPC_aux_minus) {
-    mnemonic += "-";
-  }
-
   const Operands operands = DecodeOperandsPpc(instruction);
   return Instruction(instruction.ea, next_instruction, instruction.size,
                      mnemonic, operands);
 }
+
+}  // namespace binexport
+}  // namespace security

@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ namespace security {
 namespace binexport {
 namespace {
 
-string GetArgument(const char* name) {
+std::string GetArgument(const char* name) {
   const char* option =
       get_plugin_options(absl::StrCat("BinExport", name).c_str());
   if (option == nullptr) {
@@ -63,14 +63,14 @@ string GetArgument(const char* name) {
 
 constexpr char kName[] = "BinExport " BINEXPORT_RELEASE;
 constexpr char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2018 Google LLC.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
 constexpr char kComment[] = "Export to SQL RE-DB, BinDiff binary or text dump";
 constexpr char kHotKey[] = "";
 
 enum class ExportMode { kSql = 1, kBinary = 2, kText = 3, kStatistics = 4 };
 
-string GetDefaultName(ExportMode mode) {
-  string new_extension;
+std::string GetDefaultName(ExportMode mode) {
+  std::string new_extension;
   switch (mode) {
     case ExportMode::kBinary:
       new_extension = ".BinExport";
@@ -90,7 +90,7 @@ string GetDefaultName(ExportMode mode) {
 
 void ExportIdb(Writer* writer) {
   LOG(INFO) << GetModuleName() << ": starting export";
-  WaitBox wait_box("exporting database...");
+  WaitBox wait_box("Exporting database...");
   Timer<> timer;
   EntryPoints entry_points;
   {
@@ -131,20 +131,23 @@ int ExportSql(absl::string_view schema_name,
               absl::string_view connection_string) {
   try {
     auto sha256_or = GetInputFileSha256();
+    const std::string sha256 =
+        sha256_or.ok() ? std::move(sha256_or).ValueOrDie() : "";
     auto md5_or = GetInputFileMd5();
-    if (!sha256_or.ok() || !md5_or.ok()) {
+    const std::string md5 = md5_or.ok() ? std::move(md5_or).ValueOrDie() : "";
+    if (sha256.empty() && md5.empty()) {
       throw std::runtime_error{"Failed to load input file hashes"};
     }
-    DatabaseWriter writer{string(schema_name) /* Database */,
+    DatabaseWriter writer{std::string(schema_name) /* Database */,
                           GetModuleName(),
                           /*module_id=*/0,
-                          md5_or.ValueOrDie(),
-                          sha256_or.ValueOrDie(),
+                          md5,
+                          sha256,
                           GetArchitectureName().value(),
                           GetImageBase(),
-                          kName /* Version string */,
+                          kName /* Version std::string */,
                           !connection_string.empty()
-                              ? string(connection_string)
+                              ? std::string(connection_string)
                               : GetArgument("ConnectionString")};
     int query_size = 0;
     writer.set_query_size(
@@ -165,13 +168,19 @@ int ExportSql(absl::string_view schema_name,
   return eOk;
 }
 
-int ExportBinary(const string& filename) {
+int ExportBinary(const std::string& filename) {
   try {
     auto sha256_or = GetInputFileSha256();
-    if (!sha256_or.ok()) {
-      throw std::runtime_error{sha256_or.status().error_message()};
+    std::string hash;
+    if (sha256_or.ok()) {
+      hash = std::move(sha256_or).ValueOrDie();
+    } else {
+      auto md5_or = GetInputFileMd5();
+      if (md5_or.ok()) {
+        hash = std::move(md5_or).ValueOrDie();
+      }
     }
-    BinExport2Writer writer{filename, GetModuleName(), sha256_or.ValueOrDie(),
+    BinExport2Writer writer{filename, GetModuleName(), hash,
                             GetArchitectureName().value()};
     ExportIdb(&writer);
   } catch (const std::exception& error) {
@@ -190,9 +199,7 @@ void idaapi ButtonBinaryExport(TWidget** /* fields */, int) {
   const auto name(GetDefaultName(ExportMode::kBinary));
   const char* filename = ask_file(
       /*for_saving=*/true, name.c_str(), "%s",
-      absl::StrCat("FILTER BinExport v2 files|*.BinExport|All files|",
-                   kAllFilesFilter, "\nExport to BinExport v2")
-          .c_str());
+      "FILTER BinExport v2 files|*.BinExport\nExport to BinExport v2");
   if (!filename) {
     return;
   }
@@ -205,7 +212,7 @@ void idaapi ButtonBinaryExport(TWidget** /* fields */, int) {
   ExportBinary(filename);
 }
 
-int ExportText(const string& filename) {
+int ExportText(const std::string& filename) {
   try {
     std::ofstream file(filename);
     DumpWriter writer{file};
@@ -226,9 +233,7 @@ void idaapi ButtonTextExport(TWidget** /* fields */, int) {
   const auto name = GetDefaultName(ExportMode::kText);
   const char* filename = ask_file(
       /*for_saving=*/true, name.c_str(), "%s",
-      absl::StrCat("FILTER Text files|*.txt|All files|", kAllFilesFilter,
-                   "\nExport to Text")
-          .c_str());
+      "FILTER Text files|*.txt\nExport to Text");
   if (!filename) {
     return;
   }
@@ -241,7 +246,7 @@ void idaapi ButtonTextExport(TWidget** /* fields */, int) {
   ExportText(filename);
 }
 
-int ExportStatistics(const string& filename) {
+int ExportStatistics(const std::string& filename) {
   try {
     std::ofstream file(filename);
     StatisticsWriter writer{file};
@@ -262,9 +267,7 @@ void idaapi ButtonStatisticsExport(TWidget** /* fields */, int) {
   const auto name = GetDefaultName(ExportMode::kStatistics);
   const char* filename = ask_file(
       /*for_saving=*/true, name.c_str(), "%s",
-      absl::StrCat("FILTER BinExport Statistics|*.statistics|All files|",
-                   kAllFilesFilter, "\nExport Statistics")
-          .c_str());
+      "FILTER BinExport Statistics|*.statistics\nExport Statistics");
   if (!filename) {
     return;
   }
@@ -278,7 +281,7 @@ void idaapi ButtonStatisticsExport(TWidget** /* fields */, int) {
 }
 
 const char* GetDialog() {
-  static const string kDialog = absl::StrCat(
+  static const std::string kDialog = absl::StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
       "BUTTON CANCEL NONE\n"
@@ -294,7 +297,7 @@ const char* GetDialog() {
   return kDialog.c_str();
 }
 
-int DoExport(ExportMode mode, string name,
+int DoExport(ExportMode mode, std::string name,
              absl::string_view connection_string) {
   if (name.empty()) {
     auto temp_or = GetOrCreateTempDirectory("BinExport");
@@ -363,7 +366,7 @@ error_t idaapi IdcBinExportSql(idc_value_t* argument, idc_value_t*) {
                  "'password')";
     return -1;
   }
-  string connection_string = absl::StrCat(
+  std::string connection_string = absl::StrCat(
       "host='", argument[0].c_str(), "' port='", argument[1].num, "' dbname='",
       argument[2].c_str(), "' user='", argument[4].c_str(), "' password='",
       argument[5].c_str(), "'");
@@ -387,7 +390,7 @@ static const ext_idcfunc_t kBinExportSqlIdcFunc = {
 // Builds a database connection string from the plugin arguments given on the
 // command-line.
 // Note: This function does not escape any of the strings it gets passed in.
-string GetConnectionStringFromArguments() {
+std::string GetConnectionStringFromArguments() {
   // See section 32.1.1.1. ("Keyword/Value Connection Strings") at
   // https://www.postgresql.org/docs/9.6/static/libpq-connect.html
   return absl::StrCat("host='", GetArgument("Host"), "' user='",
@@ -405,7 +408,7 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
 
   // If IDA was invoked with -OBinExportAutoAction:<action>, wait for auto
   // analysis to finish, then invoke the requested action and exit.
-  const string auto_action = absl::AsciiStrToUpper(GetArgument("AutoAction"));
+  const std::string auto_action = absl::AsciiStrToUpper(GetArgument("AutoAction"));
   if (auto_action.empty()) {
     return 0;
   }
@@ -495,8 +498,8 @@ bool idaapi PluginRun(size_t argument) {
       << ", " << GetArchitectureBitness() << "-bit)";
   try {
     if (argument) {
-      string connection_string;
-      string module;
+      std::string connection_string;
+      std::string module;
       if (!GetArgument("Host").empty()) {
         connection_string = GetConnectionStringFromArguments();
         module = GetArgument("Schema");

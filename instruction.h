@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 
 #include <ostream>
 #include <string>
-#include <unordered_set>
 #include <vector>
 
+#include "third_party/absl/container/node_hash_set.h"
+#include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/operand.h"
 #include "third_party/zynamics/binexport/range.h"
 
@@ -34,7 +35,7 @@ enum {
 
   // This is a flow instruction and continues to the next (as opposed to jmps or
   // calls).
-  // TODO(user) As olonho@ pointed out, this flag is used somewhat
+  // TODO(soerenme) As olonho@ pointed out, this flag is used somewhat
   // inconsistently throughout the code base. We should be using the following
   // definition: if the flag is set, execution is guaranteed to flow to the next
   // instruction. I.e. branches and switches do not have it set. Calls may or
@@ -69,25 +70,25 @@ enum {
 #pragma pack(push, 1)
 class Instruction {
  public:
-  typedef string (*GetBytesCallback)(const Instruction& instruction);
-  using StringCache = std::unordered_set<string>;
+  using GetBytesCallback = std::string (*)(const Instruction& instruction);
+  using StringCache = absl::node_hash_set<std::string>;
 
   explicit Instruction(Address address, Address next_instruction = 0,
-                       uint16 size = 0, const string& mnemonic = "",
+                       uint16_t size = 0, const std::string& mnemonic = "",
                        const Operands& operands = Operands());
   Instruction& operator=(const Instruction&);
   Instruction(const Instruction&);
   ~Instruction();
 
-  static const string* CacheString(const string& string);
+  static const std::string* CacheString(const std::string& value);
   static void SetBitness(int bitness);
   static int GetBitness();
   static void SetGetBytesCallback(GetBytesCallback callback);
   static void SetMemoryFlags(AddressSpace* flags);
   static void SetVirtualMemory(AddressSpace* virtual_memory);
-  static bool IsNegativeValue(int64 value);
+  static bool IsNegativeValue(int64_t value);
 
-  uint8 GetOperandCount() const;
+  uint8_t GetOperandCount() const;
   Operands::iterator begin() const;
   Operands::iterator end() const;
   Operands::const_iterator cbegin() const;
@@ -103,9 +104,9 @@ class Instruction {
   int GetSize() const;
   Address GetNextInstruction() const;
   void SetNextInstruction(Address address);
-  const string& GetMnemonic() const;
-  string GetBytes() const;
-  uint16 GetInDegree() const;
+  const std::string& GetMnemonic() const;
+  std::string GetBytes() const;
+  uint16_t GetInDegree() const;
   void AddInEdge();
   void Render(std::ostream* stream, const FlowGraph& flow_graph) const;
 
@@ -113,16 +114,16 @@ class Instruction {
   bool IsExported() const;
   static bool IsExported(Address address);
   void SetExported(bool exported);
-  void SetFlag(uint8 flag, bool value);
-  bool HasFlag(uint8 flag) const;
+  void SetFlag(uint8_t flag, bool value);
+  bool HasFlag(uint8_t flag) const;
 
  private:
-  const string* mnemonic_;  // 4|8 + overhead in stringcache
+  const std::string* mnemonic_;  // 4|8 + overhead in stringcache
   Address address_;         // 8
-  uint32 operand_index_;  // 4 + overhead in operand pointer vector
-  uint8 operand_count_;   // 1
-  uint16 in_degree_;      // 2 TODO(user) in-degree count in edges.
-  uint8 size_;            // 1
+  uint32_t operand_index_;  // 4 + overhead in operand pointer vector
+  uint8_t operand_count_;   // 1
+  uint16_t in_degree_;      // 2 TODO(soerenme) in-degree count in edges.
+  uint8_t size_;            // 1
 
   static int instance_count_;
   static StringCache string_cache_;
@@ -134,14 +135,14 @@ class Instruction {
 };
 #pragma pack(pop)
 
-// TODO(user): Remove this hack. It's here because IDA defines a global
-//                 variable of the same name.
+// TODO(cblichmann): Remove this hack. It's here because IDA defines a global
+//                   variable of the same name.
 namespace detego {
-typedef std::vector<Instruction> Instructions;
+using Instructions = std::vector<Instruction>;
 }  // namespace detego
-using namespace detego;
+using namespace detego;  // NOLINT
 
-typedef Range<detego::Instructions> InstructionRange;
+using InstructionRange = Range<detego::Instructions>;
 
 void SortInstructions(detego::Instructions* instructions);
 Instructions::const_iterator GetInstructionFromRange(
@@ -152,7 +153,7 @@ Instructions::iterator GetInstruction(detego::Instructions* instructions,
                                       Address address);
 Instructions::iterator GetNextInstruction(detego::Instructions* instructions,
                                           Instructions::iterator instruction);
-string RenderOperands(const Instruction& instruction,
+std::string RenderOperands(const Instruction& instruction,
                       const FlowGraph& flow_graph);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INSTRUCTION_H_

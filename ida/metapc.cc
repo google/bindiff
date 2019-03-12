@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,15 +32,17 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/type_system.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
-bool IsStringInstruction(const string& mnemonic) {
-  static auto* instructions = new std::set<string>{
+bool IsStringInstruction(const std::string& mnemonic) {
+  static auto* instructions = new std::set<std::string>{
       "ins", "outs", "movs", "cmps", "stos", "lods", "scas"};
   return instructions->find(mnemonic.substr(0, 4)) != instructions->end();
 }
 
-string GetSegmentSelector(const op_t& operand) {
+std::string GetSegmentSelector(const op_t& operand) {
   const size_t index = static_cast<size_t>(operand.specval >> 16);
   if (!index) {
     return "";
@@ -62,7 +64,7 @@ int GetSegmentSize(const insn_t& instruction, const segment_t* segment) {
   return 2;
 }
 
-string GetExtendedRegisterName(const op_t& operand) {
+std::string GetExtendedRegisterName(const op_t& operand) {
   switch (operand.type) {
     case o_trreg:  // Test register
       return "tr" + std::to_string(operand.reg);
@@ -94,9 +96,9 @@ size_t GetSibOperandSize(Address address) {
   return (16 << segment->bitness) >> 3;
 }
 
-string GetSibBase(const insn_t& instruction, const op_t& operand) {
+std::string GetSibBase(const insn_t& instruction, const op_t& operand) {
   const size_t opsize = GetSibOperandSize(instruction.ea);
-  string name = GetRegisterName(x86_base(instruction, operand), opsize);
+  std::string name = GetRegisterName(x86_base(instruction, operand), opsize);
   if (name.empty()) {
     // Retry with size == 4, otherwise mmx instructions would try with 16 and
     // fail.
@@ -105,7 +107,7 @@ string GetSibBase(const insn_t& instruction, const op_t& operand) {
   return name;
 }
 
-string GetSibIndex(const insn_t& instruction, const op_t& operand) {
+std::string GetSibIndex(const insn_t& instruction, const op_t& operand) {
   const int index = x86_index(instruction, operand);
   size_t opsize = GetSibOperandSize(instruction.ea);
   if (opsize <= 1) {
@@ -119,12 +121,12 @@ int GetSibScale(const op_t& operand) { return x86_scale(operand); }
 
 Address GetSibImmediate(const op_t& operand) { return operand.addr; }
 
-string GetInstanceName(Address address) { return GetName(address, false); }
+std::string GetInstanceName(Address address) { return GetName(address, false); }
 
 void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
                             TypeSystem* type_system, const insn_t& instruction,
-                            const op_t& operand, uint8 operand_num) {
-  string base, index;
+                            const op_t& operand, uint8_t operand_num) {
+  std::string base, index;
   if (ad16(instruction)) {  // https://zynamics.fogbugz.com/default.asp?2792
     switch (operand.phrase) {
       case 0:
@@ -162,7 +164,7 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
   }
   const int scale = GetSibScale(operand);
 
-  string variable_name = GetVariableName(instruction, operand_num);
+  std::string variable_name = GetVariableName(instruction, operand_num);
 
   Expression* expression = nullptr;
   expressions->push_back(
@@ -216,14 +218,14 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
 //                           \     \-> scale
 //                           \-> disp
 void HandleDisplacementExpression(const insn_t& instruction,
-                                  const op_t& operand, uint8 operand_num,
+                                  const op_t& operand, uint8_t operand_num,
                                   Expressions* expressions,
                                   TypeSystem* type_system) {
-  const string base = GetSibBase(instruction, operand);
-  const string index = GetSibIndex(instruction, operand);
+  const std::string base = GetSibBase(instruction, operand);
+  const std::string index = GetSibIndex(instruction, operand);
   const int scale = GetSibScale(operand);
   const Address immediate = GetSibImmediate(operand);
-  int8 pos = 0;
+  int8_t pos = 0;
 
   Expression* expression = nullptr;
   Expression* register_expression = nullptr;
@@ -245,7 +247,7 @@ void HandleDisplacementExpression(const insn_t& instruction,
                                                Expression::TYPE_REGISTER, pos));
 
   Expression::Type expression_type = Expression::TYPE_IMMEDIATE_INT;
-  string variable_name = GetVariableName(instruction, operand_num);
+  std::string variable_name = GetVariableName(instruction, operand_num);
   if (variable_name.empty()) {
     const Name name = GetName(instruction.ea, immediate, operand_num, true);
     variable_name = name.name;
@@ -276,11 +278,11 @@ void HandleDisplacementExpression(const insn_t& instruction,
 }
 
 void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
-                            uint8 operand_num, Expressions* expressions,
+                            uint8_t operand_num, Expressions* expressions,
                             FlowGraph* flow_graph, TypeSystem* type_system) {
   const Address immediate = to_ea(instruction.cs, operand.addr);
   const Name name = GetName(instruction.ea, immediate, operand_num, true);
-  const string index = GetSibIndex(instruction, operand);
+  const std::string index = GetSibIndex(instruction, operand);
   const int scale = GetSibScale(operand);
 
   // 1) lookup type ID by name
@@ -291,7 +293,7 @@ void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
           expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
           0, Expression::TYPE_SIZEPREFIX, 0));
   if (name.empty()) {
-    const string global =
+    const std::string global =
         GetGlobalStructureName(instruction.ea, immediate, operand_num);
     if (!global.empty()) {
       flow_graph->AddExpressionSubstitution(instruction.ea, operand_num,
@@ -336,7 +338,7 @@ void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
 }
 
 void HandleImmediate(const insn_t& instruction, const op_t& operand,
-                     uint8 operand_num, Expressions* expressions,
+                     uint8_t operand_num, Expressions* expressions,
                      TypeSystem* type_system) {
   Address immediate = operand.value;
   Name name = GetName(instruction.ea, operand.value, operand_num, true);
@@ -377,8 +379,8 @@ Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
                                 FlowGraph* flow_graph,
                                 TypeSystem* type_system) {
   Operands operands;
-  uint8 skipped = 0;
-  for (uint8 operand_position = 0; operand_position < UA_MAXOP;
+  uint8_t skipped = 0;
+  for (uint8_t operand_position = 0; operand_position < UA_MAXOP;
        ++operand_position) {
     Expressions expressions;
     const op_t& operand = instruction.ops[operand_position];
@@ -492,7 +494,7 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic(GetMnemonic(instruction.ea));
+  std::string mnemonic(GetMnemonic(instruction.ea));
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
@@ -527,7 +529,7 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
     }
   }
 
-  // add prefix (if any) to string instructions
+  // add prefix (if any) to std::string instructions
   if (instruction.auxpref & aux_lock) {
     mnemonic = "lock " + mnemonic;
   }
@@ -547,3 +549,6 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
       instruction.size, mnemonic,
       ParseOperandsIdaMetaPc(instruction, call_graph, flow_graph, type_system));
 }
+
+}  // namespace binexport
+}  // namespace security

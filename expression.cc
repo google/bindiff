@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,8 +24,8 @@ Expression::StringCache Expression::string_cache_;
 Expression::ExpressionCache Expression::expression_cache_;
 int Expression::global_id_ = 0;
 
-Expression::Expression(Expression* parent, const string& symbol,
-                       int64 immediate, Type type, uint16 position,
+Expression::Expression(Expression* parent, const std::string& symbol,
+                       int64_t immediate, Type type, uint16_t position,
                        bool relocatable)
     : symbol_(CacheString(symbol)),
       immediate_(immediate),
@@ -36,11 +36,11 @@ Expression::Expression(Expression* parent, const string& symbol,
   assert(!symbol.empty() || IsImmediate());
 }
 
-Expression* Expression::Create(Expression* parent, const string& symbol,
-                               int64 immediate, Type type,
-                               uint16 position, bool relocatable) {
+Expression* Expression::Create(Expression* parent, const std::string& symbol,
+                               int64_t immediate, Type type,
+                               uint16_t position, bool relocatable) {
   Expression expression(parent, symbol, immediate, type, position, relocatable);
-  const string signature = expression.CreateSignature();
+  const std::string signature = expression.CreateSignature();
   ExpressionCache::iterator i = expression_cache_.find(signature);
   if (i != expression_cache_.end()) {
     return &i->second;
@@ -58,8 +58,8 @@ void Expression::EmptyCache() {
   global_id_ = 0;
 }
 
-const string* Expression::CacheString(const string& string) {
-  return &*string_cache_.insert(string).first;
+const std::string* Expression::CacheString(const std::string& value) {
+  return &*string_cache_.insert(value).first;
 }
 
 const Expression::ExpressionCache& Expression::GetExpressions() {
@@ -88,21 +88,21 @@ int Expression::GetId() const { return id_; }
 
 Expression::Type Expression::GetType() const { return type_; }
 
-const string& Expression::GetSymbol() const { return *symbol_; }
+const std::string& Expression::GetSymbol() const { return *symbol_; }
 
-uint16 Expression::GetPosition() const { return position_; }
+uint16_t Expression::GetPosition() const { return position_; }
 
-int64 Expression::GetImmediate() const { return immediate_; }
+int64_t Expression::GetImmediate() const { return immediate_; }
 
 const Expression* Expression::GetParent() const { return parent_; }
 
-string Expression::CreateSignature() {
-  string signature(19 /* length of the signature */, '0');
+std::string Expression::CreateSignature() {
+  std::string signature(19 /* length of the signature */, '0');
   signature[0] = static_cast<char>(type_);
-  *reinterpret_cast<uint16*>(&signature[1]) = position_;
+  *reinterpret_cast<uint16_t*>(&signature[1]) = position_;
   *reinterpret_cast<Address*>(&signature[3]) = immediate_;
-  *reinterpret_cast<uint32*>(&signature[11]) = GetSdbmHash(*symbol_);
-  *reinterpret_cast<uint32*>(&signature[15]) = parent_ ? parent_->GetId() : 0;
+  *reinterpret_cast<uint32_t*>(&signature[11]) = GetSdbmHash(*symbol_);
+  *reinterpret_cast<uint32_t*>(&signature[15]) = parent_ ? parent_->GetId() : 0;
   return signature;
 }
 
@@ -116,7 +116,7 @@ std::ostream& operator<<(std::ostream& stream, const Expression& expression) {
   else
     stream << "-" << std::hex << -expression.GetImmediate();
 
-  // TODO(user) Re-implement using renderExpression in instruction.cpp
+  // TODO(soerenme) Re-implement using renderExpression in instruction.cpp
   // for (std::list< CExpression * >::const_iterator i =
   //      expression.m_Children.begin(); i != expression.m_Children.end(); ++i )
   //   stream << "(" << **i << ")";

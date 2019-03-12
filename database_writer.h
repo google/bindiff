@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +23,9 @@
 class FlowGraph;
 class CallGraph;
 
+namespace security {
+namespace binexport {
+
 class DatabaseWriter : public Writer {
  public:
   enum InternalStatement {
@@ -34,34 +37,35 @@ class DatabaseWriter : public Writer {
 
   using AddressSpaceIds = std::map<Address, int>;
 
-  DatabaseWriter(const string& schema, const string& module_name, int module_id,
-                 const string& md5, const string& sha1,
-                 const string& architecture, const Address base_address,
-                 const string& program_version,
-                 const string& connection_string);
+  DatabaseWriter(const std::string& schema, const std::string& module_name, int module_id,
+                 const std::string& md5, const std::string& sha1,
+                 const std::string& architecture, const Address base_address,
+                 const std::string& program_version,
+                 const std::string& connection_string);
   ~DatabaseWriter();
 
-  util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
-                     const Instructions& instructions,
-                     const AddressReferences& address_references,
-                     const TypeSystem* type_system,
-                     const AddressSpace& address_space) override;
+  not_absl::Status Write(const CallGraph& call_graph,
+                         const FlowGraph& flow_graph,
+                         const Instructions& instructions,
+                         const AddressReferences& address_references,
+                         const TypeSystem* type_system,
+                         const AddressSpace& address_space) override;
 
   int query_size() const { return query_size_; }
   void set_query_size(int value) { query_size_ = value; }
 
  private:
-  static const string postgresql_initialize_tables_;
-  static const string postgresql_initialize_constraints_;
-  static const string postgresql_initialize_indices_;
-  static const string postgresql_maintenance_;
+  static const std::string postgresql_initialize_tables_;
+  static const std::string postgresql_initialize_constraints_;
+  static const std::string postgresql_initialize_indices_;
+  static const std::string postgresql_maintenance_;
 
   void CreateSchema();
   void CreateModulesTable();
-  void PrepareDatabase(const string& md5, const string& sha1,
-                       const string& architecture, const Address base_address);
+  void PrepareDatabase(const std::string& md5, const std::string& sha1,
+                       const std::string& architecture, const Address base_address);
   void ExecuteInternalStatement(InternalStatement id,
-                                const string& replacement);
+                                const std::string& replacement);
 
   void InsertAddressComments(const CallGraph& call_graph);
   void InsertFlowGraphs(const CallGraph& call_graph,
@@ -82,9 +86,12 @@ class DatabaseWriter : public Writer {
   Database database_;
   int query_size_;
   int module_id_;
-  string module_name_;
-  string schema_;
-  string program_version_;
+  std::string module_name_;
+  std::string schema_;
+  std::string program_version_;
 };
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_DATABASE_WRITER_H_

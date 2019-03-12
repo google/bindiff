@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 namespace security {
 namespace binexport {
 
-Instruction::Instruction(Address address, const string& mnemonic)
+Instruction::Instruction(Address address, const std::string& mnemonic)
     : address_(address), mnemonic_(mnemonic) {}
 
 void Instruction::set_operands(const std::vector<int>& operand_indices) {

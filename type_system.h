@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ class TypeSystem {
   TypeSystem(const TypeSystem&) = delete;
   TypeSystem& operator=(const TypeSystem&) = delete;
 
-  typedef string (*GetNameForInstance)(Address address);
+  typedef std::string (*GetNameForInstance)(Address address);
   // Creates a type substitution at the given location (if possible).
   void AddTypeSubstitution(Address address, int operand_num, int expression_id);
   // Creates a type substitution at the given location but also takes an
@@ -57,7 +57,7 @@ class TypeSystem {
   // (i.e. some datum in the data section).
   struct TypeInstance {
     TypeInstance(Address section_offset, const BaseType* base_type,
-                 Address segment_address, const string& name)
+                 Address segment_address, const std::string& name)
         : section_offset(section_offset),
           base_type(base_type),
           segment_address(segment_address),
@@ -70,7 +70,7 @@ class TypeSystem {
     // We need an explicit database a priori since the expression substitution
     // table has a foreign key to the type instances table.
     int database_id;
-    string name;
+    std::string name;
 
    private:
     static int NextId() {

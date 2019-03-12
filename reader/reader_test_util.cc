@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,25 +19,25 @@
 #include <gmock/gmock.h>  // NOLINT
 #include <gtest/gtest.h>  // NOLINT
 
-#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/canonical_errors.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "util/task/status.h"
 
 namespace security {
 namespace binexport {
 
-static string* g_test_srcdir{};
+static std::string* g_test_srcdir{};
 
-util::Status GetBinExportProtoForTesting(absl::string_view filename,
-                                         BinExport2* proto) {
-  string testfile = JoinPath(*g_test_srcdir, "testdata", filename);
+not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
+                                             BinExport2* proto) {
+  std::string testfile = JoinPath(*g_test_srcdir, "testdata", filename);
   std::ifstream stream(testfile.c_str(), std::ios::in | std::ios::binary);
   if (!proto->ParseFromIstream(&stream)) {
-    return util::Status(util::error::FAILED_PRECONDITION,
-                        absl::StrCat("Could not parse test file: ", testfile));
+    return not_absl::FailedPreconditionError(
+        absl::StrCat("Could not parse test file: ", testfile));
   }
-  return util::OkStatus();
+  return not_absl::OkStatus();
 }
 
 }  // namespace binexport

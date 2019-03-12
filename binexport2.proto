@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,8 +54,8 @@
 // WARNING: We omit the defaults manually in the code writing the data. Do not
 //          change the defaults here without changing the code!
 //
-// TODO(user): Link flow graphs to call graph nodes somehow. The connection
-//                 is there via the address, but somehow tricky to extract?
+// TODO(cblichmann): Link flow graphs to call graph nodes. The connection is
+//                   there via the address, but tricky to extract.
 
 syntax = "proto2";
 
@@ -64,6 +64,7 @@ option java_outer_classname = "BinExport";
 
 message BinExport2 {
   message Meta {
+    // LINT.IfChange MOE:strip_line
     // Input binary filename including file extension but excluding file path.
     // example: "insider_gcc.exe"
     optional string executable_name = 1;
@@ -188,7 +189,7 @@ message BinExport2 {
     // descend from that. Rendering order for expressions on the same tree level
     // (siblings) is implicitly given by the order they are referenced in this
     // repeated field.
-    // implicit: expression sequence
+    // Implicit: expression sequence
     repeated int32 expression_index = 1;
   }
 
@@ -217,12 +218,15 @@ message BinExport2 {
     optional int32 mnemonic_index = 3 [default = 0];
 
     // Indices into the operand tree. On X86 this can be 0, 1 or 2 elements
-    // long.
-    // implicit: operand sequence
+    // long, 3 elements with VEX/EVEX.
+    // Implicit: operand sequence
     repeated int32 operand_index = 4;
 
     // The unmodified input bytes corresponding to this instruction.
     optional bytes raw_bytes = 5;
+
+    // Implicit: comment sequence
+    repeated int32 comment_index = 6;
   }
 
   message BasicBlock {
@@ -239,7 +243,7 @@ message BinExport2 {
       optional int32 end_index = 2;
     }
 
-    // implicit: instruction sequence
+    // Implicit: instruction sequence
     repeated IndexRange instruction_index = 1;
   }
 
@@ -273,9 +277,10 @@ message BinExport2 {
     repeated Edge edge = 2;
   }
 
-  // Generic reference class used for address comments, string references and
-  // expression substitutions. It allows referencing from an instruction,
-  // operand, expression subtree tuple to a de-duped string in the string table.
+  // Generic reference class used for address comments (deprecated), string
+  // references and expression substitutions. It allows referencing from an
+  // instruction, operand, expression subtree tuple to a de-duped string in the
+  // string table.
   message Reference {
     // Index into the global instruction table.
     optional int32 instruction_index = 1;
@@ -296,6 +301,43 @@ message BinExport2 {
 
     // Address being referred.
     optional uint64 address = 2;
+  }
+
+  message Comment {
+    enum Type {
+      // A regular instruction comment.
+      DEFAULT = 0;
+
+      // A comment line that is typically displayed before (above) the
+      // instruction it refers to.
+      ANTERIOR = 1;
+
+      // Like ANTERIOR, but a typically displayed after (below).
+      POSTERIOR = 2;
+
+      // Similar to an ANTERIOR comment, but applies to the beginning of an
+      // identified function. Programs displaying the proto may choose to render
+      // these differently (e.g. above an inferred function signature).
+      FUNCTION = 3;
+    }
+
+    // Reserved fields in case we want to support comments per
+    // operand/expression, like in Reference.
+    reserved 2, 3;
+
+    // Index into the global instruction table. This is here to enable
+    // comment processing without having to iterate over all instructions.
+    // There is an N:M mapping of instructions to comments.
+    optional int32 instruction_index = 1;
+
+    // Index into the global string table.
+    optional int32 string_table_index = 4;
+
+    // Comment is propagated to all locations that reference the original
+    // location.
+    optional bool repeatable = 5;
+
+    optional Type type = 6 [default = DEFAULT];
   }
 
   message Section {
@@ -330,7 +372,6 @@ message BinExport2 {
     // Name, such as Java class name. Platform-dependent.
     optional string name = 1;
   }
-
   optional Meta meta_information = 1;
   repeated Expression expression = 2;
   repeated Operand operand = 3;
@@ -341,11 +382,12 @@ message BinExport2 {
   optional CallGraph call_graph = 8;
 
   repeated string string_table = 9;
-  repeated Reference address_comment = 10;
+  repeated Reference address_comment = 10 [deprecated = true];
+  // Rich comment index used for BinDiff's comment porting.
+  repeated Comment comment = 17;
   repeated Reference string_reference = 11;
   repeated Reference expression_substitution = 12;
   repeated Section section = 13;
-
   repeated Library library = 14;
   repeated DataReference data_reference = 15;
   repeated Module module = 16;

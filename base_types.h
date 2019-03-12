@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@
 #include "third_party/zynamics/binexport/types.h"
 
 struct MemberType;
-class BaseType;
 
 // Represents a base type (e.g. int, struct_A, etc).
 // Instantiation of base_type is not thread safe.
@@ -54,10 +53,10 @@ class BaseType {
   using MemberIds = std::vector<int>;
 
   // Returns the database id of this base type.
-  uint32 GetId() const;
+  uint32_t GetId() const;
 
-  void SetName(const string& name);
-  const string& GetName() const;
+  void SetName(const std::string& name);
+  const std::string& GetName() const;
 
   void SetSize(size_t size);
   size_t GetSize() const;
@@ -73,14 +72,14 @@ class BaseType {
   const MemberTypes& GetMembers() const;
 
   void SetCategory(TypeCategory category);
-  string GetCategoryString() const;
+  std::string GetCategoryString() const;
 
   static const MemberType* ResolveMember(const BaseType* base_type, int offset);
 
  private:
-  uint32 id_;
+  uint32_t id_;
   // The name of  this type.
-  string name_;
+  std::string name_;
   // The size of this type in bits.
   size_t size_;
   // Is this type able to represent signed values?
@@ -92,7 +91,7 @@ class BaseType {
   // own the MemberType instances. Instead, the types container owns them.
   MemberTypes members_;
   TypeCategory category_;
-  static uint32 NextTypeId();
+  static uint32_t NextTypeId();
 };
 
 // Represents an element of a compound type.
@@ -110,9 +109,9 @@ struct MemberType {
         num_elements(DB_NULL_VALUE) {}
 
   // The corresponding id in the database.
-  uint32 id;
+  uint32_t id;
   // The name of the member.
-  string name;
+  std::string name;
   // The type of this member.
   const BaseType* type;
   // The parent id where this type is contained in.
@@ -130,7 +129,7 @@ struct MemberType {
   int num_elements;
 
  private:
-  static uint32 NextTypeId();
+  static uint32_t NextTypeId();
 };
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_TYPES_H_

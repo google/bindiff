@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@
 #include <enum.hpp>                                             // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <ida.hpp>                                              // NOLINT
+#include <lines.hpp>                                            // NOLINT
 #include <name.hpp>                                             // NOLINT
 #include <segment.hpp>                                          // NOLINT
 #include <struct.hpp>                                           // NOLINT
@@ -39,10 +40,8 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/base_types.h"
-#include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
-#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/arm.h"
 #include "third_party/zynamics/binexport/ida/dalvik.h"
@@ -54,10 +53,14 @@
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
-#include "third_party/zynamics/binexport/writer.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
-using security::binexport::HumanReadableDuration;
+namespace security {
+namespace binexport {
+
+std::string ToString(const qstring& ida_string) {
+  return std::string(ida_string.c_str(), ida_string.length());
+}
 
 enum Architecture {
   kX86 = 0,
@@ -89,7 +92,7 @@ Address GetImageBase() {
 }
 
 Architecture GetArchitecture() {
-  string architecture(inf.procname);
+  std::string architecture(inf.procname);
   if (architecture == "metapc") {
     return kX86;
   }
@@ -110,8 +113,8 @@ Architecture GetArchitecture() {
   return kGeneric;
 }
 
-absl::optional<string> GetArchitectureName() {
-  string architecture;
+absl::optional<std::string> GetArchitectureName() {
+  std::string architecture;
   switch (GetArchitecture()) {
     case kX86:
       architecture = "x86";
@@ -143,7 +146,7 @@ absl::optional<string> GetArchitectureName() {
 
 int GetArchitectureBitness() { return inf.is_64bit() ? 64 : 32; }
 
-string GetModuleName() {
+std::string GetModuleName() {
   char path_buffer[QMAXPATH] = {0};
   get_input_file_path(path_buffer, QMAXPATH);
   return Basename(path_buffer);
@@ -183,7 +186,7 @@ ModuleMap InitModuleMap() {
   ModuleMap modules;
 
   struct ImportData {
-    string module_name;
+    std::string module_name;
     ModuleMap* modules;
   };
   for (int i = 0; i < get_import_module_qty(); ++i) {
@@ -191,9 +194,7 @@ ModuleMap InitModuleMap() {
     if (!get_import_module_name(&ida_module_name, i)) {
       continue;
     }
-    ImportData import_data = {
-        string(ida_module_name.c_str(), ida_module_name.length()),
-        &modules};
+    ImportData import_data = {ToString(ida_module_name), &modules};
     enum_import_names(
         i, static_cast<import_enum_cb_t*>([](ea_t ea, const char* /* name */,
                                              uval_t /* ord */,
@@ -207,7 +208,7 @@ ModuleMap InitModuleMap() {
   return modules;
 }
 
-static string GetModuleName(Address address, const ModuleMap& modules) {
+static std::string GetModuleName(Address address, const ModuleMap& modules) {
   const auto it = modules.find(address);
   if (it != modules.end()) {
     return it->second;
@@ -215,22 +216,22 @@ static string GetModuleName(Address address, const ModuleMap& modules) {
   return "";
 }
 
-int GetOriginalIdaLine(const Address address, string* line) {
+int GetOriginalIdaLine(const Address address, std::string* line) {
   qstring ida_line;
   generate_disasm_line(&ida_line, address, 0);
   int result = tag_remove(&ida_line);
-  *line = string(ida_line.c_str(), ida_line.length());
+  *line = ToString(ida_line);
   return result;
 }
 
-string GetMnemonic(const Address address) {
+std::string GetMnemonic(const Address address) {
   qstring ida_mnemonic;
   print_insn_mnem(&ida_mnemonic, address);
-  return string(ida_mnemonic.c_str(), ida_mnemonic.length());
+  return ToString(ida_mnemonic);
 }
 
 // Utility function to render hex values as shown in IDA.
-static string IdaHexify(int value) {
+static std::string IdaHexify(int value) {
   if (value < 10) {
     return absl::StrCat(value);
   }
@@ -238,16 +239,18 @@ static string IdaHexify(int value) {
                       "h");
 }
 
-string GetSizePrefix(const size_t size_in_bytes) {
+std::string GetSizePrefix(const size_t size_in_bytes) {
   return "b" + std::to_string(size_in_bytes);
 }
 
 size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
+  constexpr int dt_half = 0x7f;  // Defined in IDA SDK module/arm/arm.hpp
   switch (operand.dtype) {
     case dt_byte:
       return 1;  // 8 bit
     case dt_code:
     case dt_word:
+    case dt_half:  // ARM-only (b/70541404)
       return 2;  // 16 bit
     case dt_dword:
     case dt_float:
@@ -266,10 +269,13 @@ size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
     case dt_tbyte:
       return ph.tbyte_size;  // variable size (ph.tbyte_size)
     default: {
-      const string error =
-          absl::StrCat(__FUNCTION__, ": Invalid operand type (",
-                       static_cast<int>(operand.dtype), ") at address ",
-                       absl::Hex(instruction.ea, absl::kZeroPad8));
+      // TODO(cblichmann): Instead of throwing, return a constant signifying
+      //                   "unknown". Then, in DecodeOperands() (for all
+      //                   archs), do not create a size prefix.
+      //                   Print a warning in all cases.
+      const std::string error =
+          absl::StrCat(__FUNCTION__, ": Invalid operand type (", operand.dtype,
+                       ") at address ", FormatAddress(instruction.ea));
       throw std::runtime_error(error);
     }
   }
@@ -289,8 +295,8 @@ bool IsCodeSegment(const Address address) {
   return false;
 }
 
-static string GetStringReference(ea_t address) {
-  // This only returns the first string ref - there may be several.
+static std::string GetStringReference(ea_t address) {
+  // This only returns the first std::string ref - there may be several.
   xrefblk_t xrefs;
   if (xrefs.first_from(address, XREF_DATA) == 0) {
     return "";
@@ -303,7 +309,7 @@ static string GetStringReference(ea_t address) {
         length = get_max_strlit_length(xrefs.to, STRTYPE_C_16);
       }
 
-      string value(length, ' ');
+      std::string value(length, ' ');
       for (size_t i = 0; i < length; ++i) {
         value[i] = get_byte(xrefs.to + i);
       }
@@ -317,12 +323,12 @@ static string GetStringReference(ea_t address) {
   return "";
 }
 
-bool IsStackVariable(Address address, uint8 operand_num) {
+bool IsStackVariable(Address address, uint8_t operand_num) {
   flags_t flags = get_flags(static_cast<ea_t>(address));
   return is_stkvar(flags, operand_num);
 }
 
-bool IsStructVariable(Address address, uint8 operand_num) {
+bool IsStructVariable(Address address, uint8_t operand_num) {
   flags_t flags = get_flags(static_cast<ea_t>(address));
   return (operand_num == 0 && is_stroff0(flags)) ||
          (operand_num == 1 && is_stroff1(flags));
@@ -330,7 +336,7 @@ bool IsStructVariable(Address address, uint8 operand_num) {
 
 // Returns the variable name of either a stack variable or a
 // structure variable at the given position.
-string GetVariableName(const insn_t& instruction, uint8 operand_num) {
+std::string GetVariableName(const insn_t& instruction, uint8_t operand_num) {
   if (!IsStackVariable(instruction.ea, operand_num)) {
     return "";
   }
@@ -342,8 +348,7 @@ string GetVariableName(const insn_t& instruction, uint8 operand_num) {
     return "";
   }
 
-  qstring ida_name(get_struc_name(stack_variable->id));
-  string name(ida_name.c_str(), ida_name.length());
+  std::string name = ToString(get_struc_name(stack_variable->id));
 
   // The parsing is in here because IDA puts in some strange segment prefix or
   // something like that.
@@ -360,7 +365,7 @@ string GetVariableName(const insn_t& instruction, uint8 operand_num) {
       return name;
     }
 
-    string result;
+    std::string result;
 
     // The following comment is from the Python exporter:
     // 4 is the value of the stack pointer register SP/ESP in x86. This should
@@ -377,11 +382,10 @@ string GetVariableName(const insn_t& instruction, uint8 operand_num) {
         absl::StrAppend(&result, IdaHexify(delta), "+");
       }
 
-      // TODO(user): This must be recursive for nested structs.
+      // TODO(soerenme): This must be recursive for nested structs.
       if (const struc_t* structure = get_struc(id)) {
         if (const member_t* member = get_member(structure, disp)) {
-          qstring ida_name(get_member_name(member->id));
-          string member_name(ida_name.c_str(), ida_name.length());
+          std::string member_name = ToString(get_member_name(member->id));
           absl::StrAppend(&result, name, ".", member_name, disp);
           if (delta) {
             absl::StrAppend(&result, delta > 0 ? "+" : "", delta);
@@ -394,17 +398,18 @@ string GetVariableName(const insn_t& instruction, uint8 operand_num) {
     }
 
     absl::StrAppend(&result, name);
-    if (const int delta = offset - stack_variable->soff) {
-      absl::StrAppend(&result, "+0x", absl::Hex(delta));
+    const int var_delta = offset - stack_variable->soff;
+    if (var_delta) {
+      absl::StrAppend(&result, "+0x", absl::Hex(var_delta));
     }
     return result;
   }
   return "";
 }
 
-string GetGlobalStructureName(Address address, Address instance_address,
-                                   uint8 operand_num) {
-  string instance_name = "";
+std::string GetGlobalStructureName(Address address, Address instance_address,
+                                   uint8_t operand_num) {
+  std::string instance_name;
   tid_t id[MAXSTRUCPATH];
   memset(id, 0, sizeof(id));
   adiff_t disp = 0;
@@ -421,57 +426,51 @@ string GetGlobalStructureName(Address address, Address instance_address,
       qstring ida_name;
       if (get_name(&ida_name, instance_address - disp) ||
           get_struc_name(&ida_name, id[0])) {
-        instance_name.assign(ida_name.c_str(), ida_name.length());
+        instance_name = ToString(ida_name);
       }
     }
 
-    // TODO(user): Array members won't be resolved properly. disp will point
-    //                 into the array, making get_member calls fail.
+    // TODO(cblichmann): Array members won't be resolved properly. disp will
+    //                   point into the array, making get_member calls fail.
     for (const member_t* member = get_member(structure, disp);
          member != nullptr;
          member = get_member(structure, disp -= member->soff)) {
-      qstring ida_name(get_member_name(member->id));
-      instance_name += "." + string(ida_name.c_str(), ida_name.length());
+      absl::StrAppend(&instance_name, ".",
+                      ToString(get_member_name(member->id)));
       structure = get_sptr(member);
     }
   }
   return instance_name;
 }
 
-string GetName(Address address, bool user_names_only) {
+std::string GetName(Address address, bool user_names_only) {
   if (!user_names_only ||
       has_user_name(get_flags(static_cast<ea_t>(address)))) {
-    qstring ida_name(get_name(static_cast<ea_t>(address)));
-    return string(ida_name.c_str(), ida_name.length());
+    return ToString(get_name(static_cast<ea_t>(address)));
   }
   return "";
 }
 
-static string GetDemangledName(Address address) {
+static std::string GetDemangledName(Address address) {
   if (has_user_name(get_flags(static_cast<ea_t>(address)))) {
-    qstring ida_name(get_short_name(static_cast<ea_t>(address)));
-    return string(ida_name.c_str(), ida_name.length());
+    return ToString(get_short_name(static_cast<ea_t>(address)));
   }
   return "";
 }
 
-string GetRegisterName(size_t index, size_t segment_size) {
-  enum { kBufferSize = MAXSTR };
-  char buffer[kBufferSize];
-  memset(buffer, 0, kBufferSize);
-
+std::string GetRegisterName(size_t index, size_t segment_size) {
   qstring ida_reg_name;
   if (get_reg_name(&ida_reg_name, index, segment_size) != -1) {
-    return string(ida_reg_name.c_str(), ida_reg_name.length());
+    return ToString(ida_reg_name);
   }
-  // Do not return empty string due to assertion fail in database_writer.cc
+  // Do not return empty std::string due to assertion fail in database_writer.cc
   return "<bad register>";
 }
 
 Name GetName(Address /* address */, Address immediate,
-             uint8 /* operand_num */, bool user_names_only) {
+             uint8_t /* operand_num */, bool user_names_only) {
   Expression::Type type = Expression::TYPE_INVALID;
-  const string name = GetName(immediate, user_names_only);
+  const std::string name = GetName(immediate, user_names_only);
   if (!name.empty()) {
     xrefblk_t xref;
     for (bool ok = xref.first_to(immediate, XREF_ALL);
@@ -583,7 +582,7 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
         } else {
           Address next_address = instruction->GetNextInstruction();
           if (GetArchitecture() == kMips) {
-            // TODO(user): Since this is MIPS, replace below with a
+            // TODO(cblichman): Since this is MIPS, replace below with a
             //                  constant.
             // Look ahead one instruction.
             insn_t next_instruction;
@@ -644,8 +643,8 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
   }
 }
 
-static string GetBytes(const Instruction& instruction) {
-  string bytes(instruction.GetSize(), '\0');
+static std::string GetBytes(const Instruction& instruction) {
+  std::string bytes(instruction.GetSize(), '\0');
   get_bytes(&(bytes[0]), instruction.GetSize(),
             static_cast<ea_t>(instruction.GetAddress()));
   return bytes;
@@ -782,7 +781,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
 
   LOG(INFO) << "reconstructing flow graphs";
   std::sort(address_references.begin(), address_references.end());
-  // TODO(user): Remove duplicates if any.
+  // TODO(soerenme): Remove duplicates if any.
   ReconstructFlowGraph(instructions, *flow_graph, call_graph);
 
   LOG(INFO) << "reconstructing functions";
@@ -806,7 +805,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
     Function& function = *i->second;
     const Address address = function.GetEntryPoint();
     // - set function name
-    const string name = GetName(address, true);
+    const std::string name = GetName(address, true);
     if (!name.empty()) {
       function.SetName(name, GetDemangledName(address));
     }
@@ -821,7 +820,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
         function.SetType(Function::TYPE_LIBRARY);
       }
     }
-    const string module = GetModuleName(address, *modules);
+    const std::string module = GetModuleName(address, *modules);
     if (!module.empty()) {
       function.SetType(Function::TYPE_IMPORTED);
       function.SetModuleName(module);
@@ -859,13 +858,13 @@ void GetRegularComments(Address address, Comments* comments) {
   if (get_cmt(&ida_comment, address, /*rptble=*/false) > 0) {
     // TODO(cblichmann): Benchmark against caching an absl::string_view.
     comments->emplace_back(address, UA_MAXOP + 1,
-                           CallGraph::CacheString(string(
+                           CallGraph::CacheString(std::string(
                                ida_comment.c_str(), ida_comment.length())),
                            Comment::REGULAR, false);
   }
   if (get_cmt(&ida_comment, address, /*rptble=*/ true) > 0) {
     comments->emplace_back(address, UA_MAXOP + 2,
-                           CallGraph::CacheString(string(
+                           CallGraph::CacheString(std::string(
                                ida_comment.c_str(), ida_comment.length())),
                            Comment::REGULAR, true);
   }
@@ -874,76 +873,75 @@ void GetRegularComments(Address address, Comments* comments) {
 void GetEnumComments(Address address,
                      Comments* comments) {  // @bug: there is an get_enum_cmt
                                             // function in IDA as well!
-  uint8 serial;
+  uint8_t serial;
   if (is_enum0(get_flags(address))) {
     int id = get_enum_id(&serial, address, 0);
     if (id != BADNODE) {
-      qstring ida_name(get_enum_name(id));
       comments->emplace_back(
-          address, 0,
-          CallGraph::CacheString(string(ida_name.c_str(), ida_name.length())),
+          address, 0, CallGraph::CacheString(ToString(get_enum_name(id))),
           Comment::ENUM, false);
     }
   }
   if (is_enum1(get_flags(address))) {
     int id = get_enum_id(&serial, address, 1);
     if (id != BADNODE) {
-      qstring ida_name(get_enum_name(id));
       comments->emplace_back(
-          address, 1,
-          CallGraph::CacheString(string(ida_name.c_str(), ida_name.length())),
+          address, 1, CallGraph::CacheString(ToString(get_enum_name(id))),
           Comment::ENUM, false);
     }
   }
 }
 
-// Taken from IDA SDK 6.1 nalt.hpp. ExtraGet has since been deprecated.
-inline ssize_t ExtraGet(ea_t ea, int what, char* buf, size_t bufsize) {
-  return netnode(ea).supstr(what, buf, bufsize);
+bool GetLineComment(Address address, int n, std::string* output) {
+  qstring ida_comment;
+  ssize_t result = get_extra_cmt(&ida_comment, address, n);
+  *output = ToString(ida_comment);
+  return result >= 0;
 }
 
 void GetLineComments(Address address, Comments* comments) {
-  char buffer[4096];
-  const size_t buffer_size = sizeof(buffer) / sizeof(buffer[0]);
+  std::string buffer;
 
-  // anterior comments
-  string comment;
-  for (int i = 0; ExtraGet(address, E_PREV + i, buffer, buffer_size) != -1; ++i)
-    comment += buffer + string("\n");
+  // Anterior comments
+  std::string comment;
+  for (int i = 0; GetLineComment(address, E_PREV + i, &buffer); ++i) {
+    absl::StrAppend(&comment, buffer, "\n");
+  }
   if (!comment.empty()) {
     comment = comment.substr(0, comment.size() - 1);
     comments->emplace_back(address, UA_MAXOP + 3,
                            CallGraph::CacheString(comment), Comment::ANTERIOR,
-                           false);
+                           /*repeatable=*/false);
   }
-  // posterior comments
+  // Posterior comments
   comment.clear();
-  for (int i = 0; ExtraGet(address, E_NEXT + i, buffer, buffer_size) != -1; ++i)
-    comment += buffer + string("\n");
+  for (int i = 0; GetLineComment(address, E_NEXT + i, &buffer); ++i) {
+    absl::StrAppend(&comment, buffer, "\n");
+  }
   if (!comment.empty()) {
     comment = comment.substr(0, comment.size() - 1);
     comments->emplace_back(address, UA_MAXOP + 4,
                            CallGraph::CacheString(comment), Comment::POSTERIOR,
-                           false);
+                           /*repeatable=*/false);
   }
 }
 
 void GetFunctionComments(Address address, Comments* comments) {
-  if (func_t* function = get_func(address)) {
-    if (function->start_ea == address) {
-      qstring ida_comment;
-      if (get_func_cmt(&ida_comment, function, /* repeatable = */ false) > 0) {
-        comments->emplace_back(address, UA_MAXOP + 5,
-                               CallGraph::CacheString(string(
-                                   ida_comment.c_str(), ida_comment.length())),
-                               Comment::FUNCTION, false);
-      }
-      if (get_func_cmt(&ida_comment, function, /* repeatable = */ true) > 0) {
-        comments->emplace_back(address, UA_MAXOP + 6,
-                               CallGraph::CacheString(string(
-                                   ida_comment.c_str(), ida_comment.length())),
-                               Comment::FUNCTION, true);
-      }
+  func_t* function = get_func(address);
+  if (!function) {
+    return;
+  }
+  if (function->start_ea == address) {
+    qstring ida_comment;
+    if (get_func_cmt(&ida_comment, function, /*repeatable=*/false) > 0) {
+      comments->emplace_back(address, UA_MAXOP + 5,
+                             CallGraph::CacheString(ToString(ida_comment)),
+                             Comment::FUNCTION, /*repeatable=*/false);
+    }
+    if (get_func_cmt(&ida_comment, function, /*repeatable=*/true) > 0) {
+      comments->emplace_back(address, UA_MAXOP + 6,
+                             CallGraph::CacheString(ToString(ida_comment)),
+                             Comment::FUNCTION, /*repeatable=*/true);
     }
   }
 }
@@ -954,11 +952,9 @@ void GetLocationNames(Address address, Comments* comments) {
       has_user_name(get_flags(address))) {
     // TODO(cblichmann): get_short_name -> use demangled names for display,
     //                   but port mangled names.
-    qstring ida_name(get_name(address));
     comments->emplace_back(address, UA_MAXOP + 7,
-                           CallGraph::CacheString(string(
-                               ida_name.c_str(), ida_name.length())),
-                           Comment::LOCATION, false);
+                           CallGraph::CacheString(ToString(get_name(address))),
+                           Comment::LOCATION, /*repeatable=*/false);
   }
 }
 
@@ -974,8 +970,7 @@ void GetGlobalReferences(Address address, Comments* comments) {
 
     // This stores the instance pointer
     comments->emplace_back(address, UA_MAXOP + 1024 + count,
-                           CallGraph::CacheString(string(
-                               ida_name.c_str(), ida_name.length())),
+                           CallGraph::CacheString(ToString(ida_name)),
                            Comment::GLOBALREFERENCE, false);
   }
 }
@@ -986,7 +981,6 @@ class FunctionCache {
     if (!function) {
       return;
     }
-
     struc_t* frame = get_frame(function);
     if (!frame) {
       return;
@@ -1013,14 +1007,14 @@ class FunctionCache {
         continue;
       }
 
-      local_vars[offset].assign(ida_name.c_str(), ida_name.length());
+      local_vars[offset] = ToString(ida_name);
       i += std::max(static_cast<asize_t>(1), get_member_size(member));
       lastSuccess = i;
     }
   }
 
   func_t* function;
-  std::map<ea_t, string> local_vars;
+  std::map<ea_t, std::string> local_vars;
 };
 
 void GetLocalReferences(const insn_t& instruction, Comments* comments) {
@@ -1060,3 +1054,6 @@ void GetComments(const insn_t& instruction, Comments* comments) {
   GetGlobalReferences(instruction.ea, comments);
   GetLocalReferences(instruction, comments);
 }
+
+}  // namespace binexport
+}  // namespace security

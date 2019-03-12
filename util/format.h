@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,15 +34,15 @@ namespace binexport {
 //   FormatAddress(0x59DE50)           => "0059DE50"
 //   FormatAddress(0x00000001004940B0) => "00000001004940B0"
 //   FormatAddress(0x7FF00000004926F4) => "7FF00000004926F4"
-string FormatAddress(Address address);
+std::string FormatAddress(Address address);
 
 // Formats a duration given in seconds or as an absl::Duration into a human
 // readable time based on hours. Maximum precision is 1/100th of a second.
 //
 // Example:
 //   HumanReadableDuration(9045.123) => "2h 45m 0.12s"
-string HumanReadableDuration(double seconds);
-string HumanReadableDuration(absl::Duration duration);
+std::string HumanReadableDuration(double seconds);
+std::string HumanReadableDuration(absl::Duration duration);
 
 }  // namespace binexport
 }  // namespace security

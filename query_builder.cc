@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 const Terminator kFlushQuery = {};
 
-QueryBuilder::QueryBuilder(Database* database, const string& base_query,
+QueryBuilder::QueryBuilder(Database* database, const std::string& base_query,
                            size_t query_size)
     : base_query_(base_query),
       query_size_(query_size),
@@ -31,7 +31,7 @@ QueryBuilder::QueryBuilder(Database* database, const string& base_query,
 }
 
 void QueryBuilder::Execute() {
-  const string& query = current_query_.str();
+  const std::string& query = current_query_.str();
   if (query != base_query_) {
     database_->Execute(query.substr(0, query.size() - 1).c_str());
   }
@@ -43,10 +43,10 @@ QueryBuilder& operator<<(QueryBuilder& builder, const Terminator&) {
     // Buffer overrun, create new query.
     builder.database_->Execute(
         builder.current_query_.str()
-            .substr(0, static_cast<uint32>(builder.last_flush_position_) - 1)
+            .substr(0, static_cast<uint32_t>(builder.last_flush_position_) - 1)
             .c_str());
-    string query = builder.current_query_.str().substr(
-        static_cast<uint32>(builder.last_flush_position_));
+    std::string query = builder.current_query_.str().substr(
+        static_cast<uint32_t>(builder.last_flush_position_));
     builder.current_query_.str("");
     builder.current_query_ << builder.base_query_ << query;
     builder.last_flush_position_ = builder.current_query_.tellp();
@@ -56,12 +56,12 @@ QueryBuilder& operator<<(QueryBuilder& builder, const Terminator&) {
   return builder;
 }
 
-QueryBuilder& operator<<(QueryBuilder& builder, const string& query) {
+QueryBuilder& operator<<(QueryBuilder& builder, const std::string& query) {
   builder.current_query_ << query;
   return builder;
 }
 
-QueryBuilder& operator<<(QueryBuilder& builder, int64 value) {
+QueryBuilder& operator<<(QueryBuilder& builder, int64_t value) {
   builder.current_query_ << value;
   return builder;
 }

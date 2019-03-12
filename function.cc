@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,18 +36,6 @@ Function::Function(Address entry_point)
       module_name_(nullptr),
       type_(TYPE_NONE),
       library_index_(-1) {
-  ++instance_count_;
-}
-
-Function::Function(const Function& other)
-    : entry_point_(other.entry_point_),
-      basic_blocks_(other.basic_blocks_),
-      edges_(other.edges_),
-      name_(other.name_),
-      demangled_name_(other.demangled_name_),
-      module_name_(other.module_name_),
-      type_(other.type_),
-      library_index_(other.library_index_) {
   ++instance_count_;
 }
 
@@ -138,17 +126,17 @@ const char* Function::GetTypeName(FunctionType type) {
   }
 }
 
-void Function::SetName(const string& name,
-                       const string& demangled_name) {
+void Function::SetName(const std::string& name,
+                       const std::string& demangled_name) {
   name_ = name;
   if (name != demangled_name) {
     demangled_name_ = demangled_name;
   } else {
-    demangled_name_ = string();
+    demangled_name_ = std::string();
   }
 }
 
-string Function::GetName(Name type) const {
+std::string Function::GetName(Name type) const {
   if (HasRealName()) {
     return type == MANGLED || demangled_name_.empty() ? name_ : demangled_name_;
   }
@@ -218,11 +206,11 @@ int Function::GetBasicBlockIndexForAddress(Address address) const {
 
 bool Function::IsImported() const { return GetType(false) == TYPE_IMPORTED; }
 
-string Function::GetModuleName() const {
+std::string Function::GetModuleName() const {
   return module_name_ ? *module_name_ : "";
 }
 
-void Function::SetModuleName(const string& name) {
+void Function::SetModuleName(const std::string& name) {
   module_name_ = &*string_cache_.insert(name).first;
 }
 
@@ -299,7 +287,7 @@ void Function::GetBackEdges(
       const auto target_address = basic_blocks_[target]->GetEntryPoint();
       if (detego_edge->source != source_address ||
           detego_edge->target != target_address) {
-        // TODO(user) Figure out what's going on here. Most of the time
+        // TODO(soerenme) Figure out what's going on here. Most of the time
         //     edge.idx will point to the correct original edge. However,
         //     sometimes it does not, in which case I perform this expensive
         //     search instead.
