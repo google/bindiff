@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ const char* const LogLevelToCStr(LogLevel level) {
 
 // Logs a single log message. Should be executed on the IDA main thread.
 void LogLine(LogLevel level, const char* filename, int line,
-             const string& message) {
+             const std::string& message) {
   if (g_logging_options->alsologtostderr || g_log_file != nullptr) {
     // Filename always has Unix path separators, so this works on Windows, too.
     const char* basename = strrchr(filename, '/');
@@ -81,7 +81,7 @@ void LogLine(LogLevel level, const char* filename, int line,
     enum { kThreadIdWidth = 7 };
     thread_id << std::setw(kThreadIdWidth) << std::setfill(' ')
               << std::this_thread::get_id();
-    string formatted = absl::StrCat(
+    std::string formatted = absl::StrCat(
         LogLevelToCStr(level),
         absl::FormatTime("%m%d %R:%E6S" /* "0125 16:09:42.992535" */,
                          absl::Now(), absl::LocalTimeZone()),
@@ -102,12 +102,11 @@ void LogLine(LogLevel level, const char* filename, int line,
 }
 
 void IdaLogHandler(LogLevel level, const char* filename, int line,
-                   const string& message) {
+                   const std::string& message) {
   // Do all logging in IDA's main thread.
   IdaExecutor executor(std::bind(LogLine, level, filename, line, message));
   execute_sync(executor, MFF_FAST);
 }
-
 }  // namespace
 
 bool InitLogging(const LoggingOptions& options) {

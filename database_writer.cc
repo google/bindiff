@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,12 +36,14 @@
 #include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/types_container.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
 // Creates a string representation for the base type id of the corresponding
 // stack frame of the given function. Returns "null" if no such stack frame
 // exists.
-string GetFrameTypeId(const TypeSystem* type_system,
+std::string GetFrameTypeId(const TypeSystem* type_system,
                            const Function& function) {
   if (type_system) {
     const BaseType* stack_frame = type_system->GetStackFrame(function);
@@ -55,7 +57,7 @@ string GetFrameTypeId(const TypeSystem* type_system,
 // Creates a string representation for the base type id of the corresponding
 // function prototype of the given function. Returns "null" if no such
 // function prototype exists.
-string GetFunctionPrototypeId(const TypeSystem* type_system,
+std::string GetFunctionPrototypeId(const TypeSystem* type_system,
                                    const Function& function) {
   if (type_system) {
     const BaseType* function_prototype =
@@ -87,13 +89,13 @@ void BuildMemberPath(const BaseType::MemberIds& member_ids,
 
 }  // namespace
 
-DatabaseWriter::DatabaseWriter(const string& schema,
-                               const string& module_name, int module_id,
-                               const string& md5, const string& sha1,
-                               const string& architecture,
+DatabaseWriter::DatabaseWriter(const std::string& schema,
+                               const std::string& module_name, int module_id,
+                               const std::string& md5, const std::string& sha1,
+                               const std::string& architecture,
                                const Address base_address,
-                               const string& program_version,
-                               const string& connection_string)
+                               const std::string& program_version,
+                               const std::string& connection_string)
     : database_(connection_string.c_str()),
       query_size_(32 << 20 /* 32 MiB */),
       module_id_(module_id),
@@ -119,7 +121,7 @@ DatabaseWriter::DatabaseWriter(const string& schema,
 DatabaseWriter::~DatabaseWriter() = default;
 
 void DatabaseWriter::ExecuteInternalStatement(InternalStatement id,
-                                              const string& replacement) {
+                                              const std::string& replacement) {
   absl::string_view stream;
   switch (id) {
     case INIT_TABLES:
@@ -140,7 +142,7 @@ void DatabaseWriter::ExecuteInternalStatement(InternalStatement id,
   for (absl::string_view token : absl::StrSplit(stream, ';')) {
     token = absl::StripAsciiWhitespace(token);
     if (!token.empty()) {
-      string query = absl::StrReplaceAll(token, {{"?", replacement}});
+      std::string query = absl::StrReplaceAll(token, {{"?", replacement}});
       database_.Execute(query.c_str());
     }
   }
@@ -179,8 +181,8 @@ void DatabaseWriter::CreateModulesTable() {
   }
 }
 
-void DatabaseWriter::PrepareDatabase(const string& md5, const string& sha1,
-                                     const string& architecture,
+void DatabaseWriter::PrepareDatabase(const std::string& md5, const std::string& sha1,
+                                     const std::string& architecture,
                                      const Address base_address) {
   enum { kDbVersion = 7 };
 
@@ -210,22 +212,22 @@ void DatabaseWriter::PrepareDatabase(const string& md5, const string& sha1,
                     Parameters() << module_id_) >>
       num_modules;
   if (num_modules > 0) {
-    // TODO(user): Danger Will Robinson! Is this really what we want?
+    // TODO(soerenme): Danger Will Robinson! Is this really what we want?
     database_.Execute("DELETE FROM modules WHERE id = $1::int",
                       Parameters() << module_id_);
   }
 
   absl::StrReplaceAll({{"\\", "/"}}, &module_name_);
   const auto pos = module_name_.rfind("/");
-  const string module_name =
-      pos != string::npos ? module_name_.substr(pos + 1) : module_name_;
+  const std::string module_name =
+      pos != std::string::npos ? module_name_.substr(pos + 1) : module_name_;
 
   database_.Execute(
       "INSERT INTO MODULES VALUES($1::int, $2::text, $3::varchar, $4::bigint, "
       "$5::varchar, $6::int, $7::varchar, $8::varchar, '', NOW())",
-      Parameters() << static_cast<int32>(module_id_) << module_name
-                   << architecture << static_cast<int64>(base_address)
-                   << program_version_ << static_cast<int32>(kDbVersion) << md5
+      Parameters() << static_cast<int32_t>(module_id_) << module_name
+                   << architecture << static_cast<int64_t>(base_address)
+                   << program_version_ << static_cast<int32_t>(kDbVersion) << md5
                    << sha1);
 }
 
@@ -240,11 +242,11 @@ void DatabaseWriter::InsertAddressComments(const CallGraph& call_graph) {
     if (comment.type_ != Comment::REGULAR || last_address == comment.address_) {
       continue;
     }
-    string comment_string;
+    std::string comment_string;
     for (auto comment_char : *comment.comment_) {
       comment_string += (isascii(comment_char) ? comment_char : '?');
     }
-    address_comments_query << "(" << static_cast<int64>(comment.address_)
+    address_comments_query << "(" << static_cast<int64_t>(comment.address_)
                            << "," << database_.EscapeLiteral(comment_string)
                            << ")," << kFlushQuery;
     last_address = comment.address_;
@@ -296,12 +298,12 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
   for (const auto& function_entry : flow_graph.GetFunctions()) {
     // Store functions.
     const Function& function = *function_entry.second;
-    string mangled_name(function.GetName(Function::MANGLED));
-    string demangled_name(function.GetName(Function::DEMANGLED));
-    string module_name(function.IsImported() ? function.GetModuleName()
+    std::string mangled_name(function.GetName(Function::MANGLED));
+    std::string demangled_name(function.GetName(Function::DEMANGLED));
+    std::string module_name(function.IsImported() ? function.GetModuleName()
                                                   : module_name_);
     function_query_builder << "("
-                           << static_cast<int64>(function.GetEntryPoint())
+                           << static_cast<int64_t>(function.GetEntryPoint())
                            << "," << database_.EscapeLiteral(mangled_name)
                            << ","
                            << (demangled_name != mangled_name
@@ -319,7 +321,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
       BasicBlock& basic_block = *basic_block_ptr;
       basic_block.set_id(++basic_block_id);
       basic_block_query << "(" << basic_block.id() << ","
-                        << static_cast<int64>(function.GetEntryPoint())
+                        << static_cast<int64_t>(function.GetEntryPoint())
                         << ", " << basic_block.GetEntryPoint() << "),"
                         << kFlushQuery;
 
@@ -328,7 +330,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
         // Store instructions.
         basic_block_instructions_query
             << "(" << basic_block.id() << ","
-            << static_cast<int64>(instruction.GetAddress()) << ","
+            << static_cast<int64_t>(instruction.GetAddress()) << ","
             << instruction_sequence << ")," << kFlushQuery;
 
         // This is inefficient and ugly but has to be done because shared basic
@@ -345,9 +347,9 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
 
         if (!instruction.IsExported()) {
           instruction.SetExported(true);
-          const string mnemonic(instruction.GetMnemonic());
+          const std::string mnemonic(instruction.GetMnemonic());
           instruction_query
-              << "(" << static_cast<int64>(instruction.GetAddress()) << ","
+              << "(" << static_cast<int64_t>(instruction.GetAddress()) << ","
               << database_.EscapeLiteral(mnemonic) << ",decode('"
               << absl::BytesToHexString(instruction.GetBytes()) << "','hex')"
               << ")," << kFlushQuery;
@@ -355,7 +357,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
           int operand_sequence = 0;
           for (const auto* operand : instruction) {
             operands_query << "("
-                           << static_cast<int64>(instruction.GetAddress())
+                           << static_cast<int64_t>(instruction.GetAddress())
                            << "," << operand->GetId() << "," << operand_sequence
                            << ")," << kFlushQuery;
             ++operand_sequence;
@@ -373,7 +375,7 @@ void DatabaseWriter::InsertFlowGraphs(const CallGraph& call_graph,
         assert(false && "corrupted input data");
         continue;  // BUG: Should not happen.
       }
-      flow_graph_query << "(" << static_cast<int64>(function.GetEntryPoint())
+      flow_graph_query << "(" << static_cast<int64_t>(function.GetEntryPoint())
                        << "," << source->id() << "," << target->id() << ","
                        << (edge.type - 1) << ")," << kFlushQuery;
     }
@@ -410,10 +412,10 @@ void DatabaseWriter::InsertCallGraph(const CallGraph& call_graph) {
       continue;
     }
     call_graph_query << "("
-                     << static_cast<int64>(edge.function_->GetEntryPoint())
+                     << static_cast<int64_t>(edge.function_->GetEntryPoint())
                      << "," << edge.source_basic_block_id_ << ","
-                     << static_cast<int64>(edge.source_) << ","
-                     << static_cast<int64>(edge.target_) << "),"
+                     << static_cast<int64_t>(edge.source_) << ","
+                     << static_cast<int64_t>(edge.target_) << "),"
                      << kFlushQuery;
   }
   call_graph_query.Execute();
@@ -425,7 +427,7 @@ void DatabaseWriter::InsertExpressionTree() {
   QueryBuilder expression_tree_query(&database_, query.str(), query_size_);
   for (const auto& element : Expression::GetExpressions()) {
     const Expression& expression = element.second;
-    const string& name = expression.GetSymbol();
+    const std::string& name = expression.GetSymbol();
     assert(!name.empty() || expression.IsImmediate());
     expression_tree_query
         << "(" << expression.GetId() << ","
@@ -608,9 +610,9 @@ void DatabaseWriter::InsertExpressionSubstitutions(
            "\"expression_node_id\", \"replacement\") values ";
   QueryBuilder query_builder(&database_, query.str(), query_size_);
   for (const auto& substitution : flow_graph.GetSubstitutions()) {
-    string replacement = *substitution.second;
+    std::string replacement = *substitution.second;
     query_builder << "("
-                  << static_cast<int64>(
+                  << static_cast<int64_t>(
                          std::get<0 /* Address */>(substitution.first))
                   << "," << std::get<1 /* Operand No */>(substitution.first)
                   << "," << std::get<2 /* Expression Id */>(substitution.first)
@@ -634,7 +636,7 @@ void DatabaseWriter::InsertExpressionSubstitutions(
             }
             if (expression->IsImmediate() && !expression->GetSymbol().empty()) {
               query_builder
-                  << "(" << static_cast<int64>(instruction.GetAddress()) << ","
+                  << "(" << static_cast<int64_t>(instruction.GetAddress()) << ","
                   << operand_num << "," << expression->GetId() << ","
                   << database_.EscapeLiteral(expression->GetSymbol()) << "),"
                   << kFlushQuery;
@@ -665,9 +667,9 @@ void DatabaseWriter::InsertExpressionSubstitutions(
               ? std::to_string(address_reference.source_expression_)
               : "null";
       address_references_query
-          << "(" << static_cast<int64>(address_reference.source_) << ","
+          << "(" << static_cast<int64_t>(address_reference.source_) << ","
           << source_operand << "," << source_expression << ","
-          << static_cast<int64>(address_reference.target_) << ","
+          << static_cast<int64_t>(address_reference.target_) << ","
           << address_reference.kind_ << ")," << kFlushQuery;
     }
     address_references_query.Execute();
@@ -681,8 +683,8 @@ void DatabaseWriter::InsertExpressionSubstitutions(
 
 // Returns a permission string which can be used to store permissions in the
 // BinNavi database.
-static string GetPermissionsString(int permission) {
-  string permission_string;
+static std::string GetPermissionsString(int permission) {
+  std::string permission_string;
   if (permission & AddressSpace::kRead) {
     permission_string.append("READ");
   }
@@ -714,13 +716,13 @@ void DatabaseWriter::InsertSections(const AddressSpace& address_space,
         << "$1::integer, $2::text, $3::bigint, $4::bigint, "
         << "$5::ex_" << module_id_ << "_section_permission_type, $6::bytea)";
   database_.Prepare(query.str().c_str());
-  const string empty_section_name;
+  const std::string empty_section_name;
   int id = 0;
   for (const auto& data : address_space.data()) {
     database_.ExecutePrepared(
         Parameters() << id << empty_section_name
-                     << static_cast<int64>(data.first)
-                     << static_cast<int64>(data.first + data.second.size())
+                     << static_cast<int64_t>(data.first)
+                     << static_cast<int64_t>(data.first + data.second.size())
                      << GetPermissionsString(address_space.GetFlags(data.first))
                      << data.second);
     address_space_ids->insert({data.first, id});
@@ -731,7 +733,7 @@ void DatabaseWriter::InsertSections(const AddressSpace& address_space,
 // IDA will sometimes produce completely fucked up disassemblies with invalid
 // flow graphs.
 void CleanUpZombies(Database* database, int module_id_int) {
-  const string module_id = std::to_string(module_id_int);
+  const std::string module_id = std::to_string(module_id_int);
   database->Execute(("DELETE FROM ex_" + module_id +
                      "_instructions AS instructions USING ex_" + module_id +
                      "_basic_block_instructions AS basic_block_instructions "
@@ -779,19 +781,18 @@ void CleanUpZombies(Database* database, int module_id_int) {
           .c_str());
 }
 
-util::Status DatabaseWriter::Write(const CallGraph& call_graph,
-                                   const FlowGraph& flow_graph,
-                                   const Instructions& instructions,
-                                   const AddressReferences& address_references,
-                                   const TypeSystem* type_system,
-                                   const AddressSpace& address_space) {
+not_absl::Status DatabaseWriter::Write(
+    const CallGraph& call_graph, const FlowGraph& flow_graph,
+    const Instructions& instructions,
+    const AddressReferences& address_references, const TypeSystem* type_system,
+    const AddressSpace& address_space) {
   LOG(INFO) << "Writing module: \"" << module_name_
             << "\" to schema: " << schema_ << ", module id: " << module_id_
             << ".";
 
   const Functions& functions = flow_graph.GetFunctions();
   if (functions.empty()) {
-    return ::util::OkStatus();
+    return not_absl::OkStatus();
   }
 
   {
@@ -835,5 +836,8 @@ util::Status DatabaseWriter::Write(const CallGraph& call_graph,
     database_.Execute("DEALLOCATE ALL");  // Release all prepared statements.
   }
   ExecuteInternalStatement(MAINTENANCE, std::to_string(module_id_));
-  return ::util::OkStatus();
+  return not_absl::OkStatus();
 }
+
+}  // namespace binexport
+}  // namespace security

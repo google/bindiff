@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,16 +15,22 @@
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_PPC_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_PPC_H_
 
+#include "third_party/zynamics/binexport/call_graph.h"
+#include "third_party/zynamics/binexport/flow_graph.h"
+#include "third_party/zynamics/binexport/instruction.h"
+#include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/types.h"
 
-class Instruction;
-class CallGraph;
-class FlowGraph;
-class TypeSystem;
 class insn_t;
+
+namespace security {
+namespace binexport {
 
 Instruction ParseInstructionIdaPpc(const insn_t& instruction,
                                    CallGraph* call_graph, FlowGraph* flow_graph,
                                    TypeSystem* type_system);
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_PPC_H_

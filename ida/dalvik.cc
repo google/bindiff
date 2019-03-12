@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/zynamics/binexport/call_graph.h"
-#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
 #define dex_o_reg o_reg
@@ -49,39 +49,39 @@ namespace {
 #define dex_fieldoff specflag1  // Byte offset, not a field index
 #define dex_vtindex specflag1   // vtable slot, not a method id
 struct dex_header_item {
-  uint8 magic[8];
-  uint32 checksum;
-  uint8 signature[20];
-  uint32 file_size;
-  uint32 header_size;
-  uint32 endian_tag;
-  uint32 link_size;
-  uint32 link_off;
-  uint32 map_off;
-  uint32 string_ids_size;
-  uint32 string_ids_off;
-  uint32 type_ids_size;
-  uint32 type_ids_off;
-  uint32 proto_ids_size;
-  uint32 proto_ids_off;
-  uint32 field_ids_size;
-  uint32 field_ids_off;
-  uint32 method_ids_size_;
-  uint32 method_ids_off_;
-  uint32 class_defs_size_;
-  uint32 class_defs_off_;
-  uint32 data_size_;
-  uint32 data_off_;
+  uint8_t magic[8];
+  uint32_t checksum;
+  uint8_t signature[20];
+  uint32_t file_size;
+  uint32_t header_size;
+  uint32_t endian_tag;
+  uint32_t link_size;
+  uint32_t link_off;
+  uint32_t map_off;
+  uint32_t string_ids_size;
+  uint32_t string_ids_off;
+  uint32_t type_ids_size;
+  uint32_t type_ids_off;
+  uint32_t proto_ids_size;
+  uint32_t proto_ids_off;
+  uint32_t field_ids_size;
+  uint32_t field_ids_off;
+  uint32_t method_ids_size_;
+  uint32_t method_ids_off_;
+  uint32_t class_defs_size_;
+  uint32_t class_defs_off_;
+  uint32_t data_size_;
+  uint32_t data_off_;
 };
 
 // Returns the ULEB128 encoded value at the specified linear address.
 //
 // If bytes_read is non-zero, this function also returns the number of bytes
 // read  into this output parameter.
-uint32 GetUleb128(Address ea, uint8* bytes_read = 0) {
+uint32_t GetUleb128(Address ea, uint8_t* bytes_read = 0) {
   Address start_ea = ea;
-  uint8 cur_byte = get_byte(static_cast<ea_t>(ea++));
-  uint32 result = cur_byte;
+  uint8_t cur_byte = get_byte(static_cast<ea_t>(ea++));
+  uint32_t result = cur_byte;
 
   // Shortcut for small values
   if (cur_byte >= 0x80) {
@@ -107,18 +107,18 @@ uint32 GetUleb128(Address ea, uint8* bytes_read = 0) {
     }
   }
   if (bytes_read != 0) {
-    *bytes_read = static_cast<uint8>(ea - start_ea);
+    *bytes_read = static_cast<uint8_t>(ea - start_ea);
   }
   return result;
 }
 
 // Returns the C-style string starting at the specified linear address.
-string GetString(Address ea) {
-  string result;
+std::string GetString(Address ea) {
+  std::string result;
   result.reserve(16);
 
   for (;;) {
-    uint8 b(get_byte(static_cast<ea_t>(ea++)));
+    uint8_t b(get_byte(static_cast<ea_t>(ea++)));
     if (b == 0) {
       break;
     }
@@ -127,8 +127,8 @@ string GetString(Address ea) {
   return result;
 }
 
-string GetDexString(Address ea) {
-  uint8 len;
+std::string GetDexString(Address ea) {
+  uint8_t len;
   GetUleb128(ea, &len);
   return GetString(ea + len);
 }
@@ -144,11 +144,11 @@ dex_header_item& GetDexHeader() {
   return header;
 }
 
-string GetTypeNameByIndex(size_t index) {
+std::string GetTypeNameByIndex(size_t index) {
   dex_header_item& header(GetDexHeader());
-  uint32 type_idx(get_dword(header.type_ids_off + index * sizeof(uint32)));
-  uint32 str_off(
-      get_dword(header.string_ids_off + type_idx * sizeof(uint32)));
+  uint32_t type_idx(get_dword(header.type_ids_off + index * sizeof(uint32_t)));
+  uint32_t str_off(
+      get_dword(header.string_ids_off + type_idx * sizeof(uint32_t)));
   return GetDexString(str_off);
 }
 
@@ -158,7 +158,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
                                 CallGraph* /* call_graph */,
                                 FlowGraph* flow_graph) {
   Operands operands;
-  for (uint8 i = 0; i < UA_MAXOP && instruction.ops[i].type != o_void;
+  for (uint8_t i = 0; i < UA_MAXOP && instruction.ops[i].type != o_void;
        ++i) {
     Expressions expressions;
     const op_t& operand(instruction.ops[i]);
@@ -176,7 +176,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
 
       case dex_o_reg: {
         // Get canonical register name for operand
-        string regName(GetRegisterName(
+        std::string regName(GetRegisterName(
             operand.reg, GetOperandByteSize(instruction, operand)));
 
         if (operand.dex_regpair) {
@@ -184,7 +184,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
           expr =
               Expression::Create(expr, "b8", 0, Expression::TYPE_SIZEPREFIX, 0);
           expressions.push_back(expr);
-          string regName2(GetRegisterName(
+          std::string regName2(GetRegisterName(
               operand.reg + 1, GetOperandByteSize(instruction, operand)));
           expr = Expression::Create(expr, regName + ":" + regName2, 0,
                                     Expression::TYPE_REGISTER, 0);
@@ -204,7 +204,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
                                  regName.c_str()));
         if (rv != 0)
           flow_graph->AddExpressionSubstitution(
-              instruction.ea, static_cast<uint8>(i), expr->GetId(), rv->user);
+              instruction.ea, static_cast<uint8_t>(i), expr->GetId(), rv->user);
         break;
       }
       case dex_o_imm: {
@@ -247,7 +247,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
       case dex_o_string: {
         // TODO(cblichmann) Check if we should use the size of a single
         //                  character (the type "pointed to").
-        // TODO(cblichmann) Add string as a comment.
+        // TODO(cblichmann) Add std::string as a comment.
         expr = Expression::Create(
             expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
             Expression::TYPE_SIZEPREFIX, 0);
@@ -267,7 +267,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
         break;
       }
       case dex_o_type: {
-        string str(GetTypeNameByIndex(static_cast<size_t>(operand.value)));
+        std::string str(GetTypeNameByIndex(static_cast<size_t>(operand.value)));
 
         expr = Expression::Create(
             expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
@@ -333,7 +333,7 @@ Instruction ParseInstructionIdaDalvik(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic = GetMnemonic(instruction.ea);
+  std::string mnemonic = GetMnemonic(instruction.ea);
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
@@ -356,3 +356,6 @@ Instruction ParseInstructionIdaDalvik(const insn_t& instruction,
       instruction.ea, nextInstruction, instruction.size, mnemonic,
       ParseOperandsIdaDalvik(instruction, call_graph, flow_graph));
 }
+
+}  // namespace binexport
+}  // namespace security

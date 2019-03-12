@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 #include "third_party/zynamics/binexport/hash.h"
 
 // Adapted from the optimized version at http://www.cse.yorku.ca/~oz/hash.html
-uint32 GetSdbmHash(const string& data) {
-  uint32 hash = 0;
+uint32_t GetSdbmHash(const std::string& data) {
+  uint32_t hash = 0;
   for (size_t i = 0; i < data.size(); ++i) {
     hash = data[i] + (hash << 6) + (hash << 16) - hash;
   }

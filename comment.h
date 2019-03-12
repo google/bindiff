@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,18 +37,18 @@ class Comment {
   };
 
   explicit Comment(Address address, size_t operand_num,
-                   const string* comment = nullptr, Type type = INVALID,
+                   const std::string* comment = nullptr, Type type = INVALID,
                    bool repeatable = false);
 
   Address address_;
   size_t operand_num_;
-  const string* comment_;
+  const std::string* comment_;
   bool repeatable_;
   Type type_;
 };
 #pragma pack(pop)
 
-typedef std::vector<Comment> Comments;
+using Comments = std::vector<Comment>;
 bool SortComments(const Comment& one, const Comment& two);
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_COMMENT_H_

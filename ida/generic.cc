@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,7 +25,9 @@
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/ida/names.h"
-#include "third_party/zynamics/binexport/instruction.h"
+
+namespace security {
+namespace binexport {
 
 Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
                                        CallGraph* /* call_graph */,
@@ -34,11 +36,11 @@ Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
-  string mnemonic = GetMnemonic(instruction.ea);
+  std::string mnemonic = GetMnemonic(instruction.ea);
   if (mnemonic.empty()) {
     return Instruction(instruction.ea);
   }
-  string line;
+  std::string line;
   if (!GetOriginalIdaLine(instruction.ea, &line)) {
     return Instruction(instruction.ea);
   }
@@ -54,7 +56,7 @@ Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
   }
 
   // Mnemonic may be padded with whitespace, so we strip the full prefix.
-  string operand = line.substr(mnemonic.size());
+  std::string operand = line.substr(mnemonic.size());
   // Now get rid of surrounding whitespace.
   absl::StripAsciiWhitespace(&mnemonic);
   absl::StripAsciiWhitespace(&operand);
@@ -69,3 +71,6 @@ Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
   return Instruction(instruction.ea, next_instruction, instruction.size,
                      mnemonic, operands);
 }
+
+}  // namespace binexport
+}  // namespace security

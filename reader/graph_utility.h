@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ namespace security {
 namespace binexport {
 
 struct EdgeDegrees {
-  uint32 source_in_degree;
-  uint32 source_out_degree;
-  uint32 target_in_degree;
-  uint32 target_out_degree;
+  uint32_t source_in_degree;
+  uint32_t source_out_degree;
+  uint32_t target_in_degree;
+  uint32_t target_out_degree;
 };
 
 template <typename T>
@@ -37,11 +37,11 @@ struct VertexTypeTraits {};
 
 // This is the specialization for the types FlowGraph::Vertex and
 // CallGraph::Vertex. Both of them are just a typedef and therefore no real type
-// in the type system. They are currently of type uint32. This is safe as when
+// in the type system. They are currently of type uint32_t. This is safe as when
 // underlying code changes there is no specialization for this type in place.
 template <>
-struct VertexTypeTraits<uint32> {
-  static const uint32 kInvalidVertex = kuint32max;
+struct VertexTypeTraits<uint32_t> {
+  static const uint32_t kInvalidVertex = kuint32max;
 };
 
 template <typename Vertex>

@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,24 +19,31 @@
 
 #include "third_party/zynamics/binexport/writer.h"
 
+namespace security{
+namespace binexport{
+
 class StatisticsWriter : public Writer {
  public:
   explicit StatisticsWriter(std::ostream& stream);
-  explicit StatisticsWriter(const string& filename);
+  explicit StatisticsWriter(const std::string& filename);
 
   void GenerateStatistics(const CallGraph& call_graph,
                           const FlowGraph& flow_graph,
-                          std::map<string, size_t>* statistics) const;
+                          std::map<std::string, size_t>* statistics) const;
 
-  util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
-                     const Instructions& instructions,
-                     const AddressReferences& address_references,
-                     const TypeSystem* type_system,
-                     const AddressSpace& address_space) override;
+  not_absl::Status Write(const CallGraph& call_graph,
+                         const FlowGraph& flow_graph,
+                         const Instructions& instructions,
+                         const AddressReferences& address_references,
+                         const TypeSystem* type_system,
+                         const AddressSpace& address_space) override;
 
  private:
   std::ofstream file_;
   std::ostream& stream_;
 };
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_STATISTICS_WRITER_H_

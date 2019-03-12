@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ bool AreDuplicateRegularComments(const Comment& lhs, const Comment& rhs) {
 
 }  // namespace
 
-int CallGraph::instance_count_ = 0;
 CallGraph::StringCache CallGraph::string_cache_;
+int CallGraph::instance_count_ = 0;
 
 // Attention: do _not_ use source_basic_block_id for sorting!
 // We change that after putting EdgeInfos in a set!
@@ -94,30 +94,13 @@ void CallGraph::Render(std::ostream* stream,
 CallGraph::CallGraph() { ++instance_count_; }
 
 CallGraph::~CallGraph() {
-  if (--instance_count_ == 0) {
-    StringCache().swap(string_cache_);
+  --instance_count_;
+  if (instance_count_ == 0) {
+    StringCache{}.swap(string_cache_);
   }
 }
 
-CallGraph::CallGraph(const CallGraph& graph)
-    : functions_(graph.functions_),
-      edges_(graph.edges_),
-      comments_(graph.comments_),
-      string_references_(graph.string_references_.begin(),
-                         graph.string_references_.end()) {
-  ++instance_count_;
-}
-
-CallGraph& CallGraph::operator=(const CallGraph& graph) {
-  functions_ = graph.functions_;
-  edges_ = graph.edges_;
-  comments_ = graph.comments_;
-  string_references_ = StringReferences(graph.string_references_.begin(),
-                                        graph.string_references_.end());
-  return *this;
-}
-
-const string* CallGraph::CacheString(const string& text) {
+const std::string* CallGraph::CacheString(const std::string& text) {
   return &*string_cache_.insert(text).first;
 }
 
@@ -211,25 +194,27 @@ CallGraph::GetComments(Address address) const {
 }
 
 void CallGraph::AddComment(Address address, size_t operand,
-                           const string& comment, Comment::Type type,
+                           const std::string& comment, Comment::Type type,
                            bool repeatable) {
   comments_.push_back(
       Comment(address, operand, CacheString(comment), type, repeatable));
 }
 
 size_t CallGraph::GetStringReference(Address address) const {
-  StringReferences::const_iterator i = string_references_.find(address);
-  if (i != string_references_.end()) return i->second;
+  auto it = string_references_.find(address);
+  if (it != string_references_.end()) {
+    return it->second;
+  }
   return 0;
 }
 
-void CallGraph::AddStringReference(Address address, const string& string) {
-  if (string.empty()) {
+void CallGraph::AddStringReference(Address address, const std::string& ref) {
+  if (ref.empty()) {
     return;
   }
 
-  // TODO(user): Concat multiple hashes.
-  string_references_[address] = GetSdbmHash(string);
+  // TODO(jduart): Concat multiple hashes.
+  string_references_[address] = GetSdbmHash(ref);
 }
 
 // Fold the strings of all comments that are of type regular and share the same
@@ -256,7 +241,7 @@ void CallGraph::FoldComments() {
     if (!AreDuplicateRegularComments(*result, *first)) {
       *(++result) = *first;
     } else {
-      string accumulated_comment(*result->comment_);
+      std::string accumulated_comment(*result->comment_);
       while (AreDuplicateRegularComments(*result, *first)) {
         accumulated_comment.append("\n");
         accumulated_comment.append(*first->comment_);

@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,18 +20,21 @@
 #include <iostream>
 #include <map>
 
+#include "third_party/zynamics/binexport/base_types.h"
+#include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/types_container.h"
 
-struct MemberType;
-class Function;
 class member_t;
+
+namespace security {
+namespace binexport {
 
 // Acts as a container for all types and members collected during the export.
 // Also contains functionality to map an operand that has an associated type
 // to the member it references.
 class IdaTypesContainer : public TypesContainer {
  public:
-  typedef std::map<string, const BaseType*> TypesByString;
+  typedef std::map<std::string, const BaseType*> TypesByString;
 
   ~IdaTypesContainer();
   // Iterate over IDA's type system in order to create a mapping between
@@ -53,7 +56,7 @@ class IdaTypesContainer : public TypesContainer {
   virtual const BaseType* GetFunctionPrototype(const Function& function) const;
 
  private:
-  typedef std::map<uint64, BaseType*> TypeIdMap;
+  typedef std::map<uint64_t, BaseType*> TypeIdMap;
   typedef std::map<Address, const BaseType*> PrototypesMap;
 
   template<class T> void CollectCompoundTypes(T start_it, T end_it);
@@ -69,16 +72,16 @@ class IdaTypesContainer : public TypesContainer {
   void Cleanup();
 
   const BaseType* CreateVoidPointerType();
-  void CreateIdaType(const string& name, size_t bit_size);
+  void CreateIdaType(const std::string& name, size_t bit_size);
   void InitializeBuiltinTypes();
   const BaseType* GetVoidPointerType() const;
   const BaseType* GetBuiltinType(size_t type_size) const;
   const BaseType* GetStackFrame(Address function_address) const;
   const BaseType* GetMemberType(const member_t* member) const;
   TypeReference CreateStackReference(Address address, size_t operand_num,
-                                     int64 displacement) const;
+                                     int64_t displacement) const;
   TypeReference CreateNonStackReference(Address address, size_t operand_num,
-                                        int64 displacement) const;
+                                        int64_t displacement) const;
 
   // Contains and owns all known instances of BaseType.
   BaseType::BaseTypes base_types_;
@@ -95,5 +98,8 @@ class IdaTypesContainer : public TypesContainer {
   // The base type instances are actually owned by base_types_.
   PrototypesMap prototypes_by_address_;
 };
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_TYPES_CONTAINER_H_

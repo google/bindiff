@@ -1,6 +1,6 @@
 # BinExport [![Build Status](https://travis-ci.org/cblichmann/binexport.svg?branch=master)](https://travis-ci.org/cblichmann/binexport)
 
-Copyright 2011-2018 Google LLC.
+Copyright 2011-2019 Google LLC.
 
 Disclaimer: This is not an official Google product (experimental or otherwise),
 it is just code that happens to be owned by Google.
@@ -118,10 +118,10 @@ function:
 
 ```c
 static main() {
-  Batch(0);
-  Wait();
-  RunPlugin("binexport10", 1);
-  Exit(0);
+  batch(0);
+  auto_wait();
+  load_and_run_plugin("binexport10", 1);
+  qexit(0);
 }
 ```
 
@@ -147,6 +147,8 @@ command line:
 
 | Option                            | Description                                     |
 | --------------------------------- | ----------------------------------------------- |
+| `-OBinExportAutoAction:<ACTION>`  | Invoke a BinExport IDC function and exit.       |
+| `-OBinExportModule:<PARAM>`       | Argument for `BinExportAutoAction`.             |
 | `-OBinExportHost:<HOST>`          | Database server to connect to                   |
 | `-OBinExportPort:<PORT>`          | Port to connect to. PostgreSQL default is 5432. |
 | `-OBinExportUser:<USER>`          | User name                                       |
@@ -165,25 +167,24 @@ Note that these options must come before any files.
 As we support exporting into PostgreSQL databases as well as a Protocol Buffer
 based format, there are quite a few dependencies to satisfy:
 
-*   Boost 1.61.0 or higher (a partial copy of 1.61.0 ships in
+*   Boost 1.67.0 or higher (a partial copy of 1.67.0 ships in
     `third_party/boost_parts`)
 *   [CMake](https://cmake.org/download/) 3.7.2 or higher
 *   GCC 4.8 or a recent version of Clang on Linux/macOS. On Windows, use the
-    Visual Studio 2017 compiler and the Windows SDK for Windows 10. Earlier
-    Visual Studio 2015 and Windows 8.1 SDK will also work.
+    Visual Studio 2017 compiler (need at least Update 9) and the Windows SDK
+    for Windows 10.
 *   Git 1.8 or higher
-*   IDA SDK 7.0 (unpack into `third_party/idasdk`)
+*   IDA SDK 7.2 (unpack into `third_party/idasdk`)
 *   OpenSSL 1.0.2 or higher
 *   Perl 5.6 or higher (needed for OpenSSL and PostgreSQL)
 *   PostgreSQL client libraries 9.3 or higher
-*   Protocol Buffers 3.0.0 or higher
+*   Protocol Buffers 3.6.1 or higher
 
 ### Linux
 
 #### Prerequisites
 
-The preferred build environment is Ubuntu 14.04 LTS (64-bit Intel). Debian
-Testing (version 10, "Buster") is also supported.
+The preferred build environment is Debian testing (version 10, "Buster").
 
 This should install all the necessary packages:
 
@@ -201,9 +202,9 @@ Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
 for IDA 7.0:
 
 ```bash
-unzip PATH/TO/idasdk70.zip -d third_party/idasdk
-mv third_party/idasdk/idasdk70/* third_party/idasdk
-rmdir third_party/idasdk/idasdk70
+unzip PATH/TO/idasdk72.zip -d third_party/idasdk
+mv third_party/idasdk/idasdk72/* third_party/idasdk
+rmdir third_party/idasdk/idasdk72
 ```
 
 #### Build BinExport
@@ -282,12 +283,12 @@ The last command makes CMake available in the system path.
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.0:
+for IDA 7.2:
 
 ```bash
-unzip PATH/TO/idasdk70.zip -d third_party/idasdk
-mv third_party/idasdk/idasdk70/* third_party/idasdk
-rmdir third_party/idasdk/idasdk70
+unzip PATH/TO/idasdk72.zip -d third_party/idasdk
+mv third_party/idasdk/idasdk72/* third_party/idasdk
+rmdir third_party/idasdk/idasdk72
 ```
 
 #### Build BinExport
@@ -310,8 +311,7 @@ for use with `ida` and `ida64`, respectively.
 
 The preferred build environment is Windows 10 (64-bit Intel) using the Visual
 Studio 2017 compiler and the [Windows SDK for Windows
-10](https://dev.windows.com/en-us/downloads/windows-10-sdk). The previous Visual
-Studio 2015 and earlier versions of Windows also work.
+10](https://dev.windows.com/en-us/downloads/windows-10-sdk).
 
 #### CMake
 
@@ -347,11 +347,11 @@ cd binexport
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.0, assuming that Git was installed into the default directory first:
+for IDA 7.2, assuming that Git was installed into the default directory first:
 
 ```bat
-"%ProgramFiles%\Git\usr\bin\unzip" PATH\TO\idasdk70.zip -d third_party
-rename third_party\idasdk70 idasdk
+"%ProgramFiles%\Git\usr\bin\unzip" PATH\TO\idasdk72.zip -d third_party
+rename third_party\idasdk72 idasdk
 ```
 
 #### Build BinExport
@@ -363,11 +363,8 @@ if not exist build_msvc mkdir build_msvc
 cd build_msvc
 cmake ../cmake -DIdaSdk_ROOT_DIR=%cd%\..\third_party\idasdk ^
     -G "Visual Studio 15 2017 Win64"
-cmake --build . --config Release --install -- /clp:NoSummary;ForceNoAlign /v:minimal
+cmake --build . --config Release --install -- /m /clp:NoSummary;ForceNoAlign /v:minimal
 ```
-
-For Visual Studio 2015 replace the `-G` argument with `"Visual Studio 14 2015
-Win64"`.
 
 This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
 libraries. If all went well, the `build_msvc\binexport-prefix` directory should

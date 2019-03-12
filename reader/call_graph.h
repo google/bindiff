@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,15 +40,15 @@ class CallGraph {
 
   struct VertexProperty {
     Address address;        // Function address.
-    string name;            // Function name.
-    string demangled_name;  // Demangled function name.
-    uint32 flags;           // Function flags.
-    string library_name;    // Library name.
-    string module_name;     // Module name.
+    std::string name;            // Function name.
+    std::string demangled_name;  // Demangled function name.
+    uint32_t flags;           // Function flags.
+    std::string library_name;    // Library name.
+    std::string module_name;     // Module name.
 
-    VertexProperty(Address address, const string& name,
-                   const string& demangled_name, uint32 flags,
-                   const string& library_name, const string& module_name)
+    VertexProperty(Address address, const std::string& name,
+                   const std::string& demangled_name, uint32_t flags,
+                   const std::string& library_name, const std::string& module_name)
         : address(address),
           name(name),
           demangled_name(demangled_name),
@@ -72,8 +72,8 @@ class CallGraph {
       VertexProperty,         // The information per vertex.
       boost::no_property,     // The information per edge.
       boost::no_property,     // Use no graph properties.
-      uint32,                 // Index type for vertices.
-      uint32>;                // Index type for edges.
+      uint32_t,                 // Index type for vertices.
+      uint32_t>;                // Index type for edges.
 
   using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
   using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;

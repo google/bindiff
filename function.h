@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,8 @@
 
 #include <cstdint>
 #include <map>
-#include <unordered_set>
 
+#include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/basic_block.h"
 #include "third_party/zynamics/binexport/edge.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -33,7 +33,7 @@ class Function {
  public:
   using Edges = std::vector<FlowGraphEdge>;
 
-  enum FunctionType : uint8 {
+  enum FunctionType : uint8_t {
     TYPE_NONE = 123,
     TYPE_STANDARD = 0,
     TYPE_LIBRARY = 1,
@@ -47,7 +47,10 @@ class Function {
   static const char* GetTypeName(FunctionType type);
 
   explicit Function(Address entry_point);
-  Function(const Function& other);
+
+  Function(const Function&) = delete;
+  Function& operator=(const Function&) = delete;
+
   ~Function();
 
   // Deletes basic blocks and edges, but leaves entry point and name intact.
@@ -77,10 +80,10 @@ class Function {
 
   bool IsImported() const;
 
-  string GetModuleName() const;
-  void SetModuleName(const string& name);
-  void SetName(const string& name, const string& demangled_name);
-  string GetName(Name type) const;
+  std::string GetModuleName() const;
+  void SetModuleName(const std::string& name);
+  void SetName(const std::string& name, const std::string& demangled_name);
+  std::string GetName(Name type) const;
   bool HasRealName() const;
 
   const Edges& GetEdges() const;
@@ -94,22 +97,20 @@ class Function {
 
   void SetLibraryIndex(int library_index) { library_index_ = library_index; }
 
-
  private:
   int GetBasicBlockIndexForAddress(Address address) const;
   BasicBlock* GetMutableBasicBlockForAddress(Address address);
 
-  typedef std::unordered_set<string> StringCache;
-
+  using StringCache = absl::node_hash_set<std::string>;
   static StringCache string_cache_;
   static int instance_count_;
 
   Address entry_point_;
   BasicBlocks basic_blocks_;
   Edges edges_;
-  string name_;
-  string demangled_name_;
-  const string* module_name_;
+  std::string name_;
+  std::string demangled_name_;
+  const std::string* module_name_;
   FunctionType type_;
   int library_index_;
 };
