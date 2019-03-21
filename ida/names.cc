@@ -11,25 +11,25 @@
 namespace security {
 namespace bindiff {
 
-string ToString(const qstring& ida_string) {
-  return string(ida_string.c_str(), ida_string.length());
+std::string ToString(const qstring& ida_string) {
+  return std::string(ida_string.c_str(), ida_string.length());
 }
 
-string GetName(Address address) {
+std::string GetName(Address address) {
   if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
     return ToString(get_name(static_cast<ea_t>(address)));
   }
   return "";
 }
 
-string GetDemangledName(Address address) {
+std::string GetDemangledName(Address address) {
   if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
     return ToString(get_short_name(static_cast<ea_t>(address)));
   }
   return "";
 }
 
-bool GetLineComment(Address address, int n, string* output) {
+bool GetLineComment(Address address, int n, std::string* output) {
   qstring ida_comment;
   ssize_t result = get_extra_cmt(&ida_comment, address, n);
   *output = ToString(ida_comment);
@@ -39,9 +39,9 @@ bool GetLineComment(Address address, int n, string* output) {
   return result >= 0;
 }
 
-string GetLineComments(Address address, LineComment kind) {
-  string buffer;
-  string comment;
+std::string GetLineComments(Address address, LineComment kind) {
+  std::string buffer;
+  std::string comment;
 
   if (kind == LineComment::kAnterior) {
     for (int i = 0; GetLineComment(address, E_PREV + i, &buffer); ++i) {

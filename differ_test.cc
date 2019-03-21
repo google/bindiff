@@ -83,7 +83,7 @@ static constexpr absl::string_view kDefaultConfigForTesting =
   </BasicBlockMatching>
 </BinDiff>)raw";
 
-typedef std::vector<std::pair<uint64_t, uint64_t>> Matches;
+using Matches = std::vector<std::pair<uint64_t, uint64_t>>;
 
 void MatchParser(Matches* matches, char* line) {
   ABSL_DIE_IF_NULL(matches)->emplace_back(
@@ -99,8 +99,9 @@ bool IsSorted(const Matches& matches) {
       });
 }
 
-void CompareToGroundTruth(const string& test_name, const string& result_path,
-                          const string& truth_path) {
+void CompareToGroundTruth(const std::string& test_name,
+                          const std::string& result_path,
+                          const std::string& truth_path) {
   Matches result_matches;
   Matches true_matches;
   QCHECK(ParseFileByLines(result_path,
@@ -158,8 +159,8 @@ void CompareToGroundTruth(const string& test_name, const string& result_path,
             << missing_matches;
 }
 
-void Diff(const string& name, const string& primary_path,
-          const string& secondary_path, const string& truth_path) {
+void Diff(const std::string& name, const std::string& primary_path,
+          const std::string& secondary_path, const std::string& truth_path) {
   LOG(INFO) << "'" << name << "': '" << primary_path << "' vs '"
             << secondary_path << "' -> '" << truth_path << "'";
 
@@ -247,7 +248,7 @@ void Diff(const string& name, const string& primary_path,
 
     if (!truth_path.empty()) {
       TempPath path(TempPath::Local);
-      const string result_path(
+      const std::string result_path(
           absl::StrCat(path.path(), call_graph1.GetFilename().c_str(), "_vs_",
                        call_graph2.GetFilename().c_str(), ".truth"));
       GroundtruthWriter writer(result_path);
@@ -275,7 +276,7 @@ class GroundtruthIntegrationTest : public ::testing::Test {
 };
 
 TEST_F(GroundtruthIntegrationTest, Run) {
-  string buffer;
+  std::string buffer;
   CHECK_OK(
       file::GetContents(file::JoinPath(absl::GetFlag(FLAGS_test_srcdir),
                                        kFixturesPath, "groundtruth_tests.list"),

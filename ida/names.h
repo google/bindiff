@@ -8,14 +8,14 @@
 namespace security {
 namespace bindiff {
 
-string GetName(Address address);
-string GetDemangledName(Address address);
+std::string GetName(Address address);
+std::string GetDemangledName(Address address);
 
 enum class LineComment {
   kAnterior,
   kPosterior
 };
-string GetLineComments(Address address, LineComment kind);
+std::string GetLineComments(Address address, LineComment kind);
 
 }  // namespace bindiff
 }  // namespace security

@@ -13,12 +13,12 @@ namespace bindiff {
 
 class Instruction {
  public:
-  using Cache = std::unordered_map<uint32_t, string>;
+  using Cache = std::unordered_map<uint32_t, std::string>;
 
-  Instruction(Cache* cache, Address address, const string& mnemonic,
+  Instruction(Cache* cache, Address address, const std::string& mnemonic,
               uint32_t prime);
   uint32_t GetPrime() const;
-  string GetMnemonic(const Cache* cache) const;
+  std::string GetMnemonic(const Cache* cache) const;
   Address GetAddress() const;
 
  private:

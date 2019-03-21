@@ -30,7 +30,7 @@ void MatchingStepName::GetUnmatchedFlowGraphsByNameHash(
     // the same even if the code has been compiled with different compilers
     // and thus different mangling schemes.
     if (!graph->GetFixedPoint() && graph->HasRealName()) {
-      const string& name = graph->GetGoodName();
+      const std::string& name = graph->GetGoodName();
       flow_graphs_map.emplace(GetSdbmHash(name), graph);
     }
   }

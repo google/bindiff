@@ -9,8 +9,8 @@
 namespace security {
 namespace bindiff {
 
-std::vector<string> InitStringPool() {
-  std::vector<string> pool;
+std::vector<std::string> InitStringPool() {
+  std::vector<std::string> pool;
   try {
     Confidences confidences;
     Histogram histogram;
@@ -29,9 +29,9 @@ std::vector<string> InitStringPool() {
   return pool;
 }
 
-const string* FindString(const string& name) {
-  static const string kStringPoolEmptyString;
-  static const std::vector<string> string_pool(InitStringPool());
+const std::string* FindString(const std::string& name) {
+  static const std::string kStringPoolEmptyString;
+  static const std::vector<std::string> string_pool(InitStringPool());
   auto i = std::lower_bound(string_pool.begin(), string_pool.end(), name);
   if (i != string_pool.end() && *i == name) {
     return &(*i);
@@ -42,7 +42,7 @@ const string* FindString(const string& name) {
 BasicBlockFixedPoint::BasicBlockFixedPoint(
     FlowGraph* primary, FlowGraph::Vertex primary_basic_block,
     FlowGraph* secondary, FlowGraph::Vertex secondary_basic_block,
-    const string& matching_step)
+    const std::string& matching_step)
     : matching_step_(matching_step.empty() ? 0 : FindString(matching_step)),
       primary_vertex_(primary_basic_block),
       secondary_vertex_(secondary_basic_block),
@@ -66,12 +66,12 @@ FlowGraph::Vertex BasicBlockFixedPoint::GetSecondaryVertex() const {
   return secondary_vertex_;
 }
 
-void BasicBlockFixedPoint::SetMatchingStep(const string& matching_step) {
+void BasicBlockFixedPoint::SetMatchingStep(const std::string& matching_step) {
   matching_step_ = FindString(matching_step);
 }
 
-const string& BasicBlockFixedPoint::GetMatchingStep() const {
-  static const string kEmpty;
+const std::string& BasicBlockFixedPoint::GetMatchingStep() const {
+  static const std::string kEmpty;
   return matching_step_ ? *matching_step_ : kEmpty;
 }
 
@@ -92,7 +92,7 @@ bool operator<(const BasicBlockFixedPoint& one,
 }
 
 FixedPoint::FixedPoint(FlowGraph* primary, FlowGraph* secondary,
-                       const string& matching_step)
+                       const std::string& matching_step)
     : matching_step_(matching_step.empty() ? 0 : FindString(matching_step)),
       primary_(primary),
       secondary_(secondary),
@@ -148,7 +148,7 @@ void FixedPoint::Create(FlowGraph* primary, FlowGraph* secondary) {
 
 BasicBlockFixedPoints::iterator FixedPoint::Add(
     FlowGraph::Vertex primary_vertex, FlowGraph::Vertex secondary_vertex,
-    const string& step_name) {
+    const std::string& step_name) {
   if (primary_->GetFixedPoint(primary_vertex)) {
     return basic_block_fixed_points_.end();
   }
@@ -183,12 +183,12 @@ FlowGraph* FixedPoint::GetPrimary() const { return primary_; }
 
 FlowGraph* FixedPoint::GetSecondary() const { return secondary_; }
 
-const string& FixedPoint::GetMatchingStep() const {
-  static string kEmpty;
+const std::string& FixedPoint::GetMatchingStep() const {
+  static std::string kEmpty;
   return matching_step_ ? *matching_step_ : kEmpty;
 }
 
-void FixedPoint::SetMatchingStep(const string& matching_step) {
+void FixedPoint::SetMatchingStep(const std::string& matching_step) {
   matching_step_ = FindString(matching_step);
 }
 

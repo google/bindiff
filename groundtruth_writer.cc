@@ -12,13 +12,13 @@ namespace bindiff {
 
 using binexport::FormatAddress;
 
-GroundtruthWriter::GroundtruthWriter(const string& filename)
+GroundtruthWriter::GroundtruthWriter(const std::string& filename)
     : filename_(filename),
       fixed_point_infos_(nullptr),
       primary_(nullptr),
       secondary_(nullptr) {}
 
-GroundtruthWriter::GroundtruthWriter(const string& filename,
+GroundtruthWriter::GroundtruthWriter(const std::string& filename,
                                      const FixedPointInfos& fixed_point_infos,
                                      const FlowGraphInfos& primary,
                                      const FlowGraphInfos& secondary)

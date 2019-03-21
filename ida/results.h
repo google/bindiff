@@ -25,7 +25,7 @@ namespace bindiff {
 class Results {
  public:
   struct StatisticDescription {
-    string name;
+    std::string name;
     bool is_count;
     union {
       size_t count;
@@ -38,11 +38,11 @@ class Results {
     double confidence;
     ChangeType change_type;
     Address address_primary;
-    string name_primary;
+    std::string name_primary;
     Address address_secondary;
-    string name_secondary;
+    std::string name_secondary;
     bool comments_ported;
-    string algorithm_name;
+    std::string algorithm_name;
     int basic_block_count;
     int basic_block_count_primary;
     int basic_block_count_secondary;
@@ -57,7 +57,7 @@ class Results {
 
   struct UnmatchedDescription {
     Address address;
-    string name;
+    std::string name;
     int basic_block_count;
     int instruction_count;
     int edge_count;
@@ -89,8 +89,8 @@ class Results {
   size_t GetNumMatches() const;
   MatchDescription GetMatchDescription(size_t index) const;
 
-  bool PrepareVisualDiff(size_t index, string* message);
-  bool PrepareVisualCallGraphDiff(size_t index, string* message);
+  bool PrepareVisualDiff(size_t index, std::string* message);
+  bool PrepareVisualCallGraphDiff(size_t index, std::string* message);
   void Read(Reader* reader);
   void Write(Writer* writer);
   void WriteFromIncompleteResults();
@@ -131,7 +131,7 @@ class Results {
 
   CallGraph call_graph1_;
   CallGraph call_graph2_;
-  string input_filename_;
+  std::string input_filename_;
   Instruction::Cache instruction_cache_;
   FixedPointInfos fixed_point_infos_;
   FlowGraphInfos flow_graph_infos1_;

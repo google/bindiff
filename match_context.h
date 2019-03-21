@@ -63,9 +63,8 @@ class MatchingContext {
   // New fixed points discovered since the last matching step.
   FixedPointRefs new_fixed_points_;
 
-  std::pair<FixedPoints::iterator, bool> AddFixedPoint(FlowGraph* primary,
-                                                       FlowGraph* secondary,
-                                                       const string& step_name);
+  std::pair<FixedPoints::iterator, bool> AddFixedPoint(
+      FlowGraph* primary, FlowGraph* secondary, const std::string& step_name);
 
   FixedPoint* FixedPointByPrimary(Address entry_point) const {
     auto found = fixed_points_by_primary_.find(entry_point);

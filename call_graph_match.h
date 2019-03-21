@@ -36,7 +36,7 @@ class MatchingStep {
 
   // name denotes a short name for use in the config file, display_name refers
   // to the name shown in the UI/plugin.
-  explicit MatchingStep(string name, string display_name);
+  explicit MatchingStep(std::string name, std::string display_name);
   virtual ~MatchingStep() = default;
 
   // Tries to discover additional matches in the two binaries described by their
@@ -50,11 +50,11 @@ class MatchingStep {
                                const MatchingStepsFlowGraph& default_steps) = 0;
 
   ABSL_DEPRECATED("Use name() instead")
-  const string& GetName() const { return name_; }
+  const std::string& GetName() const { return name_; }
 
-  const string& name() const { return name_; }
+  const std::string& name() const { return name_; }
 
-  const string& display_name() const { return display_name_; }
+  const std::string& display_name() const { return display_name_; }
 
   ABSL_DEPRECATED("Use confidence() instead")
   double GetConfidence() const { return confidence_; }
@@ -67,8 +67,8 @@ class MatchingStep {
   bool strict_equivalence() const { return strict_equivalence_; }
 
  protected:
-  string name_;
-  string display_name_;
+  std::string name_;
+  std::string display_name_;
   double confidence_ = 0.0;
   bool strict_equivalence_ = false;
 };
@@ -88,7 +88,7 @@ using EdgeFeatures = std::vector<EdgeFeature>;
 // data.
 class BaseMatchingStepEdgesMdIndex : public MatchingStep {
  public:
-  BaseMatchingStepEdgesMdIndex(string name, string display_name,
+  BaseMatchingStepEdgesMdIndex(std::string name, std::string display_name,
                                MatchingContext::FeatureId primary_feature,
                                MatchingContext::FeatureId secondary_feature)
       : MatchingStep(std::move(name), std::move(display_name)),

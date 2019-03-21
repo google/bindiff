@@ -94,7 +94,7 @@ enum ResultFlags {
   kResultsShowAll = 0xffffffff
 };
 
-string GetArgument(const char* name) {
+std::string GetArgument(const char* name) {
   const char* option =
       get_plugin_options(absl::StrCat("BinDiff", name).c_str());
   return option ? option : "";
@@ -102,8 +102,8 @@ string GetArgument(const char* name) {
 
 bool DoSaveResults();
 
-string FindFile(const string& path, const string& extension) {
-  std::vector<string> entries;
+std::string FindFile(const std::string& path, const std::string& extension) {
+  std::vector<std::string> entries;
   GetDirectoryEntries(path, &entries);
   for (const auto& entry : entries) {
     if (GetFileExtension(entry) == extension) {
@@ -130,7 +130,7 @@ bool ExportIdbs() {
   if (!temp_dir_or.ok()) {
     return false;
   }
-  const string temp_dir = std::move(temp_dir_or).ValueOrDie();
+  const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
 
   const char* secondary_idb = ask_file(
       /*for_saving=*/false, "*.idb;*.i64", "%s",
@@ -141,8 +141,8 @@ bool ExportIdbs() {
     return false;
   }
 
-  const string primary_idb_path(get_path(PATH_TYPE_IDB));
-  string secondary_idb_path(secondary_idb);
+  const std::string primary_idb_path(get_path(PATH_TYPE_IDB));
+  std::string secondary_idb_path(secondary_idb);
   if (primary_idb_path == secondary_idb_path) {
     throw std::runtime_error(
         "You cannot open the same IDB file twice. Please copy and rename one if"
@@ -172,18 +172,18 @@ bool ExportIdbs() {
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
 
-  const string primary_temp_dir = JoinPath(temp_dir, "primary");
+  const std::string primary_temp_dir = JoinPath(temp_dir, "primary");
   RemoveAll(primary_temp_dir).IgnoreError();
   not_absl::Status status = CreateDirectories(primary_temp_dir);
   if (!status.ok()) {
-    throw std::runtime_error{string(status.message())};
+    throw std::runtime_error{std::string(status.message())};
   }
 
-  const string secondary_temp_dir = JoinPath(temp_dir, "secondary");
+  const std::string secondary_temp_dir = JoinPath(temp_dir, "secondary");
   RemoveAll(secondary_temp_dir).IgnoreError();
   status = CreateDirectories(secondary_temp_dir);
   if (!status.ok()) {
-    throw std::runtime_error{string(status.message())};
+    throw std::runtime_error{std::string(status.message())};
   }
 
   {
@@ -234,7 +234,7 @@ void DoVisualDiff(uint32_t index, bool call_graph_diff) {
     return;
   }
   try {
-    string message;
+    std::string message;
     const bool result =
         !call_graph_diff
             ? g_results->PrepareVisualDiff(index, &message)
@@ -582,7 +582,7 @@ bool DoPortComments() {
       start_address_source, end_address_source, start_address_target,
       end_address_target, min_confidence, min_similarity);
   if (!status.ok()) {
-    const string message(status.message());
+    const std::string message(status.message());
     LOG(INFO) << "Error: " << message;
     warning("Error: %s\n", message.c_str());
     return false;
@@ -609,7 +609,7 @@ constexpr ext_idcfunc_t kBinDiffDatabaseIdcFunc = {
     "BinDiffDatabase", IdcBinDiffDatabase, kBinDiffDatabaseArgs, nullptr, 0,
     EXTFUN_BASE};
 
-bool WriteResults(const string& path) {
+bool WriteResults(const std::string& path) {
   if (FileExists(path)) {
     if (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
                path.c_str()) != 1) {
@@ -620,14 +620,14 @@ bool WriteResults(const string& path) {
   WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing results...";
-  string export1(g_results->call_graph1_.GetFilePath());
-  string export2(g_results->call_graph2_.GetFilePath());
+  std::string export1(g_results->call_graph1_.GetFilePath());
+  std::string export2(g_results->call_graph2_.GetFilePath());
   auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
   if (!temp_dir_or.ok()) {
     return false;
   }
-  const string temp_dir = std::move(temp_dir_or).ValueOrDie();
-  const string out_dir(Dirname(path));
+  const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
+  const std::string out_dir(Dirname(path));
 
   if (!g_results->IsIncomplete()) {
     DatabaseWriter writer(path);
@@ -647,12 +647,12 @@ bool WriteResults(const string& path) {
     CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
     std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
   }
-  string new_export1(JoinPath(out_dir, Basename(export1)));
+  std::string new_export1(JoinPath(out_dir, Basename(export1)));
   if (export1 != new_export1) {
     std::remove(new_export1.c_str());
     CopyFile(export1, new_export1);
   }
-  string new_export2(JoinPath(out_dir, Basename(export2)));
+  std::string new_export2(JoinPath(out_dir, Basename(export2)));
   if (export2 != new_export2) {
     std::remove(new_export2.c_str());
     CopyFile(export2, new_export2);
@@ -673,7 +673,7 @@ bool DoSaveResultsLog() {
     return false;
   }
 
-  const string default_filename(
+  const std::string default_filename(
       g_results->call_graph1_.GetFilename() + "_vs_" +
       g_results->call_graph2_.GetFilename() + ".results");
   const char* filename = ask_file(
@@ -706,7 +706,7 @@ bool DoSaveResultsDebug() {
     return false;
   }
 
-  const string default_filename(
+  const std::string default_filename(
       g_results->call_graph1_.GetFilename() + "_vs_" +
       g_results->call_graph2_.GetFilename() + ".truth");
   const char* filename = ask_file(
@@ -748,7 +748,7 @@ bool DoSaveResults() {
     // It seems the filechooser will only ever use the directory part of the
     // default filename _or_ the filename part. I want both!
     // (Hex-Rays has confirmed this to be a bug and promised to fix it in 6.2)
-    string default_filename(
+    std::string default_filename(
         g_results->call_graph1_.GetFilename() + "_vs_" +
         g_results->call_graph2_.GetFilename() + ".BinDiff");
     const char* filename = ask_file(
@@ -792,7 +792,7 @@ bool DoLoadResults() {
       return false;
     }
 
-    string path(Dirname(filename));
+    std::string path(Dirname(filename));
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("Loading results...");
@@ -805,7 +805,7 @@ bool DoLoadResults() {
     if (!temp_dir_or.ok()) {
       return false;
     }
-    const string temp_dir = std::move(temp_dir_or).ValueOrDie();
+    const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
 
     SqliteDatabase database(filename);
     DatabaseReader reader(database, filename, temp_dir);
@@ -813,7 +813,7 @@ bool DoLoadResults() {
 
     auto sha256_or = GetInputFileSha256();
     auto status = sha256_or.status();
-    string hash;
+    std::string hash;
     if (status.ok()) {
       hash = std::move(sha256_or).ValueOrDie();
     } else {
@@ -824,10 +824,10 @@ bool DoLoadResults() {
       }
     }
     if (hash.empty()) {
-      throw std::runtime_error{string(status.message())};
+      throw std::runtime_error{std::string(status.message())};
     }
     if (hash != absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {
-      const string message = absl::StrCat(
+      const std::string message = absl::StrCat(
           "Error: currently loaded IDBs input file hash differs from "
           "result file primary graph. Please load IDB for: ",
           g_results->call_graph1_.GetExeFilename());
@@ -941,7 +941,7 @@ class PortCommentsAction : public ActionHandler<PortCommentsAction> {
           absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()),
           as_external_lib);
       if (!status.ok()) {
-        const string message(status.message());
+        const std::string message(status.message());
         LOG(INFO) << "Error: " << message;
         warning("Error: %s\n", message.c_str());
         return 0;
@@ -998,7 +998,7 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
     not_absl::Status status = g_results->DeleteMatches(
         absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
     if (!status.ok()) {
-      const string message(status.message());
+      const std::string message(status.message());
       LOG(INFO) << "Error: " << message;
       warning("Error: %s\n", message.c_str());
       return 0;
@@ -1033,7 +1033,7 @@ class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
     not_absl::Status status = g_results->ConfirmMatches(
         absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
     if (!status.ok()) {
-      const string message(status.message());
+      const std::string message(status.message());
       LOG(INFO) << "Error: " << message;
       warning("Error: %s\n", message.c_str());
       return 0;
@@ -1066,7 +1066,7 @@ class CopyAddressAction : public ActionHandler<CopyAddressAction> {
 
     not_absl::Status status = CopyToClipboard(FormatAddress(address));
     if (!status.ok()) {
-      const string message(status.message());
+      const std::string message(status.message());
       LOG(INFO) << "Error: " << message;
       warning("Error: %s\n", message.c_str());
       return 0;
@@ -1101,7 +1101,7 @@ class AddMatchAction : public ActionHandler<AddMatchAction> {
         g_results->AddMatch(g_results->GetPrimaryAddress(index_primary),
                             g_results->GetSecondaryAddress(index_secondary));
     if (!status.ok()) {
-      const string message(status.message());
+      const std::string message(status.message());
       LOG(INFO) << "Error: " << message;
       warning("Error: %s\n", message.c_str());
       return 0;
@@ -1237,7 +1237,7 @@ int idaapi PluginInit() {
     return PLUGIN_SKIP;
   }
 
-  LOG(INFO) << string(kProgramVersion) << " (" << __DATE__
+  LOG(INFO) << std::string(kProgramVersion) << " (" << __DATE__
 #ifndef NDEBUG
             << ", debug build"
 #endif
@@ -1293,7 +1293,7 @@ void idaapi PluginTerminate() {
 }
 
 bool idaapi PluginRun(size_t /* arg */) {
-  static const string kDialogBase = absl::StrCat(
+  static const std::string kDialogBase = absl::StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
       "BUTTON CANCEL NONE\n"
@@ -1311,17 +1311,14 @@ bool idaapi PluginRun(size_t /* arg */) {
       "'Load Results...' load a previously saved diff result. The primary IDB "
       "used in that diff must already be open in IDA.\n"
       "\n",
-      kProgramVersion, "\n",
-      kCopyright, "\n",
-      "ENDHELP\n",
-      kProgramVersion, "\n",
+      kProgramVersion, "\n", kCopyright, "\n", "ENDHELP\n", kProgramVersion,
+      "\n",
       "\n"
       "<~D~iff Database...:B:1:30::>\n"
       "<D~i~ff Database Filtered...:B:1:30::>\n\n"
-      "<L~o~ad Results...:B:1:30::>\n\n"
-      );
+      "<L~o~ad Results...:B:1:30::>\n\n");
 
-  static const string kDialogResultsAvailable = absl::StrCat(
+  static const std::string kDialogResultsAvailable = absl::StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
       "BUTTON CANCEL NONE\n"
@@ -1353,10 +1350,8 @@ bool idaapi PluginRun(size_t /* arg */) {
       "meeting a certain quality threshold or in a certain address range will "
       "be ported.\n"
       "\n",
-      kProgramVersion, "\n",
-      kCopyright, "\n",
-      "ENDHELP\n",
-      kProgramVersion, "\n",
+      kProgramVersion, "\n", kCopyright, "\n", "ENDHELP\n", kProgramVersion,
+      "\n",
       "\n"
       "<~D~iff Database...:B:1:30::>\n"
       "<D~i~ff Database Filtered...:B:1:30::>\n"
@@ -1384,7 +1379,7 @@ bool idaapi PluginRun(size_t /* arg */) {
     // the meantime
     auto sha256_or = GetInputFileSha256();
     if (!sha256_or.ok()) {
-      throw std::runtime_error{string(sha256_or.status().message())};
+      throw std::runtime_error{std::string(sha256_or.status().message())};
     }
     if (sha256_or.ValueOrDie() !=
         absl::AsciiStrToLower(g_results->call_graph1_.GetExeHash())) {

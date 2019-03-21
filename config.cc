@@ -18,11 +18,11 @@ not_absl::Status InitConfig() {
   constexpr char kBinDiff[] = "BinDiff";
   constexpr char kConfigName[] = "bindiff_core.xml";
 
-  string path;
+  std::string path;
   NA_ASSIGN_OR_RETURN(path, GetOrCreateAppDataDirectory(kBinDiff));
-  const string user_path = JoinPath(path, kConfigName);
+  const std::string user_path = JoinPath(path, kConfigName);
 
-  string common_path;
+  std::string common_path;
   auto common_path_or = GetCommonAppDataDirectory(kBinDiff);
   const bool have_common_path = common_path_or.ok();
   if (have_common_path) {
@@ -58,7 +58,7 @@ not_absl::Status InitConfig() {
     not_absl::Status status = CopyFile(common_path, user_path);
     if (!status.ok()) {
       LOG(ERROR) << "Cannot copy per-machine config: "
-                 << string(status.message());
+                 << std::string(status.message());
     }
   } else {
     *config = std::move(user_config);

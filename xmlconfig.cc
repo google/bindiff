@@ -19,7 +19,7 @@ namespace security {
 namespace bindiff {
 namespace {
 
-not_absl::StatusOr<string> ReadFileToString(const string& filename) {
+not_absl::StatusOr<std::string> ReadFileToString(const std::string& filename) {
   std::ifstream stream;
   stream.open(filename,
               std::ifstream::in | std::ifstream::ate | std::ifstream::binary);
@@ -28,7 +28,7 @@ not_absl::StatusOr<string> ReadFileToString(const string& filename) {
     return not_absl::NotFoundError(absl::StrCat("File not found: ", filename));
   }
   stream.seekg(0);
-  string data(size, '\0');
+  std::string data(size, '\0');
   stream.read(&data[0], size);
   if (!stream) {
     return not_absl::InternalError(
@@ -45,7 +45,7 @@ XmlConfig::~XmlConfig() = default;
 
 XmlConfig& XmlConfig::operator=(XmlConfig&&) = default;
 
-not_absl::Status XmlConfig::LoadFromString(const string& data) {
+not_absl::Status XmlConfig::LoadFromString(const std::string& data) {
   document_ = absl::make_unique<TiXmlDocument>();
   if (!data.empty()) {
     document_->Parse(data.c_str());
@@ -53,14 +53,13 @@ not_absl::Status XmlConfig::LoadFromString(const string& data) {
   return not_absl::OkStatus();
 }
 
-not_absl::Status XmlConfig::LoadFromFile(
-    const string& filename) {
-  NA_ASSIGN_OR_RETURN(string data, ReadFileToString(filename));
+not_absl::Status XmlConfig::LoadFromFile(const std::string& filename) {
+  NA_ASSIGN_OR_RETURN(std::string data, ReadFileToString(filename));
   return LoadFromString(data);
 }
 
-not_absl::Status XmlConfig::LoadFromFileWithDefaults(const string& filename,
-                                                     const string& defaults) {
+not_absl::Status XmlConfig::LoadFromFileWithDefaults(
+    const std::string& filename, const std::string& defaults) {
   auto status = LoadFromFile(filename);
   if (!status.ok()) {
     return LoadFromString(defaults);
@@ -74,7 +73,7 @@ const TiXmlDocument* XmlConfig::document() const { return document_.get(); }
 
 template <typename CacheT, typename ConvertT>
 typename CacheT::mapped_type ReadValue(
-    CacheT* cache, TiXmlDocument* document, const string& key,
+    CacheT* cache, TiXmlDocument* document, const std::string& key,
     ConvertT convert_func, const typename CacheT::mapped_type& default_value) {
   auto it = cache->find(key);
   if (it != cache->end()) {
@@ -87,7 +86,7 @@ typename CacheT::mapped_type ReadValue(
   auto& cache_entry = (*cache)[key];
   try {
     TinyXPath::xpath_processor processor(document->RootElement(), key.c_str());
-    const string temp(processor.S_compute_xpath().c_str());
+    const std::string temp(processor.S_compute_xpath().c_str());
     cache_entry = temp.empty() ? default_value : convert_func(temp);
   } catch (...) {
     cache_entry = default_value;
@@ -95,36 +94,37 @@ typename CacheT::mapped_type ReadValue(
   return cache_entry;
 }
 
-int XmlConfig::ReadInt(const string& key, int default_value) const {
+int XmlConfig::ReadInt(const std::string& key, int default_value) const {
   return ReadValue(
       &int_cache_, document_.get(), key,
-      [](const string& value) -> int { return std::stoi(value); },
+      [](const std::string& value) -> int { return std::stoi(value); },
       default_value);
 }
 
-double XmlConfig::ReadDouble(const string& key, double default_value) const {
+double XmlConfig::ReadDouble(const std::string& key,
+                             double default_value) const {
   return ReadValue(
       &double_cache_, document_.get(), key,
-      [](const string& value) -> double { return std::stod(value); },
+      [](const std::string& value) -> double { return std::stod(value); },
       default_value);
 }
 
-string XmlConfig::ReadString(const string& key,
-                             const string& default_value) const {
+std::string XmlConfig::ReadString(const std::string& key,
+                                  const std::string& default_value) const {
   // TODO(cblichmann): We cannot tell the difference between an empty string
   //                   result and an error (no) result.
   return ReadValue(
       &string_cache_, document_.get(), key,
-      [](const string& value) -> const string& { return value; },
+      [](const std::string& value) -> const std::string& { return value; },
       default_value);
 }
 
-bool XmlConfig::ReadBool(const string& key, bool default_value) const {
+bool XmlConfig::ReadBool(const std::string& key, bool default_value) const {
   // Note: An empty string in the config file for this setting will always
   // result in the default value to be returned.
   return ReadValue(
       &bool_cache_, document_.get(), key,
-      [](const string& value) -> bool {
+      [](const std::string& value) -> bool {
         return absl::AsciiStrToLower(value) == "true";
       },
       default_value);

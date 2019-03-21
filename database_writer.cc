@@ -33,7 +33,7 @@ void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
       counts["instruction matches (library)"];
 }
 
-void ReadInfos(const string& filename, CallGraph& call_graph,
+void ReadInfos(const std::string& filename, CallGraph& call_graph,
                FlowGraphInfos& flow_graph_infos) {
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
@@ -71,16 +71,16 @@ void ReadInfos(const string& filename, CallGraph& call_graph,
   }
 }
 
-DatabaseWriter::DatabaseWriter(const string& path)
+DatabaseWriter::DatabaseWriter(const std::string& path)
     : database_(path.c_str()), filename_(path) {
   PrepareDatabase();
 }
 
-DatabaseWriter::DatabaseWriter(const string& path, bool recreate) {
+DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
   auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
   if (!tempdir_or.ok()) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error{string(tempdir_or.status().error_message())};
+    throw std::runtime_error{std::string(tempdir_or.status().error_message())};
   }
   filename_ = JoinPath(tempdir_or.ValueOrDie(), Basename(path));
   if (recreate) {
@@ -98,9 +98,7 @@ SqliteDatabase* DatabaseWriter::GetDatabase() {
   return &database_;
 }
 
-const string& DatabaseWriter::GetFilename() const {
-  return filename_;
-}
+const std::string& DatabaseWriter::GetFilename() const { return filename_; }
 
 void DatabaseWriter::Close() {
   database_.Disconnect();
@@ -323,7 +321,7 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 }
 
 void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
-  string temp;
+  std::string temp;
   database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM \"function\"")
       ->Execute()
       .Into(&temp);
@@ -499,8 +497,8 @@ void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
   }
 }
 
-not_absl::StatusOr<string> GetTempFileName() {
-  string temp_dir;
+not_absl::StatusOr<std::string> GetTempFileName() {
+  std::string temp_dir;
   NA_ASSIGN_OR_RETURN(temp_dir, GetOrCreateTempDirectory("BinDiff"));
   return JoinPath(temp_dir, "temporary.database");
 }
@@ -554,7 +552,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   auto temp_file_or = GetTempFileName();
   if (!temp_file_or.ok()) {
     // TODO(cblichmann): Refactor Writer interface to return not_absl::Status.
-    throw std::runtime_error{string(temp_file_or.status().error_message())};
+    throw std::runtime_error{
+        std::string(temp_file_or.status().error_message())};
   }
   const auto temp_file = std::move(temp_file_or).ValueOrDie();
   if (FileExists(temp_file)) {
@@ -618,8 +617,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
 }
 
 DatabaseReader::DatabaseReader(SqliteDatabase& database,
-                               const string& filename,
-                               const string& temp_dir)
+                               const std::string& filename,
+                               const std::string& temp_dir)
     : database_(database),
       input_filename_(filename),
       primary_filename_(),
@@ -628,21 +627,19 @@ DatabaseReader::DatabaseReader(SqliteDatabase& database,
       temporary_directory_(temp_dir),
       basic_block_fixed_point_info_() {
   std::replace(path_.begin(), path_.end(), '\\', '/');
-  const string::size_type pos = path_.rfind('/');
-  if (pos != string::npos) {
+  const std::string::size_type pos = path_.rfind('/');
+  if (pos != std::string::npos) {
     path_ = path_.substr(0, pos + 1);
   }
 }
 
-string DatabaseReader::GetInputFilename() const {
-  return input_filename_;
-}
+std::string DatabaseReader::GetInputFilename() const { return input_filename_; }
 
-string DatabaseReader::GetPrimaryFilename() const {
+std::string DatabaseReader::GetPrimaryFilename() const {
   return primary_filename_;
 }
 
-string DatabaseReader::GetSecondaryFilename() const {
+std::string DatabaseReader::GetSecondaryFilename() const {
   return secondary_filename_;
 }
 
@@ -675,8 +672,8 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
     Address function2 = 0;
     Address basic_block1 = 0;
     Address basic_block2 = 0;
-    string function_algorithm;
-    string basic_block_algorithm;
+    std::string function_algorithm;
+    std::string basic_block_algorithm;
     double similarity = 0.0;
     double confidence = 0.0;
     bool basic_block_is_null = false;
@@ -737,7 +734,7 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
         "inner join functionalgorithm as a on a.id = f.algorithm");
     statement.Execute();
     for (; statement.GotData(); statement.Execute()) {
-      string algorithm;
+      std::string algorithm;
       FixedPointInfo fixed_point;
       int evaluate = 0, comments_ported = 0;
       statement
@@ -765,7 +762,7 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
         "basicblockalgorithm as a on a.id = b.algorithm group by b.algorithm");
     statement.Execute();
     for (; statement.GotData(); statement.Execute()) {
-      string algorithm_name;
+      std::string algorithm_name;
       int count = 0;
       statement.Into(&algorithm_name).Into(&count);
       basic_block_fixed_point_info_[algorithm_name] = count;

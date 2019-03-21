@@ -21,7 +21,7 @@ uint32_t IPow32(uint32_t base, uint32_t exp);
 // the BinExport v1 format. Thus the mnemonic space was unbounded which made
 // perfect hashing infeasible.
 // TODO(cblichmann): Rename to GetMnemonicId().
-uint32_t GetPrime(const string& mnemonic);
+uint32_t GetPrime(const std::string& mnemonic);
 
 }  // namespace bindiff
 }  // namespace security

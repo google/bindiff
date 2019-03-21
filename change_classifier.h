@@ -23,7 +23,7 @@ enum ChangeType {
 
 void ClassifyChanges(FixedPoint* fixed_point);
 void ClassifyChanges(MatchingContext* context);
-string GetChangeDescription(ChangeType change);
+std::string GetChangeDescription(ChangeType change);
 
 }  // namespace bindiff
 }  // namespace security

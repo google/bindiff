@@ -197,16 +197,17 @@ class FlowGraph {
   uint64_t GetPrime(Vertex vertex) const;
   uint64_t GetPrime() const;
 
-  // Return the string reference hash for a basic block or the whole function.
+  // Return the string reference hash for a basic block or the whole
+  // function.
   uint32_t GetHash(Vertex vertex) const;
   uint32_t GetHash() const;
 
   // O(1) The function accesses a call graph vertex in order to retrieve the
   // name.
-  const string& GetName() const;
-  const string& GetDemangledName() const;
+  const std::string& GetName() const;
+  const std::string& GetDemangledName() const;
   // Returns the demangled name if available, raw name otherwise.
-  const string& GetGoodName() const;
+  const std::string& GetGoodName() const;
 
  private:
   using AddressToLevelMap = std::vector<std::pair<Address, Level>>;

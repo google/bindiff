@@ -61,7 +61,7 @@ class SqliteStatement {
   SqliteStatement& Into(int64_t* value, bool* is_null = nullptr);
   SqliteStatement& Into(Address* value, bool* is_null = nullptr);
   SqliteStatement& Into(double* value, bool* is_null = nullptr);
-  SqliteStatement& Into(string* value, bool* is_null = nullptr);
+  SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
 
   SqliteStatement& Execute();
   SqliteStatement& Reset();

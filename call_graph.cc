@@ -30,16 +30,16 @@ CallGraph::Vertex CallGraph::kInvalidVertex =
 
 CallGraph::CallGraph() : md_index_(0) {}
 
-string CallGraph::GetFilename() const {
-  const string::size_type filename_pos = filename_.rfind("/");
-  const string filename(filename_.substr(
-      filename_pos != string::npos ? filename_pos + 1 : 0));
-  const string::size_type extension_pos = filename.rfind(".");
+std::string CallGraph::GetFilename() const {
+  const std::string::size_type filename_pos = filename_.rfind("/");
+  const std::string filename(filename_.substr(
+      filename_pos != std::string::npos ? filename_pos + 1 : 0));
+  const std::string::size_type extension_pos = filename.rfind(".");
   return filename.substr(
-      0, extension_pos != string::npos ? extension_pos : filename.size());
+      0, extension_pos != std::string::npos ? extension_pos : filename.size());
 }
 
-string CallGraph::GetFilePath() const { return filename_; }
+std::string CallGraph::GetFilePath() const { return filename_; }
 
 void CallGraph::Reset() {
   graph_.clear();
@@ -86,21 +86,21 @@ Comments& CallGraph::GetComments() { return comments_; }
 
 const Comments& CallGraph::GetComments() const { return comments_; }
 
-const string& CallGraph::GetExeFilename() const { return exe_filename_; }
+const std::string& CallGraph::GetExeFilename() const { return exe_filename_; }
 
-void CallGraph::SetExeFilename(const string& name) {
+void CallGraph::SetExeFilename(const std::string& name) {
   exe_filename_ = name;
 }
 
-const string& CallGraph::GetExeHash() const { return exe_hash_; }
+const std::string& CallGraph::GetExeHash() const { return exe_hash_; }
 
-void CallGraph::SetExeHash(const string& hash) {
+void CallGraph::SetExeHash(const std::string& hash) {
   // The executable hash is used for display purposes only, so we do not check
   // it for validity here.
   exe_hash_ = hash;
 }
 
-void CallGraph::Read(const BinExport2& proto, const string& filename) {
+void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
   filename_ = filename;
   std::replace(filename_.begin(), filename_.end(), '\\', '/');
 
@@ -330,19 +330,19 @@ void CallGraph::CalculateTopology() {
   InvertedBreadthFirstSearch(&graph_);
 }
 
-const string& CallGraph::GetName(Vertex vertex) const {
+const std::string& CallGraph::GetName(Vertex vertex) const {
   return graph_[vertex].name_;
 }
 
-void CallGraph::SetName(Vertex vertex, const string& name) {
+void CallGraph::SetName(Vertex vertex, const std::string& name) {
   graph_[vertex].name_ = name;
 }
 
-const string& CallGraph::GetDemangledName(Vertex vertex) const {
+const std::string& CallGraph::GetDemangledName(Vertex vertex) const {
   return graph_[vertex].demangled_name_;
 }
 
-void CallGraph::SetDemangledName(Vertex vertex, const string& name) {
+void CallGraph::SetDemangledName(Vertex vertex, const std::string& name) {
   if (name.empty()) {
     graph_[vertex].flags_ &= ~VERTEX_DEMANGLED_NAME;
   } else {
@@ -351,7 +351,7 @@ void CallGraph::SetDemangledName(Vertex vertex, const string& name) {
   graph_[vertex].demangled_name_ = name;
 }
 
-const string& CallGraph::GetGoodName(Vertex vertex) const {
+const std::string& CallGraph::GetGoodName(Vertex vertex) const {
   if (graph_[vertex].flags_ & VERTEX_DEMANGLED_NAME) {
     return graph_[vertex].demangled_name_;
   }

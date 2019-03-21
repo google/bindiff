@@ -111,7 +111,7 @@ void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
   }
 }
 
-void SetupGraphsFromProto(const BinExport2& proto, const string& filename,
+void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
                           CallGraph* call_graph, FlowGraphs* flow_graphs,
                           FlowGraphInfos* flow_graph_infos,
                           Instruction::Cache* instruction_cache) {
@@ -144,7 +144,7 @@ void SetupGraphsFromProto(const BinExport2& proto, const string& filename,
 }
 
 #ifdef GOOGLE
-bool ReadGoogle(const string& filename, CallGraph* call_graph,
+bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
                 FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
                 Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -180,7 +180,7 @@ bool ReadGoogle(const string& filename, CallGraph* call_graph,
 #endif  // GOOGLE
 
 // TODO(cblichmann): Make this function return an error instead of throwing.
-void Read(const string& filename, CallGraph* call_graph,
+void Read(const std::string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -191,7 +191,8 @@ void Read(const string& filename, CallGraph* call_graph,
   enum { kMinFileSize = 8 };
   auto file_size_or = GetFileSize(filename);
   if (!file_size_or.ok()) {
-    throw std::runtime_error{string(file_size_or.status().error_message())};
+    throw std::runtime_error{
+        std::string(file_size_or.status().error_message())};
   }
   if (file_size_or.ValueOrDie() <= kMinFileSize) {
     throw std::runtime_error{absl::StrCat("file too small: ", filename)};

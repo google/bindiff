@@ -28,7 +28,7 @@ class Expression {
  private:
   Type type_;
   Address immediate_;
-  string symbol_;
+  std::string symbol_;
   std::list<Expression*> children_;
 };
 

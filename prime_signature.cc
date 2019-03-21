@@ -12536,7 +12536,7 @@ constexpr size_t GetPrimeTableSize() {
 
 }  // namespace
 
-uint32_t GetPrime(const string& mnemonic) {
+uint32_t GetPrime(const std::string& mnemonic) {
   assert(mnemonic.size() < GetPrimeTableSize());
   constexpr char kAsciiSpace = 32;
   uint32_t id = 1;

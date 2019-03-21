@@ -91,7 +91,7 @@ namespace bindiff {
 ABSL_CONST_INIT absl::Mutex g_queue_mutex(absl::kConstInit);
 std::atomic<bool> g_wants_to_quit = ATOMIC_VAR_INIT(false);
 
-using DiffPairList = std::list<std::pair<string, string>>;
+using DiffPairList = std::list<std::pair<std::string, std::string>>;
 
 void PrintMessage(absl::string_view message) {
   auto size = message.size();
@@ -116,7 +116,7 @@ void PrintErrorMessage(absl::string_view message) {
 #ifndef GOOGLE
 void UnprefixedLogHandler(google::protobuf::LogLevel level,
                           const char* filename, int line,
-                          const string& message) {
+                          const std::string& message) {
   fwrite(message.data(), 1 /* Size */, message.size(), stdout);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
 }
@@ -126,24 +126,26 @@ void UnprefixedLogHandler(google::protobuf::LogLevel level,
 // 250 characters. It'll truncate part1 and part2, leaving all other fragments
 // as is. If it is not possible to get a short enough name it'll throw an
 // exception.
-string GetTruncatedFilename(
-    const string& path /* Must include trailing slash */,
-    const string& part1 /* Potentially truncated */, const string& middle,
-    const string& part2 /* Potentially truncated */, const string& extension) {
+std::string GetTruncatedFilename(
+    const std::string& path /* Must include trailing slash */,
+    const std::string& part1 /* Potentially truncated */,
+    const std::string& middle,
+    const std::string& part2 /* Potentially truncated */,
+    const std::string& extension) {
   enum { kMaxFilename = 250 };
 
-  const string::size_type length = path.size() + part1.size() +
+  const std::string::size_type length = path.size() + part1.size() +
                                         middle.size() + part2.size() +
                                         extension.size();
   if (length <= kMaxFilename) {
     return absl::StrCat(path, part1, middle, part2, extension);
   }
 
-  string::size_type overflow = length - kMaxFilename;
+  std::string::size_type overflow = length - kMaxFilename;
 
   // First, shorten the longer of the two strings.
-  string one = part1;
-  string two = part2;
+  std::string one = part1;
+  std::string two = part2;
   if (part1.size() > part2.size()) {
     one = part1.substr(
         0, std::max(part2.size(),
@@ -173,17 +175,17 @@ string GetTruncatedFilename(
 
 class DifferThread {
  public:
-  explicit DifferThread(const string& path, const string& out_path,
+  explicit DifferThread(const std::string& path, const std::string& out_path,
                         DiffPairList* files);  // Not owned.
   void operator()();
 
  private:
   DiffPairList* file_queue_;
-  string path_;
-  string out_path_;
+  std::string path_;
+  std::string out_path_;
 };
 
-DifferThread::DifferThread(const string& path, const string& out_path,
+DifferThread::DifferThread(const std::string& path, const std::string& out_path,
                            DiffPairList* files)
     : file_queue_(files), path_(path), out_path_(out_path) {}
 
@@ -197,12 +199,12 @@ void DifferThread::operator()() {
   FlowGraphs flow_graphs2;
   CallGraph call_graph1;
   CallGraph call_graph2;
-  string last_file1;
-  string last_file2;
+  std::string last_file1;
+  std::string last_file2;
   ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
   do {
-    string file1;
-    string file2;
+    std::string file1;
+    std::string file2;
     try {
       Timer<> timer;
       {
@@ -302,8 +304,8 @@ void DifferThread::operator()() {
   } while (!g_wants_to_quit);
 }
 
-void ListFiles(const string& path) {
-  std::vector<string> entries;
+void ListFiles(const std::string& path) {
+  std::vector<std::string> entries;
   GetDirectoryEntries(path, &entries);
 
   for (const auto& entry : entries) {
@@ -327,20 +329,21 @@ void ListFiles(const string& path) {
   }
 }
 
-void BatchDiff(const string& path, const string& reference_file,
-               const string& out_path) {
+void BatchDiff(const std::string& path, const std::string& reference_file,
+               const std::string& out_path) {
   // Collect idb files to diff.
-  std::vector<string> entries;
+  std::vector<std::string> entries;
   GetDirectoryEntries(path, &entries);
-  std::vector<string> idb_files;
-  absl::flat_hash_set<string> diff_files;
+  std::vector<std::string> idb_files;
+  absl::flat_hash_set<std::string> diff_files;
   for (const auto& entry : entries) {
-    string file_path = JoinPath(path, entry);
+    std::string file_path = JoinPath(path, entry);
     if (IsDirectory(file_path)) {
       continue;
     }
     // Export all idbs in directory.
-    const string extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
+    const std::string extension =
+        absl::AsciiStrToUpper(GetFileExtension(file_path));
     if (extension == ".IDB" || extension == ".I64") {
       auto file_size_or = GetFileSize(file_path);
       if (file_size_or.ok() && file_size_or.ValueOrDie() > 0) {
@@ -386,7 +389,7 @@ void BatchDiff(const string& path, const string& reference_file,
     exporter->AddDatabase(idb_file);
   }
   exporter
-      ->Export([](const not_absl::Status& status, const string& idb_path,
+      ->Export([](const not_absl::Status& status, const std::string& idb_path,
                   double elapsed) {
         if (!status.ok()) {
           PrintErrorMessage(status.message());
@@ -437,8 +440,8 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
   std::cout << std::endl;
 }
 
-void BatchDumpMdIndices(const string& path) {
-  std::vector<string> entries;
+void BatchDumpMdIndices(const std::string& path) {
+  std::vector<std::string> entries;
   GetDirectoryEntries(path, &entries);
   for (const auto& entry : entries) {
     auto file_path(JoinPath(path, entry));
@@ -484,12 +487,12 @@ int BinDiffMain(int argc, char** argv) {
 #endif
   signal(SIGINT, SignalHandler);
 
-  const string current_path = GetCurrentDirectory();
+  const std::string current_path = GetCurrentDirectory();
   SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
                                SET_FLAGS_DEFAULT);
 
-  string binary_name = Basename(argv[0]);
-  string usage = absl::StrFormat(
+  std::string binary_name = Basename(argv[0]);
+  std::string usage = absl::StrFormat(
       "Finds similarities in binary code.\n"
       "Usage:\n"
       "  %1$s --primary=PRIMARY [--secondary=SECONDARY]\n\n"
@@ -525,17 +528,17 @@ int BinDiffMain(int argc, char** argv) {
 
   try {
     auto config = GetConfig();
-    not_absl::Status status = !FLAGS_config.empty()
-                                  ? status = config->LoadFromFileWithDefaults(
-                                        FLAGS_config, string(kDefaultConfig))
-                                  : InitConfig();
+    not_absl::Status status =
+        !FLAGS_config.empty() ? status = config->LoadFromFileWithDefaults(
+                                    FLAGS_config, std::string(kDefaultConfig))
+                              : InitConfig();
     if (!status.ok()) {
-      throw std::runtime_error(string(status.message()));
+      throw std::runtime_error(std::string(status.message()));
     }
 
     // Launch Java UI if requested
     if (binary_name == "bindiff_ui" || FLAGS_ui) {
-      std::vector<string> extra_args;
+      std::vector<std::string> extra_args;
       for (int i = 1; i < argc; ++i) {
         extra_args.push_back(argv[i]);
       }

@@ -10,8 +10,8 @@ namespace bindiff {
 
 struct FlowGraphInfo {
   Address address;
-  const string* name;
-  const string* demangled_name;
+  const std::string* name;
+  const std::string* demangled_name;
   int basic_block_count;
   int edge_count;
   int instruction_count;
@@ -27,7 +27,7 @@ struct FixedPointInfo {
   double similarity;
   double confidence;
   int flags;
-  const string* algorithm;
+  const std::string* algorithm;
   bool evaluate;
   bool comments_ported;
 

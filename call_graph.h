@@ -18,8 +18,8 @@ class CallGraph {
  public:
   struct VertexInfo {
     Address address_ = 0;       // Function address
-    string name_;               // Function name
-    string demangled_name_;     // Only set iff different from name_
+    std::string name_;          // Function name
+    std::string demangled_name_;  // Only set iff different from name_
     uint32_t bfs_top_down_ = 0;   // Breadth-first-search level top down
     uint32_t bfs_bottom_up_ = 0;  // Breadth-first-search level bottom up
     uint32_t flags_ = 0;
@@ -69,14 +69,14 @@ class CallGraph {
   // Reads and initializes the call graph from "proto". "filename" is passed in
   // and remembered for informational purposes only (we want to be able to
   // construct default save filenames with it for example).
-  void Read(const BinExport2& proto, const string& filename);
+  void Read(const BinExport2& proto, const std::string& filename);
 
   // Get just the filename part (without path or extension) passed into Read().
-  string GetFilename() const;
+  std::string GetFilename() const;
 
   // Get the fully specified filename including path and extension as passed
   // into read().
-  string GetFilePath() const;
+  std::string GetFilePath() const;
 
   // free all associated data and reset to virgin state
   void Reset();
@@ -158,21 +158,22 @@ class CallGraph {
   // Return the name of the function "vertex". This is actually the only place
   // where this information is stored. The flow graphs themselves don't know
   // their own names.
-  const string& GetName(Vertex vertex) const;
-  void SetName(Vertex vertex, const string& name);
-  const string& GetDemangledName(Vertex vertex) const;
-  void SetDemangledName(Vertex vertex, const string& name);
+  const std::string& GetName(Vertex vertex) const;
+  void SetName(Vertex vertex, const std::string& name);
+  const std::string& GetDemangledName(Vertex vertex) const;
+  void SetDemangledName(Vertex vertex, const std::string& name);
   // Returns the demangled name if available, raw name otherwise.
-  const string& GetGoodName(Vertex vertex) const;
+  const std::string& GetGoodName(Vertex vertex) const;
 
-  // Return the name of the original input binary if known, else empty string.
-  const string& GetExeFilename() const;
-  void SetExeFilename(const string& name);
+  // Return the name of the original input binary if known, else empty
+  // std::string.
+  const std::string& GetExeFilename() const;
+  void SetExeFilename(const std::string& name);
 
   // Return the hex encoded hash (SHA256, SHA1 or obsolete MD5) of the original
   // input binary.
-  const string& GetExeHash() const;
-  void SetExeHash(const string& hash);
+  const std::string& GetExeHash() const;
+  void SetExeHash(const std::string& hash);
 
   // Access comments. The call graph stores theses globally even for operands
   // because we don't want to store them multiple times for shared basic blocks.
@@ -193,10 +194,10 @@ class CallGraph {
 
   Graph graph_;
   double md_index_;
-  string exe_filename_;
-  string exe_hash_;
+  std::string exe_filename_;
+  std::string exe_hash_;
   Comments comments_;
-  string filename_;
+  std::string filename_;
 };
 
 }  // namespace bindiff

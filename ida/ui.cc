@@ -122,7 +122,7 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
     return not_absl::InternalError("Cannot find IDAPyton");
   }
   qstring error;
-  string escaped_snippet;
+  std::string escaped_snippet;
   escaped_snippet.reserve(data.size() * 4);
   for (const auto& c : data) {
     // Unconditionally convert to Python hex escape sequence to be binary safe.

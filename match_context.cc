@@ -97,7 +97,7 @@ MatchingContext::~MatchingContext() {
 }
 
 std::pair<FixedPoints::iterator, bool> MatchingContext::AddFixedPoint(
-    FlowGraph* primary, FlowGraph* secondary, const string& step_name) {
+    FlowGraph* primary, FlowGraph* secondary, const std::string& step_name) {
   if (primary->GetFixedPoint() || secondary->GetFixedPoint()) {
     // already a fixed point
     return std::make_pair(fixed_points_.end(), false);

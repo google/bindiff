@@ -43,7 +43,7 @@ bool KeyLessThan(const EdgeFeature& one, const EdgeFeature& two) {
              : one.source_value < two.source_value;
 }
 
-double GetConfidenceFromConfig(const string& name) {
+double GetConfidenceFromConfig(const std::string& name) {
   return GetConfig()->ReadDouble(
       absl::StrCat("/BinDiff/FunctionMatching/Step[@algorithm=\"", name,
                    "\"]/@confidence"),
@@ -70,7 +70,7 @@ bool GetFlowGraphs(const CallGraph& call_graph, EdgeFeatures::iterator begin,
 
 bool AddFixedPointEdge(
     const std::pair<FixedPoints::iterator, bool>& fixed_point_iterator,
-    MatchingContext* context, const string& name,
+    MatchingContext* context, const std::string& name,
     const MatchingStepsFlowGraph& default_steps) {
   if (fixed_point_iterator.second) {
     FixedPoint& fixed_point =
@@ -89,7 +89,7 @@ bool FindFixedPointsEdge(const FlowGraph* primary_parent,
                          MatchingContext* context,
                          MatchingSteps* matching_steps,
                          const MatchingStepsFlowGraph& default_steps) {
-  const string name(matching_steps->front()->GetName());
+  const std::string name = matching_steps->front()->name();
   matching_steps->pop_front();
 
   bool fixed_points_discovered = false;
@@ -221,7 +221,7 @@ constexpr const char MatchingStep::kFunctionManualDisplayName[];
 constexpr const char MatchingStep::kFunctionCallReferenceName[];
 constexpr const char MatchingStep::kFunctionCallReferenceDisplayName[];
 
-MatchingStep::MatchingStep(string name, string display_name)
+MatchingStep::MatchingStep(std::string name, std::string display_name)
     : name_{std::move(name)},
       display_name_{std::move(display_name)},
       confidence_{GetConfidenceFromConfig(name_)} {}
@@ -343,8 +343,8 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(
 }
 
 MatchingSteps GetDefaultMatchingSteps() {
-  static auto* algorithms = []() -> std::map<string, MatchingStep*>* {
-    auto* result = new std::map<string, MatchingStep*>();
+  static auto* algorithms = []() -> std::map<std::string, MatchingStep*>* {
+    auto* result = new std::map<std::string, MatchingStep*>();
     for (auto* step : std::initializer_list<MatchingStep*>{
              // Edge based matching algorithms:
              new MatchingStepEdgesFlowGraphMdIndex(),
@@ -380,9 +380,10 @@ MatchingSteps GetDefaultMatchingSteps() {
     bool is_attribute = false;
     const TiXmlBase* node = nullptr;
     processor.v_get_xpath_base(i, node, is_attribute);
-    const string name = TinyXPath::XAp_xpath_attribute(
-                            dynamic_cast<const TiXmlNode*>(node), "@algorithm")
-                            ->Value();
+    const std::string name =
+        TinyXPath::XAp_xpath_attribute(dynamic_cast<const TiXmlNode*>(node),
+                                       "@algorithm")
+            ->Value();
     auto algorithm = algorithms->find(name);
     if (algorithm != algorithms->end()) {
       matching_steps.push_back(algorithm->second);

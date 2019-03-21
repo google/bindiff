@@ -28,7 +28,7 @@ namespace security {
 namespace bindiff {
 namespace {
 
-double GetConfidenceFromConfig(const string& name) {
+double GetConfidenceFromConfig(const std::string& name) {
   return GetConfig()->ReadDouble(
       absl::StrCat("/BinDiff/BasicBlockMatching/Step[@algorithm=\"", name,
                    "\"]/@confidence"),
@@ -184,14 +184,16 @@ constexpr const char MatchingStepFlowGraph::kBasicBlockPropagationDisplayName[];
 constexpr const char MatchingStepFlowGraph::kBasicBlockManualName[];
 constexpr const char MatchingStepFlowGraph::kBasicBlockManualDisplayName[];
 
-MatchingStepFlowGraph::MatchingStepFlowGraph(string name, string display_name)
+MatchingStepFlowGraph::MatchingStepFlowGraph(std::string name,
+                                             std::string display_name)
     : name_{std::move(name)},
       display_name_{std::move(display_name)},
       confidence_{GetConfidenceFromConfig(name_)} {}
 
 MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
-  static auto* algorithms = []() -> std::map<string, MatchingStepFlowGraph*>* {
-    auto* result = new std::map<string, MatchingStepFlowGraph*>();
+  static auto* algorithms =
+      []() -> std::map<std::string, MatchingStepFlowGraph*>* {
+    auto* result = new std::map<std::string, MatchingStepFlowGraph*>();
     // TODO(cblichmann): Add proximity md index matching.
     // TODO(cblichmann): Add relaxed and proximity edge matching.
     // TODO(cblichmann): Make it possible to disable propagation == 1 matching.
@@ -230,9 +232,10 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
     bool is_attribute = false;
     const TiXmlBase* node = 0;
     processor.v_get_xpath_base(i, node, is_attribute);
-    const string name = TinyXPath::XAp_xpath_attribute(
-                            dynamic_cast<const TiXmlNode*>(node), "@algorithm")
-                            ->Value();
+    const std::string name =
+        TinyXPath::XAp_xpath_attribute(dynamic_cast<const TiXmlNode*>(node),
+                                       "@algorithm")
+            ->Value();
     auto algorithm = algorithms->find(name);
     if (algorithm != algorithms->end())
       matching_steps_basic_block.push_back(algorithm->second);

@@ -3,6 +3,7 @@
 #include <cstring>
 #include <stdexcept>
 
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
 
 namespace security {
@@ -27,11 +28,11 @@ void SqliteDatabase::Connect(const char* filename) {
   }
 
   if (sqlite3_open(filename, &database_) != SQLITE_OK) {
-    const string error(sqlite3_errmsg(database_));
+    const std::string error(sqlite3_errmsg(database_));
     sqlite3_close(database_);
     database_ = nullptr;
-    throw std::runtime_error(("failed opening database: '" + error
-        + "', filename: '" + string(filename) + "'").c_str());
+    throw std::runtime_error(absl::StrCat("failed opening database: '", error,
+                                          "', filename: '", filename, "'"));
   }
 
   if (!database_) {
@@ -74,9 +75,9 @@ SqliteStatement::SqliteStatement(SqliteDatabase* database,
       got_data_(false) {
   if (sqlite3_prepare_v2(database_, statement, strlen(statement), &statement_,
                          nullptr) != SQLITE_OK) {
-    const string error(sqlite3_errmsg(database_));
-    throw std::runtime_error((string("error preparing statement '") +
-                              statement + "', '" + error + "'").c_str());
+    const std::string error(sqlite3_errmsg(database_));
+    throw std::runtime_error(absl::StrCat("error preparing statement '",
+                                          statement, "', '", error, "'"));
   }
 }
 
@@ -144,7 +145,7 @@ SqliteStatement& SqliteStatement::Into(double* value, bool* is_null) {
   return *this;
 }
 
-SqliteStatement& SqliteStatement::Into(string* value, bool* is_null) {
+SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
   if (is_null)
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
   if (const char* data = reinterpret_cast<const char*>(
@@ -157,9 +158,10 @@ SqliteStatement& SqliteStatement::Into(string* value, bool* is_null) {
 SqliteStatement& SqliteStatement::Execute() {
   const int return_code = sqlite3_step(statement_);
   if (return_code != SQLITE_ROW && return_code != SQLITE_DONE) {
-    const string error(sqlite3_errmsg(database_));
-    throw std::runtime_error((string("error executing statement '")
-        + sqlite3_sql(statement_) + "', '" + error + "'").c_str());
+    const std::string error(sqlite3_errmsg(database_));
+    throw std::runtime_error(absl::StrCat("error executing statement '",
+                                          sqlite3_sql(statement_), "', '",
+                                          error, "'"));
   }
 
   parameter_ = 0;

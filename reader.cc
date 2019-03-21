@@ -12,7 +12,7 @@ bool operator<(const FixedPointInfo& one, const FixedPointInfo& two) {
 
 bool FixedPointInfo::IsManual() const {
   return confidence == 1.0 && algorithm &&
-         algorithm->find("manual") != string::npos;
+         algorithm->find("manual") != std::string::npos;
 }
 
 Reader::Reader() : similarity_(0.0), confidence_(0.0) {}

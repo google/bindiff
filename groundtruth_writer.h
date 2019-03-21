@@ -23,11 +23,11 @@ namespace bindiff {
 // file.
 class GroundtruthWriter : public Writer {
  public:
-  explicit GroundtruthWriter(const string& filename);
+  explicit GroundtruthWriter(const std::string& filename);
 
   // Special constructor, only used in BinDiff plugin so we are able to save
   // from loaded results. Not used anywhere else.
-  GroundtruthWriter(const string& filename,
+  GroundtruthWriter(const std::string& filename,
                     const FixedPointInfos& fixed_point_infos,
                     const FlowGraphInfos& primary,
                     const FlowGraphInfos& secondary);
@@ -37,7 +37,7 @@ class GroundtruthWriter : public Writer {
                      const FixedPoints& fixed_points);
 
  private:
-  string filename_;
+  std::string filename_;
   const FixedPointInfos* fixed_point_infos_;
   const FlowGraphInfos* primary_;
   const FlowGraphInfos* secondary_;

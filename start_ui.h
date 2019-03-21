@@ -11,12 +11,12 @@ namespace security {
 namespace bindiff {
 
 struct StartUiOptions {
-  StartUiOptions& set_java_binary(string value){
+  StartUiOptions& set_java_binary(std::string value) {
     java_binary = std::move(value);
     return *this;
   }
 
-  StartUiOptions& set_java_vm_options(string value){
+  StartUiOptions& set_java_vm_options(std::string value) {
     java_vm_options = std::move(value);
     return *this;
   }
@@ -26,21 +26,21 @@ struct StartUiOptions {
     return *this;
   }
 
-  StartUiOptions& set_gui_dir(string value) {
+  StartUiOptions& set_gui_dir(std::string value) {
     gui_dir = std::move(value);
     return *this;
   }
 
-  string java_binary;
-  string java_vm_options;
+  std::string java_binary;
+  std::string java_vm_options;
   int max_heap_size_mb = -1;  // Default means 75% of physical memory
-  string gui_dir;
+  std::string gui_dir;
 };
 
 // Launches the BinDiff Java UI and immediately returns. Extra command-line
 // arguments for the UI can be specified in args, and configuration settings in
 // options.
-not_absl::Status StartUiWithOptions(std::vector<string> extra_args,
+not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
                                     const StartUiOptions& options);
 
 }  // namespace bindiff

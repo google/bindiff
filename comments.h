@@ -24,7 +24,7 @@ struct Comment {
     STRUCTURE = 8,
   };
 
-  string comment;
+  std::string comment;
   bool repeatable = false;
   Type type = REGULAR;
 };

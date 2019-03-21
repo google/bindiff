@@ -160,15 +160,15 @@ FlowGraph::Graph& FlowGraph::GetGraph() { return graph_; }
 
 const FlowGraph::Graph& FlowGraph::GetGraph() const { return graph_; }
 
-const string& FlowGraph::GetName() const {
+const std::string& FlowGraph::GetName() const {
   return call_graph_->GetName(call_graph_vertex_);
 }
 
-const string& FlowGraph::GetDemangledName() const {
+const std::string& FlowGraph::GetDemangledName() const {
   return call_graph_->GetDemangledName(call_graph_vertex_);
 }
 
-const string& FlowGraph::GetGoodName() const {
+const std::string& FlowGraph::GetGoodName() const {
   return call_graph_->GetGoodName(call_graph_vertex_);
 }
 
@@ -209,13 +209,14 @@ void FlowGraph::Read(const BinExport2& proto,
 
   prime_ = 0;  // Sum of basic block primes.
 
-  // TODO(cblichmann): We don't export string references yet (BinDetego doesn't
+  // TODO(cblichmann): We don't export std::string references yet (BinDetego
+  // doesn't
   //                   have them, only the IDA plugin).
   string_references_ = 1;
 
   Address computed_instruction_address = 0;
   int last_instruction_index = 0;
-  string function_bytes;
+  std::string function_bytes;
   std::vector<VertexInfo> temp_vertices(
       proto_flow_graph.basic_block_index_size());
   std::vector<Address> temp_addresses(temp_vertices.size());
@@ -225,7 +226,7 @@ void FlowGraph::Read(const BinExport2& proto,
        ++basic_block_index) {
     const BinExport2::BasicBlock& proto_basic_block(proto.basic_block(
         proto_flow_graph.basic_block_index(basic_block_index)));
-    string basic_block_bytes;
+    std::string basic_block_bytes;
 
     VertexInfo& vertex_info(temp_vertices[basic_block_index]);
     vertex_info.instruction_start_ = instructions_.size();
@@ -236,7 +237,7 @@ void FlowGraph::Read(const BinExport2& proto,
     // used is VERTEX_LOOPENTRY.
     vertex_info.flags_ = 0;
 
-    // TODO(cblichmann): We don't export string references yet (BinDetego
+    // TODO(cblichmann): We don't export std::string references yet (BinDetego
     //                   doesn't have them, only the IDA plugin).
     vertex_info.string_hash_ = 0;
     vertex_info.call_target_start_ = std::numeric_limits<uint32_t>::max();
@@ -264,7 +265,7 @@ void FlowGraph::Read(const BinExport2& proto,
         computed_instruction_address =
             instruction_address + proto_instruction.raw_bytes().size();
         last_instruction_index = instruction_index;
-        const string& mnemonic(
+        const std::string& mnemonic(
             proto.mnemonic(proto_instruction.mnemonic_index()).name());
         const uint32_t instruction_prime = bindiff::GetPrime(mnemonic);
         vertex_info.prime_ += instruction_prime;

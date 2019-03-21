@@ -29,7 +29,7 @@ class MatchingStepFlowGraph {
   static constexpr const char kBasicBlockManualDisplayName[] =
       "Basic Block: Manual";
 
-  explicit MatchingStepFlowGraph(string name, string display_name);
+  explicit MatchingStepFlowGraph(std::string name, std::string display_name);
   virtual ~MatchingStepFlowGraph() = default;
 
   virtual bool FindFixedPoints(FlowGraph* primary, FlowGraph* secondary,
@@ -40,11 +40,11 @@ class MatchingStepFlowGraph {
                                MatchingStepsFlowGraph* matching_steps) = 0;
 
   ABSL_DEPRECATED("Use name() instead")
-  const string& GetName() const { return name_; }
+  const std::string& GetName() const { return name_; }
 
-  const string& name() const { return name_; }
+  const std::string& name() const { return name_; }
 
-  const string& display_name() const { return display_name_; }
+  const std::string& display_name() const { return display_name_; }
 
   ABSL_DEPRECATED("Use confidence() instead")
   double GetConfidence() const { return confidence_; }
@@ -54,8 +54,8 @@ class MatchingStepFlowGraph {
   bool IsEdgeMatching() const { return edge_matching_; }
 
  protected:
-  string name_;
-  string display_name_;
+  std::string name_;
+  std::string display_name_;
   double confidence_ = 0.0;
   bool edge_matching_ = false;
 };
@@ -72,7 +72,7 @@ bool FindFixedPointsBasicBlockInternal(FlowGraph* primary, FlowGraph* secondary,
                                        FixedPoint* fixed_point,
                                        MatchingContext* context,
                                        MatchingStepsFlowGraph* matching_steps) {
-  const string name = matching_steps->front()->GetName();
+  const std::string name = matching_steps->front()->GetName();
   matching_steps->pop_front();
 
   bool fix_points_discovered = false;
@@ -151,7 +151,7 @@ bool FindFixedPointsBasicBlockEdgeInternal(
     EdgeMap* edges1, EdgeMap* edges2, FlowGraph* flow_graph1,
     FlowGraph* flow_graph2, FixedPoint* fixed_point, MatchingContext* context,
     MatchingStepsFlowGraph* matching_steps) {
-  const string name = matching_steps->front()->GetName();
+  const std::string name = matching_steps->front()->GetName();
   matching_steps->pop_front();
   const size_t step_index = matching_steps->size();
 

@@ -53,8 +53,8 @@ bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
 }
 #endif
 
-string GetJavaHomeDir() {
-  string result;
+std::string GetJavaHomeDir() {
+  std::string result;
 #ifdef _WIN32
   char buffer[MAX_PATH] = {0};
 
@@ -122,10 +122,10 @@ uint64_t GetPhysicalMemSize() {
 #endif
 }
 
-not_absl::Status StartUiWithOptions(std::vector<string> extra_args,
+not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
                                     const StartUiOptions& options) {
-  std::vector<string> argv = {options.java_binary};
-  string& java_exe = argv.front();
+  std::vector<std::string> argv = {options.java_binary};
+  std::string& java_exe = argv.front();
   if (java_exe.empty()) {
     java_exe = GetJavaHomeDir();
     if (!java_exe.empty()) {
@@ -155,7 +155,7 @@ not_absl::Status StartUiWithOptions(std::vector<string> extra_args,
 #endif
 
   argv.push_back("-jar");
-  string jar_file = JoinPath(options.gui_dir, "bin", kGuiJarName);
+  std::string jar_file = JoinPath(options.gui_dir, "bin", kGuiJarName);
   if (!FileExists(jar_file)) {
     // Try again without the "bin" dir (b/63617055).
     jar_file = JoinPath(options.gui_dir, kGuiJarName);
