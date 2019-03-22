@@ -16,9 +16,13 @@ cmake_minimum_required(VERSION 3.7)
 cmake_policy(VERSION 3.7)
 project(binexport VERSION 10)  # Only major version is used
 
+# XXX: Replace for OSS!
+set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../binexport_g3/google3/third_party)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(copts.cmake)
 include(util.cmake)
+include(sqlite.cmake)
 
 # Use a copy of a subset of Boost that we ship
 set(Boost_NO_SYSTEM_PATHS TRUE)
@@ -96,11 +100,16 @@ add_library(binexport_shared STATIC
   ${binexport2_proto}
   binexport.cc
   binexport.h
-  util/format.cc
-  util/format.h
-  util/timer.h
   util/filesystem.cc
   util/filesystem.h
+  util/format.cc
+  util/format.h
+  util/status.cc
+  util/status.h
+  util/status_internal.h
+  util/status_macros.h
+  util/statusor.h
+  util/timer.h
 )
 target_link_libraries(binexport_shared PUBLIC
   absl::strings
@@ -115,6 +124,10 @@ endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
   util/format_test.cc
+  util/status_macros_test.cc
+  util/status_matchers.h
+  util/status_test.cc
+  util/statusor_test.cc
   util/timer_test.cc
 )
 target_link_libraries(binexport_shared_test PUBLIC
@@ -138,6 +151,19 @@ add_ida_library(binexport_plugin_shared STATIC
 ida_target_link_libraries(binexport_plugin_shared PUBLIC
   absl::time
   binexport_base
+)
+
+add_ida_library(binexport_db STATIC
+  database.cc
+  database.h
+)
+ida_target_include_directories(binexport_db PUBLIC
+  ${ThirdParty_DIR}/..
+)
+ida_target_link_libraries(binexport_db PUBLIC
+  absl::strings
+  binexport_base
+  sqlite
 )
 
 set(binexport_plugin_name binexport${binexport_VERSION_MAJOR})
@@ -225,6 +251,7 @@ ida_target_link_libraries(${binexport_plugin_name}
   absl::time
   absl::optional
   absl::bad_optional_access
+  binexport_db
   binexport_shared
   binexport_plugin_shared
   ${PostgreSQL_LIBRARIES}
