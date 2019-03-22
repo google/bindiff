@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "statistics_writer.h"
+#include "third_party/zynamics/binexport/statistics_writer.h"
 
 #include <iomanip>
 #include <map>
@@ -21,15 +21,18 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 
+namespace security {
+namespace binexport {
+
 StatisticsWriter::StatisticsWriter(std::ostream& stream) : stream_(stream) {}
 
-StatisticsWriter::StatisticsWriter(const string& filename)
+StatisticsWriter::StatisticsWriter(const std::string& filename)
     : file_(filename.c_str()), stream_(file_) {}
 
 void StatisticsWriter::GenerateStatistics(
     const CallGraph& call_graph, const FlowGraph& flow_graph,
-    std::map<string, size_t>* statistics_ptr) const {
-  std::map<string, size_t>& statistics = *statistics_ptr;
+    std::map<std::string, size_t>* statistics_ptr) const {
+  std::map<std::string, size_t>& statistics = *statistics_ptr;
   statistics.clear();
   const Functions& functions = flow_graph.GetFunctions();
   statistics["callgraph nodes (functions)"] = functions.size();
@@ -89,19 +92,21 @@ void StatisticsWriter::GenerateStatistics(
   statistics["flowgraph edges"] = edge_count;
 }
 
-util::Status StatisticsWriter::Write(const CallGraph& call_graph,
-                                     const FlowGraph& flow_graph,
-                                     const Instructions& /* instructions */,
-                                     const AddressReferences&,
-                                     const TypeSystem* /* type_system */,
-                                     const AddressSpace& /* address_space */) {
-  std::map<string, size_t> statistics;
+not_absl::Status StatisticsWriter::Write(
+    const CallGraph& call_graph, const FlowGraph& flow_graph,
+    const Instructions& /* instructions */, const AddressReferences&,
+    const TypeSystem* /* type_system */,
+    const AddressSpace& /* address_space */) {
+  std::map<std::string, size_t> statistics;
   GenerateStatistics(call_graph, flow_graph, &statistics);
   for (const auto& entry : statistics) {
-    const string padding(32 - entry.first.size(), '.');
+    const std::string padding(32 - entry.first.size(), '.');
     stream_ << entry.first << padding << ":" << std::setw(7) << std::dec
             << std::setfill(' ') << entry.second << std::endl;
   }
 
-  return util::OkStatus();
+  return not_absl::OkStatus();
 }
+
+}  // namespace binexport
+}  // namespace security

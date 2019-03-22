@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,33 +19,40 @@
 
 class BinExport2;
 
+namespace security {
+namespace binexport {
+
 class BinExport2Writer : public Writer {
  public:
   // Note: This writer expects executable_hash to be hex encoded, not the raw
   //       bytes of the digest.
-  BinExport2Writer(const string& result_filename,
-                   const string& executable_filename,
-                   const string& executable_hash, const string& architecture);
+  BinExport2Writer(const std::string& result_filename,
+                   const std::string& executable_filename,
+                   const std::string& executable_hash, const std::string& architecture);
 
-  util::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
-                     const Instructions& instructions,
-                     const AddressReferences& address_references,
-                     const TypeSystem* type_system,
-                     const AddressSpace& address_space) override;
+  not_absl::Status Write(const CallGraph& call_graph,
+                         const FlowGraph& flow_graph,
+                         const Instructions& instructions,
+                         const AddressReferences& address_references,
+                         const TypeSystem* type_system,
+                         const AddressSpace& address_space) override;
 
-  util::Status WriteToProto(const CallGraph& call_graph,
-                            const FlowGraph& flow_graph,
-                            const Instructions& instructions,
-                            const AddressReferences& address_references,
-                            const TypeSystem* type_system,
-                            const AddressSpace& address_space,
-                            BinExport2* proto) const;
+  not_absl::Status WriteToProto(const CallGraph& call_graph,
+                                const FlowGraph& flow_graph,
+                                const Instructions& instructions,
+                                const AddressReferences& address_references,
+                                const TypeSystem* type_system,
+                                const AddressSpace& address_space,
+                                BinExport2* proto) const;
 
  private:
-  string filename_;
-  string executable_filename_;
-  string executable_hash_;
-  string architecture_;
+  std::string filename_;
+  std::string executable_filename_;
+  std::string executable_hash_;
+  std::string architecture_;
 };
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINDETEGO_BINEXPORT2_WRITER_H_

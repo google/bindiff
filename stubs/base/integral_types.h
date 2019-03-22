@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 #ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_INTEGRAL_TYPES_H_
 #define THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_INTEGRAL_TYPES_H_
-
 #include <google/protobuf/stubs/port.h>
 
 // Import macros

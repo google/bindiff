@@ -1,4 +1,4 @@
-# Copyright 2011-2018 Google LLC. All Rights Reserved.
+# Copyright 2011-2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 
 include(ExternalProject)
 ExternalProject_Add(protobuf
-  URL https://github.com/google/protobuf/archive/v3.4.1.tar.gz
-  URL_HASH SHA256=8e0236242106e680b4f9f576cc44b8cd711e948b20a9fc07769b0a20ceab9cc4
+  URL https://github.com/google/protobuf/archive/v3.6.1.tar.gz
+  URL_HASH SHA256=3d4e589d81b2006ca603c1ab712c9715a76227293032d05b26fca603f90b3f5b
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/protobuf
   SOURCE_SUBDIR cmake
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>

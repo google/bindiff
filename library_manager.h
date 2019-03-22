@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 
 #include <set>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/types.h"
 
 // Theory of operations: this class keeps a list of currently known libraries,
@@ -38,9 +38,10 @@
 class LibraryManager {
  public:
   enum class Linkage { kDynamic, kStatic };
+  enum class UpdateKind { kNoUpdate, kUpdateUsedLibraries };
 
   struct LibraryRecord {
-    LibraryRecord(const string& name, Linkage linkage, int library_index)
+    LibraryRecord(const std::string& name, Linkage linkage, int library_index)
         : name(name), linkage(linkage), library_index(library_index) {}
 
     bool IsStatic() const { return linkage == Linkage::kStatic; }
@@ -51,7 +52,7 @@ class LibraryManager {
       return (name == other.name) && (linkage == other.linkage);
     }
 
-    string name;
+    std::string name;
     Linkage linkage;
     int library_index;
   };
@@ -59,7 +60,7 @@ class LibraryManager {
   struct FunctionInfo {
     FunctionInfo() = default;
 
-    FunctionInfo(const string& module_name, const string& function_name,
+    FunctionInfo(const std::string& module_name, const std::string& function_name,
                  int library_index)
         : module_name(module_name),
           function_name(function_name),
@@ -68,8 +69,8 @@ class LibraryManager {
     // It is not the same as library, as modules may have finer granularity,
     // for example DEX uses class name as module_name, while library is a DEX
     // or JAR file containing multiple classes.
-    string module_name;
-    string function_name;
+    std::string module_name;
+    std::string function_name;
     int library_index = -1;
   };
 
@@ -77,19 +78,19 @@ class LibraryManager {
 
   // Assigns given library name an integer index. If already present - reuses
   // an existing index. Returns library index.
-  int AddKnownLibrary(const string& library_name, Linkage linkage);
+  int AddKnownLibrary(const std::string& library_name, Linkage linkage);
 
   // Assigns function name to address.
-  void AddKnownFunction(const string& function_name, Address address) {
+  void AddKnownFunction(const std::string& function_name, Address address) {
     AddKnownFunction("", function_name, -1, address);
   }
 
-  void AddKnownFunction(const string& module_name, const string& function_name,
+  void AddKnownFunction(const std::string& module_name, const std::string& function_name,
                         int library_index, Address address);
 
   // Adds function imported from library (-1 if unknown), address is made up.
-  Address AddImportedFunction(const string& module_name,
-                              const string& function_name, int library_index);
+  Address AddImportedFunction(const std::string& module_name,
+                              const std::string& function_name, int library_index);
 
   // Returns library by library index.
   const LibraryRecord& GetKnownLibrary(int library_index) const {
@@ -102,15 +103,19 @@ class LibraryManager {
   // Enumerates all used libraries.
   void GetUsedLibraries(std::vector<const LibraryRecord*>* used) const;
 
+  // Updates used libraries
+  void UpdateUsedLibraries();
+
   // Finds library index for a given address, -1 if none.
   int GetLibraryIndex(Address address) const;
 
   // Informs manager that 'address' is associated with the library with
   // provided library index.
-  void UseFunction(Address address, int library_index);
+  void UseFunction(Address address, int library_index,
+                   UpdateKind update_kind = UpdateKind::kUpdateUsedLibraries);
 
   // Marks provided library as used.
-  int UseLibrary(const string& library, Linkage linkage);
+  int UseLibrary(const std::string& library, Linkage linkage);
 
   // Returns true if the address was earlier marked with UseFunction().
   bool IsKnownFunction(Address address) const {
@@ -151,17 +156,17 @@ class LibraryManager {
   std::set<int> used_libraries_;
 
   // Maps address of known function to its integer library index.
-  std::unordered_map<Address, int> used_functions_;
+  absl::flat_hash_map<Address, int> used_functions_;
 
   // List of all known libraries, indexed by library index.
   std::vector<LibraryRecord> library_list_;
 
   // Map of all known functions, indexed by address. Separate from
   // used_functions_ as known and used functions are not the same.
-  std::unordered_map<Address, FunctionInfo> known_functions_;
+  absl::flat_hash_map<Address, FunctionInfo> known_functions_;
 
   // References between addresses.
-  std::unordered_map<Address, Address> references_;
+  absl::flat_hash_map<Address, Address> references_;
 
   // Current made up address of imported function.
   Address current_imported_address_ = kFirstImportedAddress32;

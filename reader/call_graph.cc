@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -90,12 +90,12 @@ bool CallGraph::IsValidEntryPoint(Address address) const {
 }
 
 bool CallGraph::IsValidEntryPoint(Vertex vertex) const {
-  constexpr uint32 is_valid_function_mask =
+  constexpr uint32_t is_valid_function_mask =
       kVertexLibrary | kVertexThunk | kVertexImported | kVertexInvalid;
   if (vertex == VertexTypeTraits<Vertex>::kInvalidVertex) {
     return false;
   }
-  const uint32 function_flags = graph()[vertex].flags;
+  const uint32_t function_flags = graph()[vertex].flags;
   return (function_flags & is_valid_function_mask) == 0;
 }
 

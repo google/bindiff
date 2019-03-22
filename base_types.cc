@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,20 +33,20 @@ bool SortMemberTypes(const MemberType* lhs, const MemberType* rhs) {
 
 // The database sequences need to start with one.
 // Otherwise the initialization in BinNavi can fail.
-uint32 BaseType::NextTypeId() {
-  static uint32 type_id = 1;
+uint32_t BaseType::NextTypeId() {
+  static uint32_t type_id = 1;
   return type_id++;
 }
 
-uint32 BaseType::GetId() const {
+uint32_t BaseType::GetId() const {
   return id_;
 }
 
-void BaseType::SetName(const string& name) {
+void BaseType::SetName(const std::string& name) {
   name_ = name;
 }
 
-const string& BaseType::GetName() const {
+const std::string& BaseType::GetName() const {
   return name_;
 }
 
@@ -87,7 +87,7 @@ void BaseType::SetCategory(TypeCategory category) {
   category_ = category;
 }
 
-string BaseType::GetCategoryString() const {
+std::string BaseType::GetCategoryString() const {
   switch (category_) {
     case kAtomic:
       return "atomic";
@@ -140,8 +140,8 @@ const MemberType* BaseType::ResolveMember(const BaseType* base_type,
   return IsWithinMember(*cit, offset) ? *cit : nullptr;
 }
 
-uint32 MemberType::NextTypeId() {
-  static uint32 member_id = 1;
+uint32_t MemberType::NextTypeId() {
+  static uint32_t member_id = 1;
   return member_id++;
 }
 

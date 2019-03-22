@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,22 +20,28 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 
+namespace security {
+namespace binexport {
+
 DumpWriter::DumpWriter(std::ostream& stream) : stream_(stream) {}
 
-DumpWriter::DumpWriter(const string& file_name)
+DumpWriter::DumpWriter(const std::string& file_name)
     : file_(file_name.c_str()), stream_(file_) {}
 
-util::Status DumpWriter::Write(const CallGraph& call_graph,
-                               const FlowGraph& flow_graph,
-                               const Instructions& instructions,
-                               const AddressReferences& address_references,
-                               const TypeSystem* type_system,
-                               const AddressSpace& address_space) {
+not_absl::Status DumpWriter::Write(const CallGraph& call_graph,
+                                   const FlowGraph& flow_graph,
+                                   const Instructions& instructions,
+                                   const AddressReferences& address_references,
+                                   const TypeSystem* type_system,
+                                   const AddressSpace& address_space) {
 
   stream_ << std::endl;
   call_graph.Render(&stream_, flow_graph);
   stream_ << std::endl;
   flow_graph.Render(&stream_, call_graph);
   stream_ << std::endl;
-  return ::util::OkStatus();
+  return not_absl::OkStatus();
 }
+
+}  // namespace binexport
+}  // namespace security

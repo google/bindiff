@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,16 +21,16 @@
 
 Expressions Operand::expressions_;
 Operand::OperandCache Operand::operand_cache_;
-uint32 Operand::global_id_ = 0;
+uint32_t Operand::global_id_ = 0;
 
 // Delete unreferenced operands from cache and relabel surviving ones so we'll
 // have continuous ids again.
 void Operand::PurgeCache(const std::set<int>& ids_to_keep) {
   int new_id = 0;
-  for (OperandCache::iterator it = operand_cache_.begin(),
-       end = operand_cache_.end(); it != end;) {
+  for (auto it = operand_cache_.begin(), end = operand_cache_.end();
+       it != end;) {
     if (ids_to_keep.find(it->second.id_) == ids_to_keep.end()) {
-      it = operand_cache_.erase(it);
+      operand_cache_.erase(it++);
     } else {
       it->second.id_ = ++new_id;
       ++it;
@@ -40,14 +40,14 @@ void Operand::PurgeCache(const std::set<int>& ids_to_keep) {
 
 Operand::Operand(const Expressions& expressions)
     : id_(0),
-      expression_index_(static_cast<uint32>(expressions_.size())),
-      expression_count_(static_cast<uint8>(expressions.size())) {
-  std::copy(expressions.begin(), expressions.end(),
-            std::back_inserter<Expressions>(expressions_));
+      expression_index_(static_cast<uint32_t>(expressions_.size())),
+      expression_count_(static_cast<uint8_t>(expressions.size())) {
+  expressions_.insert(expressions_.end(), expressions.begin(),
+                      expressions.end());
 }
 
 Operand* Operand::CreateOperand(const Expressions& expressions) {
-  string signature;
+  std::string signature;
   signature.reserve(expressions.size() * 18 /* bytes for a single signature */);
   for (auto* expression : expressions) {
     signature.append(expression->CreateSignature());
@@ -94,7 +94,7 @@ Expressions::iterator Operand::end() const {
   return begin() + expression_count_;
 }
 
-uint8 Operand::GetExpressionCount() const {
+uint8_t Operand::GetExpressionCount() const {
   return expression_count_;
 }
 

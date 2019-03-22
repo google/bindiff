@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ struct AddressReference {
         source_operand_(operand_expression.first),
         source_expression_(operand_expression.second),
         size_(reference_size),
-        kind_(static_cast<uint8>(kind)) {}
+        kind_(static_cast<uint8_t>(kind)) {}
 
   AddressReference(Address source, std::pair<int, int> operand_expression,
                    Address target, AddressReferenceType kind)
@@ -65,7 +65,7 @@ struct AddressReference {
   int source_operand_;
   int source_expression_;
   int size_;
-  uint8 kind_;
+  uint8_t kind_;
 };
 
 typedef std::vector<AddressReference> AddressReferences;

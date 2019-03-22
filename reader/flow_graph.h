@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ class FlowGraph {
     VertexProperty() = default;
 
     // Start index of instructions in instruction vector.
-    uint32 instruction_start = std::numeric_limits<uint32>::max();
+    uint32_t instruction_start = std::numeric_limits<uint32_t>::max();
   };
 
   enum EdgeType {
@@ -64,7 +64,7 @@ class FlowGraph {
   struct EdgeProperty {
     EdgeProperty() = default;
 
-    uint32 flags = 0;
+    uint32_t flags = 0;
   };
 
   using Graph = boost::compressed_sparse_row_graph<
@@ -72,8 +72,8 @@ class FlowGraph {
       VertexProperty,         // The information per vertex.
       EdgeProperty,           // The information per edge.
       boost::no_property,     // Use no graph properties.
-      uint32,                 // Index type for vertices.
-      uint32>;                // Index type for edges.
+      uint32_t,                 // Index type for vertices.
+      uint32_t>;                // Index type for edges.
 
   using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
   using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;
@@ -90,7 +90,7 @@ class FlowGraph {
   // Factory method to read and initialize a flow graph (BinExport2).
   static std::unique_ptr<FlowGraph> FromBinExport2Proto(
       const BinExport2& proto, const BinExport2::FlowGraph& flow_graph_proto,
-      const std::vector<uint64>& instruction_addresses);
+      const std::vector<uint64_t>& instruction_addresses);
 
   // Returns the graph of this flow graph.
   const Graph& graph() const { return graph_; }

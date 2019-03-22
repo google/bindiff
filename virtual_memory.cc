@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -96,7 +96,7 @@ int AddressSpace::GetFlags(Address address) const {
   return 0;
 }
 
-// TODO(user) It is somewhat unexpected to have a size method be O(N). Maybe
+// TODO(soerenme) It is somewhat unexpected to have a size method be O(N). Maybe
 //     cache the size value in the class?
 size_t AddressSpace::size() const {
   size_t value = 0;

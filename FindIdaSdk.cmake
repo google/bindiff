@@ -1,4 +1,4 @@
-# Copyright 2011-2018 Google LLC. All Rights Reserved.
+# Copyright 2011-2019 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -173,9 +173,9 @@ endmacro()
 
 function(_ida_library name ea64)
   if(ea64)
-    set(t ${name}_ea32)
-  else()
     set(t ${name}_ea64)
+  else()
+    set(t ${name}_ea32)
   endif()
 
   # Define the actual library.
@@ -200,10 +200,10 @@ function(add_ida_plugin name)
   _ida_check_bitness(opt_NOEA32 opt_NOEA64)
 
   if(NOT opt_NOEA32)
-    _ida_plugin(${name} FALSE plugins/plugin.script ${opt_UNPARSED_ARGUMENTS})
+    _ida_plugin(${name} FALSE plugins/exports.def ${opt_UNPARSED_ARGUMENTS})
   endif()
   if(NOT opt_NOEA64)
-    _ida_plugin(${name} TRUE plugins/plugin.script ${opt_UNPARSED_ARGUMENTS})
+    _ida_plugin(${name} TRUE plugins/exports.def ${opt_UNPARSED_ARGUMENTS})
   endif()
 endfunction()
 
@@ -212,29 +212,35 @@ function(add_ida_loader name)
   _ida_check_bitness(opt_NOEA32 opt_NOEA64)
 
   if(NOT opt_NOEA32)
-    _ida_plugin(${name} FALSE ldr/ldr.script ${opt_UNPARSED_ARGUMENTS})
+    _ida_plugin(${name} FALSE ldr/exports.def ${opt_UNPARSED_ARGUMENTS})
   endif()
   if(NOT opt_NOEA64)
-    _ida_plugin(${name} TRUE ldr/ldr.script ${opt_UNPARSED_ARGUMENTS})
+    _ida_plugin(${name} TRUE ldr/exports.def ${opt_UNPARSED_ARGUMENTS})
   endif()
 endfunction()
 
 function(ida_target_link_libraries name)
   foreach(item IN LISTS ARGN)
-    if(TARGET ${item}_ea32)
-      list(APPEND args ${item}_ea32)
-    elseif(TARGET ${item}_ea64)
-      list(APPEND args ${item}_ea64)
+    if(TARGET ${item}_ea32 OR TARGET ${item}_ea64)
+      if(TARGET ${item}_ea32)
+        list(APPEND args32 ${item}_ea32)
+      endif()
+      if(TARGET ${item}_ea64)
+        list(APPEND args64 ${item}_ea64)
+      endif()
     else()
       list(APPEND args ${item})
     endif()
   endforeach()
-  foreach(target ${name}${_so}
-                 ${name}${_so64}
-                 ${name}_ea32
-                 ${name}_ea64)
+  foreach(target ${name}${_so} ${name}_ea32)
     if(TARGET ${target})
-      target_link_libraries(${target} ${args})
+      target_link_libraries(${target} ${args32} ${args})
+      set(added TRUE)
+    endif()
+  endforeach()
+  foreach(target ${name}${_so64} ${name}_ea64)
+    if(TARGET ${target})
+      target_link_libraries(${target} ${args64} ${args})
       set(added TRUE)
     endif()
   endforeach()
@@ -244,10 +250,8 @@ function(ida_target_link_libraries name)
 endfunction()
 
 function(ida_target_include_directories name)
-  foreach(target ${name}${_so}
-                 ${name}${_so64}
-                 ${name}_ea32
-                 ${name}_ea64)
+  foreach(target ${name}${_so} ${name}${_so64}
+                 ${name}_ea32 ${name}_ea64)
     if(TARGET ${target})
       target_include_directories(${target} ${ARGN})
       set(added TRUE)
@@ -259,10 +263,8 @@ function(ida_target_include_directories name)
 endfunction()
 
 function(set_ida_target_properties name)
-  foreach(target ${name}${_so}
-                 ${name}${_so64}
-                 ${name}_ea32
-                 ${name}_ea64)
+  foreach(target ${name}${_so} ${name}${_so64}
+                 ${name}_ea32 ${name}_ea64)
     if(TARGET ${target})
       set_target_properties(${target} ${ARGN})
       set(added TRUE)
@@ -275,12 +277,13 @@ endfunction()
 
 function(ida_install)
   foreach(item IN LISTS ARGN)
-    if(TARGET ${item}${_so} AND TARGET ${item}${_so64})
-      list(APPEND args ${item}${_so} ${item}${_so64})
-    elseif(TARGET ${item}${_so})
-      list(APPEND args ${item}${_so})
-    elseif(TARGET ${item}${_so64})
-      list(APPEND args ${item}${_so64})
+    if(TARGET ${item}${_so} OR TARGET ${item}${_so64})
+      if(TARGET ${item}${_so})
+        list(APPEND args ${item}${_so})
+      endif()
+      if(TARGET ${item}${_so64})
+        list(APPEND args ${item}${_so64})
+      endif()
     else()
       list(APPEND args ${item})
     endif()

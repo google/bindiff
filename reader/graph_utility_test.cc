@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ class GraphUtilityTest : public testing::Test {
   const std::vector<Address> addresses_{0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
                                         10, 11, 12, 13, 14, 15, 16, 16, 18, 19};
 
-  typedef std::pair<uint32, uint32> edge;
+  typedef std::pair<uint32_t, uint32_t> edge;
   const std::vector<edge> edges_{
       {0, 1},   {1, 2},   {2, 3},   {3, 4},   {4, 5},   {5, 6},   {5, 7},
       {5, 8},   {5, 9},   {6, 10},  {7, 10},  {8, 10},  {9, 10},  {10, 11},
@@ -53,12 +53,12 @@ class GraphUtilityTest : public testing::Test {
 
  public:
   struct EdgeProperty {
-    uint32 flags;
+    uint32_t flags;
   };
 
   typedef boost::compressed_sparse_row_graph<boost::bidirectionalS, VertexInfo,
                                              EdgeProperty, boost::no_property,
-                                             uint32, uint32> Graph;
+                                             uint32_t, uint32_t> Graph;
 
   Graph graph_;
 

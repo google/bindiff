@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "util/task/status.h"
+#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security {
 namespace binexport {
 
 // Reads a BinExport2 proto from the testdata directory. The filename is
 // relative to that directory.
-util::Status GetBinExportProtoForTesting(absl::string_view filename,
-                                         BinExport2* proto);
+not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
+                                             BinExport2* proto);
 
 }  // namespace binexport
 }  // namespace security

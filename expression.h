@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@
 #include <cstdint>
 #include <iosfwd>
 #include <string>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
+#include "third_party/absl/container/node_hash_map.h"
+#include "third_party/absl/container/node_hash_set.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -29,10 +29,10 @@
 #pragma pack(push, 1)
 class Expression {
  public:
-  using ExpressionCache = std::unordered_map<string, Expression>;
-  using StringCache = std::unordered_set<string>;
+  using ExpressionCache = absl::node_hash_map<std::string, Expression>;
+  using StringCache = absl::node_hash_set<std::string>;
 
-  enum Type : uint8 {
+  enum Type : uint8_t {
     TYPE_MNEMONIC = 0,
     TYPE_SYMBOL = 1,
     TYPE_IMMEDIATE_INT = 2,
@@ -60,14 +60,14 @@ class Expression {
   bool IsRelocation() const;
   int GetId() const;
   Type GetType() const;
-  const string& GetSymbol() const;
-  uint16 GetPosition() const;
-  int64 GetImmediate() const;
+  const std::string& GetSymbol() const;
+  uint16_t GetPosition() const;
+  int64_t GetImmediate() const;
   const Expression* GetParent() const;
-  string CreateSignature();
-  static Expression* Create(Expression* parent, const string& symbol = "",
-                            int64 immediate = 0, Type type = TYPE_IMMEDIATE_INT,
-                            uint16 position = 0, bool relocatable = false);
+  std::string CreateSignature();
+  static Expression* Create(Expression* parent, const std::string& symbol = "",
+                            int64_t immediate = 0, Type type = TYPE_IMMEDIATE_INT,
+                            uint16_t position = 0, bool relocatable = false);
   static void EmptyCache();
   static const ExpressionCache& GetExpressions();
 
@@ -75,7 +75,7 @@ class Expression {
    public:
     explicit Builder(Expression::Type type) : type_(type) {}
 
-    Builder& AtPosition(uint16 position) {
+    Builder& AtPosition(uint16_t position) {
       position_ = position;
       return *this;
     }
@@ -98,7 +98,7 @@ class Expression {
       return Builder(Expression::TYPE_REGISTER).SetSymbol(symbol);
     }
 
-    static Builder ImmediateInt(uint64 immediate) {
+    static Builder ImmediateInt(uint64_t immediate) {
       return Builder(Expression::TYPE_IMMEDIATE_INT).SetImmediate(immediate);
     }
 
@@ -120,19 +120,19 @@ class Expression {
     }
 
    private:
-    Builder SetSymbol(absl::string_view symbol) {
-      symbol_ = string(symbol);
+    Builder& SetSymbol(absl::string_view symbol) {
+      symbol_ = std::string(symbol);
       return *this;
     }
 
-    Builder SetImmediate(uint64 immediate) {
+    Builder& SetImmediate(uint64_t immediate) {
       immediate_ = immediate;
       return *this;
     }
 
-    string symbol_ = "";
-    uint64 immediate_ = 0;
-    uint16 position_ = 0;
+    std::string symbol_ = "";
+    uint64_t immediate_ = 0;
+    uint16_t position_ = 0;
     bool relocatable_ = false;
     Expression::Type type_;
     Expression* parent_ = nullptr;
@@ -144,16 +144,15 @@ class Expression {
   // - We want to avoid creating duplicate expressions so we just
   //   refer to the expression_cache_ if someone tries (that way archiving
   //   compression/de-duping)
-  // TODO(user): What about copy & assignment?
-  Expression(Expression* parent, const string& symbol, int64 immediate,
-             Type type, uint16 position, bool relocatable);
-  static const string* CacheString(const string& string);
+  Expression(Expression* parent, const std::string& symbol, int64_t immediate,
+             Type type, uint16_t position, bool relocatable);
+  static const std::string* CacheString(const std::string& value);
 
-  const string* symbol_;
-  int64 immediate_;
+  const std::string* symbol_;
+  int64_t immediate_;
   Expression* parent_;
   int id_ = 0;
-  uint16 position_;
+  uint16_t position_;
   Type type_;
   bool relocatable_;
 

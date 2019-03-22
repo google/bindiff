@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,13 +60,13 @@ class ActionHandler : public action_handler_t {
   static action_desc_t MakeActionDesc(const char* name, const char* label,
                                       const char* shortcut, const char* tooltip,
                                       int icon) {
-    return ACTION_DESC_LITERAL(name, label, T::GetInstance(), shortcut, tooltip,
+    return ACTION_DESC_LITERAL(name, label, T::instance(), shortcut, tooltip,
                                icon);
   }
 
  private:
-  static T* GetInstance() {
-    static auto* instance = new T();
+  static T* instance() {
+    static auto* instance = new T{};
     return instance;
   }
 

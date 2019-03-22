@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,10 +72,10 @@ Database::Database(const char* connection_string)
       result_(nullptr),
       result_index_(0) {
   if (PQstatus(connection_) != CONNECTION_OK) {
-    const string error = string(PQerrorMessage(connection_));
+    const std::string error = std::string(PQerrorMessage(connection_));
     PQfinish(connection_);
     throw std::runtime_error(("Failed connecting to database: '" + error +
-                              "', connection string used: '" +
+                              "', connection std::string used: '" +
                               connection_string + "'").c_str());
   }
 
@@ -103,7 +103,7 @@ Database& Database::Prepare(const char* query, const char* name) {
   if (PQresultStatus(result_) != PGRES_COMMAND_OK) {
     const char* error = PQerrorMessage(connection_);
     throw std::runtime_error(
-        ("Preparing query failed: " + string(error)).c_str());
+        ("Preparing query failed: " + std::string(error)).c_str());
   }
   return *this;
 }
@@ -133,7 +133,7 @@ Database& Database::ExecutePrepared(const Parameters& parameters,
     default: {
       const char* error = PQerrorMessage(connection_);
       throw std::runtime_error(
-          ("Executing prepared statement failed: " + string(error))
+          ("Executing prepared statement failed: " + std::string(error))
               .c_str());
     }
   }
@@ -165,7 +165,7 @@ Database& Database::Execute(const char* query, const Parameters& parameters) {
     default: {
       const char* error = PQerrorMessage(connection_);
       throw std::runtime_error(
-          ("Executing query failed: " + string(error)).c_str());
+          ("Executing query failed: " + std::string(error)).c_str());
     }
   }
   return *this;
@@ -180,21 +180,21 @@ Database& Database::operator>>(bool& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  const uint8* source = reinterpret_cast<const uint8*>(PQgetvalue(
+  const uint8_t* source = reinterpret_cast<const uint8_t*>(PQgetvalue(
       result_, result_index_ / num_columns, result_index_ % num_columns));
   value = *source != 0;
   ++result_index_;
   return *this;
 }
 
-Database& Database::operator>>(int32& value) {
+Database& Database::operator>>(int32_t& value) {
   const int num_columns = PQnfields(result_);
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8* dest = reinterpret_cast<uint8*>(&value);
-  const uint8* source =
-      reinterpret_cast<const uint8*>(PQgetvalue(
+  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
+  const uint8_t* source =
+      reinterpret_cast<const uint8_t*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       3;
   *dest++ = *source--;
@@ -205,14 +205,14 @@ Database& Database::operator>>(int32& value) {
   return *this;
 }
 
-Database& Database::operator>>(int64& value) {
+Database& Database::operator>>(int64_t& value) {
   const int num_columns = PQnfields(result_);
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8* dest = reinterpret_cast<uint8*>(&value);
-  const uint8* source =
-      reinterpret_cast<const uint8*>(PQgetvalue(
+  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
+  const uint8_t* source =
+      reinterpret_cast<const uint8_t*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       7;
   *dest++ = *source--;
@@ -232,9 +232,9 @@ Database& Database::operator>>(double& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8* dest = reinterpret_cast<uint8*>(&value);
-  const uint8* source =
-      reinterpret_cast<const uint8*>(PQgetvalue(
+  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
+  const uint8_t* source =
+      reinterpret_cast<const uint8_t*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       7;
   *dest++ = *source--;
@@ -249,15 +249,15 @@ Database& Database::operator>>(double& value) {
   return *this;
 }
 
-Database& Database::operator>>(string& value) {
+Database& Database::operator>>(std::string& value) {
   const int num_columns = PQnfields(result_);
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
   const int size = PQgetlength(result_, result_index_ / num_columns,
                                result_index_ % num_columns);
-  const string::value_type* source =
-      reinterpret_cast<const string::value_type*>(PQgetvalue(
+  const std::string::value_type* source =
+      reinterpret_cast<const std::string::value_type*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns));
   value.assign(source, source + size);
   ++result_index_;
@@ -279,12 +279,12 @@ Database& Database::operator>>(Blob& value) {
   return *this;
 }
 
-string Database::EscapeLiteral(const string& text) const {
+std::string Database::EscapeLiteral(const std::string& text) const {
   return absl::StrCat("E'", absl::CEscape(text), "'");
 }
 
-string Database::EscapeIdentifier(const string& text) const {
-  // NOTE(user): The only case where the escape performed by CEscape doesn't
+std::string Database::EscapeIdentifier(const std::string& text) const {
+  // NOTE(jduart): The only case where the escape performed by CEscape doesn't
   // work for literals is  when we have a double-quote. Options are to change
   // double-quotes by single-quotes or use a double-" which seems to be what
   // PostgreSQL does after v9.0. Note that this removes double-quotes, as

@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,11 @@
 
 #include "third_party/zynamics/binexport/ida/types_container.h"
 
-#include <boost/iterator/iterator_facade.hpp>
+#include <boost/iterator/iterator_facade.hpp>  // NOLINT
 
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <enum.hpp>                                             // NOLINT
+#include <funcs.hpp>                                            // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <ida.hpp>                                              // NOLINT
 #include <idp.hpp>                                              // NOLINT
@@ -32,6 +33,8 @@
 #include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
+namespace security {
+namespace binexport {
 namespace {
 
 static const char kVoidPtrName[] = "void *";
@@ -94,29 +97,41 @@ struct FrameIterator
   FrameIterator() : current_index_(BADADDR), function_count_(0) {}
   explicit FrameIterator(size_t function_count)
       : current_index_(0), function_count_(function_count) {
-    current_index_ = first_valid_index(current_index_, function_count_);
+    current_index_ = FirstValidIndex(current_index_, function_count_);
   }
 
  private:
   friend class boost::iterator_core_access;
 
-  static sval_t first_valid_index(size_t start_index, size_t function_count) {
+  static sval_t FirstValidIndex(size_t start_index, size_t function_count) {
     if (start_index >= function_count) {
       return BADADDR;
     }
-    if (!get_frame(getn_func(start_index)->start_ea)) {
-      return next_valid_index(start_index, function_count);
+    func_t* func = getn_func(start_index);
+    if (!func) {
+      return BADADDR;
+    }
+    if (!get_frame(func)) {
+      return NextValidIndex(start_index, function_count);
     }
     return start_index;
   }
 
-  static sval_t next_valid_index(size_t index, size_t function_count) {
+  static sval_t NextValidIndex(size_t index, size_t function_count) {
     if (index == BADADDR) {
       return BADADDR;
     }
+    func_t* func{};
     while (index < function_count - 1) {
       ++index;
-      if (get_frame(getn_func(index)->start_ea)) {
+      func = getn_func(index);
+      if (!func) {
+        // Skip over IDA "ghost" functions, which are functions in the IDB that
+        // are invalid due to IDA having crashed at some point before. They
+        // cannot be deleted using IDA, so they need to be skipped here.
+        continue;
+      }
+      if (get_frame(func)) {
         return index;
       }
     }
@@ -128,13 +143,14 @@ struct FrameIterator
   }
 
   void increment() {
-    current_index_ = next_valid_index(current_index_, function_count_);
+    current_index_ = NextValidIndex(current_index_, function_count_);
   }
 
   struc_t& dereference() const {
-    struc_t* frame_struct = get_frame(getn_func(current_index_)->start_ea);
+    func_t* func = getn_func(current_index_);
+    struc_t* frame_struct = func ? get_frame(func) : nullptr;
     if (!frame_struct) {
-      throw std::runtime_error("Out of bounds access in FrameIterator.");
+      throw std::runtime_error("Out of bounds access in FrameIterator");
     }
     return *frame_struct;
   }
@@ -171,9 +187,9 @@ struct IdaFrameStructures {
   FrameIterator end_;
 };
 
-string GetTypeName(const tinfo_t& tif) {
+std::string GetTypeName(const tinfo_t& tif) {
   qstring type_name;
-  return string(tif.print(&type_name) ? type_name.c_str() : "");
+  return std::string(tif.print(&type_name) ? type_name.c_str() : "");
 }
 
 const BaseType* GetKnownType(
@@ -355,7 +371,7 @@ void IdaTypesContainer::InitializeBuiltinTypes() {
   CreateVoidPointerType();
 }
 
-void IdaTypesContainer::CreateIdaType(const string& name,
+void IdaTypesContainer::CreateIdaType(const std::string& name,
                                       size_t bit_size) {
   BaseType* new_base_type = new BaseType();
   new_base_type->SetSigned(true);
@@ -452,7 +468,7 @@ void IdaTypesContainer::CollectCompoundTypes(T start_it, T end_it) {
   // IDA has cases where members are believed to be in a stack frame of a
   // function where this is really a disassembly error. Therefore we try to
   // raise awareness to this issue here.
-  const int kMaxStructSize = std::numeric_limits<int32>::max();
+  const int kMaxStructSize = std::numeric_limits<int32_t>::max();
   for (T it = start_it; it != end_it; ++it) {
     const tid_t struct_id = it->id;
     const asize_t struct_size = static_cast<size_t>(get_struc_size(struct_id)) *
@@ -553,7 +569,7 @@ void IdaTypesContainer::GatherTypes() {
 IdaTypesContainer::~IdaTypesContainer() { Cleanup(); }
 
 TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
-    Address address, size_t operand_num, int64 displacement) const {
+    Address address, size_t operand_num, int64_t displacement) const {
   func_t* function = get_func(address);
   if (!function) {
     return TypeReference::CreateEmptyReference();
@@ -586,7 +602,7 @@ TypesContainer::TypeReference IdaTypesContainer::CreateStackReference(
 }
 
 TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
-    Address address, size_t operand_num, int64 displacement) const {
+    Address address, size_t operand_num, int64_t displacement) const {
   // For negative displacements we give up and return an empty reference, since
   // there is no way to obtain a unique base structure in the general case:
   // the obtained base type could be nested in arbitrarily many other
@@ -625,9 +641,9 @@ TypesContainer::TypeReference IdaTypesContainer::CreateNonStackReference(
 
 TypesContainer::TypeReference IdaTypesContainer::ResolveDisplacedTypeReference(
     Address address, Address displacement, size_t operand_num) const {
-  int64 signed_displacement = Instruction::IsNegativeValue(displacement)
-                                    ? static_cast<int32>(displacement)
-                                    : static_cast<int64>(displacement);
+  int64_t signed_displacement = Instruction::IsNegativeValue(displacement)
+                                    ? static_cast<int32_t>(displacement)
+                                    : static_cast<int64_t>(displacement);
   if (is_stkvar(get_flags(address), operand_num)) {
     return CreateStackReference(address, operand_num, signed_displacement);
   }
@@ -758,3 +774,6 @@ const BaseType* IdaTypesContainer::GetFunctionPrototype(
   auto cit = prototypes_by_address_.find(function.GetEntryPoint());
   return (cit != prototypes_by_address_.end()) ? cit->second : nullptr;
 }
+
+}  // namespace binexport
+}  // namespace security
