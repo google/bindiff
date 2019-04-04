@@ -12,8 +12,8 @@ public final class Constants {
 
   // Application Generals
   public static final String PRODUCT_NAME = "BinDiff";
-  public static final String PRODUCT_VERSION = "5";
-  public static final String PRODUCT_NAME_VERSION = "BinDiff 5";
+  public static final String PRODUCT_VERSION = "6";
+  public static final String PRODUCT_NAME_VERSION = "BinDiff 6";
   public static final String DEFAULT_WINDOW_TITLE = "BinDiff";
   public static final String LOG_FILE_NAME = "bindiff_ui.log";
   public static final String LOG_DIRECTORYNAME = "logs";

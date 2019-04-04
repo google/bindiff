@@ -22,8 +22,8 @@ IDA_PLUGINS_DIR=$(cat $TMPFILE)
 
 # Create symlinks for the IDA Pro plugins/differ
 for plugin in \
-  bindiff5.dylib \
-  bindiff564.dylib \
+  bindiff6.dylib \
+  bindiff664.dylib \
   binexport10.dylib \
   binexport1064.dylib
 do

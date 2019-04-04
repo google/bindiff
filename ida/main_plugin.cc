@@ -74,7 +74,7 @@ using binexport::HumanReadableDuration;
 namespace bindiff {
 namespace {
 
-constexpr char kName[] = "BinDiff 5";
+constexpr char kName[] = "BinDiff " BINDIFF_MAJOR;
 constexpr char kComment[] =
     "Structural comparison of executable objects";  // Status line
 constexpr char kHotKey[] = "CTRL-6";

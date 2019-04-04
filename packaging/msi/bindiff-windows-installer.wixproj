@@ -6,7 +6,7 @@
     <ProductVersion>3.0</ProductVersion>
     <ProjectGuid>{ccb6c541-d753-4515-8571-7d4d298aebf4}</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>bindiff5</OutputName>
+    <OutputName>bindiff6</OutputName>
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
   </PropertyGroup>

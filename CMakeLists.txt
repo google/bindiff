@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.7)
 if(POLICY CMP0069)  # For CheckIPOSupported
   cmake_policy(SET CMP0069 NEW)
 endif()
-project(bindiff VERSION 5)
+project(bindiff VERSION 6)
 
 set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
 set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
@@ -237,7 +237,8 @@ target_link_libraries(utility_test
 )
 add_test(AllTestsInUtility utility_test)
 
-# Plugins will be named "bindiff5.so" and "bindiff564.so" (or .dll or .dylib)
+# Plugins will be named "bindiffX.so" and "bindiffX64.so" (or .dll or .dylib),
+# where X is the release number.
 set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
 add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/log.cc

@@ -7,7 +7,7 @@
            UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
            Name="BinDiff"
            Language="1033"
-           Version="5.0.0"
+           Version="6.0.0"
            Manufacturer="Google LLC">
     <Package Id="*"
              Keywords="Installer"
@@ -24,11 +24,11 @@
          version automatically uninstalled. See also: https://goo.gl/TfKVUa
       -->
     <Upgrade Id="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726">
-      <UpgradeVersion Minimum="5.0.0" IncludeMinimum="no"
+      <UpgradeVersion Minimum="6.0.0" IncludeMinimum="no"
                       OnlyDetect="yes"
                       Property="NEWERVERSIONDETECTED" />
       <UpgradeVersion Minimum="3.0.0" IncludeMinimum="yes"
-                      Maximum="5.0.0" IncludeMaximum="no"
+                      Maximum="6.0.0" IncludeMaximum="no"
                       IgnoreRemoveFailure="yes"
                       Property="OLDERVERSIONBEINGUPGRADED" />
     </Upgrade>
@@ -193,12 +193,12 @@
         <Directory Id="IDADIRECTORY" Name="IDA">
           <Directory Id="Ida_Plugins" Name="plugins">
             <Component Id="Ida_Plugins_BinDiff" Win64="yes"
-                       Guid="4F343273-7065-4826-A4B2-F3129B07EBF5">
-              <File Name="bindiff5.dll" KeyPath="yes" />
+                       Guid="1B498380-C805-46A6-B849-92F361B2C5C2">
+              <File Name="bindiff6.dll" KeyPath="yes" />
             </Component>
             <Component Id="Ida_Plugins_BinDiff64" Win64="yes"
-                       Guid="94CF1742-D057-48FE-860C-7750AFE2A936">
-              <File Name="bindiff564.dll" KeyPath="yes" />
+                       Guid="DCB41156-AD64-4C27-AC9D-9779F0DD4CFF">
+              <File Name="bindiff664.dll" KeyPath="yes" />
             </Component>
             <Component Id="Ida_Plugins_BinExport" Win64="yes"
                        Guid="D4F90320-C0AA-45A1-9C51-BBF582F008B1">
