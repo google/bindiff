@@ -27,6 +27,7 @@ third_party/zynamics/binexport
 .gradle
 .gradletasknamecache
 gradle-app.setting
+gradle.properties
 !gradle-wrapper.jar
 
 # Auto-generated
