@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Builds the BinExport extension for a given Ghidra installation. An absolute path to the Ghidra
-// installation directory must be supplied either by setting the GHIDRA_INSTALL_DIR environment
-// variable or Gradle project property.
+// Builds the BinExport extension for a given Ghidra installation. An absolute
+// path to the Ghidra installation directory must be supplied either by setting
+// the GHIDRA_INSTALL_DIR environment variable or Gradle project property.
 
 apply plugin: 'java'
 apply plugin: 'com.google.protobuf'

@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.function.ToIntFunction;
+import org.python.icu.impl.duration.impl.DataRecord.EGender;
 import com.google.protobuf.ByteString;
 import com.google.security.zynamics.BinExport.BinExport2;
 import ghidra.app.util.DomainObjectService;
@@ -37,9 +38,11 @@ import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressSetView;
 import ghidra.program.model.block.BasicBlockModel;
 import ghidra.program.model.block.CodeBlock;
+import ghidra.program.model.block.CodeBlockReference;
 import ghidra.program.model.listing.Instruction;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryAccessException;
+import ghidra.program.model.symbol.FlowType;
 import ghidra.program.model.symbol.RefType;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
@@ -219,8 +222,10 @@ public class BinExportExporter extends Exporter {
   private void buildFlowGraphs(BinExport2.Builder builder, Program program,
       BasicBlockModel bbModel, Map<Long, Integer> basicBlockIndices)
       throws CancelledException {
+    final var listing = program.getListing();
+
     for (final var func : program.getFunctionManager().getFunctions(true)) {
-      final var bbIter =
+      var bbIter =
           bbModel.getCodeBlocksContaining(func.getBody(), TaskMonitor.DUMMY);
       if (!bbIter.hasNext()) {
         continue; // Skip empty flow graphs, they only exist as call graph nodes
@@ -228,17 +233,69 @@ public class BinExportExporter extends Exporter {
       final var flowGraph = builder.addFlowGraphBuilder();
       while (bbIter.hasNext()) {
         final CodeBlock bb = bbIter.next();
+        System.out.printf(":: %08X:\n", bb.getFirstStartAddress().getOffset());
         final long bbAddress = getMappedAddress(bb.getFirstStartAddress());
         final int id = basicBlockIndices.get(bbAddress);
         if (bbAddress == getMappedAddress(func.getEntryPoint())) {
           flowGraph.setEntryBasicBlockIndex(id);
         }
         flowGraph.addBasicBlockIndex(id);
-        
-        bb.getSources(TaskMonitor.DUMMY);
-        bb.getDestinations(TaskMonitor.DUMMY);
+
+        final long bbLastInstrAddress =
+            getMappedAddress(listing.getInstructionBefore(bb.getMaxAddress()));
+        final var edges = new Vector<BinExport2.FlowGraph.Edge>();
+        var lastFlow = RefType.INVALID;
+        for (final var bbRefIter =
+            bb.getDestinations(TaskMonitor.DUMMY); bbRefIter.hasNext();) {
+          final CodeBlockReference bbRef = bbRefIter.next();
+          // BinExport2 only stores flow from the very last instruction of a
+          // basic block.
+          if (getMappedAddress(bbRef.getReferent()) != bbLastInstrAddress) {
+            continue;
+          }
+          // System.out.printf("=> %08X: %30s: %08X -> %08X (%08X -> %08X)\n",
+          // bb.getFirstStartAddress().getOffset(),
+          // bbRef.getFlowType().toString(), bbRef.getReferent().getOffset(),
+          // bbRef.getReference().getOffset(),
+          // bbRef.getSourceAddress().getOffset(),
+          // bbRef.getDestinationAddress().getOffset());
+          final var edge = BinExport2.FlowGraph.Edge.newBuilder();
+          final var flowType = bbRef.getFlowType();
+          if (flowType == RefType.CONDITIONAL_JUMP
+              || lastFlow == RefType.CONDITIONAL_JUMP) {
+            edge.setType(flowType == RefType.CONDITIONAL_JUMP
+                ? BinExport2.FlowGraph.Edge.Type.CONDITION_TRUE
+                : BinExport2.FlowGraph.Edge.Type.CONDITION_FALSE);
+          } else if (flowType != RefType.UNCONDITIONAL_JUMP) {
+            continue;
+          }
+          edge.setSourceBasicBlockIndex(id);
+          edge.setTargetBasicBlockIndex(basicBlockIndices
+              .get(getMappedAddress(bbRef.getDestinationAddress())));
+          edges.add(edge.build());
+
+          lastFlow = flowType;
+        }
+        flowGraph.addAllEdge(edges);
+        // System.out.printf("---\n");
       }
       assert flowGraph.getEntryBasicBlockIndex() > 0;
+    }
+  }
+
+  private void buildCallGraph(BinExport2.Builder builder, Program program) {
+    final var callGraph = builder.getCallGraphBuilder();
+    for (final var func : program.getFunctionManager().getFunctions(true)) {
+      final var vertex = callGraph.addVertexBuilder()
+          .setAddress(getMappedAddress(func.getEntryPoint()));
+      // TODO(cblichmann): Imported/library
+      if (func.isThunk()) {
+        // Only store if different from default value (NORMAL)
+        vertex.setType(BinExport2.CallGraph.Vertex.Type.THUNK);
+      }
+      // TODO(cblichmann): Check for artificial names
+      // Mangled name always needs to be set.
+      vertex.setMangledName(func.getName());
     }
   }
 
@@ -267,18 +324,22 @@ public class BinExportExporter extends Exporter {
 
       // buildExpressions()
       // buildOperands()
+      monitor.setMessage("Computing mnemonic histogram");
       final var mnemonics = new TreeMap<String, Integer>(); // Mnemonic to index
       buildMnemonics(builder, program, mnemonics);
+      monitor.setMessage("Exporting instructions");
       final var instructionIndices = new TreeMap<Long, Integer>(); // Address to index
       buildInstructions(builder, program, mnemonics, instructionIndices);
+      monitor.setMessage("Exporting basic block structure");
       final var basicBlockIndices = new HashMap<Long, Integer>(); // Basic block address to index
       buildBasicBlocks(builder, program, bbModel, instructionIndices,
           basicBlockIndices);
       // buildComments()
       // buildStrings()
       // buildDataReferences()
+      monitor.setMessage("Exporting flow graphs");
       buildFlowGraphs(builder, program, bbModel, basicBlockIndices);
-      // buildCallGraph();
+      buildCallGraph(builder, program);
       // buildSections();
 
       monitor.setMessage("Writing BinExport2 file");
