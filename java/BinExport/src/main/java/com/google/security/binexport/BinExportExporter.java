@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+// http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,25 +14,6 @@
 
 package com.google.security.binexport;
 
-import com.google.protobuf.ByteString;
-import com.google.security.zynamics.BinExport.BinExport2;
-import ghidra.app.util.DomainObjectService;
-import ghidra.app.util.Option;
-import ghidra.app.util.OptionException;
-import ghidra.app.util.exporter.Exporter;
-import ghidra.app.util.exporter.ExporterException;
-import ghidra.framework.model.DomainObject;
-import ghidra.program.model.address.AddressSetView;
-import ghidra.program.model.block.BasicBlockModel;
-import ghidra.program.model.block.CodeBlock;
-import ghidra.program.model.listing.Function;
-import ghidra.program.model.listing.Instruction;
-import ghidra.program.model.listing.Listing;
-import ghidra.program.model.listing.Program;
-import ghidra.program.model.mem.MemoryAccessException;
-import ghidra.program.model.symbol.RefType;
-import ghidra.util.exception.CancelledException;
-import ghidra.util.task.TaskMonitor;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,54 +25,107 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.function.ToIntFunction;
+import com.google.protobuf.ByteString;
+import com.google.security.zynamics.BinExport.BinExport2;
+import ghidra.app.util.DomainObjectService;
+import ghidra.app.util.Option;
+import ghidra.app.util.OptionException;
+import ghidra.app.util.exporter.Exporter;
+import ghidra.app.util.exporter.ExporterException;
+import ghidra.framework.model.DomainObject;
+import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressSetView;
+import ghidra.program.model.block.BasicBlockModel;
+import ghidra.program.model.block.CodeBlock;
+import ghidra.program.model.listing.Instruction;
+import ghidra.program.model.listing.Program;
+import ghidra.program.model.mem.MemoryAccessException;
+import ghidra.program.model.symbol.RefType;
+import ghidra.util.exception.CancelledException;
+import ghidra.util.task.TaskMonitor;
 
 /** Exports Ghidra disassembly data into BinExport v2 format. */
 public class BinExportExporter extends Exporter {
+
+  // Option names
+  private final static String IDAPRO_COMPAT_OPTGROUP = "IDA Pro Compatibility";
+  private final static String IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE =
+      "Subtract Imagebase";
+  private final static String IDAPRO_COMPAT_OPT_REMAP_MNEMONICS =
+      "Remap mnemonics";
+
+  private boolean subtractImagebase = false;
+  private boolean remapMnemonics = false;
+
+  private long addressOffset = 0;
 
   public BinExportExporter() {
     super("Binary BinExport (v2) for BinDiff", "BinExport", null);
     log.appendMsg("BinExport 11 (c)2019 Google LLC.");
   }
 
-  private void buildMetaInformation(BinExport2.Builder builder, Program program) {
-    builder
-        .getMetaInformationBuilder()
+  private void buildMetaInformation(BinExport2.Builder builder,
+      Program program) {
+    // Ghidra uses a quad format like x86:LE:32:default, BinExport just keeps
+    // the processor and address size.
+    final String[] quad = program.getLanguageID().toString().split(":", 4);
+    final String arch = quad[0] + "-" + quad[2];
+
+    builder.getMetaInformationBuilder()
         .setExecutableName(program.getExecutablePath())
         // TODO(cblichmann): Now that we have SHA256 in Ghidra, use that.
-        .setExecutableId(program.getExecutableMD5())
-        .setArchitectureName(program.getLanguageID().toString())
+        .setExecutableId(program.getExecutableMD5()).setArchitectureName(arch)
         .setTimestamp(System.currentTimeMillis() / 1000);
   }
 
-  private void buildMnemonics(
-      BinExport2.Builder builder, Listing listing, Map<String, Integer> mnemonics) {
+  private String getInstructionMnemonic(Instruction instr) {
+    // IDA uses lowercase instruction mnemonics for some architecture (notably
+    // X86). If remapping is enabled, convert the instruction's mnemonic to
+    // lowercase.
+    // TODO(cblichmann): Implement a more sophisticated scheme that tries
+    // harder to do what IDA does.
+    final String mnemonic = instr.getMnemonicString();
+    return remapMnemonics ? mnemonic.toLowerCase() : mnemonic;
+  }
+
+  private long getMappedAddress(Address address) {
+    return address.getOffset() - addressOffset;
+  }
+
+  private long getMappedAddress(Instruction instr) {
+    return getMappedAddress(instr.getAddress());
+  }
+
+  private void buildMnemonics(BinExport2.Builder builder, Program program,
+      Map<String, Integer> mnemonics) {
+    final var listing = program.getListing();
+
     final var mnemonicHist = new HashMap<String, Integer>();
     for (final var instr : listing.getInstructions(true)) {
-      mnemonicHist.merge(instr.getMnemonicString(), 1, Integer::sum);
+      mnemonicHist.merge(getInstructionMnemonic(instr), 1, Integer::sum);
     }
     final var mnemonicList = new Vector<Map.Entry<String, Integer>>();
     mnemonicList.addAll(mnemonicHist.entrySet());
-    mnemonicList.sort(
-        Comparator.comparingInt((ToIntFunction<Entry<String, Integer>>) Entry::getValue)
-            .reversed()
-            .thenComparing(Entry::getKey));
+    mnemonicList.sort(Comparator
+        .comparingInt((ToIntFunction<Entry<String, Integer>>) Entry::getValue)
+        .reversed().thenComparing(Entry::getKey));
+    int id = 0;
     for (final var mnemonic : mnemonicList) {
       builder.addMnemonicBuilder().setName(mnemonic.getKey());
-      mnemonics.put(mnemonic.getKey(), builder.getMnemonicBuilderList().size());
+      mnemonics.put(mnemonic.getKey(), id++);
     }
   }
 
-  private void buildInstructions(
-      BinExport2.Builder builder,
-      Listing listing,
-      Map<String, Integer> mnemonics,
-      Map<Long, Integer> instructionIndices) {
+  private void buildInstructions(BinExport2.Builder builder, Program program,
+      Map<String, Integer> mnemonics, Map<Long, Integer> instructionIndices) {
+    final var listing = program.getListing();
+
     Instruction prevInstr = null;
     long prevAddress = 0;
     int prevSize = 0;
+    int id = 0;
     for (final var instr : listing.getInstructions(true)) {
-      // TODO(cblichmann): Check whether getAddressableWordOffset() is the right method.
-      final long address = instr.getAddress().getAddressableWordOffset();
+      final long address = getMappedAddress(instr);
 
       final var instrBuilder = builder.addInstructionBuilder();
       // Write the full instruction address iff:
@@ -99,8 +133,7 @@ public class BinExportExporter extends Exporter {
       // - the previous instruction doesn't have code flow into the current one
       // - the previous instruction overlaps the current one
       // - the current instruction is a function entry point
-      if (prevInstr == null
-          || !prevInstr.hasFallthrough()
+      if (prevInstr == null || !prevInstr.hasFallthrough()
           || prevAddress + prevSize != address
           || listing.getFunctionAt(instr.getAddress()) != null) {
         instrBuilder.setAddress(address);
@@ -112,8 +145,12 @@ public class BinExportExporter extends Exporter {
       } catch (final MemoryAccessException e) {
         // Leave raw bytes empty
       }
-      instrBuilder.setMnemonicIndex(mnemonics.get(instr.getMnemonicString()));
-      instructionIndices.put(address, builder.getInstructionBuilderList().size());
+      int mnemonicIndex = mnemonics.get(getInstructionMnemonic(instr));
+      if (mnemonicIndex != 0) {
+        // Only store if different from default value
+        instrBuilder.setMnemonicIndex(mnemonicIndex);
+      }
+      instructionIndices.put(address, id++);
 
       // TODO(cblichmann): Set operand indices
 
@@ -126,7 +163,7 @@ public class BinExportExporter extends Exporter {
             || refType != RefType.CONDITIONAL_CALL) {
           continue;
         }
-        instrBuilder.addCallTarget(ref.getToAddress().getAddressableWordOffset());
+        instrBuilder.addCallTarget(getMappedAddress(ref.getToAddress()));
       }
 
       prevInstr = instr;
@@ -134,14 +171,80 @@ public class BinExportExporter extends Exporter {
     }
   }
 
-  private void buildBasicBlocks(
-      BinExport2.Builder builder,
-      BasicBlockModel bbModel,
-      Map<Long, Integer> instructionIndices) {}
+  private void buildBasicBlocks(BinExport2.Builder builder, Program program,
+      BasicBlockModel bbModel, Map<Long, Integer> instructionIndices,
+      Map<Long, Integer> basicBlockIndices) throws CancelledException {
+    final var listing = program.getListing();
 
-    @Override
-  public boolean export(
-      File file, DomainObject domainObj, AddressSetView addrSet, TaskMonitor monitor)
+    int id = 0;
+    for (final var bbIter = bbModel.getCodeBlocks(TaskMonitor.DUMMY); bbIter
+        .hasNext();) {
+      final CodeBlock bb = bbIter.next();
+
+      final var protoBb = builder.addBasicBlockBuilder();
+
+      int instructionIndex = 0;
+      int beginIndex = -1;
+      int endIndex = -1;
+      for (final var instr : listing.getInstructions(bb, true)) {
+        instructionIndex = instructionIndices.get(getMappedAddress(instr));
+        if (beginIndex < 0) {
+          beginIndex = instructionIndex;
+          endIndex = beginIndex + 1;
+        } else if (instructionIndex != endIndex) {
+          // Sequence is broken, store an interval
+          final var indexRange =
+              protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
+          if (endIndex != beginIndex + 1) {
+            // Omit end index in the single instruction interval case
+            indexRange.setEndIndex(endIndex);
+          }
+          beginIndex = instructionIndex;
+          endIndex = beginIndex + 1;
+        } else {
+          // Sequence is unbroken, remember endIndex
+          endIndex = instructionIndex + 1;
+        }
+      }
+      final var indexRange =
+          protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
+      if (endIndex != beginIndex + 1) {
+        // Like above, Omit end index in the single instruction interval case
+        indexRange.setEndIndex(endIndex);
+      }
+      basicBlockIndices.put(getMappedAddress(bb.getFirstStartAddress()), id++);
+    }
+  }
+
+  private void buildFlowGraphs(BinExport2.Builder builder, Program program,
+      BasicBlockModel bbModel, Map<Long, Integer> basicBlockIndices)
+      throws CancelledException {
+    for (final var func : program.getFunctionManager().getFunctions(true)) {
+      final var bbIter =
+          bbModel.getCodeBlocksContaining(func.getBody(), TaskMonitor.DUMMY);
+      if (!bbIter.hasNext()) {
+        continue; // Skip empty flow graphs, they only exist as call graph nodes
+      }
+      final var flowGraph = builder.addFlowGraphBuilder();
+      while (bbIter.hasNext()) {
+        final CodeBlock bb = bbIter.next();
+        final long bbAddress = getMappedAddress(bb.getFirstStartAddress());
+        final int id = basicBlockIndices.get(bbAddress);
+        if (bbAddress == getMappedAddress(func.getEntryPoint())) {
+          flowGraph.setEntryBasicBlockIndex(id);
+        }
+        flowGraph.addBasicBlockIndex(id);
+        
+        bb.getSources(TaskMonitor.DUMMY);
+        bb.getDestinations(TaskMonitor.DUMMY);
+      }
+      assert flowGraph.getEntryBasicBlockIndex() > 0;
+    }
+  }
+
+  @Override
+  public boolean export(File file, DomainObject domainObj,
+      AddressSetView addrSet, TaskMonitor monitor)
       throws ExporterException, IOException {
 
     if (!(domainObj instanceof Program)) {
@@ -151,6 +254,10 @@ public class BinExportExporter extends Exporter {
     final var program = (Program) domainObj;
     final var bbModel = new BasicBlockModel(program, true);
 
+    if (subtractImagebase) {
+      addressOffset = program.getImageBase().getOffset();
+    }
+
     monitor.setCancelEnabled(true);
     monitor.setIndeterminate(true);
     try {
@@ -158,30 +265,21 @@ public class BinExportExporter extends Exporter {
       final var builder = BinExport2.newBuilder();
       buildMetaInformation(builder, program);
 
-      final var listing = program.getListing();
-
+      // buildExpressions()
+      // buildOperands()
       final var mnemonics = new TreeMap<String, Integer>(); // Mnemonic to index
-      buildMnemonics(builder, listing, mnemonics);
-
+      buildMnemonics(builder, program, mnemonics);
       final var instructionIndices = new TreeMap<Long, Integer>(); // Address to index
-      buildInstructions(builder, listing, mnemonics, instructionIndices);
-      buildBasicBlocks(builder, bbModel, instructionIndices);
-
-      final var funcManager = program.getFunctionManager();
-      for (final var func : funcManager.getFunctions(true)) {
-        log.appendMsg("BinExport: " + func.getName());
-
-        for (final var bbIter = bbModel.getCodeBlocksContaining(func.getBody(), monitor);
-            bbIter.hasNext(); ) {
-          final CodeBlock bb = bbIter.next();
-
-          log.appendMsg("BinExport: " + func.getName() + " bb start {");
-          for (final var instr : listing.getInstructions(bb, true)) {
-            log.appendMsg("BinExport: " + func.getName() + "  " + instr.toString());
-          }
-          log.appendMsg("BinExport: " + func.getName() + "          }");
-        }
-      }
+      buildInstructions(builder, program, mnemonics, instructionIndices);
+      final var basicBlockIndices = new HashMap<Long, Integer>(); // Basic block address to index
+      buildBasicBlocks(builder, program, bbModel, instructionIndices,
+          basicBlockIndices);
+      // buildComments()
+      // buildStrings()
+      // buildDataReferences()
+      buildFlowGraphs(builder, program, bbModel, basicBlockIndices);
+      // buildCallGraph();
+      // buildSections();
 
       monitor.setMessage("Writing BinExport2 file");
       final BinExport2 proto = builder.build();
@@ -194,11 +292,24 @@ public class BinExportExporter extends Exporter {
 
   @Override
   public List<Option> getOptions(DomainObjectService domainObjectService) {
-    return EMPTY_OPTIONS;
+    return List.of(
+        new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE,
+            Boolean.FALSE),
+        new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_REMAP_MNEMONICS,
+            Boolean.FALSE));
   }
 
   @Override
   public void setOptions(List<Option> options) throws OptionException {
-    // No options to set
+    for (final var option : options) {
+      switch (option.getName()) {
+        case IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE:
+          subtractImagebase = (boolean) option.getValue();
+          break;
+        case IDAPRO_COMPAT_OPT_REMAP_MNEMONICS:
+          remapMnemonics = (boolean) option.getValue();
+          break;
+      }
+    }
   }
 }
