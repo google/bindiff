@@ -1,0 +1,4 @@
+Build dependencies
+------------------
+
+* `protobuf-compiler`
