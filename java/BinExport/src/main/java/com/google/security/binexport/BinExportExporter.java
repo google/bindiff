@@ -33,6 +33,12 @@ import ghidra.util.task.TaskMonitor;
 /** Exports Ghidra disassembly data into BinExport v2 format. */
 public class BinExportExporter extends Exporter {
 
+  /** Display name that appears in the export dialog. */
+  private final static String BINEXPORT_FORMAT_DISPLAY_NAME =
+      "Binary BinExport (v2) for BinDiff";
+
+  private final static String BINEXPORT_FILE_EXTENSION = "BinExport";
+
   // Option names
   private final static String IDAPRO_COMPAT_OPTGROUP = "IDA Pro Compatibility";
   private final static String IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE =
@@ -40,11 +46,14 @@ public class BinExportExporter extends Exporter {
   private final static String IDAPRO_COMPAT_OPT_REMAP_MNEMONICS =
       "Remap mnemonics";
 
+  /** Whether to subtract the program image base from addresses for export. */
   private boolean subtractImagebase = false;
+  
+  /** Whether to remap Ghidra's mnenomics into IDA Pro style ones. */
   private boolean remapMnemonics = false;
 
   public BinExportExporter() {
-    super("Binary BinExport (v2) for BinDiff", "BinExport", null);
+    super(BINEXPORT_FORMAT_DISPLAY_NAME, BINEXPORT_FILE_EXTENSION, null);
     log.appendMsg("BinExport 11 (c)2019 Google LLC.");
   }
 
@@ -58,15 +67,6 @@ public class BinExportExporter extends Exporter {
       return false;
     }
     final var program = (Program) domainObj;
-
-//    for (var entry : program.getMetadata().entrySet()) {
-//      System.out.printf("%s: %s\n", entry.getKey(), entry.getValue());
-//    }
-//    System.out.println("-----------------");
-//    for (var as : program.getAddressFactory().getAddressSpaces()) {
-//      System.out.println(as.toString());
-//    }
-//    System.out.println("-----------------");
 
     monitor.setCancelEnabled(true);
     try {

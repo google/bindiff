@@ -443,7 +443,7 @@ public class BinExport2Builder {
 
     // TODO(cblichmann): Implement proper expressions. For now, each expression
     // corresponds to exactly one operand. Those consist of Ghidra's string
-    // representation and be of type SYMBOL.
+    // representation and are of type SYMBOL.
     final var expressionIndices = new HashMap<String, Integer>();
     buildExpressions(expressionIndices);
     buildOperands(expressionIndices);
