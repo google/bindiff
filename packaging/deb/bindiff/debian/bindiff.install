@@ -1,6 +1,7 @@
 files/etc/opt/bindiff/bindiff_core.xml etc/opt/bindiff
 files/etc/opt/bindiff/bindiff_ui.xml etc/opt/bindiff
 files/opt/bindiff/LICENSE opt/bindiff
+files/opt/bindiff/roboto-mono-font-license.txt opt/bindiff
 files/opt/bindiff/bin/bindiff opt/bindiff/bin
 files/opt/bindiff/bin/bindiff-256x256-rgba.png opt/bindiff/bin
 files/opt/bindiff/bin/bindiff.jar opt/bindiff/bin
@@ -11,3 +12,13 @@ files/opt/bindiff/plugins/bindiff564.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport10.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport1064.so opt/bindiff/plugins
 files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications
+files/usr/share/fonts/truetype/robotomono/RobotoMono-Bold.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-BoldItalic.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-Italic.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-Light.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-LightItalic.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-Medium.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-MediumItalic.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-Regular.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-Thin.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/fonts/truetype/robotomono/RobotoMono-ThinItalic.ttf usr/share/fonts/truetype/robotomono

@@ -9,9 +9,8 @@ Package: bindiff
 Architecture: amd64
 Pre-Depends: debconf
 Depends: jdk11-google|java8-runtime|java9-runtime|java10-runtime|java11-runtime|java12-runtime,
-         xdg-utils,
+         fonts-roboto, xdg-utils,
          ${misc:Depends}
-Recommends: fonts-roboto
 Description: zynamics BinDiff
  BinDiff is a comparison tool for binary files that helps to quickly find
  differences and similarities in disassembled code. It is used by

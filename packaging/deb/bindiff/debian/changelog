@@ -1,3 +1,9 @@
+bindiff (6) unstable; urgency=medium
+
+  * Updated Roboto fonts
+
+ -- Christian Blichmann <cblichmann@google.com>  Tue, 07 May 2019 11:39:41 +0200
+
 bindiff (5) unstable; urgency=medium
 
   * Port to IDA Pro 7 with 64-bit builds only

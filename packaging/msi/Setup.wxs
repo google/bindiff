@@ -302,6 +302,55 @@
 
       <!-- Roboto Mono font -->
       <Directory Id="FontsFolder" Name="Fonts">
+        <Component Id="Fonts_RobotoBoldTTF"
+                   Guid="1334E4B9-484F-4CF6-A914-3C98EB349C1B">
+          <File Name="Roboto-Bold.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoBoldItalicTTF"
+                   Guid="D808F0A1-10A0-48F3-99F0-FDA16A97D19B">
+          <File Name="Roboto-BoldItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoItalicTTF"
+                   Guid="95001A8B-8F2F-43FD-A05E-842D69ABD8D8">
+          <File Name="Roboto-Italic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoLightTTF"
+                   Guid="F4D092A5-19F1-4E4E-8A94-81411858B76E">
+          <File Name="Roboto-Light.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoLightItalicTTF"
+                   Guid="30E7FA68-C972-403A-A529-F31D5A316ABA">
+          <File Name="Roboto-LightItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMediumTTF"
+                   Guid="C04BE8F7-24B2-447C-AA59-EA02F8690EA9">
+          <File Name="Roboto-Medium.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoMediumItalicTTF"
+                   Guid="0DF651F4-EFB6-4F7A-ACAD-3F1EA1908483">
+          <File Name="Roboto-MediumItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoRegularTTF"
+                   Guid="A9B26880-E141-4CAD-B608-AFBA6D213666">
+          <File Name="Roboto-Regular.ttf" KeyPath="yes"
+                TrueType="yes" /></Component>
+        <Component Id="Fonts_RobotoThinTTF"
+                   Guid="9372E9E1-15AB-473D-B163-8EF5B758F7D5">
+          <File Name="Roboto-Thin.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
+        <Component Id="Fonts_RobotoThinItalicTTF"
+                   Guid="1A3A9D67-5AA0-4E9E-9F4B-B5CB15392273">
+          <File Name="Roboto-ThinItalic.ttf" KeyPath="yes"
+                TrueType="yes" />
+        </Component>
         <Component Id="Fonts_RobotoMonoBoldTTF"
                    Guid="32C69F59-7086-4F4D-A0E6-174BD9EF5CD0">
           <File Name="RobotoMono-Bold.ttf" KeyPath="yes"
@@ -438,6 +487,16 @@
                Absent="allow"
                AllowAdvertise="no">
         <ComponentRef Id="BinDiff_FontLicense" />
+        <ComponentRef Id="Fonts_RobotoBoldTTF" />
+        <ComponentRef Id="Fonts_RobotoBoldItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoLightTTF" />
+        <ComponentRef Id="Fonts_RobotoLightItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoMediumTTF" />
+        <ComponentRef Id="Fonts_RobotoMediumItalicTTF" />
+        <ComponentRef Id="Fonts_RobotoRegularTTF" />
+        <ComponentRef Id="Fonts_RobotoThinTTF" />
+        <ComponentRef Id="Fonts_RobotoThinItalicTTF" />
         <ComponentRef Id="Fonts_RobotoMonoBoldTTF" />
         <ComponentRef Id="Fonts_RobotoMonoBoldItalicTTF" />
         <ComponentRef Id="Fonts_RobotoMonoItalicTTF" />
