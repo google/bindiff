@@ -21,7 +21,6 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
 include(${BinExport_DIR}/util.cmake)
-include(gflags.cmake)
 include(sqlite.cmake)
 include(tinyxpath.cmake)
 
@@ -288,8 +287,8 @@ add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
   bindiff_shared
   absl::flat_hash_set
+  absl::flags_parse
   absl::time
-  gflags
 )
 set_target_properties(bindiff PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})

@@ -21,13 +21,11 @@
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
 #else
-#include <gflags/gflags.h>
-
-using google::ParseCommandLineFlags;
-using google::SET_FLAGS_DEFAULT;
-using google::SetCommandLineOptionWithMode;
-using google::SetUsageMessage;
-using google::ShowUsageWithFlags;
+#include "third_party/absl/flags/flag.h"
+#include "third_party/absl/flags/internal/usage.h"
+#include "third_party/absl/flags/parse.h"
+#include "third_party/absl/flags/usage_config.h"
+#include "third_party/absl/strings/match.h"
 #endif  // GOOGLE
 #include "base/logging.h"
 #include "third_party/absl/base/const_init.h"
@@ -64,22 +62,22 @@ using google::ShowUsageWithFlags;
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
-// TODO(cblichmann): Migrate to Abseil's flags once they become available.
-DEFINE_bool(nologo, false, "do not display version/copyright information");
-DEFINE_bool(ui, false, "launch the BinDiff UI");
-DEFINE_string(primary, "", "primary input file or path in batch mode");
-DEFINE_string(secondary, "", "secondary input file (optional)");
-DEFINE_string(output_dir, "", "output path, defaults to current directory");
-DEFINE_bool(log_format, false, "write results in log file format");
-DEFINE_bool(bin_format, false,
-            "write results in binary file format that can be loaded by the "
-            "BinDiff IDA plugin or the GUI");
-DEFINE_bool(md_index, false, "dump MD indices (will not diff anything)");
-DEFINE_bool(export, false,
-            "batch export .idb files from input directory to BinExport format");
-DEFINE_bool(ls, false,
-            "list hash/filenames for all .BinExport files in input directory");
-DEFINE_string(config, "", "specify config file name");
+ABSL_FLAG(bool, nologo, false, "do not display version/copyright information");
+ABSL_FLAG(bool, ui, false, "launch the BinDiff UI");
+ABSL_FLAG(std::string, primary, "", "primary input file or path in batch mode");
+ABSL_FLAG(std::string, secondary, "", "secondary input file (optional)");
+ABSL_FLAG(std::string, output_dir, "",
+          "output path, defaults to current directory");
+ABSL_FLAG(bool, log_format, false, "write results in log file format");
+ABSL_FLAG(bool, bin_format, false,
+          "write results in binary file format that can be loaded by the "
+          "BinDiff IDA plugin or the GUI");
+ABSL_FLAG(bool, md_index, false, "dump MD indices (will not diff anything)");
+ABSL_FLAG(bool, export, false,
+          "batch export .idb files from input directory to BinExport format");
+ABSL_FLAG(bool, ls, false,
+          "list hash/filenames for all .BinExport files in input directory");
+ABSL_FLAG(std::string, config, "", "specify config file name");
 
 namespace security {
 
@@ -265,12 +263,12 @@ void DifferThread::operator()() {
       PrintMessage("Writing results");
       {
         ChainWriter writer;
-        if (FLAGS_log_format) {
+        if (absl::GetFlag(FLAGS_log_format)) {
           writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
               out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
               call_graph2.GetFilename(), ".results")));
         }
-        if (FLAGS_bin_format || writer.IsEmpty()) {
+        if (absl::GetFlag(FLAGS_bin_format) || writer.IsEmpty()) {
           writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
               out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
               call_graph2.GetFilename(), ".BinDiff")));
@@ -373,7 +371,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   const auto* config = GetConfig();
   auto exporter_or = IdbExporter::Create(
       IdbExporter::Options{}
-          .set_export_dir(FLAGS_output_dir)
+          .set_export_dir(absl::GetFlag(FLAGS_output_dir))
           .set_num_threads(config->ReadInt("/BinDiff/Threads/@use",
                                            std::thread::hardware_concurrency()))
           .set_ida_dir(config->ReadString("/BinDiff/Ida/@directory", ""))
@@ -409,7 +407,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   const auto export_time = timer.elapsed();
   timer.restart();
 
-  if (!FLAGS_export) {  // Perform diff
+  if (!absl::GetFlag(FLAGS_export)) {  // Perform diff
     std::vector<std::thread> threads;
     for (int i = 0; i < num_threads; ++i) {
       threads.emplace_back(DifferThread(out_path, out_path, &files));
@@ -422,7 +420,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
 
   PrintMessage(absl::StrCat(idb_files.size(), " files exported in ",
                             HumanReadableDuration(export_time), ", ",
-                            files.size() * (1 - FLAGS_export),
+                            files.size() * (1 - absl::GetFlag(FLAGS_export)),
                             " pairs diffed in ",
                             HumanReadableDuration(diff_time)));
 }
@@ -481,15 +479,28 @@ void SignalHandler(int code) {
   }
 }
 
+#ifndef GOOGLE
+// Install Abseil Flags' library usage callbacks. This needs to be done before
+// any operation that may call one of the callbacks.
+void InstallFlagsUsageConfig() {
+  absl::FlagsUsageConfig usage_config;
+  usage_config.contains_help_flags = [](absl::string_view filename) {
+    return !absl::StartsWith(filename, "core library");
+  };
+  usage_config.contains_helpshort_flags = usage_config.contains_help_flags;
+  usage_config.normalize_filename =
+      [](absl::string_view filename) -> std::string {
+    return absl::StartsWith(filename, "absl") ? "core library" : "this binary";
+  };
+  absl::SetFlagsUsageConfig(usage_config);
+}
+#endif
+
 int BinDiffMain(int argc, char** argv) {
 #ifdef WIN32
   signal(SIGBREAK, SignalHandler);
 #endif
   signal(SIGINT, SignalHandler);
-
-  const std::string current_path = GetCurrentDirectory();
-  SetCommandLineOptionWithMode("output_dir", current_path.c_str(),
-                               SET_FLAGS_DEFAULT);
 
   std::string binary_name = Basename(argv[0]);
   std::string usage = absl::StrFormat(
@@ -508,16 +519,20 @@ int BinDiffMain(int argc, char** argv) {
       "--secondary=/tmp/file2.BinExport \\\n"
       "    --output_dir=/tmp/result",
       binary_name);
+  const std::string current_path = GetCurrentDirectory();
+  absl::SetFlag(&FLAGS_output_dir, current_path);
 #ifdef GOOGLE
   InitGoogle(usage.c_str(), &argc, &argv, /*remove_flags=*/true);
 #else
-  SetUsageMessage(usage);
-  ParseCommandLineFlags(&argc, &argv, /*remove_flags=*/true);
+  // TODO(cblichmann): Use internal API until Abseil finalizes it.
+  absl::flags_internal::SetProgramUsageMessage(usage);
+  InstallFlagsUsageConfig();
+  absl::ParseCommandLine(argc, argv);
 
   SetLogHandler(&UnprefixedLogHandler);
 #endif
 
-  if (!FLAGS_nologo) {
+  if (!absl::GetFlag(FLAGS_nologo)) {
     PrintMessage(
         absl::StrCat(kProgramVersion,
 #ifdef _DEBUG
@@ -529,15 +544,16 @@ int BinDiffMain(int argc, char** argv) {
   try {
     auto config = GetConfig();
     not_absl::Status status =
-        !FLAGS_config.empty() ? status = config->LoadFromFileWithDefaults(
-                                    FLAGS_config, std::string(kDefaultConfig))
-                              : InitConfig();
+        !absl::GetFlag(FLAGS_config).empty()
+            ? status = config->LoadFromFileWithDefaults(
+                  absl::GetFlag(FLAGS_config), std::string(kDefaultConfig))
+            : InitConfig();
     if (!status.ok()) {
       throw std::runtime_error(std::string(status.message()));
     }
 
     // Launch Java UI if requested
-    if (binary_name == "bindiff_ui" || FLAGS_ui) {
+    if (binary_name == "bindiff_ui" || absl::GetFlag(FLAGS_ui)) {
       std::vector<std::string> extra_args;
       for (int i = 1; i < argc; ++i) {
         extra_args.push_back(argv[i]);
@@ -575,60 +591,61 @@ int BinDiffMain(int argc, char** argv) {
     FlowGraphs flow_graphs2;
     ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
 
-    if (FLAGS_primary.empty()) {
+    if (absl::GetFlag(FLAGS_primary).empty()) {
       throw std::runtime_error("Need primary input (--primary)");
     }
 
-    if (FLAGS_output_dir == current_path /* Defaulted */ &&
-        IsDirectory(FLAGS_primary.c_str())) {
-      FLAGS_output_dir = FLAGS_primary;
+    if (absl::GetFlag(FLAGS_output_dir) == current_path /* Defaulted */ &&
+        IsDirectory(absl::GetFlag(FLAGS_primary).c_str())) {
+      absl::SetFlag(&FLAGS_output_dir, absl::GetFlag(FLAGS_primary));
     }
 
-    if (!IsDirectory(FLAGS_output_dir.c_str())) {
+    if (!IsDirectory(absl::GetFlag(FLAGS_output_dir).c_str())) {
       throw std::runtime_error(absl::StrCat(
           "Output parameter (--output_dir) must be a writable directory: ",
-          FLAGS_output_dir));
+          absl::GetFlag(FLAGS_output_dir)));
     }
 
-    if (FileExists(FLAGS_primary.c_str())) {
+    if (FileExists(absl::GetFlag(FLAGS_primary))) {
       // Primary from file system.
       FlowGraphInfos infos;
       call_graph1 = absl::make_unique<CallGraph>();
-      Read(FLAGS_primary, call_graph1.get(), &flow_graphs1, &infos,
-           &instruction_cache);
+      Read(absl::GetFlag(FLAGS_primary), call_graph1.get(), &flow_graphs1,
+           &infos, &instruction_cache);
     }
 
-    if (IsDirectory(FLAGS_primary.c_str())) {
+    if (IsDirectory(absl::GetFlag(FLAGS_primary))) {
       // File system batch diff.
-      if (FLAGS_ls) {
-        ListFiles(FLAGS_primary);
-      } else if (FLAGS_md_index) {
-        BatchDumpMdIndices(FLAGS_primary);
+      if (absl::GetFlag(FLAGS_ls)) {
+        ListFiles(absl::GetFlag(FLAGS_primary));
+      } else if (absl::GetFlag(FLAGS_md_index)) {
+        BatchDumpMdIndices(absl::GetFlag(FLAGS_primary));
       } else {
-        BatchDiff(FLAGS_primary, FLAGS_secondary, FLAGS_output_dir);
+        BatchDiff(absl::GetFlag(FLAGS_primary), absl::GetFlag(FLAGS_secondary),
+                  absl::GetFlag(FLAGS_output_dir));
       }
       done_something = true;
     }
 
-    if (FLAGS_md_index && call_graph1 != nullptr) {
+    if (absl::GetFlag(FLAGS_md_index) && call_graph1 != nullptr) {
       DumpMdIndices(*call_graph1, flow_graphs1);
       done_something = true;
     }
 
-    if (!FLAGS_secondary.empty() &&
-        FileExists(FLAGS_secondary.c_str())) {
+    if (!absl::GetFlag(FLAGS_secondary).empty() &&
+        FileExists(absl::GetFlag(FLAGS_secondary))) {
       // secondary from filesystem
       FlowGraphInfos infos;
       call_graph2 = absl::make_unique<CallGraph>();
-      Read(FLAGS_secondary, call_graph2.get(), &flow_graphs2, &infos,
-           &instruction_cache);
+      Read(absl::GetFlag(FLAGS_secondary), call_graph2.get(), &flow_graphs2,
+           &infos, &instruction_cache);
     }
 
-    if (!done_something && ((!FileExists(FLAGS_primary.c_str()) &&
-                             !IsDirectory(FLAGS_primary.c_str())) ||
-                            (!FLAGS_secondary.empty() &&
-                             (!FileExists(FLAGS_secondary.c_str()) &&
-                              !IsDirectory(FLAGS_secondary.c_str()))))) {
+    if (!done_something && ((!FileExists(absl::GetFlag(FLAGS_primary))) &&
+                            !IsDirectory(absl::GetFlag(FLAGS_primary))) ||
+        (!absl::GetFlag(FLAGS_secondary).empty() &&
+         (!FileExists(absl::GetFlag(FLAGS_secondary))) &&
+         !IsDirectory(absl::GetFlag(FLAGS_secondary)))) {
       throw std::runtime_error(
           "Invalid inputs, --primary and --secondary must point to valid "
           "files/directories.");
@@ -683,15 +700,17 @@ int BinDiffMain(int argc, char** argv) {
                                 "% (Confidence: ", confidence * 100, "%)"));
 
       ChainWriter writer;
-      if (FLAGS_log_format) {
+      if (absl::GetFlag(FLAGS_log_format)) {
         writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
-            FLAGS_output_dir + kPathSeparator, call_graph1->GetFilename(),
-            "_vs_", call_graph2->GetFilename(), ".results")));
+            absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
+            call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
+            ".results")));
       }
-      if (FLAGS_bin_format || writer.IsEmpty()) {
+      if (absl::GetFlag(FLAGS_bin_format) || writer.IsEmpty()) {
         writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
-            FLAGS_output_dir + kPathSeparator, call_graph1->GetFilename(),
-            "_vs_", call_graph2->GetFilename(), ".BinDiff")));
+            absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
+            call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
+            ".BinDiff")));
       }
 
       if (!writer.IsEmpty()) {
@@ -705,7 +724,7 @@ int BinDiffMain(int argc, char** argv) {
     }
 
     if (!done_something) {
-      ShowUsageWithFlags(argv[0]);
+      absl::flags_internal::FlagsHelp(std::cout);
     }
   } catch (const std::exception& error) {
     PrintErrorMessage(absl::StrCat("Error: ", error.what()));
