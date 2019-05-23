@@ -238,9 +238,9 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       final IAddress secondaryFunctionAddr,
       final boolean infoMsg) {
     final RawFunction priFunction =
-        diff.getCallgraph(ESide.PRIMARY).getFunction(primaryFunctionAddr);
+        diff.getCallGraph(ESide.PRIMARY).getFunction(primaryFunctionAddr);
     final RawFunction secFunction =
-        diff.getCallgraph(ESide.SECONDARY).getFunction(secondaryFunctionAddr);
+        diff.getCallGraph(ESide.SECONDARY).getFunction(secondaryFunctionAddr);
 
     if ((priFunction != null
             && secFunction == null
@@ -923,9 +923,9 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     Preconditions.checkArgument(diff.isFunctionDiff());
 
     final IAddress priFunctionAddr =
-        diff.getCallgraph(ESide.PRIMARY).getNodes().get(0).getAddress();
+        diff.getCallGraph(ESide.PRIMARY).getNodes().get(0).getAddress();
     final IAddress secFunctionAddr =
-        diff.getCallgraph(ESide.SECONDARY).getNodes().get(0).getAddress();
+        diff.getCallGraph(ESide.SECONDARY).getNodes().get(0).getAddress();
     if (isImportThunkView(diff, priFunctionAddr, secFunctionAddr, true)) {
       return;
     }

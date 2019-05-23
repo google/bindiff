@@ -86,13 +86,13 @@ public class FlowGraphViewData extends ViewData {
 
   public boolean isChangedOnlyInstructions() {
     final RawFunction function =
-        getGraphs().getDiff().getCallgraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
+        getGraphs().getDiff().getCallGraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
     return function != null && function.isChangedInstructionsOnlyMatch();
   }
 
   public boolean isChangedStructural() {
     final RawFunction function =
-        getGraphs().getDiff().getCallgraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
+        getGraphs().getDiff().getCallGraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
     return function != null && function.isChangedStructuralMatch();
   }
 
@@ -103,13 +103,13 @@ public class FlowGraphViewData extends ViewData {
 
   public boolean isMatched() {
     final RawFunction function =
-        getGraphs().getDiff().getCallgraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
+        getGraphs().getDiff().getCallGraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
     return function != null && function.getMatchedFunction() != null;
   }
 
   public boolean isMatchedIdentical() {
     final RawFunction function =
-        getGraphs().getDiff().getCallgraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
+        getGraphs().getDiff().getCallGraph(ESide.PRIMARY).getFunction(getAddress(ESide.PRIMARY));
     return function != null && function.isIdenticalMatch();
   }
 }

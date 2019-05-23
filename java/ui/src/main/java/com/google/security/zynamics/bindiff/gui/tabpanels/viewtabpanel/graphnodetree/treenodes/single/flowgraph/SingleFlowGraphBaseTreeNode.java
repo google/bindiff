@@ -4,8 +4,8 @@ import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
-import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.ISearchableTreeNode;
+import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter.ISortableTreeNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.AbstractBaseTreeNode;
 import com.google.security.zynamics.bindiff.project.matches.IMatchesChangeListener;
@@ -16,13 +16,11 @@ import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
-
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
@@ -175,7 +173,7 @@ public class SingleFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
 
     final IAddress functionAddr = flowgraph.getAddress();
 
-    final RawFunction function = getDiff().getCallgraph(side).getFunction(functionAddr);
+    final RawFunction function = getDiff().getCallGraph(side).getFunction(functionAddr);
     final RawFunction priFunction;
 
     final EMatchState matchState = function.getMatchState();

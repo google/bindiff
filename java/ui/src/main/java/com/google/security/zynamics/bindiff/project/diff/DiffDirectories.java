@@ -4,8 +4,11 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.resources.Constants;
+import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class DiffDirectories {
   private static File getDiffsSubDirectory(final Diff diff, final String name) {
@@ -94,53 +97,25 @@ public class DiffDirectories {
 
   public static String getDiffDestinationDirectoryName(
       final String primaryInFile, final String secondaryInFile) {
-    String dirName = "";
+    final StringBuilder dirName = new StringBuilder();
 
     final File primaryFile = new File(primaryInFile);
     final File secondaryFile = new File(secondaryInFile);
 
-    final String primaryPath = primaryFile.getName();
-    int pos = 0;
-    if (primaryPath.endsWith("." + Constants.BINDIFF_BINEXPORT_EXTENSION)) {
-      pos = primaryPath.lastIndexOf("." + Constants.BINDIFF_BINEXPORT_EXTENSION);
-    } else if (primaryPath.endsWith("." + Constants.IDB32_EXTENSION)) {
-      pos = primaryPath.lastIndexOf("." + Constants.IDB32_EXTENSION);
-    } else if (primaryPath.endsWith("." + Constants.IDB64_EXTENSION)) {
-      pos = primaryPath.lastIndexOf("." + Constants.IDB64_EXTENSION);
-    } else {
+    final List<String> extensions =
+        Arrays.asList(
+            Constants.BINDIFF_BINEXPORT_EXTENSION.toLowerCase(),
+            Constants.IDB32_EXTENSION.toLowerCase(),
+            Constants.IDB64_EXTENSION.toLowerCase());
+    if (!extensions.contains(FileUtils.getFileExtension(primaryFile).toLowerCase())
+        || !extensions.contains(FileUtils.getFileExtension(secondaryFile).toLowerCase())) {
       return "";
     }
 
-    dirName += primaryPath.substring(0, pos) + " vs ";
-
-    final String secondaryPath = secondaryFile.getName();
-    pos = 0;
-    if (secondaryPath.endsWith("." + Constants.BINDIFF_BINEXPORT_EXTENSION)) {
-      pos = secondaryPath.lastIndexOf("." + Constants.BINDIFF_BINEXPORT_EXTENSION);
-    } else if (secondaryPath.endsWith("." + Constants.IDB32_EXTENSION)) {
-      pos = secondaryPath.lastIndexOf("." + Constants.IDB32_EXTENSION);
-    } else if (secondaryPath.endsWith("." + Constants.IDB64_EXTENSION)) {
-      pos = secondaryPath.lastIndexOf("." + Constants.IDB64_EXTENSION);
-    }
-
-    dirName += secondaryPath.substring(0, pos);
-
-    return dirName;
-  }
-
-  public static File getDiffDirectory(final File workspaceDir, final File matchesBinary) {
-    return new File(
-        String.format("%s%s%s", workspaceDir.getPath(), File.separator, matchesBinary.getName()));
-  }
-
-  public static File getDiffDirectoryFile(
-      final String workspaceDirPath,
-      final String primaryInFileName,
-      final String secondaryInFileName) {
-    return new File(
-        String.format(
-            "%s%s%s vs %s",
-            workspaceDirPath, File.separator, primaryInFileName, secondaryInFileName));
+    dirName.append(FileUtils.getFileBasename(primaryFile));
+    dirName.append(" vs ");
+    dirName.append(FileUtils.getFileBasename(secondaryFile));
+    return dirName.toString();
   }
 
   public static File getDiffReportsDirectory(final Diff diff) {

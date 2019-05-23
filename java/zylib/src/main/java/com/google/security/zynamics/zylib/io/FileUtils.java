@@ -1,5 +1,7 @@
 package com.google.security.zynamics.zylib.io;
 
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,13 +17,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.zylib.system.SystemHelpers;
-
 /**
  * Helper class that provides common file operations.
  */
-// TODO(cblichmann): Use Google3/GoogleClient utility code.
 public class FileUtils {
   /**
    * Calculates the MD5 value of a file.
@@ -124,14 +122,14 @@ public class FileUtils {
   /**
    * Find the local root path for the specified class. For classes packaged in a JAR archive, the
    * local root path is the directory the JAR file is contained in. For regular .class files, the
-   * local root path is conceptionally the directory the default package resides in.
-   * <p>
-   * Example for a class com.google.security.zynamics.bindiff.ui.Main packaged in
-   * /opt/zynamics/BinDiff/bin/bindiff-5.0.jar: /opt/zynamics/BinDiff/bin/
-   * <p>
-   * Example for a class com.google.security.zynamics.bindiff.ui.Main with the file Main.class
-   * residing in /home/cblichmann/Dev/BinDiffGUI/bin/com/zynamics/bindiff/ui:
-   * /home/cblichmann/Dev/BinDiffGUI/bin/
+   * local root path is conceptually the directory the default package resides in.
+   *
+   * <p>Example for a class com.google.security.zynamics.bindiff.ui.Main packaged in
+   * /opt/bindiff/bin/bindiff.jar: /opt/bindiff/bin/
+   *
+   * <p>Example for a class com.google.security.zynamics.bindiff.ui.Main with the file Main.class
+   * residing in /home/user/Dev/BinDiffGUI/bin/com/zynamics/bindiff/ui:
+   * /home/user/Dev/BinDiffGUI/bin/
    *
    * @param klazz a {@code Class} instance for the class to find the root path for.
    * @return the local root path for klazz
@@ -200,8 +198,11 @@ public class FileUtils {
 
   public static String getFileExtension(final File file) {
     final String filename = file.getAbsolutePath();
-
-    return filename.substring(filename.lastIndexOf(".") + 1);
+    final int pos = filename.lastIndexOf(".");
+    if (pos < 1 || pos == filename.length() - 1) {
+      return "";
+    }
+    return filename.substring(pos + 1);
   }
 
   /**

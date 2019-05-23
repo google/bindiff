@@ -49,7 +49,7 @@ public class UnmatchedFunctionViewsTableModel extends AbstractTableModel {
 
     if (fillupTableData) {
       final Set<RawFunction> functions = new HashSet<>();
-      functions.addAll(GraphGetter.getUnmatchedFunctions(diff.getCallgraph(side)));
+      functions.addAll(GraphGetter.getUnmatchedFunctions(diff.getCallGraph(side)));
       setUnmatchedFunctions(functions);
     }
 

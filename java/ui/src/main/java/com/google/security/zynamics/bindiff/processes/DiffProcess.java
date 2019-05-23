@@ -12,32 +12,32 @@ public class DiffProcess {
   private static void handleExitCode(final int exitCode) throws DifferException {
     if (exitCode != 0) {
       if (exitCode == 1) {
-        throw new DifferException("An error occued while diffing. Exit code 1.");
+        throw new DifferException("An error occurred while diffing. Exit code 1.");
       }
       if (exitCode == 2) {
-        throw new DifferException("An error occured while diffing. Exit code 2.");
+        throw new DifferException("An error occurred while diffing. Exit code 2.");
       }
       if (exitCode == 3) {
         throw new DifferException("Machine ran out of memory. Exit code 3.");
       }
       throw new DifferException(
-          String.format("Unknown error occured while diffing. Exit code %d.", exitCode));
+          String.format("Unknown error occurred while diffing. Exit code %d.", exitCode));
     }
   }
 
-  public static String getBinDiffFileName(
-      final String exportedPrimaryFileName, final String exportedSecondaryFileName)
+  public static String getBinDiffFilename(
+      final String exportedPrimaryFilename, final String exportedSecondaryFilename)
       throws DifferException {
     try {
-      final String primaryFileName = CFileUtils.removeFileExtension(exportedPrimaryFileName);
-      String secondaryFileBaseName =
-          exportedSecondaryFileName.substring(
-              exportedSecondaryFileName.lastIndexOf(File.separator) + 1);
-      secondaryFileBaseName = CFileUtils.removeFileExtension(secondaryFileBaseName);
+      final String primaryFilename = CFileUtils.removeFileExtension(exportedPrimaryFilename);
+      String secondaryFileBasename =
+          exportedSecondaryFilename.substring(
+              exportedSecondaryFilename.lastIndexOf(File.separator) + 1);
+      secondaryFileBasename = CFileUtils.removeFileExtension(secondaryFileBasename);
 
-      return primaryFileName
+      return primaryFilename
           + "_vs_"
-          + secondaryFileBaseName
+          + secondaryFileBasename
           + "."
           + Constants.BINDIFF_MATCHES_DB_EXTENSION;
     } catch (final Exception e) {
@@ -57,7 +57,7 @@ public class DiffProcess {
       throw new DifferException("Can't find Diff engine at '" + differExe + "'.");
     }
     if (!differExeFile.canExecute()) {
-      throw new DifferException("Diff engine is not an executeable '" + differExe + "'.");
+      throw new DifferException("Diff engine is not an executable '" + differExe + "'.");
     }
 
     final ProcessBuilder diffProcess =
@@ -103,7 +103,8 @@ public class DiffProcess {
           e, String.format("Couldn't start diffing process. Exit code %d.", exitCode));
     } catch (final InterruptedException e) {
       throw new DifferException(
-          e, String.format("Diffing process was interruped unexpectedly. Exit code %d.", exitCode));
+          e,
+          String.format("Diffing process was interrupted unexpectedly. Exit code %d.", exitCode));
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
       throw new DifferException(

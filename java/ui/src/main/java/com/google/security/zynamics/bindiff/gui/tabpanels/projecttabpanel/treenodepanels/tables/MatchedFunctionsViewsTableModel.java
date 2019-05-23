@@ -68,8 +68,8 @@ public class MatchedFunctionsViewsTableModel extends AbstractTableModel {
     super(diff);
 
     if (fillupTableData) {
-      final RawCallGraph priCallgraph = diff.getCallgraph(ESide.PRIMARY);
-      final RawCallGraph secCallgraph = diff.getCallgraph(ESide.SECONDARY);
+      final RawCallGraph priCallgraph = diff.getCallGraph(ESide.PRIMARY);
+      final RawCallGraph secCallgraph = diff.getCallGraph(ESide.SECONDARY);
 
       setMatchedFunctionPairs(GraphGetter.getChangedFunctionPairs(priCallgraph, secCallgraph));
     }

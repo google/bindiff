@@ -49,9 +49,6 @@ public final class Constants {
   // BinDiff Engine Executable Name
   public static final String BINDIFF_ENGINE_EXECUTABLE;
 
-  // IDA and IDA Plugins
-  public static final String IDA_EXPORTER_IDC_COMMAND = "BinExportBinary";
-
   // File format Versions
   public static final int WORKSPACE_DATABASE_FORMAT_VERSION = 2;
 

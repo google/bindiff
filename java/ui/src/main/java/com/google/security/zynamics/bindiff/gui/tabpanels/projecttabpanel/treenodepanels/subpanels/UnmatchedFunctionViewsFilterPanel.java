@@ -195,7 +195,7 @@ public class UnmatchedFunctionViewsFilterPanel extends JPanel {
       final Diff diff = tableModel.getDiff();
 
       final Set<RawFunction> filteredFunctions = new HashSet<>();
-      filteredFunctions.addAll(GraphGetter.getUnmatchedFunctions(diff.getCallgraph(side)));
+      filteredFunctions.addAll(GraphGetter.getUnmatchedFunctions(diff.getCallGraph(side)));
 
       tableModel.setUnmatchedFunctions(filteredFunctions);
 

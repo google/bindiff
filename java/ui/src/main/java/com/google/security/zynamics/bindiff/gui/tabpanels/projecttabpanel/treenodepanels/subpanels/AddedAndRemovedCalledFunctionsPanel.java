@@ -139,9 +139,9 @@ public class AddedAndRemovedCalledFunctionsPanel extends JPanel {
       final IAddress secondaryAddr,
       final ECallDirection callDirection,
       final List<Triple<RawFunction, RawFunction, EExistence>> returnValue) {
-    final RawFunction priStartFunction = diff.getCallgraph(ESide.PRIMARY).getFunction(primaryAddr);
+    final RawFunction priStartFunction = diff.getCallGraph(ESide.PRIMARY).getFunction(primaryAddr);
     final RawFunction secStartFunction =
-        diff.getCallgraph(ESide.SECONDARY).getFunction(secondaryAddr);
+        diff.getCallGraph(ESide.SECONDARY).getFunction(secondaryAddr);
 
     final Multiset<RawFunction> priCalledFunctions = getFunctions(priStartFunction, callDirection);
     final Multiset<RawFunction> secCalledFunctions = getFunctions(secStartFunction, callDirection);

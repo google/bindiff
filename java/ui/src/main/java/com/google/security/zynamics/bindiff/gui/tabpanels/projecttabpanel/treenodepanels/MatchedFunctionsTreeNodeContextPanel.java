@@ -248,8 +248,8 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
         final boolean structuralChange,
         final boolean instructionOnlyChange,
         final boolean identical) {
-      final RawCallGraph priCallgraph = diff.getCallgraph(ESide.PRIMARY);
-      final RawCallGraph secCallgraph = diff.getCallgraph(ESide.SECONDARY);
+      final RawCallGraph priCallgraph = diff.getCallGraph(ESide.PRIMARY);
+      final RawCallGraph secCallgraph = diff.getCallGraph(ESide.SECONDARY);
 
       final Set<Pair<RawFunction, RawFunction>> filteredFunctions = new HashSet<>();
 

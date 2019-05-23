@@ -17,6 +17,7 @@ import com.google.security.zynamics.bindiff.utils.CFileUtils;
 import com.google.security.zynamics.bindiff.utils.ExternalAppUtils;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
+import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,11 +49,8 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
 
   private String createUniqueExportFileName(
       final File priIdb, final File secIdb, final ESide side) {
-    String priName = priIdb.getName();
-    priName = CFileUtils.removeFileExtension(priName);
-
-    String secName = secIdb.getName();
-    secName = CFileUtils.removeFileExtension(secName);
+    String priName = FileUtils.getFileBasename(priIdb);
+    String secName = FileUtils.getFileBasename(secIdb);
 
     if (priName.equals(secName)) {
       priName = priName + "_primary";
@@ -249,29 +247,20 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
       // diff
       try {
         final String primaryDifferArgument =
-            ExportProcess.getExportedFileName(priTargetName, destinationFolder);
+            ExportProcess.getExportFilename(priTargetName, destinationFolder);
         final String secondaryDifferArgument =
-            ExportProcess.getExportedFileName(secTargetName, destinationFolder);
+            ExportProcess.getExportFilename(secTargetName, destinationFolder);
 
         Logger.logInfo(" - Start Diffing '" + destinationFolder.getName() + "'");
         DiffProcess.startDiffProcess(
             engineExe, primaryDifferArgument, secondaryDifferArgument, destinationFolder);
 
         final String diffBinaryPath =
-            DiffProcess.getBinDiffFileName(primaryDifferArgument, secondaryDifferArgument);
+            DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
 
         Logger.logInfo(" - Diffing '%s' done successfully.", destinationFolder.getName());
 
         matchesPaths.add(diffBinaryPath);
-      } catch (final BinExportException e) {
-        Logger.logInfo(
-            " - Diffing '%s' failed. Reason: %s", destinationFolder.getName(), e.getMessage());
-        String msg =
-            String.format(
-                "Diffing '%s' failed. Reason: %s", data.getDestinationDirectory(), e.getMessage());
-        diffingErrorMessages.add(msg);
-
-        continue;
       } catch (final DifferException e) {
         Logger.logInfo(
             " - Diffing '%s' failed. Reason: %s", destinationFolder.getName(), e.getMessage());

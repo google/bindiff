@@ -30,7 +30,7 @@ public final class MatchesGetter {
 
     final FunctionMatchData functionMatch = MatchesGetter.getFunctionMatch(diff, function);
 
-    for (final BasicBlockMatchData basicblockMatch : functionMatch.getBasicblockMatches()) {
+    for (final BasicBlockMatchData basicblockMatch : functionMatch.getBasicBlockMatches()) {
       for (final InstructionMatchData instructionMatch : basicblockMatch.getInstructionMatches()) {
         if (function.getSide() == ESide.PRIMARY) {
           instructionMatches.put(
@@ -149,7 +149,7 @@ public final class MatchesGetter {
 
   public static EMatchType getFlowgraphsMatchType(
       final CombinedGraph combinedFlowgraph, final FunctionMatchData functionMatch) {
-    final int basicblockMatchCount = functionMatch.getBasicblockMatches().size();
+    final int basicblockMatchCount = functionMatch.getBasicBlockMatches().size();
     final int primaryBasicblockCount =
         combinedFlowgraph.getPrimaryGraph().getPrimaryGraph().getNodes().size();
     final int secondaryBasicblockCount =
@@ -207,7 +207,7 @@ public final class MatchesGetter {
   public static FunctionMatchData getFunctionMatch(final Diff diff, final RawFlowGraph flowgraph) {
     final ESide side = flowgraph.getSide();
     final IAddress functionAddr = flowgraph.getAddress();
-    final RawFunction function = diff.getCallgraph(side).getFunction(functionAddr);
+    final RawFunction function = diff.getCallGraph(side).getFunction(functionAddr);
 
     return getFunctionMatch(diff, function);
   }

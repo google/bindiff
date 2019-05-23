@@ -290,8 +290,8 @@ public class BinExport2Reader {
     return disassembly.toString();
   }
 
-  public RawFlowGraph readFlowgraph(final Diff diff, final IAddress functionAddress) {
-    final RawFunction function = diff.getCallgraph(side).getFunction(functionAddress);
+  public RawFlowGraph readFlowGraph(final Diff diff, final IAddress functionAddress) {
+    final RawFunction function = diff.getCallGraph(side).getFunction(functionAddress);
 
     BinExport2.FlowGraph flowGraph = null;
     // TODO(cblichmann): Binary search!
@@ -388,8 +388,8 @@ public class BinExport2Reader {
           binexport.getInstruction(entryBasicBlock.getInstructionIndex(0).getBeginIndex());
       long functionAddress = firstInstruction.getAddress();
       final RawFunction function =
-          diff.getCallgraph(side).getFunction(new CAddress(functionAddress));
-      function.setSizeOfBasicblocks(flowGraph.getBasicBlockIndexCount());
+          diff.getCallGraph(side).getFunction(new CAddress(functionAddress));
+      function.setSizeOfBasicBlocks(flowGraph.getBasicBlockIndexCount());
       int numInstructions = 0;
       for (final int index : flowGraph.getBasicBlockIndexList()) {
         numInstructions += binexport.getBasicBlock(index).getInstructionIndexCount();

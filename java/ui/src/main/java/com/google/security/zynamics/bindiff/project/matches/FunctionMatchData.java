@@ -112,7 +112,7 @@ public class FunctionMatchData implements IAddressPair {
     return basicblockMatches != null ? basicblockMatches.get(addr, side) : null;
   }
 
-  public Collection<BasicBlockMatchData> getBasicblockMatches() {
+  public Collection<BasicBlockMatchData> getBasicBlockMatches() {
     return basicblockMatches != null ? basicblockMatches.getMatches() : null;
   }
 
@@ -194,7 +194,7 @@ public class FunctionMatchData implements IAddressPair {
     return basicblockMatches != null;
   }
 
-  public void loadBasicblockMatches(final List<BasicBlockMatchData> matches) {
+  public void loadBasicBlockMatches(final List<BasicBlockMatchData> matches) {
     basicblockMatches = new Matches<>(matches);
   }
 

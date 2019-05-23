@@ -39,42 +39,42 @@ public class MatchesDatabase extends SqliteDatabase {
     super(matchesDatabase);
   }
 
-  private void addBasicblockMatches(final FunctionMatchData functionMatch) throws SQLException {
+  private void addBasicBlockMatches(final FunctionMatchData functionMatch) throws SQLException {
     final int functionMatchId = getFunctionMatchId(functionMatch);
-    int maxBasicblockId = getNextBasicblockMatchId();
+    int maxBasicBlockId = getNextBasicBlockMatchId();
 
-    try (final PreparedStatement basicblockStatement =
+    try (final PreparedStatement basicBlockStatement =
             connection.prepareStatement("INSERT INTO basicblock VALUES (?, ?, ?, ?, ?, ?)");
         final PreparedStatement instructionStatement =
             connection.prepareStatement("INSERT INTO instruction VALUES (?, ?, ?)")) {
-      final int manualMatchAlgoId = getAlgorithmIdForManuallyMatchedBasicblocks();
-      for (final BasicBlockMatchData basicblockMatch : functionMatch.getBasicblockMatches()) {
-        final int matchAlgoId = basicblockMatch.getAlgorithmId();
+      final int manualMatchAlgoId = getAlgorithmIdForManuallyMatchedBasicBlocks();
+      for (final BasicBlockMatchData basicBlockMatch : functionMatch.getBasicBlockMatches()) {
+        final int matchAlgoId = basicBlockMatch.getAlgorithmId();
 
-        basicblockStatement.setInt(1, maxBasicblockId);
-        basicblockStatement.setInt(2, functionMatchId);
-        basicblockStatement.setLong(3, basicblockMatch.getAddress(ESide.PRIMARY));
-        basicblockStatement.setLong(4, basicblockMatch.getAddress(ESide.SECONDARY));
-        basicblockStatement.setInt(
+        basicBlockStatement.setInt(1, maxBasicBlockId);
+        basicBlockStatement.setInt(2, functionMatchId);
+        basicBlockStatement.setLong(3, basicBlockMatch.getAddress(ESide.PRIMARY));
+        basicBlockStatement.setLong(4, basicBlockMatch.getAddress(ESide.SECONDARY));
+        basicBlockStatement.setInt(
             5,
             matchAlgoId == UNSAVED_BASICBLOCKMATCH_ALGORITH_ID ? manualMatchAlgoId : matchAlgoId);
-        basicblockStatement.setInt(6, matchAlgoId == UNSAVED_BASICBLOCKMATCH_ALGORITH_ID ? 1 : 0);
+        basicBlockStatement.setInt(6, matchAlgoId == UNSAVED_BASICBLOCKMATCH_ALGORITH_ID ? 1 : 0);
 
-        basicblockStatement.addBatch();
+        basicBlockStatement.addBatch();
 
         for (final InstructionMatchData instructionMatch :
-            basicblockMatch.getInstructionMatches()) {
-          instructionStatement.setInt(1, maxBasicblockId);
+            basicBlockMatch.getInstructionMatches()) {
+          instructionStatement.setInt(1, maxBasicBlockId);
           instructionStatement.setLong(2, instructionMatch.getAddress(ESide.PRIMARY));
           instructionStatement.setLong(3, instructionMatch.getAddress(ESide.SECONDARY));
 
           instructionStatement.addBatch();
         }
 
-        maxBasicblockId++;
+        maxBasicBlockId++;
       }
 
-      basicblockStatement.executeBatch();
+      basicBlockStatement.executeBatch();
       instructionStatement.executeBatch();
     }
   }
@@ -132,7 +132,7 @@ public class MatchesDatabase extends SqliteDatabase {
     return 0;
   }
 
-  private void deleteBasiblockMatches(final long priFunctionAddr, final long secFunctionAddr)
+  private void deleteBasicBlockMatches(final long priFunctionAddr, final long secFunctionAddr)
       throws SQLException {
     try (final PreparedStatement selectsBasicblockIds =
         connection.prepareStatement(
@@ -169,7 +169,7 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  private int getAlgorithmIdForManuallyMatchedBasicblocks() throws SQLException {
+  private int getAlgorithmIdForManuallyMatchedBasicBlocks() throws SQLException {
     try (final PreparedStatement statement =
             connection.prepareStatement("SELECT MAX(id) AS maxid FROM basicblockalgorithm");
         final ResultSet result = statement.executeQuery()) {
@@ -191,10 +191,10 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  private int getNextBasicblockMatchId() throws SQLException {
+  private int getNextBasicBlockMatchId() throws SQLException {
     try (final PreparedStatement statement =
             connection.prepareStatement(
-                "select coalesce(max(id) + 1, 1) as maxid from basicblock");
+                "SELECT COALESCE(MAX(id) + 1, 1) AS maxid FROM basicblock");
         final ResultSet result = statement.executeQuery()) {
       return result.next() ? result.getInt(1) : -1;
     }
@@ -261,8 +261,8 @@ public class MatchesDatabase extends SqliteDatabase {
 
     alterFileTable();
 
-    final RawFunction priFunction = diff.getCallgraph(ESide.PRIMARY).getNodes().get(0);
-    final RawFunction secFunction = diff.getCallgraph(ESide.SECONDARY).getNodes().get(0);
+    final RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
+    final RawFunction secFunction = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0);
 
     try (final PreparedStatement statement =
         connection.prepareStatement(
@@ -283,10 +283,10 @@ public class MatchesDatabase extends SqliteDatabase {
   }
 
   public void deleteBasicblockMatch(
-      final FunctionMatchData functionMatch, final BasicBlockMatchData basicblockMatch)
+      final FunctionMatchData functionMatch, final BasicBlockMatchData basicBlockMatch)
       throws SQLException {
     int functionMatchId = -1;
-    int basicblockMatchId = -1;
+    int basicBlockMatchId = -1;
 
     try (final PreparedStatement statement =
         connection.prepareStatement(
@@ -295,8 +295,8 @@ public class MatchesDatabase extends SqliteDatabase {
                 + "INNER JOIN instruction ON basicblock.id = instruction.basicblockid "
                 + "WHERE function.address1 = ? and function.address2 = ? "
                 + "GROUP BY basicblock.functionid;")) {
-      statement.setLong(1, basicblockMatch.getAddress(ESide.PRIMARY));
-      statement.setLong(2, basicblockMatch.getAddress(ESide.SECONDARY));
+      statement.setLong(1, basicBlockMatch.getAddress(ESide.PRIMARY));
+      statement.setLong(2, basicBlockMatch.getAddress(ESide.SECONDARY));
       statement.setLong(3, functionMatch.getAddress(ESide.PRIMARY));
       statement.setLong(4, functionMatch.getAddress(ESide.SECONDARY));
 
@@ -304,7 +304,7 @@ public class MatchesDatabase extends SqliteDatabase {
 
       if (result.next()) {
         functionMatchId = result.getInt(1);
-        basicblockMatchId = result.getInt(2);
+        basicBlockMatchId = result.getInt(2);
       }
     } catch (final SQLException e) {
       throw new SQLException("Couldn't delete non existing basicblock match from database.", e);
@@ -312,7 +312,7 @@ public class MatchesDatabase extends SqliteDatabase {
 
     try (final PreparedStatement statement =
         connection.prepareStatement("DELETE FROM basicblock WHERE id = ? AND functionid = ? ")) {
-      statement.setInt(1, basicblockMatchId);
+      statement.setInt(1, basicBlockMatchId);
       statement.setInt(2, functionMatchId);
       statement.executeUpdate();
     } catch (final SQLException e) {
@@ -321,7 +321,7 @@ public class MatchesDatabase extends SqliteDatabase {
 
     try (final PreparedStatement statement =
         connection.prepareStatement("DELETE FROM instruction WHERE basicblockid = ?")) {
-      statement.setInt(1, basicblockMatchId);
+      statement.setInt(1, basicBlockMatchId);
       statement.executeUpdate();
     } catch (final SQLException e) {
       throw new SQLException(
@@ -348,7 +348,7 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  public void loadBasicblockMatches(final FunctionMatchData functionMatch) throws IOException {
+  public void loadBasicBlockMatches(final FunctionMatchData functionMatch) throws IOException {
     if (functionMatch == null) {
       return;
     }
@@ -356,8 +356,8 @@ public class MatchesDatabase extends SqliteDatabase {
     try (final PreparedStatement statement =
         connection.prepareStatement(
             "SELECT "
-                + "basicblock.address1 AS priBasicblockAddr, "
-                + "basicblock.address2 AS secBasicblockAddr, basicblock.algorithm, "
+                + "basicblock.address1 AS priBasicBlockAddr, "
+                + "basicblock.address2 AS secBasicBlockAddr, basicblock.algorithm, "
                 + "instruction.address1 AS priInstructionAddr, "
                 + "instruction.address2 AS secInstructionAddr FROM function "
                 + "INNER JOIN basicblock ON basicblock.functionid = function.id "
@@ -365,38 +365,38 @@ public class MatchesDatabase extends SqliteDatabase {
                 // Left join because matched basic blocks must NOT have matched instructions.
                 + "LEFT JOIN instruction ON basicblock.id = instruction.basicblockid "
                 + "WHERE function.address1 = ? AND function.address2 = ? "
-                + "ORDER BY priBasicblockAddr, priInstructionAddr;")) {
+                + "ORDER BY priBasicBlockAddr, priInstructionAddr;")) {
 
       statement.setLong(1, functionMatch.getAddress(ESide.PRIMARY));
       statement.setLong(2, functionMatch.getAddress(ESide.SECONDARY));
 
-      final List<BasicBlockMatchData> basicblockMatches = new ArrayList<>();
+      final List<BasicBlockMatchData> basicBlockMatches = new ArrayList<>();
       List<InstructionMatchData> instructionMatches = new ArrayList<>();
 
       final ResultSet result = statement.executeQuery();
 
-      long lastPriBasicblockAddr = 0;
-      long priBasicblockAddr = 0;
-      long secBasicblockAddr = 0;
+      long lastPriBasicBlockAddr = 0;
+      long priBasicBlockAddr = 0;
+      long secBasicBlockAddr = 0;
       int algorithm = 0;
       long priInstructionAddr = 0;
       long secInstructionAddr = 0;
 
       while (result.next()) {
-        priBasicblockAddr = result.getLong(1);
+        priBasicBlockAddr = result.getLong(1);
 
-        if (lastPriBasicblockAddr != priBasicblockAddr && !result.isFirst()) {
+        if (lastPriBasicBlockAddr != priBasicBlockAddr && !result.isFirst()) {
           final Matches<InstructionMatchData> instructionMachesBimap =
               new Matches<>(instructionMatches);
-          final BasicBlockMatchData basicblockMatch =
+          final BasicBlockMatchData basicBlockMatch =
               new BasicBlockMatchData(
-                  lastPriBasicblockAddr, secBasicblockAddr, algorithm, instructionMachesBimap);
-          basicblockMatches.add(basicblockMatch);
+                  lastPriBasicBlockAddr, secBasicBlockAddr, algorithm, instructionMachesBimap);
+          basicBlockMatches.add(basicBlockMatch);
 
           instructionMatches = new ArrayList<>();
 
-          lastPriBasicblockAddr = priBasicblockAddr;
-          secBasicblockAddr = result.getLong(2);
+          lastPriBasicBlockAddr = priBasicBlockAddr;
+          secBasicBlockAddr = result.getLong(2);
           algorithm = result.getInt(3);
         }
 
@@ -408,10 +408,10 @@ public class MatchesDatabase extends SqliteDatabase {
         }
 
         if (result.isFirst()) {
-          secBasicblockAddr = result.getLong(2);
+          secBasicBlockAddr = result.getLong(2);
           algorithm = result.getInt(3);
 
-          lastPriBasicblockAddr = priBasicblockAddr;
+          lastPriBasicBlockAddr = priBasicBlockAddr;
           instructionMatches = new ArrayList<>();
         }
 
@@ -424,12 +424,12 @@ public class MatchesDatabase extends SqliteDatabase {
 
       final Matches<InstructionMatchData> instructionMatchesBimap =
           new Matches<>(instructionMatches);
-      final BasicBlockMatchData basicblockMatch =
+      final BasicBlockMatchData basicBlockMatch =
           new BasicBlockMatchData(
-              priBasicblockAddr, secBasicblockAddr, algorithm, instructionMatchesBimap);
-      basicblockMatches.add(basicblockMatch);
+              priBasicBlockAddr, secBasicBlockAddr, algorithm, instructionMatchesBimap);
+      basicBlockMatches.add(basicBlockMatch);
 
-      functionMatch.loadBasicblockMatches(basicblockMatches);
+      functionMatch.loadBasicBlockMatches(basicBlockMatches);
     } catch (final SQLException e) {
       throw new IOException(
           "Couldn't read basic block and instruction matches.\n" + e.getMessage());
@@ -466,17 +466,18 @@ public class MatchesDatabase extends SqliteDatabase {
       try (final Statement statement = connection.createStatement();
           final ResultSet result =
               statement.executeQuery(
-                  "SELECT filename, exefilename, hash, functions, libfunctions, calls, basicblocks, "
-                      + "libbasicblocks, edges, libedges, instructions, libinstructions FROM file")) {
+                  "SELECT filename, exefilename, hash, functions, libfunctions, calls,"
+                      + " basicblocks, libbasicblocks, edges, libedges, instructions,"
+                      + " libinstructions FROM file")) {
         // Primary
         result.next();
         final String priFilename = result.getString("filename");
-        final String priExefilename = result.getString("exefilename");
+        final String priExeFilename = result.getString("exefilename");
         final String priHash = result.getString("hash");
 
         final int priFunctions = result.getInt("functions") + result.getInt("libfunctions");
         final int priCalls = result.getInt("calls");
-        final int priBasicblocks = result.getInt("basicblocks") + result.getInt("libbasicblocks");
+        final int priBasicBlocks = result.getInt("basicblocks") + result.getInt("libbasicblocks");
         final int priJumps = result.getInt("edges") + result.getInt("libedges");
         final int priInstructions =
             result.getInt("instructions") + result.getInt("libinstructions");
@@ -484,12 +485,12 @@ public class MatchesDatabase extends SqliteDatabase {
         // Secondary
         result.next();
         final String secFilename = result.getString("filename");
-        final String secExefilename = result.getString("exefilename");
+        final String secExeFilename = result.getString("exefilename");
         final String secHash = result.getString("hash");
 
         final int secFunctions = result.getInt("functions") + result.getInt("libfunctions");
         final int secCalls = result.getInt("calls");
-        final int secBasicblocks = result.getInt("basicblocks") + result.getInt("libbasicblocks");
+        final int secBasicBlocks = result.getInt("basicblocks") + result.getInt("libbasicblocks");
         final int secJumps = result.getInt("edges") + result.getInt("libedges");
         final int secInstructions =
             result.getInt("instructions") + result.getInt("libinstructions");
@@ -507,8 +508,8 @@ public class MatchesDatabase extends SqliteDatabase {
                 confidence,
                 priFilename,
                 secFilename,
-                priExefilename,
-                secExefilename,
+                priExeFilename,
+                secExeFilename,
                 priHash,
                 secHash,
                 functionSimilarityIntervalCounts,
@@ -517,8 +518,8 @@ public class MatchesDatabase extends SqliteDatabase {
                 secFunctions,
                 priCalls,
                 secCalls,
-                priBasicblocks,
-                secBasicblocks,
+                priBasicBlocks,
+                secBasicBlocks,
                 priJumps,
                 secJumps,
                 priInstructions,
@@ -659,7 +660,7 @@ public class MatchesDatabase extends SqliteDatabase {
       throws SQLException {
     final Map<AddressPair, AddressPair> addrsMap = new HashMap<>();
     final List<IAddress> callAddrs = new ArrayList<>();
-    for (final RawCall call : diff.getCallgraph(ESide.PRIMARY).getEdges()) {
+    for (final RawCall call : diff.getCallGraph(ESide.PRIMARY).getEdges()) {
       callAddrs.add(call.getSourceInstructionAddr());
     }
 
@@ -675,7 +676,7 @@ public class MatchesDatabase extends SqliteDatabase {
     try {
       try (final Statement statement = connection.createStatement()) {
         // TODO: Use QueryBuilder! (Which is also a query splitter and should be used in
-        // addBasicblockMatches(FunctionMatchData functionMatch);!)
+        // addBasicBlockMatches(FunctionMatchData functionMatch);!)
         for (final IAddress callPair : callAddrs) {
           if (first) {
             queryBuffer.append("(");
@@ -741,19 +742,19 @@ public class MatchesDatabase extends SqliteDatabase {
       throws SQLException {
     try (final PreparedStatement statement =
             connection.prepareStatement(
-                "SELECT basicblocks, libbasicblocks, edges, libedges, instructions, libinstructions "
-                    + "FROM file ORDER BY id ");
+                "SELECT basicblocks, libbasicblocks, edges, libedges, instructions,"
+                    + " libinstructions FROM file ORDER BY id ");
         final ResultSet result = statement.executeQuery()) {
 
       if (result.next()) {
-        priFunction.setSizeOfBasicblocks(
+        priFunction.setSizeOfBasicBlocks(
             result.getInt("basicblocks") + result.getInt("libbasicblocks"));
         priFunction.setSizeOfJumps(result.getInt("edges") + result.getInt("libedges"));
         priFunction.setSizeOfInstructions(
             result.getInt("instructions") + result.getInt("libinstructions"));
       }
       if (result.next()) {
-        secFunction.setSizeOfBasicblocks(
+        secFunction.setSizeOfBasicBlocks(
             result.getInt("basicblocks") + result.getInt("libbasicblocks"));
         secFunction.setSizeOfJumps(result.getInt("edges") + result.getInt("libedges"));
         secFunction.setSizeOfInstructions(
@@ -774,8 +775,8 @@ public class MatchesDatabase extends SqliteDatabase {
 
     try {
       // deletes and writes all matches of the affected function...
-      deleteBasiblockMatches(priFunctionAddr, secFunctionAddr);
-      addBasicblockMatches(functionMatch);
+      deleteBasicBlockMatches(priFunctionAddr, secFunctionAddr);
+      addBasicBlockMatches(functionMatch);
       setFunctionMatchCounts(priFunctionAddr, secFunctionAddr, functionMatch);
 
       connection.commit();

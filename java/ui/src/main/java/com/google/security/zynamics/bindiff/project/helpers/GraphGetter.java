@@ -123,7 +123,7 @@ public final class GraphGetter {
 
   public static RawFunction getFunction(final Diff diff, final RawBasicBlock basicblock) {
     final IAddress functionAddr = basicblock.getFunctionAddr();
-    final RawCallGraph callgraph = diff.getCallgraph(basicblock.getSide());
+    final RawCallGraph callgraph = diff.getCallGraph(basicblock.getSide());
 
     return callgraph.getFunction(functionAddr);
   }
@@ -133,7 +133,7 @@ public final class GraphGetter {
       return null;
     }
 
-    final RawCallGraph callgraph = diff.getCallgraph(flowgraph.getSide());
+    final RawCallGraph callgraph = diff.getCallGraph(flowgraph.getSide());
 
     return callgraph.getFunction(flowgraph.getAddress());
   }
@@ -470,7 +470,7 @@ public final class GraphGetter {
   }
 
   public static RawFunction getRawFunction(final Diff diff, final RawFlowGraph flowgraph) {
-    return diff.getCallgraph(flowgraph.getSide()).getFunction(flowgraph.getAddress());
+    return diff.getCallGraph(flowgraph.getSide()).getFunction(flowgraph.getAddress());
   }
 
   public static SingleDiffNode getSecondaryDiffNode(

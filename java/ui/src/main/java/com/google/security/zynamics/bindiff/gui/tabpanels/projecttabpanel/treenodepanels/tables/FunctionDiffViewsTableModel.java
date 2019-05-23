@@ -80,8 +80,8 @@ public class FunctionDiffViewsTableModel extends AbstractFunctionDiffViewsTableM
         CFileUtils.forceFilenameEndsNotWithExtension(
             viewName, Constants.BINDIFF_MATCHES_DB_EXTENSION);
 
-    final RawFunction primaryFunction = diff.getCallgraph(ESide.PRIMARY).getNodes().get(0);
-    final RawFunction secondaryFunction = diff.getCallgraph(ESide.SECONDARY).getNodes().get(0);
+    final RawFunction primaryFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
+    final RawFunction secondaryFunction = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0);
 
     final IAddress primaryAddr = primaryFunction.getAddress();
     final IAddress secondaryAddr = secondaryFunction.getAddress();

@@ -264,8 +264,8 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     viewTabPanel = null;
 
     if (viewData.isCallgraphView()) {
-      diff.getCallgraph(ESide.PRIMARY).resetVisibilityAndSelection();
-      diff.getCallgraph(ESide.SECONDARY).resetVisibilityAndSelection();
+      diff.getCallGraph(ESide.PRIMARY).resetVisibilityAndSelection();
+      diff.getCallGraph(ESide.SECONDARY).resetVisibilityAndSelection();
     }
 
     for (final IDiffListener diffListener : diff.getListener()) {
@@ -1027,9 +1027,10 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
     if (settings.isAsync() && settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
       graph =
-          settings.getFocus() == ESide.PRIMARY
-              ? (BinDiffGraph) graphs.getPrimaryGraph()
-              : (BinDiffGraph) graphs.getSecondaryGraph();
+          (BinDiffGraph)
+              (settings.getFocus() == ESide.PRIMARY
+                  ? graphs.getPrimaryGraph()
+                  : graphs.getSecondaryGraph());
     }
 
     if (!settings.getProximitySettings().getProximityBrowsing()) {

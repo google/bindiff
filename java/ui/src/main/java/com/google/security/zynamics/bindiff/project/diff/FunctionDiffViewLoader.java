@@ -124,20 +124,20 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
       final DiffLoader diffLoader = new DiffLoader();
       diffLoader.loadDiff(diff, data);
 
-      if (diff.getCallgraph(ESide.PRIMARY).getNodes().size() != 1) {
+      if (diff.getCallGraph(ESide.PRIMARY).getNodes().size() != 1) {
         throw new IllegalStateException(
             "Primary callgraph of a single function diff has more than one vertex.");
       }
-      if (diff.getCallgraph(ESide.SECONDARY).getNodes().size() != 1) {
+      if (diff.getCallGraph(ESide.SECONDARY).getNodes().size() != 1) {
         throw new IllegalStateException(
             "Secondary callgraph of a single function diff has more than one vertex.");
       }
 
-      final RawFunction priFunction = diff.getCallgraph(ESide.PRIMARY).getNodes().get(0);
-      final RawFunction secFunction = diff.getCallgraph(ESide.SECONDARY).getNodes().get(0);
+      final RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
+      final RawFunction secFunction = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0);
 
-      priFunction.setSizeOfBasicblocks(metaData.getSizeOfBasicblocks(ESide.PRIMARY));
-      secFunction.setSizeOfBasicblocks(metaData.getSizeOfBasicblocks(ESide.SECONDARY));
+      priFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicblocks(ESide.PRIMARY));
+      secFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicblocks(ESide.SECONDARY));
       priFunction.setSizeOfJumps(metaData.getSizeOfJumps(ESide.PRIMARY));
       secFunction.setSizeOfJumps(metaData.getSizeOfJumps(ESide.SECONDARY));
       priFunction.setSizeOfInstructions(metaData.getSizeOfInstructions(ESide.PRIMARY));
@@ -155,7 +155,7 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
 
       final FunctionMatchData functionMatch =
           diff.getMatches().getFunctionMatch(priFunctionAddr, ESide.PRIMARY);
-      matchesDB.loadBasicblockMatches(functionMatch);
+      matchesDB.loadBasicBlockMatches(functionMatch);
 
       CommentsDatabase commentsDatabase = null;
 
@@ -165,10 +165,10 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
 
       final RawFlowGraph priFlowgraph;
       priFlowgraph =
-          DiffLoader.loadRawFlowgraph(commentsDatabase, diff, priFunctionAddr, ESide.PRIMARY);
+          DiffLoader.loadRawFlowGraph(commentsDatabase, diff, priFunctionAddr, ESide.PRIMARY);
       final RawFlowGraph secFlowgraph;
       secFlowgraph =
-          DiffLoader.loadRawFlowgraph(commentsDatabase, diff, secFunctionAddr, ESide.SECONDARY);
+          DiffLoader.loadRawFlowGraph(commentsDatabase, diff, secFunctionAddr, ESide.SECONDARY);
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
           combinedFlowgraph;
       combinedFlowgraph =

@@ -129,8 +129,8 @@ public class TabButton extends JButton {
         } catch (final Exception e) {
           MessageBox.showError(
               SwingUtilities.getWindowAncestor(TabButton.this),
-              "An error occured while closing the tab.");
-          Logger.logException(e, "An error occured while closing the tab.");
+              "An error occurred while closing the tab.");
+          Logger.logException(e, "An error occurred while closing the tab.");
         }
       }
     }

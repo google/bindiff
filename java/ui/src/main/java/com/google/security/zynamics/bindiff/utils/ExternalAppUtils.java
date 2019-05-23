@@ -17,7 +17,7 @@ public class ExternalAppUtils {
   }
 
   public static File getIdaExe(final File inFile) {
-    final String extension = CFileUtils.getFileExtension(inFile.getPath());
+    final String extension = FileUtils.getFileExtension(inFile);
     final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
 
     if (extension.equalsIgnoreCase(Constants.IDB32_EXTENSION)) {

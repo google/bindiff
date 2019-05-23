@@ -119,7 +119,7 @@ public final class Diff {
     return ESide.PRIMARY == side ? priExportMD5 : secExportMD5;
   }
 
-  public RawCallGraph getCallgraph(final ESide side) {
+  public RawCallGraph getCallGraph(final ESide side) {
     return side == ESide.PRIMARY ? primaryCallgraph : secondaryCallgraph;
   }
 
@@ -140,7 +140,7 @@ public final class Diff {
   }
 
   public RawFunction getFunction(final IAddress functionAddr, final ESide side) {
-    return getCallgraph(side).getFunction(functionAddr);
+    return getCallGraph(side).getFunction(functionAddr);
   }
 
   public ListenerProvider<IDiffListener> getListener() {
@@ -200,7 +200,8 @@ public final class Diff {
   public void setExportFile(final File newExportFile, final ESide side) {
     if (!isFunctionDiff()) {
       throw new UnsupportedOperationException(
-          "Unsupported operation: Export file names can only be updated if the diff is a function diff.");
+          "Unsupported operation: Export file names can only be updated if the diff is a function"
+              + " diff.");
     }
 
     if (side == ESide.PRIMARY) {

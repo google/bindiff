@@ -119,8 +119,8 @@ public abstract class AbstractTable extends JTable {
         return null;
       }
 
-      priAddr = diff.getCallgraph(ESide.PRIMARY).getNodes().get(0).getAddress();
-      secAddr = diff.getCallgraph(ESide.SECONDARY).getNodes().get(0).getAddress();
+      priAddr = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0).getAddress();
+      secAddr = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0).getAddress();
     } else if (table instanceof UnmatchedFunctionViewsTable) {
       final IAddress addr =
           new CAddress(

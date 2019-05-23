@@ -353,9 +353,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     final File exportBinaryFile = getExportBinaryTargetFile(side);
 
     if (exportBinaryFile.exists()) {
-      String sourceMd5 = null;
-      sourceMd5 = diff.getBinExportMD5(side);
-
+      String sourceMd5 = diff.getBinExportMD5(side);
       String targetMd5 = exportFilePathToMd5.get(exportBinaryFile.getPath());
       if (targetMd5 == null) {
         targetMd5 = FileUtils.calcMD5(exportBinaryFile);
@@ -365,7 +363,8 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
       if (!targetMd5.equals(sourceMd5)) {
         if (side == ESide.PRIMARY && !primaryExportOverwrite.isSelected()) {
           return false;
-        } else if (side == ESide.SECONDARY && !secondaryExportOverwrite.isSelected()) {
+        }
+        if (side == ESide.SECONDARY && !secondaryExportOverwrite.isSelected()) {
           return false;
         }
       }
@@ -387,7 +386,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
       MessageBox.showError(
           this,
           String.format(
-              "There is alreay a BinDiff file with the name '%s' existing.\n"
+              "A BinDiff file with the name '%s' already exists.\n"
                   + "Rename or select the checkbox to override.",
               getMatchesDatabaseTargetFile().getName()));
 
@@ -398,8 +397,8 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
       MessageBox.showError(
           this,
           String.format(
-              "There is alreay a primary BinExport file named '%s'\n"
-                  + "existing with different content. Rename or select the checkbox for override.",
+              "A primary BinExport file named '%s' already exists with different content.\n"
+                  + "Rename or select the checkbox for override.",
               getExportBinaryTargetFile(ESide.PRIMARY).getName()));
 
       return false;
@@ -409,8 +408,8 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
       MessageBox.showError(
           this,
           String.format(
-              "There is alreay a secondary BinExport file named '%s'\n"
-                  + "existing with different content. Rename or select the checkbox for override.",
+              "A secondary BinExport file named '%s' already exists with different content.\n"
+                  + "Rename or select the checkbox for override.",
               getExportBinaryTargetFile(ESide.SECONDARY).getName()));
 
       return false;

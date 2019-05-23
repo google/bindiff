@@ -266,8 +266,8 @@ public class MatchedFunctionViewsFilterPanel extends JPanel {
           (MatchedFunctionsViewsTableModel) matchedFunctionsViewTable.getTableModel();
 
       final Diff diff = tableModel.getDiff();
-      final RawCallGraph priCallgraph = diff.getCallgraph(ESide.PRIMARY);
-      final RawCallGraph secCallgraph = diff.getCallgraph(ESide.SECONDARY);
+      final RawCallGraph priCallgraph = diff.getCallGraph(ESide.PRIMARY);
+      final RawCallGraph secCallgraph = diff.getCallGraph(ESide.SECONDARY);
 
       final Set<Pair<RawFunction, RawFunction>> filteredFunctions = new HashSet<>();
 

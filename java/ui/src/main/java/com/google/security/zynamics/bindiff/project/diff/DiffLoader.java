@@ -52,11 +52,11 @@ public class DiffLoader implements ICommand {
     this.diffs = Preconditions.checkNotNull(diffs);
   }
 
-  private static void setBasicblockComments(
-      final RawFlowGraph flowgraph, final Map<IAddress, String> basicblockComments) {
-    for (final Entry<IAddress, String> comment : basicblockComments.entrySet()) {
-      final RawBasicBlock basicblock = flowgraph.getBasicblock(comment.getKey());
-      basicblock.setComment(comment.getValue());
+  private static void setBasicBlockComments(
+      final RawFlowGraph flowGraph, final Map<IAddress, String> basicBlockComments) {
+    for (final Entry<IAddress, String> comment : basicBlockComments.entrySet()) {
+      final RawBasicBlock basicBlock = flowGraph.getBasicblock(comment.getKey());
+      basicBlock.setComment(comment.getValue());
     }
   }
 
@@ -109,7 +109,7 @@ public class DiffLoader implements ICommand {
     }
   }
 
-  public static RawFlowGraph loadRawFlowgraph(
+  public static RawFlowGraph loadRawFlowGraph(
       final CommentsDatabase database,
       final Diff diff,
       final IAddress functionAddr,
@@ -120,7 +120,7 @@ public class DiffLoader implements ICommand {
     final BinExport2Reader secondaryExportFileReader =
         new BinExport2Reader(diff.getExportFile(ESide.SECONDARY), ESide.SECONDARY);
 
-    final RawFunction function = diff.getCallgraph(side).getFunction(functionAddr);
+    final RawFunction function = diff.getCallGraph(side).getFunction(functionAddr);
 
     if (function == null) {
       return null;
@@ -136,24 +136,24 @@ public class DiffLoader implements ICommand {
           side);
     }
 
-    final RawFlowGraph flowgraph =
+    final RawFlowGraph flowGraph =
         side == ESide.PRIMARY
-            ? primaryExportFileReader.readFlowgraph(diff, functionAddr)
-            : secondaryExportFileReader.readFlowgraph(diff, functionAddr);
+            ? primaryExportFileReader.readFlowGraph(diff, functionAddr)
+            : secondaryExportFileReader.readFlowGraph(diff, functionAddr);
 
     final String imageHash = diff.getDiffMetaData().getImageHash(side);
 
     if (database != null) {
       final Map<Pair<IAddress, ECommentPlacement>, String> instructionComments =
           database.readInstructionComments(imageHash, functionAddr);
-      final Map<IAddress, String> basicblockComments =
+      final Map<IAddress, String> basicBlockComments =
           database.readBasicblockComments(imageHash, functionAddr);
 
-      setBasicblockComments(flowgraph, basicblockComments);
-      setInstructionComment(flowgraph, instructionComments);
+      setBasicBlockComments(flowGraph, basicBlockComments);
+      setInstructionComment(flowGraph, instructionComments);
     }
 
-    return flowgraph;
+    return flowGraph;
   }
 
   public static DiffMetaData preloadDiffMatches(final File matchesDatabase) throws SQLException {
@@ -318,7 +318,7 @@ public class DiffLoader implements ICommand {
       // create call triple addresses to call map
       final ImmutableMap<AddressTriple, RawCall> secCallAddrTripleToSecCall =
           Maps.uniqueIndex(
-              diff.getCallgraph(ESide.SECONDARY).getEdges(),
+              diff.getCallGraph(ESide.SECONDARY).getEdges(),
               new Function<RawCall, AddressTriple>() {
                 @Override
                 public AddressTriple apply(final RawCall input) {
@@ -331,7 +331,7 @@ public class DiffLoader implements ICommand {
 
       // set identical matched jumps (primary and secondary source functions, source call
       // instructions and target function are matched to each other.
-      for (final RawCall priCall : diff.getCallgraph(ESide.PRIMARY).getEdges()) {
+      for (final RawCall priCall : diff.getCallGraph(ESide.PRIMARY).getEdges()) {
         final RawFunction sourceFunction = priCall.getSource();
         final RawFunction targetFunction = priCall.getTarget();
 
@@ -367,7 +367,7 @@ public class DiffLoader implements ICommand {
       // create call address pair to target function stack map (only of the not identical matched
       // calls)
       final Map<AddressPair, Stack<RawCall>> secCallAddrPairToCalls = new HashMap<>();
-      for (final RawCall secCall : diff.getCallgraph(ESide.SECONDARY).getEdges()) {
+      for (final RawCall secCall : diff.getCallGraph(ESide.SECONDARY).getEdges()) {
         if (secCall.getMatchedCall() == null) {
           final long secSource = secCall.getSource().getAddress().toLong();
           final long secCallAddr = secCall.getSourceInstructionAddr().toLong();
@@ -385,7 +385,7 @@ public class DiffLoader implements ICommand {
       }
 
       int changedCounter = 0;
-      for (final RawCall priCall : diff.getCallgraph(ESide.PRIMARY).getEdges()) {
+      for (final RawCall priCall : diff.getCallGraph(ESide.PRIMARY).getEdges()) {
         if (priCall.getMatchedCall() == null) {
           final long priSource = priCall.getSource().getAddress().toLong();
           final long priCallAddr = priCall.getSourceInstructionAddr().toLong();
@@ -416,7 +416,7 @@ public class DiffLoader implements ICommand {
 
   private void setChangedFunctionsCount(final Diff diff) {
     int count = 0;
-    for (final RawFunction function : diff.getCallgraph(ESide.PRIMARY).getNodes()) {
+    for (final RawFunction function : diff.getCallGraph(ESide.PRIMARY).getNodes()) {
       if (function.isChanged()) {
         ++count;
       }
@@ -426,8 +426,8 @@ public class DiffLoader implements ICommand {
   }
 
   private void setFunctionMatches(final Diff diff) {
-    final RawCallGraph priCallgraph = diff.getCallgraph(ESide.PRIMARY);
-    final RawCallGraph secCallgraph = diff.getCallgraph(ESide.SECONDARY);
+    final RawCallGraph priCallgraph = diff.getCallGraph(ESide.PRIMARY);
+    final RawCallGraph secCallgraph = diff.getCallGraph(ESide.SECONDARY);
 
     for (final FunctionMatchData functionMatch : diff.getMatches().getFunctionMatches()) {
       final RawFunction priFunction =

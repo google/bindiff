@@ -28,7 +28,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
   private final Workspace workspace;
 
   private File primaryBinExportFile;
-  private File secomndaryBinExportFile;
+  private File secondaryBinExportFile;
 
   private final File primaryIDBFile;
   private final File secondaryIDBFile;
@@ -53,7 +53,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
     secondaryIDBFile = secIDBFile;
 
     primaryBinExportFile = priCallgraphFile;
-    secomndaryBinExportFile = secCallgraphFile;
+    secondaryBinExportFile = secCallgraphFile;
   }
 
   private String createUniqueExportFileName(final ESide side) {
@@ -67,8 +67,8 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
     priName = CFileUtils.removeFileExtension(priName);
 
     String secName = "";
-    if (secomndaryBinExportFile != null) {
-      secName = secomndaryBinExportFile.getName();
+    if (secondaryBinExportFile != null) {
+      secName = secondaryBinExportFile.getName();
     } else if (secondaryIDBFile != null) {
       secName = secondaryIDBFile.getName();
     }
@@ -253,7 +253,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           return null;
         }
-      } else if (secomndaryBinExportFile != null) {
+      } else if (secondaryBinExportFile != null) {
         try {
           final File copiedSecBinExportFile =
               new File(
@@ -263,11 +263,11 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           if (!copiedSecBinExportFile.exists()) {
             setDescription("Copying primary BinExport binary...");
             ByteStreams.copy(
-                new FileInputStream(secomndaryBinExportFile),
+                new FileInputStream(secondaryBinExportFile),
                 new FileOutputStream(copiedSecBinExportFile));
           }
 
-          secomndaryBinExportFile = copiedSecBinExportFile;
+          secondaryBinExportFile = copiedSecBinExportFile;
         } catch (final IOException e) {
           Logger.logException(
               e,
@@ -306,7 +306,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         String primaryDifferArgument = "";
         if (primaryIDBFile != null) {
           primaryDifferArgument =
-              ExportProcess.getExportedFileName(priTargetName, destinationDirectory);
+              ExportProcess.getExportFilename(priTargetName, destinationDirectory);
         } else {
           primaryDifferArgument = primaryBinExportFile.getPath();
         }
@@ -314,9 +314,9 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         String secondaryDifferArgument = "";
         if (secondaryIDBFile != null) {
           secondaryDifferArgument =
-              ExportProcess.getExportedFileName(secTargetName, destinationDirectory);
+              ExportProcess.getExportFilename(secTargetName, destinationDirectory);
         } else {
-          secondaryDifferArgument = secomndaryBinExportFile.getPath();
+          secondaryDifferArgument = secondaryBinExportFile.getPath();
         }
 
         Logger.logInfo("- Start Diffing '" + destinationDirectory.getName() + "'");
@@ -327,14 +327,11 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
             engineExe, primaryDifferArgument, secondaryDifferArgument, destinationDirectory);
 
         final String diffBinaryPath =
-            DiffProcess.getBinDiffFileName(primaryDifferArgument, secondaryDifferArgument);
+            DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
 
         Logger.logInfo("- Diffing done successfully.'");
 
         return diffBinaryPath;
-      } catch (final BinExportException e) {
-        Logger.logException(e, e.getMessage());
-        CMessageBox.showError(parentWindow, e.getMessage());
       } catch (final DifferException e) {
         Logger.logException(e, e.getMessage());
         CMessageBox.showError(parentWindow, e.getMessage());

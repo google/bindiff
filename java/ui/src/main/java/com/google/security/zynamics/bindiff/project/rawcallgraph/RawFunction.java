@@ -222,7 +222,7 @@ public class RawFunction extends SingleViewNode {
     this.match = match;
   }
 
-  public void setSizeOfBasicblocks(final int basicblocks) {
+  public void setSizeOfBasicBlocks(final int basicblocks) {
     this.basicblocks = basicblocks;
   }
 

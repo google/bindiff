@@ -9,18 +9,8 @@ import java.io.File;
 
 public class ExportProcess {
 
-  public static String getExportedFileName(final String destFileName, final File outputDir)
-      throws BinExportException {
-    try {
-      final String exportFileName =
-          FileUtils.ensureTrailingSlash(outputDir.getPath()) + destFileName;
-
-      return exportFileName;
-    } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
-      throw new BinExportException(
-          e, "Couldn't start exporting process. File name generation failed.");
-    }
+  public static String getExportFilename(final String destFilename, final File outputDir) {
+    return FileUtils.ensureTrailingSlash(outputDir.getPath()) + destFilename;
   }
 
   public static void startExportProcess(

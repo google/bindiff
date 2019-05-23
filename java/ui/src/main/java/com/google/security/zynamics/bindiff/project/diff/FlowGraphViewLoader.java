@@ -88,12 +88,12 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
       if (priFunctionAddr != null) {
         setDescription("Loading primary raw function data...");
         primaryRawFlowgraph =
-            DiffLoader.loadRawFlowgraph(database, diff, priFunctionAddr, ESide.PRIMARY);
+            DiffLoader.loadRawFlowGraph(database, diff, priFunctionAddr, ESide.PRIMARY);
       }
       if (secFunctionAddr != null) {
         setDescription("Loading secondary raw function data...");
         secondaryRawFlowgraph =
-            DiffLoader.loadRawFlowgraph(database, diff, secFunctionAddr, ESide.SECONDARY);
+            DiffLoader.loadRawFlowGraph(database, diff, secFunctionAddr, ESide.SECONDARY);
       }
 
       setDescription("Building combined flow graph...");
@@ -131,9 +131,9 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
         String viewName = diff.getDiffName();
         if (!diff.isFunctionDiff()) {
           final RawFunction priFunction =
-              diff.getCallgraph(ESide.PRIMARY).getFunction(priFunctionAddr);
+              diff.getCallGraph(ESide.PRIMARY).getFunction(priFunctionAddr);
           final RawFunction secFunction =
-              diff.getCallgraph(ESide.SECONDARY).getFunction(secFunctionAddr);
+              diff.getCallGraph(ESide.SECONDARY).getFunction(secFunctionAddr);
 
           if (priFunction != null) {
             viewName = priFunction.getName();
@@ -147,7 +147,7 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
         try (final MatchesDatabase matchesDb = new MatchesDatabase(diff.getMatchesDatabase())) {
           setGeneralDescription(String.format("Loading '%s'", viewName));
           setDescription("Please wait...");
-          matchesDb.loadBasicblockMatches(functionMatch);
+          matchesDb.loadBasicBlockMatches(functionMatch);
         }
       } catch (final IOException | SQLException e) {
         throw new IOException(

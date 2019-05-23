@@ -62,8 +62,8 @@ public class CallGraphViewLoader extends CEndlessHelperThread {
 
   private CallGraphViewData loadCallgraphViewData() throws GraphCreationException {
     // Note: Primary and secondary raw callgraphs are already loaded with the diff itself.
-    final RawCallGraph primaryCallgraph = diff.getCallgraph(ESide.PRIMARY);
-    final RawCallGraph secondaryCallgraph = diff.getCallgraph(ESide.SECONDARY);
+    final RawCallGraph primaryCallgraph = diff.getCallGraph(ESide.PRIMARY);
+    final RawCallGraph secondaryCallgraph = diff.getCallGraph(ESide.SECONDARY);
 
     setDescription("Building raw callgraph...");
     RawCombinedCallGraph combinedCallgraph =
