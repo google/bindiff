@@ -4,9 +4,11 @@
 #include <fstream>
 #include <memory>
 
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
+#include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/status.h"
@@ -307,10 +309,12 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
       .BindInt(counts["instructions secondary (library)"])
       .Execute();
 
-  database_.Statement(
-      "INSERT INTO \"metadata\" VALUES (:version,:file1,:file2,:description,"
-      "DATETIME('NOW'),DATETIME('NOW'),:similarity,:confidence );")
-      ->BindText(kProgramVersion)
+  database_
+      .Statement(
+          "INSERT INTO \"metadata\" VALUES "
+          "(:version,:file1,:file2,:description,"
+          "DATETIME('NOW'),DATETIME('NOW'),:similarity,:confidence );")
+      ->BindText(absl::StrCat("BinDiff ", kBinDiffDetailedVersion))
       .BindInt(file1)
       .BindInt(file2)
       .BindText("")

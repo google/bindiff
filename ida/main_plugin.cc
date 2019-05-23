@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <cstdio>
 #include <fstream>
 #include <limits>
@@ -74,12 +73,9 @@ using binexport::HumanReadableDuration;
 namespace bindiff {
 namespace {
 
-constexpr char kName[] = "BinDiff " BINDIFF_MAJOR;
 constexpr char kComment[] =
     "Structural comparison of executable objects";  // Status line
 constexpr char kHotKey[] = "CTRL-6";
-constexpr char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
 
 bool g_init_done = false;  // Used in PluginTerminate()
 bool g_alsologtostderr = false;
@@ -1237,19 +1233,16 @@ int idaapi PluginInit() {
     return PLUGIN_SKIP;
   }
 
-  LOG(INFO) << std::string(kProgramVersion) << " (" << __DATE__
-#ifndef NDEBUG
-            << ", debug build"
-#endif
-            << "), " << kCopyright;
+  LOG(INFO) << kBinDiffName << " " << kBinDiffDetailedVersion << ", "
+            << kBinDiffCopyright;
 
   addon_info_t addon_info;
   addon_info.id = "com.google.bindiff";
-  addon_info.name = kName;
+  addon_info.name = kBinDiffName;
   addon_info.producer = "Google";
-  addon_info.version = BINDIFF_MAJOR;
+  addon_info.version = kBinDiffDetailedVersion;
   addon_info.url = "https://zynamics.com/bindiff.html";
-  addon_info.freeform = kCopyright;
+  addon_info.freeform = kBinDiffCopyright;
   register_addon(&addon_info);
 
   if (!hook_to_notification_point(HT_IDP, ProcessorHook,
@@ -1311,8 +1304,8 @@ bool idaapi PluginRun(size_t /* arg */) {
       "'Load Results...' load a previously saved diff result. The primary IDB "
       "used in that diff must already be open in IDA.\n"
       "\n",
-      kProgramVersion, "\n", kCopyright, "\n", "ENDHELP\n", kProgramVersion,
-      "\n",
+      kBinDiffName, " ", kBinDiffDetailedVersion, "\n", kBinDiffCopyright, "\n",
+      "ENDHELP\n", kBinDiffName, " ", kBinDiffDetailedVersion, "\n",
       "\n"
       "<~D~iff Database...:B:1:30::>\n"
       "<D~i~ff Database Filtered...:B:1:30::>\n\n"
@@ -1350,8 +1343,8 @@ bool idaapi PluginRun(size_t /* arg */) {
       "meeting a certain quality threshold or in a certain address range will "
       "be ported.\n"
       "\n",
-      kProgramVersion, "\n", kCopyright, "\n", "ENDHELP\n", kProgramVersion,
-      "\n",
+      kBinDiffName, " ", kBinDiffDetailedVersion, "\n", kBinDiffCopyright, "\n",
+      "ENDHELP\n", kBinDiffName, " ", kBinDiffDetailedVersion, "\n",
       "\n"
       "<~D~iff Database...:B:1:30::>\n"
       "<D~i~ff Database Filtered...:B:1:30::>\n"
@@ -1414,7 +1407,7 @@ plugin_t PLUGIN = {
     security::bindiff::PluginTerminate,  // Terminate
     security::bindiff::PluginRun,        // Invoke plugin
     security::bindiff::kComment,         // Statusline text
-    nullptr,                    // Multiline help about the plugin, unused
-    security::bindiff::kName,   // The preferred short name of the plugin
-    security::bindiff::kHotKey  // The preferred hotkey to run the plugin
+    nullptr,                          // Multiline help about the plugin, unused
+    security::bindiff::kBinDiffName,  // The preferred short name of the plugin
+    security::bindiff::kHotKey        // The preferred hotkey to run the plugin
 };

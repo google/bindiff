@@ -48,7 +48,7 @@ create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/bindiff)
 create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/binexport)
 create_directory_symlink(${absl_src_dir}/absl ${_bindiff_src}/../absl)
 
-configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
+configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
 # Interface library with include paths used by BinDiff
 add_library(bindiff_base INTERFACE)
@@ -210,6 +210,8 @@ add_library(bindiff_shared STATIC
   utility.h
   writer.cc
   writer.h
+  version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 target_link_libraries(bindiff_shared
   absl::flat_hash_map

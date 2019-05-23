@@ -56,6 +56,7 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/start_ui.h"
 #include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -488,6 +489,9 @@ void InstallFlagsUsageConfig() {
     return !absl::StartsWith(filename, "core library");
   };
   usage_config.contains_helpshort_flags = usage_config.contains_help_flags;
+  usage_config.version_string = []() {
+    return absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, "\n");
+  };
   usage_config.normalize_filename =
       [](absl::string_view filename) -> std::string {
     return absl::StartsWith(filename, "absl") ? "core library" : "this binary";
@@ -533,12 +537,8 @@ int BinDiffMain(int argc, char** argv) {
 #endif
 
   if (!absl::GetFlag(FLAGS_nologo)) {
-    PrintMessage(
-        absl::StrCat(kProgramVersion,
-#ifdef _DEBUG
-                     "debug build"
-#endif
-                     ", (c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC."));
+    PrintMessage(absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, ", ",
+                              kBinDiffCopyright));
   }
 
   try {
