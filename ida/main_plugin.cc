@@ -190,10 +190,7 @@ bool ExportIdbs() {
             .set_ida_dir(idadir(0))
             .set_ida_exe(config->ReadString("/BinDiff/Ida/@executable", ""))
             .set_ida_exe64(config->ReadString("/BinDiff/Ida/@executable64", ""))
-            .set_alsologtostderr(g_alsologtostderr)
-            .set_headless_export_mode(
-                config->ReadBool("/BinDiff/Ida/headlessExport",
-                                 /*default_value=*/false)));
+            .set_alsologtostderr(g_alsologtostderr));
     if (!exporter_or.ok()) {
       throw std::runtime_error{
           absl::StrCat("Export of the current database failed: ",

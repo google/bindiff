@@ -15,7 +15,7 @@ ABSL_CONST_INIT const absl::string_view kDefaultConfig =
     R"raw(<?xml version="1.0"?>
 <BinDiff configVersion="4">
     <Gui directory="C:\Program Files\BinDiff" server="127.0.0.1" port="2000" retries="20" />
-    <Ida directory="C:\Program Files\IDA" executable="ida.exe" executable64="ida64.exe" headlessExport="true" />
+    <Ida directory="C:\Program Files\IDA" executable="ida.exe" executable64="ida64.exe" />
     <Threads use="2" />
     <FunctionMatching>
         <Step confidence="1.0" algorithm="function: name hash matching" />

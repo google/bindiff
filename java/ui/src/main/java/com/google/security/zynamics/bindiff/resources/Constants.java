@@ -51,7 +51,6 @@ public final class Constants {
 
   // IDA and IDA Plugins
   public static final String IDA_EXPORTER_IDC_COMMAND = "BinExportBinary";
-  public static final String IDA_EXPORT_SCRIPT_NAME = "export.idc";
 
   // File format Versions
   public static final int WORKSPACE_DATABASE_FORMAT_VERSION = 2;

@@ -1,13 +1,10 @@
 package com.google.security.zynamics.zylib.system;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-/**
- * Contains a few simple methods that are useful for dealing with IDA and command line handling
- */
+/** Contains a few simple methods that are useful for dealing with IDA and command line handling */
 public final class IdaHelpers {
   public static final String IDA32_EXECUTABLE;
   public static final String IDA64_EXECUTABLE;
@@ -23,26 +20,33 @@ public final class IdaHelpers {
   }
 
   /**
-   * Exports an IDB using BinExport to a .BinExport file. This is a modified version of the code in
-   * BinNavi, currently only used from BinDiff. It should be refactored so it can be used from both.
+   * Exports an IDB using BinExport to a .BinExport file.
+   *
+   * <p>This implementation should behave similar to the one used in the native BinDiff executable
+   * and the IDA Pro plugin.
+   *
+   * @param idaExe the IDA Pro executable to use. @see #IDA32_EXECUTABLE.
+   * @param idbFileName the database file to export
+   * @param outputDirectory where to store the resulting file. The final filename will be
+   *     idbFilename with its file extension replaced by ".BinExport".
+   * @return the started process.
    */
-  public static Process createIdaProcess(final String idaExe, final File idcPath,
-      final String idbFileName, final String outputDirectory) throws IdaException {
-    final String idcFileString = idcPath.getAbsolutePath();
-
-    final String sArgument = getSArgument(idcFileString, SystemHelpers.isRunningWindows());
-
-    // Setup the invocation of the IDA to SQL exporter
+  public static Process createIdaProcess(
+      final String idaExe, final String idbFileName, final String outputDirectory)
+      throws IdaException {
     final ProcessBuilder processBuilder =
-        new ProcessBuilder(idaExe, "-A", "-OExporterModule:" + outputDirectory, sArgument,
+        new ProcessBuilder(
+            idaExe,
+            "-A",
+            "-OBinExportModule:" + outputDirectory,
+            "-OBinExportAutoAction:BinExportBinary",
             idbFileName);
+    processBuilder.environment().put("TVHEADLESS", "1");
 
     // Now launch the exporter to export the IDB to the database
     try {
-      Process processInfo = null;
-
       processBuilder.redirectErrorStream(true);
-      processInfo = processBuilder.start();
+      final Process processInfo = processBuilder.start();
 
       // Java manages the streams internally - if they are full, the
       // process blocks, i.e. IDA hangs, so we need to consume them.
@@ -58,17 +62,5 @@ public final class IdaHelpers {
       throw new IdaException(
           "Failed attempting to launch the importer with IDA: " + e.getMessage(), e);
     }
-  }
-
-  /**
-   * Builds the -S argument for IDA Pro.
-   * 
-   * @param idcFile The IDC file to execute.
-   * @param isRunningWindows True, if the user is exporting on Windows. False, otherwise.
-   * 
-   * @return The created -S argument.
-   */
-  public static String getSArgument(final String idcFile, final boolean isRunningWindows) {
-    return isRunningWindows ? "-S\\\"" + idcFile + "\\\"" : "-S\"" + idcFile + "\"";
   }
 }
