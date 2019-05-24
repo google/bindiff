@@ -42,7 +42,6 @@ void LcsLens(Iterator xlo, Iterator xhi, Iterator ylo, Iterator yhi,
 // xlo, xhi is the range of xs being processed
 // ylo, yhi is the range of ys being processed
 // Parameter xs_in_lcs holds the members of xs in the LCS.
-// TODO(cblichmann): Merge with the implementation in //security/vxclass/siggen
 template <typename Iterator, typename OutIterator>
 void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
                 Iterator ylo, Iterator yhi, OutIterator xout,
