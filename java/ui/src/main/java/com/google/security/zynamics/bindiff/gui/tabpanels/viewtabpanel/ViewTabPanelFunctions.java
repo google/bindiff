@@ -69,7 +69,6 @@ import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.zygraph.CDefaultLabelEventHandler;
 import com.google.security.zynamics.zylib.gui.zygraph.ILabelEditableContentListener;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
-import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.GraphExporters;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
@@ -1022,8 +1021,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public void toggleProximityBrowsing() {
-    BinDiffGraph<ZyGraphNode<? extends IViewNode<?>>, ?> graph =
-        (BinDiffGraph) graphs.getCombinedGraph();
+    BinDiffGraph<ZyGraphNode<?>, ?> graph = (BinDiffGraph) graphs.getCombinedGraph();
 
     if (settings.isAsync() && settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
       graph =
@@ -1048,14 +1046,14 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
     if (proximitySettings.getProximityBrowsing()
         && !proximitySettings.getProximityBrowsingFrozen()) {
-      BinDiffGraph<ZyGraphNode<? extends IViewNode<?>>, ?> graph =
-          (BinDiffGraph) graphs.getCombinedGraph();
+      BinDiffGraph<ZyGraphNode<?>, ?> graph = (BinDiffGraph) graphs.getCombinedGraph();
 
       if (settings.isAsync() && settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
         graph =
-            settings.getFocus() == ESide.PRIMARY
-                ? (BinDiffGraph) graphs.getPrimaryGraph()
-                : (BinDiffGraph) graphs.getSecondaryGraph();
+            (BinDiffGraph)
+                (settings.getFocus() == ESide.PRIMARY
+                    ? graphs.getPrimaryGraph()
+                    : graphs.getSecondaryGraph());
       }
 
       GraphLayoutEventHandler.handleSelectionChangedEvent(graph, true);
