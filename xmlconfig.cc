@@ -9,6 +9,9 @@
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/tinyxpath/node_set.h"
+#include "third_party/tinyxpath/tinyxml.h"
+#include "third_party/tinyxpath/xpath_expression.h"
 #include "third_party/tinyxpath/xpath_static.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
@@ -128,6 +131,34 @@ bool XmlConfig::ReadBool(const std::string& key, bool default_value) const {
         return absl::AsciiStrToLower(value) == "true";
       },
       default_value);
+}
+
+std::vector<std::string> XmlConfig::ReadStrings(
+    const std::string& key,
+    const std::vector<std::string>& default_value) const {
+  std::vector<std::string> result;
+  TinyXPath::xpath_processor processor(document_->RootElement(), key.c_str());
+
+  TinyXPath::expression_result er = processor.er_compute_xpath();
+  int num_nodes = er.e_type != TinyXPath::e_node_set
+                      ? 0
+                      : er.nsp_get_node_set()->u_get_nb_node_in_set();
+  for (int i = 0; i < num_nodes; ++i) {
+    bool is_attribute = false;
+    const TiXmlBase* node = nullptr;
+    processor.v_get_xpath_base(i, node, is_attribute);
+    if (is_attribute) {
+      result.push_back(dynamic_cast<const TiXmlAttribute*>(node)->Value());
+    } else {
+      result.push_back(dynamic_cast<const TiXmlNode*>(node)->Value());
+    }
+  }
+
+  if (num_nodes > 0) {
+    // Work around leak in TinyXPath's node_set destructor
+    er.nsp_get_node_set()->TinyXPath::node_set::~node_set();
+  }
+  return !result.empty() ? result : default_value;
 }
 
 }  // namespace bindiff

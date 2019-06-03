@@ -13,6 +13,7 @@
 #include "third_party/zynamics/binexport/util/status_matchers.h"
 
 using ::not_absl::IsOk;
+using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::StrEq;
 
@@ -54,6 +55,10 @@ TEST(XmlConfigTest, BasicFunctionality) {
   EXPECT_THAT(config.ReadString("/doc/settings/entry[@key='string']/@value",
                                 /*default_value=*/"<no_value>"),
               StrEq("A string"));
+
+  EXPECT_THAT(config.ReadStrings("/doc/settings/entry/@value",
+                                 /*default_value=*/{}),
+              ElementsAre("true", "3.14159", "42", "A string"));
 }
 
 }  // namespace

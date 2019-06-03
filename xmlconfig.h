@@ -35,6 +35,10 @@ class XmlConfig {
                          const std::string& default_value) const;
   bool ReadBool(const std::string& key, bool default_value) const;
 
+  std::vector<std::string> ReadStrings(
+      const std::string& key,
+      const std::vector<std::string>& default_value) const;
+
   // Access to the underlying raw document object.
   TiXmlDocument* document();
   const TiXmlDocument* document() const;
