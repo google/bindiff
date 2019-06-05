@@ -270,7 +270,7 @@ void Diff(const std::string& name, const std::string& primary_path,
 
 class GroundtruthIntegrationTest : public ::testing::Test {
  protected:
-  static void SetUpTestCase() {
+  static void SetUpTestSuite() {
     GetConfig()->LoadFromString(string(kDefaultConfigForTesting));
   }
 };
