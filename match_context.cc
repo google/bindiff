@@ -11,54 +11,6 @@
 namespace security {
 namespace bindiff {
 
-ABSL_CONST_INIT const absl::string_view kDefaultConfig =
-    R"raw(<?xml version="1.0"?>
-<BinDiff configVersion="4">
-    <Gui directory="C:\Program Files\BinDiff" server="127.0.0.1" port="2000" retries="20" />
-    <Ida directory="C:\Program Files\IDA" executable="ida.exe" executable64="ida64.exe" />
-    <Threads use="2" />
-    <FunctionMatching>
-        <Step confidence="1.0" algorithm="function: name hash matching" />
-        <Step confidence="1.0" algorithm="function: hash matching" />
-        <Step confidence="1.0" algorithm="function: edges flowgraph MD index" />
-        <Step confidence="0.9" algorithm="function: edges callgraph MD index" />
-        <Step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, top down)" />
-        <Step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, bottom up)" />
-        <Step confidence="0.9" algorithm="function: prime signature matching" />
-        <Step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, top down)" />
-        <Step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, bottom up)" />
-        <!-- <Step confidence="0.7" algorithm="function: edges proximity MD index" /> -->
-        <Step confidence="0.7" algorithm="function: relaxed MD index matching" />
-        <Step confidence="0.4" algorithm="function: instruction count" />
-        <Step confidence="0.4" algorithm="function: address sequence" />
-        <Step confidence="0.7" algorithm="function: string references" />
-        <Step confidence="0.6" algorithm="function: loop count matching" />
-        <Step confidence="0.1" algorithm="function: call sequence matching(exact)" />
-        <Step confidence="0.0" algorithm="function: call sequence matching(topology)" />
-        <Step confidence="0.0" algorithm="function: call sequence matching(sequence)" />
-    </FunctionMatching>
-    <BasicBlockMatching>
-        <Step confidence="1.0" algorithm="basicBlock: edges prime product" />
-        <Step confidence="1.0" algorithm="basicBlock: hash matching (4 instructions minimum)" />
-        <Step confidence="0.9" algorithm="basicBlock: prime matching (4 instructions minimum)" />
-        <Step confidence="0.8" algorithm="basicBlock: call reference matching" />
-        <Step confidence="0.8" algorithm="basicBlock: string references matching" />
-        <Step confidence="0.7" algorithm="basicBlock: edges MD index (top down)" />
-        <Step confidence="0.7" algorithm="basicBlock: MD index matching (top down)" />
-        <Step confidence="0.7" algorithm="basicBlock: edges MD index (bottom up)" />
-        <Step confidence="0.7" algorithm="basicBlock: MD index matching (bottom up)" />
-        <Step confidence="0.6" algorithm="basicBlock: relaxed MD index matching" />
-        <Step confidence="0.5" algorithm="basicBlock: prime matching (0 instructions minimum)" />
-        <Step confidence="0.4" algorithm="basicBlock: edges Lengauer Tarjan dominated" />
-        <Step confidence="0.4" algorithm="basicBlock: loop entry matching" />
-        <Step confidence="0.3" algorithm="basicBlock: self loop matching" />
-        <Step confidence="0.2" algorithm="basicBlock: entry point matching" />
-        <Step confidence="0.1" algorithm="basicBlock: exit point matching" />
-        <Step confidence="0.0" algorithm="basicBlock: instruction count matching" />
-        <Step confidence="0.0" algorithm="basicBlock: jump sequence matching" />
-    </BasicBlockMatching>
-</BinDiff>)raw";
-
 void UpdateFixedPointConfidence(FixedPoint& fixed_point) {
   FlowGraphs flow_graphs1, flow_graphs2;
   CHECK(flow_graphs1.insert(fixed_point.GetPrimary()).second);

@@ -21,9 +21,6 @@ class MatchingStepFlowGraph;
 using MatchingSteps = std::list<MatchingStep*>;
 using MatchingStepsFlowGraph = std::list<MatchingStepFlowGraph*>;
 
-// BinDiff default configuration.
-extern const absl::string_view kDefaultConfig;
-
 enum Direction {
   kTopDown,
   kBottomUp
