@@ -19,7 +19,6 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "file/base/options.h"
 #include "file/base/path.h"
 #include "strings/human_readable.h"
-#include "strings/substitute.h"
 #include "third_party/absl/flags/flag.h"
 #include "third_party/absl/strings/substitute.h"
 #include "third_party/absl/time/time.h"
