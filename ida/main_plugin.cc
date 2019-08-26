@@ -109,16 +109,24 @@ std::string FindFile(const std::string& path, const std::string& extension) {
   return "";
 }
 
-bool EnsureIdb() {
+bool CheckHaveIdbWithMessage() {
   bool result = strlen(get_path(PATH_TYPE_IDB)) > 0;
   if (!result) {
-    info("Please open an IDB first.");
+    info("AUTOHIDE NONE\nPlease open an IDB first.");
   }
   return result;
 }
 
+bool CheckHaveResultsWithMessage() {
+  if (!g_results) {
+    info("AUTOHIDE NONE\nPlease perform a diff first.");
+    return false;
+  }
+  return true;
+}
+
 bool ExportIdbs() {
-  if (!EnsureIdb()) {
+  if (!CheckHaveIdbWithMessage()) {
     return false;
   }
 
@@ -379,11 +387,9 @@ void ShowResults(const ResultFlags flags) {
 }
 
 bool idaapi MenuItemShowResultsCallback(void* user_data) {
-  if (!g_results) {
-    vinfo("Please perform a diff first", 0);
+  if (!CheckHaveResultsWithMessage()) {
     return false;
   }
-
   ShowResults(static_cast<ResultFlags>(reinterpret_cast<int64_t>(user_data)));
   return true;
 }
@@ -536,8 +542,7 @@ bool DoDiffDatabase(bool filtered) {
 }
 
 bool DoPortComments() {
-  if (!g_results) {
-    vinfo("Please perform a diff first", 0);
+  if (!CheckHaveResultsWithMessage()) {
     return false;
   }
 
@@ -657,12 +662,11 @@ bool WriteResults(const std::string& path) {
 }
 
 bool DoSaveResultsLog() {
-  if (!g_results) {
-    vinfo("Please perform a diff first", 0);
+  if (!CheckHaveResultsWithMessage()) {
     return false;
   }
   if (g_results->IsIncomplete()) {
-    vinfo("Saving to log is not supported for loaded results", 0);
+    info("AUTOHIDE NONE\nSaving to log is not supported for loaded results.");
     return false;
   }
 
@@ -694,8 +698,7 @@ bool DoSaveResultsLog() {
 }
 
 bool DoSaveResultsDebug() {
-  if (!g_results) {
-    vinfo("Please perform a diff first", 0);
+  if (!CheckHaveResultsWithMessage()) {
     return false;
   }
 
@@ -730,8 +733,7 @@ bool DoSaveResultsDebug() {
 }
 
 bool DoSaveResults() {
-  if (!g_results) {
-    vinfo("Please perform a diff first.", 0);
+  if (!CheckHaveResultsWithMessage()) {
     return false;
   }
 
@@ -1360,7 +1362,7 @@ bool idaapi PluginRun(size_t /* arg */) {
     return false;
   }
 
-  if (!EnsureIdb()) {
+  if (!CheckHaveIdbWithMessage()) {
     return false;
   }
 
