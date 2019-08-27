@@ -11,6 +11,14 @@ namespace bindiff {
 
 class Plugin : public binexport::IdaPlugin<Plugin> {
  public:
+  enum ResultFlags {
+    kResultsShowMatched = 1 << 0,
+    kResultsShowStatistics = 1 << 1,
+    kResultsShowPrimaryUnmatched = 1 << 2,
+    kResultsShowSecondaryUnmatched = 1 << 3,
+    kResultsShowAll = 0xffffffff
+  };
+
   static constexpr char kComment[] =
       "Structural comparison of executable objects";  // Status line
   static constexpr char kHotKey[] = "CTRL-6";
@@ -21,6 +29,7 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
   bool alsologtostderr() const { return alsologtostderr_; }
 
   bool LoadResults();
+  void ShowResults(ResultFlags flags);
 
   void VisualDiff(uint32_t index, bool call_graph_diff);
 

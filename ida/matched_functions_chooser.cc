@@ -5,6 +5,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
+#include "third_party/zynamics/bindiff/ida/main_plugin.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
 #include "third_party/zynamics/bindiff/ida/ui.h"
@@ -23,11 +24,12 @@ constexpr const char DeleteMatchesAction::kShortCut[];
 constexpr const char* DeleteMatchesAction::kTooltip;
 
 int idaapi DeleteMatchesAction::activate(action_activation_ctx_t* context) {
+  auto* results = Plugin::instance()->results();
   const auto& ida_selection = context->chooser_selection;
-  if (!results_ || ida_selection.empty()) {
+  if (!results || ida_selection.empty()) {
     return 0;
   }
-  not_absl::Status status = results_->DeleteMatches(
+  not_absl::Status status = results->DeleteMatches(
       absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
   if (!status.ok()) {
     const std::string message(status.message());
@@ -47,10 +49,9 @@ constexpr const int MatchedFunctionsChooser::kColumnWidths[];
 constexpr const char* const MatchedFunctionsChooser::kColumnNames[];
 constexpr const char MatchedFunctionsChooser::kTitle[];
 
-MatchedFunctionsChooser::MatchedFunctionsChooser(Results* results)
+MatchedFunctionsChooser::MatchedFunctionsChooser()
     : chooser_multi_t{CH_ATTRS | CH_CAN_DEL, ABSL_ARRAYSIZE(kColumnWidths),
-                      kColumnWidths, kColumnNames, kTitle},
-      results_{ABSL_DIE_IF_NULL(results)} {
+                      kColumnWidths, kColumnNames, kTitle} {
   popup_names[POPUP_DEL] = DeleteMatchesAction::kLabel;
 }
 
@@ -89,28 +90,19 @@ void MatchedFunctionsChooser::RegisterActions() {
   }
 }
 
-bool idaapi MatchedFunctionsChooser::init() {
-  DeleteMatchesAction::instance()->results_ = results_;
-  return true;
-}
-
-void idaapi MatchedFunctionsChooser::closed() {
-  DeleteMatchesAction::instance()->results_ = nullptr;
-}
-
 const void* MatchedFunctionsChooser::get_obj_id(size_t* len) const {
   *len = strlen(kTitle);
   return kTitle;
 }
 
 size_t MatchedFunctionsChooser::get_count() const {
-  return results_->GetNumMatches();
+  return Plugin::instance()->results()->GetNumMatches();
 }
 
 void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* /*icon_*/,
                                       chooser_item_attrs_t* attrs,
                                       size_t n) const {
-  const auto match = results_->GetMatchDescription(n);
+  const auto match = Plugin::instance()->results()->GetMatchDescription(n);
   (*cols)[0] = absl::StrFormat("%.2f", match.similarity).c_str();
   (*cols)[1] = absl::StrFormat("%.2f", match.confidence).c_str();
   (*cols)[2] = GetChangeDescription(match.change_type).c_str();
@@ -138,7 +130,7 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* /*icon_*/,
 }
 
 ea_t idaapi MatchedFunctionsChooser::get_ea(size_t n) const {
-  return results_->GetMatchDescription(n).address_primary;
+  return Plugin::instance()->results()->GetMatchDescription(n).address_primary;
 }
 
 chooser_t::cbres_t idaapi MatchedFunctionsChooser::del(sizevec_t* sel) {
@@ -153,9 +145,10 @@ chooser_t::cbres_t idaapi MatchedFunctionsChooser::del(sizevec_t* sel) {
 }
 
 chooser_t::cbres_t MatchedFunctionsChooser::refresh(sizevec_t* sel) {
-  if (sel && !sel->empty() && results_->should_reset_selection()) {
+  auto* results = Plugin::instance()->results();
+  if (sel && !sel->empty() && results->should_reset_selection()) {
     sel->resize(1);  // Only keep the first item in selection
-    results_->set_should_reset_selection(false);
+    results->set_should_reset_selection(false);
   }
   return ALL_CHANGED;
 }

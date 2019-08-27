@@ -8,12 +8,8 @@
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
-#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security {
-
-using binexport::FormatAddress;
-
 namespace bindiff {
 namespace internal {
 
@@ -51,15 +47,11 @@ class UnmatchedChooserMultiBase : public chooser_multi_t {
   // Closes this chooser if visible.
   static void Close() { close_chooser(ChooserT::kTitle); }
 
-  explicit UnmatchedChooserMultiBase(Results* results)
+  UnmatchedChooserMultiBase()
       : chooser_multi_t{
             CH_ATTRS, ABSL_ARRAYSIZE(internal::kUnmatchedChooserColumnWidths),
             internal::kUnmatchedChooserColumnWidths,
-            internal::kUnmatchedChooserColumnNames, ChooserT::kTitle},
-        results_{ABSL_DIE_IF_NULL(results)} {}
-
- protected:
-  Results* results_;
+            internal::kUnmatchedChooserColumnNames, ChooserT::kTitle} {}
 
  private:
   virtual Results::UnmatchedDescription GetDescription(size_t index) const = 0;
@@ -142,15 +134,11 @@ class UnmatchedFunctionsChooserSecondary
 template <typename ChooserT>
 class UnmatchedChooserBase : public chooser_t {
  public:
-  explicit UnmatchedChooserBase(Results* results)
+  UnmatchedChooserBase()
       : chooser_t{CH_MODAL | CH_KEEP,
                   ABSL_ARRAYSIZE(internal::kUnmatchedChooserColumnWidths),
                   internal::kUnmatchedChooserColumnWidths,
-                  internal::kUnmatchedChooserColumnNames, ChooserT::kTitle},
-        results_{ABSL_DIE_IF_NULL(results)} {}
-
- protected:
-  Results* results_;
+                  internal::kUnmatchedChooserColumnNames, ChooserT::kTitle} {}
 
  private:
   virtual Results::UnmatchedDescription GetDescription(size_t index) const = 0;

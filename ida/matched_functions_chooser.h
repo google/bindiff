@@ -9,7 +9,6 @@
 
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
-#include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 
 namespace security {
@@ -17,7 +16,7 @@ namespace bindiff {
 
 class MatchedFunctionsChooser : public chooser_multi_t {
  public:
-  explicit MatchedFunctionsChooser(Results* results);
+  MatchedFunctionsChooser();
 
   // Attaches the chooser actions to IDA's popup menu. To be called from a HT_UI
   // notification point.
@@ -31,9 +30,6 @@ class MatchedFunctionsChooser : public chooser_multi_t {
 
   // Closes this chooser if visible.
   static void Close() { close_chooser(kTitle); }
-
-  bool idaapi init() override;
-  void idaapi closed() override;
 
  private:
   static constexpr const int kColumnWidths[] = {
@@ -77,8 +73,6 @@ class MatchedFunctionsChooser : public chooser_multi_t {
   chooser_t::cbres_t idaapi del(sizevec_t* sel) override;
 
   chooser_t::cbres_t idaapi refresh(sizevec_t* sel) override;
-
-  Results* results_;
 };
 
 class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
@@ -90,7 +84,6 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
 
  private:
   friend class MatchedFunctionsChooser;
-  Results* results_;
 
   int idaapi activate(action_activation_ctx_t* context) override;
 };

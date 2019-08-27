@@ -7,17 +7,15 @@
 
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
-#include "third_party/zynamics/bindiff/ida/results.h"
 
 namespace security {
 namespace bindiff {
 
 class StatisticsChooser : public chooser_t {
  public:
-  explicit StatisticsChooser(Results* results)
+  StatisticsChooser()
       : chooser_t{CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
-                  kColumnNames, kTitle},
-        results_{ABSL_DIE_IF_NULL(results)} {}
+                  kColumnNames, kTitle} {}
 
   // Refreshes the display of this chooser if visible. Does nothing otherwise.
   static void Refresh() { refresh_chooser(kTitle); }
@@ -37,8 +35,6 @@ class StatisticsChooser : public chooser_t {
   size_t get_count() const override;
   void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
                size_t n) const override;
-
-  Results* results_;
 };
 
 }  // namespace bindiff
