@@ -2,13 +2,14 @@
 #define IDA_MATCHED_FUNCTIONS_CHOOSER_H_
 
 #include <functional>
-#include <kernwin.hpp>  // NOLINT
+
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <kernwin.hpp>                                          // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
-#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
-#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 #include "third_party/zynamics/binexport/ida/ui.h"
 
 namespace security {

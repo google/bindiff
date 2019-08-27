@@ -244,6 +244,7 @@ set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
 add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/log.cc
   ${BinExport_DIR}/ida/log.h
+  ${BinExport_DIR}/ida/plugin.h
   ${BinExport_DIR}/ida/ui.cc
   ${BinExport_DIR}/ida/ui.h
   ${BinExport_DIR}/ida/digest.cc
@@ -251,6 +252,7 @@ add_ida_plugin(${bindiff_plugin_name}
   ida/bindiff_icon.cc
   ida/bindiff_icon.h
   ida/main_plugin.cc
+  ida/main_plugin.h
   ida/matched_functions_chooser.cc
   ida/matched_functions_chooser.h
   ida/names.cc

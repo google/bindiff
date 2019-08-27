@@ -1125,7 +1125,6 @@ constexpr const char ImportSymbolsCommentsGlobalAction::kName[];
 constexpr const char ImportSymbolsCommentsGlobalAction::kLabel[];
 constexpr const char ImportSymbolsCommentsGlobalAction::kShortCut[];
 constexpr const char* ImportSymbolsCommentsGlobalAction::kTooltip;
-constexpr const int ImportSymbolsCommentsGlobalAction::kIcon;
 
 void InitActions() {
   const int bindiff_icon_id =
