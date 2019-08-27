@@ -923,37 +923,6 @@ class SaveResultsAction : public ActionHandler<SaveResultsAction> {
   }
 };
 
-class PortCommentsAction : public ActionHandler<PortCommentsAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
-    if (g_results) {
-      const auto ida_selection = context->chooser_selection;
-      const auto as_external_lib =
-          absl::string_view{context->action} ==
-                  MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction
-              ? Results::kAsExternalLib
-              : Results::kNormal;
-      not_absl::Status status = g_results->PortComments(
-          absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()),
-          as_external_lib);
-      if (!status.ok()) {
-        const std::string message(status.message());
-        LOG(INFO) << "Error: " << message;
-        warning("Error: %s\n", message.c_str());
-        return 0;
-      }
-      // Need to refresh all choosers
-      MatchedFunctionsChooser::Refresh();
-      UnmatchedFunctionsChooserPrimary::Refresh();
-      UnmatchedFunctionsChooserSecondary::Refresh();
-      StatisticsChooser::Refresh();
-      return 1;
-    }
-
-    // Not called from the chooser, display dialog.
-    return DoPortComments();  // Refresh if user did not cancel
-  }
-};
-
 class ShowMatchedAction : public ActionHandler<ShowMatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     ShowResults(kResultsShowMatched);
@@ -984,14 +953,25 @@ class ShowSecondaryUnmatchedAction
   }
 };
 
-class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
-    if (!g_results) {
-      return 0;
-    }
+}  // namespace
+
+int idaapi ViewFlowGraphsAction::activate(action_activation_ctx_t* context) {
+  const auto& chooser_selection = context->chooser_selection;
+  if (chooser_selection.empty()) {
+    return 0;
+  }
+  DoVisualDiff(chooser_selection.front(),
+               /*call_graph_diff=*/false);
+  return 1;
+}
+
+int HandleImportSymbolsComments(action_activation_ctx_t* context,
+                                Results::PortCommentsKind kind) {
+  if (g_results) {
     const auto ida_selection = context->chooser_selection;
-    not_absl::Status status = g_results->DeleteMatches(
-        absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
+    not_absl::Status status = g_results->PortComments(
+        absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()),
+        kind);
     if (!status.ok()) {
       const std::string message(status.message());
       LOG(INFO) << "Error: " << message;
@@ -1005,52 +985,76 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
     StatisticsChooser::Refresh();
     return 1;
   }
-};
+  return 0;
+}
 
-class ViewFlowGraphsAction : public ActionHandler<ViewFlowGraphsAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
-    const auto& chooser_selection = context->chooser_selection;
-    if (chooser_selection.empty()) {
-      return 0;
-    }
-    DoVisualDiff(chooser_selection.front(),
-                 /*call_graph_diff=*/false);
-    return 1;
-  }
-};
+int idaapi
+ImportSymbolsCommentsAction::activate(action_activation_ctx_t* context) {
+  return HandleImportSymbolsComments(context, Results::kNormal);
+}
 
-class ConfirmMatchesAction : public ActionHandler<ConfirmMatchesAction> {
-  int idaapi activate(action_activation_ctx_t* context) override {
-    if (!g_results) {
-      return 0;
-    }
-    const auto& ida_selection = context->chooser_selection;
-    not_absl::Status status = g_results->ConfirmMatches(
-        absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
-    if (!status.ok()) {
-      const std::string message(status.message());
-      LOG(INFO) << "Error: " << message;
-      warning("Error: %s\n", message.c_str());
-      return 0;
-    }
-    MatchedFunctionsChooser::Refresh();
-    return 1;
+int idaapi ImportSymbolsCommentsExternalAction::activate(
+    action_activation_ctx_t* context) {
+  return HandleImportSymbolsComments(context, Results::kAsExternalLib);
+}
+
+int idaapi ConfirmMatchesAction::activate(action_activation_ctx_t* context) {
+  if (!g_results) {
+    return 0;
   }
-};
+  const auto& ida_selection = context->chooser_selection;
+  not_absl::Status status = g_results->ConfirmMatches(
+      absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
+  if (!status.ok()) {
+    const std::string message(status.message());
+    LOG(INFO) << "Error: " << message;
+    warning("Error: %s\n", message.c_str());
+    return 0;
+  }
+  MatchedFunctionsChooser::Refresh();
+  return 1;
+}
+
+int HandleCopyAddress(Address address) {
+  not_absl::Status status = CopyToClipboard(FormatAddress(address));
+  if (!status.ok()) {
+    const std::string message(status.message());
+    LOG(INFO) << "Error: " << message;
+    warning("Error: %s\n", message.c_str());
+    return 0;
+  }
+  return 1;
+}
+
+int idaapi
+CopyPrimaryAddressAction::activate(action_activation_ctx_t* context) {
+  if (!g_results || context->chooser_selection.empty()) {
+    return 0;
+  }
+  return HandleCopyAddress(
+      g_results->GetMatchPrimaryAddress(context->chooser_selection.front()));
+}
+
+int idaapi
+CopySecondaryAddressAction::activate(action_activation_ctx_t* context) {
+  if (!g_results || context->chooser_selection.empty()) {
+    return 0;
+  }
+  return HandleCopyAddress(
+      g_results->GetMatchSecondaryAddress(context->chooser_selection.front()));
+}
+
+namespace {
 
 class CopyAddressAction : public ActionHandler<CopyAddressAction> {
   int idaapi activate(action_activation_ctx_t* context) override {
     if (!g_results || context->chooser_selection.empty()) {
       return 0;
     }
-    absl::string_view action{context->action};
     const auto index = context->chooser_selection.front();
+    absl::string_view action{context->action};
     Address address;
-    if (action == MatchedFunctionsChooser::kCopyPrimaryAddressAction) {
-      address = g_results->GetMatchPrimaryAddress(index);
-    } else if (action == MatchedFunctionsChooser::kCopySecondaryAddressAction) {
-      address = g_results->GetMatchSecondaryAddress(index);
-    } else if (action == UnmatchedFunctionsChooserPrimary::kCopyAddressAction) {
+    if (action == UnmatchedFunctionsChooserPrimary::kCopyAddressAction) {
       address = g_results->GetUnmatchedDescriptionPrimary(index).address;
     } else if (action ==
                UnmatchedFunctionsChooserSecondary::kCopyAddressAction) {
@@ -1058,15 +1062,7 @@ class CopyAddressAction : public ActionHandler<CopyAddressAction> {
     } else {
       return 0;
     }
-
-    not_absl::Status status = CopyToClipboard(FormatAddress(address));
-    if (!status.ok()) {
-      const std::string message(status.message());
-      LOG(INFO) << "Error: " << message;
-      warning("Error: %s\n", message.c_str());
-      return 0;
-    }
-    return 1;
+    return HandleCopyAddress(address);
   }
 };
 
@@ -1109,6 +1105,28 @@ class AddMatchAction : public ActionHandler<AddMatchAction> {
   }
 };
 
+class ImportSymbolsCommentsGlobalAction
+    : public ActionHandler<ImportSymbolsCommentsGlobalAction> {
+ public:
+  static constexpr const char kName[] =
+      "bindiff:import_symbols_comments_global";
+  static constexpr const char kLabel[] = "Im~p~ort symbols/comments...";
+  static constexpr const char kShortCut[] = "";
+  static constexpr const char* kTooltip = nullptr;
+
+ private:
+  int idaapi activate(action_activation_ctx_t* context) override {
+    // Not called from the chooser, display dialog.
+    return DoPortComments();  // Refresh if user did not cancel
+  }
+};
+
+constexpr const char ImportSymbolsCommentsGlobalAction::kName[];
+constexpr const char ImportSymbolsCommentsGlobalAction::kLabel[];
+constexpr const char ImportSymbolsCommentsGlobalAction::kShortCut[];
+constexpr const char* ImportSymbolsCommentsGlobalAction::kTooltip;
+constexpr const int ImportSymbolsCommentsGlobalAction::kIcon;
+
 void InitActions() {
   const int bindiff_icon_id =
       load_custom_icon(kBinDiffIcon.data(), kBinDiffIcon.size(), "png");
@@ -1123,9 +1141,7 @@ void InitActions() {
       "bindiff:save_results", "Save ~B~inDiff results...", /*shortcut=*/"",
       /*tooltip=*/nullptr, /*icon=*/-1));
 
-  register_action(PortCommentsAction::MakeActionDesc(
-      "bindiff:port_comments", "Im~p~ort symbols/comments...",
-      /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
+  register_action(ImportSymbolsCommentsGlobalAction::MakeActionDesc());
 
   register_action(ShowMatchedAction::MakeActionDesc(
       "bindiff:show_matched", "~M~atched functions", /*shortcut=*/"",
@@ -1140,32 +1156,7 @@ void InitActions() {
       "bindiff:show_secondary_unmatched", "~S~econdary unmatched",
       /*shortcut=*/"", /*tooltip=*/nullptr, /*icon=*/-1));
 
-  // Matched Functions chooser
-  register_action(DeleteMatchesAction::MakeActionDesc(
-      MatchedFunctionsChooser::kDeleteAction, "~D~elete match(es)", "DEL",
-      /*tooltip=*/nullptr, /*icon=*/-1));
-  register_action(ViewFlowGraphsAction::MakeActionDesc(
-      MatchedFunctionsChooser::kViewFlowGraphsAction, "~V~iew flow graphs",
-      /*shortcut=*/"",
-      /*tooltip=*/nullptr, /*icon=*/-1));
-  register_action(PortCommentsAction::MakeActionDesc(
-      MatchedFunctionsChooser::kImportSymbolsCommentsAction,
-      "Im~p~ort symbols/comments", /*shortcut=*/"",
-      /*tooltip=*/nullptr, /*icon=*/-1));
-  register_action(PortCommentsAction::MakeActionDesc(
-      MatchedFunctionsChooser::kImportSymbolsCommentsExternalAction,
-      "Import symbols/comments as ~e~xternal library", /*shortcut=*/"",
-      /*tooltip=*/nullptr, /*icon=*/-1));
-  register_action(ConfirmMatchesAction::MakeActionDesc(
-      MatchedFunctionsChooser::kConfirmMatchesAction, "~C~onfirm match(es)",
-      /*shortcut=*/"",
-      /*tooltip=*/nullptr, /*icon=*/-1));
-  register_action(CopyAddressAction::MakeActionDesc(
-      MatchedFunctionsChooser::kCopyPrimaryAddressAction,
-      "Copy primary address", /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
-  register_action(CopyAddressAction::MakeActionDesc(
-      MatchedFunctionsChooser::kCopySecondaryAddressAction,
-      "Copy secondary address", /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+  MatchedFunctionsChooser::RegisterActions();
 
   // Unmatched choosers
   register_action(CopyAddressAction::MakeActionDesc(
