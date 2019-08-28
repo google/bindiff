@@ -24,6 +24,7 @@
 #include "third_party/absl/flags/flag.h"
 #include "third_party/absl/flags/internal/usage.h"
 #include "third_party/absl/flags/parse.h"
+#include "third_party/absl/flags/usage.h"
 #include "third_party/absl/flags/usage_config.h"
 #include "third_party/absl/strings/match.h"
 #endif  // GOOGLE
@@ -577,8 +578,7 @@ int BinDiffMain(int argc, char** argv) {
 #ifdef GOOGLE
   InitGoogle(usage.c_str(), &argc, &argv, /*remove_flags=*/true);
 #else
-  // TODO(cblichmann): Use internal API until Abseil finalizes it.
-  absl::flags_internal::SetProgramUsageMessage(usage);
+  absl::SetProgramUsageMessage(usage);
   InstallFlagsUsageConfig();
   absl::ParseCommandLine(argc, argv);
 
@@ -594,8 +594,8 @@ int BinDiffMain(int argc, char** argv) {
     auto config = GetConfig();
     not_absl::Status status =
         !absl::GetFlag(FLAGS_config).empty()
-            ? status = config->LoadFromFileWithDefaults(
-                  absl::GetFlag(FLAGS_config), std::string(kDefaultConfig))
+            ? config->LoadFromFileWithDefaults(absl::GetFlag(FLAGS_config),
+                                               std::string(kDefaultConfig))
             : InitConfig();
     if (!status.ok()) {
       throw std::runtime_error(std::string(status.message()));
@@ -690,10 +690,10 @@ int BinDiffMain(int argc, char** argv) {
            &infos, &instruction_cache);
     }
 
-    if (!done_something && ((!FileExists(absl::GetFlag(FLAGS_primary))) &&
-                            !IsDirectory(absl::GetFlag(FLAGS_primary))) ||
+    if ((!done_something && !FileExists(absl::GetFlag(FLAGS_primary)) &&
+         !IsDirectory(absl::GetFlag(FLAGS_primary))) ||
         (!absl::GetFlag(FLAGS_secondary).empty() &&
-         (!FileExists(absl::GetFlag(FLAGS_secondary))) &&
+         !FileExists(absl::GetFlag(FLAGS_secondary)) &&
          !IsDirectory(absl::GetFlag(FLAGS_secondary)))) {
       throw std::runtime_error(
           "Invalid inputs, --primary and --secondary must point to valid "
@@ -773,7 +773,9 @@ int BinDiffMain(int argc, char** argv) {
     }
 
     if (!done_something) {
-      absl::flags_internal::FlagsHelp(std::cout);
+      absl::flags_internal::FlagsHelp(
+          std::cout, "", absl::flags_internal::HelpFormat::kHumanReadable,
+          usage);
     }
   } catch (const std::exception& error) {
     PrintErrorMessage(absl::StrCat("Error: ", error.what()));
