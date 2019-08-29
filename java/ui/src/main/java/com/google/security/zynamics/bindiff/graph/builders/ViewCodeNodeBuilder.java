@@ -213,23 +213,23 @@ public class ViewCodeNodeBuilder {
       Color color,
       final StringBuffer line,
       final List<CStyleRunData> styleRun) {
-    if (current != null && color != null) {
-      if (current.size() != 0) {
-        final String part = current.toString();
-
-        styleRun.add(new CStyleRunData(line.length(), part.length(), color));
-        line.append(part);
-
-        try {
-          current.close();
-        } catch (final IOException e) {
-          // Ignore error on close
-        }
-        return true; // All good, stuff was appended, the caller can allocate new current etc
-      }
-      return false; // current had zero size, tell the caller to re-use and not look for a new color
+    if (current == null || color == null) {
+      return true; // Tell caller to reset stream and set color.
     }
-    return true; // If current or color was null, tell the caller to allocate new ones
+    if (current.size() == 0) {
+      return false; // Stream buffer empty, tell caller to reuse and not set a new color
+    }
+
+    final String part = current.toString();
+    styleRun.add(new CStyleRunData(line.length(), part.length(), color));
+    line.append(part);
+
+    try {
+      current.close();
+    } catch (final IOException e) {
+      // Ignore error on close
+    }
+    return true; // Caller should reset stream and set new color
   }
 
   private static void buildOperands(
@@ -237,14 +237,14 @@ public class ViewCodeNodeBuilder {
       final StringBuffer line,
       final List<CStyleRunData> styleRun) {
     final byte[] rawOperandBytes = instruction.getOperands();
-    ByteArrayOutputStream current = null;
+    final ByteArrayOutputStream current = new ByteArrayOutputStream();
     Color color = null;
 
     for (int b : rawOperandBytes) {
       if (b > 0 && b < EInstructionHighlighting.getSize()) {
         if (appendStyleRunData(current, color, line, styleRun)) {
           color = EInstructionHighlighting.getColor((byte) b);
-          current = new ByteArrayOutputStream();
+          current.reset();
         }
       } else {
         current.write(b);
