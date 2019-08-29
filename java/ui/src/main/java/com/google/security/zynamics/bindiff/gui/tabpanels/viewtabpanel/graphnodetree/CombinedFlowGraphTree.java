@@ -26,7 +26,6 @@ public class CombinedFlowGraphTree extends AbstractGraphNodeTree {
     super();
     Preconditions.checkNotNull(controller);
     Preconditions.checkNotNull(view);
-    Preconditions.checkNotNull(view);
     Preconditions.checkNotNull(combinedGraph);
     Preconditions.checkNotNull(searcher);
     Preconditions.checkNotNull(filter);

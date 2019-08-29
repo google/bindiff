@@ -19,8 +19,7 @@ public class CopyFunctionNameAction extends AbstractAction {
     Preconditions.checkNotNull(side);
 
     this.node = side == ESide.PRIMARY ? node.getPrimaryDiffNode() : node.getSecondaryDiffNode();
-
-    Preconditions.checkNotNull(node);
+    Preconditions.checkNotNull(this.node);
   }
 
   public CopyFunctionNameAction(final SingleDiffNode node) {

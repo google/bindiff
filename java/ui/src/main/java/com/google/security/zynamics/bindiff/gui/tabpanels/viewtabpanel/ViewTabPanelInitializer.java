@@ -52,8 +52,8 @@ public class ViewTabPanelInitializer {
     final int wNormal = normalViewPanel.getSize().width;
     final int hNormal = normalViewPanel.getSize().height;
 
-    final long w = Math.round(wNormal * (1 - GraphPanel.COMBINED_MAIN_DIVIDER_WIDTH));
-    final long h = Math.round(hNormal);
+    final long w = Math.round(wNormal * (1.0 - GraphPanel.COMBINED_MAIN_DIVIDER_WIDTH));
+    final long h = Math.round(hNormal * 1.0);
     combinedYView.setSize((int) w, (int) h);
     combinedYView.setPreferredSize(new Dimension((int) w, (int) h));
 

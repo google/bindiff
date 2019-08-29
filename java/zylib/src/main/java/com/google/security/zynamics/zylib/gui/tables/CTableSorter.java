@@ -1,9 +1,6 @@
-// TODO (jnewger): fix for BinDiff code base as well.
-
 package com.google.security.zynamics.zylib.gui.tables;
 
 import com.google.security.zynamics.zylib.general.comparators.LexicalComparator;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Graphics;
@@ -16,7 +13,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -28,7 +24,6 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
-
 
 /**
  * CTableSorter is a decorator for TableModels; adding sorting functionality to a supplied
@@ -422,7 +417,7 @@ public class CTableSorter extends AbstractTableModel {
     }
   }
 
-  // @SuppressWarnings("unchecked")
+  @SuppressWarnings("ComparableType")
   private class Row implements Comparable<Object> {
     protected int modelIndex;
 

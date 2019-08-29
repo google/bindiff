@@ -1,5 +1,3 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
-
 package com.google.security.zynamics.zylib.plugins;
 
 import java.io.File;
@@ -9,9 +7,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 public class ClassPathHacker {
-  private static final Class<?>[] parameters = new Class[] {URL.class};
-
-  /* File.toURL() was deprecated, so use File.toURI().toURL() */
   public static void addFile(final File f) {
     try {
       addURL(f.toURI().toURL());
@@ -29,8 +24,8 @@ public class ClassPathHacker {
   public static void addURL(final URL u) {
     final URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
     try {
-      /* Class was uncheched, so used URLClassLoader.class instead */
-      final Method method = URLClassLoader.class.getDeclaredMethod("addURL", parameters);
+      /* Class was unchecked, so use URLClassLoader.class instead */
+      final Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
       method.setAccessible(true);
       method.invoke(sysloader, new Object[] {u});
 

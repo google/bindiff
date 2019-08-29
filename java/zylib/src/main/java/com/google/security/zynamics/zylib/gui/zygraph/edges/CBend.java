@@ -1,8 +1,7 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
-
 package com.google.security.zynamics.zylib.gui.zygraph.edges;
 
 import com.google.security.zynamics.zylib.general.ListenerProvider;
+import java.util.Objects;
 
 public class CBend {
   private double m_x;
@@ -27,6 +26,11 @@ public class CBend {
 
     final CBend rhs = (CBend) object;
     return (Double.compare(rhs.m_x, m_x) == 0) && (Double.compare(rhs.m_y, m_y) == 0);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(m_x, m_y);
   }
 
   public double getX() {

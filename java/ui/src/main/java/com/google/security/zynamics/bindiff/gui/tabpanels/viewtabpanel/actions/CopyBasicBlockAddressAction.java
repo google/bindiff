@@ -22,8 +22,7 @@ public class CopyBasicBlockAddressAction extends AbstractAction {
     Preconditions.checkNotNull(side);
 
     this.node = side == ESide.PRIMARY ? node.getPrimaryDiffNode() : node.getSecondaryDiffNode();
-
-    Preconditions.checkNotNull(node);
+    Preconditions.checkNotNull(this.node);
   }
 
   public CopyBasicBlockAddressAction(final SingleDiffNode node) {
