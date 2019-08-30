@@ -10,6 +10,7 @@ import com.google.security.zynamics.bindiff.enums.EJumpType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
+import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCall;
@@ -368,8 +369,20 @@ public class BinExport2Reader {
       }
 
       for (final BinExport2.FlowGraph.Edge edge : flowGraph.getEdgeList()) {
-        final RawBasicBlock source = basicBlocks.get(edge.getSourceBasicBlockIndex());
-        final RawBasicBlock target = basicBlocks.get(edge.getTargetBasicBlockIndex());
+        final int sourceIndex = edge.getSourceBasicBlockIndex();
+        final RawBasicBlock source = basicBlocks.get(sourceIndex);
+        final int targetIndex = edge.getTargetBasicBlockIndex();
+        final RawBasicBlock target = basicBlocks.get(targetIndex);
+        if (source == null || target == null) {
+          Logger.logWarning(
+              "Incomplete %s flow graph edge (source %d%s, target %d%s)",
+              side == ESide.PRIMARY ? "primary" : "secondary",
+              sourceIndex,
+              source == null ? " missing" : "",
+              targetIndex,
+              target == null ? " missing" : "");
+          continue;
+        }
         jumps.add(new RawJump(source, target, toJumpType(edge.getType())));
       }
     }
