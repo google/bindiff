@@ -162,9 +162,9 @@ add_library(bindiff_shared STATIC
   call_graph_match_function_string_refs.h
   change_classifier.cc
   change_classifier.h
+  comments.h
   config.cc
   config.h
-  comments.h
   database_writer.cc
   database_writer.h
   differ.cc
@@ -175,18 +175,33 @@ add_library(bindiff_shared STATIC
   flow_graph.h
   flow_graph_match.cc
   flow_graph_match.h
+  flow_graph_match_basic_block_call_refs.cc
   flow_graph_match_basic_block_call_refs.h
+  flow_graph_match_basic_block_edges_lengauer_tarjan.cc
   flow_graph_match_basic_block_edges_lengauer_tarjan.h
+  flow_graph_match_basic_block_edges_mdindex.cc
   flow_graph_match_basic_block_edges_mdindex.h
+  flow_graph_match_basic_block_edges_prime.cc
   flow_graph_match_basic_block_edges_prime.h
+  flow_graph_match_basic_block_entry_node.cc
   flow_graph_match_basic_block_entry_node.h
+  flow_graph_match_basic_block_hash.cc
   flow_graph_match_basic_block_hash.h
+  flow_graph_match_basic_block_instruction_count.cc
   flow_graph_match_basic_block_instruction_count.h
+  flow_graph_match_basic_block_jump_sequence.cc
   flow_graph_match_basic_block_jump_sequence.h
+  flow_graph_match_basic_block_loop_entry.cc
   flow_graph_match_basic_block_loop_entry.h
+  flow_graph_match_basic_block_mdindex.cc
+  flow_graph_match_basic_block_mdindex.h
+  flow_graph_match_basic_block_mdindex_relaxed.cc
   flow_graph_match_basic_block_mdindex_relaxed.h
+  flow_graph_match_basic_block_prime.cc
   flow_graph_match_basic_block_prime.h
+  flow_graph_match_basic_block_self_loop.cc
   flow_graph_match_basic_block_self_loop.h
+  flow_graph_match_basic_block_string_refs.cc
   flow_graph_match_basic_block_string_refs.h
   groundtruth_writer.cc
   groundtruth_writer.h
@@ -208,10 +223,10 @@ add_library(bindiff_shared STATIC
   start_ui.h
   utility.cc
   utility.h
-  writer.cc
-  writer.h
   version.h
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
+  writer.cc
+  writer.h
 )
 target_link_libraries(bindiff_shared
   absl::flat_hash_map
