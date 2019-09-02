@@ -249,9 +249,22 @@ void Plugin::VisualDiff(uint32_t index, bool call_graph_diff) {
   }
 }
 
-void Plugin::DiscardResults() {
+bool Plugin::DiscardResults(Plugin::DiscardResultsKind kind) {
   if (!results_) {
-    return;
+    return true;
+  }
+
+  if (kind != DiscardResultsKind::kDontSave && results_->IsDirty()) {
+    const auto answer =
+        ask_yn(ASKBTN_YES,
+               "%sCurrent diff results have not been"
+               " saved - save before closing?",
+               kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
+    if (answer == ASKBTN_YES) {
+      DoSaveResults();
+    } else if (answer == ASKBTN_CANCEL) {
+      return false;
+    }
   }
 
   MatchedFunctionsChooser::Close();
@@ -260,19 +273,7 @@ void Plugin::DiscardResults() {
   StatisticsChooser::Close();
 
   results_.reset();
-}
-
-void Plugin::SaveAndDiscardResults() {
-  if (results_ && results_->IsDirty()) {
-    const auto answer = ask_yn(ASKBTN_YES,
-                               "HIDECANCEL\nCurrent diff results have not been"
-                               " saved - save before closing?");
-    if (answer == ASKBTN_YES) {  // Yes
-      DoSaveResults();
-    }
-  }
-
-  DiscardResults();
+  return true;
 }
 
 ssize_t idaapi ProcessorHook(void*, int event_id, va_list /*arguments*/) {
@@ -292,9 +293,9 @@ ssize_t idaapi IdbHook(void*, int event_id, va_list /*arguments*/) {
   switch (event_id) {
     case idb_event::closebase:
       // This is not strictly necessary as the "CloseBase" action will be caught
-      // in UiHook(). Action names are not guaranteed to be stable, take the
-      // last opportunity to ask whether to save the results.
-      Plugin::instance()->SaveAndDiscardResults();
+      // in UiHook(). Action names are not guaranteed to be stable, though, so
+      // take the last opportunity to ask whether to save the results.
+      Plugin::instance()->DiscardResults(Plugin::DiscardResultsKind::kAskSave);
       break;
   }
   return 0;
@@ -302,39 +303,6 @@ ssize_t idaapi IdbHook(void*, int event_id, va_list /*arguments*/) {
 
 ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
   switch (event_id) {
-    case ui_preprocess_action: {
-      absl::string_view name(va_arg(arguments, const char*));
-      if (name == "LoadFile" || name == "NewFile" || name == "CloseBase" ||
-          name == "Quit") {
-        auto* results = Plugin::instance()->results();
-        // TODO(cblichmann): Merge with SaveAndDiscardResults()
-        if (results && results->IsDirty()) {
-          const int answer = ask_yn(ASKBTN_YES,
-                                    "Current diff results have not been saved -"
-                                    " save before closing?");
-          if (answer == ASKBTN_YES) {
-            // Yes
-            DoSaveResults();
-          } else if (answer == ASKBTN_CANCEL) {
-            // Cancel
-            // Return that we handled the command ourselves, this will
-            // not even show IDA's close dialog
-            return 1;
-          }
-        }
-        // Delete old results if they weren't dirty or if the user
-        // saved/discarded them
-        Plugin::instance()->DiscardResults();
-
-        // After our "Save results?" confirmation dialog IDA will open its own
-        // confirmation. The user can cancel in that dialog. So a "bad" sequence
-        // of events is: don't save diff results, but cancel the closing
-        // operation in the following IDA dialog. In an ideal world the diff
-        // results would be back. As it is we lose the results but at least
-        // leave windows/internal data structures in a consistent state.
-      }
-      break;
-    }
     case ui_finish_populating_widget_popup: {
       auto* widget = va_arg(arguments, TWidget*);
       auto* popup_handle = va_arg(arguments, TPopupMenu*);
@@ -407,7 +375,7 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
 
 bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
                       ea_t start_address_target, ea_t end_address_target) {
-  Plugin::instance()->DiscardResults();
+  Plugin::instance()->DiscardResults(Plugin::DiscardResultsKind::kDontSave);
   Timer<> timer;
   if (!ExportIdbs()) {
     return false;
@@ -491,17 +459,9 @@ bool DoRediffDatabase() {
 
 bool DoDiffDatabase(bool filtered) {
   try {
-    auto* results = Plugin::instance()->results();
-    // TODO(cblichmann): Merge with SaveAndDiscardResults()
-    if (results && results->IsDirty()) {
-      const int answer = ask_yn(
-          ASKBTN_YES,
-          "Current diff results have not been saved - save before closing?");
-      if (answer == ASKBTN_YES) {
-        DoSaveResults();
-      } else if (answer == ASKBTN_CANCEL) {  // cancel
-        return false;
-      }
+    if (!Plugin::instance()->DiscardResults(
+            Plugin::DiscardResultsKind::kAskSaveCancellable)) {
+      return false;
     }
 
     // Default to full address range
@@ -1262,9 +1222,9 @@ void Plugin::Terminate() {
 
   if (init_done_) {
     TermMenus();
-    SaveAndDiscardResults();
+    DiscardResults(DiscardResultsKind::kAskSave);
   } else {
-    DiscardResults();
+    DiscardResults(DiscardResultsKind::kDontSave);
   }
 
   ShutdownLogging();
@@ -1362,7 +1322,7 @@ bool Plugin::Run(size_t /* argument */) {
     if (sha256_or.ValueOrDie() !=
         absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
-      DiscardResults();
+      DiscardResults(DiscardResultsKind::kDontSave);
     }
   }
 

@@ -19,6 +19,12 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
     kResultsShowAll = 0xffffffff
   };
 
+  enum class DiscardResultsKind {
+    kDontSave,
+    kAskSave,
+    kAskSaveCancellable,
+  };
+
   static constexpr char kComment[] =
       "Structural comparison of executable objects";  // Status line
   static constexpr char kHotKey[] = "CTRL-6";
@@ -33,8 +39,7 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
 
   void VisualDiff(uint32_t index, bool call_graph_diff);
 
-  void DiscardResults();
-  void SaveAndDiscardResults();
+  bool DiscardResults(DiscardResultsKind kind);
 
   int Init() override;
   void InitActions();
