@@ -14,8 +14,8 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.IMatchedFunctionsViewsTableListener;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.MatchedFunctionViewsTable;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.MatchedFunctionsViewsTableModel;
+import com.google.security.zynamics.bindiff.project.diff.CountsChangedListener;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffChangeAdapter;
 import com.google.security.zynamics.bindiff.project.helpers.GraphGetter;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
@@ -46,10 +46,10 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
 
   private final MatchedFunctionViewsFilterPanel filterPanel;
 
-  private final AddedAndRemovedCalledFunctionsPanel callerAndCallesPanel;
+  private final AddedAndRemovedCalledFunctionsPanel callerAndCalleesPanel;
 
   private final JumpMatchesPie3dPanel jumpsPiePanel;
-  private final BasicBlockMatchesPie3dPanel basicblocksPiePanel;
+  private final BasicBlockMatchesPie3dPanel basicBlocksPiePanel;
   private final InstructionMatchesPie3dPanel instructionsPiePanel;
   private final SimilarityBarChart2dPanel similarityBarChartPanel;
 
@@ -59,8 +59,8 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
   private final InternalViewsTableListener tableListener = new InternalViewsTableListener();
   private final InternalFilterCheckboxListener filterCheckboxListener =
       new InternalFilterCheckboxListener();
-  private final InternalFlowgraphCachedCountsListener countsChangeListener =
-      new InternalFlowgraphCachedCountsListener();
+  private final InternalFlowGraphCachedCountsListener countsChangeListener =
+      new InternalFlowGraphCachedCountsListener();
 
   public MatchedFunctionsTreeNodeContextPanel(
       final WorkspaceTabPanelFunctions controller, final Diff diff) {
@@ -68,7 +68,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
 
     this.diff = diff;
 
-    basicblocksPiePanel = new BasicBlockMatchesPie3dPanel(diff, false);
+    basicBlocksPiePanel = new BasicBlockMatchesPie3dPanel(diff, false);
     jumpsPiePanel = new JumpMatchesPie3dPanel(diff, false);
     instructionsPiePanel = new InstructionMatchesPie3dPanel(diff, false);
     similarityBarChartPanel = new SimilarityBarChart2dPanel(diff.getMetaData());
@@ -77,7 +77,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
     matchedFunctionsTable = new MatchedFunctionViewsTable(matchedFunctionsTableModel, controller);
 
     filterPanel = new MatchedFunctionViewsFilterPanel(matchedFunctionsTable);
-    callerAndCallesPanel =
+    callerAndCalleesPanel =
         new AddedAndRemovedCalledFunctionsPanel(diff, controller, matchedFunctionsTable);
 
     filterPanel.addListener(filterCheckboxListener);
@@ -101,7 +101,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
     final JPanel chartsPanel = new JPanel(new GridLayout(1, 4, 0, 0));
     overviewBorderPanel.add(chartsPanel, BorderLayout.CENTER);
 
-    chartsPanel.add(basicblocksPiePanel);
+    chartsPanel.add(basicBlocksPiePanel);
     chartsPanel.add(jumpsPiePanel);
     chartsPanel.add(instructionsPiePanel);
     chartsPanel.add(similarityBarChartPanel);
@@ -140,7 +140,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
     splitPane.setTopComponent(overviewPanel);
     splitPane.setBottomComponent(innerSplitPane);
     innerSplitPane.setTopComponent(tablePanel);
-    innerSplitPane.setBottomComponent(callerAndCallesPanel);
+    innerSplitPane.setBottomComponent(callerAndCalleesPanel);
 
     add(splitPane, BorderLayout.CENTER);
   }
@@ -218,7 +218,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
       confidences.add(functionMatch.getConfidence());
     }
 
-    basicblocksPiePanel.updateDataset(
+    basicBlocksPiePanel.updateDataset(
         matchedBasicblocks, primaryUnmatchedBasicblocks, secondaryUnmatchedBasicblocks);
     jumpsPiePanel.updateDataset(matchedJumps, primaryUnmatchedJumps, secondaryUnmatchedJumps);
     instructionsPiePanel.updateDataset(
@@ -277,9 +277,9 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
     }
   }
 
-  private class InternalFlowgraphCachedCountsListener extends DiffChangeAdapter {
+  private class InternalFlowGraphCachedCountsListener extends CountsChangedListener {
     @Override
-    public void basicblocksCountChanged() {
+    public void basicBlocksCountChanged() {
       updateCharts(matchedFunctionsTable);
     }
 

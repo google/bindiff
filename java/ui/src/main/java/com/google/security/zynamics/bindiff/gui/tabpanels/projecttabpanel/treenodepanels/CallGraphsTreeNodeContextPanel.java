@@ -16,8 +16,8 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.CallGraphViewTable;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.CallGraphViewTableModel;
+import com.google.security.zynamics.bindiff.project.diff.CountsChangedListener;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffChangeAdapter;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
@@ -36,12 +36,12 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
-  private static final int TEXTFIELDHEIGHT = 25;
-  private static final int TEXTFIELDLABELWIDTH = 100;
+  private static final int TEXTFIELD_HEIGHT = 25;
+  private static final int TEXTFIELD_LABEL_WIDTH = 100;
 
   private final Diff diff;
 
-  private final CallGraphViewTable callgraphTable;
+  private final CallGraphViewTable callGraphTable;
 
   private final InternalFlowgraphCachedCountsListener countsChangeListener =
       new InternalFlowgraphCachedCountsListener();
@@ -52,8 +52,8 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
   private PercentageTwoBarExtendedLabel primaryCalls;
   private PercentageTwoBarExtendedLabel secondaryCalls;
 
-  private PercentageTwoBarLabel primaryBasicblocks;
-  private PercentageTwoBarLabel secondaryBasicblocks;
+  private PercentageTwoBarLabel primaryBasicBlocks;
+  private PercentageTwoBarLabel secondaryBasicBlocks;
 
   private PercentageTwoBarLabel primaryJumps;
   private PercentageTwoBarLabel secondaryJumps;
@@ -66,7 +66,7 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
     Preconditions.checkNotNull(diff);
 
     this.diff = diff;
-    callgraphTable = new CallGraphViewTable(new CallGraphViewTableModel(diff), controller);
+    callGraphTable = new CallGraphViewTable(new CallGraphViewTableModel(diff), controller);
 
     init();
     diff.getMetaData().addListener(countsChangeListener);
@@ -113,14 +113,14 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
             Colors.MATCHED_LABEL_BAR,
             Colors.TABLE_CELL_CHANGED_BACKGROUND,
             Colors.UNMATCHED_PRIMARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
     secondaryFunctions =
         new PercentageTwoBarExtendedLabel(
             secondaryMatchedFunctionsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.TABLE_CELL_CHANGED_BACKGROUND,
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
 
     final int matchedCalls = matches.getSizeOfMatchedCalls();
     final int changedCalls = matches.getSizeOfChangedCalls();
@@ -136,35 +136,35 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
             Colors.MATCHED_LABEL_BAR,
             Colors.TABLE_CELL_CHANGED_BACKGROUND,
             Colors.UNMATCHED_PRIMARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
     secondaryCalls =
         new PercentageTwoBarExtendedLabel(
             secondaryCallsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.TABLE_CELL_CHANGED_BACKGROUND,
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
 
-    final int matchedBasicblocks = matches.getSizeOfMatchedBasicblocks();
-    final int primaryUnmatchedBasicblocks = matches.getSizeOfUnmatchedBasicblocks(ESide.PRIMARY);
-    final int secondaryUnmatchedBasicblocks =
-        matches.getSizeOfUnmatchedBasicblocks(ESide.SECONDARY);
-    final PercentageTwoBarCellData primaryMatchedBasicblocksData =
-        new PercentageTwoBarCellData(matchedBasicblocks, primaryUnmatchedBasicblocks);
-    final PercentageTwoBarCellData secondaryMatchedBasicblocksData =
-        new PercentageTwoBarCellData(matchedBasicblocks, secondaryUnmatchedBasicblocks);
-    primaryBasicblocks =
+    final int matchedBasicBlocks = matches.getSizeOfMatchedBasicblocks();
+    final int primaryUnmatchedBasicBlocks = matches.getSizeOfUnmatchedBasicBlocks(ESide.PRIMARY);
+    final int secondaryUnmatchedBasicBlocks =
+        matches.getSizeOfUnmatchedBasicBlocks(ESide.SECONDARY);
+    final PercentageTwoBarCellData primaryMatchedBasicBlocksData =
+        new PercentageTwoBarCellData(matchedBasicBlocks, primaryUnmatchedBasicBlocks);
+    final PercentageTwoBarCellData secondaryMatchedBasicBlocksData =
+        new PercentageTwoBarCellData(matchedBasicBlocks, secondaryUnmatchedBasicBlocks);
+    primaryBasicBlocks =
         new PercentageTwoBarLabel(
-            primaryMatchedBasicblocksData,
+            primaryMatchedBasicBlocksData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_PRIMARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
-    secondaryBasicblocks =
+            TEXTFIELD_HEIGHT);
+    secondaryBasicBlocks =
         new PercentageTwoBarLabel(
-            secondaryMatchedBasicblocksData,
+            secondaryMatchedBasicBlocksData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
 
     final int matchedJumps = matches.getSizeOfMatchedJumps();
     final int primaryUnmatchedJumps = matches.getSizeOfUnmatchedJumps(ESide.PRIMARY);
@@ -178,13 +178,13 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
             primaryMatchedJumpsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_PRIMARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
     secondaryJumps =
         new PercentageTwoBarLabel(
             secondaryMatchedJumpsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
 
     final int matchedInstructions = matches.getSizeOfMatchedInstructions();
     final int primaryUnmatchedInstructins = matches.getSizeOfUnmatchedInstructions(ESide.PRIMARY);
@@ -199,13 +199,13 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
             primaryMatchedInstructionsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_PRIMARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
     secondaryInstructions =
         new PercentageTwoBarLabel(
             secondaryMatchedInstructionsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
 
     final JLabel primaryName = new JLabel(diff.getMetaData().getImageName(ESide.PRIMARY));
     final JLabel secondaryName = new JLabel(diff.getMetaData().getImageName(ESide.SECONDARY));
@@ -220,22 +220,22 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
     primaryPanel.setBackground(Color.WHITE);
     primaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Image Name", TEXTFIELDLABELWIDTH, primaryName, TEXTFIELDHEIGHT));
+            "Image Name", TEXTFIELD_LABEL_WIDTH, primaryName, TEXTFIELD_HEIGHT));
     primaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Functions", TEXTFIELDLABELWIDTH, primaryFunctions, TEXTFIELDHEIGHT));
+            "Functions", TEXTFIELD_LABEL_WIDTH, primaryFunctions, TEXTFIELD_HEIGHT));
     primaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Calls", TEXTFIELDLABELWIDTH, primaryCalls, TEXTFIELDHEIGHT));
+            "Calls", TEXTFIELD_LABEL_WIDTH, primaryCalls, TEXTFIELD_HEIGHT));
     primaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Basic Blocks", TEXTFIELDLABELWIDTH, primaryBasicblocks, TEXTFIELDHEIGHT));
+            "Basic Blocks", TEXTFIELD_LABEL_WIDTH, primaryBasicBlocks, TEXTFIELD_HEIGHT));
     primaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Jumps", TEXTFIELDLABELWIDTH, primaryJumps, TEXTFIELDHEIGHT));
+            "Jumps", TEXTFIELD_LABEL_WIDTH, primaryJumps, TEXTFIELD_HEIGHT));
     primaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Instructions", TEXTFIELDLABELWIDTH, primaryInstructions, TEXTFIELDHEIGHT));
+            "Instructions", TEXTFIELD_LABEL_WIDTH, primaryInstructions, TEXTFIELD_HEIGHT));
 
     primaryOuterPanel.add(primaryPanel, BorderLayout.CENTER);
 
@@ -247,22 +247,22 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
     secondaryPanel.setBackground(Color.WHITE);
     secondaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Image Name", TEXTFIELDLABELWIDTH, secondaryName, TEXTFIELDHEIGHT));
+            "Image Name", TEXTFIELD_LABEL_WIDTH, secondaryName, TEXTFIELD_HEIGHT));
     secondaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Functions", TEXTFIELDLABELWIDTH, secondaryFunctions, TEXTFIELDHEIGHT));
+            "Functions", TEXTFIELD_LABEL_WIDTH, secondaryFunctions, TEXTFIELD_HEIGHT));
     secondaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Calls", TEXTFIELDLABELWIDTH, secondaryCalls, TEXTFIELDHEIGHT));
+            "Calls", TEXTFIELD_LABEL_WIDTH, secondaryCalls, TEXTFIELD_HEIGHT));
     secondaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Basic Blocks", TEXTFIELDLABELWIDTH, secondaryBasicblocks, TEXTFIELDHEIGHT));
+            "Basic Blocks", TEXTFIELD_LABEL_WIDTH, secondaryBasicBlocks, TEXTFIELD_HEIGHT));
     secondaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Jumps", TEXTFIELDLABELWIDTH, secondaryJumps, TEXTFIELDHEIGHT));
+            "Jumps", TEXTFIELD_LABEL_WIDTH, secondaryJumps, TEXTFIELD_HEIGHT));
     secondaryPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Instructions", TEXTFIELDLABELWIDTH, secondaryInstructions, TEXTFIELDHEIGHT));
+            "Instructions", TEXTFIELD_LABEL_WIDTH, secondaryInstructions, TEXTFIELD_HEIGHT));
 
     secondaryOuterPanel.add(secondaryPanel, BorderLayout.CENTER);
 
@@ -273,16 +273,14 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
   }
 
   private JPanel createTablePanel() {
-    callgraphTable.setPreferredSize(new Dimension(callgraphTable.getPreferredSize().width, 40));
-
-    final JScrollPane callgraphScrollpane = new JScrollPane(callgraphTable);
-    callgraphScrollpane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+    final JScrollPane callGraphScrollPane = new JScrollPane(callGraphTable);
+    callGraphScrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 
     final JPanel tablePanel = new JPanel(new BorderLayout());
-    tablePanel.setBorder(new TitledBorder(String.format("%d Call Graph View", 1)));
+    tablePanel.setBorder(new TitledBorder("Call Graph View"));
 
-    tablePanel.add(callgraphScrollpane, BorderLayout.CENTER);
-    tablePanel.setPreferredSize(new Dimension(tablePanel.getPreferredSize().width, 60));
+    tablePanel.add(callGraphScrollPane, BorderLayout.CENTER);
+    tablePanel.setPreferredSize(new Dimension(tablePanel.getPreferredSize().width, 70));
 
     return tablePanel;
   }
@@ -303,22 +301,22 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
   @Override
   public List<AbstractTable> getTables() {
     final List<AbstractTable> list = new ArrayList<>();
-    list.add(callgraphTable);
+    list.add(callGraphTable);
     return list;
   }
 
-  private class InternalFlowgraphCachedCountsListener extends DiffChangeAdapter {
+  private class InternalFlowgraphCachedCountsListener extends CountsChangedListener {
     @Override
-    public void basicblocksCountChanged() {
+    public void basicBlocksCountChanged() {
       final MatchData matches = diff.getMatches();
 
       final int matchedBasicblocks = matches.getSizeOfMatchedBasicblocks();
-      final int primaryUnmatchedBasicblocks = matches.getSizeOfUnmatchedBasicblocks(ESide.PRIMARY);
+      final int primaryUnmatchedBasicblocks = matches.getSizeOfUnmatchedBasicBlocks(ESide.PRIMARY);
       final int secondaryUnmatchedBasicblocks =
-          matches.getSizeOfUnmatchedBasicblocks(ESide.SECONDARY);
+          matches.getSizeOfUnmatchedBasicBlocks(ESide.SECONDARY);
 
-      primaryBasicblocks.updateData(matchedBasicblocks, primaryUnmatchedBasicblocks);
-      secondaryBasicblocks.updateData(matchedBasicblocks, secondaryUnmatchedBasicblocks);
+      primaryBasicBlocks.updateData(matchedBasicblocks, primaryUnmatchedBasicblocks);
+      secondaryBasicBlocks.updateData(matchedBasicblocks, secondaryUnmatchedBasicblocks);
     }
 
     @Override

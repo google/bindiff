@@ -68,10 +68,10 @@ public class MatchedFunctionsViewsTableModel extends AbstractTableModel {
     super(diff);
 
     if (fillupTableData) {
-      final RawCallGraph priCallgraph = diff.getCallGraph(ESide.PRIMARY);
-      final RawCallGraph secCallgraph = diff.getCallGraph(ESide.SECONDARY);
+      final RawCallGraph priCallGraph = diff.getCallGraph(ESide.PRIMARY);
+      final RawCallGraph secCallGraph = diff.getCallGraph(ESide.SECONDARY);
 
-      setMatchedFunctionPairs(GraphGetter.getChangedFunctionPairs(priCallgraph, secCallgraph));
+      setMatchedFunctionPairs(GraphGetter.getChangedFunctionPairs(priCallGraph, secCallGraph));
     }
 
     initSorters();
@@ -148,7 +148,7 @@ public class MatchedFunctionsViewsTableModel extends AbstractTableModel {
     final int pUJps = primaryFunction.getSizeOfJumps() - mJps;
     final int sUJps = secondaryFunction.getSizeOfJumps() - mJps;
 
-    final PercentageThreeBarCellData basicblocks =
+    final PercentageThreeBarCellData basicBlocks =
         new PercentageThreeBarCellData(pUBbs, mBbs, sUBbs, getColumnSortRelevance(col));
     final PercentageThreeBarCellData jumps =
         new PercentageThreeBarCellData(pUJps, mJps, sUJps, getColumnSortRelevance(col));
@@ -163,7 +163,7 @@ public class MatchedFunctionsViewsTableModel extends AbstractTableModel {
       case PRIMARY_TYPE:
         return primaryFunction.getFunctionType();
       case BASICBLOCK_MATCHES:
-        return basicblocks;
+        return basicBlocks;
       case SIMILARITY:
         return MatchesGetter.getFunctionMatch(getDiff(), primaryFunction).getSimilarity();
       case CONFIDENCE:

@@ -9,6 +9,7 @@ import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
+import java.awt.Font;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -28,7 +29,7 @@ public class FunctionDiffViewsTable extends AbstractTable {
     final TableColumn viewName = model.getColumn(FunctionDiffViewsTableModel.VIEWNAME);
     final TableColumn primaryAddr = model.getColumn(FunctionDiffViewsTableModel.PRIMARY_ADDRESS);
     final TableColumn primaryName = model.getColumn(FunctionDiffViewsTableModel.PRIMARY_NAME);
-    final TableColumn basicblockMatches =
+    final TableColumn basicBlockMatches =
         model.getColumn(FunctionDiffViewsTableModel.BASICBLOCK_MATCHES);
     final TableColumn similarity = model.getColumn(FunctionDiffViewsTableModel.SIMILARITY);
     final TableColumn confidence = model.getColumn(FunctionDiffViewsTableModel.CONFIDENCE);
@@ -40,7 +41,7 @@ public class FunctionDiffViewsTable extends AbstractTable {
     viewName.setMinWidth(80);
     primaryAddr.setMinWidth(68);
     primaryName.setMinWidth(50);
-    basicblockMatches.setMinWidth(75);
+    basicBlockMatches.setMinWidth(75);
     similarity.setMinWidth(40);
     confidence.setMinWidth(40);
     jumpMatches.setMinWidth(75);
@@ -50,25 +51,29 @@ public class FunctionDiffViewsTable extends AbstractTable {
     viewName.setPreferredWidth(300);
     primaryAddr.setPreferredWidth(60);
     primaryName.setPreferredWidth(150);
-    basicblockMatches.setPreferredWidth(75);
+    basicBlockMatches.setPreferredWidth(75);
     similarity.setPreferredWidth(60);
     confidence.setPreferredWidth(60);
     jumpMatches.setPreferredWidth(75);
     secondaryName.setPreferredWidth(150);
     secondaryAddr.setPreferredWidth(60);
 
+    setRowHeight(GuiHelper.getMonospacedFontMetrics().getHeight() + 4);
+
     final SimilarityConfidenceCellRenderer similarityConfidenceRenderer =
         new SimilarityConfidenceCellRenderer();
     similarity.setCellRenderer(similarityConfidenceRenderer);
     confidence.setCellRenderer(similarityConfidenceRenderer);
 
-    final BackgroundCellRenderer whiteBackgroundRenderer =
+    final Font monospacedFont = GuiHelper.getMonospacedFont();
+    final BackgroundCellRenderer monospacedTextRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
-    viewName.setCellRenderer(whiteBackgroundRenderer);
+            monospacedFont, Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+    viewName.setCellRenderer(monospacedTextRenderer);
+
     final BackgroundCellRenderer primaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(),
+            monospacedFont,
             Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND,
             Colors.GRAY32,
             SwingConstants.LEFT);
@@ -77,31 +82,22 @@ public class FunctionDiffViewsTable extends AbstractTable {
 
     final BackgroundCellRenderer secondaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(),
+            monospacedFont,
             Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND,
             Colors.GRAY32,
             SwingConstants.LEFT);
     secondaryAddr.setCellRenderer(secondaryBackgroundRenderer);
     secondaryName.setCellRenderer(secondaryBackgroundRenderer);
 
-    final PercentageThreeBarCellRenderer basicblocksCellRenderer =
+    final PercentageThreeBarCellRenderer matchesRenderer =
         new PercentageThreeBarCellRenderer(
             Colors.TABLE_CELL_PRIMARY_UNMATCHED_BACKGROUND,
             Colors.TABLE_CELL_MATCHED_BACKGROUND,
             Colors.TABLE_CELL_SECONDARY_UNMATCHED_BACKGROUND,
             Colors.TABLE_CELL_MATCHED_BACKGROUND,
             Colors.GRAY32);
-
-    basicblockMatches.setCellRenderer(basicblocksCellRenderer);
-
-    final PercentageThreeBarCellRenderer jumpsCellRenderer =
-        new PercentageThreeBarCellRenderer(
-            Colors.TABLE_CELL_PRIMARY_UNMATCHED_BACKGROUND,
-            Colors.TABLE_CELL_MATCHED_BACKGROUND,
-            Colors.TABLE_CELL_SECONDARY_UNMATCHED_BACKGROUND,
-            Colors.TABLE_CELL_MATCHED_BACKGROUND,
-            Colors.GRAY32);
-    jumpMatches.setCellRenderer(jumpsCellRenderer);
+    basicBlockMatches.setCellRenderer(matchesRenderer);
+    jumpMatches.setCellRenderer(matchesRenderer);
   }
 
   @Override

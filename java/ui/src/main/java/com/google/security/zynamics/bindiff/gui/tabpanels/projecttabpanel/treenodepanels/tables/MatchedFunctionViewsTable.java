@@ -13,12 +13,14 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.tables.CTableSorter;
+import java.awt.Font;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 
 public class MatchedFunctionViewsTable extends AbstractTable {
   private final ListenerProvider<IMatchedFunctionsViewsTableListener> listeners =
@@ -48,7 +50,7 @@ public class MatchedFunctionViewsTable extends AbstractTable {
         model.getColumn(MatchedFunctionsViewsTableModel.PRIMARY_ADDRESS);
     final TableColumn primaryName = model.getColumn(MatchedFunctionsViewsTableModel.PRIMARY_NAME);
     final TableColumn primaryType = model.getColumn(MatchedFunctionsViewsTableModel.PRIMARY_TYPE);
-    final TableColumn basicblockMatches =
+    final TableColumn basicBlockMatches =
         model.getColumn(MatchedFunctionsViewsTableModel.BASICBLOCK_MATCHES);
     final TableColumn similarity = model.getColumn(MatchedFunctionsViewsTableModel.SIMILARITY);
     final TableColumn confidence = model.getColumn(MatchedFunctionsViewsTableModel.CONFIDENCE);
@@ -64,7 +66,7 @@ public class MatchedFunctionViewsTable extends AbstractTable {
     primaryAddr.setMinWidth(68);
     primaryName.setMinWidth(55);
     primaryType.setMinWidth(35);
-    basicblockMatches.setMinWidth(75);
+    basicBlockMatches.setMinWidth(75);
     similarity.setMinWidth(40);
     confidence.setMinWidth(40);
     jumpMatches.setMinWidth(75);
@@ -77,7 +79,7 @@ public class MatchedFunctionViewsTable extends AbstractTable {
     primaryAddr.setPreferredWidth(60);
     primaryName.setPreferredWidth(200);
     primaryType.setPreferredWidth(35);
-    basicblockMatches.setPreferredWidth(75);
+    basicBlockMatches.setPreferredWidth(75);
     similarity.setPreferredWidth(60);
     confidence.setPreferredWidth(60);
     jumpMatches.setPreferredWidth(75);
@@ -85,31 +87,29 @@ public class MatchedFunctionViewsTable extends AbstractTable {
     secondaryName.setPreferredWidth(200);
     secondaryAddr.setPreferredWidth(60);
 
-    final IconCellRenderer iconRenderer = new IconCellRenderer();
-    icon.setCellRenderer(iconRenderer);
+    setRowHeight(GuiHelper.getMonospacedFontMetrics().getHeight() + 4);
+
+    icon.setCellRenderer(new IconCellRenderer());
 
     final SimilarityConfidenceCellRenderer similarityConfidenceRenderer =
         new SimilarityConfidenceCellRenderer();
     similarity.setCellRenderer(similarityConfidenceRenderer);
     confidence.setCellRenderer(similarityConfidenceRenderer);
 
-    final BackgroundCellRenderer primaryBackgroundRenderer =
+    final Font monospacedFont = GuiHelper.getMonospacedFont();
+    final BackgroundCellRenderer monospacedTextRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
-    primaryAddr.setCellRenderer(primaryBackgroundRenderer);
-    primaryName.setCellRenderer(primaryBackgroundRenderer);
-
-    final BackgroundCellRenderer secondaryBackgroundRenderer =
-        new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
-    secondaryAddr.setCellRenderer(secondaryBackgroundRenderer);
-    secondaryName.setCellRenderer(secondaryBackgroundRenderer);
+            monospacedFont, Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
+    primaryAddr.setCellRenderer(monospacedTextRenderer);
+    primaryName.setCellRenderer(monospacedTextRenderer);
+    secondaryAddr.setCellRenderer(monospacedTextRenderer);
+    secondaryName.setCellRenderer(monospacedTextRenderer);
 
     final FunctionTypeCellRenderer functionTypeRenderer = new FunctionTypeCellRenderer();
     primaryType.setCellRenderer(functionTypeRenderer);
     secondaryType.setCellRenderer(functionTypeRenderer);
 
-    final PercentageThreeBarCellRenderer basicblocksCellRenderer =
+    final PercentageThreeBarCellRenderer matchesRenderer =
         new PercentageThreeBarCellRenderer(
             Colors.TABLE_CELL_PRIMARY_UNMATCHED_BACKGROUND,
             Colors.TABLE_CELL_MATCHED_BACKGROUND,
@@ -117,17 +117,8 @@ public class MatchedFunctionViewsTable extends AbstractTable {
             Colors.TABLE_CELL_MATCHED_BACKGROUND,
             Colors.GRAY32);
 
-    basicblockMatches.setCellRenderer(basicblocksCellRenderer);
-
-    final PercentageThreeBarCellRenderer jumpsCellRenderer =
-        new PercentageThreeBarCellRenderer(
-            Colors.TABLE_CELL_PRIMARY_UNMATCHED_BACKGROUND,
-            Colors.TABLE_CELL_MATCHED_BACKGROUND,
-            Colors.TABLE_CELL_SECONDARY_UNMATCHED_BACKGROUND,
-            Colors.TABLE_CELL_MATCHED_BACKGROUND,
-            Colors.GRAY32);
-
-    jumpMatches.setCellRenderer(jumpsCellRenderer);
+    basicBlockMatches.setCellRenderer(matchesRenderer);
+    jumpMatches.setCellRenderer(matchesRenderer);
   }
 
   @Override
@@ -137,19 +128,16 @@ public class MatchedFunctionViewsTable extends AbstractTable {
 
   @Override
   protected void handleDoubleClick(final int row) {
+    final TableModel m = getTableModel();
     final IAddress primaryAddr =
         new CAddress(
-            (String)
-                getTableModel().getValueAt(row, MatchedFunctionsViewsTableModel.PRIMARY_ADDRESS),
-            16);
+            (String) m.getValueAt(row, MatchedFunctionsViewsTableModel.PRIMARY_ADDRESS), 16);
     final IAddress secondaryAddr =
         new CAddress(
-            (String)
-                getTableModel().getValueAt(row, MatchedFunctionsViewsTableModel.SECONDARY_ADDRESS),
-            16);
+            (String) m.getValueAt(row, MatchedFunctionsViewsTableModel.SECONDARY_ADDRESS), 16);
 
-    getController()
-        .openFlowgraphView(getController().getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
+    final WorkspaceTabPanelFunctions controller = getController();
+    controller.openFlowgraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
   }
 
   public void addListener(final IMatchedFunctionsViewsTableListener listener) {

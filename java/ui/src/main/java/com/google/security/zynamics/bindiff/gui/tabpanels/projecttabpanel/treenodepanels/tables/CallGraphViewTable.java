@@ -7,6 +7,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.renderers.SimilarityConfidenceCellRenderer;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
+import java.awt.Font;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.table.TableColumn;
@@ -39,14 +40,17 @@ public class CallGraphViewTable extends AbstractTable {
     calls.setPreferredWidth(75);
     secondaryName.setPreferredWidth(200);
 
+    setRowHeight(GuiHelper.getMonospacedFontMetrics().getHeight() + 4);
+
     final SimilarityConfidenceCellRenderer similarityConfidenceRenderer =
         new SimilarityConfidenceCellRenderer();
     similarity.setCellRenderer(similarityConfidenceRenderer);
     confidence.setCellRenderer(similarityConfidenceRenderer);
 
+    final Font monospacedFont = GuiHelper.getMonospacedFont();
     final BackgroundCellRenderer primaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(),
+            monospacedFont,
             Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND,
             Colors.GRAY32,
             SwingConstants.LEFT);
@@ -54,29 +58,21 @@ public class CallGraphViewTable extends AbstractTable {
 
     final BackgroundCellRenderer secondaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(),
+            monospacedFont,
             Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND,
             Colors.GRAY32,
             SwingConstants.LEFT);
     secondaryName.setCellRenderer(secondaryBackgroundRenderer);
 
-    final PercentageThreeBarCellRenderer functionCellRenderer =
+    final PercentageThreeBarCellRenderer matchesRenderer =
         new PercentageThreeBarCellRenderer(
             Colors.TABLE_CELL_PRIMARY_UNMATCHED_BACKGROUND,
             Colors.TABLE_CELL_MATCHED_BACKGROUND,
             Colors.TABLE_CELL_SECONDARY_UNMATCHED_BACKGROUND,
             Colors.TABLE_CELL_MATCHED_BACKGROUND,
             Colors.GRAY32);
-    functions.setCellRenderer(functionCellRenderer);
-
-    final PercentageThreeBarCellRenderer callsCellRenderer =
-        new PercentageThreeBarCellRenderer(
-            Colors.TABLE_CELL_PRIMARY_UNMATCHED_BACKGROUND,
-            Colors.TABLE_CELL_MATCHED_BACKGROUND,
-            Colors.TABLE_CELL_SECONDARY_UNMATCHED_BACKGROUND,
-            Colors.TABLE_CELL_MATCHED_BACKGROUND,
-            Colors.GRAY32);
-    calls.setCellRenderer(callsCellRenderer);
+    functions.setCellRenderer(matchesRenderer);
+    calls.setCellRenderer(matchesRenderer);
   }
 
   @Override

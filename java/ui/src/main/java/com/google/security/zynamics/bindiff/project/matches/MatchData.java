@@ -93,7 +93,7 @@ public class MatchData {
     return metaData.getSizeOfMatchedJumps();
   }
 
-  public int getSizeOfUnmatchedBasicblocks(final ESide side) {
+  public int getSizeOfUnmatchedBasicBlocks(final ESide side) {
     return metaData.getSizeOfUnmatchedBasicblocks(side);
   }
 
@@ -152,7 +152,7 @@ public class MatchData {
   }
 
   public void setSizeOfMatchedBasicblocks(final int matchedBasicblocks) {
-    metaData.setSizeOfMatchedBasicblocks(matchedBasicblocks);
+    metaData.setSizeOfMatchedBasicBlocks(matchedBasicblocks);
   }
 
   public void setSizeOfMatchedCalls(final int matchedCalls) {

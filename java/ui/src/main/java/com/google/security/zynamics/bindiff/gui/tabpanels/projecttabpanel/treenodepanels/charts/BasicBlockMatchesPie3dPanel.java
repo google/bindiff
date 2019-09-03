@@ -2,8 +2,8 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treen
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.project.diff.CountsChangedListener;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffChangeAdapter;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import java.awt.BorderLayout;
@@ -81,8 +81,8 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
     final MatchData matches = diff.getMatches();
 
     matchedCount = matches.getSizeOfMatchedBasicblocks();
-    primaryUnmatchedCount = matches.getSizeOfUnmatchedBasicblocks(ESide.PRIMARY);
-    secondaryUnmatchedCount = matches.getSizeOfUnmatchedBasicblocks(ESide.SECONDARY);
+    primaryUnmatchedCount = matches.getSizeOfUnmatchedBasicBlocks(ESide.PRIMARY);
+    secondaryUnmatchedCount = matches.getSizeOfUnmatchedBasicBlocks(ESide.SECONDARY);
 
     final int total = matchedCount + primaryUnmatchedCount + secondaryUnmatchedCount;
 
@@ -190,9 +190,9 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
     }
   }
 
-  private class InternalFlowgraphCachedCountsListener extends DiffChangeAdapter {
+  private class InternalFlowgraphCachedCountsListener extends CountsChangedListener {
     @Override
-    public void basicblocksCountChanged() {
+    public void basicBlocksCountChanged() {
       updateDataset();
     }
   }

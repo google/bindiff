@@ -2,8 +2,8 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treen
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.project.diff.CountsChangedListener;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffChangeAdapter;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import java.awt.BorderLayout;
@@ -154,7 +154,7 @@ public class CallMatchesPie3dPanel extends JPanel {
     }
   }
 
-  private class InternalFlowgraphCachedCountsListener extends DiffChangeAdapter {
+  private class InternalFlowgraphCachedCountsListener extends CountsChangedListener {
     @Override
     public void callsCountChanged() {
       updateDataset();

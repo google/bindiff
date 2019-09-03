@@ -645,7 +645,7 @@ public class MatchesDatabase extends SqliteDatabase {
         functionMatches.add(functionMatch);
       }
 
-      metaData.setSizeOfMatchedBasicblocks(matchedBasicblocks);
+      metaData.setSizeOfMatchedBasicBlocks(matchedBasicblocks);
       metaData.setSizeOfMatchedJumps(matchedJumps);
       metaData.setSizeOfMatchedInstructions(matchedInstructions);
 

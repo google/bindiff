@@ -1,10 +1,9 @@
 package com.google.security.zynamics.zylib.gui;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Point;
+import java.awt.FontMetrics;
 import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.WindowEvent;
@@ -13,7 +12,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
+import javax.swing.JLabel;
 
 public class GuiHelper implements WindowStateListener {
   public static final int DEFAULT_FONTSIZE = 13;
@@ -27,7 +26,10 @@ public class GuiHelper implements WindowStateListener {
 
   // Application-global font settings
   private Font defaultFont = new Font(Font.SANS_SERIF, Font.PLAIN, DEFAULT_FONTSIZE);
+  private FontMetrics defaultFontMetrics = null;
+
   private Font monospacedFont = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONTSIZE);
+  private FontMetrics monospacedFontMetrics = null;
 
   /** Private constructor to prevent public instantiation. */
   private GuiHelper() {
@@ -67,9 +69,10 @@ public class GuiHelper implements WindowStateListener {
 
   /**
    * Adds a work around for a weird menu-offset JDK bug under certain window managers.
+   *
    * @param window the window to apply the fix for.
    */
-  public static final void applyWindowFix(Window window) {
+  public static void applyWindowFix(Window window) {
     if (!instance.needsWindowFix) {
       return;
     }
@@ -80,7 +83,7 @@ public class GuiHelper implements WindowStateListener {
   }
 
   /** Centers the child component relative to its parent component. */
-  public static final void centerChildToParent(
+  public static void centerChildToParent(
       final Component parent, final Component child, final boolean bStayOnScreen) {
     int x = (parent.getX() + (parent.getWidth() / 2)) - (child.getWidth() / 2);
     int y = (parent.getY() + (parent.getHeight() / 2)) - (child.getHeight() / 2);
@@ -103,39 +106,8 @@ public class GuiHelper implements WindowStateListener {
     child.setLocation(x, y);
   }
 
-  public static final void centerOnScreen(final Window frame) {
+  public static void centerOnScreen(final Window frame) {
     frame.setLocationRelativeTo(null);
-  }
-
-  public static Component findComponentAt(final Container c, final Point sp) {
-    final Point cp = new Point(sp.x, sp.y);
-    SwingUtilities.convertPointFromScreen(cp, c);
-
-    if (!c.contains(cp.x, cp.y)) {
-      return c;
-    }
-
-    final int ncomponents = c.getComponentCount();
-    final Component component[] = c.getComponents();
-    for (int i = 0; i < ncomponents; i++) {
-      final Component comp = component[i];
-      final Point loc = comp.getLocation();
-      if ((comp.contains(cp.x - loc.x, cp.y - loc.y)) && (comp.isVisible() == true)) {
-        // found a component that intersects the point, see if there
-        // is a deeper possibility.
-        if (comp instanceof Container) {
-          final Container child = (Container) comp;
-          final Component deeper = findComponentAt(child, sp);
-          if (deeper != null) {
-            return deeper;
-          }
-        } else {
-          return comp;
-        }
-      }
-    }
-
-    return c;
   }
 
   public static JComponent findComponentByPredicate(
@@ -159,6 +131,7 @@ public class GuiHelper implements WindowStateListener {
 
   public static void setDefaultFont(Font font) {
     instance.defaultFont = font;
+    instance.defaultFontMetrics = new JLabel().getFontMetrics(font);
   }
 
   public static Font getDefaultFont() {
@@ -167,10 +140,15 @@ public class GuiHelper implements WindowStateListener {
 
   public static void setMonospacedFont(Font font) {
     instance.monospacedFont = font;
+    instance.monospacedFontMetrics = new JLabel().getFontMetrics(font);
   }
 
   public static Font getMonospacedFont() {
     return instance.monospacedFont;
+  }
+
+  public static FontMetrics getMonospacedFontMetrics() {
+    return instance.monospacedFontMetrics;
   }
 
   public interface ComponentFilter {

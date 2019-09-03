@@ -22,8 +22,6 @@ public class UnmatchedFunctionViewsTable extends AbstractTable {
   private final ListenerProvider<IUnmatchedFunctionsViewsTableListener> listeners =
       new ListenerProvider<>();
 
-  private final InternalSelectionListener selectionListener = new InternalSelectionListener();
-
   private final ESide side;
 
   public UnmatchedFunctionViewsTable(
@@ -38,7 +36,7 @@ public class UnmatchedFunctionViewsTable extends AbstractTable {
 
     init();
 
-    getSelectionModel().addListSelectionListener(selectionListener);
+    getSelectionModel().addListSelectionListener(new InternalSelectionListener());
   }
 
   private void init() {
@@ -74,6 +72,8 @@ public class UnmatchedFunctionViewsTable extends AbstractTable {
     jumps.setPreferredWidth(50);
     instructions.setPreferredWidth(50);
 
+    setRowHeight(GuiHelper.getMonospacedFontMetrics().getHeight() + 4);
+
     final BackgroundCellRenderer nameAndAddressRenderer =
         new BackgroundCellRenderer(
             GuiHelper.getMonospacedFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
@@ -98,23 +98,14 @@ public class UnmatchedFunctionViewsTable extends AbstractTable {
 
   @Override
   protected void handleDoubleClick(final int row) {
-    IAddress primaryAddr = null;
-    IAddress secondaryAddr = null;
+    CAddress addr =
+        new CAddress(
+            (String) getTableModel().getValueAt(row, UnmatchedFunctionViewsTableModel.ADDRESS), 16);
+    final IAddress primaryAddr = side == ESide.PRIMARY ? addr : null;
+    final IAddress secondaryAddr = side == ESide.PRIMARY ? addr : null;
 
-    if (side == ESide.PRIMARY) {
-      primaryAddr =
-          new CAddress(
-              (String) getTableModel().getValueAt(row, UnmatchedFunctionViewsTableModel.ADDRESS),
-              16);
-    } else {
-      secondaryAddr =
-          new CAddress(
-              (String) getTableModel().getValueAt(row, UnmatchedFunctionViewsTableModel.ADDRESS),
-              16);
-    }
-
-    getController()
-        .openFlowgraphView(getController().getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
+    final WorkspaceTabPanelFunctions controller = getController();
+    controller.openFlowgraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
   }
 
   public void addListener(final IUnmatchedFunctionsViewsTableListener listener) {

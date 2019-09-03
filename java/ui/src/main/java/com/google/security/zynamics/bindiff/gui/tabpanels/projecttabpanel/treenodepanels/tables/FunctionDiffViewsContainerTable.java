@@ -7,6 +7,7 @@ import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
+import java.awt.Font;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -48,9 +49,12 @@ public class FunctionDiffViewsContainerTable extends AbstractTable {
     viewName.setPreferredWidth(300);
     creationDate.setPreferredWidth(120);
 
+    setRowHeight(GuiHelper.getMonospacedFontMetrics().getHeight() + 4);
+
+    final Font monospacedFont = GuiHelper.getMonospacedFont();
     final BackgroundCellRenderer primaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(),
+            monospacedFont,
             Colors.TABLE_CELL_PRIMARY_DEFAULT_BACKGROUND,
             Colors.GRAY32,
             SwingConstants.LEFT);
@@ -59,18 +63,18 @@ public class FunctionDiffViewsContainerTable extends AbstractTable {
 
     final BackgroundCellRenderer secondaryBackgroundRenderer =
         new BackgroundCellRenderer(
-            GuiHelper.getMonospacedFont(),
+            monospacedFont,
             Colors.TABLE_CELL_SECONDARY_DEFAULT_BACKGROUND,
             Colors.GRAY32,
             SwingConstants.LEFT);
     secImageName.setCellRenderer(secondaryBackgroundRenderer);
     secImageHash.setCellRenderer(secondaryBackgroundRenderer);
 
-    final BackgroundCellRenderer whiteBackgroundRenderer =
+    final BackgroundCellRenderer textRenderer =
         new BackgroundCellRenderer(
             GuiHelper.getDefaultFont(), Colors.GRAY250, Colors.GRAY32, SwingConstants.LEFT);
-    viewName.setCellRenderer(whiteBackgroundRenderer);
-    creationDate.setCellRenderer(whiteBackgroundRenderer);
+    viewName.setCellRenderer(textRenderer);
+    creationDate.setCellRenderer(textRenderer);
   }
 
   @Override

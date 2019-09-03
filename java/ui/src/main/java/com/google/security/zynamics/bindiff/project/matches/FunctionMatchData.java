@@ -30,7 +30,7 @@ public class FunctionMatchData implements IAddressPair {
 
   private Matches<BasicBlockMatchData> basicblockMatches = null;
 
-  private int matchedBasicblocks;
+  private int matchedBasicBlocks;
   private int matchedJumps;
   private int matchedInstructions;
 
@@ -42,7 +42,7 @@ public class FunctionMatchData implements IAddressPair {
       final double confidence,
       final int flags,
       final int algoId,
-      final int matchedBasicblocks,
+      final int matchedBasicBlocks,
       final int matchedJumps,
       final int matchedInstructions) {
     this.id = id;
@@ -55,7 +55,7 @@ public class FunctionMatchData implements IAddressPair {
     this.flags = flags;
     this.algoId = algoId;
 
-    this.matchedBasicblocks = matchedBasicblocks;
+    this.matchedBasicBlocks = matchedBasicBlocks;
     this.matchedJumps = matchedJumps;
     this.matchedInstructions = matchedInstructions;
   }
@@ -85,7 +85,7 @@ public class FunctionMatchData implements IAddressPair {
 
     matchedInstructions += instructionMatches;
     matchedJumps += newMatchedJumpsCounter;
-    matchedBasicblocks++;
+    matchedBasicBlocks++;
 
     final MatchData matches = diff.getMatches();
 
@@ -173,7 +173,7 @@ public class FunctionMatchData implements IAddressPair {
   }
 
   public int getSizeOfMatchedBasicblocks() {
-    return matchedBasicblocks;
+    return matchedBasicBlocks;
   }
 
   public int getSizeOfMatchedInstructions() {
@@ -224,7 +224,7 @@ public class FunctionMatchData implements IAddressPair {
 
       matchedInstructions -= removedMatchedInstructions;
       matchedJumps -= matchedJumpsToRemoveCounter;
-      matchedBasicblocks--;
+      matchedBasicBlocks--;
 
       final MatchData matches = diff.getMatches();
 
@@ -236,7 +236,7 @@ public class FunctionMatchData implements IAddressPair {
   }
 
   public void setSizeOfMatchedBasicblocks(final int basicblocks) {
-    matchedBasicblocks = basicblocks;
+    matchedBasicBlocks = basicblocks;
   }
 
   public void setSizeOfMatchedInstructions(final int instructions) {

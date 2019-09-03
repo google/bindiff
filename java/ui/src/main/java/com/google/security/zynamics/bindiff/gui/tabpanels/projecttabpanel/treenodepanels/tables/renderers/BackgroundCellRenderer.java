@@ -22,6 +22,7 @@ public class BackgroundCellRenderer extends AbstractTableCellRenderer {
     this.backgroundColor = backgroundColor;
     this.textColor = textColor;
     this.horizontalAlignment = horizontalAlignment;
+    setBackground(backgroundColor);
   }
 
   @Override
@@ -70,7 +71,7 @@ public class BackgroundCellRenderer extends AbstractTableCellRenderer {
             isInaccessible ? NON_ACCESSIBLE_COLOR : backgroundColor,
             table.getSelectionBackground(),
             selected,
-            0 - 1,
+            -1,
             0,
             table.getColumnModel().getColumn(column).getWidth() - 1,
             table.getRowHeight() - 1));
