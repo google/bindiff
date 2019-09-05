@@ -3,9 +3,11 @@
 
 #include <cstddef>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <loader.hpp>                                           // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 namespace security {
 namespace binexport {

@@ -12,13 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef GOOGLE  // MOE:strip_line
 #include <gtest/gtest.h>
-// MOE:begin_strip
-#else
-#include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 
 #include "third_party/zynamics/binexport/virtual_memory.h"
 

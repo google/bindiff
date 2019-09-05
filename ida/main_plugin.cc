@@ -14,6 +14,7 @@
 
 #include "third_party/zynamics/binexport/ida/main_plugin.h"
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <auto.hpp>                                             // NOLINT
 #include <expr.hpp>                                             // NOLINT
@@ -22,6 +23,7 @@
 #include <kernwin.hpp>                                          // NOLINT
 #include <loader.hpp>                                           // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/base/attributes.h"

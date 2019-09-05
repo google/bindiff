@@ -3,22 +3,7 @@
 
 #include <memory>
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <google/protobuf/util/message_differencer.h>  // NOLINT
-// MOE:begin_strip
-#else
-#include "google/protobuf/util/message_differencer.h"
-
-namespace google {
-namespace protobuf {
-namespace util {
-// Import OSS name
-using ::google::protobuf::util::MessageDifferencer;
-}  // namespace util
-}  // namespace protobuf
-}  // namespace google
-#endif
-// MOE:end_strip
+#include "net/proto2/util/public/message_differencer.h"
 
 namespace security {
 namespace binexport {
@@ -29,7 +14,7 @@ namespace binexport {
 // This allows to compare two otherwise identical BinExport2s even in the face
 // of different hash table implementations or where the hash table randomizes
 // insertion order on each run (like Abseil's *_hash_map).
-std::unique_ptr<google::protobuf::util::MessageDifferencer> CreateDifferencer();
+std::unique_ptr<proto2::util::MessageDifferencer> CreateDifferencer();
 
 }  // namespace binexport
 }  // namespace security

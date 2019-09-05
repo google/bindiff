@@ -25,7 +25,7 @@
 
 #include "base/integral_types.h"
 #include "base/macros.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport2.proto.h"
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security {

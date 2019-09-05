@@ -15,12 +15,6 @@
 #ifndef BASE_LOGGING_H_
 #define BASE_LOGGING_H_
 
-// MOE:begin_strip
-#ifdef GOOGLE
-#error "This file should not be included from Google3 code"
-#endif
-
-// MOE:end_strip
 #include <google/protobuf/stubs/logging.h>
 
 // Map names from the Protocol Buffers stubs into the global namespace.

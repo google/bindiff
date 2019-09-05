@@ -14,31 +14,18 @@
 
 #include "third_party/zynamics/binexport/reader/reader_test_util.h"
 
-#ifndef GOOGLE  // MOE:strip_line
 #include <fstream>
-
-#include <gmock/gmock.h>  // NOLINT
-#include <gtest/gtest.h>  // NOLINT
 
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-// MOE:begin_strip
-#else
-#include "file/base/helpers.h"
-#include "file/base/options.h"
-#include "file/base/path.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "third_party/absl/flags/flag.h"
-#endif
-// MOE:end_strip
 #include "third_party/absl/strings/str_cat.h"
 
 namespace security {
 namespace binexport {
 
-#ifndef GOOGLE  // MOE:strip_line
 static std::string* g_test_srcdir{};
 
 not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
@@ -51,29 +38,6 @@ not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
   }
   return not_absl::OkStatus();
 }
-// MOE:begin_strip
-#else
-not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
-                                             BinExport2* proto) {
-  return not_absl::Status(file::GetBinaryProto(
-      file::JoinPath(absl::GetFlag(FLAGS_test_srcdir),
-                     "google3/third_party/zynamics/binexport/reader/testdata",
-                     filename),
-      proto, file::Defaults()));
-}
-#endif
-// MOE:end_strip
 
 }  // namespace binexport
 }  // namespace security
-// MOE:begin_strip
-#ifndef GOOGLE
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  security::binexport::g_test_srcdir =
-      new std::string(argc >= 2 ? argv[1] : GetCurrentDirectory());
-  return RUN_ALL_TESTS();
-}
-#endif
-// MOE:end_strip

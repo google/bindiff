@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport2.proto.h"
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security {
@@ -44,7 +44,6 @@ Address GetInstructionAddress(const BinExport2& proto, int index);
 std::vector<Address> GetAllInstructionAddresses(const BinExport2& proto);
 
 }  // namespace binexport
-
 }  // namespace security
 
 #endif  // BINEXPORT_H_

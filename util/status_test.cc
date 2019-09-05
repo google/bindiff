@@ -16,22 +16,9 @@
 
 #include <string>
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 #include "third_party/zynamics/binexport/util/status_matchers.h"
-// MOE:begin_strip
-#ifdef GOOGLE
-#include "util/task/status.h"
-#include "util/task/statusor.h"
-#endif
-// MOE:end_strip
 
 using ::testing::Eq;
 using ::testing::IsEmpty;
@@ -118,74 +105,6 @@ TEST(StatusTest, Inequality) {
   EXPECT_THAT(invalid_arg_status != internal_status, IsTrue());
   EXPECT_THAT(internal_status != invalid_arg_status, IsTrue());
 }
-
-// MOE:begin_strip
-#ifdef GOOGLE
-TEST(StatusTest, ConstructFromGoogle3StatusOk) {
-  // Default constructor for ::util::Status constructs an OK status object.
-  ::util::Status google3_status;
-  Status status(google3_status);
-
-  EXPECT_THAT(status, IsOk());
-}
-
-TEST(StatusTest, ConstructFromGoogle3StatusNonOk) {
-  ::util::Status google3_status(absl::StatusCode::kInvalidArgument,
-                                kErrorMessage1);
-  Status status(google3_status);
-
-  EXPECT_THAT(status, Not(IsOk()));
-
-  // Constructed object is always in the canonical error space.
-  EXPECT_THAT(status.error_code(), Eq(util::RetrieveErrorCode(google3_status)));
-  EXPECT_THAT(status.error_message(), Eq(google3_status.message()));
-}
-
-TEST(StatusTest, TypeCastToGoogle3StatusOk) {
-  Status status = OkStatus();
-  ::util::Status google3_status = status;
-
-  EXPECT_THAT(status.ok(), Eq(google3_status.ok()));
-  EXPECT_THAT(status.error_code(), Eq(util::RetrieveErrorCode(google3_status)));
-  EXPECT_THAT(status.error_message(), Eq(google3_status.message()));
-}
-
-TEST(StatusTest, TypeCastToGoogle3StatusNonOk) {
-  Status status(StatusCode::kInvalidArgument, kErrorMessage1);
-  ::util::Status google3_status = status;
-
-  EXPECT_THAT(status.ok(), Eq(google3_status.ok()));
-  EXPECT_THAT(status.error_code(), Eq(util::RetrieveErrorCode(google3_status)));
-  EXPECT_THAT(status.error_message(), Eq(google3_status.message()));
-}
-
-TEST(StatusTest, TypeCastToGoogle3StatusOrNonOk) {
-  Status status(StatusCode::kInvalidArgument, kErrorMessage1);
-  ::util::StatusOr<std::string> google3_statusor = status;
-
-  EXPECT_THAT(google3_statusor.ok(), Eq(status.ok()));
-  EXPECT_THAT(util::RetrieveErrorCode(google3_statusor.status()),
-              Eq(status.error_code()));
-  EXPECT_THAT(google3_statusor.status().message(), Eq(status.error_message()));
-}
-
-TEST(StatusTest, CompareWithGoogle3Status) {
-  Status ok = OkStatus();
-  Status invalid(StatusCode::kInvalidArgument, kErrorMessage1);
-  ::util::Status google3_ok = ::util::OkStatus();
-  ::util::Status google3_invalid(absl::StatusCode::kInvalidArgument,
-                                 kErrorMessage1);
-  EXPECT_EQ(ok, google3_ok);
-  EXPECT_EQ(google3_ok, ok);
-  EXPECT_EQ(invalid, google3_invalid);
-  EXPECT_EQ(google3_invalid, invalid);
-  EXPECT_NE(ok, google3_invalid);
-  EXPECT_NE(google3_invalid, ok);
-  EXPECT_NE(invalid, google3_ok);
-  EXPECT_NE(google3_ok, invalid);
-}
-#endif
-// MOE:end_strip
 
 TEST(StatusTest, IsPositiveTest) {
   EXPECT_THAT(OkStatus().code(), Eq(StatusCode::kOk));

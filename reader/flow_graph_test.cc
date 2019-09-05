@@ -14,16 +14,9 @@
 
 #include "third_party/zynamics/binexport/reader/flow_graph.h"
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
+#include "base/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
-#include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
@@ -44,11 +37,6 @@ class FlowGraphTest : public testing::Test {
  protected:
   void SetUp() override {
     QCHECK_OK(GetBinExportProtoForTesting(kBinExport2Item, &proto_));
-    // MOE:begin_strip
-    // FlowGraph used can be reproduced with:
-    // gqui print flow_graph[0] from
-    //   rawproto:testdata/0000500ed9f688a309ee2176462eb978efa9a2fb80fcceb5d8fd08168ea50dfd.BinExport
-    // MOE:end_strip
     flow_graph_ = FlowGraph::FromBinExport2Proto(
         proto_, proto_.flow_graph(0),
         binexport::GetAllInstructionAddresses(proto_));

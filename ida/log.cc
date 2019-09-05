@@ -23,9 +23,11 @@
 #include <sstream>
 #include <thread>  // NOLINT
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -34,9 +36,7 @@
 
 namespace {
 
-#ifndef GOOGLE  // MOE:strip_line
 static LogHandler* g_old_log_handler = nullptr;
-#endif  // MOE:strip_line
 static FILE* g_log_file = nullptr;
 static auto* g_logging_options = new LoggingOptions{};
 
@@ -53,7 +53,6 @@ class IdaExecutor : public exec_request_t {
   std::function<void()> callback_;
 };
 
-#ifndef GOOGLE  // MOE:strip_line
 const char* const LogLevelToCStr(LogLevel level) {
   switch (level) {
     case LogLevel::LOGLEVEL_INFO:
@@ -110,12 +109,6 @@ void IdaLogHandler(LogLevel level, const char* filename, int line,
   IdaExecutor executor(std::bind(LogLine, level, filename, line, message));
   execute_sync(executor, MFF_FAST);
 }
-
-// MOE:begin_strip
-#else
-// TODO(cblichmann): Implement LogSink for Google3
-#endif
-// MOE:end_strip
 }  // namespace
 
 bool InitLogging(const LoggingOptions& options) {
@@ -132,9 +125,7 @@ bool InitLogging(const LoggingOptions& options) {
     }
   }
 
-#ifndef GOOGLE  // MOE:strip_line
   g_old_log_handler = SetLogHandler(&IdaLogHandler);
-#endif  // MOE:strip_line
   return true;
 }
 
@@ -142,9 +133,7 @@ void ShutdownLogging() {
   if (g_log_file) {
     fclose(g_log_file);
   }
-#ifndef GOOGLE  // MOE:strip_line
   if (g_old_log_handler) {
     SetLogHandler(g_old_log_handler);
   }
-#endif  // MOE:strip_line
 }

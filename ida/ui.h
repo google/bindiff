@@ -15,10 +15,12 @@
 #ifndef IDA_UI_H_
 #define IDA_UI_H_
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
 #include <loader.hpp>                                           // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "third_party/absl/strings/string_view.h"
 

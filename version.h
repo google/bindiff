@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
+#ifndef VERSION_H_
+#define VERSION_H_
 
 // The BinExport release number. A single stringified integer.
-#define BINEXPORT_RELEASE "@binexport_VERSION_MAJOR@"
+#define BINEXPORT_RELEASE "10"
 
 // The Git revision of this build or "internal"
-#define BINEXPORT_REVISION "@REVISION@"
+#define BINEXPORT_REVISION "internal"
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
+#endif  // VERSION_H_

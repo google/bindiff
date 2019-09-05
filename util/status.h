@@ -26,13 +26,6 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
 
-// MOE:begin_strip
-#ifdef GOOGLE
-#include "util/task/status.h"
-#include "util/task/statusor.h"
-#endif
-// MOE:end_strip
-
 namespace not_absl {
 
 enum class StatusCode {
@@ -73,30 +66,8 @@ class Status {
   Status(const Status&) = default;
   Status(Status&& other);
 
-  // MOE:begin_strip
-#ifdef GOOGLE
-  explicit Status(const ::util::Status& other) {
-    Set(static_cast<int>(::util::RetrieveErrorCode(other)), other.message());
-  }
-#endif
-  // MOE:end_strip
-
   Status& operator=(const Status&) = default;
   Status& operator=(Status&& other);
-
-  // MOE:begin_strip
-#ifdef GOOGLE
-  operator ::util::Status() {
-    return ::util::Status{static_cast<::absl::StatusCode>(error_code_),
-                          message_};
-  }
-
-  template <class T>
-  operator ::util::StatusOr<T>() {
-    return ::util::StatusOr<T>{::util::Status(*this)};
-  }
-#endif
-  // MOE:end_strip
 
   int error_code() const { return error_code_; }
   absl::string_view error_message() const { return message_; }
@@ -133,23 +104,6 @@ inline bool operator==(const Status& lhs, const Status& rhs) {
 inline bool operator!=(const Status& lhs, const Status& rhs) {
   return !(lhs == rhs);
 }
-
-// MOE:begin_strip
-#ifdef GOOGLE
-inline bool operator==(const Status& lhs, const ::util::Status& rhs) {
-  return lhs == Status(rhs);
-}
-inline bool operator==(const ::util::Status& lhs, const Status& rhs) {
-  return rhs == lhs;
-}
-inline bool operator!=(const Status& lhs, const ::util::Status& rhs) {
-  return !(lhs == rhs);
-}
-inline bool operator!=(const ::util::Status& lhs, const Status& rhs) {
-  return !(lhs == rhs);
-}
-#endif
-// MOE:end_strip
 
 std::ostream& operator<<(std::ostream& os, const Status& status);
 

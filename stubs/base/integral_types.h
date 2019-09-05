@@ -15,12 +15,6 @@
 #ifndef BASE_INTEGRAL_TYPES_H_
 #define BASE_INTEGRAL_TYPES_H_
 
-// MOE:begin_strip
-#ifdef GOOGLE
-#error "This file should not be included from Google3 code"
-#endif
-
-// MOE:end_strip
 #include <google/protobuf/stubs/port.h>
 
 // Import macros

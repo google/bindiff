@@ -25,11 +25,6 @@
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/architectures.h"
-// MOE:begin_strip
-#ifdef GOOGLE
-#include "util/gtl/compact_array.h"
-#endif
-// MOE:end_strip
 
 namespace security {
 namespace binexport {
@@ -42,13 +37,7 @@ class Instruction {
   const std::vector<int>& operands() const { return operand_indices_; }
   void set_operands(const std::vector<int>& operand_indices);
 
-// MOE:begin_strip
-#ifdef GOOGLE
-  using CallTargets = gtl::compact_array<Address>;
-#else
-// MOE:end_strip
   using CallTargets = std::vector<Address>;
-#endif  // MOE:strip_line
 
   const CallTargets& call_targets() const { return call_targets_; }
   void set_call_targets(const CallTargets& targets) { call_targets_ = targets; }

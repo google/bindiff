@@ -19,15 +19,8 @@
 
 #include <boost/graph/adjacency_list.hpp>  // NOLINT
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 
 namespace security {
 namespace binexport {

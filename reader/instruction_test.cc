@@ -16,15 +16,8 @@
 
 #include "third_party/zynamics/binexport/reader/instruction.h"
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 #include "third_party/zynamics/binexport/binexport.h"
 
 namespace security {

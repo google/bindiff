@@ -15,11 +15,6 @@
 // Range is a slice of a container denoted with a pair of iterators begin and
 // end. Behaves like a normal container with elements between begin and end. Can
 // be used in range based loops.
-// MOE:begin_strip
-// Similar classes in the google codebase:
-// - Range from smartass/util/range.h
-// - iterator_range from websitetools/feeds/range/iterator-range.h
-// MOE:end_strip
 //
 // Examples:
 // std::vector<int> v;

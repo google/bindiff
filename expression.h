@@ -42,7 +42,6 @@ class Expression {
     TYPE_SIZEPREFIX = 6,
     TYPE_DEREFERENCE = 7,
 
-    // These are only used by the IDA plugin.  // MOE:strip_line
     TYPE_NEWOPERAND = 8,
     TYPE_STACKVARIABLE = 9,
     TYPE_GLOBALVARIABLE = 10,

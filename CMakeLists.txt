@@ -58,10 +58,8 @@ if(GIT_FOUND)
                   OUTPUT_VARIABLE REVISION ERROR_QUIET)
   if(NOT ${REVISION} STREQUAL "")
     string(STRIP ${REVISION} REVISION)
-  # MOE:begin_strip
   elseif(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
     set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
-  # MOE:end_strip
   else()
     set(REVISION internal)
   endif()

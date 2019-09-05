@@ -15,12 +15,6 @@
 #ifndef BASE_MACROS_H_
 #define BASE_MACROS_H_
 
-// MOE:begin_strip
-#ifdef GOOGLE
-#error "This file should not be included from Google3 code"
-#endif
-
-// MOE:end_strip
 #include "third_party/absl/base/macros.h"
 
 #endif  // BASE_MACROS_H_

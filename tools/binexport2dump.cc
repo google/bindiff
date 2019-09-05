@@ -28,7 +28,7 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/binexport.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport2.proto.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
@@ -152,14 +152,6 @@ void DumpBinExport2(const BinExport2& proto) {
         reference.string_table_index();
   }
 
-// MOE:begin_strip
-  // Read MD indices if we have them.
-  absl::flat_hash_map<Address, double> md_index_map;
-  for (const auto& md_index : proto.md_index()) {
-    md_index_map.emplace(md_index.address(), md_index.md_index());
-  }
-
-// MOE:end_strip
   const auto& call_graph = proto.call_graph();
   absl::PrintF("\nFunctions:\n");
   constexpr const char kFunctionType[] = "nlit!";
@@ -179,12 +171,6 @@ void DumpBinExport2(const BinExport2& proto) {
         absl::StrCat(FormatAddress(address), " ",
                      std::string(1, kFunctionType[vertex.type()]), " ", name);
     function_names[address] = name;
-// MOE:begin_strip
-    const auto md_index = md_index_map.find(address);
-    if (md_index != md_index_map.end()) {
-      absl::StrAppend(&line, " ", md_index->second);
-    }
-// MOE:end_strip
     absl::PrintF("%s\n", line);
   }
 

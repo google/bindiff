@@ -14,15 +14,8 @@
 
 #include "third_party/zynamics/binexport/util/format.h"
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 
 using testing::StrEq;
 

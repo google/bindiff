@@ -15,15 +15,8 @@
 #ifndef UTIL_STATUS_MATCHERS_H_
 #define UTIL_STATUS_MATCHERS_H_
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"

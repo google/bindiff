@@ -34,32 +34,6 @@ not_absl::Status DumpWriter::Write(const CallGraph& call_graph,
                                    const AddressReferences& address_references,
                                    const TypeSystem* type_system,
                                    const AddressSpace& address_space) {
-// MOE:begin_strip
-#ifdef GOOGLE
-  // Store to an array and sort by MD index value for compatibility.
-  const auto& functions = flow_graph.GetFunctions();
-  std::vector<std::pair<double, Address>> md_indices;
-  md_indices.reserve(functions.size());
-  for (const auto& function : functions) {
-    md_indices.emplace_back(function.second->GetMdIndex(), function.first);
-  }
-  std::sort(md_indices.begin(), md_indices.end(),
-            [](const std::pair<double, Address>& p1,
-               const std::pair<double, Address>& p2) {
-              // Sort by MD index descending, then address ascending.
-              return p1.first != p2.first ? p1.first > p2.first
-                                          : p1.second < p2.second;
-            });
-
-  for (const auto& md_index_pair : md_indices) {
-    stream_ << std::hex << std::setfill('0') << std::uppercase << std::setw(8)
-            << md_index_pair.second << "\t"
-            << std::setprecision(std::numeric_limits<double>::max_digits10)
-            << std::setfill(' ') << std::setw(24) << md_index_pair.first
-            << "\n";
-  }
-#endif  // GOOGLE
-// MOE:end_strip
 
   stream_ << std::endl;
   call_graph.Render(&stream_, flow_graph);

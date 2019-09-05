@@ -14,13 +14,7 @@
 
 #include "third_party/zynamics/binexport/util/timer.h"
 
-#ifndef GOOGLE  // MOE:strip_line
-#include <gtest/gtest.h>
-// MOE:begin_strip
-#else
 #include "gtest/gtest.h"
-#endif
-// MOE:end_strip
 
 // Minimal steady clock implementation for testing. Time monotonically
 // increases in units of 5 seconds (until the underlying time_point

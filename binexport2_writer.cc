@@ -14,9 +14,6 @@
 
 // New BinExport protocol buffer based file format. Should be more complete and
 // more compact than the original one.
-// MOE:begin_strip
-// See cl/38435314 for a discussion and the description in the proto file.
-// MOE:end_strip
 //
 // Example rates for item
 // 000026157fb0ada54135ef1f182585fc3edbca4769b9ea3629d6cda9161dc566:
@@ -42,16 +39,7 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"
 #include "third_party/absl/time/time.h"
-#ifndef GOOGLE  // MOE:strip_line
-#include "third_party/zynamics/binexport/binexport2.pb.h"
-// MOE:begin_strip
-#else
-#include "i18n/encodings/inputconverter/inputconverter.h"
-#include "net/proto/proto2_bridge.h"
-#include "google/protobuf/text_format.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
-#endif
-// MOE:end_strip
+#include "third_party/zynamics/binexport/binexport2.proto.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/function.h"
@@ -593,27 +581,12 @@ void WriteStrings(
     }
 
     std::string content;
-#ifndef GOOGLE  // MOE:strip_line
     if (reference.kind_ != TYPE_DATA_STRING) {
       continue;
     }
     content = std::string(
         reinterpret_cast<const char*>(&address_space[reference.target_]),
         reference.size_);
-// MOE:begin_strip
-#else
-    auto encoding = reference.kind_ == TYPE_DATA_STRING ? Encoding::ASCII_7BIT
-                                                        : Encoding::UTF16LE;
-    InputConverter converter;
-    int bytes_consumed = 0;
-    int bytes_filled = 0;
-    int error_char_count = 0;
-    converter.ConvertEncodingBufferToUTF8String(
-        reinterpret_cast<const char*>(&address_space[reference.target_]),
-        reference.size_, encoding, &content, &bytes_consumed, &bytes_filled,
-        &error_char_count);
-#endif  // GOOGLE
-        // MOE:end_strip
 
     auto it =
         string_to_string_index.try_emplace(content, proto->string_table_size());
@@ -705,9 +678,6 @@ void WriteComments(
 
     const int string_table_index = new_comment.first->second;
 
-    // MOE:begin_strip
-    // Write address_comment for VxClass.
-    // MOE:end_strip
     auto* proto_address_comment = proto->add_address_comment();
     proto_address_comment->set_instruction_index(instruction->second);
     proto_address_comment->set_string_table_index(string_table_index);
@@ -747,37 +717,6 @@ not_absl::Status WriteProtoToFile(const std::string& filename,
   }
   return not_absl::OkStatus();
 }
-
-// MOE:begin_strip
-#ifdef GOOGLE
-// Writes MD indices to the file. This could be made optional, but for now we
-// write it every time.
-not_absl::Status WriteMDIndexExtension(
-    const CallGraph& call_graph, const FlowGraph& flow_graph,
-    const Instructions& instructions,
-    const AddressReferences& address_references, const TypeSystem* type_system,
-    const AddressSpace& address_space, BinExport2* proto) {
-  auto* md_indices = proto->mutable_md_index();
-  for (const auto& function : flow_graph.GetFunctions()) {
-    auto* md_index = md_indices->Add();
-    md_index->set_address(function.first);
-    md_index->set_md_index(function.second->GetMdIndex());
-  }
-
-  // Sort by MD index value for compatibility.
-  std::sort(md_indices->begin(), md_indices->end(),
-            [](const BinExport2::MDIndex& md_index1,
-               const BinExport2::MDIndex& md_index2) {
-              // Sort my MD index descending, then address ascending.
-              return md_index1.md_index() != md_index2.md_index()
-                         ? md_index1.md_index() > md_index2.md_index()
-                         : md_index1.address() < md_index2.address();
-            });
-  return not_absl::OkStatus();
-}
-#endif  // GOOGLE
-
-// MOE:end_strip
 }  // namespace
 
 BinExport2Writer::BinExport2Writer(const std::string& result_filename,
@@ -818,15 +757,6 @@ not_absl::Status BinExport2Writer::WriteToProto(
   WriteCallGraph(call_graph, flow_graph, proto);
   WriteSections(address_space, proto);
 
-// MOE:begin_strip
-#ifdef GOOGLE
-  // We deliberately ignore the return value here. A failed extension write
-  // should not fail the entire serialization process.
-  auto ignore_error = WriteMDIndexExtension(call_graph, flow_graph,
-                                            instructions, address_references,
-                                            type_system, address_space, proto);
-#endif  // GOOGLE
-// MOE:end_strip
   return not_absl::OkStatus();
 }
 
@@ -842,10 +772,6 @@ not_absl::Status BinExport2Writer::Write(
                                   address_references, type_system,
                                   address_space, &proto));
 
-  // MOE:begin_strip
-  // TODO(soerenme) Write string_reference and expression_substitution. Not
-  //     terribly important right now as Detego doesn't fill them anyways.
-  // MOE:end_strip
   return WriteProtoToFile(filename_, &proto);
 }
 

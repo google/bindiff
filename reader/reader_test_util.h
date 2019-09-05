@@ -16,7 +16,7 @@
 #define READER_READER_TEST_UTIL_H_
 
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/binexport2.proto.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
 namespace security {
