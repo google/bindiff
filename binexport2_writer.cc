@@ -39,7 +39,7 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"
 #include "third_party/absl/time/time.h"
-#include "third_party/zynamics/binexport/binexport2.proto.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/function.h"

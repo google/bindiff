@@ -1,13 +1,15 @@
 #include "third_party/zynamics/binexport/binexport_test_util.h"
 
 #include "third_party/absl/memory/memory.h"
-#include "third_party/zynamics/binexport/binexport2.proto.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 
 namespace security {
 namespace binexport {
 
-std::unique_ptr<proto2::util::MessageDifferencer> CreateDifferencer() {
-  auto differencer = absl::make_unique<proto2::util::MessageDifferencer>();
+std::unique_ptr<google::protobuf::util::MessageDifferencer>
+CreateDifferencer() {
+  auto differencer =
+      absl::make_unique<google::protobuf::util::MessageDifferencer>();
   auto* desc = BinExport2::Meta::descriptor();
   differencer->IgnoreField(desc->FindFieldByName("timestamp"));
   differencer->IgnoreField(desc->FindFieldByName("executable_name"));

@@ -28,7 +28,7 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/binexport.h"
-#include "third_party/zynamics/binexport/binexport2.proto.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 

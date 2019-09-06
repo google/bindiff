@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "net/proto2/util/public/message_differencer.h"
+#include <google/protobuf/util/message_differencer.h>  // NOLINT
 
 namespace security {
 namespace binexport {
@@ -14,7 +14,7 @@ namespace binexport {
 // This allows to compare two otherwise identical BinExport2s even in the face
 // of different hash table implementations or where the hash table randomizes
 // insertion order on each run (like Abseil's *_hash_map).
-std::unique_ptr<proto2::util::MessageDifferencer> CreateDifferencer();
+std::unique_ptr<google::protobuf::util::MessageDifferencer> CreateDifferencer();
 
 }  // namespace binexport
 }  // namespace security
