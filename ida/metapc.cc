@@ -18,11 +18,13 @@
 #include <limits>
 #include <string>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <ida.hpp>                                              // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <intel.hpp>                                            // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -529,7 +531,7 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
     }
   }
 
-  // add prefix (if any) to std::string instructions
+  // add prefix (if any) to string instructions
   if (instruction.auxpref & aux_lock) {
     mnemonic = "lock " + mnemonic;
   }

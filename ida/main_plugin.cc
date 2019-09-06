@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "third_party/zynamics/binexport/ida/main_plugin.h"
+
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <auto.hpp>                                             // NOLINT
 #include <expr.hpp>                                             // NOLINT
@@ -20,6 +23,7 @@
 #include <kernwin.hpp>                                          // NOLINT
 #include <loader.hpp>                                           // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/base/attributes.h"
@@ -33,23 +37,26 @@
 #include "third_party/zynamics/binexport/database_writer.h"
 #include "third_party/zynamics/binexport/dump_writer.h"
 #include "third_party/zynamics/binexport/entry_point.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
-#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/statistics_writer.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
-#include "third_party/zynamics/binexport/version.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
 namespace security {
 namespace binexport {
-namespace {
+
+constexpr char Plugin::kName[];
+constexpr char Plugin::kCopyright[];
+constexpr char Plugin::kComment[];
+constexpr char Plugin::kHotKey[];
 
 std::string GetArgument(const char* name) {
   const char* option =
@@ -60,12 +67,6 @@ std::string GetArgument(const char* name) {
   }
   return option ? option : "";
 }
-
-constexpr char kName[] = "BinExport " BINEXPORT_RELEASE;
-constexpr char kCopyright[] =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
-constexpr char kComment[] = "Export to SQL RE-DB, BinDiff binary or text dump";
-constexpr char kHotKey[] = "";
 
 enum class ExportMode { kSql = 1, kBinary = 2, kText = 3, kStatistics = 4 };
 
@@ -138,17 +139,12 @@ int ExportSql(absl::string_view schema_name,
     if (sha256.empty() && md5.empty()) {
       throw std::runtime_error{"Failed to load input file hashes"};
     }
-    DatabaseWriter writer{std::string(schema_name) /* Database */,
-                          GetModuleName(),
-                          /*module_id=*/0,
-                          md5,
-                          sha256,
-                          GetArchitectureName().value(),
-                          GetImageBase(),
-                          kName /* Version std::string */,
-                          !connection_string.empty()
-                              ? std::string(connection_string)
-                              : GetArgument("ConnectionString")};
+    DatabaseWriter writer(
+        std::string(schema_name) /* Database */, GetModuleName(),
+        /*module_id=*/0, md5, sha256, GetArchitectureName().value(),
+        GetImageBase(), Plugin::kName /* Version string */,
+        !connection_string.empty() ? std::string(connection_string)
+                                   : GetArgument("ConnectionString"));
     int query_size = 0;
     writer.set_query_size(
         absl::SimpleAtoi(GetArgument("QuerySize"), &query_size)
@@ -289,7 +285,7 @@ const char* GetDialog() {
       "See https://github.com/google/binexport/ for details on how to "
       "build/install and use this plugin.\n"
       "ENDHELP\n",
-      kName,
+      Plugin::kName,
       "\n\n\n"
       "<BinExport v2 Binary Export:B:1:30:::>\n\n"
       "<Text Dump Export:B:1:30:::>\n\n"
@@ -388,8 +384,8 @@ static const ext_idcfunc_t kBinExportSqlIdcFunc = {
     EXTFUN_BASE};
 
 // Builds a database connection string from the plugin arguments given on the
-// command-line.
-// Note: This function does not escape any of the strings it gets passed in.
+// command-line. Note: This function does not escape any of the strings it gets
+// passed in.
 std::string GetConnectionStringFromArguments() {
   // See section 32.1.1.1. ("Keyword/Value Connection Strings") at
   // https://www.postgresql.org/docs/9.6/static/libpq-connect.html
@@ -408,7 +404,8 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
 
   // If IDA was invoked with -OBinExportAutoAction:<action>, wait for auto
   // analysis to finish, then invoke the requested action and exit.
-  const std::string auto_action = absl::AsciiStrToUpper(GetArgument("AutoAction"));
+  const std::string auto_action =
+      absl::AsciiStrToUpper(GetArgument("AutoAction"));
   if (auto_action.empty()) {
     return 0;
   }
@@ -441,7 +438,7 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
   return 0;  // Not reached
 }
 
-int idaapi PluginInit() {
+int Plugin::Init() {
   LoggingOptions options;
   options.set_alsologtostderr(
       absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE");
@@ -482,12 +479,12 @@ int idaapi PluginInit() {
   return PLUGIN_KEEP;
 }
 
-void idaapi PluginTerminate() {
+void Plugin::Terminate() {
   unhook_from_notification_point(HT_UI, UiHook, /*user_data=*/nullptr);
   ShutdownLogging();
 }
 
-bool idaapi PluginRun(size_t argument) {
+bool Plugin::Run(size_t argument) {
   if (strlen(get_path(PATH_TYPE_IDB)) == 0) {
     info("Please open an IDB first.");
     return false;
@@ -519,18 +516,19 @@ bool idaapi PluginRun(size_t argument) {
   return true;
 }
 
-}  // namespace
 }  // namespace binexport
 }  // namespace security
 
+using security::binexport::Plugin;
+
 plugin_t PLUGIN = {
     IDP_INTERFACE_VERSION,
-    PLUGIN_FIX,                            // Plugin flags
-    security::binexport::PluginInit,       // Initialize
-    security::binexport::PluginTerminate,  // Terminate
-    security::binexport::PluginRun,        // Invoke plugin
-    security::binexport::kComment,         // Statusline text
-    nullptr,                      // Multi-line help about the plugin, unused
-    security::binexport::kName,   // Preferred short name of the plugin.
-    security::binexport::kHotKey  // Preferred hotkey to run the plugin.
+    PLUGIN_FIX,  // Plugin flags
+    []() { return Plugin::instance()->Init(); },
+    []() { Plugin::instance()->Terminate(); },
+    [](size_t argument) { return Plugin::instance()->Run(argument); },
+    Plugin::kComment,  // Statusline text
+    nullptr,           // Multi-line help about the plugin, unused
+    Plugin::kName,     // Preferred short name of the plugin
+    Plugin::kHotKey    // Preferred hotkey to run the plugin
 };

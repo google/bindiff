@@ -55,8 +55,8 @@ std::string GetFrameTypeId(const TypeSystem* type_system,
 }
 
 // Creates a string representation for the base type id of the corresponding
-// function prototype of the given function. Returns "null" if no such
-// function prototype exists.
+// function prototype of the given function. Returns "null" if no such function
+// prototype exists.
 std::string GetFunctionPrototypeId(const TypeSystem* type_system,
                                    const Function& function) {
   if (type_system) {
@@ -69,8 +69,8 @@ std::string GetFunctionPrototypeId(const TypeSystem* type_system,
   return "null";
 }
 
-// Creates a string representation of the member path for the "path" column in
-// the expression_types table.
+// Creates a string representation of the member path for the "path" column
+// in the expression_types table.
 void BuildMemberPath(const BaseType::MemberIds& member_ids,
                      QueryBuilder* builder) {
   if (member_ids.empty()) {
@@ -89,13 +89,11 @@ void BuildMemberPath(const BaseType::MemberIds& member_ids,
 
 }  // namespace
 
-DatabaseWriter::DatabaseWriter(const std::string& schema,
-                               const std::string& module_name, int module_id,
-                               const std::string& md5, const std::string& sha1,
-                               const std::string& architecture,
-                               const Address base_address,
-                               const std::string& program_version,
-                               const std::string& connection_string)
+DatabaseWriter::DatabaseWriter(
+    const std::string& schema, const std::string& module_name, int module_id,
+    const std::string& md5, const std::string& sha256,
+    const std::string& architecture, const Address base_address,
+    const std::string& program_version, const std::string& connection_string)
     : database_(connection_string.c_str()),
       query_size_(32 << 20 /* 32 MiB */),
       module_id_(module_id),
@@ -115,7 +113,7 @@ DatabaseWriter::DatabaseWriter(const std::string& schema,
       module_id_ = 1;  // module table doesn't exist yet
     }
   }
-  PrepareDatabase(md5, sha1, architecture, base_address);
+  PrepareDatabase(md5, sha256, architecture, base_address);
 }
 
 DatabaseWriter::~DatabaseWriter() = default;
@@ -170,6 +168,7 @@ void DatabaseWriter::CreateModulesTable() {
         "\"version\" INT NOT NULL, "
         "\"md5\" CHAR(32) NOT NULL, "
         "\"sha1\" CHAR(40) NOT NULL, "
+        "\"sha256\" CHAR(64) NOT NULL, "
         "\"comment\" TEXT, "
         "\"import_time\" timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
         "primary key (\"id\"));");
@@ -181,14 +180,15 @@ void DatabaseWriter::CreateModulesTable() {
   }
 }
 
-void DatabaseWriter::PrepareDatabase(const std::string& md5, const std::string& sha1,
+void DatabaseWriter::PrepareDatabase(const std::string& md5,
+                                     const std::string& sha256,
                                      const std::string& architecture,
                                      const Address base_address) {
-  enum { kDbVersion = 7 };
+  constexpr int32_t kDbVersion = 7;
 
   try {
     int num_modules = 0;
-    database_.Execute("SELECT COUNT(*) FROM MODULES") >> num_modules;
+    database_.Execute("SELECT COUNT(*) FROM modules") >> num_modules;
     if (num_modules != 0) {
       int versionDelta = 0;
       database_.Execute("SELECT MAX(version) - MIN(version) FROM modules") >>
@@ -198,7 +198,7 @@ void DatabaseWriter::PrepareDatabase(const std::string& md5, const std::string& 
       }
 
       int version = 0;
-      database_.Execute("SELECT VERSION FROM MODULES LIMIT 1") >> version;
+      database_.Execute("SELECT VERSION FROM modules LIMIT 1") >> version;
       if (version != kDbVersion) {
         throw std::runtime_error("Version error - check modules table");
       }
@@ -223,12 +223,15 @@ void DatabaseWriter::PrepareDatabase(const std::string& md5, const std::string& 
       pos != std::string::npos ? module_name_.substr(pos + 1) : module_name_;
 
   database_.Execute(
-      "INSERT INTO MODULES VALUES($1::int, $2::text, $3::varchar, $4::bigint, "
-      "$5::varchar, $6::int, $7::varchar, $8::varchar, '', NOW())",
+      "INSERT INTO modules VALUES($1::int, $2::text, $3::varchar, $4::bigint, "
+      "$5::varchar, $6::int, $7::varchar, $8::varchar, $9::varchar, '', NOW())",
       Parameters() << static_cast<int32_t>(module_id_) << module_name
                    << architecture << static_cast<int64_t>(base_address)
-                   << program_version_ << static_cast<int32_t>(kDbVersion) << md5
-                   << sha1);
+                   << program_version_ << static_cast<int32_t>(kDbVersion)
+                   << md5
+                   // Write all-zeroes to indicate that SHA1 is no longer used
+                   << std::string("0000000000000000000000000000000000000000")
+                   << sha256);
 }
 
 void DatabaseWriter::InsertAddressComments(const CallGraph& call_graph) {

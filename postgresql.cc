@@ -144,9 +144,9 @@ Database::Database(const char* connection_string)
   if (PQstatus(connection_) != CONNECTION_OK) {
     const std::string error = std::string(PQerrorMessage(connection_));
     PQfinish(connection_);
-    throw std::runtime_error(("Failed connecting to database: '" + error +
-                              "', connection std::string used: '" +
-                              connection_string + "'").c_str());
+    throw std::runtime_error(absl::StrCat("Failed connecting to database: '",
+                                          error, "', connection string used: '",
+                                          connection_string, "'"));
   }
 
   // We are not interested in NOTICE spam (examples of which are implicit
@@ -172,8 +172,7 @@ Database& Database::Prepare(const char* query, const char* name) {
   result_ = PQprepare(connection_, name, query, 0, 0);
   if (PQresultStatus(result_) != PGRES_COMMAND_OK) {
     const char* error = PQerrorMessage(connection_);
-    throw std::runtime_error(
-        ("Preparing query failed: " + std::string(error)).c_str());
+    throw std::runtime_error(absl::StrCat("Preparing query failed: ", error));
   }
   return *this;
 }
@@ -203,8 +202,7 @@ Database& Database::ExecutePrepared(const Parameters& parameters,
     default: {
       const char* error = PQerrorMessage(connection_);
       throw std::runtime_error(
-          ("Executing prepared statement failed: " + std::string(error))
-              .c_str());
+          absl::StrCat("Executing prepared statement failed: ", error));
     }
   }
   return *this;

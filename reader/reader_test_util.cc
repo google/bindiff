@@ -16,12 +16,11 @@
 
 #include <fstream>
 
-#include <gmock/gmock.h>  // NOLINT
-#include <gtest/gtest.h>  // NOLINT
-
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 
 namespace security {

@@ -29,7 +29,7 @@
 namespace {
 
 struct TreeNode {
-  typedef std::list<TreeNode*> Children;
+  using Children = std::list<TreeNode*>;
   explicit TreeNode(const Expression* expression) : expression(expression) {}
 
   const Expression* expression;
@@ -38,8 +38,8 @@ struct TreeNode {
 
 typedef std::vector<std::shared_ptr<TreeNode>> Tree;
 
-// TODO(soerenme): immediate_float are rendered as hex and aren't properly
-//                 checked for their sign.
+// TODO(cblichmann): Immediate floats are rendered as hex and aren't properly
+//                   checked for their sign.
 void RenderExpression(std::ostream* stream, const TreeNode& node,
                       int substitution_id, const std::string& substitution) {
   CHECK(node.expression != nullptr);
@@ -157,8 +157,8 @@ void RenderExpression(std::ostream* stream, const TreeNode& node,
 FlowGraph::Substitutions::const_iterator GetSubstitution(
     Address address, int operand_num,
     FlowGraph::Substitutions::const_iterator subst_begin,
-    FlowGraph::Substitutions::const_iterator subst_end, std::string* substitution,
-    int* expression_id) {
+    FlowGraph::Substitutions::const_iterator subst_end,
+    std::string* substitution, int* expression_id) {
   auto it = subst_begin;
   while (it != subst_end && std::get<0>(it->first) == address &&
          std::get<1>(it->first) < operand_num) {
@@ -178,7 +178,7 @@ FlowGraph::Substitutions::const_iterator GetSubstitution(
 }  // namespace
 
 std::string RenderOperands(const Instruction& instruction,
-                      const FlowGraph& flow_graph) {
+                           const FlowGraph& flow_graph) {
   if (!instruction.GetOperandCount()) {
     return "";
   }
@@ -286,9 +286,8 @@ Instruction::GetBytesCallback Instruction::get_bytes_callback_ = 0;
 AddressSpace* Instruction::flags_ = nullptr;
 AddressSpace* Instruction::virtual_memory_ = nullptr;
 
-Instruction::Instruction(Address address, Address next_instruction,
-                         uint16_t size, const std::string& mnemonic,
-                         const Operands& operands)
+Instruction::Instruction(Address address, Address next_instruction, uint16_t size,
+                         const std::string& mnemonic, const Operands& operands)
     : mnemonic_(CacheString(mnemonic)),
       address_(address),
       operand_index_(operands_.size()),
@@ -369,9 +368,10 @@ std::string Instruction::GetBytes() const {
     // TODO(soerenme) Optimize this so we don't need a call to GetMemoryBlock
     //     for each instruction.
     const auto memory_block = virtual_memory_->GetMemoryBlock(address_);
-    return std::string(reinterpret_cast<const char*>(&*memory_block->second.begin() +
-                                                address_ - memory_block->first),
-                  size_);
+    return std::string(
+        reinterpret_cast<const char*>(&*memory_block->second.begin() +
+                                      address_ - memory_block->first),
+        size_);
   }
 
   assert(get_bytes_callback_);

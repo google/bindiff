@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BASIC_BLOCK_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_BASIC_BLOCK_H_
+#ifndef BASIC_BLOCK_H_
+#define BASIC_BLOCK_H_
 
 #include <forward_list>
 #include <iosfwd>
@@ -187,4 +187,4 @@ class BasicBlock {
 };
 #pragma pack(pop)
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BASIC_BLOCK_H_
+#endif  // BASIC_BLOCK_H_

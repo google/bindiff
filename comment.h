@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_COMMENT_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_COMMENT_H_
+#ifndef COMMENT_H_
+#define COMMENT_H_
 
 #include <string>
 #include <vector>
@@ -51,4 +51,4 @@ class Comment {
 using Comments = std::vector<Comment>;
 bool SortComments(const Comment& one, const Comment& two);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_COMMENT_H_
+#endif  // COMMENT_H_

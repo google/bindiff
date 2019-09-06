@@ -43,6 +43,6 @@ ExternalProject_Add(binexport
              "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH_ALT_SEP}"
              "-DABSL_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/absl"
              "-DGOOGLETEST_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/googletest"
-             "-DIdaSdk_DIR=${IdaSdk_ROOT_DIR}"
+             "-DIdaSdk_DIR=${IdaSdk_DIR}"
              "-DBUILD_TESTING=OFF"
 )

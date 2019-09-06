@@ -39,10 +39,7 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"
 #include "third_party/absl/time/time.h"
-#define final   // Hack: Allow to override generated protobuf code.
-#include <google/protobuf/io/coded_stream.h>  // NOLINT
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#undef final  // Undo hack
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/function.h"
@@ -77,8 +74,8 @@ void WriteMnemonics(const Instructions& instructions,
                     BinExport2* proto) {
   // Get a histogram of mnemonics. Sort that histogram by descending occurrence
   // count. Store mnemonics in result proto buffer. Remember the indices
-  // assigned in the proto array. Sort the index vector by mnemonic std::string to
-  // allow for quick binary search by std::string and mapping from std::string to index.
+  // assigned in the proto array. Sort the index vector by mnemonic string to
+  // allow for quick binary search by string and mapping from string to index.
   absl::flat_hash_map<std::string, int32_t> mnemonic_histogram;
   for (const auto& instruction : instructions) {
     if (instruction.HasFlag(FLAG_INVALID)) {
@@ -203,8 +200,9 @@ void WriteOperands(BinExport2* proto) {
 
 // Binary search for the given mnemonic. It is a fatal error to look for a
 // mnemonic that is not actually contained in the set.
-int32_t GetMnemonicIndex(const std::vector<std::pair<std::string, int32_t>>& mnemonics,
-                       const std::string& mnemonic) {
+int32_t GetMnemonicIndex(
+    const std::vector<std::pair<std::string, int32_t>>& mnemonics,
+    const std::string& mnemonic) {
   const auto it = lower_bound(mnemonics.begin(), mnemonics.end(),
                               std::make_pair(mnemonic, 0));
   QCHECK(it != mnemonics.end()) << "Unknown mnemonic: " << mnemonic;
@@ -461,8 +459,8 @@ int32_t GetVertexIndex(const BinExport2::CallGraph& call_graph, uint64_t address
   BinExport2::CallGraph::Vertex vertex;
   vertex.set_address(address);
   const auto& it =
-      lower_bound(call_graph.vertex().begin(), call_graph.vertex().end(),
-                  vertex, &SortByAddress);
+      std::lower_bound(call_graph.vertex().begin(), call_graph.vertex().end(),
+                       vertex, &SortByAddress);
   QCHECK(it != call_graph.vertex().end())
       << "Can't find a call graph node for: "
       << absl::StrCat(absl::Hex(address, absl::kZeroPad8));
@@ -528,11 +526,12 @@ void WriteCallGraph(const CallGraph& call_graph, const FlowGraph& flow_graph,
     // We are O(N^2) here by number of classes, shouldn't be a big deal.
     for (int i = 0; i < module_index.size(); ++i) {
       auto* module = proto->add_module();
-      module->set_name(std::find_if(
-          module_index.begin(), module_index.end(),
-          [i] (const std::pair<std::string, int32_t>& kv) -> bool {
-            return kv.second == i;
-          })->first);
+      module->set_name(
+          std::find_if(module_index.begin(), module_index.end(),
+                       [i](const std::pair<std::string, int32_t>& kv) -> bool {
+                         return kv.second == i;
+                       })
+              ->first);
     }
   }
 
@@ -574,8 +573,8 @@ void WriteStrings(
     const auto instruction =
         lower_bound(instruction_indices.begin(), instruction_indices.end(),
                     std::make_pair(reference.source_, 0));
-    // Only add strings and std::string references if there is an instruction
-    // actually referencing the std::string.
+    // Only add strings and string references if there is an instruction
+    // actually referencing the string.
     if (instruction == instruction_indices.end() ||
         instruction->first != reference.source_) {
       continue;
@@ -585,9 +584,9 @@ void WriteStrings(
     if (reference.kind_ != TYPE_DATA_STRING) {
       continue;
     }
-    content =
-        std::string(reinterpret_cast<const char*>(&address_space[reference.target_]),
-               reference.size_);
+    content = std::string(
+        reinterpret_cast<const char*>(&address_space[reference.target_]),
+        reference.size_);
 
     auto it =
         string_to_string_index.try_emplace(content, proto->string_table_size());
@@ -678,6 +677,7 @@ void WriteComments(
     QCHECK(instruction != instruction_indices.end());
 
     const int string_table_index = new_comment.first->second;
+
     auto* proto_address_comment = proto->add_address_comment();
     proto_address_comment->set_instruction_index(instruction->second);
     proto_address_comment->set_string_table_index(string_table_index);
@@ -707,89 +707,10 @@ void WriteSections(const AddressSpace& address_space, BinExport2* proto) {
   }
 }
 
-class BinExport2MetaWithDifferentOrder : public BinExport2_Meta {
- public:
-  BinExport2MetaWithDifferentOrder(const BinExport2_Meta& from)
-      : BinExport2_Meta(from) {}
-
-  void SerializeWithCachedSizes(
-      google::protobuf::io::CodedOutputStream* output) const override;
-  google::protobuf::uint8* InternalSerializeWithCachedSizesToArray(
-      bool deterministic, google::protobuf::uint8* target) const override;
-};
-
-void BinExport2MetaWithDifferentOrder::SerializeWithCachedSizes(
-    google::protobuf::io::CodedOutputStream* output) const {
-  // LINT.IfChange MOE:strip_line
-  // optional bytes padding_v1 = 5;
-  if (has_padding_v1()) {
-    google::protobuf::internal::WireFormatLite::WriteBytesMaybeAliased(
-        0, this->padding_v1(), output);
-  }
-  // optional std::string executable_name = 1;
-  if (has_executable_name()) {
-    google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-        1, this->executable_name(), output);
-  }
-  // optional std::string executable_id = 2;
-  if (has_executable_id()) {
-    google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-        2, this->executable_id(), output);
-  }
-  // optional std::string architecture_name = 3;
-  if (has_architecture_name()) {
-    google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-        3, this->architecture_name(), output);
-  }
-  // optional int64_t timestamp = 4;
-  if (has_timestamp()) {
-    google::protobuf::internal::WireFormatLite::WriteInt64(4, this->timestamp(),
-                                                           output);
-  }
-}
-
-google::protobuf::uint8*
-BinExport2MetaWithDifferentOrder::InternalSerializeWithCachedSizesToArray(
-    bool /* deterministic */, google::protobuf::uint8* target) const {
-  // LINT.IfChange MOE:strip_line
-  // optional bytes padding_v1 = 5;
-  if (has_padding_v1()) {
-    target = google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        5, this->padding_v1(), target);
-  }
-  // optional std::string executable_name = 1;
-  if (has_executable_name()) {
-    target = google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        1, this->executable_name(), target);
-  }
-  // optional std::string executable_id = 2;
-  if (has_executable_id()) {
-    target = google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        2, this->executable_id(), target);
-  }
-  // optional std::string architecture_name = 3;
-  if (has_architecture_name()) {
-    target = google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        3, this->architecture_name(), target);
-  }
-  // optional int64_t timestamp = 4;
-  if (has_timestamp()) {
-    target = google::protobuf::internal::WireFormatLite::WriteInt64ToArray(
-        4, this->timestamp(), target);
-  }
-  return target;
-}
-
-// Writes a binary protocol buffer to the specified filename. Returns true if
-// successful. Logs an error and returns false if not.
-not_absl::Status WriteProtoToFile(const std::string& filename, BinExport2* proto) {
+// Writes a binary protocol buffer to the specified filename.
+not_absl::Status WriteProtoToFile(const std::string& filename,
+                                  BinExport2* proto) {
   std::ofstream stream(filename, std::ios::binary | std::ios::out);
-
-  // Apply padding for compatibility with BinDiff < 4.3.
-  auto* meta = new BinExport2MetaWithDifferentOrder(proto->meta_information());
-  meta->set_padding_v1(std::string(7, '\0'));
-  proto->set_allocated_meta_information(meta);  // Transfer ownership
-
   if (!proto->SerializeToOstream(&stream)) {
     return not_absl::UnknownError(
         absl::StrCat("error serializing data to: '", filename, ""));
@@ -835,6 +756,7 @@ not_absl::Status BinExport2Writer::WriteToProto(
   WriteFlowGraphs(flow_graph, proto);
   WriteCallGraph(call_graph, flow_graph, proto);
   WriteSections(address_space, proto);
+
   return not_absl::OkStatus();
 }
 
@@ -849,6 +771,7 @@ not_absl::Status BinExport2Writer::Write(
   NA_RETURN_IF_ERROR(WriteToProto(call_graph, flow_graph, instructions,
                                   address_references, type_system,
                                   address_space, &proto));
+
   return WriteProtoToFile(filename_, &proto);
 }
 

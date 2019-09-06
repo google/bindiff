@@ -16,8 +16,8 @@
 
 #include <string>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/util/status.h"

@@ -14,8 +14,8 @@
 
 #include "third_party/zynamics/binexport/util/format.h"
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 using testing::StrEq;
 

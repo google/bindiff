@@ -18,6 +18,7 @@
 #include <cstring>
 #include <string>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <funcs.hpp>                                            // NOLINT
@@ -28,6 +29,7 @@
 #include <segment.hpp>                                          // NOLINT
 #include <strlist.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -247,7 +249,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
       case dex_o_string: {
         // TODO(cblichmann) Check if we should use the size of a single
         //                  character (the type "pointed to").
-        // TODO(cblichmann) Add std::string as a comment.
+        // TODO(cblichmann) Add string as a comment.
         expr = Expression::Create(
             expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
             Expression::TYPE_SIZEPREFIX, 0);
