@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_FUNCTION_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_FUNCTION_H_
+#ifndef FUNCTION_H_
+#define FUNCTION_H_
 
 #include <cstdint>
 #include <map>
@@ -115,4 +115,4 @@ class Function {
   int library_index_;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_FUNCTION_H_
+#endif  // FUNCTION_H_

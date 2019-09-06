@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_GENERIC_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_GENERIC_H_
+#ifndef IDA_GENERIC_H_
+#define IDA_GENERIC_H_
 
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
@@ -34,4 +34,4 @@ Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_GENERIC_H_
+#endif  // IDA_GENERIC_H_

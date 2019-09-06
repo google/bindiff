@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPES_CONTAINER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPES_CONTAINER_H_
+#ifndef TYPES_CONTAINER_H_
+#define TYPES_CONTAINER_H_
 
 #include <stddef.h>
 #include <vector>
@@ -120,4 +120,4 @@ class TypesContainer {
   TypesContainer& operator=(const TypesContainer&) = delete;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPES_CONTAINER_H_
+#endif  // TYPES_CONTAINER_H_

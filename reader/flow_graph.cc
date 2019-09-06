@@ -30,7 +30,8 @@ namespace binexport {
 namespace {
 
 absl::optional<Architecture> GetSupportedArchitecture(const BinExport2& proto) {
-  const std::string& architecture = proto.meta_information().architecture_name();
+  const std::string& architecture =
+      proto.meta_information().architecture_name();
   if (architecture == "arm") {
     return Architecture::kArm;
   }

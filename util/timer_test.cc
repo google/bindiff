@@ -14,7 +14,7 @@
 
 #include "third_party/zynamics/binexport/util/timer.h"
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 // Minimal steady clock implementation for testing. Time monotonically
 // increases in units of 5 seconds (until the underlying time_point

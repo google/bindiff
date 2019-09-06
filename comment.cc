@@ -28,8 +28,8 @@ bool SortComments(const Comment& lhs, const Comment& rhs) {
   return lhs.address_ < rhs.address_;
 }
 
-Comment::Comment(Address address, size_t operand_num, const std::string* comment,
-                 Type type, bool repeatable)
+Comment::Comment(Address address, size_t operand_num,
+                 const std::string* comment, Type type, bool repeatable)
     : address_(address),
       operand_num_(operand_num),
       comment_(comment),

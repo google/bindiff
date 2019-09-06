@@ -64,7 +64,8 @@ option java_outer_classname = "BinExport";
 
 message BinExport2 {
   message Meta {
-    // LINT.IfChange MOE:strip_line
+    reserved 5;  // Pre-BinDiff 4.3 padding
+
     // Input binary filename including file extension but excluding file path.
     // example: "insider_gcc.exe"
     optional string executable_name = 1;
@@ -79,18 +80,6 @@ message BinExport2 {
     // When did this file get created? Unix time. This may be used for some
     // primitive versioning in case the file format ever changes.
     optional int64 timestamp = 4;
-
-    // Versions of the BinDiff UI < 4.3 will try to interpret the first few
-    // bytes as a metadata header and do an unchecked memory allocation based
-    // on it. This field here, if present, should be stored in such a way that
-    // message offsets 8-12 are zero, so older versions of BinDiff can simply
-    // fail with an error message.
-    // Note: In order for this to work, this field needs to be written as the
-    // first member of this sub-message. Due to an oversight, we have lots of
-    // data in this format and cannot renumber the fields here. To work around
-    // this, binexport2_writer.cc contains custom serialization code that
-    // always writes this field first.
-    optional bytes padding_v1 = 5;
   }
 
   message CallGraph {
@@ -372,6 +361,7 @@ message BinExport2 {
     // Name, such as Java class name. Platform-dependent.
     optional string name = 1;
   }
+
   optional Meta meta_information = 1;
   repeated Expression expression = 2;
   repeated Operand operand = 3;
@@ -388,6 +378,7 @@ message BinExport2 {
   repeated Reference string_reference = 11;
   repeated Reference expression_substitution = 12;
   repeated Section section = 13;
+
   repeated Library library = 14;
   repeated DataReference data_reference = 15;
   repeated Module module = 16;

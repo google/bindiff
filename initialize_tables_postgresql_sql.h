@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_TABLES_POSTGRESQL_SQL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_TABLES_POSTGRESQL_SQL_H_
+#ifndef INITIALIZE_TABLES_POSTGRESQL_SQL_H_
+#define INITIALIZE_TABLES_POSTGRESQL_SQL_H_
 
 #include "third_party/absl/strings/string_view.h"
 
@@ -207,4 +207,4 @@ CREATE TABLE "ex_?_type_substitution_paths" (
   return kPostgreSqlInitializeTables;
 }
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_TABLES_POSTGRESQL_SQL_H_
+#endif  // INITIALIZE_TABLES_POSTGRESQL_SQL_H_

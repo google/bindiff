@@ -14,9 +14,9 @@
 
 #include "third_party/zynamics/binexport/reader/flow_graph.h"
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include "base/logging.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
@@ -84,7 +84,7 @@ TEST_F(FlowGraphTest, GetInstructions) {
      basic_block[0], instruction[0], instruction[1], instruction[2], \
      instruction[3], instruction[4],  mnemonic[0], mnemonic[9], mnemonic[49] \
      from \
-     rawproto:security/zynamics/dejadis/testdata/0000500ed9f688a309ee2176462eb978efa9a2fb80fcceb5d8fd08168ea50dfd.BinExport2
+     rawproto:testdata/0000500ed9f688a309ee2176462eb978efa9a2fb80fcceb5d8fd08168ea50dfd.BinExport2
   */
   FlowGraph::Vertex vertex = flow_graph_->GetVertex(0x322152);
   int counter = 0;

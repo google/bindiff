@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_EDGE_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_EDGE_H_
+#ifndef EDGE_H_
+#define EDGE_H_
 
 #include <cstddef>
 
@@ -46,4 +46,4 @@ struct FlowGraphEdgeHash {
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two);
 bool operator==(const FlowGraphEdge& lhs, const FlowGraphEdge& rhs);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_EDGE_H_
+#endif  // EDGE_H_

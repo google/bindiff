@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_FLOW_ANALYZER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_FLOW_ANALYZER_H_
+#ifndef FLOW_ANALYZER_H_
+#define FLOW_ANALYZER_H_
 
 #include "third_party/zynamics/binexport/instruction.h"
 
@@ -24,4 +24,4 @@ class FlowGraph;
 void ReconstructFlowGraph(detego::Instructions* instructions,
                           const FlowGraph& flow_graph, CallGraph* call_graph);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_FLOW_ANALYZER_H_
+#endif  // FLOW_ANALYZER_H_

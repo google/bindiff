@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_MACROS_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_MACROS_H_
+#ifndef BASE_MACROS_H_
+#define BASE_MACROS_H_
+
 #include "third_party/absl/base/macros.h"
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_MACROS_H_
+#endif  // BASE_MACROS_H_

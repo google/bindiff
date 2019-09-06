@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_LIBRARY_MANAGER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_LIBRARY_MANAGER_H_
+#ifndef LIBRARY_MANAGER_H_
+#define LIBRARY_MANAGER_H_
 
 #include <set>
 #include <string>
@@ -60,8 +60,8 @@ class LibraryManager {
   struct FunctionInfo {
     FunctionInfo() = default;
 
-    FunctionInfo(const std::string& module_name, const std::string& function_name,
-                 int library_index)
+    FunctionInfo(const std::string& module_name,
+                 const std::string& function_name, int library_index)
         : module_name(module_name),
           function_name(function_name),
           library_index(library_index) {}
@@ -85,12 +85,14 @@ class LibraryManager {
     AddKnownFunction("", function_name, -1, address);
   }
 
-  void AddKnownFunction(const std::string& module_name, const std::string& function_name,
-                        int library_index, Address address);
+  void AddKnownFunction(const std::string& module_name,
+                        const std::string& function_name, int library_index,
+                        Address address);
 
   // Adds function imported from library (-1 if unknown), address is made up.
   Address AddImportedFunction(const std::string& module_name,
-                              const std::string& function_name, int library_index);
+                              const std::string& function_name,
+                              int library_index);
 
   // Returns library by library index.
   const LibraryRecord& GetKnownLibrary(int library_index) const {
@@ -175,4 +177,4 @@ class LibraryManager {
   int bitness_ = 32;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_LIBRARY_MANAGER_H_
+#endif  // LIBRARY_MANAGER_H_

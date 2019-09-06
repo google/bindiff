@@ -29,8 +29,8 @@
 //   ++it;
 // }
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_NESTED_ITERATOR_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_NESTED_ITERATOR_H_
+#ifndef NESTED_ITERATOR_H_
+#define NESTED_ITERATOR_H_
 
 #include <cassert>
 
@@ -130,4 +130,4 @@ template<typename OuterIterator> class NestedIterator {
   InnerIterator inner_iter_;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_NESTED_ITERATOR_H_
+#endif  // NESTED_ITERATOR_H_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_INSTRUCTION_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_INSTRUCTION_H_
+#ifndef INSTRUCTION_H_
+#define INSTRUCTION_H_
 
 #include <ostream>
 #include <string>
@@ -93,7 +93,7 @@ class Instruction {
   Operands::iterator end() const;
   Operands::const_iterator cbegin() const;
   Operands::const_iterator cend() const;
-  const Operand& GetOperand(int operand_number) const;
+  const Operand& GetOperand(int index) const;
   // TODO(cblichmann): Remove these again as part of improving the overall API
   //                   of this class.
   const Operand& GetFirstOperand() const;
@@ -119,11 +119,11 @@ class Instruction {
 
  private:
   const std::string* mnemonic_;  // 4|8 + overhead in stringcache
-  Address address_;         // 8
-  uint32_t operand_index_;  // 4 + overhead in operand pointer vector
-  uint8_t operand_count_;   // 1
-  uint16_t in_degree_;      // 2 TODO(soerenme) in-degree count in edges.
-  uint8_t size_;            // 1
+  Address address_;              // 8
+  uint32_t operand_index_;         // 4 + overhead in operand pointer vector
+  uint8_t operand_count_;          // 1
+  uint16_t in_degree_;             // 2 TODO(soerenme) in-degree count in edges.
+  uint8_t size_;                   // 1
 
   static int instance_count_;
   static StringCache string_cache_;
@@ -154,6 +154,6 @@ Instructions::iterator GetInstruction(detego::Instructions* instructions,
 Instructions::iterator GetNextInstruction(detego::Instructions* instructions,
                                           Instructions::iterator instruction);
 std::string RenderOperands(const Instruction& instruction,
-                      const FlowGraph& flow_graph);
+                           const FlowGraph& flow_graph);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INSTRUCTION_H_
+#endif  // INSTRUCTION_H_
