@@ -55,6 +55,8 @@
     <Property Id="ARPPRODUCTICON" Value="Icons_BinDiff.ico" />
     <Property Id="ARPHELPLINK" Value="https://www.zynamics.com/bindiff.htm" />
     <Property Id="ARPURLINFOABOUT" Value="https://www.zynamics.com/" />
+    <PropertyRef Id="WIX_ACCOUNT_LOCALSYSTEM" />
+    <PropertyRef Id="WIX_ACCOUNT_USERS" />
 
     <Property Id="IDADIRECTORY">
       <!-- Same for both IDA 7.2 and 7.1 -->
@@ -80,6 +82,21 @@
                       Name="CurrentVersion" />
     </Property>
 
+    <!-- Note (b/140218119): This custom action deletes an existing empty
+         directory or junction. Possible conditions for %ProgramData%\BinDiff:
+           - Does not exist - does nothing
+           - Is directory junction or symlink - gets deleted
+           - Is empty directory - gets deleted
+           - Is non-empty dir - does nothing
+         The action will execute with elevated privileges.
+      -->
+    <CustomAction Id="RemoveCommonAppData"
+                  Directory="CommonAppDataFolder"
+                  ExeCommand="[SystemFolder]cmd.exe /c rmdir /q &quot;[CommonAppDataFolder]BinDiff&quot;"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="ignore" />
+
     <!-- Installation sequence for administrative installations -->
     <InstallExecuteSequence>
       <Custom Action="CA_BlockOlderVersionInstall" After="FindRelatedProducts">
@@ -93,6 +110,8 @@
            config files.
         -->
       <RemoveExistingProducts After="InstallInitialize" />
+
+      <Custom Action="RemoveCommonAppData" After="RemoveExistingProducts"/>
 
       <LaunchConditions After="AppSearch"/>
     </InstallExecuteSequence>
@@ -265,9 +284,21 @@
       <!-- Per-machine Configuration -->
       <Directory Id="CommonAppDataFolder" Name="CommonAppData">
         <Directory Id="CommonAppData_BinDiff" Name="BinDiff">
-          <Component Id="CommonAppData_BinDiff_CoreConfig"
-                     Guid="006BD9D8-503B-49FB-8628-6D2BD5BB01DD">
+          <Component Id="CommonAppData_BinDiff_Config"
+                     Guid="9AAA055A-1868-4F56-9005-8ED5BFA26967">
+            <CreateFolder>
+              <Permission GenericAll="yes"
+                          User="[WIX_ACCOUNT_LOCALSYSTEM]" />
+              <Permission GenericRead="yes"
+                          GenericExecute="yes"
+                          GenericWrite="no"
+                          User="[WIX_ACCOUNT_USERS]" />
+            </CreateFolder>
+            <RemoveFolder Id="CommonAppData_BinDiff"
+                          On="both" />
+
             <File Name="bindiff_core.xml" KeyPath="yes" />
+            <RemoveFile Id="Remove_bindiff_core.xml" Name="bindiff_core.xml" On="both"/>
             <util:XmlFile Id="BinDiffCoreConfigModifyGuiDir"
                           Action="setValue"
                           File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
@@ -286,10 +317,9 @@
                           ElementPath="/BinDiff/Ida"
                           Name="directory" Value="[IDADIRECTORY]"
                           Sequence="3" />
-          </Component>
-          <Component Id="CommonAppData_BinDiff_UIConfig"
-                     Guid="11365585-3C98-48B6-9C2B-0FB6AF6E287C">
-            <File Name="bindiff_ui.xml" KeyPath="yes" />
+
+            <File Name="bindiff_ui.xml" />
+            <RemoveFile Id="Remove_bindiff_ui.xml" Name="bindiff_ui.xml" On="both"/>
             <util:XmlFile Id="BinDiffUIConfigModifyIdaDir"
                           Action="setValue"
                           File="[CommonAppDataFolder]BinDiff\bindiff_ui.xml"
@@ -444,8 +474,7 @@
       <ComponentRef Id="ProgramMenu_BinDiff_ReportABug" />
       <ComponentRef Id="ProgramMenu_BinDiff_UserDocumentation" />
       <ComponentRef Id="ProgramMenu_BinDiff_ZynamicsHomePage" />
-      <ComponentRef Id="CommonAppData_BinDiff_CoreConfig" />
-      <ComponentRef Id="CommonAppData_BinDiff_UIConfig" />
+      <ComponentRef Id="CommonAppData_BinDiff_Config" />
 
       <Feature Id="BinDiffJre"
                Title="Bundled Java Runtime Environment"
