@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_DUMP_WRITER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_DUMP_WRITER_H_
+#ifndef DUMP_WRITER_H_
+#define DUMP_WRITER_H_
 
 #include <fstream>
 
@@ -42,4 +42,4 @@ class DumpWriter : public Writer {
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_DUMP_WRITER_H_
+#endif  // DUMP_WRITER_H_

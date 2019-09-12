@@ -15,8 +15,8 @@
 // This file provide a set of commonly used utility functions to work with
 // BinExport2 protos.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BINEXPORT_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_BINEXPORT_H_
+#ifndef BINEXPORT_H_
+#define BINEXPORT_H_
 
 #include <vector>
 
@@ -44,7 +44,6 @@ Address GetInstructionAddress(const BinExport2& proto, int index);
 std::vector<Address> GetAllInstructionAddresses(const BinExport2& proto);
 
 }  // namespace binexport
-
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BINEXPORT_H_
+#endif  // BINEXPORT_H_

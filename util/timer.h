@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_TIMER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_TIMER_H_
+#ifndef UTIL_TIMER_H_
+#define UTIL_TIMER_H_
 
 #include <chrono>  // NOLINT
 
@@ -37,4 +37,4 @@ class Timer {
   std::chrono::time_point<ClockT> start_ = ClockT::now();
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_TIMER_H_
+#endif  // UTIL_TIMER_H_

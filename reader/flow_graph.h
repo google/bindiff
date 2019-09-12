@@ -15,8 +15,8 @@
 // A class to convert and store a BinExport::Flowgraph protocol buffer in a
 // Boost graph.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_FLOW_GRAPH_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_FLOW_GRAPH_H_
+#ifndef READER_FLOW_GRAPH_H_
+#define READER_FLOW_GRAPH_H_
 
 #include <cstddef>
 #include <memory>
@@ -162,4 +162,4 @@ void FlowGraph::GetCallTargets(Vertex vertex,
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_FLOW_GRAPH_H_
+#endif  // READER_FLOW_GRAPH_H_

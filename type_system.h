@@ -18,8 +18,8 @@
 // c) all segments of the executable, i.e. contiguous blocks of memory that may
 // contain type instances.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPE_SYSTEM_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPE_SYSTEM_H_
+#ifndef TYPE_SYSTEM_H_
+#define TYPE_SYSTEM_H_
 
 #include <set>
 #include <vector>
@@ -38,7 +38,7 @@ class TypeSystem {
   TypeSystem(const TypeSystem&) = delete;
   TypeSystem& operator=(const TypeSystem&) = delete;
 
-  typedef std::string (*GetNameForInstance)(Address address);
+  using GetNameForInstance = std::string (*)(Address address);
   // Creates a type substitution at the given location (if possible).
   void AddTypeSubstitution(Address address, int operand_num, int expression_id);
   // Creates a type substitution at the given location but also takes an
@@ -78,7 +78,7 @@ class TypeSystem {
       return id++;
     }
   };
-  typedef std::set<TypeInstance> TypeInstances;
+  using TypeInstances = std::set<TypeInstance>;
 
   // Represents an association of an operand expression with a type reference.
   struct TypeSubstitution {
@@ -153,4 +153,4 @@ bool operator<(const TypeSystem::DataXRef& lhs,
 bool operator<(const TypeSystem::TypeInstance& lhs,
                const TypeSystem::TypeInstance& rhs);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPE_SYSTEM_H_
+#endif  // TYPE_SYSTEM_H_

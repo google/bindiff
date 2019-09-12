@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_HASH_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_HASH_H_
+#ifndef HASH_H_
+#define HASH_H_
 
 #include "third_party/zynamics/binexport/types.h"
 
@@ -21,4 +21,4 @@
 // string.
 uint32_t GetSdbmHash(const std::string& data);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_HASH_H_
+#endif  // HASH_H_

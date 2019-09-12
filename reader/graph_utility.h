@@ -14,8 +14,8 @@
 
 // Utility class for graph related algorithms.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_GRAPH_UTILITY_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_GRAPH_UTILITY_H_
+#ifndef READER_GRAPH_UTILITY_H_
+#define READER_GRAPH_UTILITY_H_
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
 
@@ -90,4 +90,4 @@ EdgeDegrees GetEdgeDegrees(const typename Graph::Graph& graph,
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_GRAPH_UTILITY_H_
+#endif  // READER_GRAPH_UTILITY_H_

@@ -14,8 +14,8 @@
 
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/util/status_matchers.h"
 
@@ -67,7 +67,8 @@ TEST(FileSystemTest, JoinPaths) {
 }
 
 TEST(FileSystemTest, CreateAndRemoveDirectories) {
-  NA_ASSERT_OK_AND_ASSIGN(std::string temp_dir, GetOrCreateTempDirectory("test"));
+  NA_ASSERT_OK_AND_ASSIGN(std::string temp_dir,
+                          GetOrCreateTempDirectory("test"));
 
   const auto test_path = JoinPath(temp_dir, "sub", "dir", "s2");
   EXPECT_THAT(CreateDirectories(test_path).ok(), IsTrue());

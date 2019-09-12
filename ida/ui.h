@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
+#ifndef IDA_UI_H_
+#define IDA_UI_H_
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
 #include <loader.hpp>                                           // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "third_party/absl/strings/string_view.h"
 
@@ -64,16 +66,23 @@ class ActionHandler : public action_handler_t {
                                icon);
   }
 
- private:
+  static action_desc_t MakeActionDesc(int icon = -1) {
+    return ACTION_DESC_LITERAL(T::kName, T::kLabel, T::instance(), T::kShortCut,
+                               T::kTooltip, icon);
+  }
+
   static T* instance() {
     static auto* instance = new T{};
     return instance;
   }
 
+  int PerformActivate(action_activation_ctx_t* ctx) { return activate(ctx); }
+
+ private:
   action_state_t idaapi update(action_update_ctx_t* context) override {
     // Return a sensible default
     return AST_ENABLE_FOR_IDB;
   }
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_UI_H_
+#endif  // IDA_UI_H_

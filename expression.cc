@@ -37,8 +37,8 @@ Expression::Expression(Expression* parent, const std::string& symbol,
 }
 
 Expression* Expression::Create(Expression* parent, const std::string& symbol,
-                               int64_t immediate, Type type,
-                               uint16_t position, bool relocatable) {
+                               int64_t immediate, Type type, uint16_t position,
+                               bool relocatable) {
   Expression expression(parent, symbol, immediate, type, position, relocatable);
   const std::string signature = expression.CreateSignature();
   ExpressionCache::iterator i = expression_cache_.find(signature);

@@ -20,6 +20,7 @@
 #include <string>
 #include <tuple>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -33,6 +34,7 @@
 #include <typeinf.hpp>                                          // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/ascii.h"
@@ -296,7 +298,7 @@ bool IsCodeSegment(const Address address) {
 }
 
 static std::string GetStringReference(ea_t address) {
-  // This only returns the first std::string ref - there may be several.
+  // This only returns the first string ref - there may be several.
   xrefblk_t xrefs;
   if (xrefs.first_from(address, XREF_DATA) == 0) {
     return "";
@@ -463,7 +465,7 @@ std::string GetRegisterName(size_t index, size_t segment_size) {
   if (get_reg_name(&ida_reg_name, index, segment_size) != -1) {
     return ToString(ida_reg_name);
   }
-  // Do not return empty std::string due to assertion fail in database_writer.cc
+  // Do not return empty string due to assertion fail in database_writer.cc
   return "<bad register>";
 }
 

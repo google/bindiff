@@ -1,5 +1,5 @@
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BINEXPORT_TEST_UTIL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_BINEXPORT_TEST_UTIL_H_
+#ifndef BINEXPORT_TEST_UTIL_H_
+#define BINEXPORT_TEST_UTIL_H_
 
 #include <memory>
 
@@ -19,4 +19,4 @@ std::unique_ptr<google::protobuf::util::MessageDifferencer> CreateDifferencer();
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BINEXPORT_TEST_UTIL_H_
+#endif  // BINEXPORT_TEST_UTIL_H_
