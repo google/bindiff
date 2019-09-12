@@ -17,7 +17,7 @@ cmake_policy(VERSION 3.7)
 project(binexport VERSION 10)  # Only major version is used
 
 # XXX: Replace for OSS!
-set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../binexport_g3/google3/third_party)
+set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../binexport10_g3/google3/third_party)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(copts.cmake)
@@ -62,10 +62,8 @@ if(GIT_FOUND)
                   OUTPUT_VARIABLE REVISION ERROR_QUIET)
   if(NOT ${REVISION} STREQUAL "")
     string(STRIP ${REVISION} REVISION)
-  # MOE:begin_strip
   elseif(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
     set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
-  # MOE:end_strip
   else()
     set(REVISION internal)
   endif()
@@ -114,7 +112,6 @@ add_library(binexport_shared STATIC
   util/format.h
   util/status.cc
   util/status.h
-  util/status_internal.h
   util/status_macros.h
   util/statusor.h
   util/timer.h
@@ -236,6 +233,7 @@ add_ida_plugin(${binexport_plugin_name}
   ida/generic.cc
   ida/generic.h
   ida/main_plugin.cc
+  ida/main_plugin.h
   ida/metapc.cc
   ida/metapc.h
   ida/mips.cc
@@ -246,6 +244,7 @@ add_ida_plugin(${binexport_plugin_name}
   ida/ppc.h
   ida/types_container.cc
   ida/types_container.h
+  ida/plugin.h
   ida/ui.cc
   ida/ui.h
   initialize_constraints_postgresql_sql.h

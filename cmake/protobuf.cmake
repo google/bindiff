@@ -13,6 +13,12 @@
 # limitations under the License.
 
 include(ExternalProject)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  # Clang also understands these
+  set(extra_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+endif()
+
 ExternalProject_Add(protobuf
   URL https://github.com/google/protobuf/archive/v3.6.1.tar.gz
   URL_HASH SHA256=3d4e589d81b2006ca603c1ab712c9715a76227293032d05b26fca603f90b3f5b
@@ -21,17 +27,10 @@ ExternalProject_Add(protobuf
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
              -DCMAKE_BUILD_TYPE=@CMAKE_BUILD_TYPE@
              -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+             -DCMAKE_EXE_LINKER_FLAGS=${extra_EXE_LINKER_FLAGS}
              -Dprotobuf_BUILD_TESTS=OFF
              -Dprotobuf_BUILD_SHARED_LIBS=OFF
              -Dprotobuf_WITH_ZLIB=OFF
 )
-set(_pb_stubs_src "<SOURCE_DIR>/src/google/protobuf/stubs")
-set(_pb_stubs_inst "<INSTALL_DIR>/include/google/protobuf/stubs")
-ExternalProject_Add_Step(protobuf copy-stub-headers COMMAND
-  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/status_macros.h" "${_pb_stubs_inst}/" &&
-  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/statusor.h" "${_pb_stubs_inst}/" &&
-  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/stringprintf.h" "${_pb_stubs_inst}/" &&
-  "${CMAKE_COMMAND}" -E copy "${_pb_stubs_src}/strutil.h" "${_pb_stubs_inst}/"
-    DEPENDEES install)
 ExternalProject_Get_Property(protobuf INSTALL_DIR)
 list(APPEND CMAKE_PREFIX_PATH ${INSTALL_DIR})

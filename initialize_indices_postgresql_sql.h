@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_INDICES_POSTGRESQL_SQL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_INDICES_POSTGRESQL_SQL_H_
+#ifndef INITIALIZE_INDICES_POSTGRESQL_SQL_H_
+#define INITIALIZE_INDICES_POSTGRESQL_SQL_H_
 
 #include "third_party/absl/strings/string_view.h"
 
@@ -37,4 +37,4 @@ CREATE UNIQUE INDEX "ex_?_expression_nodes_id_idx"
   return kPostgreSqlInitializeIndices;
 }
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_INITIALIZE_INDICES_POSTGRESQL_SQL_H_
+#endif  // INITIALIZE_INDICES_POSTGRESQL_SQL_H_

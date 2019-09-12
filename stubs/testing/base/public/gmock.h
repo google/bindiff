@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef TYPES_H_
-#define TYPES_H_
+#ifndef TESTING_BASE_GMOCK_H_
+#define TESTING_BASE_GMOCK_H_
 
-#include <string>
+#include <gmock/gmock.h>
 
-#include "base/integral_types.h"
-
-using Byte = uint8_t;
-using Address = uint64_t;
-using Offset = int64_t;
-
-#endif  // TYPES_H_
+#endif  // TESTING_BASE_GMOCK_H_

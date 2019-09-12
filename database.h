@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ class Statement {
   virtual Statement* Into(int* value, bool* is_null = nullptr) = 0;
   virtual Statement* Into(int64* value, bool* is_null = nullptr) = 0;
   virtual Statement* Into(double* value, bool* is_null = nullptr) = 0;
-  virtual Statement* Into(string* value, bool* is_null = nullptr) = 0;
+  virtual Statement* Into(std::string* value, bool* is_null = nullptr) = 0;
 
   virtual Statement* Execute() = 0;
   virtual void Reset() = 0;

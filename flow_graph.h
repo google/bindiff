@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_FLOWGRAPH_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_FLOWGRAPH_H_
+#ifndef FLOWGRAPH_H_
+#define FLOWGRAPH_H_
 
 #include <cstdint>
 #include <map>
@@ -85,4 +85,4 @@ class FlowGraph {
   StringCache string_cache_;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_FLOWGRAPH_H_
+#endif  // FLOWGRAPH_H_

@@ -14,9 +14,11 @@
 
 #include "third_party/zynamics/binexport/ida/digest.h"
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <nalt.hpp>                                             // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/integral_types.h"
 #include "third_party/absl/strings/ascii.h"

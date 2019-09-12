@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_QUERY_BUILDER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_QUERY_BUILDER_H_
+#ifndef QUERY_BUILDER_H_
+#define QUERY_BUILDER_H_
 
 #include <sstream>
 #include <string>
@@ -49,4 +49,4 @@ class QueryBuilder {
 
 extern const Terminator kFlushQuery;
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_QUERY_BUILDER_H_
+#endif  // QUERY_BUILDER_H_

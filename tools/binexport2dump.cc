@@ -151,6 +151,7 @@ void DumpBinExport2(const BinExport2& proto) {
     comment_index_map[reference.instruction_index()] =
         reference.string_table_index();
   }
+
   const auto& call_graph = proto.call_graph();
   absl::PrintF("\nFunctions:\n");
   constexpr const char kFunctionType[] = "nlit!";
@@ -227,8 +228,8 @@ void DumpBinExport2(const BinExport2& proto) {
             }
           }
 
-          std::string line = absl::StrCat(FormatAddress(instruction_address), " ",
-                                     disassembly);
+          std::string line = absl::StrCat(FormatAddress(instruction_address),
+                                          " ", disassembly);
           absl::PrintF("%s", line.c_str());
           if (instruction.comment_index_size() > 0) {
             const auto indent = line.size();

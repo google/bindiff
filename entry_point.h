@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_ENTRY_POINT_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_ENTRY_POINT_H_
+#ifndef ENTRY_POINT_H_
+#define ENTRY_POINT_H_
 
 #include <string>
 #include <vector>
@@ -93,4 +93,4 @@ class EntryPointAdder {
   std::string name_;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_ENTRY_POINT_H_
+#endif  // ENTRY_POINT_H_

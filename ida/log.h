@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_LOG_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_LOG_H_
+#ifndef IDA_LOG_H_
+#define IDA_LOG_H_
 
 #include "third_party/zynamics/binexport/types.h"
 
@@ -38,4 +38,4 @@ bool InitLogging(const LoggingOptions& options);
 // Shuts down logging and closes the log file. Not thread safe.
 void ShutdownLogging();
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_LOG_H_
+#endif  // IDA_LOG_H_

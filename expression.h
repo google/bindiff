@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_EXPRESSION_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_EXPRESSION_H_
+#ifndef EXPRESSION_H_
+#define EXPRESSION_H_
 
 #include <cstdint>
 #include <iosfwd>
@@ -169,4 +169,4 @@ class Instruction;
 std::pair<int, int> GetSourceExpressionId(const Instruction& instruction,
                                           Address target);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_EXPRESSION_H_
+#endif  // EXPRESSION_H_

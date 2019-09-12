@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2019 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ class SqliteStatement : public Statement {
   Statement* Into(int* value, bool* is_null) override;
   Statement* Into(int64* value, bool* is_null) override;
   Statement* Into(double* value, bool* is_null) override;
-  Statement* Into(string* value, bool* is_null) override;
+  Statement* Into(std::string* value, bool* is_null) override;
 
   Statement* Execute() override;
   void Reset() override;
@@ -110,7 +110,7 @@ void SqliteDatabase::Rollback() {
 not_absl::StatusOr<std::unique_ptr<SqliteDatabase>> SqliteDatabase::Open(
     absl::string_view filename) {
   sqlite3* handle{};
-  auto result = sqlite3_open_v2(string(filename).c_str(), &handle,
+  auto result = sqlite3_open_v2(std::string(filename).c_str(), &handle,
                                 SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
                                 /*zVfs=*/nullptr);
   if (result != SQLITE_OK) {

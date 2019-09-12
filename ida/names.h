@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_NAMES_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_NAMES_H_
+#ifndef NAMES_H_
+#define NAMES_H_
 
 #include <cstring>
 #include <map>
@@ -48,9 +48,9 @@ struct Name {
 
 using ModuleMap = std::map<Address, std::string>;
 
-void AnalyzeFlowIda(EntryPoints* entryPoints, const ModuleMap* modules,
+void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
                     Writer* writer, detego::Instructions* instructions,
-                    FlowGraph* flowGraph, CallGraph* callGraph);
+                    FlowGraph* flow_graph, CallGraph* call_graph);
 
 std::string GetRegisterName(size_t index, size_t segment_size);
 std::string GetVariableName(const insn_t& instruction, uint8_t operand_num);
@@ -83,4 +83,4 @@ void GetComments(const insn_t& instruction,
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_NAMES_H_
+#endif  // NAMES_H_

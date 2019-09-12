@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINDETEGO_BINEXPORT2_WRITER_H_
-#define THIRD_PARTY_ZYNAMICS_BINDETEGO_BINEXPORT2_WRITER_H_
+#ifndef BINEXPORT2_WRITER_H_
+#define BINEXPORT2_WRITER_H_
 
 #include "third_party/zynamics/binexport/writer.h"
 
@@ -28,7 +28,8 @@ class BinExport2Writer : public Writer {
   //       bytes of the digest.
   BinExport2Writer(const std::string& result_filename,
                    const std::string& executable_filename,
-                   const std::string& executable_hash, const std::string& architecture);
+                   const std::string& executable_hash,
+                   const std::string& architecture);
 
   not_absl::Status Write(const CallGraph& call_graph,
                          const FlowGraph& flow_graph,
@@ -55,4 +56,4 @@ class BinExport2Writer : public Writer {
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINDETEGO_BINEXPORT2_WRITER_H_
+#endif  // BINEXPORT2_WRITER_H_

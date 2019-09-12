@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_DIGEST_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_DIGEST_H_
+#ifndef IDA_DIGEST_H_
+#define IDA_DIGEST_H_
 
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
@@ -33,4 +33,4 @@ not_absl::StatusOr<std::string> GetInputFileMd5();
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_DIGEST_H_
+#endif  // IDA_DIGEST_H_

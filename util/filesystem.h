@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_FILESYSTEM_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_FILESYSTEM_H_
+#ifndef UTIL_FILESYSTEM_H_
+#define UTIL_FILESYSTEM_H_
 
 #include <cstdint>
 #include <initializer_list>
@@ -41,14 +41,15 @@ std::string JoinPathImpl(std::initializer_list<absl::string_view> paths);
 }  // namespace internal
 
 // Returns the current working directory. On error, this returns an empty
-// string.
+// std::string.
 std::string GetCurrentDirectory();
 
 // Recursively creates directories for a specified path.
 not_absl::Status CreateDirectories(absl::string_view path);
 
 // Returns the path to an OS-specific directory for temporary files.
-not_absl::StatusOr<std::string> GetTempDirectory(absl::string_view product_name);
+not_absl::StatusOr<std::string> GetTempDirectory(
+    absl::string_view product_name);
 
 // Like GetTempDirectory(), but creates the directory if it does not exist
 // already.
@@ -67,7 +68,7 @@ std::string GetFileExtension(absl::string_view path);
 
 // Replaces the extension of a filename.
 std::string ReplaceFileExtension(absl::string_view path,
-                            absl::string_view new_extension);
+                                 absl::string_view new_extension);
 
 // Joins multiple paths together using the platform-specific path separator.
 // Arguments must be convertible to absl::string_view.
@@ -87,7 +88,7 @@ bool IsDirectory(absl::string_view path);
 
 // List the files in the specified directory.
 not_absl::Status GetDirectoryEntries(absl::string_view path,
-                                 std::vector<std::string>* result);
+                                     std::vector<std::string>* result);
 
 // Removes all files and sub-directories under path.
 not_absl::Status RemoveAll(absl::string_view path);
@@ -95,4 +96,4 @@ not_absl::Status RemoveAll(absl::string_view path);
 // Copies a file.
 not_absl::Status CopyFile(absl::string_view from, absl::string_view to);
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_FILESYSTEM_H_
+#endif  // UTIL_FILESYSTEM_H_

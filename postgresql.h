@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_POSTGRESQL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_POSTGRESQL_H_
+#ifndef POSTGRESQL_H_
+#define POSTGRESQL_H_
 
 #include <string>
 #include <vector>
 
-#include "third_party/zynamics/binexport/database.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 
 using Blob = std::vector<uint8_t>;
 
@@ -52,52 +50,52 @@ class Parameters {
 
   std::vector<const char*> GetParameters() const;
 };
->>>>>>> 49cbae584a2324f3c354b0f2d4b606ca59704160
 
 struct pg_conn;
 struct pg_result;
 
-namespace security {
-namespace binexport {
-
-class PostgreSqlStatement;
-
-class PostgreSqlDatabase : public Database {
+class Database {
  public:
-  static not_absl::StatusOr<std::unique_ptr<PostgreSqlDatabase>> Connect(
-      absl::string_view connection_string);
+  explicit Database(const char* connection_string);
+  ~Database();
 
-  ~PostgreSqlDatabase() override;
+  Database& Execute(const char* query,
+                    const Parameters& parameters = Parameters());
+  Database& Prepare(const char* query, const char* name = "");
+  Database& ExecutePrepared(const Parameters& parameters,
+                            const char* name = "");
 
-  std::unique_ptr<Statement> Prepare(absl::string_view sql) override;
+  std::string EscapeLiteral(const std::string& text) const;
+  std::string EscapeIdentifier(const std::string& text) const;
 
-  string EscapeLiteral(const string& text) const;
-  string EscapeIdentifier(const string& text) const;
-  //explicit PostgreSqlDatabase(const char* connection_string);
-  //Database& Execute(const char* query,
-  //                  const Parameters& parameters = Parameters{});
-  //Database& Prepare(const char* query, const char* name = "");
-  //Database& ExecutePrepared(const Parameters& parameters,
-  //                          const char* name = "");
-  //operator bool() const;
-  //Database& operator>>(bool& value);    // NOLINT
-  //Database& operator>>(int32& value);   // NOLINT
-  //Database& operator>>(int64& value);   // NOLINT
-  //Database& operator>>(double& value);  // NOLINT
-  //Database& operator>>(string& value);  // NOLINT
-  //Database& operator>>(Blob& value);    // NOLINT
+  operator bool() const;
+  Database& operator>>(bool& value);         // NOLINT
+  Database& operator>>(int32_t& value);        // NOLINT
+  Database& operator>>(int64_t& value);        // NOLINT
+  Database& operator>>(double& value);       // NOLINT
+  Database& operator>>(std::string& value);  // NOLINT
+  Database& operator>>(Blob& value);         // NOLINT
+
  private:
-  friend class PostgreSqlStatement;
-
-  void Begin() override;
-  void Commit() override;
-  void Rollback() override;
+  Database(const Database&) = delete;
+  Database& operator=(const Database&) = delete;
 
   pg_conn* connection_;
   pg_result* result_;
+  int result_index_;
 };
 
-}  // namespace binexport
-}  // namespace security
+class Transaction {
+ public:
+  // Does not take ownership
+  explicit Transaction(Database* database);
+  ~Transaction();
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_POSTGRESQL_H_
+ private:
+  Transaction(const Transaction&) = delete;
+  Transaction& operator=(const Transaction&) = delete;
+
+  Database* database_;
+};
+
+#endif  // POSTGRESQL_H_
