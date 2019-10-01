@@ -59,12 +59,18 @@
     <PropertyRef Id="WIX_ACCOUNT_USERS" />
 
     <Property Id="IDADIRECTORY">
-      <!-- Same for both IDA 7.2 and 7.1 -->
+      <RegistrySearch Id="HexRaysIdaRegistry740" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.4_is1"
+                      Name="InstallLocation" />
+      <RegistrySearch Id="HexRaysIdaRegistry730" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.3_is1"
+                      Name="InstallLocation" />
       <RegistrySearch Id="HexRaysIdaRegistry720" Type="raw" Win64="yes"
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.2_is1"
                       Name="InstallLocation" />
-
       <RegistrySearch Id="HexRaysIdaRegistry710" Type="raw" Win64="yes"
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.1_is1"
