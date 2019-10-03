@@ -249,12 +249,6 @@ public class GuiUtils {
   }
 
   public static void updateLater(final JComponent component) {
-    EventQueue.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            component.updateUI();
-          }
-        });
+    EventQueue.invokeLater(component::updateUI);
   }
 }

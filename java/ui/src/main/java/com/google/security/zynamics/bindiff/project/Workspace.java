@@ -30,6 +30,7 @@ public final class Workspace {
   private MainWindow parentWindow;
 
   private void createCommentDatabase() {
+    //noinspection EmptyTryBlock
     try (final CommentsDatabase database = new CommentsDatabase(this, true)) {
     } catch (final SQLException e) {
       Logger.logException(e, e.getMessage());
@@ -66,13 +67,13 @@ public final class Workspace {
 
   public String addDiff(
       final File matchesDatabase, final DiffMetaData diffMetaData, final boolean isFunctionDiff) {
-    final StringBuffer fileErrors = new StringBuffer("");
+    final StringBuilder fileErrors = new StringBuilder("");
 
     File primaryExportFile = null;
     File secondaryExportFile = null;
 
     if (diffMetaData == null || !matchesDatabase.exists()) {
-      fileErrors.append(" - " + matchesDatabase.getPath() + "\n");
+      fileErrors.append(" - ").append(matchesDatabase.getPath()).append("\n");
     }
 
     if (diffMetaData != null) {
@@ -80,27 +81,25 @@ public final class Workspace {
           DiffDirectories.getBinExportFile(matchesDatabase, diffMetaData, ESide.PRIMARY);
 
       if (!primaryExportFile.exists() || primaryExportFile.isDirectory()) {
-        fileErrors.append(" - " + primaryExportFile.getPath() + "\n");
+        fileErrors.append(" - ").append(primaryExportFile.getPath()).append("\n");
       }
 
       secondaryExportFile =
           DiffDirectories.getBinExportFile(matchesDatabase, diffMetaData, ESide.SECONDARY);
 
       if (!secondaryExportFile.exists() || secondaryExportFile.isDirectory()) {
-        fileErrors.append(" - " + secondaryExportFile.getPath() + "\n");
+        fileErrors.append(" - ").append(secondaryExportFile.getPath()).append("\n");
       }
     }
 
     final Diff diff =
         new Diff(
             diffMetaData, matchesDatabase, primaryExportFile, secondaryExportFile, isFunctionDiff);
-    if (diff != null) {
-      try {
-        addDiff(diff);
-      } catch (final SQLException e) {
-        Logger.logException(e, e.getMessage());
-        CMessageBox.showError(parentWindow, e.getMessage());
-      }
+    try {
+      addDiff(diff);
+    } catch (final SQLException e) {
+      Logger.logException(e, e.getMessage());
+      CMessageBox.showError(parentWindow, e.getMessage());
     }
 
     return fileErrors.toString();
@@ -237,7 +236,7 @@ public final class Workspace {
     parentWindow = window;
   }
 
-  public void setWorkspaceFile(final File workspaceFile) {
+  void setWorkspaceFile(final File workspaceFile) {
     this.workspaceFile = workspaceFile;
     name = workspaceFile.getName();
   }
