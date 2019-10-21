@@ -145,11 +145,12 @@ void WriteExpressions(BinExport2* proto) {
   proto->mutable_expression()->Reserve(expressions.size());
   for (const Expression* expression : expressions) {
     // Proto expressions use a zero based index, C++ expressions are one based.
-    QCHECK_EQ(expression->GetId() - 1, proto->expression_size());
-    QCHECK(!expression->GetSymbol().empty() || expression->IsImmediate());
+    DCHECK_EQ(expression->GetId() - 1, proto->expression_size());
+    const auto& symbol = expression->GetSymbol();
+    DCHECK(!symbol.empty() || expression->IsImmediate());
     BinExport2::Expression* proto_expression(proto->add_expression());
-    if (!expression->GetSymbol().empty()) {
-      proto_expression->set_symbol(expression->GetSymbol());
+    if (!symbol.empty()) {
+      proto_expression->set_symbol(symbol);
     }
     if (expression->GetParent() != nullptr) {
       proto_expression->set_parent_index(expression->GetParent()->GetId() - 1);
