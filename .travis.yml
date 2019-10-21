@@ -11,8 +11,7 @@ os:
 dist: trusty
 sudo: false
 before_install:
-- openssl aes-256-cbc -k "$idasdk_password"
-  -in third_party/idasdk74.zip.enc -out third_party/idasdk74.zip -d
+- echo "$idasdk_password" | gpg --batch --yes --passphrase-fd 0 --output third_party/idasdk74.zip --decrypt third_party/idasdk74.zip.gpg
 - unzip -q third_party/idasdk74.zip -d third_party/
 script:
 - mkdir -p build_linux
