@@ -522,9 +522,9 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
         } else if (operand.dtype == dt_dword) {
           mnemonic += "d";
         } else {
-          // default add machine word size suffix. IDA sometimes omits the
+          // Default add machine word size suffix. IDA sometimes omits the
           // suffix otherwise.
-          mnemonic += inf.is_64bit() ? "d" : "w";
+          mnemonic += inf_is_64bit() ? "d" : "w";
         }
         break;
       }
