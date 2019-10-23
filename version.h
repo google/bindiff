@@ -15,10 +15,23 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
-// The BinExport release number. A single stringified integer.
-#define BINEXPORT_RELEASE "10"
+namespace security {
+namespace binexport {
 
-// The Git revision of this build or "internal"
-#define BINEXPORT_REVISION "internal"
+// The product name, "BinExport"
+extern const char* kBinExportName;
+
+// The BinExport release number. A single stringified integer.
+extern const char* kBinExportRelease;
+
+// Detailed version and build information:
+// "N (@cafec0d, YYYYMMDD, debug build)"
+extern const char* kBinExportDetailedVersion;
+
+// Full copyright string with current year
+extern const char* kBinExportCopyright;
+
+}  // namespace binexport
+}  // namespace security
 
 #endif  // VERSION_H_

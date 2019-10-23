@@ -65,7 +65,7 @@ if(GIT_FOUND)
   endif()
 endif()
 
-configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
+configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
 # Interface library with include paths used by BinExport
 add_library(binexport_base INTERFACE)
@@ -248,6 +248,7 @@ add_ida_plugin(${binexport_plugin_name}
   type_system.cc
   type_system.h
   version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
   virtual_memory.cc
   virtual_memory.h
   x86_nop.cc

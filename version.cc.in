@@ -12,31 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef IDA_MAIN_PLUGIN_H_
-#define IDA_MAIN_PLUGIN_H_
+#include "third_party/zynamics/binexport/version.h"
 
-#include "third_party/zynamics/binexport/ida/plugin.h"
+#include "third_party/absl/base/attributes.h"
 
 namespace security {
 namespace binexport {
 
-class Plugin : public IdaPlugin<Plugin> {
- public:
-  static constexpr char kComment[] =
-      "Export to SQL RE-DB, BinDiff binary or text dump";
-  static constexpr char kHotKey[] = "";
+ABSL_CONST_INIT const char* kBinExportName = "BinExport";
 
-  int Init() override;
-  bool Run(size_t argument) override;
-  void Terminate() override;
+ABSL_CONST_INIT const char* kBinExportRelease = "@binexport_VERSION_MAJOR@";
 
-  bool alsologtostderr() const { return alsologtostderr_; }
+ABSL_CONST_INIT const char* kBinExportDetailedVersion =
+    "@binexport_VERSION_MAJOR@ (@"
+    "@REVISION@, " __DATE__
+#ifndef NDEBUG
+    ", debug build"
+#endif
+    ")";
 
- private:
-  bool alsologtostderr_ = false;
-};
+ABSL_CONST_INIT const char* kBinExportCopyright =
+    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
 
 }  // namespace binexport
 }  // namespace security
-
-#endif  // IDA_MAIN_PLUGIN_H_
