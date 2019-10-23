@@ -5,6 +5,7 @@
 #include <csignal>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <fstream>
 #include <functional>
 #include <iomanip>
@@ -60,8 +61,11 @@
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/status.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 ABSL_FLAG(bool, nologo, false, "do not display version/copyright information");
@@ -550,13 +554,15 @@ void InstallFlagsUsageConfig() {
 }
 #endif
 
-int BinDiffMain(int argc, char** argv) {
+not_absl::Status BinDiffMain(int argc, char* argv[]) {
 #ifdef WIN32
   signal(SIGBREAK, SignalHandler);
 #endif
   signal(SIGINT, SignalHandler);
 
-  std::string binary_name = Basename(argv[0]);
+  const std::string binary_name = Basename(argv[0]);
+  absl::SetFlag(&FLAGS_output_dir, GetCurrentDirectory());
+
   std::string usage = absl::StrFormat(
       "Finds similarities in binary code.\n"
       "Usage:\n"
@@ -573,8 +579,6 @@ int BinDiffMain(int argc, char** argv) {
       "--secondary=/tmp/file2.BinExport \\\n"
       "    --output_dir=/tmp/result",
       binary_name);
-  const std::string current_path = GetCurrentDirectory();
-  absl::SetFlag(&FLAGS_output_dir, current_path);
 #ifdef GOOGLE
   InitGoogle(usage.c_str(), &argc, &argv, /*remove_flags=*/true);
 #else
@@ -584,52 +588,50 @@ int BinDiffMain(int argc, char** argv) {
 
   SetLogHandler(&UnprefixedLogHandler);
 #endif
+  const std::string current_path = GetCurrentDirectory();
 
   if (!absl::GetFlag(FLAGS_nologo)) {
     PrintMessage(absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, ", ",
                               kBinDiffCopyright));
   }
 
+  auto config = GetConfig();
+  NA_RETURN_IF_ERROR(
+      !absl::GetFlag(FLAGS_config).empty()
+          ? config->LoadFromFileWithDefaults(absl::GetFlag(FLAGS_config),
+                                             std::string(kDefaultConfig))
+          : InitConfig());
+
+  // Launch Java UI if requested
+  if (binary_name == "bindiff_ui" || absl::GetFlag(FLAGS_ui)) {
+    std::vector<std::string> extra_args;
+    for (int i = 1; i < argc; ++i) {
+      extra_args.push_back(argv[i]);
+    }
+    NA_RETURN_IF_ERROR(StartUiWithOptions(
+        extra_args,
+        StartUiOptions{}
+            .set_java_binary(
+                config->ReadString("/BinDiff/Gui/@java_binary", ""))
+            .set_java_vm_options(
+                config->ReadString("/BinDiff/Gui/@java_vm_options", ""))
+            .set_max_heap_size_mb(
+                config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1))
+            .set_gui_dir(config->ReadString("/BinDiff/Gui/@directory", ""))));
+    return not_absl::OkStatus();
+  }
+
+  // This initializes static variables before the threads get to them.
+  if (GetDefaultMatchingSteps().empty() ||
+      GetDefaultMatchingStepsBasicBlock().empty()) {
+    return not_absl::FailedPreconditionError("Config file invalid");
+  }
+
+  if (absl::GetFlag(FLAGS_primary).empty()) {
+    return not_absl::InvalidArgumentError("Need primary input (--primary)");
+  }
+
   try {
-    auto config = GetConfig();
-    not_absl::Status status =
-        !absl::GetFlag(FLAGS_config).empty()
-            ? config->LoadFromFileWithDefaults(absl::GetFlag(FLAGS_config),
-                                               std::string(kDefaultConfig))
-            : InitConfig();
-    if (!status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-
-    // Launch Java UI if requested
-    if (binary_name == "bindiff_ui" || absl::GetFlag(FLAGS_ui)) {
-      std::vector<std::string> extra_args;
-      for (int i = 1; i < argc; ++i) {
-        extra_args.push_back(argv[i]);
-      }
-      status = StartUiWithOptions(
-          extra_args,
-          StartUiOptions{}
-              .set_java_binary(
-                  config->ReadString("/BinDiff/Gui/@java_binary", ""))
-              .set_java_vm_options(
-                  config->ReadString("/BinDiff/Gui/@java_vm_options", ""))
-              .set_max_heap_size_mb(
-                  config->ReadInt("/BinDiff/Gui/@maxHeapSize", -1))
-              .set_gui_dir(config->ReadString("/BinDiff/Gui/@directory", "")));
-      if (!status.ok()) {
-        throw std::runtime_error{absl::StrCat(
-            "Cannot launch BinDiff user interface: ", status.message())};
-      }
-      return EXIT_SUCCESS;
-    }
-
-    // This initializes static variables before the threads get to them.
-    if (GetDefaultMatchingSteps().empty() ||
-        GetDefaultMatchingStepsBasicBlock().empty()) {
-      throw std::runtime_error("Config file invalid");
-    }
-
     Timer<> timer;
     bool done_something = false;
 
@@ -640,17 +642,13 @@ int BinDiffMain(int argc, char** argv) {
     FlowGraphs flow_graphs2;
     ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
 
-    if (absl::GetFlag(FLAGS_primary).empty()) {
-      throw std::runtime_error("Need primary input (--primary)");
-    }
-
     if (absl::GetFlag(FLAGS_output_dir) == current_path /* Defaulted */ &&
         IsDirectory(absl::GetFlag(FLAGS_primary).c_str())) {
       absl::SetFlag(&FLAGS_output_dir, absl::GetFlag(FLAGS_primary));
     }
 
     if (!IsDirectory(absl::GetFlag(FLAGS_output_dir).c_str())) {
-      throw std::runtime_error(absl::StrCat(
+      return not_absl::FailedPreconditionError(absl::StrCat(
           "Output parameter (--output_dir) must be a writable directory: ",
           absl::GetFlag(FLAGS_output_dir)));
     }
@@ -695,7 +693,7 @@ int BinDiffMain(int argc, char** argv) {
         (!absl::GetFlag(FLAGS_secondary).empty() &&
          !FileExists(absl::GetFlag(FLAGS_secondary)) &&
          !IsDirectory(absl::GetFlag(FLAGS_secondary)))) {
-      throw std::runtime_error(
+      return not_absl::FailedPreconditionError(
           "Invalid inputs, --primary and --secondary must point to valid "
           "files/directories.");
     }
@@ -778,18 +776,22 @@ int BinDiffMain(int argc, char** argv) {
           usage);
     }
   } catch (const std::exception& error) {
-    PrintErrorMessage(absl::StrCat("Error: ", error.what()));
-    return EXIT_FAILURE;
+    return not_absl::UnknownError(error.what());
   } catch (...) {
-    PrintErrorMessage("Error: An unknown error occurred");
-    return EXIT_FAILURE;
+    return not_absl::UnknownError("An unknown error occurred");
   }
-  return EXIT_SUCCESS;
+  return not_absl::OkStatus();
 }
 
 }  // namespace bindiff
 }  // namespace security
 
 int main(int argc, char** argv) {
-  return security::bindiff::BinDiffMain(argc, argv);
+  not_absl::Status status = security::bindiff::BinDiffMain(argc, argv);
+  if (!status.ok()) {
+    security::bindiff::PrintErrorMessage(
+        absl::StrCat("Error: ", status.error_message()));
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }
