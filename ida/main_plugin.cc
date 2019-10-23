@@ -34,7 +34,7 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 #include "third_party/zynamics/binexport/call_graph.h"
-#include "third_party/zynamics/binexport/database_writer.h"
+#include "third_party/zynamics/binexport/database/postgresql_writer.h"
 #include "third_party/zynamics/binexport/dump_writer.h"
 #include "third_party/zynamics/binexport/entry_point.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
