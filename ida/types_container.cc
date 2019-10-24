@@ -35,8 +35,7 @@
 #include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 static const char kVoidPtrName[] = "void *";
@@ -777,5 +776,4 @@ const BaseType* IdaTypesContainer::GetFunctionPrototype(
   return (cit != prototypes_by_address_.end()) ? cit->second : nullptr;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

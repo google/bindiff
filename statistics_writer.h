@@ -19,8 +19,7 @@
 
 #include "third_party/zynamics/binexport/writer.h"
 
-namespace security{
-namespace binexport{
+namespace security::binexport {
 
 class StatisticsWriter : public Writer {
  public:
@@ -43,7 +42,6 @@ class StatisticsWriter : public Writer {
   std::ostream& stream_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // STATISTICS_WRITER_H_

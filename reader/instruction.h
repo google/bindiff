@@ -26,8 +26,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/architectures.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class Instruction {
  public:
@@ -63,7 +62,6 @@ const Instruction* GetInstruction(const Instructions& instructions,
 bool IsJumpInstruction(const Instruction& instruction,
                        absl::optional<Architecture>);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // READER_INSTRUCTION_H_

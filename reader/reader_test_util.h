@@ -19,15 +19,13 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Reads a BinExport2 proto from the testdata directory. The filename is
 // relative to that directory.
 not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
                                              BinExport2* proto);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // READER_READER_TEST_UTIL_H_

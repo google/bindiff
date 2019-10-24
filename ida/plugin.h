@@ -9,8 +9,7 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Simple CRTP-style template that can be used to implement IDA Pro plugins.
 // Since IDA plugins are singletons, this design allows to avoid global
@@ -36,7 +35,6 @@ class IdaPlugin {
   IdaPlugin() = default;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // IDA_PLUGIN_H_

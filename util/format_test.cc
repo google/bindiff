@@ -19,8 +19,7 @@
 
 using testing::StrEq;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 TEST(FormatUtilTest, FormatAddress) {
@@ -40,5 +39,4 @@ TEST(FormatUtilTest, HumanReadableDuration) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

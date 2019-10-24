@@ -23,8 +23,7 @@
 class FlowGraph;
 class CallGraph;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class DatabaseWriter : public Writer {
  public:
@@ -92,7 +91,6 @@ class DatabaseWriter : public Writer {
   std::string program_version_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // DATABASE_POSTGRESQL_WRITER_H_

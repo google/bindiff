@@ -26,8 +26,7 @@
 
 class member_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Acts as a container for all types and members collected during the export.
 // Also contains functionality to map an operand that has an associated type
@@ -99,7 +98,6 @@ class IdaTypesContainer : public TypesContainer {
   PrototypesMap prototypes_by_address_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // IDA_TYPES_CONTAINER_H_

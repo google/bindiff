@@ -34,8 +34,7 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/type_system.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 bool IsStringInstruction(const std::string& mnemonic) {
@@ -552,5 +551,4 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
       ParseOperandsIdaMetaPc(instruction, call_graph, flow_graph, type_system));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

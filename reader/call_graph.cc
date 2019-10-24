@@ -23,8 +23,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 CallGraph::Vertex CallGraph::GetVertex(Address address) const {
   return security::binexport::GetVertex(*this, address);
@@ -147,5 +146,4 @@ Address CallGraph::GetAddress(Vertex vertex) const {
   return graph_[vertex].address;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

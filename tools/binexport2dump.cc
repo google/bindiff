@@ -32,8 +32,7 @@
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 void RenderExpression(const BinExport2& proto,
@@ -254,8 +253,7 @@ void DumpBinExport2(const BinExport2& proto) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {

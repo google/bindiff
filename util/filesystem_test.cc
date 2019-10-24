@@ -24,8 +24,7 @@ using ::testing::IsFalse;
 using ::testing::IsTrue;
 using ::testing::StrEq;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 TEST(FileSystemTest, Filenames) {
@@ -78,5 +77,4 @@ TEST(FileSystemTest, CreateAndRemoveDirectories) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

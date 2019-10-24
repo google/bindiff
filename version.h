@@ -15,8 +15,7 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // The product name, "BinExport"
 extern const char* kBinExportName;
@@ -31,7 +30,6 @@ extern const char* kBinExportDetailedVersion;
 // Full copyright string with current year
 extern const char* kBinExportCopyright;
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // VERSION_H_

@@ -17,8 +17,7 @@
 
 #include "third_party/zynamics/binexport/ida/plugin.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class Plugin : public IdaPlugin<Plugin> {
  public:
@@ -36,7 +35,6 @@ class Plugin : public IdaPlugin<Plugin> {
   bool alsologtostderr_ = false;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // IDA_MAIN_PLUGIN_H_

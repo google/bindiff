@@ -57,8 +57,7 @@
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 std::string ToString(const qstring& ida_string) {
   return std::string(ida_string.c_str(), ida_string.length());
@@ -1056,5 +1055,4 @@ void GetComments(const insn_t& instruction, Comments* comments) {
   GetLocalReferences(instruction, comments);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

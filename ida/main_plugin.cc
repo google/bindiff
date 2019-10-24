@@ -51,8 +51,7 @@
 #include "third_party/zynamics/binexport/version.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 constexpr char Plugin::kComment[];
 constexpr char Plugin::kHotKey[];
@@ -512,8 +511,7 @@ bool Plugin::Run(size_t argument) {
   return true;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 using security::binexport::Plugin;
 

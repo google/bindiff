@@ -36,8 +36,7 @@
 #include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/types_container.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 // Creates a string representation for the base type id of the corresponding
@@ -842,5 +841,4 @@ not_absl::Status DatabaseWriter::Write(
   return not_absl::OkStatus();
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
