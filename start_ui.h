@@ -7,8 +7,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 struct StartUiOptions {
   StartUiOptions& set_java_binary(std::string value) {
@@ -43,7 +42,6 @@ struct StartUiOptions {
 not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
                                     const StartUiOptions& options);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // START_UI_H_

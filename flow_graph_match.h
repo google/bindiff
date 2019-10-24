@@ -9,8 +9,7 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 using VertexSet = std::set<FlowGraph::Vertex>;
 using VertexDoubleMap = std::multimap<double, FlowGraph::Vertex>;
@@ -209,7 +208,6 @@ bool FindFixedPointsBasicBlockEdgeInternal(
   return fixed_points_discovered;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_H_

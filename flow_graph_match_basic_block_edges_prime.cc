@@ -2,8 +2,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepEdgesPrimeProduct::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
@@ -39,5 +38,4 @@ void MatchingStepEdgesPrimeProduct::GetUnmatchedEdgesPrimeProduct(
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

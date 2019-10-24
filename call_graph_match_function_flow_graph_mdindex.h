@@ -5,8 +5,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on their structure using the MD index. Since the MD
 // index takes a topological graph ordering as one of it's inputs we can
@@ -35,7 +34,6 @@ class MatchingStepFlowGraphMdIndex : public MatchingStep {
   Direction direction_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_FLOW_GRAPH_MDINDEX_H_

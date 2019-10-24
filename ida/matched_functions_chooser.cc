@@ -12,11 +12,9 @@
 #include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
+namespace security::bindiff {
 
 using binexport::FormatAddress;
-
-namespace bindiff {
 
 constexpr const char DeleteMatchesAction::kName[];
 constexpr const char DeleteMatchesAction::kLabel[];
@@ -183,5 +181,4 @@ constexpr const char CopySecondaryAddressAction::kLabel[];
 constexpr const char CopySecondaryAddressAction::kShortCut[];
 constexpr const char* CopySecondaryAddressAction::kTooltip;
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

@@ -26,12 +26,11 @@
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
-namespace security {
+namespace security::bindiff {
 
 using binexport::FormatAddress;
 using binexport::HumanReadableDuration;
 
-namespace bindiff {
 namespace {
 
 void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
@@ -1517,5 +1516,4 @@ void Results::Count() {
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

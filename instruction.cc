@@ -1,5 +1,6 @@
 #include "third_party/zynamics/bindiff/instruction.h"
 
+#include <cstddef>
 #include <functional>
 #include <list>
 
@@ -7,8 +8,7 @@
 
 #include "base/logging.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 using Lengths = std::vector<int>;
@@ -127,7 +127,7 @@ void ComputeLcs(Iterator xbegin, Iterator xend, Iterator ybegin, Iterator yend,
   }
 }
 
-struct ProjectPrime : public std::unary_function<Instruction, size_t> {
+struct ProjectPrime {
   size_t operator()(const Instruction& instruction) const {
     return instruction.GetPrime();
   }
@@ -140,9 +140,8 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
                 const Instructions::const_iterator& instructions2_begin,
                 const Instructions::const_iterator& instructions2_end,
                 InstructionMatches& matches) {
-  using List = std::list<size_t>;
-  List matches1;
-  List matches2;
+  std::list<size_t> matches1;
+  std::list<size_t> matches2;
   using Iterator =
       boost::transform_iterator<ProjectPrime, Instructions::const_iterator>;
   ComputeLcs(Iterator(instructions1_begin, ProjectPrime()),
@@ -164,7 +163,7 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
 Instruction::Instruction(Cache* cache, Address address,
                          const std::string& mnemonic, uint32_t prime)
     : address_(address), prime_(prime) {
-  // The differ standalone version is multi threaded so be careful with static
+  // The differ standalone version is multi-threaded so be careful with static
   // variables and the like.
   CHECK(cache != nullptr);
 
@@ -192,5 +191,4 @@ std::string Instruction::GetMnemonic(const Cache* cache) const {
   return cache->find(GetPrime())->second;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

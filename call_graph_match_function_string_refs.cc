@@ -1,7 +1,6 @@
 #include "third_party/zynamics/bindiff/call_graph_match_function_string_refs.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepFunctionStringReferences ::FindFixedPoints(
     const FlowGraph* primary_parent, const FlowGraph* secondary_parent,
@@ -29,5 +28,4 @@ void MatchingStepFunctionStringReferences ::
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

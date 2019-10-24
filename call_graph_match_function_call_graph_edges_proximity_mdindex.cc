@@ -1,7 +1,6 @@
 #include "third_party/zynamics/bindiff/call_graph_match_function_call_graph_edges_proximity_mdindex.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepEdgesProximityMdIndex::FindFixedPoints(
     const FlowGraph* primary_parent, const FlowGraph* secondary_parent,
@@ -51,5 +50,4 @@ void MatchingStepEdgesProximityMdIndex::GetUnmatchedEdgesProximityMdIndex(
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

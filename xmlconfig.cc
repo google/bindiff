@@ -18,8 +18,7 @@
 #include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 not_absl::StatusOr<std::string> ReadFileToString(const std::string& filename) {
@@ -161,5 +160,4 @@ std::vector<std::string> XmlConfig::ReadStrings(
   return !result.empty() ? result : default_value;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

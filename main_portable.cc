@@ -85,12 +85,10 @@ ABSL_FLAG(bool, ls, false,
           "list hash/filenames for all .BinExport files in input directory");
 ABSL_FLAG(std::string, config, "", "specify config file name");
 
-namespace security {
+namespace security::bindiff {
 
-using binexport::FormatAddress;
-using binexport::HumanReadableDuration;
-
-namespace bindiff {
+using ::security::binexport::FormatAddress;
+using ::security::binexport::HumanReadableDuration;
 
 // BinDiff default configuration.
 ABSL_CONST_INIT const absl::string_view kDefaultConfig =
@@ -783,12 +781,10 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
   return not_absl::OkStatus();
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 int main(int argc, char** argv) {
-  not_absl::Status status = security::bindiff::BinDiffMain(argc, argv);
-  if (!status.ok()) {
+  if (auto status = security::bindiff::BinDiffMain(argc, argv); !status.ok()) {
     security::bindiff::PrintErrorMessage(
         absl::StrCat("Error: ", status.error_message()));
     return EXIT_FAILURE;

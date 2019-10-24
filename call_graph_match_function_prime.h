@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on their instruction prime products. Each mnemonic
 // gets assigned a unique small prime number. These primes are multiplied for
@@ -28,7 +27,6 @@ class MatchingStepPrime : public MatchingStep {
                                               FlowGraphIntMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_PRIME_H_

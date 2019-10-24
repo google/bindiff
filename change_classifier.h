@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class MatchingContext;
 class FixedPoint;
@@ -25,7 +24,6 @@ void ClassifyChanges(FixedPoint* fixed_point);
 void ClassifyChanges(MatchingContext* context);
 std::string GetChangeDescription(ChangeType change);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CHANGE_CLASSIFIER_H_

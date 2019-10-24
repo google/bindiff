@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class MatchingStepFunctionInstructionCount : public MatchingStep {
  public:
@@ -25,7 +24,6 @@ class MatchingStepFunctionInstructionCount : public MatchingStep {
       const FlowGraphs& flow_graphs, FlowGraphIntMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_INSTRUCTION_COUNT_H_

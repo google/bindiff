@@ -1,7 +1,6 @@
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_edges_lengauer_tarjan.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepEdgesLoop::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
@@ -88,5 +87,4 @@ void MatchingStepEdgesLoop::GetUnmatchedEdgesLoop(MatchingContext* context,
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

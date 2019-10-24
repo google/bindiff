@@ -5,8 +5,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 constexpr double kManualMatch = -1.0;
 
@@ -20,7 +19,6 @@ uint32_t GetMatchColor(double value);
 // to escaping there might be some memory blow-up.
 not_absl::Status CopyToClipboard(absl::string_view data);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_UI_H_

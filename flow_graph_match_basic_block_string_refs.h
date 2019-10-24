@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches basic blocks if they reference at least one string and that string is
 // the same in both binaries.
@@ -25,7 +24,6 @@ class MatchingStepStringReferences : public MatchingStepFlowGraph {
                                                VertexIntMap* basic_blocks_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_STRING_REFS_H_

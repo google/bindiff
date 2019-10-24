@@ -7,8 +7,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class Expression {
  public:
@@ -32,7 +31,6 @@ class Expression {
   std::list<Expression*> children_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // EXPRESSION_H_

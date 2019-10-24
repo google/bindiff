@@ -1,8 +1,7 @@
 #ifndef VERSION_H_
 #define VERSION_H_
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // The product name, "BinDiff"
 extern const char* kBinDiffName;
@@ -17,7 +16,6 @@ extern const char* kBinDiffDetailedVersion;
 // Full copyright string with current year
 extern const char* kBinDiffCopyright;
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // VERSION_H_

@@ -1,7 +1,6 @@
 #include "third_party/zynamics/bindiff/call_graph_match_function_prime.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepPrime::FindFixedPoints(
     const FlowGraph* primary_parent, const FlowGraph* secondary_parent,
@@ -27,5 +26,4 @@ void MatchingStepPrime::GetUnmatchedFlowGraphsByPrimeSignature(
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

@@ -17,8 +17,7 @@ using ::testing::Eq;
 using ::testing::Ne;
 using ::testing::SizeIs;
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 TEST(PrimeSignatureTest, IPow32MathEdgeCases) {
@@ -87,5 +86,4 @@ BENCHMARK(BM_IPow32)->DenseRange(0, 64);
 #endif
 
 }  // namespace
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

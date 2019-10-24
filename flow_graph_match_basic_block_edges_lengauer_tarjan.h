@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches the back edges of loops which have been determined using the
 // Lengauer-Tarjan algorithm.
@@ -37,7 +36,6 @@ class MatchingStepEdgesLoop : public MatchingStepFlowGraph {
                              const VertexSet& vertices, EdgeIntMap* edges);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_EDGES_LENGAUER_TARJAN_H_

@@ -10,8 +10,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class MatchingContext;
 
@@ -93,7 +92,6 @@ using FixedPointRefs = std::set<FixedPoint*, FixedPointComparator>;
 
 const std::string* FindString(const std::string& name);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FIXED_POINTS_H_

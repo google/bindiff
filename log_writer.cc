@@ -12,20 +12,19 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
+namespace security::bindiff {
 
 using binexport::FormatAddress;
 
-namespace bindiff {
 namespace {
 
-struct ProjectPrimary : public std::unary_function<FixedPoint, FlowGraph*> {
+struct ProjectPrimary {
   FlowGraph* operator()(const FixedPoint& fixed_point) const {
     return fixed_point.GetPrimary();
   }
 };
 
-struct ProjectSecondary : public std::unary_function<FixedPoint, FlowGraph*> {
+struct ProjectSecondary {
   FlowGraph* operator()(const FixedPoint& fixed_point) const {
     return fixed_point.GetSecondary();
   }
@@ -166,5 +165,4 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

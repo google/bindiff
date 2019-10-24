@@ -12,8 +12,7 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class MatchingContext;
 
@@ -90,7 +89,6 @@ void Count(const FlowGraphs& flow_graphs, Counts* counts);
 void Count(const FlowGraph& flow_graph, Counts* counts);
 void Count(const FixedPoint& fixed_point, Counts* counts, Histogram* histogram);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // DIFFER_H_

@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches basic blocks that are loop anchors, i.e. targets of a back edge.
 class MatchingStepLoopEntry : public MatchingStepFlowGraph {
@@ -24,7 +23,6 @@ class MatchingStepLoopEntry : public MatchingStepFlowGraph {
                                         VertexIntMap* basic_blocks_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_LOOP_ENTRY_H_

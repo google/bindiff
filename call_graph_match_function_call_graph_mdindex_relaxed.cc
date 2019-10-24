@@ -1,7 +1,6 @@
 #include "third_party/zynamics/bindiff/call_graph_match_function_call_graph_mdindex_relaxed.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepCallGraphMdIndexRelaxed::FindFixedPoints(
     const FlowGraph* primary_parent, const FlowGraph* secondary_parent,
@@ -31,5 +30,4 @@ void MatchingStepCallGraphMdIndexRelaxed::
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

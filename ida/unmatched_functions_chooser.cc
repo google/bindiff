@@ -8,8 +8,7 @@
 #include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace internal {
 
 void UnmatchedDescriptionToIdaRow(const Results::UnmatchedDescription& desc,
@@ -76,5 +75,4 @@ UnmatchedFunctionsAddMatchChooserSecondary::GetDescription(size_t index) const {
   return Plugin::instance()->results()->GetUnmatchedDescriptionSecondary(index);
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

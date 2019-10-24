@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on their relaxed MD indices. The MD index is
 // calculated without taking topological order into account. This means only the
@@ -26,7 +25,6 @@ class MatchingStepCallGraphMdIndexRelaxed : public MatchingStep {
       const FlowGraphs& flow_graphs, FlowGraphDoubleMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_CALL_GRAPH_MDINDEX_RELAXED_H_

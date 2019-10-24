@@ -11,8 +11,7 @@
 #include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 not_absl::Status InitConfig() {
   constexpr char kBinDiff[] = "BinDiff";
@@ -71,5 +70,4 @@ XmlConfig* GetConfig() {
   return config;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

@@ -27,8 +27,7 @@ BOOST_INSTALL_PROPERTY(edge, md_index_inverted);
 
 }  // namespace boost
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class FlowGraph;
 class CallGraph;
@@ -223,7 +222,6 @@ void InvertedBreadthFirstSearch(Graph* graph) {
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // GRAPH_UTIL_H_

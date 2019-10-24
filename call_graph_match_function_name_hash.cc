@@ -2,8 +2,7 @@
 
 #include "third_party/zynamics/binexport/hash.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepName::FindFixedPoints(
     const FlowGraph* primary_parent, const FlowGraph* secondary_parent,
@@ -36,5 +35,4 @@ void MatchingStepName::GetUnmatchedFlowGraphsByNameHash(
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

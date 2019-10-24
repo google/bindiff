@@ -26,12 +26,11 @@
 #include "third_party/zynamics/binexport/hash.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
+namespace security::bindiff {
 
 using binexport::FormatAddress;
 using binexport::GetInstructionAddress;
 
-namespace bindiff {
 namespace {
 
 // Maximum number of basic blocks/edges/instructions we want to allow for a
@@ -702,5 +701,4 @@ bool FlowGraph::IsTrivial() const { return GetMdIndex() == 0; }
 
 uint32_t FlowGraph::GetStringReferences() const { return string_references_; }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

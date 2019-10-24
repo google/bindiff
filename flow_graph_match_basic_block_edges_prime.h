@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches flow graph edges if source and target basic block instruction prime
 // products match. Thus both basic blocks contain identical instructions,
@@ -28,7 +27,6 @@ class MatchingStepEdgesPrimeProduct : public MatchingStepFlowGraph {
                                      EdgeIntMap* edges);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_EDGES_PRIME_H_

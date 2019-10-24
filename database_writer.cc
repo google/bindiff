@@ -14,8 +14,7 @@
 #include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
                int& instructions) {
@@ -778,5 +777,4 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
             call_graph2, flow_graphs2);
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

@@ -24,8 +24,7 @@
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 double GetConfidenceFromConfig(const std::string& name) {
@@ -249,5 +248,4 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
   return matching_steps_basic_block;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

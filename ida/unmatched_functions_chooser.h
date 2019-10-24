@@ -9,8 +9,7 @@
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace internal {
 
 static constexpr const int kUnmatchedChooserColumnWidths[] = {
@@ -182,7 +181,6 @@ class UnmatchedFunctionsAddMatchChooserSecondary
   Results::UnmatchedDescription GetDescription(size_t index) const override;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_UNMATCHED_FUNCTIONS_CHOOSER_H_

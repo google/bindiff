@@ -65,8 +65,7 @@
 #include "third_party/zynamics/binexport/util/statusor.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 using binexport::FormatAddress;
 using binexport::GetInputFileMd5;
@@ -1341,8 +1340,7 @@ bool Plugin::Run(size_t /* argument */) {
   return true;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 using security::bindiff::Plugin;
 

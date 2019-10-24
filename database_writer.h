@@ -8,8 +8,7 @@
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class DatabaseWriter : public Writer {
  public:
@@ -103,7 +102,6 @@ class DatabaseReader : public Reader {
   Counts basic_block_fixed_point_info_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // DATABASE_WRITER_H_

@@ -28,8 +28,7 @@
 
 using ::testing::IsTrue;
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 static constexpr const char kFixturesPath[] =
@@ -302,5 +301,4 @@ TEST_F(GroundtruthIntegrationTest, Run) {
 }
 
 }  // namespace
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

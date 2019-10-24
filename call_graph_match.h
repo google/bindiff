@@ -7,8 +7,7 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 MatchingSteps GetDefaultMatchingSteps();
 bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
@@ -214,7 +213,6 @@ bool FindFixedPointsEdge(const FlowGraph* primary_parent,
                          MatchingSteps* matching_steps,
                          const MatchingStepsFlowGraph& default_steps);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_H_

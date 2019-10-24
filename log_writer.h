@@ -5,8 +5,7 @@
 
 #include "third_party/zynamics/bindiff/writer.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Writes a human readable log file for debugging purposes.
 class ResultsLogWriter : public Writer {
@@ -21,7 +20,6 @@ class ResultsLogWriter : public Writer {
   std::string filename_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // LOG_WRITER_H_

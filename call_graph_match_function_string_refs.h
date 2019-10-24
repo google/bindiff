@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on their referenced string data. All strings
 // referenced from the functions in question are put into a combined hash which
@@ -29,7 +28,6 @@ class MatchingStepFunctionStringReferences : public MatchingStep {
       const FlowGraphs& flow_graphs, FlowGraphIntMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_STRING_REFS_H_

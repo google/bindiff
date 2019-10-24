@@ -3,8 +3,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepPrimeBasicBlock::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
@@ -31,5 +30,4 @@ void MatchingStepPrimeBasicBlock ::GetUnmatchedBasicBlocksByPrime(
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

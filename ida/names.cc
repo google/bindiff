@@ -8,8 +8,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 std::string ToString(const qstring& ida_string) {
   return std::string(ida_string.c_str(), ida_string.length());
@@ -58,5 +57,4 @@ std::string GetLineComments(Address address, LineComment kind) {
   return comment;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

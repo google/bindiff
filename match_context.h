@@ -11,8 +11,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class CallGraph;
 class MatchingStep;
@@ -113,7 +112,6 @@ class MatchingContext {
   FeatureRecord features_[kMaxFeature] = {};
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // MATCH_CONTEXT_H_

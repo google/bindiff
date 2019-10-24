@@ -4,8 +4,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Basic blocks are matched based on their position in the flow graph.
 class MatchingStepEdgesMdIndex : public MatchingStepFlowGraph {
@@ -33,7 +32,6 @@ class MatchingStepEdgesMdIndex : public MatchingStepFlowGraph {
   Direction direction_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_EDGES_MDINDEX_H_

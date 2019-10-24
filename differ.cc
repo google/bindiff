@@ -41,8 +41,7 @@ using ::proto2::io::CodedInputStream;
 #include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 #endif
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Return the immediate children of the call graph node denoted by
 // address. Skip nodes that have already been matched.
@@ -620,5 +619,4 @@ double GetSimilarityScore(const CallGraph& call_graph1,
   return similarity;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

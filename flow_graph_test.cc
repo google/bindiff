@@ -1,8 +1,7 @@
 #include "gtest/gtest.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 TEST(FlowGraphTest, FlowGraphDefaultValues) {
@@ -26,5 +25,4 @@ TEST(FlowGraphTest, FlowGraphDefaultValues) {
 }
 
 }  // namespace
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

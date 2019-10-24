@@ -7,8 +7,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 struct Comment {
  public:
@@ -32,7 +31,6 @@ struct Comment {
 using OperatorId = std::pair<Address, int>;
 using Comments = std::map<OperatorId, Comment>;
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // COMMENTS_H_

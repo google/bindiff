@@ -24,8 +24,7 @@
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 constexpr char kGuiJarName[] = "bindiff.jar";
 
@@ -169,5 +168,4 @@ not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
   return SpawnProcess(argv);
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

@@ -2,8 +2,7 @@
 #include "gtest/gtest.h"
 #include "third_party/zynamics/bindiff/instruction.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 TEST(InstructionTest, Instruction) {
@@ -87,5 +86,4 @@ TEST(InstructionTest, CommonPrefix) {
 }
 
 }  // namespace
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

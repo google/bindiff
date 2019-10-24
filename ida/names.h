@@ -5,8 +5,7 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 std::string GetName(Address address);
 std::string GetDemangledName(Address address);
@@ -17,7 +16,6 @@ enum class LineComment {
 };
 std::string GetLineComments(Address address, LineComment kind);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_NAMES_H_

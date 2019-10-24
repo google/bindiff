@@ -5,8 +5,7 @@
 
 #include "third_party/zynamics/bindiff/ida/main_plugin.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 constexpr const int StatisticsChooser::kColumnWidths[];
 constexpr const char* const StatisticsChooser::kColumnNames[];
@@ -31,5 +30,4 @@ void StatisticsChooser::get_row(qstrvec_t* cols, int* /* icon_ */,
                    .c_str();
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

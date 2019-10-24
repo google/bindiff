@@ -6,8 +6,7 @@
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/binexport/ida/plugin.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class Plugin : public binexport::IdaPlugin<Plugin> {
  public:
@@ -56,7 +55,6 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
   std::unique_ptr<Results> results_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_MAIN_PLUGIN_H_

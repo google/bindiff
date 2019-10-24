@@ -12,8 +12,7 @@
 
 class TiXmlDocument;
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class XmlConfig {
  public:
@@ -51,7 +50,6 @@ class XmlConfig {
   mutable absl::flat_hash_map<std::string, bool> bool_cache_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // XMLCONFIG_H_

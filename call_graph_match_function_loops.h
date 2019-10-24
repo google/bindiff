@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on the number of loops. Only applied if at least one
 // loop is present.
@@ -24,7 +23,6 @@ class MatchingStepLoops : public MatchingStep {
                                          FlowGraphIntMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_LOOPS_H_

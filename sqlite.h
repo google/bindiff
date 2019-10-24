@@ -14,8 +14,7 @@
 struct sqlite3;
 struct sqlite3_stmt;
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class SqliteStatement;
 
@@ -75,7 +74,6 @@ class SqliteStatement {
   bool got_data_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // SQLITE_H_

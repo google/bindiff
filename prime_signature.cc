@@ -4,8 +4,7 @@
 
 #include "third_party/absl/base/macros.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 uint32_t IPow32(uint32_t base, uint32_t exp) {
   // Lifted from TensorFlow's math_util.h. This is the squared exponentiation
@@ -12553,5 +12552,4 @@ uint32_t GetPrime(const std::string& mnemonic) {
   return id;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

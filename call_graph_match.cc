@@ -26,8 +26,7 @@
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/config.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool IsValidCandidate(const FlowGraph* flow_graph) {
   return !flow_graph->GetFixedPoint() &&
@@ -398,5 +397,4 @@ MatchingSteps GetDefaultMatchingSteps() {
   return matching_steps;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

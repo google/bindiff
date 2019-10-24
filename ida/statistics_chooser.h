@@ -8,8 +8,7 @@
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class StatisticsChooser : public chooser_t {
  public:
@@ -37,7 +36,6 @@ class StatisticsChooser : public chooser_t {
                size_t n) const override;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_STATISTICS_CHOOSER_H_

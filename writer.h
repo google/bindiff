@@ -8,8 +8,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class Writer {
  public:
@@ -41,7 +40,6 @@ class ChainWriter : public Writer {
   Writers writers_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // WRITER_H_

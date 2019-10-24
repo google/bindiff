@@ -4,8 +4,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches basic blocks based on instruction prime product. Only used on basic
 // blocks with a minimum number of specified instructions.
@@ -32,7 +31,6 @@ class MatchingStepPrimeBasicBlock : public MatchingStepFlowGraph {
   int min_instructions_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_PRIME_H_

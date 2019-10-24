@@ -12,8 +12,7 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class FixedPoint;
 class BasicBlockFixedPoint;
@@ -239,7 +238,6 @@ struct SortByAddress {
 
 using FlowGraphs = std::set<FlowGraph*, SortByAddress>;
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_H_

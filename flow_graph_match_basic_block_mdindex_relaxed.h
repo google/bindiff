@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches basic blocks based on their position in the flow graph.
 class MatchingStepMdIndexRelaxed : public MatchingStepFlowGraph {
@@ -24,7 +23,6 @@ class MatchingStepMdIndexRelaxed : public MatchingStepFlowGraph {
       VertexDoubleMap* basic_blocks_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_MDINDEX_RELAXED_H_

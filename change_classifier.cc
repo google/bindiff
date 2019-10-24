@@ -3,8 +3,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 bool InstructionsChanged(const FlowGraph& primary, const FlowGraph& secondary,
@@ -204,5 +203,4 @@ std::string GetChangeDescription(ChangeType change) {
   return result;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

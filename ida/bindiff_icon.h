@@ -3,12 +3,10 @@
 
 #include "third_party/absl/strings/string_view.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 extern const absl::string_view kBinDiffIcon;
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_BINDIFF_ICON_H_

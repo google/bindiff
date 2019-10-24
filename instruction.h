@@ -8,8 +8,7 @@
 #include "base/integral_types.h"
 #include "third_party/zynamics/bindiff/utility.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class Instruction {
  public:
@@ -36,7 +35,6 @@ void ComputeLcs(const Instructions::const_iterator& instructions1_begin,
                 const Instructions::const_iterator& instructions2_end,
                 InstructionMatches& matches);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // INSTRUCTION_H_

@@ -11,8 +11,7 @@
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class MatchedFunctionsChooser : public chooser_multi_t {
  public:
@@ -160,7 +159,6 @@ class CopySecondaryAddressAction
   int idaapi activate(action_activation_ctx_t* context) override;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_MATCHED_FUNCTIONS_CHOOSER_H_

@@ -4,8 +4,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches the entry/exit point basic blocks. The entry point is uniquely
 // identified by the function and usually has an indegree of 0. Exit points are
@@ -34,7 +33,6 @@ class MatchingStepEntryNodes : public MatchingStepFlowGraph {
   Direction direction_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_ENTRY_NODE_H_

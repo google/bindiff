@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on a hash of the original raw function bytes. Thus
 // two functions matched by this algorithm should be identical on the byte
@@ -25,7 +24,6 @@ class MatchingStepHash : public MatchingStep {
                                     FlowGraphIntMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_HASH_H_

@@ -3,8 +3,7 @@
 #include "third_party/absl/base/attributes.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // PNG data for a 16x16 pixel RGB icon with transparency channel.
 static constexpr const uint8_t kBinDiffIconData[] = {
@@ -84,5 +83,4 @@ static constexpr const uint8_t kBinDiffIconData[] = {
 const absl::string_view kBinDiffIcon(
     reinterpret_cast<const char*>(kBinDiffIconData), sizeof(kBinDiffIconData));
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

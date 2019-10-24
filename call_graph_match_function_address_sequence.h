@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions in order based on their entry point addresses. This is a
 // special matching step that is especially useful during drill downs. Since it
@@ -32,7 +31,6 @@ class MatchingStepSequence : public MatchingStep {
                                        FlowGraphIntMap& flow_graphs_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_ADDRESS_SEQUENCE_H_

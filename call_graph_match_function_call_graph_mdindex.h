@@ -5,8 +5,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on their position in the callgraph. The call graph
 // leading up to that function must be structurally identical as viewed from the
@@ -34,7 +33,6 @@ class MatchingStepCallGraphMdIndex : public MatchingStep {
   Direction direction_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_CALL_GRAPH_MDINDEX_H_

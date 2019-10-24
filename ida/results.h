@@ -19,8 +19,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class Results {
  public:
@@ -181,7 +180,6 @@ class Results {
   int diff_database_id_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // IDA_RESULTS_H_

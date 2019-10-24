@@ -2,8 +2,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool MatchingStepJumpSequence ::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
@@ -33,5 +32,4 @@ void MatchingStepJumpSequence ::GetUnmatchedBasicBlocksByJumpSequence(
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

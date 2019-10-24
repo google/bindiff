@@ -5,8 +5,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Special algorithm that is only used for functions with matched parents
 // (callers). The point of the call at the call site is determined as a tuple:
@@ -49,7 +48,6 @@ class MatchingStepCallSequence : public MatchingStep {
   Accuracy accuracy_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_CALL_SEQUENCE_H_

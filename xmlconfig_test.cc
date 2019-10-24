@@ -17,8 +17,7 @@ using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::StrEq;
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 namespace {
 
 TEST(XmlConfigTest, BasicFunctionality) {
@@ -62,5 +61,4 @@ TEST(XmlConfigTest, BasicFunctionality) {
 }
 
 }  // namespace
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

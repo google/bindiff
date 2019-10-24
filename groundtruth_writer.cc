@@ -7,8 +7,7 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 using binexport::FormatAddress;
 
@@ -60,5 +59,4 @@ void GroundtruthWriter::Write(const CallGraph& /* call_graph1 */,
   }
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

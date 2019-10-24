@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches basic blocks if they call at least one function and all called
 // functions have been matched.
@@ -29,7 +28,6 @@ class MatchingStepCallReferences : public MatchingStepFlowGraph {
                                               MatchingContext* context);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_CALL_REFS_H_

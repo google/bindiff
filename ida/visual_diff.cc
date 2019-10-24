@@ -34,8 +34,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
                          absl::string_view arguments) {
@@ -135,5 +134,4 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
   return false;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches functions based on their local call graph neighborhoods. Calls and
 // callees are only followed two levels deep as seen from the function in
@@ -27,7 +26,6 @@ class MatchingStepEdgesProximityMdIndex : public MatchingStep {
                                          EdgeFeatures* edges);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_CALL_GRAPH_EDGES_PROXIMITY_MDINDEX_H_

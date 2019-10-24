@@ -17,8 +17,7 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 uint32_t GetMatchColor(double value) {
   // Google Material colors: Deep Orange (500) -> Google Yellow (A700) ->
@@ -141,5 +140,4 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
   return not_absl::OkStatus();
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

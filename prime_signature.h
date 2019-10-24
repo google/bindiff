@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Computes the result of raising a number to a non-negative integral power.
 // baze^exp is computed in a way that is faster than std::pow (which supports
@@ -23,7 +22,6 @@ uint32_t IPow32(uint32_t base, uint32_t exp);
 // TODO(cblichmann): Rename to GetMnemonicId().
 uint32_t GetPrime(const std::string& mnemonic);
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // PRIME_SIGNATURE_H_

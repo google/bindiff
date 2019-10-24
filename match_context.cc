@@ -8,8 +8,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 void UpdateFixedPointConfidence(FixedPoint& fixed_point) {
   FlowGraphs flow_graphs1, flow_graphs2;
@@ -73,5 +72,4 @@ std::pair<FixedPoints::iterator, bool> MatchingContext::AddFixedPoint(
   return insert_position;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

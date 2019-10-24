@@ -6,8 +6,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 SqliteDatabase::SqliteDatabase()
     : database_(nullptr) {
@@ -180,5 +179,4 @@ bool SqliteStatement::GotData() const {
   return got_data_;
 }
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

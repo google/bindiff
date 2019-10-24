@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 // Matches callgraph edges based on their callgraph MD index. This means the
 // callgraph leading to that particular call is structurally identical in both
@@ -26,7 +25,6 @@ class MatchingStepEdgesCallGraphMdIndex : public BaseMatchingStepEdgesMdIndex {
   }
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // CALL_GRAPH_MATCH_FUNCTION_CALL_GRAPH_EDGES_MDINDEX_H_

@@ -3,8 +3,7 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 class MatchingStepJumpSequence : public MatchingStepFlowGraph {
  public:
@@ -23,7 +22,6 @@ class MatchingStepJumpSequence : public MatchingStepFlowGraph {
                                              VertexIntMap* basic_blocks_map);
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // FLOW_GRAPH_MATCH_BASIC_BLOCK_JUMP_SEQUENCE_H_

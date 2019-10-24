@@ -5,8 +5,7 @@
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 struct FlowGraphInfo {
   Address address;
@@ -57,7 +56,6 @@ class Reader {
   double confidence_;
 };
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff
 
 #endif  // READER_H_
