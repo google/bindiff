@@ -28,8 +28,7 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
                                        CallGraph* /* call_graph */,
@@ -74,5 +73,4 @@ Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
                      mnemonic, operands);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

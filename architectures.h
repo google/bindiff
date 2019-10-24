@@ -15,8 +15,7 @@
 #ifndef ARCHITECTURES_H_
 #define ARCHITECTURES_H_
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 enum class Architecture {
   kArm,
@@ -27,7 +26,6 @@ enum class Architecture {
   kX86Arch64,
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // ARCHITECTURES_H_

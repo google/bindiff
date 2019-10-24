@@ -12,23 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef IDA_ARM_H_
-#define IDA_ARM_H_
+#include "third_party/zynamics/binexport/version.h"
 
-#include "third_party/zynamics/binexport/call_graph.h"
-#include "third_party/zynamics/binexport/flow_graph.h"
-#include "third_party/zynamics/binexport/instruction.h"
-#include "third_party/zynamics/binexport/type_system.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/absl/base/attributes.h"
 
-class insn_t;
+namespace security {
+namespace binexport {
 
-namespace security::binexport {
+ABSL_CONST_INIT const char* kBinExportName = "BinExport";
 
-Instruction ParseInstructionIdaArm(const insn_t& instruction,
-                                   CallGraph* call_graph, FlowGraph* flow_graph,
-                                   TypeSystem* type_system);
+ABSL_CONST_INIT const char* kBinExportRelease = "@binexport_VERSION_MAJOR@";
 
-}  // namespace security::binexport
+ABSL_CONST_INIT const char* kBinExportDetailedVersion =
+    "@binexport_VERSION_MAJOR@ (@"
+    "@REVISION@, " __DATE__
+#ifndef NDEBUG
+    ", debug build"
+#endif
+    ")";
 
-#endif  // IDA_ARM_H_
+ABSL_CONST_INIT const char* kBinExportCopyright =
+    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
+
+}  // namespace binexport
+}  // namespace security

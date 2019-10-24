@@ -46,8 +46,7 @@
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 // Sorts by descending occurrence count then by mnemonic string. Don't be
@@ -776,5 +775,4 @@ not_absl::Status BinExport2Writer::Write(
   return WriteProtoToFile(filename_, &proto);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

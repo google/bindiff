@@ -18,8 +18,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 //
 // Returns the lowercase hex string of the SHA256 hash of the original input
 // file for the current IDB.
@@ -30,7 +29,6 @@ not_absl::StatusOr<std::string> GetInputFileSha256();
 // exists to support the legacy MD5 field in the BinExport database schema.
 not_absl::StatusOr<std::string> GetInputFileMd5();
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // IDA_DIGEST_H_

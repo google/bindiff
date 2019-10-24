@@ -20,8 +20,7 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Returns a hexadecimal string representation of an address suitable for log
 // lines and display in UIs. The returned string will always be either 8 or 16
@@ -43,7 +42,6 @@ std::string FormatAddress(Address address);
 std::string HumanReadableDuration(double seconds);
 std::string HumanReadableDuration(absl::Duration duration);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // UTIL_FORMAT_H_

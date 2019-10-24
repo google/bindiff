@@ -34,8 +34,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/architectures.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class FlowGraph {
  public:
@@ -159,7 +158,6 @@ void FlowGraph::GetCallTargets(Vertex vertex,
   }
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // READER_FLOW_GRAPH_H_

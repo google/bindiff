@@ -20,8 +20,7 @@
 #include "gtest/gtest.h"
 #include "third_party/zynamics/binexport/binexport.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 TEST(InstructionTest, FindInstructionValid) {
@@ -67,5 +66,4 @@ TEST(InstructionTest, GetInstructionAddresses) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

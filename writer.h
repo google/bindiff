@@ -24,8 +24,7 @@ class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class Writer {
  public:
@@ -44,7 +43,6 @@ class Writer {
                                  const AddressSpace& address_space) = 0;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // WRITER_H_
