@@ -98,7 +98,7 @@ public class CombinedFlowGraphBasicBlockTreeNode extends AbstractTreeNode
 
       if (functionMatch.isBasicblockMatch(priBasicblockAddr, secBasicblockAddr)) {
         final BasicBlockMatchData basicblockMatch =
-            functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
+            functionMatch.getBasicBlockMatch(priBasicblockAddr, ESide.PRIMARY);
 
         if (basicblockMatch != null) {
           final int matchedInstructionCount = basicblockMatch.getSizeOfMatchedInstructions();

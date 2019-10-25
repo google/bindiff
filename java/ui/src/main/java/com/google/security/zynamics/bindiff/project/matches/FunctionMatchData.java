@@ -108,7 +108,7 @@ public class FunctionMatchData implements IAddressPair {
     return "TODO";
   }
 
-  public BasicBlockMatchData getBasicblockMatch(final IAddress addr, final ESide side) {
+  public BasicBlockMatchData getBasicBlockMatch(final IAddress addr, final ESide side) {
     return basicblockMatches != null ? basicblockMatches.get(addr, side) : null;
   }
 

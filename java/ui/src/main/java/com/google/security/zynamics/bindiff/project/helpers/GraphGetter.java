@@ -264,7 +264,7 @@ public final class GraphGetter {
     final Collection<RawJump> matchedJumps = new ArrayList<>();
 
     final BasicBlockMatchData srcBasicblockMatch =
-        MatchesGetter.getBasicblockMatch(diff, basicblock);
+        MatchesGetter.getBasicBlockMatch(diff, basicblock);
 
     if (srcBasicblockMatch == null) {
       return matchedJumps;
@@ -279,7 +279,7 @@ public final class GraphGetter {
       final RawBasicBlock tarBasicblock = jump.getTarget();
 
       final BasicBlockMatchData tarBasicblockMatch =
-          MatchesGetter.getBasicblockMatch(diff, tarBasicblock);
+          MatchesGetter.getBasicBlockMatch(diff, tarBasicblock);
 
       if (tarBasicblockMatch != null) {
         IAddress otherSrcAddr = null;
@@ -340,7 +340,7 @@ public final class GraphGetter {
     final Collection<RawJump> matchedJumps = new ArrayList<>();
 
     final BasicBlockMatchData srcBasicblockMatch =
-        MatchesGetter.getBasicblockMatch(diff, basicblock);
+        MatchesGetter.getBasicBlockMatch(diff, basicblock);
 
     if (srcBasicblockMatch == null) {
       return matchedJumps;
@@ -355,7 +355,7 @@ public final class GraphGetter {
       final RawBasicBlock tarBasicblock = jump.getTarget();
 
       final BasicBlockMatchData tarBasicblockMatch =
-          MatchesGetter.getBasicblockMatch(diff, tarBasicblock);
+          MatchesGetter.getBasicBlockMatch(diff, tarBasicblock);
 
       if (tarBasicblockMatch != null) {
         IAddress otherSrcAddr = null;
@@ -578,7 +578,7 @@ public final class GraphGetter {
     final Collection<RawJump> unmatchedJumps = new ArrayList<>();
 
     final BasicBlockMatchData tarBasicblockMatch =
-        MatchesGetter.getBasicblockMatch(diff, basicblock);
+        MatchesGetter.getBasicBlockMatch(diff, basicblock);
 
     if (tarBasicblockMatch == null) {
       return getIncomingJumps(basicblock);
@@ -593,7 +593,7 @@ public final class GraphGetter {
       final RawBasicBlock srcBasicblock = jump.getSource();
 
       final BasicBlockMatchData srcBasicblockMatch =
-          MatchesGetter.getBasicblockMatch(diff, srcBasicblock);
+          MatchesGetter.getBasicBlockMatch(diff, srcBasicblock);
 
       if (srcBasicblockMatch != null) {
         IAddress otherSrcAddr = null;
@@ -656,7 +656,7 @@ public final class GraphGetter {
     final Collection<RawJump> unmatchedJumps = new ArrayList<>();
 
     final BasicBlockMatchData srcBasicblockMatch =
-        MatchesGetter.getBasicblockMatch(diff, basicblock);
+        MatchesGetter.getBasicBlockMatch(diff, basicblock);
 
     if (srcBasicblockMatch == null) {
       return getOutgoingJumps(basicblock);
@@ -671,7 +671,7 @@ public final class GraphGetter {
       final RawBasicBlock tarBasicblock = jump.getTarget();
 
       final BasicBlockMatchData tarBasicblockMatch =
-          MatchesGetter.getBasicblockMatch(diff, tarBasicblock);
+          MatchesGetter.getBasicBlockMatch(diff, tarBasicblock);
 
       if (tarBasicblockMatch != null) {
         IAddress otherSrcAddr = null;

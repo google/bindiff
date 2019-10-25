@@ -14,6 +14,6 @@ public class ColorUnselectedNodesAction extends AbstractAction {
 
   @Override
   public void actionPerformed(final ActionEvent event) {
-    controller.colorUnslectedNodes();
+    controller.colorUnselectedNodes();
   }
 }

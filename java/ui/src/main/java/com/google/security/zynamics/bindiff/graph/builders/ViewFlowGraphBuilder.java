@@ -81,7 +81,7 @@ public class ViewFlowGraphBuilder {
     }
   }
 
-  protected static void buildFlowgraphEdgeMaps(
+  protected static void buildFlowGraphEdgeMaps(
       final Graph2D primaryGraph2D,
       final Graph2D secondaryGraph2D,
       final Graph2D superGraph2D,
@@ -96,8 +96,8 @@ public class ViewFlowGraphBuilder {
       final Map<Pair<IAddress, IAddress>, CombinedDiffNode> addrPairToCombinedDiffNodeMap,
       final GraphSettings settings,
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          flowgraph) {
-    for (final RawCombinedJump<RawCombinedBasicBlock> combinedJump : flowgraph.getEdges()) {
+          flowGraph) {
+    for (final RawCombinedJump<RawCombinedBasicBlock> combinedJump : flowGraph.getEdges()) {
       final RawCombinedBasicBlock combinedSourceNode = combinedJump.getSource();
       final RawCombinedBasicBlock combinedTargetNode = combinedJump.getTarget();
 
@@ -181,9 +181,7 @@ public class ViewFlowGraphBuilder {
         secondaryEdgeMap.put(ySecondaryEdge, secondaryDiffEdge);
       }
 
-      // super jumps
-      SuperDiffEdge superDiffEdge = null;
-      Edge ySuperEdge = null;
+      // Super jumps
       final ZyLabelContent superEdgeContent = new ZyLabelContent(null);
       final ZyEdgeRealizer<SuperDiffEdge> superEdgeRealizer;
 
@@ -197,7 +195,7 @@ public class ViewFlowGraphBuilder {
       final Node srcSuperYNode = srcSuperDiffNode.getNode();
       final Node tarSuperYNode = tarSuperDiffNode.getNode();
 
-      ySuperEdge = superGraph2D.createEdge(srcSuperYNode, tarSuperYNode);
+      final Edge ySuperEdge = superGraph2D.createEdge(srcSuperYNode, tarSuperYNode);
 
       final SuperViewNode superRawSource = srcSuperDiffNode.getRawNode();
       final SuperViewNode superRawTarget = tarSuperDiffNode.getRawNode();
@@ -205,7 +203,7 @@ public class ViewFlowGraphBuilder {
       final SuperViewEdge<SuperViewNode> superEdge =
           new SuperViewEdge<>(combinedJump, superRawSource, superRawTarget);
 
-      superDiffEdge =
+      final SuperDiffEdge superDiffEdge =
           new SuperDiffEdge(
               srcSuperDiffNode,
               tarSuperDiffNode,
@@ -220,9 +218,7 @@ public class ViewFlowGraphBuilder {
 
       superEdgeMap.put(ySuperEdge, superDiffEdge);
 
-      // combined jumps
-      CombinedDiffEdge combinedDiffEdge = null;
-      Edge yCombinedEdge = null;
+      // Combined jumps
       final ZyLabelContent combinedEdgeContent = new ZyLabelContent(null);
       final CombinedEdgeRealizer combinedEdgeRealizer;
 
@@ -236,9 +232,9 @@ public class ViewFlowGraphBuilder {
       final Node srcCombinedYNode = srcCombinedDiffNode.getNode();
       final Node tarCombinedYNode = tarCombinedDiffNode.getNode();
 
-      yCombinedEdge = combinedGraph2D.createEdge(srcCombinedYNode, tarCombinedYNode);
+      final Edge yCombinedEdge = combinedGraph2D.createEdge(srcCombinedYNode, tarCombinedYNode);
 
-      combinedDiffEdge =
+      final CombinedDiffEdge combinedDiffEdge =
           new CombinedDiffEdge(
               srcCombinedDiffNode,
               tarCombinedDiffNode,
@@ -251,7 +247,7 @@ public class ViewFlowGraphBuilder {
       combinedEdgeMap.put(yCombinedEdge, combinedDiffEdge);
       combinedEdgeRealizer.setUserData(new ZyEdgeData<>(combinedDiffEdge));
 
-      // each edge gets it's representatives of the parallel views
+      // Each edge gets its representatives of the parallel views
       superDiffEdge.setCombinedDiffEdge(combinedDiffEdge);
       if (primaryDiffEdge != null) {
         primaryDiffEdge.setCombinedDiffEdge(combinedDiffEdge);
@@ -260,13 +256,13 @@ public class ViewFlowGraphBuilder {
         secondaryDiffEdge.setCombinedDiffEdge(combinedDiffEdge);
       }
 
-      // colorize and stylize jumps
+      // Colorize and stylize jumps
       colorizeJumps(combinedJump, primaryEdgeRealizer, secondaryEdgeRealizer);
       stylizeJumps(combinedJump, combinedEdgeRealizer, primaryEdgeRealizer, secondaryEdgeRealizer);
     }
   }
 
-  protected static void buildFlowgraphNodeMaps(
+  protected static void buildFlowGraphNodeMaps(
       final FunctionMatchData functionMatch,
       final Graph2D primaryGraph2D,
       final Graph2D secondaryGraph2D,
@@ -282,7 +278,7 @@ public class ViewFlowGraphBuilder {
       final Map<Pair<IAddress, IAddress>, CombinedDiffNode> addrPairToCombinedDiffNodeMap,
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
           flowgraph) {
-    for (final RawCombinedBasicBlock combinedBasicblock : flowgraph) {
+    for (final RawCombinedBasicBlock combinedBasicBlock : flowgraph) {
       SingleDiffNode primaryDiffNode = null;
       SingleDiffNode secondaryDiffNode = null;
       SuperDiffNode superDiffNode = null;
@@ -293,21 +289,21 @@ public class ViewFlowGraphBuilder {
       Node ySuperNode = null;
       Node yCombinedNode = null;
 
-      final IAddress secondaryAddress = combinedBasicblock.getAddress(ESide.SECONDARY);
-      final IAddress primaryAddress = combinedBasicblock.getAddress(ESide.PRIMARY);
-      final RawBasicBlock primaryBasicblock = combinedBasicblock.getRawNode(ESide.PRIMARY);
-      final RawBasicBlock secondaryBasicblock = combinedBasicblock.getRawNode(ESide.SECONDARY);
+      final IAddress secondaryAddress = combinedBasicBlock.getAddress(ESide.SECONDARY);
+      final IAddress primaryAddress = combinedBasicBlock.getAddress(ESide.PRIMARY);
+      final RawBasicBlock primaryBasicBlock = combinedBasicBlock.getRawNode(ESide.PRIMARY);
+      final RawBasicBlock secondaryBasicBlock = combinedBasicBlock.getRawNode(ESide.SECONDARY);
 
-      // primary basicblocks
+      // Primary basic blocks
       ZyLabelContent primaryNodeContent = null;
-      if (primaryBasicblock != null) {
+      if (primaryBasicBlock != null) {
         primaryNodeContent =
-            buildSingleBasicblockLabelContent(
-                functionMatch, flowgraph, combinedBasicblock, ESide.PRIMARY);
+            buildSingleBasicBlockLabelContent(
+                functionMatch, flowgraph, combinedBasicBlock, ESide.PRIMARY);
         final ZyNormalNodeRealizer<SingleDiffNode> primaryNodeRealizer =
             new ZyNormalNodeRealizer<>(primaryNodeContent);
 
-        // set updater
+        // Set updater
         final CodeNodeRealizerUpdater updater = new CodeNodeRealizerUpdater();
         primaryNodeRealizer.setUpdater(updater);
         updater.setRealizer(primaryNodeRealizer);
@@ -315,7 +311,7 @@ public class ViewFlowGraphBuilder {
         yPrimaryNode = primaryGraph2D.createNode();
         primaryDiffNode =
             new SingleDiffBasicBlockNode(
-                yPrimaryNode, primaryNodeRealizer, primaryBasicblock, ESide.PRIMARY);
+                yPrimaryNode, primaryNodeRealizer, primaryBasicBlock, ESide.PRIMARY);
 
         primaryNodeRealizer.setUserData(new ZyNodeData<>(primaryDiffNode));
 
@@ -323,16 +319,16 @@ public class ViewFlowGraphBuilder {
         primaryNodeMap.put(yPrimaryNode, primaryDiffNode);
       }
 
-      // secondary basicblocks
+      // Secondary basic blocks
       ZyLabelContent secondaryNodeContent = null;
-      if (secondaryBasicblock != null) {
+      if (secondaryBasicBlock != null) {
         secondaryNodeContent =
-            buildSingleBasicblockLabelContent(
-                functionMatch, flowgraph, combinedBasicblock, ESide.SECONDARY);
+            buildSingleBasicBlockLabelContent(
+                functionMatch, flowgraph, combinedBasicBlock, ESide.SECONDARY);
         final ZyNormalNodeRealizer<SingleDiffNode> secondaryNodeRealizer =
             new ZyNormalNodeRealizer<>(secondaryNodeContent);
 
-        // set updater
+        // Set updater
         final CodeNodeRealizerUpdater updater = new CodeNodeRealizerUpdater();
         secondaryNodeRealizer.setUpdater(updater);
         updater.setRealizer(secondaryNodeRealizer);
@@ -340,7 +336,7 @@ public class ViewFlowGraphBuilder {
         ySecondaryNode = secondaryGraph2D.createNode();
         secondaryDiffNode =
             new SingleDiffBasicBlockNode(
-                ySecondaryNode, secondaryNodeRealizer, secondaryBasicblock, ESide.SECONDARY);
+                ySecondaryNode, secondaryNodeRealizer, secondaryBasicBlock, ESide.SECONDARY);
 
         secondaryNodeRealizer.setUserData(new ZyNodeData<>(secondaryDiffNode));
 
@@ -348,14 +344,14 @@ public class ViewFlowGraphBuilder {
         secondaryNodeMap.put(ySecondaryNode, secondaryDiffNode);
       }
 
-      // super basicblocks
+      // Super basic blocks
       final ZyLabelContent superNodeContent = new ZyLabelContent(null);
       final ZyNormalNodeRealizer<SuperDiffNode> superNodeRealizer =
           new ZyNormalNodeRealizer<>(superNodeContent);
 
       ySuperNode = superGraph2D.createNode();
 
-      final SuperViewNode superNode = new SuperViewNode(combinedBasicblock);
+      final SuperViewNode superNode = new SuperViewNode(combinedBasicBlock);
 
       superDiffNode =
           new SuperDiffNode(
@@ -364,7 +360,7 @@ public class ViewFlowGraphBuilder {
       addrPairToSuperDiffNodeMap.put(new Pair<>(primaryAddress, secondaryAddress), superDiffNode);
       superNodeMap.put(ySuperNode, superDiffNode);
 
-      // combined basicblocks
+      // Combined basic blocks
       final CombinedNodeRealizer combinedNodeRealizer =
           new CombinedNodeRealizer(primaryNodeContent, secondaryNodeContent);
 
@@ -375,7 +371,7 @@ public class ViewFlowGraphBuilder {
       yCombinedNode = combinedGraph2D.createNode();
       combinedDiffNode =
           new CombinedDiffNode(
-              yCombinedNode, combinedNodeRealizer, combinedBasicblock, superDiffNode);
+              yCombinedNode, combinedNodeRealizer, combinedBasicBlock, superDiffNode);
       combinedNodeRealizer.setUserData(new ZyNodeData<>(combinedDiffNode));
 
       addrPairToCombinedDiffNodeMap.put(
@@ -391,36 +387,36 @@ public class ViewFlowGraphBuilder {
         secondaryDiffNode.setCombinedDiffNode(combinedDiffNode);
       }
 
-      // colorize Basicblocks
-      colorizeBasicblocks(functionMatch, combinedBasicblock);
+      // Colorize basic blocks
+      colorizeBasicBlocks(functionMatch, combinedBasicBlock);
     }
   }
 
-  public static ZyLabelContent buildSingleBasicblockLabelContent(
+  public static ZyLabelContent buildSingleBasicBlockLabelContent(
       final FunctionMatchData functionMatch,
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedFlowgraph,
-      final RawCombinedBasicBlock combinedBasicblock,
+          combinedFlowGraph,
+      final RawCombinedBasicBlock combinedBasicBlock,
       final ESide side) {
-    final BasicBlockLineObject basicblockObject =
-        new BasicBlockLineObject(combinedBasicblock.getRawNode(side));
+    final BasicBlockLineObject basicBlockObject =
+        new BasicBlockLineObject(combinedBasicBlock.getRawNode(side));
 
     // TODO(cblichmann): Reenable editability sometime after 4.0 release
-    final ZyLabelContent basicblockContent = new DiffLabelContent(basicblockObject, true, false);
+    final ZyLabelContent basicBlockContent = new DiffLabelContent(basicBlockObject, true, false);
 
     ViewCodeNodeBuilder.buildSingleCodeNodeContent(
-        functionMatch, combinedFlowgraph, combinedBasicblock, basicblockContent, side);
+        functionMatch, combinedFlowGraph, combinedBasicBlock, basicBlockContent, side);
 
-    return basicblockContent;
+    return basicBlockContent;
   }
 
-  public static GraphsContainer buildViewFlowgraphs(
+  public static GraphsContainer buildViewFlowGraphs(
       final Diff diff,
       final FunctionMatchData functionMatch,
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedRawFlowgraph) {
+          combinedRawFlowGraph) {
     final GraphSettings settings =
-        new GraphSettings(BinDiffConfig.getInstance().getInitialFlowgraphSettings());
+        new GraphSettings(BinDiffConfig.getInstance().getInitialFlowGraphSettings());
 
     final ZyGraph2DView primaryGraphView = new ZyGraph2DView();
     final ZyGraph2DView secondaryGraphView = new ZyGraph2DView();
@@ -453,7 +449,7 @@ public class ViewFlowGraphBuilder {
         new HashMap<>();
     final Map<Pair<IAddress, IAddress>, SuperDiffNode> addrPairToSuperDiffNodeMap = new HashMap<>();
 
-    buildFlowgraphNodeMaps(
+    buildFlowGraphNodeMaps(
         functionMatch,
         primaryGraph2D,
         secondaryGraph2D,
@@ -467,9 +463,9 @@ public class ViewFlowGraphBuilder {
         secondaryAddrToSingleDiffNodeMap,
         addrPairToSuperDiffNodeMap,
         addrPairToCombinedDiffNodeMap,
-        combinedRawFlowgraph);
+        combinedRawFlowGraph);
 
-    buildFlowgraphEdgeMaps(
+    buildFlowGraphEdgeMaps(
         primaryGraph2D,
         secondaryGraph2D,
         superGraph2D,
@@ -483,10 +479,10 @@ public class ViewFlowGraphBuilder {
         addrPairToSuperDiffNodeMap,
         addrPairToCombinedDiffNodeMap,
         settings,
-        combinedRawFlowgraph);
+        combinedRawFlowGraph);
 
-    final IAddress primaryAddr = combinedRawFlowgraph.getPrimaryAddress();
-    final IAddress secondaryAddr = combinedRawFlowgraph.getSecondaryAddress();
+    final IAddress primaryAddr = combinedRawFlowGraph.getPrimaryAddress();
+    final IAddress secondaryAddr = combinedRawFlowGraph.getSecondaryAddress();
 
     colorizeSingleNodeLineBorders(primaryNodeMap.values(), primaryAddr);
     colorizeSingleNodeLineBorders(secondaryNodeMap.values(), secondaryAddr);
@@ -533,36 +529,36 @@ public class ViewFlowGraphBuilder {
     return graphs;
   }
 
-  public static void colorizeBasicblocks(
-      final FunctionMatchData functionMatch, final RawCombinedBasicBlock combinedBasicblock) {
-    final EMatchState matchState = combinedBasicblock.getMatchState();
+  public static void colorizeBasicBlocks(
+      final FunctionMatchData functionMatch, final RawCombinedBasicBlock combinedBasicBlock) {
+    final EMatchState matchState = combinedBasicBlock.getMatchState();
     if (matchState == EMatchState.PRIMARY_UNMATCHED) {
-      combinedBasicblock.setColor(Colors.PRIMARY_BASE);
-      combinedBasicblock.getRawNode(ESide.PRIMARY).setColor(Colors.PRIMARY_BASE);
+      combinedBasicBlock.setColor(Colors.PRIMARY_BASE);
+      combinedBasicBlock.getRawNode(ESide.PRIMARY).setColor(Colors.PRIMARY_BASE);
     } else if (matchState == EMatchState.SECONDRAY_UNMATCHED) {
-      combinedBasicblock.setColor(Colors.SECONDARY_BASE);
-      combinedBasicblock.getRawNode(ESide.SECONDARY).setColor(Colors.SECONDARY_BASE);
+      combinedBasicBlock.setColor(Colors.SECONDARY_BASE);
+      combinedBasicBlock.getRawNode(ESide.SECONDARY).setColor(Colors.SECONDARY_BASE);
     } else {
-      final IAddress priBasicblockAddress = combinedBasicblock.getAddress(ESide.PRIMARY);
+      final IAddress priBasicBlockAddress = combinedBasicBlock.getAddress(ESide.PRIMARY);
 
-      final BasicBlockMatchData basicblockMatch =
-          functionMatch.getBasicblockMatch(priBasicblockAddress, ESide.PRIMARY);
+      final BasicBlockMatchData basicBlockMatch =
+          functionMatch.getBasicBlockMatch(priBasicBlockAddress, ESide.PRIMARY);
 
-      final int matchedInstructionCount = basicblockMatch.getSizeOfMatchedInstructions();
+      final int matchedInstructionCount = basicBlockMatch.getSizeOfMatchedInstructions();
 
       Color color = Colors.MATCHED_BASE;
 
-      if (combinedBasicblock.getRawNode(ESide.PRIMARY).getInstructions().size()
+      if (combinedBasicBlock.getRawNode(ESide.PRIMARY).getInstructions().size()
               > matchedInstructionCount
-          || combinedBasicblock.getRawNode(ESide.SECONDARY).getInstructions().size()
+          || combinedBasicBlock.getRawNode(ESide.SECONDARY).getInstructions().size()
               > matchedInstructionCount) {
         color = Colors.CHANGED_BASE;
       }
 
-      combinedBasicblock.setColor(color);
-      combinedBasicblock.setColor(color);
-      combinedBasicblock.getRawNode(ESide.PRIMARY).setColor(color);
-      combinedBasicblock.getRawNode(ESide.SECONDARY).setColor(color);
+      combinedBasicBlock.setColor(color);
+      combinedBasicBlock.setColor(color);
+      combinedBasicBlock.getRawNode(ESide.PRIMARY).setColor(color);
+      combinedBasicBlock.getRawNode(ESide.SECONDARY).setColor(color);
     }
   }
 

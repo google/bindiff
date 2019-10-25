@@ -79,7 +79,7 @@ public class ProximityBrowsingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getAutoProximityBrowsingActivationThreshold();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getAutoProximityBrowsingActivationThreshold();
+        return config.getInitialFlowGraphSettings().getAutoProximityBrowsingActivationThreshold();
       default:
     }
 
@@ -91,7 +91,7 @@ public class ProximityBrowsingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getProximityBrowsing();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getProximityBrowsing();
+        return config.getInitialFlowGraphSettings().getProximityBrowsing();
       default:
     }
 
@@ -103,7 +103,7 @@ public class ProximityBrowsingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getProximityBrowsingChildDepth();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getProximityBrowsingChildDepth();
+        return config.getInitialFlowGraphSettings().getProximityBrowsingChildDepth();
       default:
     }
 
@@ -115,7 +115,7 @@ public class ProximityBrowsingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getProximityBrowsingParentDepth();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getProximityBrowsingParentDepth();
+        return config.getInitialFlowGraphSettings().getProximityBrowsingParentDepth();
       default:
     }
 
@@ -127,7 +127,7 @@ public class ProximityBrowsingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getVisibilityWarningThreshold();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getVisibilityWarningThreshold();
+        return config.getInitialFlowGraphSettings().getVisibilityWarningThreshold();
       default:
     }
 

@@ -285,7 +285,7 @@ public class BasicBlockMatchRemover {
 
     if (rawBasicblock != null) {
       nodeContent =
-          ViewFlowGraphBuilder.buildSingleBasicblockLabelContent(
+          ViewFlowGraphBuilder.buildSingleBasicBlockLabelContent(
               functionMatch, flowgraph, combinedBasicblock, singleGraph.getSide());
       final ZyNormalNodeRealizer<SingleDiffNode> nodeRealizer =
           new ZyNormalNodeRealizer<>(nodeContent);
@@ -439,7 +439,7 @@ public class BasicBlockMatchRemover {
     superGraph.addNodeToMappings(newSuperDiffNode);
 
     // colorize new basicblock node's background and border color
-    ViewFlowGraphBuilder.colorizeBasicblocks(functionMatch, newRawCombinedBasicblock);
+    ViewFlowGraphBuilder.colorizeBasicBlocks(functionMatch, newRawCombinedBasicblock);
     ViewFlowGraphBuilder.colorizeCombinedNodeLineBorders(
         combinedGraph.getNodes(),
         combinedGraph.getPrimaryGraph().getFunctionAddress(),

@@ -62,7 +62,7 @@ public class EdgesPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getDrawBends();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getDrawBends();
+        return config.getInitialFlowGraphSettings().getDrawBends();
       default:
     }
 

@@ -64,7 +64,7 @@ public final class BinDiffConfig {
     return initialCallGraphSettings;
   }
 
-  public GraphViewSettingsConfigItem getInitialFlowgraphSettings() {
+  public GraphViewSettingsConfigItem getInitialFlowGraphSettings() {
     return initialFlowGraphSettings;
   }
 

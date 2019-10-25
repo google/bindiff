@@ -75,7 +75,7 @@ public class InitialFlowGraphSettingsDialog extends BaseDialog {
   private void save() throws IOException {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    final GraphViewSettingsConfigItem settings = config.getInitialFlowgraphSettings();
+    final GraphViewSettingsConfigItem settings = config.getInitialFlowGraphSettings();
 
     settings.setDefaultGraphLayout(EGraphLayout.getOrdinal(layoutingPanel.getDefaultLayout()));
     settings.setAutoLayouting(layoutingPanel.getAutoLayouting());

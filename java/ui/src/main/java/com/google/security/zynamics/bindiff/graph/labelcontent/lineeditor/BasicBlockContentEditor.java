@@ -126,7 +126,7 @@ public class BasicBlockContentEditor implements IZyLineEditor {
       final RawBasicBlock secBasicblock =
           GraphGetter.getSecondaryRawBasicblock(graphContainer, basicblock);
       final BasicBlockMatchData basicblockMatch =
-          MatchesGetter.getBasicblockMatch(functionMatch, basicblock);
+          MatchesGetter.getBasicBlockMatch(functionMatch, basicblock);
 
       if (basicblockMatch != null) {
         final IAddress secInstructionAddr =
@@ -140,7 +140,7 @@ public class BasicBlockContentEditor implements IZyLineEditor {
       final RawBasicBlock priBasicblock =
           GraphGetter.getPrimaryRawBasicblock(graphContainer, basicblock);
       final BasicBlockMatchData basicblockMatch =
-          MatchesGetter.getBasicblockMatch(functionMatch, basicblock);
+          MatchesGetter.getBasicBlockMatch(functionMatch, basicblock);
 
       if (basicblockMatch != null) {
         final IAddress priInstructionAddr =

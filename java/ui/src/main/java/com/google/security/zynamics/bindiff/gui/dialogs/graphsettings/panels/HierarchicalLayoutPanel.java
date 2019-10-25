@@ -75,7 +75,7 @@ public class HierarchicalLayoutPanel extends JPanel {
             config.getInitialCallgraphSettings().getHierarchicalOrientation());
       case INITIAL_FLOWGRAPH_SETTINGS:
         return ELayoutOrientation.getEnum(
-            config.getInitialFlowgraphSettings().getHierarchicalOrientation());
+            config.getInitialFlowGraphSettings().getHierarchicalOrientation());
       default:
     }
 
@@ -87,7 +87,7 @@ public class HierarchicalLayoutPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getHierarchicalMinimumNodeDistance();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getHierarchicalMinimumNodeDistance();
+        return config.getInitialFlowGraphSettings().getHierarchicalMinimumNodeDistance();
       default:
     }
 
@@ -99,7 +99,7 @@ public class HierarchicalLayoutPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getHierarchicalMinimumLayerDistance();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getHierarchicalMinimumLayerDistance();
+        return config.getInitialFlowGraphSettings().getHierarchicalMinimumLayerDistance();
       default:
     }
 
@@ -111,7 +111,7 @@ public class HierarchicalLayoutPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getHierarchicalOrthogonalEdgeRouting();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getHierarchicalOrthogonalEdgeRouting();
+        return config.getInitialFlowGraphSettings().getHierarchicalOrthogonalEdgeRouting();
       default:
     }
 

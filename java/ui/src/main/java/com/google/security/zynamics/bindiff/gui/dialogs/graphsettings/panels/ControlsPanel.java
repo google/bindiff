@@ -78,7 +78,7 @@ public class ControlsPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return EMouseAction.getEnum(config.getInitialCallgraphSettings().getMouseWheelAction());
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return EMouseAction.getEnum(config.getInitialFlowgraphSettings().getMouseWheelAction());
+        return EMouseAction.getEnum(config.getInitialFlowGraphSettings().getMouseWheelAction());
       default:
     }
 
@@ -93,7 +93,7 @@ public class ControlsPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getScrollSensitivity();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getScrollSensitivity();
+        return config.getInitialFlowGraphSettings().getScrollSensitivity();
       default:
     }
 
@@ -105,7 +105,7 @@ public class ControlsPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getShowScrollbars();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getShowScrollbars();
+        return config.getInitialFlowGraphSettings().getShowScrollbars();
       default:
     }
 
@@ -117,7 +117,7 @@ public class ControlsPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getZoomSensitivity();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getZoomSensitivity();
+        return config.getInitialFlowGraphSettings().getZoomSensitivity();
       default:
     }
 

@@ -102,10 +102,10 @@ public class UnmatchedFunctionViewsTable extends AbstractTable {
         new CAddress(
             (String) getTableModel().getValueAt(row, UnmatchedFunctionViewsTableModel.ADDRESS), 16);
     final IAddress primaryAddr = side == ESide.PRIMARY ? addr : null;
-    final IAddress secondaryAddr = side == ESide.PRIMARY ? addr : null;
+    final IAddress secondaryAddr = side == ESide.SECONDARY ? addr : null;
 
     final WorkspaceTabPanelFunctions controller = getController();
-    controller.openFlowgraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
+    controller.openFlowGraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
   }
 
   public void addListener(final IUnmatchedFunctionsViewsTableListener listener) {

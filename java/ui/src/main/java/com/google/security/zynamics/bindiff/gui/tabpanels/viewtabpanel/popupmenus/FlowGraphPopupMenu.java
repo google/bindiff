@@ -32,7 +32,7 @@ public class FlowGraphPopupMenu extends JPopupMenu {
     addBasicblockMatchItem.setEnabled(
         ViewTabPanelFunctions.isNodeSelectionMatchAddable(graph, node));
     deleteBasicblockMatchItem.setEnabled(
-        ViewTabPanelFunctions.isNodeSelectionMatchDeleteable(graph, node));
+        ViewTabPanelFunctions.isNodeSelectionMatchDeletable(graph, node));
 
     add(addBasicblockMatchItem);
     add(deleteBasicblockMatchItem);

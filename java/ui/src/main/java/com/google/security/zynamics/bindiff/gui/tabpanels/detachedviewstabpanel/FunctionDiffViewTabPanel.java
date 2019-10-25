@@ -68,7 +68,7 @@ public class FunctionDiffViewTabPanel extends ViewTabPanel {
 
     if (getView().isFlowgraphView()) {
       final EMatchType matchType =
-          MatchesGetter.getFlowgraphsMatchType(combinedGraph, functionMatch);
+          MatchesGetter.getFlowGraphsMatchType(combinedGraph, functionMatch);
 
       switch (matchType) {
         case IDENTICAL:

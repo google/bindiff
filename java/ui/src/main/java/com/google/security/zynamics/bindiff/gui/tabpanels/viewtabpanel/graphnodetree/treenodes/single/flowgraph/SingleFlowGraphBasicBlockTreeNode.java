@@ -102,7 +102,7 @@ public class SingleFlowGraphBasicBlockTreeNode extends AbstractTreeNode
                 ESide.SECONDARY).getBasicblock(secBasicblockAddr);
 
             final BasicBlockMatchData basicblockMatch =
-                functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
+                functionMatch.getBasicBlockMatch(priBasicblockAddr, ESide.PRIMARY);
 
             if (basicblockMatch != null) {
               final int matchedInstructionCount = basicblockMatch.getSizeOfMatchedInstructions();
@@ -131,7 +131,7 @@ public class SingleFlowGraphBasicBlockTreeNode extends AbstractTreeNode
                 ESide.PRIMARY).getBasicblock(priBasicblockAddr);
 
             final BasicBlockMatchData basicblockMatch =
-                functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
+                functionMatch.getBasicBlockMatch(priBasicblockAddr, ESide.PRIMARY);
 
             if (basicblockMatch != null) {
               final int matchedInstructionCount = basicblockMatch.getSizeOfMatchedInstructions();

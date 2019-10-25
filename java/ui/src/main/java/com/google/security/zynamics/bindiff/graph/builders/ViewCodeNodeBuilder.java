@@ -487,7 +487,7 @@ public class ViewCodeNodeBuilder {
 
     if (primaryBasicblockAddr != null && secondaryBasicblockAddr != null) {
       final BasicBlockMatchData basicblockMatch =
-          functionMatch.getBasicblockMatch(primaryBasicblockAddr, ESide.PRIMARY);
+          functionMatch.getBasicBlockMatch(primaryBasicblockAddr, ESide.PRIMARY);
       for (final InstructionMatchData instructionMatch : basicblockMatch.getInstructionMatches()) {
         instructionAddrPairs.add(
             new Pair<>(

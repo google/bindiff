@@ -113,7 +113,7 @@ public class GraphNodeMultiFilter {
         final RawBasicBlock secBasicblock =
             ((RawCombinedBasicBlock) node).getRawNode(ESide.SECONDARY);
 
-        isIdentical = MatchesGetter.isIdenticalBasicblock(diff, priBasicblock, secBasicblock);
+        isIdentical = MatchesGetter.isIdenticalBasicBlock(diff, priBasicblock, secBasicblock);
 
         if (matchStateFilter == EMatchStateFilter.MATCHED_IDENTICAL && isIdentical) {
           return true;
@@ -169,15 +169,15 @@ public class GraphNodeMultiFilter {
 
       if (side == ESide.PRIMARY) {
         final BasicBlockMatchData basicblockMatch =
-            MatchesGetter.getBasicblockMatch(diff, basicblock);
+            MatchesGetter.getBasicBlockMatch(diff, basicblock);
         secBasicblock = secFlowgraph.getBasicblock(basicblockMatch.getIAddress(ESide.SECONDARY));
       } else {
         final BasicBlockMatchData basicblockMatch =
-            MatchesGetter.getBasicblockMatch(diff, basicblock);
+            MatchesGetter.getBasicBlockMatch(diff, basicblock);
         priBasicblock = priFlowgraph.getBasicblock(basicblockMatch.getIAddress(ESide.PRIMARY));
       }
 
-      isIdentical = MatchesGetter.isIdenticalBasicblock(diff, priBasicblock, secBasicblock);
+      isIdentical = MatchesGetter.isIdenticalBasicBlock(diff, priBasicblock, secBasicblock);
 
       if (matchStateFilter == EMatchStateFilter.MATCHED_IDENTICAL && isIdentical) {
         return true;

@@ -73,7 +73,7 @@ public class CircularLayoutPanel extends JPanel {
             config.getInitialCallgraphSettings().getCircularLayoutStyle());
       case INITIAL_FLOWGRAPH_SETTINGS:
         return ECircularLayoutStyle.getEnum(
-            config.getInitialFlowgraphSettings().getCircularLayoutStyle());
+            config.getInitialFlowGraphSettings().getCircularLayoutStyle());
       default:
     }
 
@@ -85,7 +85,7 @@ public class CircularLayoutPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getCircularMinimumNodeDistance();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getCircularMinimumNodeDistance();
+        return config.getInitialFlowGraphSettings().getCircularMinimumNodeDistance();
       default:
     }
 

@@ -194,7 +194,7 @@ public class BasicBlockMatchAdder {
     newSecondaryDiffNode.getRealizer().getNodeContent().setLineEditor(secNodeEditor);
 
     // colorize new basicblock node's background and border color
-    ViewFlowGraphBuilder.colorizeBasicblocks(functionMatch, newRawCombinedBasicblock);
+    ViewFlowGraphBuilder.colorizeBasicBlocks(functionMatch, newRawCombinedBasicblock);
     ViewFlowGraphBuilder.colorizeCombinedNodeLineBorders(
         combinedGraph.getNodes(),
         combinedGraph.getPrimaryGraph().getFunctionAddress(),

@@ -74,7 +74,7 @@ public class MiscPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getAnimationSpeed();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getAnimationSpeed();
+        return config.getInitialFlowGraphSettings().getAnimationSpeed();
       default:
     }
 
@@ -86,7 +86,7 @@ public class MiscPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getGradientBackground();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getGradientBackground();
+        return config.getInitialFlowGraphSettings().getGradientBackground();
       default:
     }
 
@@ -98,7 +98,7 @@ public class MiscPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getLayoutAnimation();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getLayoutAnimation();
+        return config.getInitialFlowGraphSettings().getLayoutAnimation();
       default:
     }
 
@@ -110,7 +110,7 @@ public class MiscPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getViewSynchronization();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getViewSynchronization();
+        return config.getInitialFlowGraphSettings().getViewSynchronization();
       default:
     }
 

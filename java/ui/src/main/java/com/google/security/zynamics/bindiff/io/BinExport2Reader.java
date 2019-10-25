@@ -318,7 +318,7 @@ public class BinExport2Reader {
 
         final EMatchState matchState;
         final FunctionMatchData match = function.getFunctionMatch();
-        if (match != null && match.getBasicblockMatch(basicBlockAddress, side) != null) {
+        if (match != null && match.getBasicBlockMatch(basicBlockAddress, side) != null) {
           matchState = EMatchState.MATCHED;
         } else {
           matchState =

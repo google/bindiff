@@ -72,7 +72,7 @@ public class OrthogonalLayoutPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getOrthogonalMinimumNodeDistance();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getOrthogonalMinimumNodeDistance();
+        return config.getInitialFlowGraphSettings().getOrthogonalMinimumNodeDistance();
       default:
     }
 
@@ -86,7 +86,7 @@ public class OrthogonalLayoutPanel extends JPanel {
             config.getInitialCallgraphSettings().getOrthogonalLayoutStyle());
       case INITIAL_FLOWGRAPH_SETTINGS:
         return EOrthogonalLayoutStyle.getEnum(
-            config.getInitialFlowgraphSettings().getOrthogonalLayoutStyle());
+            config.getInitialFlowGraphSettings().getOrthogonalLayoutStyle());
       default:
     }
 
@@ -100,7 +100,7 @@ public class OrthogonalLayoutPanel extends JPanel {
             config.getInitialCallgraphSettings().getOrthogonalOrientation());
       case INITIAL_FLOWGRAPH_SETTINGS:
         return ELayoutOrientation.getEnum(
-            config.getInitialFlowgraphSettings().getOrthogonalOrientation());
+            config.getInitialFlowGraphSettings().getOrthogonalOrientation());
       default:
     }
 

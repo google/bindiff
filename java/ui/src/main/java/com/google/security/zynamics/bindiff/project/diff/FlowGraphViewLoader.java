@@ -47,7 +47,7 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
     this.viewsAddrs = Preconditions.checkNotNull(viewsAddrs);
   }
 
-  private void createFlowgraphView(final FlowGraphViewData viewData) throws GraphCreationException {
+  private void createFlowGraphView(final FlowGraphViewData viewData) throws GraphCreationException {
     final Diff diff = viewData.getGraphs().getDiff();
     ViewTabPanel viewTabPanel;
 
@@ -76,41 +76,41 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
     tabPanelManager.selectTab(viewTabPanel);
   }
 
-  private FlowGraphViewData loadFlowgraphViewData(
+  private FlowGraphViewData loadFlowGraphViewData(
       final Diff diff, final IAddress priFunctionAddr, final IAddress secFunctionAddr)
       throws IOException, GraphCreationException, SQLException {
     // Load primary and secondary raw flowgraphs.
     try (final CommentsDatabase database = new CommentsDatabase(workspace, true)) {
-      RawFlowGraph primaryRawFlowgraph = null;
-      RawFlowGraph secondaryRawFlowgraph = null;
+      RawFlowGraph primaryRawFlowGraph = null;
+      RawFlowGraph secondaryRawFlowGraph = null;
       final FunctionMatchData functionMatch =
           loadFunctionMatchData(diff, priFunctionAddr, secFunctionAddr);
       if (priFunctionAddr != null) {
         setDescription("Loading primary raw function data...");
-        primaryRawFlowgraph =
+        primaryRawFlowGraph =
             DiffLoader.loadRawFlowGraph(database, diff, priFunctionAddr, ESide.PRIMARY);
       }
       if (secFunctionAddr != null) {
         setDescription("Loading secondary raw function data...");
-        secondaryRawFlowgraph =
+        secondaryRawFlowGraph =
             DiffLoader.loadRawFlowGraph(database, diff, secFunctionAddr, ESide.SECONDARY);
       }
 
       setDescription("Building combined flow graph...");
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedRawFlowgraph =
-              RawCombinedFlowGraphBuilder.buildRawCombinedFlowgraph(
-                  functionMatch, primaryRawFlowgraph, secondaryRawFlowgraph);
+          combinedRawFlowGraph =
+              RawCombinedFlowGraphBuilder.buildRawCombinedFlowGraph(
+                  functionMatch, primaryRawFlowGraph, secondaryRawFlowGraph);
 
       setDescription("Creating flow graph view...");
       final GraphsContainer graphs =
-          ViewFlowGraphBuilder.buildViewFlowgraphs(diff, functionMatch, combinedRawFlowgraph);
+          ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedRawFlowGraph);
 
       final FlowGraphViewData view =
           new FlowGraphViewData(
-              primaryRawFlowgraph,
-              secondaryRawFlowgraph,
-              combinedRawFlowgraph,
+              primaryRawFlowGraph,
+              secondaryRawFlowGraph,
+              combinedRawFlowGraph,
               graphs,
               FlowGraphViewData.getViewName(graphs),
               EViewType.FUNCTION_DIFF_VIEW);
@@ -162,8 +162,8 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
   protected void runExpensiveCommand() throws Exception {
     for (final Triple<Diff, IAddress, IAddress> viewAddrs : viewsAddrs) {
       final FlowGraphViewData viewData =
-          loadFlowgraphViewData(viewAddrs.first(), viewAddrs.second(), viewAddrs.third());
-      createFlowgraphView(viewData);
+          loadFlowGraphViewData(viewAddrs.first(), viewAddrs.second(), viewAddrs.third());
+      createFlowGraphView(viewData);
     }
   }
 }

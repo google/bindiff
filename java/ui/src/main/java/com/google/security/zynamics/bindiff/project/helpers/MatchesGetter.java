@@ -47,33 +47,33 @@ public final class MatchesGetter {
     return instructionMatches;
   }
 
-  public static List<Pair<IAddress, IAddress>> getBasicblockAddressPairs(
-      final Diff diff, final RawFlowGraph priFlowgraph, final RawFlowGraph secFlowgraph) {
+  public static List<Pair<IAddress, IAddress>> getBasicBlockAddressPairs(
+      final Diff diff, final RawFlowGraph priFlowGraph, final RawFlowGraph secFlowGraph) {
     final List<Pair<IAddress, IAddress>> addrPairs = new ArrayList<>();
 
     final MatchData matches = diff.getMatches();
 
-    if (priFlowgraph == null) {
-      for (final RawBasicBlock basicblock : secFlowgraph) {
-        addrPairs.add(new Pair<>(null, basicblock.getAddress()));
+    if (priFlowGraph == null) {
+      for (final RawBasicBlock basicBlock : secFlowGraph) {
+        addrPairs.add(new Pair<>(null, basicBlock.getAddress()));
       }
-    } else if (secFlowgraph == null) {
-      for (final RawBasicBlock basicblock : priFlowgraph) {
-        addrPairs.add(new Pair<>(basicblock.getAddress(), null));
+    } else if (secFlowGraph == null) {
+      for (final RawBasicBlock basicBlock : priFlowGraph) {
+        addrPairs.add(new Pair<>(basicBlock.getAddress(), null));
       }
     } else {
       final FunctionMatchData functionMatch =
-          matches.getFunctionMatch(priFlowgraph.getAddress(), ESide.PRIMARY);
+          matches.getFunctionMatch(priFlowGraph.getAddress(), ESide.PRIMARY);
 
-      for (final RawBasicBlock priBasicblock : priFlowgraph) {
-        final IAddress priAddr = priBasicblock.getAddress();
+      for (final RawBasicBlock priBasicBlock : priFlowGraph) {
+        final IAddress priAddr = priBasicBlock.getAddress();
         final IAddress secAddr = functionMatch.getSecondaryBasicblockAddr(priAddr);
 
         addrPairs.add(new Pair<>(priAddr, secAddr));
       }
 
-      for (final RawBasicBlock secBasicblock : secFlowgraph) {
-        final IAddress secAddr = secBasicblock.getAddress();
+      for (final RawBasicBlock secBasicBlock : secFlowGraph) {
+        final IAddress secAddr = secBasicBlock.getAddress();
 
         if (functionMatch.getPrimaryBasicblockAddr(secAddr) == null) {
           addrPairs.add(new Pair<>(null, secAddr));
@@ -84,82 +84,57 @@ public final class MatchesGetter {
     return AddressPairSorter.getSortedList(addrPairs, ESide.PRIMARY);
   }
 
-  public static BasicBlockMatchData getBasicblockMatch(
-      final Diff diff, final RawBasicBlock basicblock) {
-    final ESide side = basicblock.getSide();
-
-    RawFunction rawFunction = null;
-    if (side == ESide.PRIMARY) {
-      rawFunction = diff.getFunction(basicblock.getFunctionAddr(), ESide.PRIMARY);
-    } else {
-      rawFunction = diff.getFunction(basicblock.getFunctionAddr(), ESide.SECONDARY);
-    }
-
+  public static BasicBlockMatchData getBasicBlockMatch(
+      final Diff diff, final RawBasicBlock basicBlock) {
+    final ESide side = basicBlock.getSide();
+    final RawFunction rawFunction = diff.getFunction(basicBlock.getFunctionAddr(), side);
     final FunctionMatchData functionMatch = getFunctionMatch(diff, rawFunction);
 
-    return getBasicblockMatch(functionMatch, basicblock);
+    return getBasicBlockMatch(functionMatch, basicBlock);
   }
 
-  public static BasicBlockMatchData getBasicblockMatch(
+  public static BasicBlockMatchData getBasicBlockMatch(
       final Diff diff,
       final IAddress functionAddr,
-      final IAddress basicblockAddr,
+      final IAddress basicBlockAddr,
       final ESide side) {
-    RawFunction rawFunction = null;
-    rawFunction = diff.getFunction(functionAddr, side);
-
+    final RawFunction rawFunction = diff.getFunction(functionAddr, side);
     final FunctionMatchData functionMatch = getFunctionMatch(diff, rawFunction);
 
     if (functionMatch == null) {
       return null;
     }
 
-    IAddress priAddr = null;
-    IAddress secAddr = null;
-
-    if (side == ESide.PRIMARY) {
-      priAddr = basicblockAddr;
-      secAddr = functionMatch.getSecondaryBasicblockAddr(priAddr);
-    } else {
-      secAddr = basicblockAddr;
-      priAddr = functionMatch.getPrimaryBasicblockAddr(secAddr);
-    }
-
-    return functionMatch.getBasicblockMatch(priAddr, ESide.PRIMARY);
+    return functionMatch.getBasicBlockMatch(basicBlockAddr, side);
   }
 
-  public static BasicBlockMatchData getBasicblockMatch(
-      final FunctionMatchData functionMatch, final RawBasicBlock basicblock) {
+  public static BasicBlockMatchData getBasicBlockMatch(
+      final FunctionMatchData functionMatch, final RawBasicBlock basicBlock) {
     if (functionMatch == null) {
       return null;
     }
 
-    IAddress priAddr = null;
-    IAddress secAddr = null;
-    if (basicblock.getSide() == ESide.PRIMARY) {
-      priAddr = basicblock.getAddress();
-      secAddr = functionMatch.getSecondaryBasicblockAddr(priAddr);
-    } else {
-      secAddr = basicblock.getAddress();
-      priAddr = functionMatch.getPrimaryBasicblockAddr(secAddr);
+    IAddress priAddr = basicBlock.getAddress();
+    if (basicBlock.getSide() == ESide.SECONDARY) {
+      priAddr = functionMatch.getPrimaryBasicblockAddr(priAddr);
     }
 
-    return functionMatch.getBasicblockMatch(priAddr, ESide.PRIMARY);
+    return functionMatch.getBasicBlockMatch(priAddr, ESide.PRIMARY);
   }
 
-  public static EMatchType getFlowgraphsMatchType(
-      final CombinedGraph combinedFlowgraph, final FunctionMatchData functionMatch) {
-    final int basicblockMatchCount = functionMatch.getBasicBlockMatches().size();
-    final int primaryBasicblockCount =
-        combinedFlowgraph.getPrimaryGraph().getPrimaryGraph().getNodes().size();
-    final int secondaryBasicblockCount =
-        combinedFlowgraph.getSecondaryGraph().getSecondaryGraph().getNodes().size();
+  public static EMatchType getFlowGraphsMatchType(
+      final CombinedGraph combinedFlowGraph, final FunctionMatchData functionMatch) {
+    final int basicBlockMatchCount = functionMatch.getBasicBlockMatches().size();
+    final int primaryBasicBlockCount =
+        combinedFlowGraph.getPrimaryGraph().getPrimaryGraph().getNodes().size();
+    final int secondaryBasicBlockCount =
+        combinedFlowGraph.getSecondaryGraph().getSecondaryGraph().getNodes().size();
 
-    if (primaryBasicblockCount == basicblockMatchCount
-        && secondaryBasicblockCount == basicblockMatchCount) {
+    if (primaryBasicBlockCount == basicBlockMatchCount
+        && secondaryBasicBlockCount == basicBlockMatchCount) {
       boolean structuralIdenticalEdges = true;
 
-      for (final CombinedDiffEdge combinedEdge : combinedFlowgraph.getEdges()) {
+      for (final CombinedDiffEdge combinedEdge : combinedFlowGraph.getEdges()) {
         final SingleDiffEdge priEdge = combinedEdge.getPrimaryDiffEdge();
         final SingleDiffEdge secEdge = combinedEdge.getSecondaryDiffEdge();
 
@@ -173,16 +148,16 @@ public final class MatchesGetter {
       if (structuralIdenticalEdges) {
         boolean identicalInstructions = true;
 
-        for (final CombinedDiffNode combinedNode : combinedFlowgraph.getNodes()) {
+        for (final CombinedDiffNode combinedNode : combinedFlowGraph.getNodes()) {
           final RawBasicBlock priRawNode = (RawBasicBlock) combinedNode.getPrimaryRawNode();
           final RawBasicBlock secRawNode = (RawBasicBlock) combinedNode.getSecondaryRawNode();
 
-          final BasicBlockMatchData basicblockMatch =
-              functionMatch.getBasicblockMatch(priRawNode.getAddress(), ESide.PRIMARY);
+          final BasicBlockMatchData basicBlockMatch =
+              functionMatch.getBasicBlockMatch(priRawNode.getAddress(), ESide.PRIMARY);
 
           final int priInstructionsCount = priRawNode.getSizeOfInstructions();
           final int secInstructionsCount = secRawNode.getSizeOfInstructions();
-          final int matchedInstructionsCount = basicblockMatch.getSizeOfMatchedInstructions();
+          final int matchedInstructionsCount = basicBlockMatch.getSizeOfMatchedInstructions();
 
           if (priInstructionsCount != matchedInstructionsCount
               || secInstructionsCount != matchedInstructionsCount) {
@@ -204,9 +179,9 @@ public final class MatchesGetter {
     return EMatchType.STRUCTURAL_CHANGED;
   }
 
-  public static FunctionMatchData getFunctionMatch(final Diff diff, final RawFlowGraph flowgraph) {
-    final ESide side = flowgraph.getSide();
-    final IAddress functionAddr = flowgraph.getAddress();
+  public static FunctionMatchData getFunctionMatch(final Diff diff, final RawFlowGraph flowGraph) {
+    final ESide side = flowGraph.getSide();
+    final IAddress functionAddr = flowGraph.getAddress();
     final RawFunction function = diff.getCallGraph(side).getFunction(functionAddr);
 
     return getFunctionMatch(diff, function);
@@ -234,36 +209,36 @@ public final class MatchesGetter {
   }
 
   public static List<Pair<IAddress, IAddress>> getInstructionAddressPairs(
-      final Diff diff, final RawBasicBlock priBasicblock, final RawBasicBlock secBasicblock) {
+      final Diff diff, final RawBasicBlock priBasicBlock, final RawBasicBlock secBasicBlock) {
     final List<Pair<IAddress, IAddress>> addrPairs = new ArrayList<>();
 
     final MatchData matches = diff.getMatches();
 
-    if (priBasicblock == null) {
-      for (final RawInstruction instruction : secBasicblock) {
+    if (priBasicBlock == null) {
+      for (final RawInstruction instruction : secBasicBlock) {
         addrPairs.add(new Pair<>(null, instruction.getAddress()));
       }
-    } else if (secBasicblock == null) {
-      for (final RawInstruction instruction : priBasicblock) {
+    } else if (secBasicBlock == null) {
+      for (final RawInstruction instruction : priBasicBlock) {
         addrPairs.add(new Pair<>(instruction.getAddress(), null));
       }
     } else {
-      final IAddress priFunctionAddr = priBasicblock.getFunctionAddr();
+      final IAddress priFunctionAddr = priBasicBlock.getFunctionAddr();
       final FunctionMatchData functionMatch =
           matches.getFunctionMatch(priFunctionAddr, ESide.PRIMARY);
 
-      final IAddress priBasicblockAddr = priBasicblock.getAddress();
+      final IAddress priBasicblockAddr = priBasicBlock.getAddress();
       final BasicBlockMatchData basicblockMatch =
-          functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
+          functionMatch.getBasicBlockMatch(priBasicblockAddr, ESide.PRIMARY);
 
-      for (final RawInstruction priInstruction : priBasicblock) {
+      for (final RawInstruction priInstruction : priBasicBlock) {
         final IAddress priAddr = priInstruction.getAddress();
         final IAddress secAddr = basicblockMatch.getSecondaryInstructionAddr(priAddr);
 
         addrPairs.add(new Pair<>(priAddr, secAddr));
       }
 
-      for (final RawInstruction secInstruction : secBasicblock) {
+      for (final RawInstruction secInstruction : secBasicBlock) {
         final IAddress secAddr = secInstruction.getAddress();
 
         if (basicblockMatch.getPrimaryInstructionAddr(secAddr) == null) {
@@ -275,14 +250,14 @@ public final class MatchesGetter {
     return AddressPairSorter.getSortedList(addrPairs, ESide.PRIMARY);
   }
 
-  public static boolean isChangedBasicblock(
+  public static boolean isChangedBasicBlock(
       final Diff diff, final RawBasicBlock priBasicblock, final RawBasicBlock secBasicblock) {
     if (priBasicblock == null || secBasicblock == null) {
       return false;
     }
 
     final BasicBlockMatchData basicblockMatch =
-        MatchesGetter.getBasicblockMatch(diff, priBasicblock);
+        MatchesGetter.getBasicBlockMatch(diff, priBasicblock);
 
     if (basicblockMatch != null) {
       final int matchedInstrCount = basicblockMatch.getSizeOfMatchedInstructions();
@@ -295,17 +270,17 @@ public final class MatchesGetter {
     return false;
   }
 
-  public static boolean isIdenticalBasicblock(
+  public static boolean isIdenticalBasicBlock(
       final Diff diff, final RawBasicBlock priBasicblock, final RawBasicBlock secBasicblock) {
     if (priBasicblock == null || secBasicblock == null) {
       return false;
     }
 
-    final BasicBlockMatchData basicblockMatch =
-        MatchesGetter.getBasicblockMatch(diff, priBasicblock);
+    final BasicBlockMatchData basicBlockMatch =
+        MatchesGetter.getBasicBlockMatch(diff, priBasicblock);
 
-    if (basicblockMatch != null) {
-      final int matchedInstrCount = basicblockMatch.getSizeOfMatchedInstructions();
+    if (basicBlockMatch != null) {
+      final int matchedInstrCount = basicBlockMatch.getSizeOfMatchedInstructions();
       final int primaryInstrCount = priBasicblock.getSizeOfInstructions();
       final int secondaryInstrCount = secBasicblock.getSizeOfInstructions();
 
@@ -344,13 +319,13 @@ public final class MatchesGetter {
   }
 
   public static boolean isMatchedInstruction(
-      final Diff diff, final RawBasicBlock basicblock, final RawInstruction instruction) {
+      final Diff diff, final RawBasicBlock basicBlock, final RawInstruction instruction) {
     final MatchData matches = diff.getMatches();
 
     final FunctionMatchData functionMatch =
-        matches.getFunctionMatch(basicblock.getFunctionAddr(), basicblock.getSide());
+        matches.getFunctionMatch(basicBlock.getFunctionAddr(), basicBlock.getSide());
 
-    return isMatchedInstruction(functionMatch, basicblock, instruction);
+    return isMatchedInstruction(functionMatch, basicBlock, instruction);
   }
 
   public static boolean isMatchedInstruction(
@@ -360,27 +335,27 @@ public final class MatchesGetter {
     final ESide side = basicblock.getSide();
 
     if (functionMatch != null) {
-      final IAddress priBasicblockAddr =
+      final IAddress priBasicBlockAddr =
           side == ESide.PRIMARY
               ? basicblock.getAddress()
               : functionMatch.getPrimaryBasicblockAddr(basicblock.getAddress());
-      final IAddress secBasicblockAddr =
+      final IAddress secBasicBlockAddr =
           side == ESide.SECONDARY
               ? basicblock.getAddress()
               : functionMatch.getSecondaryBasicblockAddr(basicblock.getAddress());
 
-      if (priBasicblockAddr != null && secBasicblockAddr != null) {
-        final BasicBlockMatchData basicblockMatch =
-            functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
+      if (priBasicBlockAddr != null && secBasicBlockAddr != null) {
+        final BasicBlockMatchData basicBlockMatch =
+            functionMatch.getBasicBlockMatch(priBasicBlockAddr, ESide.PRIMARY);
 
-        if (basicblockMatch != null) {
+        if (basicBlockMatch != null) {
           final IAddress instructionAddr = instruction.getAddress();
 
           if (side == ESide.PRIMARY) {
-            return basicblockMatch.getSecondaryInstructionAddr(instructionAddr) != null;
+            return basicBlockMatch.getSecondaryInstructionAddr(instructionAddr) != null;
           }
 
-          return basicblockMatch.getPrimaryInstructionAddr(instructionAddr) != null;
+          return basicBlockMatch.getPrimaryInstructionAddr(instructionAddr) != null;
         }
       }
     }

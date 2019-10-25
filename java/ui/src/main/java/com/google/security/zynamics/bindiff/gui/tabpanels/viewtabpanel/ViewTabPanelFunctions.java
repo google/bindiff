@@ -102,7 +102,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   private CriteriaDialog selectByCriteriaDlg = null;
   private GraphSettingsDialog settingsDialog = null;
 
-  // Indicates whether the use made save-able changes (which haven't been saved yet)
+  // Indicates whether the use made savable changes (which haven't been saved yet)
   private boolean hasChangedMatches = false;
   private boolean hasChangedComments = false;
 
@@ -143,12 +143,12 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     return BasicBlockMatchAdder.getAffectedCombinedNodes(graph, clickedNode) != null;
   }
 
-  public static boolean isNodeSelectionMatchDeleteable(
+  public static boolean isNodeSelectionMatchDeletable(
       final BinDiffGraph<?, ?> graph, final ZyGraphNode<?> clickedNode) {
     return BasicBlockMatchRemover.getAffectedCombinedNodes(graph, clickedNode) != null;
   }
 
-  private void notifySaveableListener() {
+  private void notifySavableListener() {
     for (final ISavableListener listener : listenerProvider) {
       listener.isSavable(hasChanged());
     }
@@ -156,12 +156,12 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
   private void setCommentsChanged(final boolean changed) {
     hasChangedComments = changed;
-    notifySaveableListener();
+    notifySavableListener();
   }
 
   private void setMatchesChanged(final boolean changed) {
     hasChangedMatches = changed;
-    notifySaveableListener();
+    notifySavableListener();
   }
 
   private boolean showColorChooserDialog() {
@@ -188,19 +188,17 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       final FunctionMatchData functionMatch =
           diff.getMatches().getFunctionMatch(priAddr, ESide.PRIMARY);
 
-      @SuppressWarnings("unchecked")
-      final RawFlowGraph priFlowgraph = (RawFlowGraph) viewData.getRawGraph(ESide.PRIMARY);
+      final RawFlowGraph priFlowGraph = (RawFlowGraph) viewData.getRawGraph(ESide.PRIMARY);
 
-      int basicblockCounter = 0;
+      int basicBlockCounter = 0;
       int jumpCounter = 0;
       int instructionCounter = 0;
-      for (final RawBasicBlock basicblock : priFlowgraph.getNodes()) {
-        if (basicblock.getMatchState() == EMatchState.MATCHED) {
-          ++basicblockCounter;
+      for (final RawBasicBlock basicBlock : priFlowGraph.getNodes()) {
+        if (basicBlock.getMatchState() == EMatchState.MATCHED) {
+          ++basicBlockCounter;
 
           for (final SingleViewEdge<? extends SingleViewNode> edge :
-              basicblock.getOutgoingEdges()) {
-            @SuppressWarnings("unchecked")
+              basicBlock.getOutgoingEdges()) {
             final RawJump jump = (RawJump) edge;
             if (jump.getSource().getMatchState() == EMatchState.MATCHED
                 && jump.getTarget().getMatchState() == EMatchState.MATCHED) {
@@ -208,14 +206,14 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
             }
           }
 
-          final IAddress priBasicblockAddr = basicblock.getAddress();
-          final BasicBlockMatchData basicblockMatch =
-              functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
-          instructionCounter += basicblockMatch.getSizeOfMatchedInstructions();
+          final IAddress priBasicBlockAddr = basicBlock.getAddress();
+          final BasicBlockMatchData basicBlockMatch =
+              functionMatch.getBasicBlockMatch(priBasicBlockAddr, ESide.PRIMARY);
+          instructionCounter += basicBlockMatch.getSizeOfMatchedInstructions();
         }
       }
 
-      functionMatch.setSizeOfMatchedBasicblocks(basicblockCounter);
+      functionMatch.setSizeOfMatchedBasicblocks(basicBlockCounter);
       functionMatch.setSizeOfMatchedJumps(jumpCounter);
       functionMatch.setSizeOfMatchedInstructions(instructionCounter);
     }
@@ -334,7 +332,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  public void colorUnslectedNodes() {
+  public void colorUnselectedNodes() {
     if (showColorChooserDialog()) {
       final Color color = currentColor;
 
@@ -462,8 +460,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   public void exportViewAsImage() {
     final MainWindow parent = getMainWindow();
 
-    final ExportViewDialog viewChooserDlg;
-    viewChooserDlg =
+    final ExportViewDialog viewChooserDlg =
         new ExportViewDialog(
             parent,
             "Export View as Image",
@@ -650,7 +647,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       return;
     }
 
-    workspaceController.openFlowgraphView(getMainWindow(), diff, priAddr, secAddr);
+    workspaceController.openFlowGraphView(getMainWindow(), diff, priAddr, secAddr);
   }
 
   public void printView(final BinDiffGraph<?, ?> graph) {
@@ -949,13 +946,12 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       }
     } else {
       for (final CombinedDiffNode diffNode : combinedGraph.getNodes()) {
-        FunctionMatchData match = null;
         final RawCombinedBasicBlock rawNode = (RawCombinedBasicBlock) diffNode.getRawNode();
 
         final IAddress priAddr = rawNode.getPrimaryFunctionAddress();
-        match = diff.getMatches().getFunctionMatch(priAddr, ESide.PRIMARY);
+        final FunctionMatchData match = diff.getMatches().getFunctionMatch(priAddr, ESide.PRIMARY);
 
-        ViewFlowGraphBuilder.colorizeBasicblocks(match, rawNode);
+        ViewFlowGraphBuilder.colorizeBasicBlocks(match, rawNode);
       }
     }
   }

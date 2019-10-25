@@ -131,7 +131,7 @@ public class ExtendedMatchedFunctionViewsTable extends AbstractTable {
             16);
 
     final WorkspaceTabPanelFunctions controller = getController();
-    controller.openFlowgraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
+    controller.openFlowGraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
   }
 
   @Override

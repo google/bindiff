@@ -23,12 +23,12 @@ import java.util.Set;
 
 public class RawCombinedFlowGraphBuilder {
   private static RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-      buildMatchedCombinedFlowgraph(
+      buildMatchedCombinedFlowGraph(
           final FunctionMatchData functionMatch,
-          final RawFlowGraph primaryFlowgraph,
-          final RawFlowGraph secondaryFlowgraph) {
-    final IAddress priFunctionAddr = primaryFlowgraph.getAddress();
-    final IAddress secFunctionAddr = secondaryFlowgraph.getAddress();
+          final RawFlowGraph primaryFlowGraph,
+          final RawFlowGraph secondaryFlowGraph) {
+    final IAddress priFunctionAddr = primaryFlowGraph.getAddress();
+    final IAddress secFunctionAddr = secondaryFlowGraph.getAddress();
 
     final List<RawCombinedBasicBlock> combinedBasicblocks = new ArrayList<>();
     final List<RawCombinedJump<RawCombinedBasicBlock>> combinedJumps = new ArrayList<>();
@@ -36,47 +36,47 @@ public class RawCombinedFlowGraphBuilder {
     final Map<Pair<IAddress, IAddress>, RawCombinedBasicBlock> helperMap;
     helperMap = new HashMap<>();
 
-    // add primary matched, secondary matched and primary unmatched combined basicblocks
-    for (final RawBasicBlock primaryBasicblock : primaryFlowgraph) {
-      final IAddress priBasicblockAddr = primaryBasicblock.getAddress();
-      final IAddress secBasicblockAddr =
-          functionMatch.getSecondaryBasicblockAddr(priBasicblockAddr);
-      RawBasicBlock secondaryBasicblock = null;
-      if (secBasicblockAddr != null) {
-        secondaryBasicblock = secondaryFlowgraph.getBasicblock(secBasicblockAddr);
+    // Add primary matched, secondary matched and primary unmatched combined basic blocks
+    for (final RawBasicBlock primaryBasicBlock : primaryFlowGraph) {
+      final IAddress priBasicBlockAddr = primaryBasicBlock.getAddress();
+      final IAddress secBasicBlockAddr =
+          functionMatch.getSecondaryBasicblockAddr(priBasicBlockAddr);
+      RawBasicBlock secondaryBasicBlock = null;
+      if (secBasicBlockAddr != null) {
+        secondaryBasicBlock = secondaryFlowGraph.getBasicblock(secBasicBlockAddr);
       }
 
-      final BasicBlockMatchData basicblockMatch =
-          functionMatch.getBasicblockMatch(priBasicblockAddr, ESide.PRIMARY);
+      final BasicBlockMatchData basicBlockMatch =
+          functionMatch.getBasicBlockMatch(priBasicBlockAddr, ESide.PRIMARY);
 
-      final RawCombinedBasicBlock combinedBasicblock =
+      final RawCombinedBasicBlock combinedBasicBlock =
           new RawCombinedBasicBlock(
-              primaryBasicblock,
-              secondaryBasicblock,
-              basicblockMatch,
+              primaryBasicBlock,
+              secondaryBasicBlock,
+              basicBlockMatch,
               priFunctionAddr,
               secFunctionAddr);
-      helperMap.put(new Pair<>(priBasicblockAddr, secBasicblockAddr), combinedBasicblock);
+      helperMap.put(new Pair<>(priBasicBlockAddr, secBasicBlockAddr), combinedBasicBlock);
 
-      combinedBasicblocks.add(combinedBasicblock);
+      combinedBasicblocks.add(combinedBasicBlock);
     }
 
-    // add secondary unmatched combined basicblocks
-    for (final RawBasicBlock secondaryBasicblock : secondaryFlowgraph) {
-      final IAddress secBasicblockAddr = secondaryBasicblock.getAddress();
-      final IAddress priBasicblockAddr = functionMatch.getPrimaryBasicblockAddr(secBasicblockAddr);
-      if (priBasicblockAddr == null) {
-        final RawCombinedBasicBlock combinedBasicblock =
+    // Add secondary unmatched combined basic blocks
+    for (final RawBasicBlock secondaryBasicBlock : secondaryFlowGraph) {
+      final IAddress secBasicBlockAddr = secondaryBasicBlock.getAddress();
+      final IAddress priBasicBlockAddr = functionMatch.getPrimaryBasicblockAddr(secBasicBlockAddr);
+      if (priBasicBlockAddr == null) {
+        final RawCombinedBasicBlock combinedBasicBlock =
             new RawCombinedBasicBlock(
-                null, secondaryBasicblock, null, priFunctionAddr, secFunctionAddr);
-        helperMap.put(new Pair<>(null, secBasicblockAddr), combinedBasicblock);
+                null, secondaryBasicBlock, null, priFunctionAddr, secFunctionAddr);
+        helperMap.put(new Pair<>(null, secBasicBlockAddr), combinedBasicBlock);
 
-        combinedBasicblocks.add(combinedBasicblock);
+        combinedBasicblocks.add(combinedBasicBlock);
       }
     }
 
-    // add primary matched, secondary matched and primary unmatched combined jumps
-    for (final RawJump primaryJump : primaryFlowgraph.getEdges()) {
+    // Add primary matched, secondary matched and primary unmatched combined jumps
+    for (final RawJump primaryJump : primaryFlowGraph.getEdges()) {
       final IAddress priSrcAddr = primaryJump.getSource().getAddress();
       final IAddress priTarAddr = primaryJump.getTarget().getAddress();
 
@@ -86,27 +86,23 @@ public class RawCombinedFlowGraphBuilder {
       final Pair<IAddress, IAddress> srcHelperKey = new Pair<>(priSrcAddr, secSrcAddr);
       final Pair<IAddress, IAddress> tarHelperKey = new Pair<>(priTarAddr, secTarAddr);
 
-      final RawJump secondaryJump = secondaryFlowgraph.getJump(secSrcAddr, secTarAddr);
+      final RawJump secondaryJump = secondaryFlowGraph.getJump(secSrcAddr, secTarAddr);
 
-      final RawCombinedBasicBlock srcCombinedBasicblock = helperMap.get(srcHelperKey);
-      final RawCombinedBasicBlock tarCombinedBasicblock = helperMap.get(tarHelperKey);
+      final RawCombinedBasicBlock srcCombinedBasicBlock = helperMap.get(srcHelperKey);
+      final RawCombinedBasicBlock tarCombinedBasicBlock = helperMap.get(tarHelperKey);
 
       final RawCombinedJump<RawCombinedBasicBlock> combinedJump;
       combinedJump =
           new RawCombinedJump<>(
-              srcCombinedBasicblock, tarCombinedBasicblock, primaryJump, secondaryJump);
+              srcCombinedBasicBlock, tarCombinedBasicBlock, primaryJump, secondaryJump);
 
       combinedJumps.add(combinedJump);
     }
 
-    // secondary unmatches combined jumps
-    final Set<IGraphEdge<RawBasicBlock>> primaryJumps = new HashSet<>();
+    // Secondary unmatched combined jumps
+    final Set<IGraphEdge<RawBasicBlock>> primaryJumps = new HashSet<>(primaryFlowGraph.getEdges());
 
-    for (final IGraphEdge<RawBasicBlock> jump : primaryFlowgraph.getEdges()) {
-      primaryJumps.add(jump);
-    }
-
-    for (final RawJump secondaryJump : secondaryFlowgraph.getEdges()) {
+    for (final RawJump secondaryJump : secondaryFlowGraph.getEdges()) {
       final IAddress secSrcAddr = secondaryJump.getSource().getAddress();
       final IAddress secTarAddr = secondaryJump.getTarget().getAddress();
 
@@ -117,14 +113,10 @@ public class RawCombinedFlowGraphBuilder {
       final Pair<IAddress, IAddress> tarHelperKey = new Pair<>(priTarAddr, secTarAddr);
 
       boolean add = false;
-      if (primaryFlowgraph == null) {
+      final IGraphEdge<RawBasicBlock> primaryJump =
+          primaryFlowGraph.getJump(priSrcAddr, priTarAddr);
+      if (!primaryJumps.contains(primaryJump)) {
         add = true;
-      } else {
-        final IGraphEdge<RawBasicBlock> primaryJump =
-            primaryFlowgraph.getJump(priSrcAddr, priTarAddr);
-        if (!primaryJumps.contains(primaryJump)) {
-          add = true;
-        }
       }
 
       if (add) {
@@ -138,30 +130,30 @@ public class RawCombinedFlowGraphBuilder {
       }
     }
 
-    // create combined flow graph
+    // Create combined flow graph
     return new RawCombinedFlowGraph<>(
-        combinedBasicblocks, combinedJumps, primaryFlowgraph, secondaryFlowgraph);
+        combinedBasicblocks, combinedJumps, primaryFlowGraph, secondaryFlowGraph);
   }
 
   private static RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-      buildPrimaryUnmatchedCombinedFlowgraph(final RawFlowGraph primaryFlowgraph) {
-    final IAddress priFunctionAddr = primaryFlowgraph.getAddress();
+      buildPrimaryUnmatchedCombinedFlowGraph(final RawFlowGraph primaryFlowGraph) {
+    final IAddress priFunctionAddr = primaryFlowGraph.getAddress();
 
-    final List<RawCombinedBasicBlock> combinedBasicblocks = new ArrayList<>();
+    final List<RawCombinedBasicBlock> combinedBasicBlocks = new ArrayList<>();
     final List<RawCombinedJump<RawCombinedBasicBlock>> combinedJumps = new ArrayList<>();
 
-    // add primary unmatched combined basicblocks
+    // Add primary unmatched combined basic blocks
     final Map<IAddress, RawCombinedBasicBlock> helperMap = new HashMap<>();
-    for (final RawBasicBlock primaryBasicblock : primaryFlowgraph) {
-      final RawCombinedBasicBlock combinedBasicblock =
-          new RawCombinedBasicBlock(primaryBasicblock, null, null, priFunctionAddr, null);
-      helperMap.put(primaryBasicblock.getAddress(), combinedBasicblock);
+    for (final RawBasicBlock primaryBasicBlock : primaryFlowGraph) {
+      final RawCombinedBasicBlock combinedBasicBlock =
+          new RawCombinedBasicBlock(primaryBasicBlock, null, null, priFunctionAddr, null);
+      helperMap.put(primaryBasicBlock.getAddress(), combinedBasicBlock);
 
-      combinedBasicblocks.add(combinedBasicblock);
+      combinedBasicBlocks.add(combinedBasicBlock);
     }
 
-    // add primary unmatched combined jumps
-    for (final RawJump primaryJump : primaryFlowgraph.getEdges()) {
+    // Add primary unmatched combined jumps
+    for (final RawJump primaryJump : primaryFlowGraph.getEdges()) {
       final RawCombinedBasicBlock srcCombinedBasicblock =
           helperMap.get(primaryJump.getSource().getAddress());
       final RawCombinedBasicBlock tarCombinedBasicblock =
@@ -174,75 +166,67 @@ public class RawCombinedFlowGraphBuilder {
       combinedJumps.add(combinedJump);
     }
 
-    // create combined flow graph
-    return new RawCombinedFlowGraph<>(combinedBasicblocks, combinedJumps, primaryFlowgraph, null);
+    // Create combined flow graph
+    return new RawCombinedFlowGraph<>(combinedBasicBlocks, combinedJumps, primaryFlowGraph, null);
   }
 
   private static RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-      buildSecondaryUnmatchedCombinedFlowgraph(final RawFlowGraph secondaryFlowgraph) {
-    final IAddress secFunctionAddr = secondaryFlowgraph.getAddress();
+      buildSecondaryUnmatchedCombinedFlowgraph(final RawFlowGraph secondaryFlowGraph) {
+    final IAddress secFunctionAddr = secondaryFlowGraph.getAddress();
 
-    final List<RawCombinedBasicBlock> combinedBasicblocks = new ArrayList<>();
+    final List<RawCombinedBasicBlock> combinedBasicBlocks = new ArrayList<>();
     final List<RawCombinedJump<RawCombinedBasicBlock>> combinedJumps = new ArrayList<>();
 
-    // add secondary unmatched combined basicblocks
+    // Add secondary unmatched combined basic blocks
     final Map<IAddress, RawCombinedBasicBlock> helperMap = new HashMap<>();
-    for (final RawBasicBlock secondaryBasicblock : secondaryFlowgraph) {
-      final RawCombinedBasicBlock combinedBasicblock =
-          new RawCombinedBasicBlock(null, secondaryBasicblock, null, null, secFunctionAddr);
-      helperMap.put(secondaryBasicblock.getAddress(), combinedBasicblock);
+    for (final RawBasicBlock secondaryBasicBlock : secondaryFlowGraph) {
+      final RawCombinedBasicBlock combinedBasicBlock =
+          new RawCombinedBasicBlock(null, secondaryBasicBlock, null, null, secFunctionAddr);
+      helperMap.put(secondaryBasicBlock.getAddress(), combinedBasicBlock);
 
-      combinedBasicblocks.add(combinedBasicblock);
+      combinedBasicBlocks.add(combinedBasicBlock);
     }
 
-    // add secondary unmatched combined jumps
-    for (final RawJump secondaryJump : secondaryFlowgraph.getEdges()) {
-      final RawCombinedBasicBlock srcCombinedBasicblock =
+    // Add secondary unmatched combined jumps
+    for (final RawJump secondaryJump : secondaryFlowGraph.getEdges()) {
+      final RawCombinedBasicBlock srcCombinedBasicBlock =
           helperMap.get(secondaryJump.getSource().getAddress());
-      final RawCombinedBasicBlock tarCombinedBasicblock =
+      final RawCombinedBasicBlock tarCombinedBasicBlock =
           helperMap.get(secondaryJump.getTarget().getAddress());
 
       final RawCombinedJump<RawCombinedBasicBlock> combinedJump =
-          new RawCombinedJump<>(srcCombinedBasicblock, tarCombinedBasicblock, null, secondaryJump);
+          new RawCombinedJump<>(srcCombinedBasicBlock, tarCombinedBasicBlock, null, secondaryJump);
 
       combinedJumps.add(combinedJump);
     }
 
-    // create combined flow graph
-    return new RawCombinedFlowGraph<>(combinedBasicblocks, combinedJumps, null, secondaryFlowgraph);
+    // Create combined flow graph
+    return new RawCombinedFlowGraph<>(combinedBasicBlocks, combinedJumps, null, secondaryFlowGraph);
   }
 
   public static RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-      buildRawCombinedFlowgraph(
+      buildRawCombinedFlowGraph(
           final FunctionMatchData functionMatch,
-          final RawFlowGraph primaryFlowgraph,
-          final RawFlowGraph secondaryFlowgraph)
+          final RawFlowGraph primaryFlowGraph,
+          final RawFlowGraph secondaryFlowGraph)
           throws GraphCreationException {
     Logger.logInfo(" - Building combined flow graphs");
 
-    try {
-      // build matched functions's combined basic blocks and combined jumps
-      if (primaryFlowgraph != null && secondaryFlowgraph != null) {
-        return buildMatchedCombinedFlowgraph(functionMatch, primaryFlowgraph, secondaryFlowgraph);
-      }
-
-      // build unmatched primary flowgraph's combined basicblocks and combined jumps
-      if (primaryFlowgraph != null && secondaryFlowgraph == null) {
-        return buildPrimaryUnmatchedCombinedFlowgraph(primaryFlowgraph);
-      }
-
-      // build secondary unmatched flow graph combined basic blocks and combined jumps
-      if (primaryFlowgraph == null && secondaryFlowgraph != null) {
-        return buildSecondaryUnmatchedCombinedFlowgraph(secondaryFlowgraph);
-      }
-
-      throw new GraphCreationException(
-          "Primary and secondary flowgraph cannot both be null. Combined flow graphs creation failed.");
-    } catch (final GraphCreationException e) {
-      throw e;
-    } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
-      throw new GraphCreationException("Combined flow graphs creation failed.");
+    // Build matched functions's combined basic blocks and combined jumps
+    if (primaryFlowGraph != null && secondaryFlowGraph != null) {
+      return buildMatchedCombinedFlowGraph(functionMatch, primaryFlowGraph, secondaryFlowGraph);
     }
+
+    // Build unmatched primary flow graph's combined basic blocks and combined jumps
+    if (primaryFlowGraph != null) {
+      return buildPrimaryUnmatchedCombinedFlowGraph(primaryFlowGraph);
+    }
+
+    // Build secondary unmatched flow graph combined basic blocks and combined jumps
+    if (secondaryFlowGraph != null) {
+      return buildSecondaryUnmatchedCombinedFlowgraph(secondaryFlowGraph);
+    }
+
+    throw new GraphCreationException("Combined flow graphs creation failed.");
   }
 }

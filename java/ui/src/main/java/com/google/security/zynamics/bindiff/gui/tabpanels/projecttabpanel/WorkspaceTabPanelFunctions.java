@@ -799,7 +799,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  public void openFlowgraphView(
+  public void openFlowGraphView(
       final MainWindow window,
       final Diff diff,
       final IAddress primaryFunctionAddr,

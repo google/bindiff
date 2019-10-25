@@ -66,7 +66,7 @@ public final class LayoutingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return config.getInitialCallgraphSettings().getAutoLayouting();
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return config.getInitialFlowgraphSettings().getAutoLayouting();
+        return config.getInitialFlowGraphSettings().getAutoLayouting();
       default:
     }
 
@@ -78,7 +78,7 @@ public final class LayoutingPanel extends JPanel {
       case INITIAL_CALLGRAPH_SETTING:
         return EGraphLayout.getEnum(config.getInitialCallgraphSettings().getDefaultGraphLayout());
       case INITIAL_FLOWGRAPH_SETTINGS:
-        return EGraphLayout.getEnum(config.getInitialFlowgraphSettings().getDefaultGraphLayout());
+        return EGraphLayout.getEnum(config.getInitialFlowGraphSettings().getDefaultGraphLayout());
       default:
     }
 

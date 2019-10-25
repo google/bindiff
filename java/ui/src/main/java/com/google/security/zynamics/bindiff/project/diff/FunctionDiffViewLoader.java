@@ -58,7 +58,7 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
           combinedFlowgraph)
       throws GraphCreationException {
     final GraphsContainer graphs =
-        ViewFlowGraphBuilder.buildViewFlowgraphs(diff, functionMatch, combinedFlowgraph);
+        ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedFlowgraph);
 
     final RawFunction priFunction =
         diff.getFunction(functionMatch.getIAddress(ESide.PRIMARY), ESide.PRIMARY);
@@ -173,7 +173,7 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
           combinedFlowgraph;
       combinedFlowgraph =
-          RawCombinedFlowGraphBuilder.buildRawCombinedFlowgraph(
+          RawCombinedFlowGraphBuilder.buildRawCombinedFlowGraph(
               functionMatch, priFlowgraph, secFlowgraph);
 
       createSingleFunctionDiffFlowgraphView(

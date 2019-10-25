@@ -137,7 +137,7 @@ public class MatchedFunctionViewsTable extends AbstractTable {
             (String) m.getValueAt(row, MatchedFunctionsViewsTableModel.SECONDARY_ADDRESS), 16);
 
     final WorkspaceTabPanelFunctions controller = getController();
-    controller.openFlowgraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
+    controller.openFlowGraphView(controller.getMainWindow(), getDiff(), primaryAddr, secondaryAddr);
   }
 
   public void addListener(final IMatchedFunctionsViewsTableListener listener) {

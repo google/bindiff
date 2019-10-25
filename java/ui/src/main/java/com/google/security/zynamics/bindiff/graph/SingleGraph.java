@@ -149,7 +149,7 @@ public class SingleGraph extends BinDiffGraph<SingleDiffNode, SingleDiffEdge> {
 
     if (rawBasicblock != null) {
       nodeContent =
-          ViewFlowGraphBuilder.buildSingleBasicblockLabelContent(
+          ViewFlowGraphBuilder.buildSingleBasicBlockLabelContent(
               functionMatch, flowgraph, combinedBasicblock, singleGraph.getSide());
       final ZyNormalNodeRealizer<SingleDiffNode> nodeRealizer =
           new ZyNormalNodeRealizer<>(nodeContent);
