@@ -145,18 +145,19 @@ idaapi.run_statements(
 BinExport defines the following plugin options, that can be specified on IDA's
 command line:
 
-| Option                            | Description                                     |
-| --------------------------------- | ----------------------------------------------- |
-| `-OBinExportAutoAction:<ACTION>`  | Invoke a BinExport IDC function and exit.       |
-| `-OBinExportModule:<PARAM>`       | Argument for `BinExportAutoAction`.             |
-| `-OBinExportHost:<HOST>`          | Database server to connect to                   |
-| `-OBinExportPort:<PORT>`          | Port to connect to. PostgreSQL default is 5432. |
-| `-OBinExportUser:<USER>`          | User name                                       |
-| `-OBinExportPassword:<PASS>`      | Password                                        |
-| `-OBinExportDatabase:<DB>`        | Database to use                                 |
-| `-OBinExportSchema:<SCHEMA>`      | Database schema. BinNavi only uses "public".    |
-| `-OBinExportLogFile:<FILE>`       | Log messages to a file                          |
-| `-OBinExportAlsoLogToStdErr:TRUE` | If specified, also log to standard error        |
+| Option                                  | Description                                                            |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| `-OBinExportAutoAction:<ACTION>`        | Invoke a BinExport IDC function and exit                               |
+| `-OBinExportModule:<PARAM>`             | Argument for `BinExportAutoAction`                                     |
+| `-OBinExportHost:<HOST>`                | Database server to connect to                                          |
+| `-OBinExportPort:<PORT>`                | Port to connect to. PostgreSQL default is 5432.                        |
+| `-OBinExportUser:<USER>`                | User name                                                              |
+| `-OBinExportPassword:<PASS>`            | Password                                                               |
+| `-OBinExportDatabase:<DB>`              | Database to use                                                        |
+| `-OBinExportSchema:<SCHEMA>`            | Database schema. BinNavi only uses "public".                           |
+| `-OBinExportLogFile:<FILE>`             | Log messages to a file                                                 |
+| `-OBinExportAlsoLogToStdErr:TRUE`       | If specified, also log to standard error                               |
+| `-OBinExportX86NoReturnHeuristic:FALSE` | Disable the X86-specific heuristic to identify non-returning functions |
 
 Note that these options must come before any files.
 
