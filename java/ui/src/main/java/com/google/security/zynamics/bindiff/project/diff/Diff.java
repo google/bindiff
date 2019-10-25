@@ -10,7 +10,7 @@ import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.project.userview.ViewManager;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.io.FileUtils;
@@ -84,7 +84,7 @@ public final class Diff {
     cloneDiff.matches = matches;
 
     view.setViewName(
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             binDiffBinary.getName(), Constants.BINDIFF_MATCHES_DB_EXTENSION));
     view.getGraphs().setDiff(cloneDiff);
 
@@ -96,7 +96,7 @@ public final class Diff {
   }
 
   public void closeDiff() {
-    Logger.logInfo("Unloading Diff '" + getDiffName() + "'");
+    Logger.logInfo("Unloading Diff '%s'", getDiffName());
     if (matches == null) {
       return;
     }
@@ -172,7 +172,7 @@ public final class Diff {
   }
 
   public void removeDiff() {
-    Logger.logInfo("Removing Diff '" + getDiffName() + "'");
+    Logger.logInfo("Removing Diff '%s'", getDiffName());
 
     close();
 

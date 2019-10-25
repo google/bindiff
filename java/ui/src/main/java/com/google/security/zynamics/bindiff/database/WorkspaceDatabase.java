@@ -4,7 +4,7 @@ import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
 import java.sql.PreparedStatement;
@@ -54,7 +54,7 @@ public class WorkspaceDatabase extends SqliteDatabase {
 
       final ResultSet result = statement.executeQuery();
       while (result.next()) {
-        diffPaths.add(CFileUtils.forceFileSeparator(result.getString("matchesDbPath")));
+        diffPaths.add(BinDiffFileUtils.forceFileSeparator(result.getString("matchesDbPath")));
       }
     } catch (final SQLException e) {
       Logger.logException(e, e.getMessage());

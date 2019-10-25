@@ -8,7 +8,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.FunctionDiffViewsTable;
 import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -39,7 +39,7 @@ public class DeleteFunctionDiffViewsAction extends AbstractAction {
 
     try {
       if (viewsNode.getViewDirectory().exists()) {
-        CFileUtils.deleteDirectory(viewsNode.getViewDirectory());
+        BinDiffFileUtils.deleteDirectory(viewsNode.getViewDirectory());
       }
     } catch (final IOException e) {
       Logger.logException(e, "Couldn't delete function diff's directory.");

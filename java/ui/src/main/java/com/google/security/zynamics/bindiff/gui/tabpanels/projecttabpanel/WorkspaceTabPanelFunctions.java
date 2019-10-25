@@ -45,7 +45,7 @@ import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedFunc
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.userview.CallGraphViewData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.bindiff.utils.SystemUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
@@ -140,7 +140,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     if (deleteFromDisk) {
       try {
         if (!diff.isFunctionDiff()) {
-          CFileUtils.deleteDirectory(new File(diff.getDiffFolder()));
+          BinDiffFileUtils.deleteDirectory(new File(diff.getDiffFolder()));
         } else if (!deleteFunctionDiff(diff)) {
           CMessageBox.showError(
               getMainWindow(),
@@ -292,7 +292,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       final String errorMsg = loader.getErrorMessage();
 
       if (!"".equals(errorMsg)) {
-        Logger.logSevere(errorMsg);
+        Logger.logSevere("%s", errorMsg);
         CMessageBox.showError(getMainWindow(), errorMsg);
       } else {
         getWorkspace().saveWorkspace();

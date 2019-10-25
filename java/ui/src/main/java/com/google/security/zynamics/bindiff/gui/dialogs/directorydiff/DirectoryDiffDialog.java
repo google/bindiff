@@ -6,12 +6,11 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.gui.CFileChooser;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
-
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -404,7 +402,7 @@ public class DirectoryDiffDialog extends BaseDialog {
       extensionFilter.add(Constants.IDB64_EXTENSION);
 
       if (primaryFile.exists() && secondaryFile.exists()) {
-        final List<String> primaryFiles = CFileUtils.findFiles(primaryFile, extensionFilter);
+        final List<String> primaryFiles = BinDiffFileUtils.findFiles(primaryFile, extensionFilter);
         final List<String> primaryCuttedPaths = new ArrayList<>();
 
         for (final String path : primaryFiles) {
@@ -413,7 +411,8 @@ public class DirectoryDiffDialog extends BaseDialog {
           primaryCuttedPaths.add(cuttedPath);
         }
 
-        final List<String> secondaryFiles = CFileUtils.findFiles(secondaryFile, extensionFilter);
+        final List<String> secondaryFiles =
+            BinDiffFileUtils.findFiles(secondaryFile, extensionFilter);
         final Set<String> secondaryCuttedPaths = new HashSet<>();
 
         for (final String path : secondaryFiles) {

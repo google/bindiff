@@ -14,7 +14,7 @@ import com.google.security.zynamics.bindiff.project.WorkspaceLoader;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.gui.CFilenameFormatter;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.io.FileUtils;
@@ -44,7 +44,7 @@ import javax.swing.event.DocumentListener;
 
 public class SaveFunctionDiffViewDialog extends BaseDialog {
   private static final Color NORMAL_COLOR = new JFormattedTextField().getBackground();
-  private static final Color OVERRIDE_COLOR = new Color(233, 200, 200);
+  private static final Color OVERWRITE_INDICATION_COLOR = new Color(233, 200, 200);
 
   private static final int DLGWIDTH = 650;
   private static final int DLGHEIGHT = 190;
@@ -290,17 +290,17 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
 
     String defaultPrimaryExportName = diff.getExportFile(ESide.PRIMARY).getName();
     defaultPrimaryExportName =
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             defaultPrimaryExportName, Constants.BINDIFF_BINEXPORT_EXTENSION);
     setDefaultText(primaryExportFileName, defaultPrimaryExportName);
 
     String defaultSecondaryExportName = diff.getExportFile(ESide.SECONDARY).getName();
     defaultSecondaryExportName =
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             defaultSecondaryExportName, Constants.BINDIFF_BINEXPORT_EXTENSION);
     setDefaultText(secondaryExportFileName, defaultSecondaryExportName);
 
-    updateOnExistanceChanged();
+    updateFileOverwriteIndicator();
   }
 
   private void setDefaultText(final JFormattedTextField textField, final String defaultName) {
@@ -321,32 +321,28 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     }
   }
 
-  private void updateOnExistanceChanged() throws IOException {
-    boolean override = getMatchesDatabaseTargetFile().exists();
-    diffDatabaseFileName.setBackground(override ? OVERRIDE_COLOR : NORMAL_COLOR);
-    diffDatabaseOverwrite.setEnabled(override);
+  private void updateFileOverwriteIndicator() throws IOException {
+    boolean willOverwrite = getMatchesDatabaseTargetFile().exists();
+    diffDatabaseFileName.setBackground(willOverwrite ? OVERWRITE_INDICATION_COLOR : NORMAL_COLOR);
+    diffDatabaseOverwrite.setEnabled(willOverwrite);
 
-    override =
+    willOverwrite =
         getExportBinaryTargetFile(ESide.PRIMARY).exists() && !validateExportName(ESide.PRIMARY);
-    primaryExportFileName.setBackground(override ? OVERRIDE_COLOR : NORMAL_COLOR);
-    primaryExportOverwrite.setEnabled(override);
-    primaryExportOverwrite.setSelected(!override ? false : primaryExportOverwrite.isSelected());
+    primaryExportFileName.setBackground(willOverwrite ? OVERWRITE_INDICATION_COLOR : NORMAL_COLOR);
+    primaryExportOverwrite.setEnabled(willOverwrite);
+    primaryExportOverwrite.setSelected(willOverwrite && primaryExportOverwrite.isSelected());
 
-    override =
+    willOverwrite =
         getExportBinaryTargetFile(ESide.SECONDARY).exists() && !validateExportName(ESide.SECONDARY);
-    secondaryExportFileName.setBackground(override ? OVERRIDE_COLOR : NORMAL_COLOR);
-    secondaryExportOverwrite.setEnabled(override);
-    secondaryExportOverwrite.setSelected(!override ? false : secondaryExportOverwrite.isSelected());
+    secondaryExportFileName.setBackground(
+        willOverwrite ? OVERWRITE_INDICATION_COLOR : NORMAL_COLOR);
+    secondaryExportOverwrite.setEnabled(willOverwrite);
+    secondaryExportOverwrite.setSelected(willOverwrite && secondaryExportOverwrite.isSelected());
   }
 
   private boolean validateDiffName() {
     final File matchesDbFile = getMatchesDatabaseTargetFile();
-
-    if (matchesDbFile.exists() && !diffDatabaseOverwrite.isSelected()) {
-      return false;
-    }
-
-    return true;
+    return !matchesDbFile.exists() || diffDatabaseOverwrite.isSelected();
   }
 
   private boolean validateExportName(final ESide side) throws IOException {
@@ -364,9 +360,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
         if (side == ESide.PRIMARY && !primaryExportOverwrite.isSelected()) {
           return false;
         }
-        if (side == ESide.SECONDARY && !secondaryExportOverwrite.isSelected()) {
-          return false;
-        }
+        return side != ESide.SECONDARY || secondaryExportOverwrite.isSelected();
       }
     }
 
@@ -468,14 +462,14 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     exportBinaryPath +=
         side == ESide.PRIMARY ? primaryExportFileName.getText() : secondaryExportFileName.getText();
     exportBinaryPath =
-        CFileUtils.forceFilenameEndsWithExtension(
+        BinDiffFileUtils.forceFilenameEndsWithExtension(
             exportBinaryPath, Constants.BINDIFF_BINEXPORT_EXTENSION);
 
     return new File(exportBinaryPath);
   }
 
   public String getFunctionDiffName() {
-    return CFileUtils.forceFilenameEndsNotWithExtension(
+    return BinDiffFileUtils.forceFilenameEndsNotWithExtension(
         getMatchesDatabaseTargetFile().getName(), Constants.BINDIFF_MATCHES_DB_EXTENSION);
   }
 
@@ -483,7 +477,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     String matchesDbPath = FileUtils.ensureTrailingSlash(destinationDir.getPath());
     matchesDbPath += diffDatabaseFileName.getText();
     matchesDbPath =
-        CFileUtils.forceFilenameEndsWithExtension(
+        BinDiffFileUtils.forceFilenameEndsWithExtension(
             matchesDbPath, Constants.BINDIFF_MATCHES_DB_EXTENSION);
 
     return new File(matchesDbPath);
@@ -608,7 +602,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
 
     private void update() {
       try {
-        updateOnExistanceChanged();
+        updateFileOverwriteIndicator();
       } catch (final IOException e1) {
         // Do nothing, because this function is called for literally
         // every single char of String when setText(String) is called,

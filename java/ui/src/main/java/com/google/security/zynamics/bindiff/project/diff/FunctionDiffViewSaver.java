@@ -9,7 +9,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPa
 import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import java.awt.Window;
 import java.io.File;
@@ -261,10 +261,10 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
 
   private boolean updateMatchesDatabase() {
     final String priExportFileName =
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             primaryExportFileTarget.getName(), Constants.BINDIFF_BINEXPORT_EXTENSION);
     final String secExportFileName =
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             secondaryExportFileTarget.getName(), Constants.BINDIFF_BINEXPORT_EXTENSION);
     if (!binDiffFileTarget.exists()) {
       return false;

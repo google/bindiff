@@ -7,7 +7,7 @@ import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.helpers.MatchesGetter;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.general.comparators.DoubleComparator;
@@ -77,7 +77,7 @@ public class FunctionDiffViewsTableModel extends AbstractFunctionDiffViewsTableM
 
     String viewName = diff.getMatchesDatabase().getName();
     viewName =
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             viewName, Constants.BINDIFF_MATCHES_DB_EXTENSION);
 
     final RawFunction primaryFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);

@@ -17,12 +17,11 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
   private static final int MAX_LOAD_WORKSPACE_ERRORS = 15;
   private final Workspace workspace;
   private final File workspaceFile;
-  private String errors;
+  private StringBuilder errors = new StringBuilder();
 
   public WorkspaceLoader(final File workspaceFile, final Workspace workspace) {
     this.workspaceFile = Preconditions.checkNotNull(workspaceFile);
     this.workspace = Preconditions.checkNotNull(workspace);
-    errors = "";
   }
 
   @Override
@@ -31,7 +30,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
   }
 
   public String getErrorMessage() {
-    return errors;
+    return errors.toString();
   }
 
   public boolean hasErrors() {
@@ -58,7 +57,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
       int diffCounter = 0;
       int allDiffs = diffPaths.size();
 
-      errors = "";
+      errors.setLength(0);
 
       final String workspaceRoot =
           FileUtils.ensureTrailingSlash(workspaceFile.getParentFile().getAbsolutePath());
@@ -69,7 +68,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         final File workspaceAbs = new File(workspaceRoot + path);
         final File matchesDatabaseFile = workspaceAbs.exists() ? workspaceAbs : new File(path);
 
-        Logger.logInfo(" - Preloading Diff '" + matchesDatabaseFile.getPath() + "'");
+        Logger.logInfo(" - Preloading Diff '%s'", matchesDatabaseFile.getPath());
 
         final DiffMetaData matchesMetadata;
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
@@ -81,13 +80,11 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
           matchesMetadata = matchesDatabase.loadDiffMetaData(matchesDatabaseFile);
         } catch (final SQLException e) {
           Logger.logException(e);
-          if (matchesDatabaseFile != null) {
-            errors += " - " + matchesDatabaseFile.getName() + "\n";
-          }
+          errors.append(" - " + matchesDatabaseFile.getName() + "\n");
           continue;
         }
 
-        errors += workspace.addDiff(matchesDatabaseFile, matchesMetadata, false);
+        errors.append(workspace.addDiff(matchesDatabaseFile, matchesMetadata, false));
       }
 
       diffCounter = 0;
@@ -99,7 +96,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         final File workspaceAbs = new File(workspaceRoot + path);
         final File matchesDatabaseFile = workspaceAbs.exists() ? workspaceAbs : new File(path);
 
-        Logger.logInfo(" - Preloading Function Diff '" + matchesDatabaseFile.getPath() + "'");
+        Logger.logInfo(" - Preloading Function Diff '%s'", matchesDatabaseFile.getPath());
 
         FunctionDiffMetaData matchesMetadata = null;
         setDescription(
@@ -110,14 +107,12 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
           matchesMetadata = matchesDatabase.loadFunctionDiffMetaData(false);
         } catch (final SQLException e) {
-          if (matchesDatabaseFile != null) {
-            errors += " - " + matchesDatabaseFile.getName() + "\n";
-          }
+          errors.append(" - " + matchesDatabaseFile.getName() + "\n");
 
           continue;
         }
 
-        errors += workspace.addDiff(matchesDatabaseFile, matchesMetadata, true);
+        errors.append(workspace.addDiff(matchesDatabaseFile, matchesMetadata, true));
       }
 
       int fromIndex = 0;
@@ -131,8 +126,8 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
           counter++;
 
           if (counter >= MAX_LOAD_WORKSPACE_ERRORS) {
-            this.errors = errors.substring(0, foundIndex);
-            errors += "...";
+            errors.setLength(foundIndex);
+            errors.append("...");
 
             break;
           }
@@ -142,7 +137,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
       }
 
       if (errors.length() > 0) {
-        errors = "Diff loading failed for at least one item:" + "\n\n" + errors;
+        errors.insert(0, "Diff loading failed for at least one item:\n\n");
       }
 
       workspace.setWorkspaceFile(workspaceFile);

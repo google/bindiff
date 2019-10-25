@@ -4,7 +4,7 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.general.comparators.DateComparator;
 import com.google.security.zynamics.zylib.general.comparators.LexicalComparator;
@@ -64,7 +64,7 @@ public class FunctionDiffViewsContainerTableModel extends AbstractFunctionDiffVi
     final DiffMetaData metaData = diff.getMetaData();
 
     final String viewName =
-        CFileUtils.forceFilenameEndsNotWithExtension(
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
             diff.getMatchesDatabase().getName(), Constants.BINDIFF_MATCHES_DB_EXTENSION);
 
     final Date creationDate = metaData.getDate().getTime();

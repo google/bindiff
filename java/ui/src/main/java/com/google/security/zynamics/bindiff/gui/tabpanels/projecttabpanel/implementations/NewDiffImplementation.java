@@ -13,7 +13,7 @@ import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.DiffLoader;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.bindiff.utils.ExternalAppUtils;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
@@ -30,30 +30,28 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
   private File primaryBinExportFile;
   private File secondaryBinExportFile;
 
-  private final File primaryIDBFile;
-  private final File secondaryIDBFile;
+  private final File primaryIdbFile;
+  private final File secondaryIdbFile;
 
   private final File destinationDirectory;
-
-  private String matchedPath;
 
   public NewDiffImplementation(
       final MainWindow window,
       final Workspace workspace,
-      final File priIDBFile,
-      final File secIDBFile,
-      final File priCallgraphFile,
-      final File secCallgraphFile,
+      final File primaryIdbFile,
+      final File secondaryIdbFile,
+      final File primaryBinExportFile,
+      final File secondaryBinExportFile,
       final File destinationDir) {
     parentWindow = Preconditions.checkNotNull(window);
     this.workspace = Preconditions.checkNotNull(workspace);
     destinationDirectory = Preconditions.checkNotNull(destinationDir);
 
-    primaryIDBFile = priIDBFile;
-    secondaryIDBFile = secIDBFile;
+    this.primaryIdbFile = primaryIdbFile;
+    this.secondaryIdbFile = secondaryIdbFile;
 
-    primaryBinExportFile = priCallgraphFile;
-    secondaryBinExportFile = secCallgraphFile;
+    this.primaryBinExportFile = primaryBinExportFile;
+    this.secondaryBinExportFile = secondaryBinExportFile;
   }
 
   private String createUniqueExportFileName(final ESide side) {
@@ -61,18 +59,18 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
     if (primaryBinExportFile != null) {
       priName = primaryBinExportFile.getName();
-    } else if (primaryIDBFile != null) {
-      priName = primaryIDBFile.getName();
+    } else if (primaryIdbFile != null) {
+      priName = primaryIdbFile.getName();
     }
-    priName = CFileUtils.removeFileExtension(priName);
+    priName = BinDiffFileUtils.removeFileExtension(priName);
 
     String secName = "";
     if (secondaryBinExportFile != null) {
       secName = secondaryBinExportFile.getName();
-    } else if (secondaryIDBFile != null) {
-      secName = secondaryIDBFile.getName();
+    } else if (secondaryIdbFile != null) {
+      secName = secondaryIdbFile.getName();
     }
-    secName = CFileUtils.removeFileExtension(secName);
+    secName = BinDiffFileUtils.removeFileExtension(secName);
 
     if (priName.equals(secName)) {
       priName = priName + "_primary";
@@ -80,9 +78,11 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
     }
 
     priName =
-        CFileUtils.forceFilenameEndsWithExtension(priName, Constants.BINDIFF_BINEXPORT_EXTENSION);
+        BinDiffFileUtils.forceFilenameEndsWithExtension(
+            priName, Constants.BINDIFF_BINEXPORT_EXTENSION);
     secName =
-        CFileUtils.forceFilenameEndsWithExtension(secName, Constants.BINDIFF_BINEXPORT_EXTENSION);
+        BinDiffFileUtils.forceFilenameEndsWithExtension(
+            secName, Constants.BINDIFF_BINEXPORT_EXTENSION);
 
     return side == ESide.PRIMARY ? priName : secName;
   }
@@ -109,18 +109,15 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       final String secTargetName = createUniqueExportFileName(ESide.SECONDARY);
 
       // Export primary side
-      if (primaryIDBFile != null) {
+      if (primaryIdbFile != null) {
         try {
           Logger.logInfo(
-              "- Exporting primary IDB '"
-                  + primaryIDBFile.getPath()
-                  + "' to '"
-                  + destinationDirectory.getPath()
-                  + "'");
+              "- Exporting primary IDB '%s' to '%s'",
+              primaryIdbFile.getPath(), destinationDirectory.getPath());
 
           setDescription("Exporting primary IDB...");
 
-          final File idaExe = ExternalAppUtils.getIdaExe(primaryIDBFile);
+          final File idaExe = ExternalAppUtils.getIdaExe(primaryIdbFile);
 
           if (idaExe == null || !idaExe.canExecute()) {
             final String msg =
@@ -133,13 +130,13 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           }
 
           ExportProcess.startExportProcess(
-              idaExe, destinationDirectory, primaryIDBFile, priTargetName);
+              idaExe, destinationDirectory, primaryIdbFile, priTargetName);
         } catch (final BinExportException e) {
           Logger.logException(e, e.getMessage());
           CMessageBox.showError(parentWindow, e.getMessage());
 
           try {
-            CFileUtils.deleteDirectory(destinationDirectory);
+            BinDiffFileUtils.deleteDirectory(destinationDirectory);
           } catch (final IOException exception) {
             Logger.logException(
                 exception,
@@ -184,7 +181,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
                   + "directory.");
 
           try {
-            CFileUtils.deleteDirectory(destinationDirectory);
+            BinDiffFileUtils.deleteDirectory(destinationDirectory);
           } catch (final IOException exception) {
             Logger.logException(
                 exception,
@@ -205,18 +202,15 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       }
 
       // export or copy secondary side
-      if (secondaryIDBFile != null) {
+      if (secondaryIdbFile != null) {
         try {
           Logger.logInfo(
-              "- Exporting secondary IDB '"
-                  + secondaryIDBFile.getPath()
-                  + "' to '"
-                  + destinationDirectory.getPath()
-                  + "'");
+              "- Exporting secondary IDB '%s' to '%s'",
+              secondaryIdbFile.getPath(), destinationDirectory.getPath());
 
           setDescription("Exporting secondary IDB...");
 
-          final File idaExe = ExternalAppUtils.getIdaExe(secondaryIDBFile);
+          final File idaExe = ExternalAppUtils.getIdaExe(secondaryIdbFile);
 
           if (idaExe == null || !idaExe.canExecute()) {
             final String msg =
@@ -229,13 +223,13 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           }
 
           ExportProcess.startExportProcess(
-              idaExe, destinationDirectory, secondaryIDBFile, secTargetName);
+              idaExe, destinationDirectory, secondaryIdbFile, secTargetName);
         } catch (final BinExportException e) {
           Logger.logException(e, e.getMessage());
           CMessageBox.showError(parentWindow, e.getMessage());
 
           try {
-            CFileUtils.deleteDirectory(destinationDirectory);
+            BinDiffFileUtils.deleteDirectory(destinationDirectory);
           } catch (final IOException exception) {
             Logger.logException(
                 exception,
@@ -279,7 +273,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
                   + "BinExport binaries into the new diff directory.");
 
           try {
-            CFileUtils.deleteDirectory(destinationDirectory);
+            BinDiffFileUtils.deleteDirectory(destinationDirectory);
           } catch (final IOException exception) {
             Logger.logException(
                 exception,
@@ -304,7 +298,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         final String engineExe = ExternalAppUtils.getCommandLineDiffer();
 
         String primaryDifferArgument = "";
-        if (primaryIDBFile != null) {
+        if (primaryIdbFile != null) {
           primaryDifferArgument =
               ExportProcess.getExportFilename(priTargetName, destinationDirectory);
         } else {
@@ -312,14 +306,14 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         }
 
         String secondaryDifferArgument = "";
-        if (secondaryIDBFile != null) {
+        if (secondaryIdbFile != null) {
           secondaryDifferArgument =
               ExportProcess.getExportFilename(secTargetName, destinationDirectory);
         } else {
           secondaryDifferArgument = secondaryBinExportFile.getPath();
         }
 
-        Logger.logInfo("- Start Diffing '" + destinationDirectory.getName() + "'");
+        Logger.logInfo("- Diffing '%s'", destinationDirectory.getName());
 
         setDescription("Diffing...");
 
@@ -347,13 +341,9 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
     return null;
   }
 
-  public String getMatchesPath() {
-    return matchedPath;
-  }
-
   public void newDiff() {
     try {
-      matchedPath = createNewDiff();
+      String matchedPath = createNewDiff();
       if (matchedPath == null) {
         return;
       }

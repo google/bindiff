@@ -1,10 +1,9 @@
 package com.google.security.zynamics.bindiff.processes;
 
-import com.google.common.base.Joiner;
 import com.google.security.zynamics.bindiff.exceptions.DifferException;
 import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import java.io.File;
 import java.io.IOException;
 
@@ -29,11 +28,11 @@ public class DiffProcess {
       final String exportedPrimaryFilename, final String exportedSecondaryFilename)
       throws DifferException {
     try {
-      final String primaryFilename = CFileUtils.removeFileExtension(exportedPrimaryFilename);
+      final String primaryFilename = BinDiffFileUtils.removeFileExtension(exportedPrimaryFilename);
       String secondaryFileBasename =
           exportedSecondaryFilename.substring(
               exportedSecondaryFilename.lastIndexOf(File.separator) + 1);
-      secondaryFileBasename = CFileUtils.removeFileExtension(secondaryFileBasename);
+      secondaryFileBasename = BinDiffFileUtils.removeFileExtension(secondaryFileBasename);
 
       return primaryFilename
           + "_vs_"
@@ -71,7 +70,7 @@ public class DiffProcess {
             outputDir.getPath(),
             "--bin_format");
 
-    Logger.logInfo(Joiner.on(' ').join(diffProcess.command()));
+    Logger.logInfo("%s", String.join(" ", diffProcess.command()));
 
     int exitCode = -1;
     Process processInfo = null;

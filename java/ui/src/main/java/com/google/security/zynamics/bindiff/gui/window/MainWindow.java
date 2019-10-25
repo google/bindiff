@@ -30,8 +30,6 @@ import javax.swing.SwingUtilities;
 public class MainWindow extends JFrame {
   private final WindowFunctions controller;
 
-  private final InternalWorkspaceListener workspaceListener = new InternalWorkspaceListener();
-
   private final InternalWindowListener windowListener = new InternalWindowListener();
 
   private String titlePath;
@@ -39,7 +37,7 @@ public class MainWindow extends JFrame {
   public MainWindow(final Workspace workspace) {
     Preconditions.checkNotNull(workspace);
 
-    workspace.addListener(workspaceListener);
+    workspace.addListener(new InternalWorkspaceListener());
 
     controller = new WindowFunctions(this, workspace);
 
@@ -110,16 +108,16 @@ public class MainWindow extends JFrame {
       return;
     }
     final FontMetrics fm = getGraphics().getFontMetrics();
-    int maxlen = titlePath.length();
+    int maxLen = titlePath.length();
     final Insets in = getInsets();
     // Calculate default title with that also takes 100px window
     // decorations and border widths into account
     final int defTitleW =
         in.right - in.left + 100 + fm.stringWidth(" - " + Constants.DEFAULT_WINDOW_TITLE);
     String newValue = titlePath;
-    while (maxlen >= 12 && fm.stringWidth(newValue) > getWidth() - defTitleW) {
-      newValue = FileUtils.getPathEllipsis(titlePath, maxlen);
-      maxlen--;
+    while (maxLen >= 12 && fm.stringWidth(newValue) > getWidth() - defTitleW) {
+      newValue = FileUtils.getPathEllipsis(titlePath, maxLen);
+      maxLen--;
     }
     setTitle(newValue);
   }
@@ -144,14 +142,14 @@ public class MainWindow extends JFrame {
         updateEllipsis();
       }
     } else if (tabPanel instanceof FunctionDiffViewTabPanel) {
-      final String title = ((FunctionDiffViewTabPanel) tabPanel).getTitle();
+      final String title = tabPanel.getTitle();
 
       setTitle(title);
     } else if (tabPanel instanceof ViewTabPanel) {
       final String title =
           String.format(
               "%s - %s",
-              ((ViewTabPanel) tabPanel).getTitle(),
+              tabPanel.getTitle(),
               ((ViewTabPanel) tabPanel).getView().getGraphs().getDiff().getDiffName());
 
       setTitle(title);
@@ -172,14 +170,7 @@ public class MainWindow extends JFrame {
       workspaceController.getWorkspaceTree().grabFocus();
 
       // Do not remove invokeLater, otherwise BinDiff exits before grabFocus() has been executed.
-      SwingUtilities.invokeLater(
-          new Runnable() {
-
-            @Override
-            public void run() {
-              controller.exitBinDiff();
-            }
-          });
+      SwingUtilities.invokeLater(controller::exitBinDiff);
     }
   }
 

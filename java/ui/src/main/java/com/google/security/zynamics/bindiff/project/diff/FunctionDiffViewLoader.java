@@ -24,7 +24,7 @@ import com.google.security.zynamics.bindiff.project.rawflowgraph.RawCombinedJump
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawFlowGraph;
 import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import java.io.File;
@@ -67,7 +67,8 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
 
     String name = diff.getMatchesDatabase().getName();
     name =
-        CFileUtils.forceFilenameEndsNotWithExtension(name, Constants.BINDIFF_MATCHES_DB_EXTENSION);
+        BinDiffFileUtils.forceFilenameEndsNotWithExtension(
+            name, Constants.BINDIFF_MATCHES_DB_EXTENSION);
 
     if (!workspace.isLoaded()
         || (workspace.isLoaded()

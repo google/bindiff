@@ -37,7 +37,7 @@ public class ProcessOutputStreamReader implements Runnable {
           break;
         }
 
-        Logger.logInfo("[" + name + "] " + line.replace("%", "%%"));
+        Logger.logInfo("[%s] %s", name, line);
       }
     } catch (final Exception e) {
       Logger.logException(e, "Could't read process output stream.");

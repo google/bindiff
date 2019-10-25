@@ -13,7 +13,7 @@ import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.DiffLoader;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.bindiff.utils.ExternalAppUtils;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
@@ -58,16 +58,18 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     }
 
     priName =
-        CFileUtils.forceFilenameEndsWithExtension(priName, Constants.BINDIFF_BINEXPORT_EXTENSION);
+        BinDiffFileUtils.forceFilenameEndsWithExtension(
+            priName, Constants.BINDIFF_BINEXPORT_EXTENSION);
     secName =
-        CFileUtils.forceFilenameEndsWithExtension(secName, Constants.BINDIFF_BINEXPORT_EXTENSION);
+        BinDiffFileUtils.forceFilenameEndsWithExtension(
+            secName, Constants.BINDIFF_BINEXPORT_EXTENSION);
 
     return side == ESide.PRIMARY ? priName : secName;
   }
 
   private void deleteDirectory(final MainWindow mainWindow, final File destinationFolder) {
     try {
-      CFileUtils.deleteDirectory(destinationFolder);
+      BinDiffFileUtils.deleteDirectory(destinationFolder);
     } catch (final IOException exception) {
       Logger.logException(
           exception,
@@ -85,8 +87,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
   }
 
   private List<String> directoryDiff() {
-    // TODO(cblichmann): Rewrite error-handling to not return a list of
-    // plain error messages
+    // TODO(cblichmann): Rewrite error-handling to not return a list of plain error messages
     final List<String> matchesPaths = new ArrayList<>();
 
     final String engineExe = ExternalAppUtils.getCommandLineDiffer();
@@ -95,38 +96,25 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
       final String msg =
           String.format("Can't start directory diff. Couldn't find engine at '%s'", engineExe);
 
-      Logger.logSevere(msg);
+      Logger.logSevere("%s", msg);
       CMessageBox.showError(parentWindow, msg);
 
       return matchesPaths;
     }
 
-    Logger.logInfo(
-        "Start Directory Diff '" + primarySourcePath + "' vs '" + secondarySourcePath + "'");
+    Logger.logInfo("Start Directory Diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
 
     final String workspacePath = workspace.getWorkspaceDir().getPath();
-    final List<DiffPairTableData> idbPairsData = idbPairs;
-    for (final DiffPairTableData data : idbPairsData) {
+    for (final DiffPairTableData data : idbPairs) {
       final String destination =
-          String.format("%s%s%s", workspacePath, File.separator, data.getDestinationDirectory());
+          String.join(File.separator, workspacePath, data.getDestinationDirectory());
 
       final String primarySource =
-          String.format(
-              "%s%s%s%s%s",
-              primarySourcePath,
-              File.separator,
-              data.getIDBLocation(),
-              File.separator,
-              data.getIDBName());
+          String.join(File.separator, primarySourcePath, data.getIDBLocation(), data.getIDBName());
 
       final String secondarySource =
-          String.format(
-              "%s%s%s%s%s",
-              secondarySourcePath,
-              File.separator,
-              data.getIDBLocation(),
-              File.separator,
-              data.getIDBName());
+          String.join(
+              File.separator, secondarySourcePath, data.getIDBLocation(), data.getIDBName());
 
       setDescription(String.format("%s vs %s", data.getIDBName(), data.getIDBName()));
 
@@ -150,9 +138,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         continue;
       }
 
-      destinationFolder.mkdir();
-
-      if (!destinationFolder.exists()) {
+      if (!destinationFolder.mkdir()) {
         String msg =
             String.format(
                 "'%s' failed. Reason: Destination folder cannot be created.",
@@ -164,8 +150,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
 
       // export primary IDB
       try {
-        Logger.logInfo(
-            " - Start exporting primary IDB '" + primarySource + "' to '" + destination + "'");
+        Logger.logInfo(" - Start exporting primary IDB '%s' to '%s'", primarySource, destination);
 
         final File idaExe = ExternalAppUtils.getIdaExe(primarySourceFile);
 
@@ -185,11 +170,8 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
             idaExe, destinationFolder, primarySourceFile, priTargetName);
 
         Logger.logInfo(
-            " - Finished exporting primary IDB '"
-                + primarySource
-                + "' to '"
-                + destination
-                + "' successfully.");
+            " - Finished exporting primary IDB '%s' to '%s' successfully.",
+            primarySource, destination);
       } catch (final BinExportException e) {
         Logger.logInfo(
             " - Exporting primary '%s' to '%s' failed. Reason: %s",
@@ -207,7 +189,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
       // export secondary IDB
       try {
         Logger.logInfo(
-            " - Start exporting secondary IDB '" + secondarySource + "' to '" + destination + "'");
+            " - Start exporting secondary IDB '%s' to '%s'", secondarySource, destination);
 
         final File idaExe = ExternalAppUtils.getIdaExe(secondarySourceFile);
 
@@ -225,11 +207,8 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
             idaExe, destinationFolder, secondarySourceFile, secTargetName);
 
         Logger.logInfo(
-            " - Finished exporting secondary IDB '"
-                + secondarySource
-                + "' to '"
-                + destination
-                + "' successfully.");
+            " - Finished exporting secondary IDB '%s' to '%s' successfully.",
+            secondarySource, destination);
       } catch (final BinExportException e) {
         Logger.logInfo(
             " - Exporting secondary '%s' to '%s' failed. Reason: %s",
@@ -251,7 +230,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         final String secondaryDifferArgument =
             ExportProcess.getExportFilename(secTargetName, destinationFolder);
 
-        Logger.logInfo(" - Start Diffing '" + destinationFolder.getName() + "'");
+        Logger.logInfo(" - Start diffing '%s'", destinationFolder.getName());
         DiffProcess.startDiffProcess(
             engineExe, primaryDifferArgument, secondaryDifferArgument, destinationFolder);
 
@@ -275,18 +254,12 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
 
     if (diffingErrorMessages.size() == 0) {
       Logger.logInfo(
-          "Finished Directory Diff '"
-              + primarySourcePath
-              + "' vs '"
-              + secondarySourcePath
-              + "' successfully.");
+          "Finished Directory Diff '%s' vs '%s' successfully.",
+          primarySourcePath, secondarySourcePath);
     } else {
       Logger.logInfo(
-          "Finished Directory Diff '"
-              + primarySourcePath
-              + "' vs '"
-              + secondarySourcePath
-              + "' with errors.");
+          "Finished Directory Diff '%s' vs '%s' with errors.",
+          primarySourcePath, secondarySourcePath);
     }
 
     return matchesPaths;

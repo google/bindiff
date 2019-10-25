@@ -8,7 +8,7 @@ import com.google.security.zynamics.bindiff.graph.GraphsContainer;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.CFileUtils;
+import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.types.graphs.MutableDirectedGraph;
 import java.util.Date;
@@ -34,7 +34,7 @@ public abstract class ViewData {
     final Diff diff = graphs.getDiff();
 
     if (diff.isFunctionDiff()) {
-      return CFileUtils.forceFilenameEndsNotWithExtension(
+      return BinDiffFileUtils.forceFilenameEndsNotWithExtension(
           diff.getDiffName(), Constants.BINDIFF_MATCHES_DB_EXTENSION);
     }
 
