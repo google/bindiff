@@ -34,6 +34,9 @@
 #ifdef __APPLE__
 #include <cerrno>
 #include <cstring>
+#else
+#include <filesystem>
+#include <system_error>  // NOLINT(build/c++11)
 #endif
 
 #include <algorithm>
@@ -293,18 +296,13 @@ not_absl::Status GetDirectoryEntries(absl::string_view path,
 
 not_absl::Status RemoveAll(absl::string_view path) {
   std::string path_copy(path);
-#ifdef _WIN32
-  absl::StrAppend(&path_copy, "\0");  // Ensure double null-termination.
-  SHFILEOPSTRUCT operation = {};
-  operation.wFunc = FO_DELETE;
-  operation.pFrom = path_copy.c_str();
-  operation.fFlags = FOF_NO_UI;
-
-  auto result = SHFileOperation(&operation);
-  if (result != ERROR_SUCCESS && result != ERROR_FILE_NOT_FOUND &&
-      result != ERROR_PATH_NOT_FOUND) {
+#ifndef __APPLE__
+  // TODO(cblichmann): Use on all platforms once XCode has filesystem.
+  namespace fs = std::filesystem;
+  if (std::error_code ec;
+      fs::remove_all(path_copy, ec) == static_cast<std::uintmax_t>(-1)) {
     return not_absl::UnknownError(
-        absl::StrCat("SHFileOperation() failed for: ", path));
+        absl::StrCat("remove_all() failed for \"", path, "\": ", ec.message()));
   }
 #else
   errno = 0;

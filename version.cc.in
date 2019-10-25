@@ -16,8 +16,7 @@
 
 #include "third_party/absl/base/attributes.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 ABSL_CONST_INIT const char* kBinExportName = "BinExport";
 
@@ -34,5 +33,4 @@ ABSL_CONST_INIT const char* kBinExportDetailedVersion =
 ABSL_CONST_INIT const char* kBinExportCopyright =
     "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
