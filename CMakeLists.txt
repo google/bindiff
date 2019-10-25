@@ -95,7 +95,7 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/util/statusor.h
   ${BinExport_DIR}/util/timer.h
 )
-target_link_libraries(binexport_shared
+target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access
   absl::optional
   absl::str_format
@@ -105,7 +105,15 @@ target_link_libraries(binexport_shared
   bindiff_base
 )
 if(WIN32)
-  target_link_libraries(binexport_shared shlwapi.lib)
+  target_link_libraries(binexport_shared PUBLIC
+    shlwapi.lib
+  )
+else()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
+    target_link_libraries(binexport_shared PUBLIC
+      stdc++fs
+    )
+  endif()
 endif()
 set_target_properties(binexport_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
