@@ -64,7 +64,7 @@ namespace archive {
 // XML grammar parsing
 
 template<class CharType>
-class basic_xml_grammar {
+class BOOST_SYMBOL_VISIBLE basic_xml_grammar {
 public:
     // The following is not necessary according to DR45, but at least
     // one compiler (Compaq C++ 6.5 in strict_ansi mode) chokes otherwise.

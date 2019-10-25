@@ -14,6 +14,9 @@ http://www.boost.org/LICENSE_1_0.txt)
 /*`
 [heading `BOOST_OS_ANDROID`]
 
+NOTE: `BOOST_OS_ANDROID` is deprecated, and will be removed in a following release.
+Please use `BOOST_PLAT_ANDROID` instead.
+
 [@http://en.wikipedia.org/wiki/Android_%28operating_system%29 Android] operating system.
 
 [table

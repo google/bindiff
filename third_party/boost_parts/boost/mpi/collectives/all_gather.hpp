@@ -57,8 +57,8 @@ all_gather_impl(const communicator& comm, const T* in_values, int n,
   std::vector<int> oasizes(nproc);
   int oasize = oa.size();
   BOOST_MPI_CHECK_RESULT(MPI_Allgather,
-                         (&oasize, 1, MPI_INTEGER,
-                          c_data(oasizes), 1, MPI_INTEGER, 
+                         (&oasize, 1, MPI_INT,
+                          c_data(oasizes), 1, MPI_INT, 
                           MPI_Comm(comm)));
   // Gather the archives, which can be of different sizes, so
   // we need to use allgatherv.

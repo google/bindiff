@@ -62,7 +62,9 @@
 // Set the name of our library, this will get undef'ed by auto_link.hpp
 // once it's done with it:
 //
-#define BOOST_LIB_NAME boost_numpy##PY_MAJOR_VERSION##PY_MINOR_VERSION
+#define _BOOST_PYTHON_CONCAT(N, M, m) N ## M ## m
+#define BOOST_PYTHON_CONCAT(N, M, m) _BOOST_PYTHON_CONCAT(N, M, m)
+#define BOOST_LIB_NAME BOOST_PYTHON_CONCAT(boost_numpy, PY_MAJOR_VERSION, PY_MINOR_VERSION)
 //
 // If we're importing code from a dll, then tell auto_link.hpp about it:
 //
@@ -74,6 +76,9 @@
 //
 #include <boost/config/auto_link.hpp>
 #endif  // auto-linking disabled
+
+#undef BOOST_PYTHON_CONCAT
+#undef _BOOST_PYTHON_CONCAT
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 

@@ -47,6 +47,13 @@
 # endif
 #endif
 
+// pyconfig.h defines a macro with hypot name, what breaks libstdc++ math headers
+// that Python.h tries to include afterwards.
+#if defined(__MINGW32__)
+# include <cmath>
+# include <math.h>
+#endif
+
 # include <pyconfig.h>
 # if defined(_SGI_COMPILER_VERSION) && _SGI_COMPILER_VERSION >= 740
 #  undef _POSIX_C_SOURCE
@@ -83,6 +90,7 @@
 // than MSVC on Win32
 //
 #if defined(_WIN32) || defined(__CYGWIN__)
+
 # if defined(__GNUC__) && defined(__CYGWIN__)
 
 #  if defined(__LP64__)
@@ -145,11 +153,37 @@ typedef int pid_t;
 
 #endif // _WIN32
 
+#if defined(__GNUC__)
+# if defined(__has_warning)
+#  define BOOST_PYTHON_GCC_HAS_WREGISTER __has_warning("-Wregister")
+# else
+#  define BOOST_PYTHON_GCC_HAS_WREGISTER __GNUC__ >= 7
+# endif
+#else
+# define BOOST_PYTHON_GCC_HAS_WREGISTER 0
+#endif
+
+// Python.h header uses `register` keyword until Python 3.4
+#if BOOST_PYTHON_GCC_HAS_WREGISTER
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wregister"
+#elif defined(_MSC_VER)
+# pragma warning(push)
+# pragma warning(disable : 5033)  // 'register' is no longer a supported storage class
+#endif
+
 #if PY_MAJOR_VERSION == 2 && PY_MINOR_VERSION == 2 && PY_MICRO_VERSION < 2
 # include <boost/python/detail/python22_fixed.h>
 #else
 # include <Python.h>
 #endif
+
+#if BOOST_PYTHON_GCC_HAS_WREGISTER
+# pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+# pragma warning(pop)
+#endif
+#undef BOOST_PYTHON_GCC_HAS_WREGISTER
 
 #ifdef BOOST_PYTHON_ULONG_MAX_UNDEFINED
 # undef ULONG_MAX

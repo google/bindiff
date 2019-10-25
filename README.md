@@ -167,10 +167,10 @@ Note that these options must come before any files.
 As we support exporting into PostgreSQL databases as well as a Protocol Buffer
 based format, there are quite a few dependencies to satisfy:
 
-*   Boost 1.67.0 or higher (a partial copy of 1.67.0 ships in
+*   Boost 1.67.0 or higher (a partial copy of 1.71.0 ships in
     `third_party/boost_parts`)
 *   [CMake](https://cmake.org/download/) 3.7.2 or higher
-*   GCC 4.8 or a recent version of Clang on Linux/macOS. On Windows, use the
+*   GCC 7 or a recent version of Clang on Linux/macOS. On Windows, use the
     Visual Studio 2017 compiler (need at least Update 9) and the Windows SDK
     for Windows 10.
 *   Git 1.8 or higher

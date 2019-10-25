@@ -9,6 +9,7 @@
 #define BOOST_MPI_OFFSETS_HPP
 
 #include <vector>
+#include <boost/mpi/config.hpp>
 #include <boost/mpi/communicator.hpp>
 
 namespace boost { namespace mpi {
@@ -16,10 +17,10 @@ namespace detail {
 
 // Convert a sequence of sizes [S0..Sn] to a sequence displacement 
 // [O0..On] where O[0] = 0 and O[k+1] = O[k]+S[k].
-void sizes2offsets(int const* sizes, int* offsets, int n);
+void BOOST_MPI_DECL sizes2offsets(int const* sizes, int* offsets, int n);
 
 // Same as size2offset(sizes.data(), offsets.data(), sizes.size())
-void sizes2offsets(std::vector<int> const& sizes, std::vector<int>& offsets);
+void BOOST_MPI_DECL sizes2offsets(std::vector<int> const& sizes, std::vector<int>& offsets);
 
 // Given a sequence of sizes (typically the number of records dispatched
 // to each process in a scater) and a sequence of displacements (typically the
