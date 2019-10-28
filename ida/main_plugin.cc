@@ -181,8 +181,8 @@ bool ExportIdbs() {
         IdbExporter::Options{}
             .set_export_dir(secondary_temp_dir)
             .set_ida_dir(idadir(0))
-            .set_ida_exe(config->ReadString("/BinDiff/Ida/@executable", ""))
-            .set_ida_exe64(config->ReadString("/BinDiff/Ida/@executable64", ""))
+            .set_ida_exe(config->ReadString("/bindiff/ida/@executable", ""))
+            .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", ""))
             .set_alsologtostderr(Plugin::instance()->alsologtostderr()));
     if (!exporter_or.ok()) {
       throw std::runtime_error{
@@ -232,19 +232,19 @@ void Plugin::VisualDiff(uint32_t index, bool call_graph_diff) {
     LOG(INFO) << "Sending result to BinDiff GUI...";
     const auto* config = GetConfig();
     SendGuiMessage(
-        config->ReadInt("/BinDiff/Gui/@retries", 20),
-        config->ReadString("/BinDiff/Gui/@directory",
+        config->ReadInt("/bindiff/ui/@retries", 20),
+        config->ReadString("/bindiff/ui/@directory",
                            // TODO(cblichmann): Use better defaults
-                           "C:\\Program Files\\zynamics\\BinDiff 5.0\\bin"),
-        config->ReadString("/BinDiff/Gui/@server", "127.0.0.1"),
-        static_cast<uint16_t>(config->ReadInt("/BinDiff/Gui/@port", 2000)),
+                           "C:\\Program Files\\zynamics\\BinDiff 6\\bin"),
+        config->ReadString("/bindiff/ui/@server", "127.0.0.1"),
+        static_cast<uint16_t>(config->ReadInt("/bindiff/ui/@port", 2000)),
         message, nullptr);
   } catch (const std::runtime_error& message) {
-    LOG(INFO) << "Error while calling BinDiff GUI: " << message.what();
-    warning("Error while calling BinDiff GUI: %s\n", message.what());
+    LOG(INFO) << "Error while calling BinDiff UI: " << message.what();
+    warning("Error while calling BinDiff UI: %s\n", message.what());
   } catch (...) {
-    LOG(INFO) << "Unknown error while calling BinDiff GUI";
-    warning("Unknown error while calling BinDiff GUI\n");
+    LOG(INFO) << "Unknown error while calling BinDiff UI";
+    warning("Unknown error while calling BinDiff UI\n");
   }
 }
 

@@ -93,51 +93,49 @@ using ::security::binexport::HumanReadableDuration;
 // BinDiff default configuration.
 ABSL_CONST_INIT const absl::string_view kDefaultConfig =
     R"raw(<?xml version="1.0"?>
-<BinDiff configVersion="4">
-    <Gui directory="C:\Program Files\BinDiff" server="127.0.0.1" port="2000" retries="20" />
-    <Ida directory="C:\Program Files\IDA" executable="ida.exe" executable64="ida64.exe" />
-    <Threads use="2" />
-    <FunctionMatching>
-        <Step confidence="1.0" algorithm="function: name hash matching" />
-        <Step confidence="1.0" algorithm="function: hash matching" />
-        <Step confidence="1.0" algorithm="function: edges flowgraph MD index" />
-        <Step confidence="0.9" algorithm="function: edges callgraph MD index" />
-        <Step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, top down)" />
-        <Step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, bottom up)" />
-        <Step confidence="0.9" algorithm="function: prime signature matching" />
-        <Step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, top down)" />
-        <Step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, bottom up)" />
-        <!-- <Step confidence="0.7" algorithm="function: edges proximity MD index" /> -->
-        <Step confidence="0.7" algorithm="function: relaxed MD index matching" />
-        <Step confidence="0.4" algorithm="function: instruction count" />
-        <Step confidence="0.4" algorithm="function: address sequence" />
-        <Step confidence="0.7" algorithm="function: string references" />
-        <Step confidence="0.6" algorithm="function: loop count matching" />
-        <Step confidence="0.1" algorithm="function: call sequence matching(exact)" />
-        <Step confidence="0.0" algorithm="function: call sequence matching(topology)" />
-        <Step confidence="0.0" algorithm="function: call sequence matching(sequence)" />
-    </FunctionMatching>
-    <BasicBlockMatching>
-        <Step confidence="1.0" algorithm="basicBlock: edges prime product" />
-        <Step confidence="1.0" algorithm="basicBlock: hash matching (4 instructions minimum)" />
-        <Step confidence="0.9" algorithm="basicBlock: prime matching (4 instructions minimum)" />
-        <Step confidence="0.8" algorithm="basicBlock: call reference matching" />
-        <Step confidence="0.8" algorithm="basicBlock: string references matching" />
-        <Step confidence="0.7" algorithm="basicBlock: edges MD index (top down)" />
-        <Step confidence="0.7" algorithm="basicBlock: MD index matching (top down)" />
-        <Step confidence="0.7" algorithm="basicBlock: edges MD index (bottom up)" />
-        <Step confidence="0.7" algorithm="basicBlock: MD index matching (bottom up)" />
-        <Step confidence="0.6" algorithm="basicBlock: relaxed MD index matching" />
-        <Step confidence="0.5" algorithm="basicBlock: prime matching (0 instructions minimum)" />
-        <Step confidence="0.4" algorithm="basicBlock: edges Lengauer Tarjan dominated" />
-        <Step confidence="0.4" algorithm="basicBlock: loop entry matching" />
-        <Step confidence="0.3" algorithm="basicBlock: self loop matching" />
-        <Step confidence="0.2" algorithm="basicBlock: entry point matching" />
-        <Step confidence="0.1" algorithm="basicBlock: exit point matching" />
-        <Step confidence="0.0" algorithm="basicBlock: instruction count matching" />
-        <Step confidence="0.0" algorithm="basicBlock: jump sequence matching" />
-    </BasicBlockMatching>
-</BinDiff>)raw";
+<bindiff config-version="6">
+  <ui server="127.0.0.1" port="2000" retries="20" />
+  <function-matching>
+    <step confidence="1.0" algorithm="function: name hash matching" />
+    <step confidence="1.0" algorithm="function: hash matching" />
+    <step confidence="1.0" algorithm="function: edges flowgraph MD index" />
+    <step confidence="0.9" algorithm="function: edges callgraph MD index" />
+    <step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, top down)" />
+    <step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, bottom up)" />
+    <step confidence="0.9" algorithm="function: prime signature matching" />
+    <step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, top down)" />
+    <step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, bottom up)" />
+    <!-- <step confidence="0.7" algorithm="function: edges proximity MD index" /> -->
+    <step confidence="0.7" algorithm="function: relaxed MD index matching" />
+    <step confidence="0.4" algorithm="function: instruction count" />
+    <step confidence="0.4" algorithm="function: address sequence" />
+    <step confidence="0.7" algorithm="function: string references" />
+    <step confidence="0.6" algorithm="function: loop count matching" />
+    <step confidence="0.1" algorithm="function: call sequence matching(exact)" />
+    <step confidence="0.0" algorithm="function: call sequence matching(topology)" />
+    <step confidence="0.0" algorithm="function: call sequence matching(sequence)" />
+  </function-matching>
+  <basic-block-matching>
+    <step confidence="1.0" algorithm="basicBlock: edges prime product" />
+    <step confidence="1.0" algorithm="basicBlock: hash matching (4 instructions minimum)" />
+    <step confidence="0.9" algorithm="basicBlock: prime matching (4 instructions minimum)" />
+    <step confidence="0.8" algorithm="basicBlock: call reference matching" />
+    <step confidence="0.8" algorithm="basicBlock: string references matching" />
+    <step confidence="0.7" algorithm="basicBlock: edges MD index (top down)" />
+    <step confidence="0.7" algorithm="basicBlock: MD index matching (top down)" />
+    <step confidence="0.7" algorithm="basicBlock: edges MD index (bottom up)" />
+    <step confidence="0.7" algorithm="basicBlock: MD index matching (bottom up)" />
+    <step confidence="0.6" algorithm="basicBlock: relaxed MD index matching" />
+    <step confidence="0.5" algorithm="basicBlock: prime matching (0 instructions minimum)" />
+    <step confidence="0.4" algorithm="basicBlock: edges Lengauer Tarjan dominated" />
+    <step confidence="0.4" algorithm="basicBlock: loop entry matching" />
+    <step confidence="0.3" algorithm="basicBlock: self loop matching" />
+    <step confidence="0.2" algorithm="basicBlock: entry point matching" />
+    <step confidence="0.1" algorithm="basicBlock: exit point matching" />
+    <step confidence="0.0" algorithm="basicBlock: instruction count matching" />
+    <step confidence="0.0" algorithm="basicBlock: jump sequence matching" />
+  </basic-block-matching>
+</bindiff>)raw";
 
 ABSL_CONST_INIT absl::Mutex g_queue_mutex(absl::kConstInit);
 std::atomic<bool> g_wants_to_quit = ATOMIC_VAR_INIT(false);
@@ -422,14 +420,16 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   }
 
   const auto* config = GetConfig();
+  const int num_threads = config->ReadInt("/bindiff/threads/@use",
+                                          std::thread::hardware_concurrency());
+
   auto exporter_or = IdbExporter::Create(
       IdbExporter::Options{}
           .set_export_dir(absl::GetFlag(FLAGS_output_dir))
-          .set_num_threads(config->ReadInt("/BinDiff/Threads/@use",
-                                           std::thread::hardware_concurrency()))
-          .set_ida_dir(config->ReadString("/BinDiff/Ida/@directory", ""))
-          .set_ida_exe(config->ReadString("/BinDiff/Ida/@executable", ""))
-          .set_ida_exe64(config->ReadString("/BinDiff/Ida/@executable64", "")));
+          .set_num_threads(num_threads)
+          .set_ida_dir(config->ReadString("/bindiff/ida/@directory", ""))
+          .set_ida_exe(config->ReadString("/bindiff/ida/@executable", ""))
+          .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", "")));
   if (!exporter_or.ok()) {
     PrintErrorMessage(exporter_or.status().message());
     return;
@@ -455,8 +455,6 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       })
       .IgnoreError();
 
-  const int num_threads = config->ReadInt("/BinDiff/Threads/@use",
-                                          std::thread::hardware_concurrency());
   const auto export_time = timer.elapsed();
   timer.restart();
 

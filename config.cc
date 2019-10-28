@@ -15,7 +15,7 @@ namespace security::bindiff {
 
 not_absl::Status InitConfig() {
   constexpr char kBinDiff[] = "BinDiff";
-  constexpr char kConfigName[] = "bindiff_core.xml";
+  constexpr char kConfigName[] = "bindiff.xml";
 
   std::string path;
   NA_ASSIGN_OR_RETURN(path, GetOrCreateAppDataDirectory(kBinDiff));
@@ -38,8 +38,8 @@ not_absl::Status InitConfig() {
 
   bool use_common_config = false;
   if (have_user_config && have_common_config) {
-    use_common_config = user_config.ReadInt("/BinDiff/@configVersion", 0) <
-                        common_config.ReadInt("/BinDiff/@configVersion", 0);
+    use_common_config = user_config.ReadInt("/bindiff/@config-version", 0) <
+                        common_config.ReadInt("/bindiff/@config-version", 0);
     LOG_IF(WARNING, use_common_config)
         << "User config version is out of date, using per-machine config";
   } else if (have_user_config) {

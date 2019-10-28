@@ -44,7 +44,7 @@ bool KeyLessThan(const EdgeFeature& one, const EdgeFeature& two) {
 
 double GetConfidenceFromConfig(const std::string& name) {
   return GetConfig()->ReadDouble(
-      absl::StrCat("/BinDiff/FunctionMatching/Step[@algorithm=\"", name,
+      absl::StrCat("/bindiff/function-matching/step[@algorithm=\"", name,
                    "\"]/@confidence"),
       /*default_value=*/-1.0 /* Not found/commented out */);
 }
@@ -373,7 +373,7 @@ MatchingSteps GetDefaultMatchingSteps() {
 
   MatchingSteps matching_steps;
   TinyXPath::xpath_processor processor(GetConfig()->document()->RootElement(),
-                                       "/BinDiff/FunctionMatching/Step");
+                                       "/bindiff/function-matching/step");
   const size_t num_nodes = processor.u_compute_xpath_node_set();
   for (size_t i = 0; i < num_nodes; ++i) {
     bool is_attribute = false;

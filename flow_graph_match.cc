@@ -29,7 +29,7 @@ namespace {
 
 double GetConfidenceFromConfig(const std::string& name) {
   return GetConfig()->ReadDouble(
-      absl::StrCat("/BinDiff/BasicBlockMatching/Step[@algorithm=\"", name,
+      absl::StrCat("/bindiff/basic-block-matching/step[@algorithm=\"", name,
                    "\"]/@confidence"),
       /*default_value=*/-1.0 /* Not found/commented out */);
 }
@@ -225,7 +225,7 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
 
   MatchingStepsFlowGraph matching_steps_basic_block;
   TinyXPath::xpath_processor processor(GetConfig()->document()->RootElement(),
-                                       "/BinDiff/BasicBlockMatching/Step");
+                                       "/bindiff/basic-block-matching/step");
   const size_t num_nodes = processor.u_compute_xpath_node_set();
   for (size_t i = 0; i < num_nodes; ++i) {
     bool is_attribute = false;
