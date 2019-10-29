@@ -1,0 +1,33 @@
+allprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = '1.8'
+
+    tasks.withType(AbstractArchiveTask) {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+    buildscript {
+        repositories {
+            jcenter()
+            mavenCentral()
+        }
+    }
+}
+
+subprojects {
+    repositories {
+        flatDir {
+            // Note: This path is relative to the sub-project
+            dirs '../../../../java/yfiles/v2_15'
+        }
+        jcenter()
+        mavenCentral()
+    }
+
+}
