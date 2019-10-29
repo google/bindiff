@@ -71,6 +71,7 @@
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.2_is1"
                       Name="InstallLocation" />
+
       <RegistrySearch Id="HexRaysIdaRegistry710" Type="raw" Win64="yes"
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.1_is1"
@@ -291,7 +292,7 @@
       <Directory Id="CommonAppDataFolder" Name="CommonAppData">
         <Directory Id="CommonAppData_BinDiff" Name="BinDiff">
           <Component Id="CommonAppData_BinDiff_Config"
-                     Guid="9AAA055A-1868-4F56-9005-8ED5BFA26967">
+                     Guid="4A28A4D1-BA02-4729-B2F6-16D67134B388">
             <CreateFolder>
               <Permission GenericAll="yes"
                           User="[WIX_ACCOUNT_LOCALSYSTEM]" />
@@ -303,35 +304,26 @@
             <RemoveFolder Id="CommonAppData_BinDiff"
                           On="both" />
 
-            <File Name="bindiff_core.xml" KeyPath="yes" />
-            <RemoveFile Id="Remove_bindiff_core.xml" Name="bindiff_core.xml" On="both"/>
+            <File Name="bindiff.xml" KeyPath="yes" />
+            <RemoveFile Id="Remove_bindiff.xml" Name="bindiff.xml" On="both"/>
             <util:XmlFile Id="BinDiffCoreConfigModifyGuiDir"
                           Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
-                          ElementPath="/BinDiff/Gui"
+                          File="[CommonAppDataFolder]BinDiff\bindiff.xml"
+                          ElementPath="/bindiff/ui"
                           Name="directory" Value="[INSTALLDIR]bin"
                           Sequence="1" />
-            <util:XmlFile Id="BinDiffCoreConfigModifyJavaBinary"
+            <util:XmlFile Id="BinDiffConfigModifyJavaBinary"
                           Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
-                          ElementPath="/BinDiff/Gui"
-                          Name="java_binary" Value="[INSTALLDIR]jre\bin\javaw.exe"
+                          File="[CommonAppDataFolder]BinDiff\bindiff.xml"
+                          ElementPath="/bindiff/ui"
+                          Name="java-binary" Value="[INSTALLDIR]jre\bin\javaw.exe"
                           Sequence="2" />
-            <util:XmlFile Id="BinDiffCoreConfigModifyIdaDir"
+            <util:XmlFile Id="BinDiffConfigModifyIdaDir"
                           Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff_core.xml"
-                          ElementPath="/BinDiff/Ida"
+                          File="[CommonAppDataFolder]BinDiff\bindiff.xml"
+                          ElementPath="/bindiff/ida"
                           Name="directory" Value="[IDADIRECTORY]"
                           Sequence="3" />
-
-            <File Name="bindiff_ui.xml" />
-            <RemoveFile Id="Remove_bindiff_ui.xml" Name="bindiff_ui.xml" On="both"/>
-            <util:XmlFile Id="BinDiffUIConfigModifyIdaDir"
-                          Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff_ui.xml"
-                          ElementPath="/BinDiff/Ida"
-                          Name="directory" Value="[IDADIRECTORY]"
-                          Sequence="1" />
           </Component>
         </Directory>
       </Directory>
