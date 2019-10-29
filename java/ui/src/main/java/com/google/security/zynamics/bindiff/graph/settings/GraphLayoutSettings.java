@@ -10,7 +10,6 @@ import com.google.security.zynamics.bindiff.graph.layout.LayoutCreator;
 import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.settings.ILayoutSettings;
-
 import y.layout.CanonicMultiStageLayouter;
 
 public class GraphLayoutSettings implements ILayoutSettings {
@@ -20,7 +19,8 @@ public class GraphLayoutSettings implements ILayoutSettings {
 
   private int visibilityWarningThreshold;
 
-  private boolean layoutAnimation;
+  private int animationSpeed;
+  private final int lastAnimationSpeed;
 
   // Hierarchical tab
   private ELayoutOrientation hierarchicLayoutOrientation;
@@ -44,14 +44,15 @@ public class GraphLayoutSettings implements ILayoutSettings {
 
   public GraphLayoutSettings(final GraphViewSettingsConfigItem initialSettings) {
     // Configurable initial settings.
-    defaultGraphLayout = EGraphLayout.getEnum(initialSettings.getDefaultGraphLayout());
+    defaultGraphLayout = initialSettings.getDefaultGraphLayout();
 
     autoLayouting = initialSettings.getAutoLayouting();
     visibilityWarningThreshold = initialSettings.getVisibilityWarningThreshold();
 
-    layoutAnimation = initialSettings.getLayoutAnimation();
+    animationSpeed = initialSettings.getAnimationSpeed();
+    lastAnimationSpeed = animationSpeed;
 
-    circularLayoutStyle = ECircularLayoutStyle.getEnum(initialSettings.getCircularLayoutStyle());
+    circularLayoutStyle = initialSettings.getCircularLayoutStyle();
     circularLayoutMinNodeDistance = initialSettings.getCircularMinimumNodeDistance();
 
     hierarchicOrthogonalEdgeRouting = initialSettings.getHierarchicalOrthogonalEdgeRouting();
@@ -60,10 +61,8 @@ public class GraphLayoutSettings implements ILayoutSettings {
     hierarchicLayoutMinLayerDistance = initialSettings.getHierarchicalMinimumNodeDistance();
     hierarchicLayoutMinNodeDistance = initialSettings.getHierarchicalMinimumLayerDistance();
 
-    orthogonalLayoutStyle =
-        EOrthogonalLayoutStyle.getEnum(initialSettings.getOrthogonalLayoutStyle());
-    orthogonalLayoutOrientation =
-        ELayoutOrientation.getEnum(initialSettings.getOrthogonalOrientation());
+    orthogonalLayoutStyle = initialSettings.getOrthogonalLayoutStyle();
+    orthogonalLayoutOrientation = initialSettings.getOrthogonalOrientation();
     orthogonalLayoutMinNodeDistance = initialSettings.getOrthogonalMinimumNodeDistance();
 
     updateLayouter();
@@ -93,7 +92,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
 
   @Override
   public boolean getAnimateLayout() {
-    return layoutAnimation;
+    return animationSpeed > 0;
   }
 
   @Override
@@ -161,11 +160,11 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public void setAnimateLayout(final boolean animateLayout) {
-    if (animateLayout == layoutAnimation) {
+    if (animateLayout == (animationSpeed > 0)) {
       return;
     }
 
-    layoutAnimation = animateLayout;
+    animationSpeed = lastAnimationSpeed;
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.layoutAnimationChanged(this);

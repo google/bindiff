@@ -15,11 +15,8 @@ public class GraphSettings extends AbstractZyGraphSettings {
       new ListenerProvider<>();
 
   private final GraphLayoutSettings layoutSettings;
-
   private final GraphProximityBrowsingSettings proximitySettings;
-
   private final GraphDisplaySettings displaySettings;
-
   private final GraphMouseSettings mouseSettings;
 
   private boolean drawBends;
@@ -39,7 +36,7 @@ public class GraphSettings extends AbstractZyGraphSettings {
     showScrollbars = initialSettings.getShowScrollbars();
 
     graphSync =
-        initialSettings.getViewSynchronization() == true
+        initialSettings.getViewSynchronization()
             ? EGraphSynchronization.SYNC
             : EGraphSynchronization.ASYNC;
     focusSide = ESide.PRIMARY;

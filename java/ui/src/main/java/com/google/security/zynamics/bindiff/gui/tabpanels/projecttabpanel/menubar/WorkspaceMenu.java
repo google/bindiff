@@ -142,25 +142,12 @@ public final class WorkspaceMenu extends JMenu {
   }
 
   private void loadRecentWorkspacesFromConfig() {
-    final GeneralSettingsConfigItem mainSettings =
-        BinDiffConfig.getInstance().getMainSettings();
-
-    recentWorkspaces.add(
-        new File(mainSettings.getLastWorkspaceDirectory1()).exists()
-            ? mainSettings.getLastWorkspaceDirectory1()
-            : "");
-    recentWorkspaces.add(
-        new File(mainSettings.getLastWorkspaceDirectory2()).exists()
-            ? mainSettings.getLastWorkspaceDirectory2()
-            : "");
-    recentWorkspaces.add(
-        new File(mainSettings.getLastWorkspaceDirectory3()).exists()
-            ? mainSettings.getLastWorkspaceDirectory3()
-            : "");
-    recentWorkspaces.add(
-        new File(mainSettings.getLastWorkspaceDirectory4()).exists()
-            ? mainSettings.getLastWorkspaceDirectory4()
-            : "");
+    final GeneralSettingsConfigItem mainSettings = BinDiffConfig.getInstance().getMainSettings();
+    for (final String dir : mainSettings.getRecentWorkspaceDirectories()) {
+      if (new File(dir).isFile()) {
+        recentWorkspaces.add(dir);
+      }
+    }
   }
 
   private String minimizeWorkspacePath(final String workspacePath) {
@@ -172,19 +159,18 @@ public final class WorkspaceMenu extends JMenu {
     final File workspaceFile = new File(workspacePath);
     final String parentPath = workspaceFile.getParent();
 
-    String minimizedPath = workspaceFile.getPath();
+    StringBuilder minimizedPath = new StringBuilder(workspaceFile.getPath());
     if (parentPath.length() > 25) {
-      minimizedPath = parentPath.substring(0, 3);
-      minimizedPath += "...";
-      minimizedPath += parentPath.substring(parentPath.length() - 20);
-      minimizedPath += File.separator;
-      minimizedPath += workspaceFile.getName();
+      minimizedPath = new StringBuilder(parentPath.substring(0, 3));
+      minimizedPath.append("...");
+      minimizedPath.append(parentPath, parentPath.length() - 20, parentPath.length());
+      minimizedPath.append(File.separator);
+      minimizedPath.append(workspaceFile.getName());
     }
-
-    return minimizedPath;
+    return minimizedPath.toString();
   }
 
-  private void updateworkspaceMenu() {
+  private void updateWorkspaceMenu() {
     removeAll();
     addSubmenuEntries();
   }
@@ -222,11 +208,13 @@ public final class WorkspaceMenu extends JMenu {
         recentWorkspaces.set(0, recentWorkspaces.get(idx));
         recentWorkspaces.set(idx, temp);
       } else {
-        recentWorkspaces.remove(MAX_RECENT - 1);
+        if (!recentWorkspaces.isEmpty()) {
+          recentWorkspaces.remove(recentWorkspaces.size() - 1);
+        }
         recentWorkspaces.add(0, path);
       }
 
-      updateworkspaceMenu();
+      updateWorkspaceMenu();
     }
   }
 }

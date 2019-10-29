@@ -30,6 +30,6 @@ public class InitialCallGraphViewSettingsConfigItem extends GraphViewSettingsCon
 
   @Override
   protected String getXPath(final String relative) {
-    return "/BinDiff/CallGraph/" + relative;
+    return "/bindiff/preferences/call-graph/" + relative;
   }
 }

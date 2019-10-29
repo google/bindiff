@@ -60,7 +60,7 @@ public final class BinDiffConfig {
     return colorSettings;
   }
 
-  public GraphViewSettingsConfigItem getInitialCallgraphSettings() {
+  public GraphViewSettingsConfigItem getInitialCallGraphSettings() {
     return initialCallGraphSettings;
   }
 

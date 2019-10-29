@@ -1,109 +1,109 @@
 package com.google.security.zynamics.bindiff.config;
 
+import com.google.common.base.Ascii;
+import com.google.security.zynamics.bindiff.enums.ECircularLayoutStyle;
+import com.google.security.zynamics.bindiff.enums.EGraphLayout;
+import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
+import com.google.security.zynamics.bindiff.enums.EMouseAction;
+import com.google.security.zynamics.bindiff.enums.EOrthogonalLayoutStyle;
 import javax.xml.xpath.XPathException;
 import org.w3c.dom.Document;
 
 /** This abstract class holds all graph related configuration settings. */
 public abstract class GraphViewSettingsConfigItem extends ConfigItem {
 
-  private static final String DEFAULT_GRAPH_LAYOUT = "DefaultGraphLayout/@value";
-  private static final int DEFAULT_GRAPH_LAYOUT_DEFAULT = 0;
-  private int defaultGraphLayout = DEFAULT_GRAPH_LAYOUT_DEFAULT;
+  private static final String DEFAULT_GRAPH_LAYOUT = "layout/@default";
+  private static final EGraphLayout DEFAULT_GRAPH_LAYOUT_DEFAULT = EGraphLayout.HIERARCHICAL;
+  private EGraphLayout defaultGraphLayout = DEFAULT_GRAPH_LAYOUT_DEFAULT;
 
-  private static final String AUTO_LAYOUTING = "AutoLayouting/@value";
+  private static final String AUTO_LAYOUTING = "layout/@auto";
   private static final boolean AUTO_LAYOUTING_DEFAULT = true;
   private boolean autoLayouting = AUTO_LAYOUTING_DEFAULT;
 
-  private static final String PROXIMITY_BROWSING = "ProximityBrowsing/@value";
+  private static final String PROXIMITY_BROWSING = "proximity-browsing/@enabled";
   private static final boolean PROXIMITY_BROWSING_DEFAULT = true;
   private boolean proximityBrowsing = PROXIMITY_BROWSING_DEFAULT;
 
-  private static final String PROXIMITY_BROWSING_CHILD_DEPTH = "ProximityBrowsingChildDepth/@value";
+  private static final String PROXIMITY_BROWSING_CHILD_DEPTH = "proximity-browsing/@child-depth";
   private int proximityBrowsingChildDepth;
 
-  private static final String PROXIMITY_BROWSING_PARENT_DEPTH =
-      "ProximityBrowsingParentDepth/@value";
+  private static final String PROXIMITY_BROWSING_PARENT_DEPTH = "proximity-browsing/@parent-depth";
   private int proximityBrowsingParentDepth;
 
   private static final String AUTO_PROXIMITY_BROWSING_ACTIVATION_THRESHOLD =
-      "AutoProximityBrowsingActivationThreshold/@value";
+      "proximity-browsing/@auto-enable-threshold";
   private int autoProximityBrowsingActivationThreshold;
 
-  private static final String VISIBILITY_WARNING_THRESHOLD = "VisibilityWarningThreshold/@value";
+  private static final String VISIBILITY_WARNING_THRESHOLD =
+      "proximity-browsing/@visibility-warn-threshold";
   private int visibilityWarningThreshold;
 
-  private static final String DRAW_BENDS = "DrawBends/@value";
+  private static final String DRAW_BENDS = "layout/@draw-bends";
   private static final boolean DRAW_BENDS_DEFAULT = false;
   private boolean drawBends = DRAW_BENDS_DEFAULT;
 
-  private static final String HIERARCHICAL_ORTHOGONAL_EDGEROUTING =
-      "HierarchicalOrthogonalEdgeRouting/@value";
+  private static final String HIERARCHICAL_ORTHOGONAL_EDGEROUTING = "hierarchical-layout/@style";
   private static final boolean HIERARCHICAL_ORTHOGONAL_EDGEROUTING_DEFAULT = false;
   private boolean hierarchicalOrthogonalEdgeRouting = HIERARCHICAL_ORTHOGONAL_EDGEROUTING_DEFAULT;
 
-  private static final String HIERARCHICAL_ORIENTATION = "HierarchicalOrientation/@value";
+  private static final String HIERARCHICAL_ORIENTATION = "hierarchical-layout/@orientation";
   private int hierarchicalOrientation;
 
   private static final String HIERARCHICAL_MINIMUM_LAYER_DISTANCE =
-      "HierarchicalMinimumLayerDistance/@value";
+      "hierarchical-layout/@min-layer-distance";
   private static final int HIERARCHICAL_MINIMUM_LAYER_DISTANCE_DEFAULT = 50;
   private int hierarchicalMinimumLayerDistance = HIERARCHICAL_MINIMUM_LAYER_DISTANCE_DEFAULT;
 
   private static final String HIERARCHICAL_MINIMUM_NODE_DISTANCE =
-      "HierarchicalMinimumNodeDistance/@value";
+      "hierarchical-layout/@min-node-distance";
   private static final int HIERARCHICAL_MINIMUM_NODE_DISTANCE_DEFAULT = 25;
   private int hierarchicalMinimumNodeDistance = HIERARCHICAL_MINIMUM_NODE_DISTANCE_DEFAULT;
 
-  private static final String ORTHOGONAL_LAYOUT_STYLE = "OrthogonalLayoutStyle/@value";
-  private static final int ORTHOGONAL_LAYOUT_STYLE_DEFAULT = 0;
-  private int orthogonalLayoutStyle = ORTHOGONAL_LAYOUT_STYLE_DEFAULT;
+  private static final String ORTHOGONAL_LAYOUT_STYLE = "orthogonal-layout/@style";
+  private static final EOrthogonalLayoutStyle ORTHOGONAL_LAYOUT_STYLE_DEFAULT =
+      EOrthogonalLayoutStyle.NORMAL;
+  private EOrthogonalLayoutStyle orthogonalLayoutStyle = ORTHOGONAL_LAYOUT_STYLE_DEFAULT;
 
-  private static final String ORTHOGONAL_ORIENTATION = "OrthogonalOrientation/@value";
-  private static final int ORTHOGONAL_ORIENTATION_DEFAULT = 0;
-  private int orthogonalOrientation = ORTHOGONAL_ORIENTATION_DEFAULT;
+  private static final String ORTHOGONAL_ORIENTATION = "orthogonal-layout/@orientation";
+  private static final ELayoutOrientation ORTHOGONAL_ORIENTATION_DEFAULT =
+      ELayoutOrientation.VERTICAL;
+  private ELayoutOrientation orthogonalOrientation = ORTHOGONAL_ORIENTATION_DEFAULT;
 
   private static final String ORTHOGONAL_MINIMUM_NODE_DISTANCE =
-      "OrthogonalMinimumNodeDistance/@value";
+      "orthogonal-layout/@min-node-distance";
   private static final int ORTHOGONAL_MINIMUM_NODE_DISTANCE_DEFAULT = 50;
   private int orthogonalMinimumNodeDistance = ORTHOGONAL_MINIMUM_NODE_DISTANCE_DEFAULT;
 
-  private static final String CIRCULAR_LAYOUT_STYLE = "CircularLayoutStyle/@value";
-  private static final int CIRCULAR_LAYOUT_STYLE_DEFAULT = 1;
-  private int circularLayoutStyle = CIRCULAR_LAYOUT_STYLE_DEFAULT;
+  private static final String CIRCULAR_LAYOUT_STYLE = "circular-layout/@style";
+  private static final ECircularLayoutStyle CIRCULAR_LAYOUT_STYLE_DEFAULT =
+      ECircularLayoutStyle.COMPACT;
+  private ECircularLayoutStyle circularLayoutStyle = CIRCULAR_LAYOUT_STYLE_DEFAULT;
 
-  private static final String CIRCULAR_MINIMUM_NODE_DISTANCE = "CircularMinimumNodeDistance/@value";
+  private static final String CIRCULAR_MINIMUM_NODE_DISTANCE = "circular-layout/@min-node-distance";
   private static final int CIRCULAR_MINIMUM_NODE_DISTANCE_DEFAULT = 50;
   private int circularMinimumNodeDistance = CIRCULAR_MINIMUM_NODE_DISTANCE_DEFAULT;
 
-  private static final String SCROLL_SENSITIVITY = "ScrollSensitivity/@value";
+  private static final String SCROLL_SENSITIVITY = "control/@scroll-sensitivity";
   private static final int SCROLL_SENSITIVITY_DEFAULT = 4;
   private int scrollSensitivity = SCROLL_SENSITIVITY_DEFAULT;
 
-  private static final String ZOOM_SENSITIVITY = "ZoomSensitivity/@value";
+  private static final String ZOOM_SENSITIVITY = "control/@zoom-sensitivity";
   private static final int ZOOM_SENSITIVITY_DEFAULT = 4;
   private int zoomSensitivity = ZOOM_SENSITIVITY_DEFAULT;
 
-  private static final String MOUSE_WHEEL_ACTION = "MouseWheelAction/@value";
-  private static final int MOUSE_WHEEL_ACTION_DEFAULT = 4;
-  private int mouseWheelAction = MOUSE_WHEEL_ACTION_DEFAULT;
+  private static final String MOUSE_WHEEL_ACTION = "control/@wheel-action";
+  private static final EMouseAction MOUSE_WHEEL_ACTION_DEFAULT = EMouseAction.SCROLL;
+  private EMouseAction mouseWheelAction = MOUSE_WHEEL_ACTION_DEFAULT;
 
-  private static final String VIEW_SYNCHRONIZATION = "ViewSynchronization/@value";
+  private static final String VIEW_SYNCHRONIZATION = "control/@view-synchronization";
   private static final boolean VIEW_SYNCHRONIZATION_DEFAULT = true;
   private boolean viewSynchronization = VIEW_SYNCHRONIZATION_DEFAULT;
 
-  private static final String GRADIENT_BACKGROUND = "GradientBackground/@value";
-  private static final boolean GRADIENT_BACKGROUND_DEFAULT = false;
-  private boolean gradientBackground = GRADIENT_BACKGROUND_DEFAULT;
-
-  private static final String SHOW_SCROLLBARS = "ShowScrollbars/@value";
+  private static final String SHOW_SCROLLBARS = "control/@show-scrollbars";
   private static final boolean SHOW_SCROLLBARS_DEFAULT = false;
   private boolean showScrollbars = SHOW_SCROLLBARS_DEFAULT;
 
-  private static final String LAYOUT_ANIMATION = "LayoutAnimation/@value";
-  private static final boolean LAYOUT_ANIMATION_DEFAULT = true;
-  private boolean layoutAnimation = LAYOUT_ANIMATION_DEFAULT;
-
-  private static final String ANIMATION_SPEED = "AnimationSpeed/@value";
+  private static final String ANIMATION_SPEED = "layout/@animation-speed";
   private static final int ANIMATION_SPEED_DEFAULT = 5;
   private int animationSpeed = ANIMATION_SPEED_DEFAULT;
 
@@ -130,8 +130,19 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
 
   @Override
   public void load(final Document doc) throws XPathException {
-    defaultGraphLayout =
-        getInteger(doc, getXPath(DEFAULT_GRAPH_LAYOUT), DEFAULT_GRAPH_LAYOUT_DEFAULT);
+    switch (Ascii.toLowerCase(getString(doc, getXPath(DEFAULT_GRAPH_LAYOUT), ""))) {
+      case "hierarchical":
+        defaultGraphLayout = EGraphLayout.HIERARCHICAL;
+        break;
+      case "orthogonal":
+        defaultGraphLayout = EGraphLayout.ORTHOGONAL;
+        break;
+      case "circular":
+        defaultGraphLayout = EGraphLayout.CIRCULAR;
+        break;
+      default: // Keep default
+    }
+
     autoLayouting = getBoolean(doc, getXPath(AUTO_LAYOUTING), AUTO_LAYOUTING_DEFAULT);
     proximityBrowsing = getBoolean(doc, getXPath(PROXIMITY_BROWSING), PROXIMITY_BROWSING_DEFAULT);
     proximityBrowsingChildDepth =
@@ -155,11 +166,15 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
             getXPath(VISIBILITY_WARNING_THRESHOLD),
             getVisibilityWarningThresholdDefaultValue());
     drawBends = getBoolean(doc, getXPath(DRAW_BENDS), DRAW_BENDS_DEFAULT);
-    hierarchicalOrthogonalEdgeRouting =
-        getBoolean(
-            doc,
-            getXPath(HIERARCHICAL_ORTHOGONAL_EDGEROUTING),
-            HIERARCHICAL_ORTHOGONAL_EDGEROUTING_DEFAULT);
+
+    switch (Ascii.toLowerCase(getString(doc, getXPath(HIERARCHICAL_ORTHOGONAL_EDGEROUTING), ""))) {
+      case "orthogonal-edge-routing":
+        hierarchicalOrthogonalEdgeRouting = true;
+        break;
+      case "default": // fall through
+      default: // Keep default
+    }
+
     hierarchicalOrientation =
         getInteger(
             doc, getXPath(HIERARCHICAL_ORIENTATION), getHierarchicalOrientationDefaultValue());
@@ -173,35 +188,79 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
             doc,
             getXPath(HIERARCHICAL_MINIMUM_NODE_DISTANCE),
             HIERARCHICAL_MINIMUM_NODE_DISTANCE_DEFAULT);
-    orthogonalLayoutStyle =
-        getInteger(doc, getXPath(ORTHOGONAL_LAYOUT_STYLE), ORTHOGONAL_LAYOUT_STYLE_DEFAULT);
-    orthogonalOrientation =
-        getInteger(doc, getXPath(ORTHOGONAL_ORIENTATION), ORTHOGONAL_ORIENTATION_DEFAULT);
+
+    switch (Ascii.toLowerCase(getString(doc, getXPath(ORTHOGONAL_LAYOUT_STYLE), ""))) {
+      case "normal":
+        orthogonalLayoutStyle = EOrthogonalLayoutStyle.NORMAL;
+        break;
+      case "tree":
+        orthogonalLayoutStyle = EOrthogonalLayoutStyle.TREE;
+        break;
+      default: // Keep default
+    }
+    switch (Ascii.toLowerCase(getString(doc, getXPath(ORTHOGONAL_ORIENTATION), ""))) {
+      case "vertical":
+        orthogonalOrientation = ELayoutOrientation.VERTICAL;
+        break;
+      case "horizontal":
+        orthogonalOrientation = ELayoutOrientation.HORIZONTAL;
+        break;
+      default: // Keep default
+    }
     orthogonalMinimumNodeDistance =
         getInteger(
             doc,
             getXPath(ORTHOGONAL_MINIMUM_NODE_DISTANCE),
             ORTHOGONAL_MINIMUM_NODE_DISTANCE_DEFAULT);
-    circularLayoutStyle =
-        getInteger(doc, getXPath(CIRCULAR_LAYOUT_STYLE), CIRCULAR_LAYOUT_STYLE_DEFAULT);
+
+    switch (Ascii.toLowerCase(getString(doc, getXPath(CIRCULAR_LAYOUT_STYLE), ""))) {
+      case "compact":
+        circularLayoutStyle = ECircularLayoutStyle.COMPACT;
+        break;
+      case "isolated":
+        circularLayoutStyle = ECircularLayoutStyle.ISOLATED;
+        break;
+      case "single-cycle":
+        circularLayoutStyle = ECircularLayoutStyle.SINGLE_CYCLE;
+        break;
+      default: // Keep default
+    }
     circularMinimumNodeDistance =
         getInteger(
             doc, getXPath(CIRCULAR_MINIMUM_NODE_DISTANCE), CIRCULAR_MINIMUM_NODE_DISTANCE_DEFAULT);
     scrollSensitivity = getInteger(doc, getXPath(SCROLL_SENSITIVITY), SCROLL_SENSITIVITY_DEFAULT);
     zoomSensitivity = getInteger(doc, getXPath(ZOOM_SENSITIVITY), ZOOM_SENSITIVITY_DEFAULT);
-    mouseWheelAction = getInteger(doc, getXPath(MOUSE_WHEEL_ACTION), MOUSE_WHEEL_ACTION_DEFAULT);
+
+    try {
+      mouseWheelAction =
+          EMouseAction.valueOf(
+              Ascii.toUpperCase(
+                  getString(
+                      doc, getXPath(MOUSE_WHEEL_ACTION), MOUSE_WHEEL_ACTION_DEFAULT.toString())));
+    } catch (IllegalArgumentException e) {
+      /* Keep default */
+    }
+
     viewSynchronization =
         getBoolean(doc, getXPath(VIEW_SYNCHRONIZATION), VIEW_SYNCHRONIZATION_DEFAULT);
-    gradientBackground =
-        getBoolean(doc, getXPath(GRADIENT_BACKGROUND), GRADIENT_BACKGROUND_DEFAULT);
     showScrollbars = getBoolean(doc, getXPath(SHOW_SCROLLBARS), SHOW_SCROLLBARS_DEFAULT);
-    layoutAnimation = getBoolean(doc, getXPath(LAYOUT_ANIMATION), LAYOUT_ANIMATION_DEFAULT);
     animationSpeed = getInteger(doc, getXPath(ANIMATION_SPEED), ANIMATION_SPEED_DEFAULT);
   }
 
   @Override
   public void store(final Document doc) throws XPathException {
-    setInteger(doc, getXPath(DEFAULT_GRAPH_LAYOUT), defaultGraphLayout);
+    switch (defaultGraphLayout) {
+      case HIERARCHICAL:
+        setString(doc, getXPath(DEFAULT_GRAPH_LAYOUT), "hierarchical");
+        break;
+      case ORTHOGONAL:
+        setString(doc, getXPath(DEFAULT_GRAPH_LAYOUT), "orthogonal");
+        break;
+      case CIRCULAR:
+        setString(doc, getXPath(DEFAULT_GRAPH_LAYOUT), "circular");
+        break;
+    }
+
     setBoolean(doc, getXPath(AUTO_LAYOUTING), autoLayouting);
     setBoolean(doc, getXPath(PROXIMITY_BROWSING), proximityBrowsing);
     setInteger(doc, getXPath(PROXIMITY_BROWSING_CHILD_DEPTH), proximityBrowsingChildDepth);
@@ -212,28 +271,56 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
         autoProximityBrowsingActivationThreshold);
     setInteger(doc, getXPath(VISIBILITY_WARNING_THRESHOLD), visibilityWarningThreshold);
     setBoolean(doc, getXPath(DRAW_BENDS), drawBends);
-    setBoolean(
-        doc, getXPath(HIERARCHICAL_ORTHOGONAL_EDGEROUTING), hierarchicalOrthogonalEdgeRouting);
+
+    setString(
+        doc,
+        getXPath(HIERARCHICAL_ORTHOGONAL_EDGEROUTING),
+        hierarchicalOrthogonalEdgeRouting ? "orthogonal-edge-routing" : "default");
+
     setInteger(doc, getXPath(HIERARCHICAL_ORIENTATION), hierarchicalOrientation);
     setInteger(
         doc, getXPath(HIERARCHICAL_MINIMUM_LAYER_DISTANCE), hierarchicalMinimumLayerDistance);
     setInteger(doc, getXPath(HIERARCHICAL_MINIMUM_NODE_DISTANCE), hierarchicalMinimumNodeDistance);
-    setInteger(doc, getXPath(ORTHOGONAL_LAYOUT_STYLE), orthogonalLayoutStyle);
-    setInteger(doc, getXPath(ORTHOGONAL_ORIENTATION), orthogonalOrientation);
+
+    switch (orthogonalLayoutStyle) {
+      case NORMAL:
+        setString(doc, getXPath(ORTHOGONAL_LAYOUT_STYLE), "default");
+        break;
+      case TREE:
+        setString(doc, getXPath(ORTHOGONAL_LAYOUT_STYLE), "tree");
+        break;
+    }
+    switch (orthogonalOrientation) {
+      case VERTICAL:
+        setString(doc, getXPath(ORTHOGONAL_ORIENTATION), "vertical");
+        break;
+      case HORIZONTAL:
+        setString(doc, getXPath(ORTHOGONAL_ORIENTATION), "horizontal");
+        break;
+    }
     setInteger(doc, getXPath(ORTHOGONAL_MINIMUM_NODE_DISTANCE), orthogonalMinimumNodeDistance);
-    setInteger(doc, getXPath(CIRCULAR_LAYOUT_STYLE), circularLayoutStyle);
+
+    switch (circularLayoutStyle) {
+      case COMPACT:
+        setString(doc, getXPath(CIRCULAR_LAYOUT_STYLE), "compact");
+        break;
+      case ISOLATED:
+        setString(doc, getXPath(CIRCULAR_LAYOUT_STYLE), "isolated");
+        break;
+      case SINGLE_CYCLE:
+        setString(doc, getXPath(CIRCULAR_LAYOUT_STYLE), "single-cycle");
+        break;
+    }
     setInteger(doc, getXPath(CIRCULAR_MINIMUM_NODE_DISTANCE), circularMinimumNodeDistance);
     setInteger(doc, getXPath(SCROLL_SENSITIVITY), scrollSensitivity);
     setInteger(doc, getXPath(ZOOM_SENSITIVITY), zoomSensitivity);
-    setInteger(doc, getXPath(MOUSE_WHEEL_ACTION), mouseWheelAction);
+    setString(doc, getXPath(MOUSE_WHEEL_ACTION), Ascii.toLowerCase(mouseWheelAction.toString()));
     setBoolean(doc, getXPath(VIEW_SYNCHRONIZATION), viewSynchronization);
-    setBoolean(doc, getXPath(GRADIENT_BACKGROUND), gradientBackground);
     setBoolean(doc, getXPath(SHOW_SCROLLBARS), showScrollbars);
-    setBoolean(doc, getXPath(LAYOUT_ANIMATION), layoutAnimation);
     setInteger(doc, getXPath(ANIMATION_SPEED), animationSpeed);
   }
 
-  public final int getDefaultGraphLayout() {
+  public final EGraphLayout getDefaultGraphLayout() {
     return defaultGraphLayout;
   }
 
@@ -281,11 +368,11 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     return hierarchicalMinimumNodeDistance;
   }
 
-  public final int getOrthogonalLayoutStyle() {
+  public final EOrthogonalLayoutStyle getOrthogonalLayoutStyle() {
     return orthogonalLayoutStyle;
   }
 
-  public final int getOrthogonalOrientation() {
+  public final ELayoutOrientation getOrthogonalOrientation() {
     return orthogonalOrientation;
   }
 
@@ -293,7 +380,7 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     return orthogonalMinimumNodeDistance;
   }
 
-  public final int getCircularLayoutStyle() {
+  public final ECircularLayoutStyle getCircularLayoutStyle() {
     return circularLayoutStyle;
   }
 
@@ -309,7 +396,7 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     return zoomSensitivity;
   }
 
-  public final int getMouseWheelAction() {
+  public final EMouseAction getMouseWheelAction() {
     return mouseWheelAction;
   }
 
@@ -317,23 +404,15 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     return viewSynchronization;
   }
 
-  public final boolean getGradientBackground() {
-    return gradientBackground;
-  }
-
   public final boolean getShowScrollbars() {
     return showScrollbars;
-  }
-
-  public final boolean getLayoutAnimation() {
-    return layoutAnimation;
   }
 
   public final int getAnimationSpeed() {
     return animationSpeed;
   }
 
-  public final void setDefaultGraphLayout(final int defaultGraphLayout) {
+  public final void setDefaultGraphLayout(final EGraphLayout defaultGraphLayout) {
     this.defaultGraphLayout = defaultGraphLayout;
   }
 
@@ -384,11 +463,11 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     this.hierarchicalMinimumNodeDistance = hierarchicalMinimumNodeDistance;
   }
 
-  public final void setOrthogonalLayoutStyle(final int orthogonalLayoutStyle) {
+  public final void setOrthogonalLayoutStyle(final EOrthogonalLayoutStyle orthogonalLayoutStyle) {
     this.orthogonalLayoutStyle = orthogonalLayoutStyle;
   }
 
-  public final void setOrthogonalOrientation(final int orthogonalOrientation) {
+  public final void setOrthogonalOrientation(final ELayoutOrientation orthogonalOrientation) {
     this.orthogonalOrientation = orthogonalOrientation;
   }
 
@@ -396,7 +475,7 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     this.orthogonalMinimumNodeDistance = orthogonalMinimumNodeDistance;
   }
 
-  public final void setCircularLayoutStyle(final int circularLayoutStyle) {
+  public final void setCircularLayoutStyle(final ECircularLayoutStyle circularLayoutStyle) {
     this.circularLayoutStyle = circularLayoutStyle;
   }
 
@@ -412,7 +491,7 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     this.zoomSensitivity = zoomSensitivity;
   }
 
-  public final void setMouseWheelAction(final int mouseWheelAction) {
+  public final void setMouseWheelAction(final EMouseAction mouseWheelAction) {
     this.mouseWheelAction = mouseWheelAction;
   }
 
@@ -420,16 +499,8 @@ public abstract class GraphViewSettingsConfigItem extends ConfigItem {
     this.viewSynchronization = viewSynchronization;
   }
 
-  public final void setGradientBackground(final boolean gradientBackground) {
-    this.gradientBackground = gradientBackground;
-  }
-
   public final void setShowScrollbars(final boolean showScrollbars) {
     this.showScrollbars = showScrollbars;
-  }
-
-  public final void setLayoutAnimation(final boolean layoutAnimation) {
-    this.layoutAnimation = layoutAnimation;
   }
 
   public final void setAnimationSpeed(final int animationSpeed) {

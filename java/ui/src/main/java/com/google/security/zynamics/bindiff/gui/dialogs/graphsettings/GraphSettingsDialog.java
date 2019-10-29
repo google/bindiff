@@ -1,6 +1,9 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 
 import com.google.common.base.Preconditions;
+import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
+import com.google.security.zynamics.bindiff.graph.settings.GraphMouseSettings;
+import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.CircularLayoutPanel;
@@ -12,18 +15,16 @@ import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.Ort
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.ProximityBrowsingPanel;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
-public class GraphSettingsDialog extends BaseDialog {
+public class GraphSettingsDialog extends BaseDialog implements ActionListener {
   private static final int DIALOG_WIDTH = 630;
   private static final int DIALOG_HEIGHT = 282;
 
@@ -35,28 +36,31 @@ public class GraphSettingsDialog extends BaseDialog {
   private final ControlsPanel controlsPanel;
   private final MiscPanel miscPanel;
 
-  private final CPanelTwoButtons buttons =
-      new CPanelTwoButtons(new InternalButtonListener(), "Ok", "Cancel");
+  private final CPanelTwoButtons buttons = new CPanelTwoButtons(this, "Ok", "Cancel");
 
   private final GraphSettings settings;
 
   public GraphSettingsDialog(final Window parent, final GraphSettings settings) {
-    super(parent, "Graphview Settings");
+    super(parent, "Graph View Settings");
 
     this.settings = Preconditions.checkNotNull(settings);
 
     proximityBrowsingPanel =
-        new ProximityBrowsingPanel("Proximity Browsing", ESettingsDialogType.NON_INITIAL, settings);
-    edgesPanel = new EdgesPanel("Edges", ESettingsDialogType.NON_INITIAL, settings);
+        new ProximityBrowsingPanel(
+            "Proximity Browsing", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
+    edgesPanel = new EdgesPanel("Edges", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
     hierarchicalLayoutPanel =
         new HierarchicalLayoutPanel(
-            "Hierarchical Layout", ESettingsDialogType.NON_INITIAL, settings);
+            "Hierarchical Layout", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
     orthogonalLayoutPanel =
-        new OrthogonalLayoutPanel("Orthogonal Layout", ESettingsDialogType.NON_INITIAL, settings);
+        new OrthogonalLayoutPanel(
+            "Orthogonal Layout", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
     circularLayoutPanel =
-        new CircularLayoutPanel("Circular Layout", ESettingsDialogType.NON_INITIAL, settings);
-    controlsPanel = new ControlsPanel("Controls", ESettingsDialogType.NON_INITIAL, settings);
-    miscPanel = new MiscPanel("Miscellaneous", ESettingsDialogType.NON_INITIAL, settings);
+        new CircularLayoutPanel(
+            "Circular Layout", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
+    controlsPanel =
+        new ControlsPanel("Controls", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
+    miscPanel = new MiscPanel("Miscellaneous", ESettingsDialogType.GRAPH_VIEW_SETTINGS, settings);
 
     init();
 
@@ -68,62 +72,43 @@ public class GraphSettingsDialog extends BaseDialog {
     GuiHelper.centerChildToParent(parent, this, true);
   }
 
-  private void save() {
+  private void applySettings() {
+    final GraphLayoutSettings layoutSettings = settings.getLayoutSettings();
 
-    settings
-        .getLayoutSettings()
-        .setVisibilityWarningThreshold(proximityBrowsingPanel.getVisibilityWarningThreshold());
+    layoutSettings.setVisibilityWarningThreshold(
+        proximityBrowsingPanel.getVisibilityWarningThreshold());
 
-    settings
-        .getProximitySettings()
-        .setAutoProximityBrowsingActivationThreshold(
-            proximityBrowsingPanel.getAutoProximityBrowsingActivationThreshold());
-    settings
-        .getProximitySettings()
-        .setProximityBrowsingChildren(proximityBrowsingPanel.getProximityBrowsingChildDepth());
-    settings
-        .getProximitySettings()
-        .setProximityBrowsingParents(proximityBrowsingPanel.getProximityBrowsingParentDepth());
+    final GraphProximityBrowsingSettings proximitySettings = settings.getProximitySettings();
+    proximitySettings.setAutoProximityBrowsingActivationThreshold(
+        proximityBrowsingPanel.getAutoProximityBrowsingActivationThreshold());
+    proximitySettings.setProximityBrowsingChildren(
+        proximityBrowsingPanel.getProximityBrowsingChildDepth());
+    proximitySettings.setProximityBrowsingParents(
+        proximityBrowsingPanel.getProximityBrowsingParentDepth());
 
     settings.setDrawBends(edgesPanel.getDrawBends());
 
-    settings
-        .getLayoutSettings()
-        .setHierarchicOrthogonalEdgeRouting(hierarchicalLayoutPanel.getOrthogonalEdgeRouting());
-    settings
-        .getLayoutSettings()
-        .setHierarchicOrientation(hierarchicalLayoutPanel.getLayoutOrientation());
-    settings
-        .getLayoutSettings()
-        .setMinimumHierarchicLayerDistance(hierarchicalLayoutPanel.getMinimumLayerDistance());
-    settings
-        .getLayoutSettings()
-        .setMinimumHierarchicNodeDistance(hierarchicalLayoutPanel.getMinimumNodeDistance());
+    layoutSettings.setHierarchicOrthogonalEdgeRouting(
+        hierarchicalLayoutPanel.getOrthogonalEdgeRouting());
+    layoutSettings.setHierarchicOrientation(hierarchicalLayoutPanel.getLayoutOrientation());
+    layoutSettings.setMinimumHierarchicLayerDistance(
+        hierarchicalLayoutPanel.getMinimumLayerDistance());
+    layoutSettings.setMinimumHierarchicNodeDistance(
+        hierarchicalLayoutPanel.getMinimumNodeDistance());
 
-    settings
-        .getLayoutSettings()
-        .setOrthogonalLayoutStyle(orthogonalLayoutPanel.getOrthogonalLayoutStyle());
-    settings
-        .getLayoutSettings()
-        .setOrthogonalLayoutOrientation(orthogonalLayoutPanel.getOrthogonalOrientation());
-    settings
-        .getLayoutSettings()
-        .setMinimumOrthogonalNodeDistance(orthogonalLayoutPanel.getMinimumNodeDistance());
+    layoutSettings.setOrthogonalLayoutStyle(orthogonalLayoutPanel.getOrthogonalLayoutStyle());
+    layoutSettings.setOrthogonalLayoutOrientation(orthogonalLayoutPanel.getOrthogonalOrientation());
+    layoutSettings.setMinimumOrthogonalNodeDistance(orthogonalLayoutPanel.getMinimumNodeDistance());
 
-    settings
-        .getLayoutSettings()
-        .setCircularLayoutStyle(circularLayoutPanel.getCircularLayoutStyle());
-    settings
-        .getLayoutSettings()
-        .setMinimumCircularNodeDistance(circularLayoutPanel.getMinimumNodeDistance());
+    layoutSettings.setCircularLayoutStyle(circularLayoutPanel.getCircularLayoutStyle());
+    layoutSettings.setMinimumCircularNodeDistance(circularLayoutPanel.getMinimumNodeDistance());
 
     settings.setShowScrollbars(controlsPanel.getShowScrollbars());
-    settings.getMouseSettings().setMousewheelAction(controlsPanel.getMouseWheelBehaviour());
-    settings.getMouseSettings().setZoomSensitivity(controlsPanel.getZoomSensitivity());
-    settings.getMouseSettings().setScrollSensitivity(controlsPanel.getScrollSensitivity());
+    final GraphMouseSettings mouseSettings = settings.getMouseSettings();
+    mouseSettings.setMousewheelAction(controlsPanel.getMouseWheelBehavior());
+    mouseSettings.setZoomSensitivity(controlsPanel.getZoomSensitivity());
+    mouseSettings.setScrollSensitivity(controlsPanel.getScrollSensitivity());
 
-    settings.getDisplaySettings().setGradientBackground(miscPanel.getGradientBackground());
-    settings.getLayoutSettings().setAnimateLayout(miscPanel.getLayoutAnimation());
     settings.getDisplaySettings().setAnimationSpeed(miscPanel.getAnimationSpeed());
 
     settings.getLayoutSettings().updateLayouter();
@@ -131,7 +116,6 @@ public class GraphSettingsDialog extends BaseDialog {
 
   private void init() {
     final JTabbedPane tabs = new JTabbedPane();
-
     tabs.addTab("Browsing", proximityBrowsingPanel);
     tabs.addTab("Edges", edgesPanel);
     tabs.addTab("Hierarchical", hierarchicalLayoutPanel);
@@ -163,14 +147,11 @@ public class GraphSettingsDialog extends BaseDialog {
     super.setVisible(visible);
   }
 
-  private class InternalButtonListener implements ActionListener {
-    @Override
-    public void actionPerformed(final ActionEvent event) {
-      if (event.getActionCommand().equals("Ok")) {
-        save();
-      }
-
-      dispose();
+  @Override
+  public void actionPerformed(ActionEvent e) {
+    if (e.getActionCommand().equals("Ok")) {
+      applySettings();
     }
+    dispose();
   }
 }

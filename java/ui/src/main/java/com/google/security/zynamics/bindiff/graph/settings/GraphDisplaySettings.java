@@ -7,8 +7,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.settings.IDisplaySettings;
 import com.google.security.zynamics.zylib.gui.zygraph.settings.IDisplaySettingsListener;
 
 public class GraphDisplaySettings implements IDisplaySettings {
-  private boolean gradientBackground;
-
   private int animationSpeed;
 
   private final ListenerProvider<IDisplaySettingsListener> zySettingsListeners =
@@ -19,7 +17,6 @@ public class GraphDisplaySettings implements IDisplaySettings {
 
   public GraphDisplaySettings(final GraphViewSettingsConfigItem initialSettings) {
     animationSpeed = initialSettings.getAnimationSpeed();
-    gradientBackground = initialSettings.getGradientBackground();
   }
 
   protected void addListener(final IGraphSettingsChangedListener listener) {
@@ -48,10 +45,6 @@ public class GraphDisplaySettings implements IDisplaySettings {
     return animationSpeed;
   }
 
-  public boolean getGradientBackground() {
-    return gradientBackground;
-  }
-
   @Override
   public boolean getMagnifyingGlassMode() {
     // Always return false, we want to get rid of the magnifying glass
@@ -71,17 +64,6 @@ public class GraphDisplaySettings implements IDisplaySettings {
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.animationSpeedChanged(this);
-    }
-  }
-
-  public void setGradientBackground(final boolean value) {
-    if (gradientBackground == value) {
-      return;
-    }
-    gradientBackground = value;
-
-    for (final IGraphSettingsChangedListener listener : settingsListeners) {
-      listener.gradientBackgroundChanged(this);
     }
   }
 

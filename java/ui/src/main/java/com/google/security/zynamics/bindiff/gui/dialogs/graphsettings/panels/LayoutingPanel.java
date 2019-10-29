@@ -6,11 +6,9 @@ import com.google.security.zynamics.bindiff.enums.EGraphLayout;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
@@ -29,19 +27,7 @@ public final class LayoutingPanel extends JPanel {
   private final GraphSettings settings;
 
   public LayoutingPanel(final String borderTitle, final ESettingsDialogType type) {
-    super(new BorderLayout());
-
-    Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type == ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or non-initial.");
-    }
-
-    dialogType = type;
-
-    settings = null;
-
-    init(borderTitle);
+    this(borderTitle, type, null);
   }
 
   public LayoutingPanel(
@@ -49,13 +35,9 @@ public final class LayoutingPanel extends JPanel {
     super(new BorderLayout());
 
     Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type != ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or not non-initial.");
-    }
+    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
-
     this.settings = settings;
 
     init(borderTitle);
@@ -63,9 +45,9 @@ public final class LayoutingPanel extends JPanel {
 
   private boolean getAutoLayouting(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getAutoLayouting();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getAutoLayouting();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getAutoLayouting();
       default:
     }
@@ -75,10 +57,10 @@ public final class LayoutingPanel extends JPanel {
 
   private EGraphLayout getDefaultGraphLayout(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return EGraphLayout.getEnum(config.getInitialCallgraphSettings().getDefaultGraphLayout());
-      case INITIAL_FLOWGRAPH_SETTINGS:
-        return EGraphLayout.getEnum(config.getInitialFlowGraphSettings().getDefaultGraphLayout());
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getDefaultGraphLayout();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
+        return config.getInitialFlowGraphSettings().getDefaultGraphLayout();
       default:
     }
 

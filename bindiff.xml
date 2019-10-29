@@ -12,8 +12,8 @@
        the number of hardware threads present in the system.
     -->
   <threads use="2" />
-  <!-- Minimum log level and settings. Levels are (in this order): "info",
-       "warning", "error" and "fatal"
+  <!-- Minimum log level and settings. Levels are (in this order): "debug",
+       "info", "warning", "error" and "off". Fatal errors are always logged.
     -->
   <log level="info" to-stderr="false" to-file="false" directory=""/>
   <function-matching>
@@ -173,8 +173,14 @@
       <entry for="directory-diff-primary-dir" v=""/>
       <entry for="directory-diff-secondary-dir" v=""/>
       <entry for="add-existing-diff-dir" v=""/>
+      <list for="workspace-dir">
+        <!-- List of recent workspace directories: <entry v=""/> -->
+      </list>
     </history>
     <layout>
+      <!-- screenWidth/screenHeight will be used to check for changed
+           resolution
+        -->
       <window height="900" maximized="false" width="1200" x="100" y="100"/>
       <divider-position v="300"/>
     </layout>
@@ -182,29 +188,29 @@
     <call-graph>
       <!-- animation-speed = 0 disabled, otherwise range from 1-10 -->
       <layout default="hierarchical" auto="true" draw-bends="false"
-          animation-speed="5" background-gradient="false"/>
+          animation-speed="5"/>
       <proximity-browsing enabled="true" auto-enable-threshold="300"
           child-depth="1" parent-depth="1" visibility-warn-threshold="400" />
       <!-- style either "default" or "orthogonal-edge-routing" -->
       <hierarchical-layout style="default"
           orientation="vertical" min-layer-distance="50"
           min-node-distance="25"/>
-      <!-- style either "default" or "tree" -->
+      <!-- style either "default" or "tree", orientation "vertical" or
+           "horizontal"
+        -->
       <orthogonal-layout style="default" orientation="vertical"
           min-node-distance="25"/>
       <!-- style either "compact", "isolated" or "single-cycle" -->
-      <circular-layout value="compact" min-node-distance="50"/>
-      <!-- sensitivity steps 0-9, wheel-action either "zoom" or "scroll",
-           scrollbars "never", "always"
-        -->
+      <circular-layout style="compact" min-node-distance="50"/>
+      <!-- sensitivity steps 0-9, wheel-action either "zoom" or "scroll" -->
       <control scroll-sensitivity="4" zoom-sensitivity="4"
-          wheel-action="scroll" scrollbars="never"/>
-      <!-- <view-synchronization v="true"/> -->
+          wheel-action="scroll" show-scrollbars="false"
+          view-synchronization="true"/>
     </call-graph>
     <flow-graph>
       <!-- Same settings as for call-graph -->
       <layout default="hierarchical" auto="true" draw-bends="false"
-          animation-speed="5" background-gradient="false"/>
+          animation-speed="5"/>
       <proximity-browsing enabled="true" auto-enable-threshold="200"
           child-depth="2" parent-depth="2" visibility-warn-threshold="300"/>
       <hierarchical-layout orthogonal-edge-routing="false"
@@ -212,9 +218,10 @@
           min-node-distance="25"/>
       <orthogonal-layout style="normal" orientation="horizontal"
           min-node-distance="50"/>
-      <circular-layout value="compact" min-node-distance="50"/>
+      <circular-layout style="compact" min-node-distance="50"/>
       <control scroll-sensitivity="4" zoom-sensitivity="4"
-          wheel-action="scroll" scrollbars="never"/>
+          wheel-action="scroll" show-scrollbars="false"
+          view-synchronization="true" />
     </flow-graph>
   </preferences>
 </bindiff>

@@ -30,6 +30,6 @@ public class InitialFlowGraphViewSettingsConfigItem extends GraphViewSettingsCon
 
   @Override
   protected String getXPath(final String relative) {
-    return "/BinDiff/FlowGraph/" + relative;
+    return "/bindiff/preferences/flow-graph/" + relative;
   }
 }

@@ -7,11 +7,9 @@ import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -36,19 +34,7 @@ public class HierarchicalLayoutPanel extends JPanel {
   private final GraphSettings settings;
 
   public HierarchicalLayoutPanel(final String borderTitle, final ESettingsDialogType type) {
-    super(new BorderLayout());
-
-    Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type == ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or non-initial.");
-    }
-
-    dialogType = type;
-
-    settings = null;
-
-    init(borderTitle);
+    this(borderTitle, type, null);
   }
 
   public HierarchicalLayoutPanel(
@@ -56,10 +42,7 @@ public class HierarchicalLayoutPanel extends JPanel {
     super(new BorderLayout());
 
     Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type != ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or not non-initial.");
-    }
+    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
 
@@ -70,10 +53,10 @@ public class HierarchicalLayoutPanel extends JPanel {
 
   private ELayoutOrientation getLayoutOrientation(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
+      case INITIAL_CALL_GRAPH_SETTING:
         return ELayoutOrientation.getEnum(
-            config.getInitialCallgraphSettings().getHierarchicalOrientation());
-      case INITIAL_FLOWGRAPH_SETTINGS:
+            config.getInitialCallGraphSettings().getHierarchicalOrientation());
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return ELayoutOrientation.getEnum(
             config.getInitialFlowGraphSettings().getHierarchicalOrientation());
       default:
@@ -84,9 +67,9 @@ public class HierarchicalLayoutPanel extends JPanel {
 
   private int getMinimumLayerDistance(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getHierarchicalMinimumNodeDistance();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getHierarchicalMinimumNodeDistance();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getHierarchicalMinimumNodeDistance();
       default:
     }
@@ -96,9 +79,9 @@ public class HierarchicalLayoutPanel extends JPanel {
 
   private int getMinimumNodeDistance(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getHierarchicalMinimumLayerDistance();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getHierarchicalMinimumLayerDistance();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getHierarchicalMinimumLayerDistance();
       default:
     }
@@ -108,9 +91,9 @@ public class HierarchicalLayoutPanel extends JPanel {
 
   private boolean getOrthogonalEdgeRouting(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getHierarchicalOrthogonalEdgeRouting();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getHierarchicalOrthogonalEdgeRouting();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getHierarchicalOrthogonalEdgeRouting();
       default:
     }

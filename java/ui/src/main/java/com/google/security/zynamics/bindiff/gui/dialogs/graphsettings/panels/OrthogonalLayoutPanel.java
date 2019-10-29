@@ -8,11 +8,9 @@ import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -35,19 +33,7 @@ public class OrthogonalLayoutPanel extends JPanel {
   private final GraphSettings settings;
 
   public OrthogonalLayoutPanel(final String borderTitle, final ESettingsDialogType type) {
-    super(new BorderLayout());
-
-    Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type == ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or non-initial.");
-    }
-
-    dialogType = type;
-
-    settings = null;
-
-    init(borderTitle);
+    this(borderTitle, type, null);
   }
 
   public OrthogonalLayoutPanel(
@@ -55,13 +41,9 @@ public class OrthogonalLayoutPanel extends JPanel {
     super(new BorderLayout());
 
     Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type != ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or not non-initial.");
-    }
+    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
-
     this.settings = settings;
 
     init(borderTitle);
@@ -69,9 +51,9 @@ public class OrthogonalLayoutPanel extends JPanel {
 
   private int getMinimumNodeDistance(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getOrthogonalMinimumNodeDistance();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getOrthogonalMinimumNodeDistance();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getOrthogonalMinimumNodeDistance();
       default:
     }
@@ -81,12 +63,10 @@ public class OrthogonalLayoutPanel extends JPanel {
 
   private EOrthogonalLayoutStyle getOrthogonalLayoutStyle(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return EOrthogonalLayoutStyle.getEnum(
-            config.getInitialCallgraphSettings().getOrthogonalLayoutStyle());
-      case INITIAL_FLOWGRAPH_SETTINGS:
-        return EOrthogonalLayoutStyle.getEnum(
-            config.getInitialFlowGraphSettings().getOrthogonalLayoutStyle());
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getOrthogonalLayoutStyle();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
+        return config.getInitialFlowGraphSettings().getOrthogonalLayoutStyle();
       default:
     }
 
@@ -95,12 +75,10 @@ public class OrthogonalLayoutPanel extends JPanel {
 
   private ELayoutOrientation getOrthogonalOrientation(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return ELayoutOrientation.getEnum(
-            config.getInitialCallgraphSettings().getOrthogonalOrientation());
-      case INITIAL_FLOWGRAPH_SETTINGS:
-        return ELayoutOrientation.getEnum(
-            config.getInitialFlowGraphSettings().getOrthogonalOrientation());
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getOrthogonalOrientation();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
+        return config.getInitialFlowGraphSettings().getOrthogonalOrientation();
       default:
     }
 

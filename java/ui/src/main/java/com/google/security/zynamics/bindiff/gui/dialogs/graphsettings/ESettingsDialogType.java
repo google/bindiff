@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 
 public enum ESettingsDialogType {
-  INITIAL_CALLGRAPH_SETTING,
-  INITIAL_FLOWGRAPH_SETTINGS,
-  NON_INITIAL;
+  INITIAL_CALL_GRAPH_SETTING,
+  INITIAL_FLOW_GRAPH_SETTINGS,
+  GRAPH_VIEW_SETTINGS;
 }

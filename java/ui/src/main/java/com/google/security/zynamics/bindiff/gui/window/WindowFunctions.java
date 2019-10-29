@@ -15,6 +15,8 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JTabbedPane;
 
 /** Holder class for the actual controller class TabPanelManager. */
@@ -53,15 +55,13 @@ public class WindowFunctions {
     final WorkspaceMenuBar menuBar =
         (WorkspaceMenuBar) tabPanelManager.getWorkspaceTabPanel().getMenuBar();
 
-    final String[] recentWorkspaces = menuBar.getRecentWorkspaces();
-    settings.setLastWorkspaceDirectory1(
-        new File(recentWorkspaces[0]).exists() ? recentWorkspaces[0] : "");
-    settings.setLastWorkspaceDirectory2(
-        new File(recentWorkspaces[1]).exists() ? recentWorkspaces[1] : "");
-    settings.setLastWorkspaceDirectory3(
-        new File(recentWorkspaces[2]).exists() ? recentWorkspaces[2] : "");
-    settings.setLastWorkspaceDirectory4(
-        new File(recentWorkspaces[3]).exists() ? recentWorkspaces[3] : "");
+    List<String> recents = new ArrayList<>();
+    for (final String recent : menuBar.getRecentWorkspaces()) {
+      if (new File(recent).isFile()) {
+        recents.add(recent);
+      }
+    }
+    settings.setRecentWorkspaceDirectories(recents);
 
     try {
       BinDiffConfig.getInstance().write();

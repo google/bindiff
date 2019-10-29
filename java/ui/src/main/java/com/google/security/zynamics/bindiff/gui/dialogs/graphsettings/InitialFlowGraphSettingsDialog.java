@@ -2,11 +2,7 @@ package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
-import com.google.security.zynamics.bindiff.enums.ECircularLayoutStyle;
-import com.google.security.zynamics.bindiff.enums.EGraphLayout;
 import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
-import com.google.security.zynamics.bindiff.enums.EMouseAction;
-import com.google.security.zynamics.bindiff.enums.EOrthogonalLayoutStyle;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.CircularLayoutPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.ControlsPanel;
@@ -20,14 +16,12 @@ import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -37,24 +31,24 @@ public class InitialFlowGraphSettingsDialog extends BaseDialog {
   private static final int DIALOG_HEIGHT = 282;
 
   private final LayoutingPanel layoutingPanel =
-      new LayoutingPanel("Layouting", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+      new LayoutingPanel("Layouting", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final ProximityBrowsingPanel proximityBrowsingPanel =
       new ProximityBrowsingPanel(
-          "Proximity Browsing", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+          "Proximity Browsing", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final EdgesPanel edgesPanel =
-      new EdgesPanel("Edges", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+      new EdgesPanel("Edges", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final HierarchicalLayoutPanel hierarchicalLayoutPanel =
       new HierarchicalLayoutPanel(
-          "Hierarchical Layout", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+          "Hierarchical Layout", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final OrthogonalLayoutPanel orthogonalLayoutPanel =
       new OrthogonalLayoutPanel(
-          "Orthogonal Layout", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+          "Orthogonal Layout", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final CircularLayoutPanel circularLayoutPanel =
-      new CircularLayoutPanel("Circular Layout", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+      new CircularLayoutPanel("Circular Layout", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final ControlsPanel controlsPanel =
-      new ControlsPanel("Controls", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+      new ControlsPanel("Controls", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
   private final MiscPanel miscPanel =
-      new MiscPanel("Miscellaneous", ESettingsDialogType.INITIAL_FLOWGRAPH_SETTINGS);
+      new MiscPanel("Miscellaneous", ESettingsDialogType.INITIAL_FLOW_GRAPH_SETTINGS);
 
   private final CPanelTwoButtons buttons =
       new CPanelTwoButtons(new InternalButtonListener(), "Ok", "Cancel");
@@ -77,7 +71,7 @@ public class InitialFlowGraphSettingsDialog extends BaseDialog {
 
     final GraphViewSettingsConfigItem settings = config.getInitialFlowGraphSettings();
 
-    settings.setDefaultGraphLayout(EGraphLayout.getOrdinal(layoutingPanel.getDefaultLayout()));
+    settings.setDefaultGraphLayout(layoutingPanel.getDefaultLayout());
     settings.setAutoLayouting(layoutingPanel.getAutoLayouting());
 
     settings.setProximityBrowsing(proximityBrowsingPanel.getProximityBrowsing());
@@ -97,24 +91,19 @@ public class InitialFlowGraphSettingsDialog extends BaseDialog {
     settings.setHierarchicalMinimumLayerDistance(hierarchicalLayoutPanel.getMinimumLayerDistance());
     settings.setHierarchicalMinimumNodeDistance(hierarchicalLayoutPanel.getMinimumNodeDistance());
 
-    settings.setOrthogonalLayoutStyle(
-        EOrthogonalLayoutStyle.getOrdinal(orthogonalLayoutPanel.getOrthogonalLayoutStyle()));
-    settings.setOrthogonalOrientation(
-        ELayoutOrientation.getOrdinal(orthogonalLayoutPanel.getOrthogonalOrientation()));
+    settings.setOrthogonalLayoutStyle(orthogonalLayoutPanel.getOrthogonalLayoutStyle());
+    settings.setOrthogonalOrientation(orthogonalLayoutPanel.getOrthogonalOrientation());
     settings.setOrthogonalMinimumNodeDistance(orthogonalLayoutPanel.getMinimumNodeDistance());
 
-    settings.setCircularLayoutStyle(
-        ECircularLayoutStyle.getOrdinal(circularLayoutPanel.getCircularLayoutStyle()));
+    settings.setCircularLayoutStyle(circularLayoutPanel.getCircularLayoutStyle());
     settings.setCircularMinimumNodeDistance(circularLayoutPanel.getMinimumNodeDistance());
 
     settings.setShowScrollbars(controlsPanel.getShowScrollbars());
-    settings.setMouseWheelAction(EMouseAction.getOrdinal(controlsPanel.getMouseWheelBehaviour()));
+    settings.setMouseWheelAction(controlsPanel.getMouseWheelBehavior());
     settings.setZoomSensitivity(controlsPanel.getZoomSensitivity());
     settings.setScrollSensitivity(controlsPanel.getScrollSensitivity());
 
     settings.setViewSynchronization(miscPanel.getViewSynchronization());
-    settings.setGradientBackground(miscPanel.getGradientBackground());
-    settings.setLayoutAnimation(miscPanel.getLayoutAnimation());
     settings.setAnimationSpeed(miscPanel.getAnimationSpeed());
 
     config.write();
@@ -164,8 +153,8 @@ public class InitialFlowGraphSettingsDialog extends BaseDialog {
           save();
         } catch (final IOException e) {
           CMessageBox.showError(
-              InitialFlowGraphSettingsDialog.this, "Couldn't save inital flow graph settings.");
-          Logger.logException(e, "Couldn't save inital flow graph settings.");
+              InitialFlowGraphSettingsDialog.this, "Couldn't save initial flow graph settings.");
+          Logger.logException(e, "Couldn't save initial flow graph settings.");
         }
       }
 

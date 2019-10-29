@@ -43,11 +43,6 @@ public class GraphSettingsChangedListenerAdapter implements IGraphSettingsChange
   }
 
   @Override
-  public void gradientBackgroundChanged(final GraphDisplaySettings settings) {
-    // Do nothing by default
-  }
-
-  @Override
   public void graphSyncChanged(final GraphSettings settings) {
     // Do nothing by default
   }

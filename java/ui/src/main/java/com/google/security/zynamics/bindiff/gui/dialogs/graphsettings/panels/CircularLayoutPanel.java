@@ -7,11 +7,9 @@ import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -33,19 +31,7 @@ public class CircularLayoutPanel extends JPanel {
   private final GraphSettings settings;
 
   public CircularLayoutPanel(final String borderTitle, final ESettingsDialogType type) {
-    super(new BorderLayout());
-    Preconditions.checkNotNull(borderTitle);
-
-    // TODO(cblichmann): Check this code, it's not consistent with the three arg constructor
-    if (type == null || type == ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or non-initial.");
-    }
-
-    dialogType = type;
-
-    settings = null;
-
-    init(borderTitle);
+    this(borderTitle, type, null);
   }
 
   public CircularLayoutPanel(
@@ -53,14 +39,9 @@ public class CircularLayoutPanel extends JPanel {
     super(new BorderLayout());
 
     Preconditions.checkNotNull(borderTitle);
-
-    // TODO(cblichmann): Check this code, it's not consistent with the two arg constructor
-    if (type == null || type != ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or not non-initial.");
-    }
+    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
-
     this.settings = settings;
 
     init(borderTitle);
@@ -68,12 +49,10 @@ public class CircularLayoutPanel extends JPanel {
 
   private ECircularLayoutStyle getCircularLayoutStyle(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return ECircularLayoutStyle.getEnum(
-            config.getInitialCallgraphSettings().getCircularLayoutStyle());
-      case INITIAL_FLOWGRAPH_SETTINGS:
-        return ECircularLayoutStyle.getEnum(
-            config.getInitialFlowGraphSettings().getCircularLayoutStyle());
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getCircularLayoutStyle();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
+        return config.getInitialFlowGraphSettings().getCircularLayoutStyle();
       default:
     }
 
@@ -82,9 +61,9 @@ public class CircularLayoutPanel extends JPanel {
 
   private int getMinimumNodeDistance(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getCircularMinimumNodeDistance();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getCircularMinimumNodeDistance();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getCircularMinimumNodeDistance();
       default:
     }

@@ -7,11 +7,9 @@ import com.google.security.zynamics.bindiff.gui.components.SliderPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -44,18 +42,7 @@ public class ProximityBrowsingPanel extends JPanel {
   private final GraphSettings settings;
 
   public ProximityBrowsingPanel(final String borderTitle, final ESettingsDialogType type) {
-    super(new BorderLayout());
-
-    Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type == ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or non-initial.");
-    }
-
-    dialogType = type;
-    settings = null;
-
-    init(borderTitle);
+    this(borderTitle, type, null);
   }
 
   public ProximityBrowsingPanel(
@@ -63,10 +50,7 @@ public class ProximityBrowsingPanel extends JPanel {
     super(new BorderLayout());
 
     Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type != ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or not non-initial.");
-    }
+    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
     this.settings = settings;
@@ -76,9 +60,9 @@ public class ProximityBrowsingPanel extends JPanel {
 
   private int getAutoProximityBrowsingActivationThreshold(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getAutoProximityBrowsingActivationThreshold();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getAutoProximityBrowsingActivationThreshold();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getAutoProximityBrowsingActivationThreshold();
       default:
     }
@@ -88,9 +72,9 @@ public class ProximityBrowsingPanel extends JPanel {
 
   private boolean getProximityBrowsing(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getProximityBrowsing();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getProximityBrowsing();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getProximityBrowsing();
       default:
     }
@@ -100,9 +84,9 @@ public class ProximityBrowsingPanel extends JPanel {
 
   private int getProximityBrowsingChildDepth(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getProximityBrowsingChildDepth();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getProximityBrowsingChildDepth();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getProximityBrowsingChildDepth();
       default:
     }
@@ -112,9 +96,9 @@ public class ProximityBrowsingPanel extends JPanel {
 
   private int getProximityBrowsingParentDepth(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getProximityBrowsingParentDepth();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getProximityBrowsingParentDepth();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getProximityBrowsingParentDepth();
       default:
     }
@@ -124,9 +108,9 @@ public class ProximityBrowsingPanel extends JPanel {
 
   private int getVisibilityWarningThreshold(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getVisibilityWarningThreshold();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getVisibilityWarningThreshold();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getVisibilityWarningThreshold();
       default:
     }
@@ -143,12 +127,12 @@ public class ProximityBrowsingPanel extends JPanel {
     setCurrentValues();
 
     final int rows =
-        dialogType != ESettingsDialogType.NON_INITIAL ? NUMBER_OF_ROWS : NUMBER_OF_ROWS - 2;
+        dialogType != ESettingsDialogType.GRAPH_VIEW_SETTINGS ? NUMBER_OF_ROWS : NUMBER_OF_ROWS - 2;
 
     final JPanel panel = new JPanel(new GridLayout(rows, 1, 5, 5));
     panel.setBorder(new TitledBorder(borderTitle));
 
-    if (dialogType != ESettingsDialogType.NON_INITIAL) {
+    if (dialogType != ESettingsDialogType.GRAPH_VIEW_SETTINGS) {
       panel.add(
           GuiUtils.createHorizontalNamedComponentPanel(
               "Automatic proximity browsing", LABEL_WIDTH, proximityBrowsing, ROW_HEIGHT));
@@ -167,7 +151,7 @@ public class ProximityBrowsingPanel extends JPanel {
             proximityBrowsingChildDepth,
             ROW_HEIGHT));
 
-    if (dialogType != ESettingsDialogType.NON_INITIAL) {
+    if (dialogType != ESettingsDialogType.GRAPH_VIEW_SETTINGS) {
       panel.add(
           GuiUtils.createHorizontalNamedComponentPanel(
               "Automatic proximity browsing activation threshold",

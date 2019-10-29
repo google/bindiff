@@ -8,11 +8,9 @@ import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsD
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.sliders.DoubleLabeledSlider;
 import com.google.security.zynamics.zylib.gui.zygraph.MouseWheelAction;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
@@ -24,7 +22,7 @@ public class ControlsPanel extends JPanel {
   private static final int NUMBER_OF_ROWS = 4;
 
   private final JComboBox<String> showScrollbars = new JComboBox<>();
-  private final JComboBox<String> mouseWheelBehaviour = new JComboBox<>();
+  private final JComboBox<String> mouseWheelBehavior = new JComboBox<>();
   private final DoubleLabeledSlider zoomSensitivity =
       new DoubleLabeledSlider(
           "  " + "Low" + "  ", "  " + "High" + "  ", 1, 10, false, new LineBorder(Color.GRAY));
@@ -37,34 +35,17 @@ public class ControlsPanel extends JPanel {
   private final GraphSettings settings;
 
   public ControlsPanel(final String borderTitle, final ESettingsDialogType type) {
-    super(new BorderLayout());
-    Preconditions.checkNotNull(borderTitle);
-
-    if (type == null || type == ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or non-initial.");
-    }
-
-    dialogType = type;
-
-    settings = null;
-
-    zoomSensitivity.setInverted(true);
-    scrollSensitivity.setInverted(true);
-
-    init(borderTitle);
+    this(borderTitle, type, null);
   }
 
   public ControlsPanel(
       final String borderTitle, final ESettingsDialogType type, final GraphSettings settings) {
     super(new BorderLayout());
-    Preconditions.checkNotNull(borderTitle);
 
-    if (type == null || type != ESettingsDialogType.NON_INITIAL) {
-      throw new IllegalArgumentException("Dialog type cannot be null or not non-initial.");
-    }
+    Preconditions.checkNotNull(borderTitle);
+    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
-
     this.settings = settings;
 
     zoomSensitivity.setInverted(true);
@@ -75,10 +56,10 @@ public class ControlsPanel extends JPanel {
 
   private EMouseAction getMouseWheelBehaviour(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return EMouseAction.getEnum(config.getInitialCallgraphSettings().getMouseWheelAction());
-      case INITIAL_FLOWGRAPH_SETTINGS:
-        return EMouseAction.getEnum(config.getInitialFlowGraphSettings().getMouseWheelAction());
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getMouseWheelAction();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
+        return config.getInitialFlowGraphSettings().getMouseWheelAction();
       default:
     }
 
@@ -90,9 +71,9 @@ public class ControlsPanel extends JPanel {
   private int getScrollSensitivity(final BinDiffConfig config) {
 
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getScrollSensitivity();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getScrollSensitivity();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getScrollSensitivity();
       default:
     }
@@ -102,9 +83,9 @@ public class ControlsPanel extends JPanel {
 
   private boolean getShowScrollbars(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getShowScrollbars();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getShowScrollbars();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getShowScrollbars();
       default:
     }
@@ -114,9 +95,9 @@ public class ControlsPanel extends JPanel {
 
   private int getZoomSensitivity(final BinDiffConfig config) {
     switch (dialogType) {
-      case INITIAL_CALLGRAPH_SETTING:
-        return config.getInitialCallgraphSettings().getZoomSensitivity();
-      case INITIAL_FLOWGRAPH_SETTINGS:
+      case INITIAL_CALL_GRAPH_SETTING:
+        return config.getInitialCallGraphSettings().getZoomSensitivity();
+      case INITIAL_FLOW_GRAPH_SETTINGS:
         return config.getInitialFlowGraphSettings().getZoomSensitivity();
       default:
     }
@@ -129,8 +110,8 @@ public class ControlsPanel extends JPanel {
 
     showScrollbars.addItem("Always");
     showScrollbars.addItem("Never");
-    mouseWheelBehaviour.addItem("Zoom");
-    mouseWheelBehaviour.addItem("Scroll");
+    mouseWheelBehavior.addItem("Zoom");
+    mouseWheelBehavior.addItem("Scroll");
     setCurrentValues();
 
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
@@ -141,7 +122,7 @@ public class ControlsPanel extends JPanel {
             "Show scrollbars", LABEL_WIDTH, showScrollbars, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Mousewheel action", LABEL_WIDTH, mouseWheelBehaviour, ROW_HEIGHT));
+            "Mousewheel action", LABEL_WIDTH, mouseWheelBehavior, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "Zoom sensitivity", LABEL_WIDTH, zoomSensitivity, ROW_HEIGHT));
@@ -152,8 +133,8 @@ public class ControlsPanel extends JPanel {
     add(panel, BorderLayout.NORTH);
   }
 
-  public EMouseAction getMouseWheelBehaviour() {
-    return EMouseAction.getEnum(mouseWheelBehaviour.getSelectedIndex());
+  public EMouseAction getMouseWheelBehavior() {
+    return mouseWheelBehavior.getSelectedIndex() == 0 ? EMouseAction.ZOOM : EMouseAction.SCROLL;
   }
 
   public int getScrollSensitivity() {
@@ -172,7 +153,8 @@ public class ControlsPanel extends JPanel {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
     showScrollbars.setSelectedIndex(getShowScrollbars(config) ? 0 : 1);
-    mouseWheelBehaviour.setSelectedIndex(EMouseAction.getOrdinal(getMouseWheelBehaviour(config)));
+    mouseWheelBehavior.setSelectedIndex(
+        getMouseWheelBehaviour(config) == EMouseAction.ZOOM ? 0 : 1);
     zoomSensitivity.setValue(getZoomSensitivity(config));
     scrollSensitivity.setValue(getScrollSensitivity(config));
   }

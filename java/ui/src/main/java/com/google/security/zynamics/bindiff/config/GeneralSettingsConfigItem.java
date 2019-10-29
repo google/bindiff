@@ -1,146 +1,123 @@
 package com.google.security.zynamics.bindiff.config;
 
+import com.google.common.collect.ImmutableList;
+import java.util.List;
+import java.util.logging.Level;
 import javax.xml.xpath.XPathException;
 import org.w3c.dom.Document;
 
 /** Sets and gets the main settings via java */
 public class GeneralSettingsConfigItem extends ConfigItem {
 
-  private static final String CONFIG_FILE_FORMAT_VERSION = "/BinDiff/@configVersion";
-  private static final int CONFIG_FILE_FORMAT_VERSION_DEFAULT = 4;
+  private static final String CONFIG_FILE_FORMAT_VERSION = "/bindiff/@config-version";
+  private static final int CONFIG_FILE_FORMAT_VERSION_DEFAULT = 6;
   private int configFileFormatVersion = CONFIG_FILE_FORMAT_VERSION_DEFAULT;
 
-  private static final String SOCKET_PORT = "/BinDiff/Gui/@port";
+  private static final String SOCKET_PORT = "/bindiff/ui/@port";
   private static final int SOCKET_PORT_DEFAULT = 2000;
   private int socketPort = SOCKET_PORT_DEFAULT;
 
-  private static final String IDA_DIRECTORY = "/BinDiff/Ida/@directory";
+  private static final String IDA_DIRECTORY = "/bindiff/ida/@directory";
   private static final String IDA_DIRECTORY_DEFAULT = "";
   private String idaDirectory = IDA_DIRECTORY_DEFAULT;
 
-  private static final String WORKSPACE_DIRECTORY = "/BinDiff/Workspace/@directory";
+  private static final String WORKSPACE_DIRECTORY = "/bindiff/preferences/workspace/@directory";
   private static final String WORKSPACE_DIRECTORY_DEFAULT = "";
   private String workspaceDirectory = WORKSPACE_DIRECTORY_DEFAULT;
 
-  private static final String DEFAULT_WORKSPACE = "/BinDiff/Workspace/@default";
+  private static final String DEFAULT_WORKSPACE = "/bindiff/preferences/workspace/@default";
   private static final String DEFAULT_WORKSPACE_DEFAULT = "";
   private String defaultWorkspace = DEFAULT_WORKSPACE_DEFAULT;
 
-  private static final String DIFF_ENGINE_PATH = "/BinDiff/Engine/@path";
+  private static final String DIFF_ENGINE_PATH = "/bindiff/ui/@directory";
   private static final String DIFF_ENGINE_PATH_DEFAULT = "";
   private String diffEnginePath = DIFF_ENGINE_PATH_DEFAULT;
 
   private static final String ADD_EXISTING_DIFF_LAST_DIR =
-      "/BinDiff/History/Entry[@key='AddExistingDiffLastDir']/@value";
+      "/bindiff/preferences/history/entry[@for='add-existing-diff-dir']/@v";
   private static final String ADD_EXISTING_DIFF_LAST_DIR_DEFAULT = "";
   private String addExistingDiffLastDir = ADD_EXISTING_DIFF_LAST_DIR_DEFAULT;
 
   private static final String DIRECTORY_DIFF_LAST_PRIMARY_DIR =
-      "/BinDiff/History/Entry[@key='DirectoryDiffLastPrimaryDir']/@value";
+      "/bindiff/preferences/history/entry[@for='directory-diff-primary-dir']/@v";
   private static final String DIRECTORY_DIFF_LAST_PRIMARY_DIR_DEFAULT = "";
   private String directoryDiffLastPrimaryDir = DIRECTORY_DIFF_LAST_PRIMARY_DIR_DEFAULT;
 
   private static final String DIRECTORY_DIFF_LAST_SECONDARY_DIR =
-      "/BinDiff/History/Entry[@key='DirectoryDiffLastSecondaryDir']/@value";
+      "/bindiff/preferences/history/entry[@for='directory-diff-secondary-dir']/@v";
   private static final String DIRECTORY_DIFF_LAST_SECONDARY_DIR_DEFAULT = "";
   private String directoryDiffLastSecondaryDir = DIRECTORY_DIFF_LAST_SECONDARY_DIR_DEFAULT;
 
-  private static final String LAST_WORKSPACE_DIRECTORY_1 =
-      "/BinDiff/History/Entry[@key='LastWorkspaceDir1']/@value";
-  private static final String LAST_WORKSPACE_DIRECTORY_1_DEFAULT = "";
-  private String lastWorkspaceDirectory1 = LAST_WORKSPACE_DIRECTORY_1_DEFAULT;
-
-  private static final String LAST_WORKSPACE_DIRECTORY_2 =
-      "/BinDiff/History/Entry[@key='LastWorkspaceDir2']/@value";
-  private static final String LAST_WORKSPACE_DIRECTORY_2_DEFAULT = "";
-  private String lastWorkspaceDirectory2 = LAST_WORKSPACE_DIRECTORY_2_DEFAULT;
-
-  private static final String LAST_WORKSPACE_DIRECTORY_3 =
-      "/BinDiff/History/Entry[@key='LastWorkspaceDir3']/@value";
-  private static final String LAST_WORKSPACE_DIRECTORY_3_DEFAULT = "";
-  private String lastWorkspaceDirectory3 = LAST_WORKSPACE_DIRECTORY_3_DEFAULT;
-
-  private static final String LAST_WORKSPACE_DIRECTORY_4 =
-      "/BinDiff/History/Entry[@key='LastWorkspaceDir4']/@value";
-  private static final String LAST_WORKSPACE_DIRECTORY_4_DEFAULT = "";
-  private String lastWorkspaceDirectory4 = LAST_WORKSPACE_DIRECTORY_4_DEFAULT;
+  private static final String RECENT_WORKSPACE_DIRECTORIES =
+      "/bindiff/preferences/history/list[@for='workspace-dir']/entry/@v";
+  private static final ImmutableList<String> RECENT_WORKSPACE_DIRECTORIES_DEFAULT =
+      ImmutableList.of();
+  private List<String> recentWorkspaceDirectories = RECENT_WORKSPACE_DIRECTORIES_DEFAULT;
 
   private static final String NEW_DIFF_LAST_PRIMARY_DIR =
-      "/BinDiff/History/Entry[@key='NewDiffLastPrimaryDir']/@value";
+      "/bindiff/preferences/history/entry[@for='new-diff-primary-dir']/@v";
   private static final String NEW_DIFF_LAST_PRIMARY_DIR_DEFAULT = "";
   private String newDiffLastPrimaryDir = NEW_DIFF_LAST_PRIMARY_DIR_DEFAULT;
 
   private static final String NEW_DIFF_LAST_SECONDARY_DIR =
-      "/BinDiff/History/Entry[@key='NewDiffLastSecondaryDir']/@value";
+      "/bindiff/preferences/history/entry[@for='new-diff-secondary-dir']/@v";
   private static final String NEW_DIFF_LAST_SECONDARY_DIR_DEFAULT = "";
   private String newDiffLastSecondaryDir = NEW_DIFF_LAST_SECONDARY_DIR_DEFAULT;
 
-  private static final String CONSOLE_LOGGING = "/BinDiff/Logging/ConsoleLogging/@value";
+  private static final String LOG_LEVEL = "/bindiff/log/@level";
+  private static final Level LOG_LEVEL_DEFAULT = Level.INFO;
+  private Level logLevel = LOG_LEVEL_DEFAULT;
+
+  private boolean logVerbose = false;
+  private boolean logInfo = false;
+  private boolean logWarning = false;
+  private boolean logSevere = false;
+  private boolean logException = false;
+  private boolean logStacktrace = false;
+
+  private static final String CONSOLE_LOGGING = "/bindiff/log/@to-stderr";
   private static final boolean CONSOLE_LOGGING_DEFAULT = false;
   private boolean consoleLogging = CONSOLE_LOGGING_DEFAULT;
 
-  private static final String FILE_LOGGING = "/BinDiff/Logging/FileLogging/@value";
+  private static final String FILE_LOGGING = "/bindiff/log/@to-file";
   private static final boolean FILE_LOGGING_DEFAULT = false;
   private boolean fileLogging = FILE_LOGGING_DEFAULT;
 
-  private static final String LOG_FILE_LOCATION = "/BinDiff/Logging/LogFileLocation/@value";
+  private static final String LOG_FILE_LOCATION = "/bindiff/log/@directory";
   private static final String LOG_FILE_LOCATION_DEFAULT = "";
   private String logFileLocation = LOG_FILE_LOCATION_DEFAULT;
 
-  private static final String LOG_VERBOSE = "/BinDiff/Logging/LogVerbose/@value";
-  private static final boolean LOG_VERBOSE_DEFAULT = false;
-  private boolean logVerbose = LOG_VERBOSE_DEFAULT;
-
-  private static final String LOG_INFO = "/BinDiff/Logging/LogInfo/@value";
-  private static final boolean LOG_INFO_DEFAULT = false;
-  private boolean logInfo = LOG_INFO_DEFAULT;
-
-  private static final String LOG_WARNING = "/BinDiff/Logging/LogWarning/@value";
-  private static final boolean LOG_WARNING_DEFAULT = false;
-  private boolean logWarning = LOG_WARNING_DEFAULT;
-
-  private static final String LOG_SEVERE = "/BinDiff/Logging/LogSevere/@value";
-  private static final boolean LOG_SEVERE_DEFAULT = false;
-  private boolean logSevere = LOG_SEVERE_DEFAULT;
-
-  private static final String LOG_EXCEPTION = "/BinDiff/Logging/LogException/@value";
-  private static final boolean LOG_EXCEPTION_DEFAULT = false;
-  private boolean logException = LOG_EXCEPTION_DEFAULT;
-
-  private static final String LOG_STACKTRACE = "/BinDiff/Logging/LogStacktrace/@value";
-  private static final boolean LOG_STACKTRACE_DEFAULT = false;
-  private boolean logStacktrace = LOG_STACKTRACE_DEFAULT;
-
-  private static final String SCREEN_WIDTH = "/BinDiff/Layout/Screen/@width";
+  private static final String SCREEN_WIDTH = "/bindiff/preferences/layout/window/@screenWidth";
   private static final int SCREEN_WIDTH_DEFAULT = 0;
   private int screenWidth = SCREEN_WIDTH_DEFAULT;
 
-  private static final String SCREEN_HEIGHT = "/BinDiff/Layout/Screen/@height";
+  private static final String SCREEN_HEIGHT = "/bindiff/preferences/layout/window/@screenHeight";
   private static final int SCREEN_HEIGHT_DEFAULT = 0;
   private int screenHeight = SCREEN_HEIGHT_DEFAULT;
 
-  private static final String WINDOW_X_POS = "/BinDiff/Layout/Window/@x";
+  private static final String WINDOW_X_POS = "/bindiff/preferences/layout/window/@x";
   private static final int WINDOW_X_POS_DEFAULT = 0;
   private int windowXPos = WINDOW_X_POS_DEFAULT;
 
-  private static final String WINDOW_Y_POS = "/BinDiff/Layout/Window/@y";
+  private static final String WINDOW_Y_POS = "/bindiff/preferences/layout/window/@y";
   private static final int WINDOW_Y_POS_DEFAULT = 0;
   private int windowYPos = WINDOW_Y_POS_DEFAULT;
 
-  private static final String WINDOW_WIDTH = "/BinDiff/Layout/Window/@width";
+  private static final String WINDOW_WIDTH = "/bindiff/preferences/layout/window/@width";
   private static final int WINDOW_WIDTH_DEFAULT = 800;
   private int windowWidth = WINDOW_WIDTH_DEFAULT;
 
-  private static final String WINDOW_HEIGHT = "/BinDiff/Layout/Window/@height";
+  private static final String WINDOW_HEIGHT = "/bindiff/preferences/layout/window/@height";
   private static final int WINDOW_HEIGHT_DEFAULT = 600;
   private int windowHeight = WINDOW_HEIGHT_DEFAULT;
 
-  private static final String WINDOW_STATE_WAS_MAXIMIZED = "/BinDiff/Layout/Window/@maximized";
+  private static final String WINDOW_STATE_WAS_MAXIMIZED =
+      "/bindiff/preferences/layout/window/@maximized";
   private static final boolean WINDOW_STATE_WAS_MAXIMIZED_DEFAULT = false;
   private boolean windowStateWasMaximized = WINDOW_STATE_WAS_MAXIMIZED_DEFAULT;
 
   private static final String WORKSPACE_TREE_DIVIDER_POSITION =
-      "/BinDiff/Layout/WorkspaceTreeDividerPosition/@value";
+      "/bindiff/preferences/layout/divider-position/@v";
   private static final int WORKSPACE_TREE_DIVIDER_POSITION_DEFAULT = 200;
   private int workspaceTreeDividerPosition = WORKSPACE_TREE_DIVIDER_POSITION_DEFAULT;
 
@@ -152,14 +129,8 @@ public class GeneralSettingsConfigItem extends ConfigItem {
     defaultWorkspace = getString(doc, DEFAULT_WORKSPACE, DEFAULT_WORKSPACE_DEFAULT);
     idaDirectory = getString(doc, IDA_DIRECTORY, IDA_DIRECTORY_DEFAULT);
     workspaceDirectory = getString(doc, WORKSPACE_DIRECTORY, WORKSPACE_DIRECTORY_DEFAULT);
-    lastWorkspaceDirectory1 =
-        getString(doc, LAST_WORKSPACE_DIRECTORY_1, LAST_WORKSPACE_DIRECTORY_1_DEFAULT);
-    lastWorkspaceDirectory2 =
-        getString(doc, LAST_WORKSPACE_DIRECTORY_2, LAST_WORKSPACE_DIRECTORY_2_DEFAULT);
-    lastWorkspaceDirectory3 =
-        getString(doc, LAST_WORKSPACE_DIRECTORY_3, LAST_WORKSPACE_DIRECTORY_3_DEFAULT);
-    lastWorkspaceDirectory4 =
-        getString(doc, LAST_WORKSPACE_DIRECTORY_4, LAST_WORKSPACE_DIRECTORY_4_DEFAULT);
+    recentWorkspaceDirectories =
+        getStrings(doc, RECENT_WORKSPACE_DIRECTORIES, RECENT_WORKSPACE_DIRECTORIES_DEFAULT);
     socketPort = getInteger(doc, SOCKET_PORT, SOCKET_PORT_DEFAULT);
     newDiffLastPrimaryDir =
         getString(doc, NEW_DIFF_LAST_PRIMARY_DIR, NEW_DIFF_LAST_PRIMARY_DIR_DEFAULT);
@@ -173,15 +144,19 @@ public class GeneralSettingsConfigItem extends ConfigItem {
     addExistingDiffLastDir =
         getString(doc, ADD_EXISTING_DIFF_LAST_DIR, ADD_EXISTING_DIFF_LAST_DIR_DEFAULT);
 
+    // getLevel() maps "debug", "info", "warning", "error" and "off" to standard Java log levels.
+    logLevel = getLevel(doc, LOG_LEVEL, LOG_LEVEL_DEFAULT);
+    final int logIntValue = logLevel.intValue();
+    logVerbose = logIntValue <= Level.ALL.intValue();
+    logInfo = logIntValue <= Level.INFO.intValue();
+    logWarning = logIntValue <= Level.WARNING.intValue();
+    logSevere = logIntValue <= Level.SEVERE.intValue();
+    logException = logIntValue <= Level.SEVERE.intValue();
+    logStacktrace = logIntValue <= Level.SEVERE.intValue();
+
     consoleLogging = getBoolean(doc, CONSOLE_LOGGING, CONSOLE_LOGGING_DEFAULT);
     fileLogging = getBoolean(doc, FILE_LOGGING, FILE_LOGGING_DEFAULT);
     logFileLocation = getString(doc, LOG_FILE_LOCATION, LOG_FILE_LOCATION_DEFAULT);
-    logVerbose = getBoolean(doc, LOG_VERBOSE, LOG_VERBOSE_DEFAULT);
-    logInfo = getBoolean(doc, LOG_INFO, LOG_INFO_DEFAULT);
-    logWarning = getBoolean(doc, LOG_WARNING, LOG_WARNING_DEFAULT);
-    logSevere = getBoolean(doc, LOG_SEVERE, LOG_SEVERE_DEFAULT);
-    logException = getBoolean(doc, LOG_EXCEPTION, LOG_EXCEPTION_DEFAULT);
-    logStacktrace = getBoolean(doc, LOG_STACKTRACE, LOG_STACKTRACE_DEFAULT);
 
     windowStateWasMaximized =
         getBoolean(doc, WINDOW_STATE_WAS_MAXIMIZED, WINDOW_STATE_WAS_MAXIMIZED_DEFAULT);
@@ -197,15 +172,12 @@ public class GeneralSettingsConfigItem extends ConfigItem {
 
   @Override
   public void store(final Document doc) throws XPathException {
-    getString(doc, DIFF_ENGINE_PATH, diffEnginePath);
+    setString(doc, DIFF_ENGINE_PATH, diffEnginePath);
     setString(doc, DEFAULT_WORKSPACE, defaultWorkspace);
     setInteger(doc, CONFIG_FILE_FORMAT_VERSION, configFileFormatVersion);
     setString(doc, IDA_DIRECTORY, idaDirectory);
     setString(doc, WORKSPACE_DIRECTORY, workspaceDirectory);
-    getString(doc, LAST_WORKSPACE_DIRECTORY_1, lastWorkspaceDirectory1);
-    getString(doc, LAST_WORKSPACE_DIRECTORY_2, lastWorkspaceDirectory2);
-    getString(doc, LAST_WORKSPACE_DIRECTORY_3, lastWorkspaceDirectory3);
-    getString(doc, LAST_WORKSPACE_DIRECTORY_4, lastWorkspaceDirectory4);
+    setStrings(doc, RECENT_WORKSPACE_DIRECTORIES, recentWorkspaceDirectories);
     setInteger(doc, SOCKET_PORT, socketPort);
     setString(doc, NEW_DIFF_LAST_PRIMARY_DIR, newDiffLastPrimaryDir);
     setString(doc, NEW_DIFF_LAST_SECONDARY_DIR, newDiffLastSecondaryDir);
@@ -213,15 +185,21 @@ public class GeneralSettingsConfigItem extends ConfigItem {
     setString(doc, DIRECTORY_DIFF_LAST_SECONDARY_DIR, directoryDiffLastSecondaryDir);
     setString(doc, ADD_EXISTING_DIFF_LAST_DIR, addExistingDiffLastDir);
 
+    if (logVerbose) {
+      setLevel(doc, LOG_LEVEL, Level.ALL);
+    } else if (logInfo) {
+      setLevel(doc, LOG_LEVEL, Level.INFO);
+    } else if (logWarning) {
+      setLevel(doc, LOG_LEVEL, Level.WARNING);
+    } else if (logSevere || logException || logStacktrace) {
+      setLevel(doc, LOG_LEVEL, Level.SEVERE);
+    } else {
+      setLevel(doc, LOG_LEVEL, Level.OFF);
+    }
+
     setBoolean(doc, CONSOLE_LOGGING, consoleLogging);
     setBoolean(doc, FILE_LOGGING, fileLogging);
     setString(doc, LOG_FILE_LOCATION, logFileLocation);
-    setBoolean(doc, LOG_VERBOSE, logVerbose);
-    setBoolean(doc, LOG_INFO, logInfo);
-    setBoolean(doc, LOG_WARNING, logWarning);
-    setBoolean(doc, LOG_SEVERE, logSevere);
-    setBoolean(doc, LOG_EXCEPTION, logException);
-    setBoolean(doc, LOG_STACKTRACE, logStacktrace);
 
     setBoolean(doc, WINDOW_STATE_WAS_MAXIMIZED, windowStateWasMaximized);
     setInteger(doc, WINDOW_X_POS, windowXPos);
@@ -273,36 +251,12 @@ public class GeneralSettingsConfigItem extends ConfigItem {
     this.workspaceDirectory = workspaceDirectory;
   }
 
-  public String getLastWorkspaceDirectory1() {
-    return lastWorkspaceDirectory1;
+  public List<String> getRecentWorkspaceDirectories() {
+    return recentWorkspaceDirectories;
   }
 
-  public void setLastWorkspaceDirectory1(final String lastWorkspaceDirectory1) {
-    this.lastWorkspaceDirectory1 = lastWorkspaceDirectory1;
-  }
-
-  public String getLastWorkspaceDirectory2() {
-    return lastWorkspaceDirectory2;
-  }
-
-  public void setLastWorkspaceDirectory2(final String lastWorkspaceDirectory2) {
-    this.lastWorkspaceDirectory2 = lastWorkspaceDirectory2;
-  }
-
-  public String getLastWorkspaceDirectory3() {
-    return lastWorkspaceDirectory3;
-  }
-
-  public void setLastWorkspaceDirectory3(final String lastWorkspaceDirectory3) {
-    this.lastWorkspaceDirectory3 = lastWorkspaceDirectory3;
-  }
-
-  public String getLastWorkspaceDirectory4() {
-    return lastWorkspaceDirectory4;
-  }
-
-  public void setLastWorkspaceDirectory4(final String lastWorkspaceDirectory4) {
-    this.lastWorkspaceDirectory4 = lastWorkspaceDirectory4;
+  public void setRecentWorkspaceDirectories(final List<String> recentWorkspaceDirectories) {
+    this.recentWorkspaceDirectories = recentWorkspaceDirectories;
   }
 
   public final int getSocketPort() {
@@ -351,6 +305,14 @@ public class GeneralSettingsConfigItem extends ConfigItem {
 
   public final void setAddExistingDiffLastDir(final String addExistingDiffLastDir) {
     this.addExistingDiffLastDir = addExistingDiffLastDir;
+  }
+
+  public final Level getLogLevel() {
+    return logLevel;
+  }
+
+  public final void setLogLevel(final Level logLevel) {
+    this.logLevel = logLevel;
   }
 
   public final boolean getConsoleLogging() {

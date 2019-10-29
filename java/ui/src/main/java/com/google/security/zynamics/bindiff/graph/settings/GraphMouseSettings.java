@@ -16,7 +16,7 @@ public class GraphMouseSettings implements IMouseSettings {
       new ListenerProvider<>();
 
   public GraphMouseSettings(final GraphViewSettingsConfigItem initialSettings) {
-    mouseWheelAction = EMouseAction.getEnum(initialSettings.getMouseWheelAction());
+    mouseWheelAction = initialSettings.getMouseWheelAction();
     scrollSensitivity = initialSettings.getScrollSensitivity();
     zoomSensitivity = initialSettings.getZoomSensitivity();
   }

@@ -2,11 +2,7 @@ package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
-import com.google.security.zynamics.bindiff.enums.ECircularLayoutStyle;
-import com.google.security.zynamics.bindiff.enums.EGraphLayout;
 import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
-import com.google.security.zynamics.bindiff.enums.EMouseAction;
-import com.google.security.zynamics.bindiff.enums.EOrthogonalLayoutStyle;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.CircularLayoutPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.ControlsPanel;
@@ -20,14 +16,12 @@ import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -37,23 +31,24 @@ public class InitialCallGraphSettingsDialog extends BaseDialog {
   private static final int DIALOG_HEIGHT = 282;
 
   private final LayoutingPanel layoutingPanel =
-      new LayoutingPanel("Layouting", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+      new LayoutingPanel("Layouting", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final ProximityBrowsingPanel proximityBrowsingPanel =
       new ProximityBrowsingPanel(
-          "Proximity Browsing", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+          "Proximity Browsing", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final EdgesPanel edgesPanel =
-      new EdgesPanel("Edges", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+      new EdgesPanel("Edges", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final HierarchicalLayoutPanel hierarchicalLayoutPanel =
       new HierarchicalLayoutPanel(
-          "Hierarchical Layout", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+          "Hierarchical Layout", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final OrthogonalLayoutPanel orthogonalLayoutPanel =
-      new OrthogonalLayoutPanel("Orthogonal Layout", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+      new OrthogonalLayoutPanel(
+          "Orthogonal Layout", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final CircularLayoutPanel circularLayoutPanel =
-      new CircularLayoutPanel("Circular Layout", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+      new CircularLayoutPanel("Circular Layout", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final ControlsPanel controlsPanel =
-      new ControlsPanel("Controls", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+      new ControlsPanel("Controls", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
   private final MiscPanel miscPanel =
-      new MiscPanel("Miscellaneous", ESettingsDialogType.INITIAL_CALLGRAPH_SETTING);
+      new MiscPanel("Miscellaneous", ESettingsDialogType.INITIAL_CALL_GRAPH_SETTING);
 
   private final CPanelTwoButtons buttons =
       new CPanelTwoButtons(new InternalButtonListener(), "Ok", "Cancel");
@@ -73,9 +68,9 @@ public class InitialCallGraphSettingsDialog extends BaseDialog {
   private void save() throws IOException {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    final GraphViewSettingsConfigItem settings = config.getInitialCallgraphSettings();
+    final GraphViewSettingsConfigItem settings = config.getInitialCallGraphSettings();
 
-    settings.setDefaultGraphLayout(EGraphLayout.getOrdinal(layoutingPanel.getDefaultLayout()));
+    settings.setDefaultGraphLayout(layoutingPanel.getDefaultLayout());
     settings.setAutoLayouting(layoutingPanel.getAutoLayouting());
 
     settings.setProximityBrowsing(proximityBrowsingPanel.getProximityBrowsing());
@@ -96,24 +91,19 @@ public class InitialCallGraphSettingsDialog extends BaseDialog {
     settings.setHierarchicalMinimumLayerDistance(hierarchicalLayoutPanel.getMinimumLayerDistance());
     settings.setHierarchicalMinimumNodeDistance(hierarchicalLayoutPanel.getMinimumNodeDistance());
 
-    settings.setOrthogonalLayoutStyle(
-        EOrthogonalLayoutStyle.getOrdinal(orthogonalLayoutPanel.getOrthogonalLayoutStyle()));
-    settings.setOrthogonalOrientation(
-        ELayoutOrientation.getOrdinal(orthogonalLayoutPanel.getOrthogonalOrientation()));
+    settings.setOrthogonalLayoutStyle(orthogonalLayoutPanel.getOrthogonalLayoutStyle());
+    settings.setOrthogonalOrientation(orthogonalLayoutPanel.getOrthogonalOrientation());
     settings.setOrthogonalMinimumNodeDistance(orthogonalLayoutPanel.getMinimumNodeDistance());
 
-    settings.setCircularLayoutStyle(
-        ECircularLayoutStyle.getOrdinal(circularLayoutPanel.getCircularLayoutStyle()));
+    settings.setCircularLayoutStyle(circularLayoutPanel.getCircularLayoutStyle());
     settings.setCircularMinimumNodeDistance(circularLayoutPanel.getMinimumNodeDistance());
 
     settings.setShowScrollbars(controlsPanel.getShowScrollbars());
-    settings.setMouseWheelAction(EMouseAction.getOrdinal(controlsPanel.getMouseWheelBehaviour()));
+    settings.setMouseWheelAction(controlsPanel.getMouseWheelBehavior());
     settings.setZoomSensitivity(controlsPanel.getZoomSensitivity());
     settings.setScrollSensitivity(controlsPanel.getScrollSensitivity());
 
     settings.setViewSynchronization(miscPanel.getViewSynchronization());
-    settings.setGradientBackground(miscPanel.getGradientBackground());
-    settings.setLayoutAnimation(miscPanel.getLayoutAnimation());
     settings.setAnimationSpeed(miscPanel.getAnimationSpeed());
 
     config.write();
@@ -163,8 +153,8 @@ public class InitialCallGraphSettingsDialog extends BaseDialog {
           save();
         } catch (final IOException e) {
           CMessageBox.showError(
-              InitialCallGraphSettingsDialog.this, "Couldn't save inital call graph settings.");
-          Logger.logException(e, "Couldn't save inital call graph settings.");
+              InitialCallGraphSettingsDialog.this, "Couldn't save initial call graph settings.");
+          Logger.logException(e, "Couldn't save initial call graph settings.");
         }
       }
 

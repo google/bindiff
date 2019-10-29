@@ -17,8 +17,6 @@ public interface IGraphSettingsChangedListener {
 
   void focusSideChanged(GraphSettings settings);
 
-  void gradientBackgroundChanged(GraphDisplaySettings settings);
-
   void graphSyncChanged(GraphSettings settings);
 
   void hierarchicalLayoutMinLayerDistanceChanged(GraphLayoutSettings settings);
