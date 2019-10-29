@@ -1,5 +1,4 @@
-files/etc/opt/bindiff/bindiff_core.xml etc/opt/bindiff
-files/etc/opt/bindiff/bindiff_ui.xml etc/opt/bindiff
+files/etc/opt/bindiff/bindiff.xml etc/opt/bindiff
 files/opt/bindiff/LICENSE opt/bindiff
 files/opt/bindiff/roboto-mono-font-license.txt opt/bindiff
 files/opt/bindiff/bin/bindiff opt/bindiff/bin

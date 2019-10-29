@@ -20,7 +20,7 @@ set -e
 
 bindiff_root=/opt/bindiff
 bindiff_etc=/etc/opt/bindiff
-bindiff_release=5
+bindiff_release=6
 binexport_release=10
 
 case "$1" in
@@ -29,7 +29,7 @@ case "$1" in
         xdg-desktop-menu forceupdate --mode system
 
         # Setup install location in config file.
-        sed -i "s,BINDIFF_DIR,${bindiff_root}," ${bindiff_etc}/bindiff_core.xml
+        sed -i "s,BINDIFF_DIR,${bindiff_root}," ${bindiff_etc}/bindiff.xml
 
         db_get zynamics/ida7_location && idadir=${RET}
         if [ -x "${idadir}" ]; then
@@ -44,8 +44,7 @@ case "$1" in
                 "${idadir}/plugins/binexport${binexport_release}64.so"
 
             escidadir=$(echo $idadir | sed 's/\//\\\//g')
-            sed -i "s/IDADIR/${escidadir}/" ${bindiff_etc}/bindiff_core.xml
-            sed -i "s/IDADIR/${escidadir}/" ${bindiff_etc}/bindiff_ui.xml
+            sed -i "s/IDADIR/${escidadir}/" ${bindiff_etc}/bindiff.xml
         else
             echo "No stored path to the IDA Pro installation directory found, not"
             echo "creating any symlinks to the BinDif IDA plugins."
@@ -54,8 +53,7 @@ case "$1" in
             echo "To be able to use BinDiff, you also need to set the path to your"
             echo "IDA Pro installation directory in the following configuration"
             echo "files:"
-            echo "    ${bindiff_etc}/bindiff_core.xml"
-            echo "    ${bindiff_etc}/bindiff_ui.xml"
+            echo "    ${bindiff_etc}/bindiff.xml"
         fi
     ;;
 

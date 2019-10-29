@@ -1,6 +1,7 @@
 bindiff (6) unstable; urgency=medium
 
   * Updated Roboto fonts
+  * Unified configuration file for UI and core engine
 
  -- Christian Blichmann <cblichmann@google.com>  Tue, 07 May 2019 11:39:41 +0200
 
