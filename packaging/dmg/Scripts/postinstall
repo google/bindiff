@@ -41,10 +41,8 @@ ln -s "BinDiff.app/Contents/MacOS/bin" bin
 
 # Setup install location in config file.
 sed -i "" "s,BINDIFF_DIR,$APP_DIR/BinDiff.app/Contents/Java," \
-  "/Library/Application Support/BinDiff/bindiff_core.xml" \
-  "/Library/Application Support/BinDiff/bindiff_ui.xml"
+  "/Library/Application Support/BinDiff/bindiff.xml"
 
 escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
 sed -i "" "s/IDADIR/${escidadir}/" \
-  "/Library/Application Support/BinDiff/bindiff_core.xml" \
-  "/Library/Application Support/BinDiff/bindiff_ui.xml"
+  "/Library/Application Support/BinDiff/bindiff.xml"
