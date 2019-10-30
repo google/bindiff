@@ -1,10 +1,9 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
-import com.google.security.zynamics.bindiff.config.ColorsConfigItem;
+import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.ColorPanel.ColorPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
@@ -12,7 +11,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.TitledBorder;
@@ -48,7 +46,7 @@ public class SyntaxHighlightingPanel extends JPanel {
   }
 
   private JPanel createInstructionColorsPanel() {
-    final ColorsConfigItem settings = BinDiffConfig.getInstance().getColorSettings();
+    final ThemeConfigItem settings = BinDiffConfig.getInstance().getThemeSettings();
 
     final JPanel panel = new JPanel(new GridLayout(NUMMBER_OF_ROWS, 1, 5, 5));
     panel.setBorder(new TitledBorder("Syntax Highlighting"));
@@ -275,7 +273,7 @@ public class SyntaxHighlightingPanel extends JPanel {
   }
 
   public void setCurrentValues() {
-    final ColorsConfigItem settings = BinDiffConfig.getInstance().getColorSettings();
+    final ThemeConfigItem settings = BinDiffConfig.getInstance().getThemeSettings();
 
     defaultColor.setColor(settings.getDefaultColor());
     addressColor.setColor(settings.getAddressColor());

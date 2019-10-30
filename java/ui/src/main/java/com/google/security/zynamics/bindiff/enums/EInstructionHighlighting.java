@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.enums;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
-import com.google.security.zynamics.bindiff.config.ColorsConfigItem;
+import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
 import java.awt.Color;
 
 public enum EInstructionHighlighting {
@@ -72,7 +72,7 @@ public enum EInstructionHighlighting {
 
   public static Color getColor(final EInstructionHighlighting operandHighlighting) {
     final BinDiffConfig config = BinDiffConfig.getInstance();
-    final ColorsConfigItem colors = config.getColorSettings();
+    final ThemeConfigItem colors = config.getThemeSettings();
 
     switch (operandHighlighting) {
       case TYPE_DEFAULT:
@@ -107,7 +107,7 @@ public enum EInstructionHighlighting {
         return colors.getCommentColor();
     }
 
-    return config.getColorSettings().getDefaultColor();
+    return config.getThemeSettings().getDefaultColor();
   }
 
   public static Color getColor(final int operandHighlighting) {

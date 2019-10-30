@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.graph.builders;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
-import com.google.security.zynamics.bindiff.config.ColorsConfigItem;
+import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
@@ -350,7 +350,7 @@ public class ViewCallGraphBuilder {
 
     if (rawFunction != null) {
       final BinDiffConfig config = BinDiffConfig.getInstance();
-      final ColorsConfigItem settings = config.getColorSettings();
+      final ThemeConfigItem settings = config.getThemeSettings();
       final Color addressColor = settings.getAddressColor();
       final Color functionColor = settings.getMnemonicColor();
 

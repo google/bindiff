@@ -2,8 +2,8 @@ package com.google.security.zynamics.bindiff.gui.dialogs.mainsettings;
 
 import com.google.security.zynamics.bindiff.Launcher;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
-import com.google.security.zynamics.bindiff.config.ColorsConfigItem;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
+import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels.GeneralPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels.LoggingPanel;
@@ -12,14 +12,12 @@ import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -62,7 +60,7 @@ public class MainSettingsDialog extends BaseDialog {
   private void save() throws IOException {
     final BinDiffConfig config = BinDiffConfig.getInstance();
     final GeneralSettingsConfigItem mainSettings = config.getMainSettings();
-    final ColorsConfigItem colorSettings = config.getColorSettings();
+    final ThemeConfigItem colorSettings = config.getThemeSettings();
 
     // Genaral Panel
     mainSettings.setIdaDirectory(generalPanel.getIDADirectory());

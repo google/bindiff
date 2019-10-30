@@ -47,24 +47,6 @@ public abstract class ConfigItem {
     setString(doc, expression, String.valueOf(value));
   }
 
-  protected static Color getColor(
-      final Document doc, final String expression, final Color defaultValue)
-      throws XPathExpressionException {
-    try {
-      return Color.decode(getString(doc, expression, String.valueOf(defaultValue.getRGB())));
-    } catch (final NumberFormatException e) {
-      return defaultValue;
-    }
-  }
-
-  protected static void setColor(final Document doc, final String expression, final Color value)
-      throws XPathExpressionException {
-    setString(
-        doc,
-        expression,
-        String.format("#%02x%02x%02x", value.getRed(), value.getGreen(), value.getBlue()));
-  }
-
   protected static int getInteger(
       final Document doc, final String expression, final int defaultValue)
       throws XPathExpressionException {
@@ -246,5 +228,23 @@ public abstract class ConfigItem {
   protected static void setString(final Document doc, final String expression, final String value)
       throws XPathExpressionException {
     doSetStrings(doc, expression, Arrays.asList(value), true);
+  }
+
+  protected static Color getColor(
+      final Document doc, final String expression, final Color defaultValue)
+      throws XPathExpressionException {
+    try {
+      return Color.decode(getString(doc, expression, String.valueOf(defaultValue.getRGB())));
+    } catch (final NumberFormatException e) {
+      return defaultValue;
+    }
+  }
+
+  protected static void setColor(final Document doc, final String expression, final Color value)
+      throws XPathExpressionException {
+    setString(
+        doc,
+        expression,
+        String.format("#%02x%02x%02x", value.getRed(), value.getGreen(), value.getBlue()));
   }
 }
