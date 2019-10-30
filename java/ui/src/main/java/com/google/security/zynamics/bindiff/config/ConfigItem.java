@@ -3,6 +3,7 @@ package com.google.security.zynamics.bindiff.config;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
+import com.google.security.zynamics.bindiff.log.Logger;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,17 +83,7 @@ public abstract class ConfigItem {
 
   protected static void setLevel(final Document doc, final String expression, final Level value)
       throws XPathException {
-    if (Level.ALL.equals(value)) {
-      setString(doc, expression, "debug");
-    } else if (Level.INFO.equals(value)) {
-      setString(doc, expression, "info");
-    } else if (Level.WARNING.equals(value)) {
-      setString(doc, expression, "warning");
-    } else if (Level.SEVERE.equals(value)) {
-      setString(doc, expression, "error");
-    } else if (Level.OFF.equals(value)) {
-      setString(doc, expression, "off");
-    }
+    setString(doc, expression, Logger.levelToString(value));
   }
 
   protected static long getLong(

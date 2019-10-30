@@ -68,13 +68,6 @@ public class GeneralSettingsConfigItem extends ConfigItem {
   private static final Level LOG_LEVEL_DEFAULT = Level.INFO;
   private Level logLevel = LOG_LEVEL_DEFAULT;
 
-  private boolean logVerbose = false;
-  private boolean logInfo = false;
-  private boolean logWarning = false;
-  private boolean logSevere = false;
-  private boolean logException = false;
-  private boolean logStacktrace = false;
-
   private static final String CONSOLE_LOGGING = "/bindiff/log/@to-stderr";
   private static final boolean CONSOLE_LOGGING_DEFAULT = false;
   private boolean consoleLogging = CONSOLE_LOGGING_DEFAULT;
@@ -146,13 +139,6 @@ public class GeneralSettingsConfigItem extends ConfigItem {
 
     // getLevel() maps "debug", "info", "warning", "error" and "off" to standard Java log levels.
     logLevel = getLevel(doc, LOG_LEVEL, LOG_LEVEL_DEFAULT);
-    final int logIntValue = logLevel.intValue();
-    logVerbose = logIntValue <= Level.ALL.intValue();
-    logInfo = logIntValue <= Level.INFO.intValue();
-    logWarning = logIntValue <= Level.WARNING.intValue();
-    logSevere = logIntValue <= Level.SEVERE.intValue();
-    logException = logIntValue <= Level.SEVERE.intValue();
-    logStacktrace = logIntValue <= Level.SEVERE.intValue();
 
     consoleLogging = getBoolean(doc, CONSOLE_LOGGING, CONSOLE_LOGGING_DEFAULT);
     fileLogging = getBoolean(doc, FILE_LOGGING, FILE_LOGGING_DEFAULT);
@@ -185,18 +171,7 @@ public class GeneralSettingsConfigItem extends ConfigItem {
     setString(doc, DIRECTORY_DIFF_LAST_SECONDARY_DIR, directoryDiffLastSecondaryDir);
     setString(doc, ADD_EXISTING_DIFF_LAST_DIR, addExistingDiffLastDir);
 
-    if (logVerbose) {
-      setLevel(doc, LOG_LEVEL, Level.ALL);
-    } else if (logInfo) {
-      setLevel(doc, LOG_LEVEL, Level.INFO);
-    } else if (logWarning) {
-      setLevel(doc, LOG_LEVEL, Level.WARNING);
-    } else if (logSevere || logException || logStacktrace) {
-      setLevel(doc, LOG_LEVEL, Level.SEVERE);
-    } else {
-      setLevel(doc, LOG_LEVEL, Level.OFF);
-    }
-
+    setLevel(doc, LOG_LEVEL, logLevel);
     setBoolean(doc, CONSOLE_LOGGING, consoleLogging);
     setBoolean(doc, FILE_LOGGING, fileLogging);
     setString(doc, LOG_FILE_LOCATION, logFileLocation);
@@ -337,54 +312,6 @@ public class GeneralSettingsConfigItem extends ConfigItem {
 
   public final void setLogFileLocation(final String logFileLocation) {
     this.logFileLocation = logFileLocation;
-  }
-
-  public final boolean getLogVerbose() {
-    return logVerbose;
-  }
-
-  public final void setLogVerbose(final boolean logVerbose) {
-    this.logVerbose = logVerbose;
-  }
-
-  public final boolean getLogInfo() {
-    return logInfo;
-  }
-
-  public final void setLogInfo(final boolean logInfo) {
-    this.logInfo = logInfo;
-  }
-
-  public final boolean getLogWarning() {
-    return logWarning;
-  }
-
-  public final void setLogWarning(final boolean logWarning) {
-    this.logWarning = logWarning;
-  }
-
-  public final boolean getLogSevere() {
-    return logSevere;
-  }
-
-  public final void setLogSevere(final boolean logSevere) {
-    this.logSevere = logSevere;
-  }
-
-  public final boolean getLogException() {
-    return logException;
-  }
-
-  public final void setLogException(final boolean logException) {
-    this.logException = logException;
-  }
-
-  public final boolean getLogStacktrace() {
-    return logStacktrace;
-  }
-
-  public final void setLogStacktrace(final boolean logStacktrace) {
-    this.logStacktrace = logStacktrace;
   }
 
   public final boolean getWindowStateWasMaximized() {

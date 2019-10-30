@@ -6,7 +6,6 @@ import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
 import com.google.security.zynamics.zylib.io.DirectoryChooser;
-
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GridBagConstraints;
@@ -14,7 +13,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.logging.Level;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -26,14 +26,11 @@ public class LoggingPanel extends JPanel {
   private static final int NUMBER_OF_ROWS_PANEL_1 = 3;
   private static final int NUMBER_OF_ROWS_PANEL_2 = 6;
 
-  private final JComboBox<String> consoleLogging = new JComboBox<>();
-  private final JComboBox<String> fileLogging = new JComboBox<>();
-  private final JComboBox<String> logVerbose = new JComboBox<>();
-  private final JComboBox<String> logInfo = new JComboBox<>();
-  private final JComboBox<String> logWarning = new JComboBox<>();
-  private final JComboBox<String> logSevere = new JComboBox<>();
-  private final JComboBox<String> logExceptions = new JComboBox<>();
-  private final JComboBox<String> logStacktrace = new JComboBox<>();
+  private final JCheckBox consoleLogging = new JCheckBox();
+  private final JCheckBox fileLogging = new JCheckBox();
+  private final JComboBox<String> logLevel =
+      new JComboBox<>(
+          new String[] {"Debug" /* Index 0 */, "Info", "Warning", "Error", "Off" /* 4 */});
 
   private FileChooserPanel logFileLocationPanel;
 
@@ -43,55 +40,19 @@ public class LoggingPanel extends JPanel {
   }
 
   private static String selectLogFileDirectory(final Container parent) {
-    final DirectoryChooser selecter = new DirectoryChooser("Select Log Directory");
-
-    if (selecter.showOpenDialog(parent) == DirectoryChooser.APPROVE_OPTION) {
-      return selecter.getSelectedFile().getAbsolutePath();
-    }
-
-    return null;
+    final DirectoryChooser chooser = new DirectoryChooser("Select Logger Directory");
+    return chooser.showOpenDialog(parent) == DirectoryChooser.APPROVE_OPTION
+        ? chooser.getSelectedFile().getAbsolutePath()
+        : null;
   }
 
   private JPanel createLoggingDetailPanel() {
-    logVerbose.addItem("On");
-    logVerbose.addItem("Off");
-
-    logInfo.addItem("On");
-    logInfo.addItem("Off");
-
-    logWarning.addItem("On");
-    logWarning.addItem("Off");
-
-    logSevere.addItem("On");
-    logSevere.addItem("Off");
-
-    logExceptions.addItem("On");
-    logExceptions.addItem("Off");
-
-    logStacktrace.addItem("On");
-    logStacktrace.addItem("Off");
-
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS_PANEL_2, 1, 5, 5));
     panel.setBorder(new TitledBorder("Detail"));
 
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Verbose logging:", LABEL_WIDTH, logVerbose, ROW_HEIGHT));
-    panel.add(
-        GuiUtils.createHorizontalNamedComponentPanel(
-            "Log infos:", LABEL_WIDTH, logInfo, ROW_HEIGHT));
-    panel.add(
-        GuiUtils.createHorizontalNamedComponentPanel(
-            "Log warnings:", LABEL_WIDTH, logWarning, ROW_HEIGHT));
-    panel.add(
-        GuiUtils.createHorizontalNamedComponentPanel(
-            "Log severe warnings:", LABEL_WIDTH, logSevere, ROW_HEIGHT));
-    panel.add(
-        GuiUtils.createHorizontalNamedComponentPanel(
-            "Log exceptions:", LABEL_WIDTH, logExceptions, ROW_HEIGHT));
-    panel.add(
-        GuiUtils.createHorizontalNamedComponentPanel(
-            "Log stacktraces:", LABEL_WIDTH, logStacktrace, ROW_HEIGHT));
+            "Log level:", LABEL_WIDTH, logLevel, ROW_HEIGHT));
 
     return panel;
   }
@@ -100,16 +61,11 @@ public class LoggingPanel extends JPanel {
     final BinDiffConfig config = BinDiffConfig.getInstance();
     final GeneralSettingsConfigItem settings = config.getMainSettings();
 
-    consoleLogging.addItem("On");
-    consoleLogging.addItem("Off");
-    fileLogging.addItem("On");
-    fileLogging.addItem("Off");
-
     String logFileLocation = settings.getLogFileLocation();
     if ("".equals(logFileLocation)) {
       logFileLocation = Logger.getDefaultLoggingDirectoryPath();
     }
-    this.logFileLocationPanel =
+    logFileLocationPanel =
         new FileChooserPanel(
             logFileLocation, new InternalLogFileDirectoryListener(), "...", 0, ROW_HEIGHT, 0);
 
@@ -124,7 +80,7 @@ public class LoggingPanel extends JPanel {
             "File logging:", LABEL_WIDTH, fileLogging, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Log directory:", LABEL_WIDTH, this.logFileLocationPanel, ROW_HEIGHT));
+            "Logger directory:", LABEL_WIDTH, this.logFileLocationPanel, ROW_HEIGHT));
 
     return panel;
   }
@@ -132,76 +88,80 @@ public class LoggingPanel extends JPanel {
   private void init() {
     final JPanel mainPanel = new JPanel(new BorderLayout());
     final JPanel innerMainPanel = new JPanel(new GridBagLayout());
-    final GridBagConstraints cbc = new GridBagConstraints();
 
+    final GridBagConstraints cbc = new GridBagConstraints();
     cbc.gridx = 0;
-    cbc.gridy = 0;
     cbc.anchor = GridBagConstraints.FIRST_LINE_START;
     cbc.weightx = 1;
     cbc.fill = GridBagConstraints.HORIZONTAL;
 
+    cbc.gridy = 0;
     innerMainPanel.add(createLoggingPanel(), cbc);
 
     cbc.gridy = 1;
-
     innerMainPanel.add(createLoggingDetailPanel(), cbc);
 
     mainPanel.add(innerMainPanel, BorderLayout.NORTH);
-
     add(new JScrollPane(mainPanel));
 
     setCurrentValues();
   }
 
   public boolean getConsoleLogging() {
-    return consoleLogging.getSelectedIndex() == 0;
+    return consoleLogging.isSelected();
   }
 
   public boolean getFileLogging() {
-    return fileLogging.getSelectedIndex() == 0;
-  }
-
-  public boolean getLogException() {
-    return logExceptions.getSelectedIndex() == 0;
+    return fileLogging.isSelected();
   }
 
   public String getLogFileLocation() {
     return logFileLocationPanel.getText();
   }
 
-  public boolean getLogInfo() {
-    return logInfo.getSelectedIndex() == 0;
+  private static int levelToIndex(Level level) {
+    if (level.equals(Level.ALL)) {
+      return 0;
+    }
+    if (level.equals(Level.INFO)) {
+      return 1;
+    }
+    if (level.equals(Level.WARNING)) {
+      return 2;
+    }
+    if (level.equals(Level.SEVERE)) {
+      return 3;
+    }
+    if (level.equals(Level.OFF)) {
+      return 4;
+    }
+    return 1;
   }
 
-  public boolean getLogSevere() {
-    return logSevere.getSelectedIndex() == 0;
-  }
-
-  public boolean getLogStacktrace() {
-    return logStacktrace.getSelectedIndex() == 0;
-  }
-
-  public boolean getLogVerbose() {
-    return logVerbose.getSelectedIndex() == 0;
-  }
-
-  public boolean getLogWarning() {
-    return logWarning.getSelectedIndex() == 0;
+  public Level getLogLevel() {
+    switch (logLevel.getSelectedIndex()) {
+      case 0:
+        return Level.ALL;
+      case 2:
+        return Level.WARNING;
+      case 3:
+        return Level.SEVERE;
+      case 4:
+        return Level.OFF;
+      case 1:
+      default:
+        return Level.INFO;
+    }
   }
 
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
     final GeneralSettingsConfigItem settings = config.getMainSettings();
 
-    consoleLogging.setSelectedIndex(settings.getConsoleLogging() ? 0 : 1);
-    fileLogging.setSelectedIndex(settings.getFileLogging() ? 0 : 1);
+    consoleLogging.setSelected(settings.getConsoleLogging());
+    fileLogging.setSelected(settings.getFileLogging());
 
-    logVerbose.setSelectedIndex(settings.getLogVerbose() ? 0 : 1);
-    logInfo.setSelectedIndex(settings.getLogInfo() ? 0 : 1);
-    logWarning.setSelectedIndex(settings.getLogWarning() ? 0 : 1);
-    logSevere.setSelectedIndex(settings.getLogSevere() ? 0 : 1);
-    logExceptions.setSelectedIndex(settings.getLogException() ? 0 : 1);
-    logStacktrace.setSelectedIndex(settings.getLogStacktrace() ? 0 : 1);
+    logLevel.setSelectedIndex(levelToIndex(settings.getLogLevel()));
   }
 
   private class InternalLogFileDirectoryListener implements ActionListener {

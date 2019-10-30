@@ -62,7 +62,7 @@ public class MainSettingsDialog extends BaseDialog {
     final GeneralSettingsConfigItem mainSettings = config.getMainSettings();
     final ThemeConfigItem colorSettings = config.getThemeSettings();
 
-    // Genaral Panel
+    // General Panel
     mainSettings.setIdaDirectory(generalPanel.getIDADirectory());
     mainSettings.setWorkspaceDirectory(generalPanel.getWorkspaceDirectory());
 
@@ -70,12 +70,7 @@ public class MainSettingsDialog extends BaseDialog {
     mainSettings.setConsoleLogging(loggingPanel.getConsoleLogging());
     mainSettings.setFileLogging(loggingPanel.getFileLogging());
     mainSettings.setLogFileLocation(loggingPanel.getLogFileLocation());
-    mainSettings.setLogVerbose(loggingPanel.getLogVerbose());
-    mainSettings.setLogInfo(loggingPanel.getLogInfo());
-    mainSettings.setLogWarning(loggingPanel.getLogWarning());
-    mainSettings.setLogSevere(loggingPanel.getLogSevere());
-    mainSettings.setLogException(loggingPanel.getLogException());
-    mainSettings.setLogStacktrace(loggingPanel.getLogStacktrace());
+    mainSettings.setLogLevel(loggingPanel.getLogLevel());
 
     // Syntax Highlighting Panel
     colorSettings.setAddressColor(syntaxHighlightingPanel.getAddressColor());
@@ -95,7 +90,6 @@ public class MainSettingsDialog extends BaseDialog {
     colorSettings.setFunctionColor(syntaxHighlightingPanel.getFunctionColor());
 
     adoptChanges();
-
     config.write();
   }
 
