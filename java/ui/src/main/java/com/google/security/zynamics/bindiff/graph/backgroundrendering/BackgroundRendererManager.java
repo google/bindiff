@@ -12,31 +12,27 @@ import com.google.security.zynamics.bindiff.project.userview.ViewData;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import y.view.Graph2DView;
 
-public class BackgroundRendererManager {
+/** Manages background drawing for graph views. */
+public class BackgroundRendererManager extends GraphSettingsChangedListenerAdapter {
   private final GraphSettings settings;
-
-  private final InternalGraphSettingsChangedListener settingsChangedListener =
-      new InternalGraphSettingsChangedListener();
-
-  private final Graph2DView view;
 
   private final ImageBackgroundRenderer imageBackgroundRenderer;
 
   public BackgroundRendererManager(
       final ViewData viewData,
-      final Graph2DView graph2DView,
+      final Graph2DView view,
       final EGraph graphType,
       final GraphSettings settings) {
     Preconditions.checkNotNull(viewData);
     Preconditions.checkNotNull(graphType);
     this.settings = Preconditions.checkNotNull(settings);
-    this.view = graph2DView;
-    this.imageBackgroundRenderer = new ImageBackgroundRenderer(viewData, view, graphType);
+    imageBackgroundRenderer = new ImageBackgroundRenderer(viewData, view, graphType);
+    view.setBackgroundRenderer(imageBackgroundRenderer);
 
-    settings.addListener(settingsChangedListener);
+    settings.addListener(this);
   }
 
-  protected static String buildTitle(final ViewData viewData, final EGraph type) {
+  static String buildTitle(final ViewData viewData, final EGraph type) {
     if (viewData instanceof FlowGraphViewData) {
       final FlowGraphViewData data = (FlowGraphViewData) viewData;
       IAddress address;
@@ -77,18 +73,12 @@ public class BackgroundRendererManager {
     return "";
   }
 
-  public void addListeners() {
-    settings.addListener(settingsChangedListener);
-  }
-
   public void removeListener() {
-    settings.removeListener(settingsChangedListener);
+    settings.removeListener(this);
   }
 
-  private class InternalGraphSettingsChangedListener extends GraphSettingsChangedListenerAdapter {
-    @Override
-    public void diffViewModeChanged(final GraphSettings settings) {
-      imageBackgroundRenderer.update();
-    }
+  @Override
+  public void diffViewModeChanged(final GraphSettings settings) {
+    imageBackgroundRenderer.update();
   }
 }

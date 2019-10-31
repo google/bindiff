@@ -3,10 +3,6 @@ package com.google.security.zynamics.bindiff.graph.backgroundrendering;
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
-
-import y.view.DefaultBackgroundRenderer;
-import y.view.Graph2DView;
-
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -15,15 +11,17 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-
 import javax.swing.ScrollPaneConstants;
+import y.view.DefaultBackgroundRenderer;
+import y.view.Graph2DView;
 
+/** Renders the graph view background with indicators for the type of graph being shown. */
 public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
   private static final int OFFSET = 15;
 
-  private final Image PRIMARY_TEXT_IMAGE = ImageUtils.getImage("data/graphview/primary.png");
-  private final Image SECONDRAY_TEXT_IMAGE = ImageUtils.getImage("data/graphview/secondary.png");
-  private final Image COMBINED_TEXT_IMAGE = ImageUtils.getImage("data/graphview/combined.png");
+  private final Image primaryTextImage = ImageUtils.getImage("data/graphview/primary.png");
+  private final Image secondaryTextImage = ImageUtils.getImage("data/graphview/secondary.png");
+  private final Image combinedTextImage = ImageUtils.getImage("data/graphview/combined.png");
 
   private final Graph2DView graphView;
   private final EGraph type;
@@ -32,8 +30,7 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
   private BufferedImage backgroundImage;
   private final String title;
 
-  public ImageBackgroundRenderer(
-      final ViewData viewData, final Graph2DView view, final EGraph type) {
+  ImageBackgroundRenderer(final ViewData viewData, final Graph2DView view, final EGraph type) {
     super(view);
     this.graphView = view;
     this.type = type;
@@ -43,12 +40,12 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
 
   private Image getTextImage() {
     if (type == EGraph.PRIMARY_GRAPH) {
-      return PRIMARY_TEXT_IMAGE;
-    } else if (type == EGraph.SECONDARY_GRAPH) {
-      return SECONDRAY_TEXT_IMAGE;
+      return primaryTextImage;
     }
-
-    return COMBINED_TEXT_IMAGE;
+    if (type == EGraph.SECONDARY_GRAPH) {
+      return secondaryTextImage;
+    }
+    return combinedTextImage;
   }
 
   private int getX(final int viewWidth, final int objectWidth) {
@@ -82,30 +79,28 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
     }
 
     if (backgroundImage != null) {
-      final Graphics2D imageGfx = (Graphics2D) backgroundImage.getGraphics();
-      imageGfx.setPaint(Color.WHITE);
-      imageGfx.fill(new Rectangle2D.Double(0, 0, vw, vh));
+      final Graphics2D g = (Graphics2D) backgroundImage.getGraphics();
+      g.setPaint(Color.WHITE);
+      g.fill(new Rectangle2D.Double(0, 0, vw, vh));
 
-      imageGfx.setPaint(Color.GRAY.darker());
+      g.setPaint(Color.GRAY.darker());
 
-      final int ix = getX(vw, SECONDRAY_TEXT_IMAGE.getWidth(null));
+      final int ix = getX(vw, secondaryTextImage.getWidth(null));
       int tx = ix;
 
-      final Font font = imageGfx.getFont();
-      final Font newFont = new Font(font.getName(), Font.BOLD, font.getSize());
-      imageGfx.setFont(newFont);
-      imageGfx.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      final Font font = g.getFont();
+      g.setFont(new Font(font.getName(), Font.BOLD, font.getSize()));
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
       if (type == EGraph.SECONDARY_GRAPH) {
         final Rectangle2D bounds =
-            imageGfx.getFont().getStringBounds(title, imageGfx.getFontRenderContext());
-
+            g.getFont().getStringBounds(title, g.getFontRenderContext());
         tx = getX(vw, Math.max(OFFSET, (int) bounds.getWidth()));
       }
 
-      imageGfx.drawString(title, tx, 15);
-      imageGfx.drawImage(getTextImage(), ix, 20, null);
-      imageGfx.setFont(font);
+      g.drawString(title, tx, 15);
+      g.drawImage(getTextImage(), ix, 20, null);
+      g.setFont(font);
 
       setImage(backgroundImage);
     }
@@ -114,12 +109,6 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
   }
 
   public void update() {
-    EventQueue.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            graphView.getGraph2D().updateViews();
-          }
-        });
+    EventQueue.invokeLater(() -> graphView.getGraph2D().updateViews());
   }
 }
