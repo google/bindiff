@@ -1,6 +1,8 @@
 #ifndef IDA_UI_H_
 #define IDA_UI_H_
 
+#include <cstdint>
+
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/status.h"

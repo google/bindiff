@@ -81,6 +81,7 @@ void MatchedFunctionsChooser::RegisterActions() {
            ViewFlowGraphsAction::MakeActionDesc(),
            ImportSymbolsCommentsAction::MakeActionDesc(),
            ImportSymbolsCommentsExternalAction::MakeActionDesc(),
+           ConfirmMatchesAction::MakeActionDesc(),
            CopyPrimaryAddressAction::MakeActionDesc(),
            CopySecondaryAddressAction::MakeActionDesc(),
        }) {
