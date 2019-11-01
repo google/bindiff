@@ -1,14 +1,17 @@
 package com.google.security.zynamics.bindiff.graph.settings;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.enums.EGraphSynchronization;
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.zygraph.AbstractZyGraphSettings;
+import java.util.logging.Level;
 
 public class GraphSettings extends AbstractZyGraphSettings {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   public static final int MAX_SELECTION_UNDO_CACHE = 30;
 
   private final ListenerProvider<IGraphSettingsChangedListener> settingsListeners =
@@ -107,7 +110,7 @@ public class GraphSettings extends AbstractZyGraphSettings {
       displaySettings.removeListener(listener);
       mouseSettings.removeListener(listener);
     } catch (final Exception e) {
-      Logger.logWarning("Listener was not listening.");
+      logger.at(Level.WARNING).log("Listener was not listening");
     }
   }
 

@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.enums.EGraphLayout;
@@ -46,7 +47,6 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels.ViewToolbarPanel;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.io.CommentsWriter;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.FunctionDiffViewSaver;
@@ -83,10 +83,13 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 public class ViewTabPanelFunctions extends TabPanelFunctions {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final ListenerProvider<ISavableListener> listenerProvider = new ListenerProvider<>();
 
   private final InternalEditableContentListener labelEditModeListener =
@@ -236,7 +239,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
             graphs, oldPriUnmatchedCombinedDiffNode, oldSecUnmatchedCombinedDiffNode);
         setMatchesChanged(true);
       } catch (final GraphLayoutException e) {
-        Logger.logException(e, e.getMessage());
+        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       }
     }
@@ -536,7 +539,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
         }
       } catch (final Exception e) {
         // FIXME: Never catch all exceptions!
-        Logger.logException(e, "Couldn't save exported view images.");
+        logger.at(Level.SEVERE).withCause(e).log("Couldn't save exported view images");
         CMessageBox.showError(parent, "Couldn't save exported view images.");
       }
     }
@@ -684,11 +687,11 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           setMatchesChanged(true);
         }
       } catch (final GraphLayoutException e) {
-        Logger.logException(e, e.getMessage());
+        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       } catch (final Exception e) {
         // TODO(cblichmann): Never catch all exceptions!
-        Logger.logException(e, e.getMessage());
+        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       }
     }
@@ -735,7 +738,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
         }
       } catch (final Exception e) {
         // FIXME: Never catch all exceptions!
-        Logger.logException(e, "Save function diff view failed.");
+        logger.at(Level.SEVERE).withCause(e).log("Save function diff view failed");
         CMessageBox.showError(getMainWindow(), "Save function diff view failed.");
 
         return false;
@@ -997,7 +1000,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings("unchecked")
   public void toggleGraphSynchronization() {
     if (EGraphSynchronization.SYNC == settings.getGraphSyncMode()) {
       settings.setGraphSyncMode(EGraphSynchronization.ASYNC);
@@ -1015,7 +1018,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
+  @SuppressWarnings("unchecked")
   public void toggleProximityBrowsing() {
     BinDiffGraph<ZyGraphNode<?>, ?> graph = (BinDiffGraph) graphs.getCombinedGraph();
 
@@ -1034,7 +1037,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
+  @SuppressWarnings("unchecked")
   public void toggleProximityBrowsingFrozen() {
     final GraphProximityBrowsingSettings proximitySettings = settings.getProximitySettings();
 
@@ -1091,7 +1094,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
       CommentsWriter.writeComments(workspace, priMd5, secMd5, viewData);
     } catch (final SQLException e) {
-      Logger.logException(e, "Couldn't save view comments.");
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't save view comments");
       CMessageBox.showError(getMainWindow(), "Couldn't save view comments: " + e.getMessage());
     }
   }
@@ -1111,7 +1114,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           functionMatch.getAddress(ESide.SECONDARY),
           functionMatch);
     } catch (final SQLException e) {
-      Logger.logException(e, "Couldn't save changed basic block matches.");
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't save changed basic block matches");
       CMessageBox.showError(
           getMainWindow(), "Couldn't save changed basic block matches." + e.getMessage());
     }

@@ -1,6 +1,6 @@
 package com.google.security.zynamics.bindiff.config;
 
-import com.google.security.zynamics.bindiff.log.Logger;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.io.File;
@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -21,6 +22,7 @@ import org.xml.sax.SAXException;
 
 /** A class that is used to read and write the BinDiff configuration. */
 public final class BinDiffConfig {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   /** This class is a singleton. */
   private static final BinDiffConfig instance = new BinDiffConfig();
@@ -97,7 +99,7 @@ public final class BinDiffConfig {
 
   /** Writes the configuration file to disk. */
   public void write() throws IOException {
-    Logger.logInfo("Saving configuration...");
+    logger.at(Level.INFO).log("Saving configuration...");
 
     // Ensure that the configuration directory exists.
     final File configDir = new File(getConfigurationDirectory());

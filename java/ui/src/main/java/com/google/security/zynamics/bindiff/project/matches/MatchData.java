@@ -125,7 +125,7 @@ public class MatchData {
       final IAddress primaryAddr,
       final IAddress secondaryAddr) {
     for (final IMatchesChangeListener listener : listener) {
-      listener.addedBasicblockMatch(priFunctionAddr, secFunctionAddr, primaryAddr, secondaryAddr);
+      listener.addedBasicBlockMatch(priFunctionAddr, secFunctionAddr, primaryAddr, secondaryAddr);
     }
   }
 
@@ -135,7 +135,7 @@ public class MatchData {
       final IAddress primaryAddr,
       final IAddress secondaryAddr) {
     for (final IMatchesChangeListener listener : listener) {
-      listener.removedBasicblockMatch(priFunctionAddr, secFunctionAddr, primaryAddr, secondaryAddr);
+      listener.removedBasicBlockMatch(priFunctionAddr, secFunctionAddr, primaryAddr, secondaryAddr);
     }
   }
 

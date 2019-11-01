@@ -37,7 +37,6 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,7 +52,7 @@ public class BasicBlockMatchAdder {
     final long priAddress = oldRawPriUnmatchedCombinedBasicblock.getAddress(ESide.PRIMARY).toLong();
     final long secAddress =
         oldRawSecUnmatchedCombinedBasicblock.getAddress(ESide.SECONDARY).toLong();
-    final int algoId = MatchesDatabase.UNSAVED_BASICBLOCKMATCH_ALGORITH_ID;
+    final int algoId = MatchesDatabase.UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID;
     final Matches<InstructionMatchData> instructionsMap = new Matches<>(getNewInstructionMatches());
 
     return new BasicBlockMatchData(priAddress, secAddress, algoId, instructionsMap);

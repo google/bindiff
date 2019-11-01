@@ -17,13 +17,14 @@ import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.types.common.ICancelableCommand;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ProximityHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.layouters.ZyGraphLayouter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
@@ -38,10 +39,6 @@ import y.layout.hierarchic.HierarchicGroupLayouter;
 import y.layout.hierarchic.IncrementalHierarchicLayouter;
 import y.layout.orthogonal.OrthogonalLayouter;
 import y.view.Graph2D;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
 public class GraphLayoutCalculator implements ICancelableCommand {
   private final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>>
@@ -412,7 +409,6 @@ public class GraphLayoutCalculator implements ICancelableCommand {
       throw e;
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, e.getMessage());
       throw new GraphLayoutException(e, "Could not calculate graph layouts.");
     }
   }

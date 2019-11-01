@@ -1,12 +1,12 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.implementations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.BinExportException;
 import com.google.security.zynamics.bindiff.exceptions.DifferException;
 import com.google.security.zynamics.bindiff.gui.dialogs.directorydiff.DiffPairTableData;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.processes.DiffProcess;
 import com.google.security.zynamics.bindiff.processes.ExportProcess;
 import com.google.security.zynamics.bindiff.project.Workspace;
@@ -22,9 +22,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
-/** TODO(cblichmann): comment function. */
+/** Directory diffing thread implementation that displays visual progress. */
 public class DirectoryDiffImplementation extends CEndlessHelperThread {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final List<String> diffingErrorMessages = new ArrayList<>();
   private final List<String> openingDiffErrorMessages = new ArrayList<>();
 
@@ -70,13 +73,9 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
   private void deleteDirectory(final MainWindow mainWindow, final File destinationFolder) {
     try {
       BinDiffFileUtils.deleteDirectory(destinationFolder);
-    } catch (final IOException exception) {
-      Logger.logException(
-          exception,
-          String.format(
-              "Couldn't delete diff folder '%s' after exporting failed.\n"
-                  + "Please delete this folder manually.",
-              destinationFolder.getPath()));
+    } catch (final IOException e) {
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Couldn't delete diff folder '%s' after exporting failed", destinationFolder.getPath());
       CMessageBox.showWarning(
           mainWindow,
           String.format(
@@ -95,14 +94,14 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     if (!new File(engineExe).exists()) {
       final String msg =
           String.format("Can't start directory diff. Couldn't find engine at '%s'", engineExe);
-
-      Logger.logSevere("%s", msg);
+      logger.at(Level.SEVERE).log(msg);
       CMessageBox.showError(parentWindow, msg);
 
       return matchesPaths;
     }
 
-    Logger.logInfo("Start Directory Diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
+    logger.at(Level.INFO).log(
+        "Start Directory Diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
 
     final String workspacePath = workspace.getWorkspaceDir().getPath();
     for (final DiffPairTableData data : idbPairs) {
@@ -148,17 +147,17 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         continue;
       }
 
-      // export primary IDB
+      // Export primary IDB
       try {
-        Logger.logInfo(" - Start exporting primary IDB '%s' to '%s'", primarySource, destination);
+        logger.at(Level.INFO).log(
+            " - Start exporting primary IDB '%s' to '%s'", primarySource, destination);
 
         final File idaExe = ExternalAppUtils.getIdaExe(primarySourceFile);
 
         if (idaExe == null || !idaExe.canExecute()) {
           final String msg =
               "Can't start disassembler. Please set correct path in the main settings first.";
-
-          Logger.logSevere(msg);
+          logger.at(Level.SEVERE).log(msg);
           CMessageBox.showError(parentWindow, msg);
 
           deleteDirectory(parentWindow, destinationFolder);
@@ -169,14 +168,14 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         ExportProcess.startExportProcess(
             idaExe, destinationFolder, primarySourceFile, priTargetName);
 
-        Logger.logInfo(
-            " - Finished exporting primary IDB '%s' to '%s' successfully.",
+        logger.at(Level.INFO).log(
+            " - Finished exporting primary IDB '%s' to '%s' successfully",
             primarySource, destination);
       } catch (final BinExportException e) {
-        Logger.logInfo(
+        logger.at(Level.INFO).log(
             " - Exporting primary '%s' to '%s' failed. Reason: %s",
             primarySource, destination, e.getMessage());
-        String msg =
+        final String msg =
             String.format(
                 "Exporting primary '%s' failed. Reason: %s", primarySource, e.getMessage());
         diffingErrorMessages.add(msg);
@@ -186,9 +185,9 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         continue;
       }
 
-      // export secondary IDB
+      // Export secondary IDB
       try {
-        Logger.logInfo(
+        logger.at(Level.INFO).log(
             " - Start exporting secondary IDB '%s' to '%s'", secondarySource, destination);
 
         final File idaExe = ExternalAppUtils.getIdaExe(secondarySourceFile);
@@ -196,8 +195,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         if (idaExe == null || !idaExe.canExecute()) {
           final String msg =
               "Can't start disassembler. Please set correct path in the main settings first.";
-
-          Logger.logSevere(msg);
+          logger.at(Level.SEVERE).log(msg);
           CMessageBox.showError(parentWindow, msg);
 
           return matchesPaths;
@@ -206,11 +204,11 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         ExportProcess.startExportProcess(
             idaExe, destinationFolder, secondarySourceFile, secTargetName);
 
-        Logger.logInfo(
-            " - Finished exporting secondary IDB '%s' to '%s' successfully.",
+        logger.at(Level.INFO).log(
+            " - Finished exporting secondary IDB '%s' to '%s' successfully",
             secondarySource, destination);
       } catch (final BinExportException e) {
-        Logger.logInfo(
+        logger.at(Level.WARNING).log(
             " - Exporting secondary '%s' to '%s' failed. Reason: %s",
             secondarySource, destination, e.getMessage());
         String msg =
@@ -223,27 +221,27 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         continue;
       }
 
-      // diff
+      // Diff
       try {
         final String primaryDifferArgument =
             ExportProcess.getExportFilename(priTargetName, destinationFolder);
         final String secondaryDifferArgument =
             ExportProcess.getExportFilename(secTargetName, destinationFolder);
 
-        Logger.logInfo(" - Start diffing '%s'", destinationFolder.getName());
+        logger.at(Level.INFO).log(" - Start diffing '%s'", destinationFolder.getName());
         DiffProcess.startDiffProcess(
             engineExe, primaryDifferArgument, secondaryDifferArgument, destinationFolder);
 
         final String diffBinaryPath =
             DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
 
-        Logger.logInfo(" - Diffing '%s' done successfully.", destinationFolder.getName());
+        logger.at(Level.INFO).log(" - Diffing '%s' done successfully", destinationFolder.getName());
 
         matchesPaths.add(diffBinaryPath);
       } catch (final DifferException e) {
-        Logger.logInfo(
+        logger.at(Level.WARNING).log(
             " - Diffing '%s' failed. Reason: %s", destinationFolder.getName(), e.getMessage());
-        String msg =
+        final String msg =
             String.format(
                 "Diffing '%s' failed. Reason: %s", data.getDestinationDirectory(), e.getMessage());
         diffingErrorMessages.add(msg);
@@ -253,11 +251,11 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     }
 
     if (diffingErrorMessages.size() == 0) {
-      Logger.logInfo(
-          "Finished Directory Diff '%s' vs '%s' successfully.",
+      logger.at(Level.INFO).log(
+          "Finished Directory Diff '%s' vs '%s' successfully",
           primarySourcePath, secondarySourcePath);
     } else {
-      Logger.logInfo(
+      logger.at(Level.WARNING).log(
           "Finished Directory Diff '%s' vs '%s' with errors.",
           primarySourcePath, secondarySourcePath);
     }

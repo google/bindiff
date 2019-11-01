@@ -14,6 +14,6 @@ public class InitialFlowGraphSettingsAction extends AbstractAction {
 
   @Override
   public void actionPerformed(final ActionEvent e) {
-    controller.showInitialFlowgraphSettingsDialog();
+    controller.showInitialFlowGraphSettingsDialog();
   }
 }

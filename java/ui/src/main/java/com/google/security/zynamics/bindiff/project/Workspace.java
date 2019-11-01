@@ -1,10 +1,10 @@
 package com.google.security.zynamics.bindiff.project;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.CommentsDatabase;
 import com.google.security.zynamics.bindiff.database.WorkspaceDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
@@ -15,8 +15,11 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 public final class Workspace {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private File workspaceFile = null;
 
   private final List<Diff> diffs = new ArrayList<>();
@@ -33,7 +36,7 @@ public final class Workspace {
     //noinspection EmptyTryBlock
     try (final CommentsDatabase database = new CommentsDatabase(this, true)) {
     } catch (final SQLException e) {
-      Logger.logException(e, e.getMessage());
+      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
     }
   }
@@ -98,7 +101,7 @@ public final class Workspace {
     try {
       addDiff(diff);
     } catch (final SQLException e) {
-      Logger.logException(e, e.getMessage());
+      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
     }
 
@@ -114,7 +117,7 @@ public final class Workspace {
       return;
     }
 
-    Logger.logInfo("Closing workspace '%s'...", workspaceFile.getPath());
+    logger.at(Level.INFO).log("Closing workspace '%s'...", workspaceFile.getPath());
 
     diffs.clear();
 
@@ -127,7 +130,7 @@ public final class Workspace {
       listener.closedWorkspace();
     }
 
-    Logger.logInfo("Workspace closed.");
+    logger.at(Level.INFO).log("Workspace closed");
   }
 
   public boolean containsDiff(final String matchesBinaryPath) {
@@ -207,7 +210,7 @@ public final class Workspace {
       listener.loadedWorkspace(this);
     }
 
-    Logger.logInfo("Created a new Workspace.");
+    logger.at(Level.WARNING).log("Created new Workspace");
   }
 
   public void removeDiff(final Diff diff) {

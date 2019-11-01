@@ -1,12 +1,12 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.FunctionDiffViewsNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.FunctionDiffViewsNodeContextPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.FunctionDiffViewsTable;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
@@ -14,9 +14,12 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.AbstractAction;
 
 public class DeleteFunctionDiffViewsAction extends AbstractAction {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final FunctionDiffViewsNode viewsNode;
 
   public DeleteFunctionDiffViewsAction(final FunctionDiffViewsNode viewsNode) {
@@ -42,7 +45,7 @@ public class DeleteFunctionDiffViewsAction extends AbstractAction {
         BinDiffFileUtils.deleteDirectory(viewsNode.getViewDirectory());
       }
     } catch (final IOException e) {
-      Logger.logException(e, "Couldn't delete function diff's directory.");
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't delete function diff's directory");
       CMessageBox.showError(
           controller.getMainWindow(), "Couldn't delete function diff's directory.");
     }

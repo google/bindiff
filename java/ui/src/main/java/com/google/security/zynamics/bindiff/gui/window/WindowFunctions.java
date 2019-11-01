@@ -1,13 +1,13 @@
 package com.google.security.zynamics.bindiff.gui.window;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menubar.WorkspaceMenuBar;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.awt.Frame;
@@ -17,10 +17,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.JTabbedPane;
 
 /** Holder class for the actual controller class TabPanelManager. */
 public class WindowFunctions {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final TabPanelManager tabPanelManager;
 
   private final MainWindow window;
@@ -66,7 +69,7 @@ public class WindowFunctions {
     try {
       BinDiffConfig.getInstance().write();
     } catch (final IOException e) {
-      Logger.logException(e, "Couldn't save configuration file.");
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't save configuration file");
       CMessageBox.showError(window, "Couldn't save configuration file.");
     }
   }
@@ -79,7 +82,7 @@ public class WindowFunctions {
 
       saveConfigFile();
 
-      Logger.logInfo("BinDiff closed normally.");
+      logger.at(Level.INFO).log("BinDiff closed normally");
     }
 
     System.exit(0);

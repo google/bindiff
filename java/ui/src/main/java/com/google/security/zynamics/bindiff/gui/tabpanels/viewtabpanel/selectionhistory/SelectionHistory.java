@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.selectionhistory;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
@@ -9,7 +10,6 @@ import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.IMatchesChangeListener;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawCombinedBasicBlock;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
@@ -19,8 +19,11 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNo
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 
 public class SelectionHistory {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final List<SelectionSnapshot> snapshotList = new ArrayList<>();
 
   private final ListenerProvider<ISelectionHistoryListener> listeners = new ListenerProvider<>();
@@ -140,8 +143,8 @@ public class SelectionHistory {
     for (final ISelectionHistoryListener listener : listeners) {
       try {
         listener.startedRedo();
-      } catch (final Exception exception) {
-        Logger.logException(exception, "Selection history listener notification failed.");
+      } catch (final Exception e) {
+        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
       }
     }
 
@@ -168,8 +171,8 @@ public class SelectionHistory {
     for (final ISelectionHistoryListener listener : listeners) {
       try {
         listener.finishedRedo();
-      } catch (final Exception exception) {
-        Logger.logException(exception, "Selection history listener notification failed.");
+      } catch (final Exception e) {
+        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
       }
     }
   }
@@ -187,7 +190,7 @@ public class SelectionHistory {
       listeners.removeListener(listener);
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logWarning("Listener was not listening.");
+      logger.at(Level.WARNING).log("Listener was not listening.");
     }
   }
 
@@ -199,8 +202,8 @@ public class SelectionHistory {
     for (final ISelectionHistoryListener listener : listeners) {
       try {
         listener.startedUndo();
-      } catch (final Exception exception) {
-        Logger.logException(exception, "Selection history listener notification failed.");
+      } catch (final Exception e) {
+        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
       }
     }
 
@@ -227,8 +230,8 @@ public class SelectionHistory {
     for (final ISelectionHistoryListener listener : listeners) {
       try {
         listener.finishedUndo();
-      } catch (final Exception exception) {
-        Logger.logException(exception, "Selection history listener notification failed.");
+      } catch (final Exception e) {
+        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
       }
     }
   }
@@ -250,10 +253,10 @@ public class SelectionHistory {
 
     private CombinedDiffNode getNewDiffNode(final IAddress basicblockAddr, final ESide side) {
       for (final CombinedDiffNode diffNode : combinedGraph.getNodes()) {
-        final RawCombinedBasicBlock combinedBasicblock =
+        final RawCombinedBasicBlock combinedBasicBlock =
             (RawCombinedBasicBlock) diffNode.getRawNode();
 
-        if (basicblockAddr.equals(combinedBasicblock.getAddress(side))) {
+        if (basicblockAddr.equals(combinedBasicBlock.getAddress(side))) {
           return diffNode;
         }
       }
@@ -325,21 +328,21 @@ public class SelectionHistory {
     }
 
     @Override
-    public void addedBasicblockMatch(
+    public void addedBasicBlockMatch(
         final IAddress priFunctionAddr,
         final IAddress secFunctionAddr,
-        final IAddress priBasicblockAddr,
-        final IAddress secBasicblockAddr) {
-      updateSnapshots(priFunctionAddr, secFunctionAddr, priBasicblockAddr, secBasicblockAddr);
+        final IAddress priBasicBlockAddr,
+        final IAddress secBasicBlockAddr) {
+      updateSnapshots(priFunctionAddr, secFunctionAddr, priBasicBlockAddr, secBasicBlockAddr);
     }
 
     @Override
-    public void removedBasicblockMatch(
+    public void removedBasicBlockMatch(
         final IAddress priFunctionAddr,
         final IAddress secFunctionAddr,
-        final IAddress priBasicblockAddr,
-        final IAddress secBasicblockAddr) {
-      updateSnapshots(priFunctionAddr, secFunctionAddr, priBasicblockAddr, secBasicblockAddr);
+        final IAddress priBasicBlockAddr,
+        final IAddress secBasicBlockAddr) {
+      updateSnapshots(priFunctionAddr, secFunctionAddr, priBasicBlockAddr, secBasicBlockAddr);
     }
   }
 }

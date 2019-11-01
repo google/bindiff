@@ -1,12 +1,15 @@
 package com.google.security.zynamics.bindiff.processes;
 
-import com.google.security.zynamics.bindiff.log.Logger;
+import com.google.common.flogger.FluentLogger;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.logging.Level;
 
 public class ProcessOutputStreamReader implements Runnable {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   // See:
   // http://www.javakb.com/Uwe/Forum.aspx/java-programmer/7243/Process-waitFor-vs-Process-destroy
   private final String name;
@@ -37,16 +40,16 @@ public class ProcessOutputStreamReader implements Runnable {
           break;
         }
 
-        Logger.logInfo("[%s] %s", name, line);
+        logger.at(Level.INFO).log("[%s] %s", name, line);
       }
     } catch (final Exception e) {
-      Logger.logException(e, "Could't read process output stream.");
+      logger.at(Level.SEVERE).withCause(e).log("Could't read process output stream");
     } finally {
       if (inStream != null) {
         try {
           inStream.close();
         } catch (final IOException e) {
-          Logger.logException(e, "Could't close process output stream.");
+          logger.at(Level.SEVERE).withCause(e).log("Could't close process output stream");
         }
       }
     }

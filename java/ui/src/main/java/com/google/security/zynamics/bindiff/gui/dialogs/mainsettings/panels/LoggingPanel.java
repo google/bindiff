@@ -2,7 +2,7 @@ package com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
-import com.google.security.zynamics.bindiff.log.Logger;
+import com.google.security.zynamics.bindiff.logging.Logger;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
 import com.google.security.zynamics.zylib.io.DirectoryChooser;

@@ -14,6 +14,6 @@ public class InitialCallGraphSettingsAction extends AbstractAction {
 
   @Override
   public void actionPerformed(final ActionEvent e) {
-    controller.showInitialCallgraphSettingsDialog();
+    controller.showInitialCallGraphSettingsDialog();
   }
 }

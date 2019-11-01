@@ -1,22 +1,23 @@
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CUnlimitedProgressDialog;
 import com.google.security.zynamics.zylib.types.common.ICommand;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.Window;
-
+import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 
 public class GraphLayoutUpdater implements ICommand {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>>
       referenceGraph;
 
@@ -103,7 +104,7 @@ public class GraphLayoutUpdater implements ICommand {
         viewUpdater.execute();
       } catch (final GraphLayoutException e) {
         CMessageBox.showWarning(window, "Couldn't update graph layout.");
-        Logger.logException(e, "Couldn't update graph layout.");
+        logger.at(Level.SEVERE).withCause(e).log("Couldn't update graph layout");
       }
     }
   }

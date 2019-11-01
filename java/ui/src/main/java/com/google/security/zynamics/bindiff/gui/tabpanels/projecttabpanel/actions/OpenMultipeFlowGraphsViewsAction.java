@@ -62,7 +62,7 @@ public class OpenMultipeFlowGraphsViewsAction extends AbstractAction {
     }
 
     if (answer == JOptionPane.YES_OPTION) {
-      controller.openFlowgraphViews(controller.getMainWindow(), viewsLoadData);
+      controller.openFlowGraphViews(controller.getMainWindow(), viewsLoadData);
     }
   }
 }

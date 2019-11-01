@@ -1,6 +1,5 @@
 package com.google.security.zynamics.bindiff.database;
 
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.resources.Constants;
@@ -57,7 +56,6 @@ public class WorkspaceDatabase extends SqliteDatabase {
         diffPaths.add(BinDiffFileUtils.forceFileSeparator(result.getString("matchesDbPath")));
       }
     } catch (final SQLException e) {
-      Logger.logException(e, e.getMessage());
       if (isFunctionDiff) {
         throw new SQLException("Failed to load workspace: Couldn't load function diff paths.", e);
       }
@@ -74,7 +72,6 @@ public class WorkspaceDatabase extends SqliteDatabase {
       connection.commit();
     } catch (final SQLException e) {
       connection.rollback();
-      Logger.logException(e, e.getMessage());
       throw new SQLException(
           "Failed to write to workspace file. Couldn't delete old entries: " + e.getMessage(), e);
     } finally {
@@ -100,7 +97,6 @@ public class WorkspaceDatabase extends SqliteDatabase {
       connection.commit();
     } catch (final SQLException e) {
       connection.rollback();
-      Logger.logException(e, e.getMessage());
       throw new SQLException(
           "Failed to save workspace file. Couldn't write new entries: " + e.getMessage(), e);
     } finally {

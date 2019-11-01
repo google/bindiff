@@ -11,12 +11,10 @@ import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
 import com.google.security.zynamics.bindiff.graph.layout.LayoutMorpher;
 import com.google.security.zynamics.bindiff.graph.layout.SuperLayoutMorpher;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.types.common.ICommand;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.functions.LayoutFunctions;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import y.anim.AnimationFactory;
 import y.anim.AnimationPlayer;
 import y.anim.CompositeAnimationObject;
@@ -205,7 +203,6 @@ public class GraphViewUpdater implements ICommand {
       throw e;
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, e.getMessage());
       throw new GraphLayoutException(e, "Could update graph view.");
     }
   }

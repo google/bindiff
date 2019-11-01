@@ -1,9 +1,9 @@
 package com.google.security.zynamics.bindiff.project;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.database.WorkspaceDatabase;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetaData;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
@@ -12,8 +12,11 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
 
 public final class WorkspaceLoader extends CEndlessHelperThread {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static final int MAX_LOAD_WORKSPACE_ERRORS = 15;
   private final Workspace workspace;
   private final File workspaceFile;
@@ -47,7 +50,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
       throw new IOException("Load workspace failed. Workspace file is a directory.");
     }
 
-    Logger.logInfo("Loading workspace '%s'...", workspaceFile.getPath());
+    logger.at(Level.INFO).log("Loading workspace '%s'...", workspaceFile.getPath());
     setDescription("Reading workspace data...");
 
     try (final WorkspaceDatabase workspaceDatabase = new WorkspaceDatabase(workspaceFile)) {
@@ -68,7 +71,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         final File workspaceAbs = new File(workspaceRoot + path);
         final File matchesDatabaseFile = workspaceAbs.exists() ? workspaceAbs : new File(path);
 
-        Logger.logInfo(" - Preloading Diff '%s'", matchesDatabaseFile.getPath());
+        logger.at(Level.INFO).log(" - Preloading Diff '%s'", matchesDatabaseFile.getPath());
 
         final DiffMetaData matchesMetadata;
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
@@ -79,8 +82,8 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
 
           matchesMetadata = matchesDatabase.loadDiffMetaData(matchesDatabaseFile);
         } catch (final SQLException e) {
-          Logger.logException(e);
-          errors.append(" - " + matchesDatabaseFile.getName() + "\n");
+          logger.at(Level.SEVERE).withCause(e).log();
+          errors.append(" - ").append(matchesDatabaseFile.getName()).append("\n");
           continue;
         }
 
@@ -96,7 +99,8 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         final File workspaceAbs = new File(workspaceRoot + path);
         final File matchesDatabaseFile = workspaceAbs.exists() ? workspaceAbs : new File(path);
 
-        Logger.logInfo(" - Preloading Function Diff '%s'", matchesDatabaseFile.getPath());
+        logger.at(Level.INFO).log(
+            " - Preloading Function Diff '%s'", matchesDatabaseFile.getPath());
 
         FunctionDiffMetaData matchesMetadata = null;
         setDescription(
@@ -107,7 +111,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
           matchesMetadata = matchesDatabase.loadFunctionDiffMetaData(false);
         } catch (final SQLException e) {
-          errors.append(" - " + matchesDatabaseFile.getName() + "\n");
+          errors.append(" - ").append(matchesDatabaseFile.getName()).append("\n");
 
           continue;
         }
@@ -150,7 +154,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         listener.loadedWorkspace(workspace);
       }
 
-      Logger.logInfo("Workspace loaded.");
+      logger.at(Level.INFO).log("Workspace loaded");
     }
   }
 }

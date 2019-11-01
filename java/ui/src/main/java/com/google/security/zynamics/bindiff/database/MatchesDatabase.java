@@ -1,9 +1,9 @@
 package com.google.security.zynamics.bindiff.database;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.io.BinExport2Reader;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
 import com.google.security.zynamics.bindiff.project.matches.AddressPair;
@@ -29,9 +29,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class MatchesDatabase extends SqliteDatabase {
-  public static final int UNSAVED_BASICBLOCKMATCH_ALGORITH_ID = -1;
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  public static final int UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID = -1;
 
   private static final int DEFAULT_FILE_TABLE_COLUMN_COUNT = 13;
 
@@ -57,8 +60,8 @@ public class MatchesDatabase extends SqliteDatabase {
         basicBlockStatement.setLong(4, basicBlockMatch.getAddress(ESide.SECONDARY));
         basicBlockStatement.setInt(
             5,
-            matchAlgoId == UNSAVED_BASICBLOCKMATCH_ALGORITH_ID ? manualMatchAlgoId : matchAlgoId);
-        basicBlockStatement.setInt(6, matchAlgoId == UNSAVED_BASICBLOCKMATCH_ALGORITH_ID ? 1 : 0);
+            matchAlgoId == UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID ? manualMatchAlgoId : matchAlgoId);
+        basicBlockStatement.setInt(6, matchAlgoId == UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID ? 1 : 0);
 
         basicBlockStatement.addBatch();
 
@@ -781,7 +784,8 @@ public class MatchesDatabase extends SqliteDatabase {
 
       connection.commit();
     } catch (final SQLException e) {
-      Logger.logException(e, "Couldn't update function match. Executing rollback.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Couldn't update function match. Executing rollback.");
       connection.rollback();
     }
     connection.setAutoCommit(savedAutoCommit);

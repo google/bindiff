@@ -1,12 +1,12 @@
 package com.google.security.zynamics.bindiff.project.diff;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.MessageBox;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
@@ -18,8 +18,11 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.logging.Level;
 
 public class FunctionDiffViewSaver extends CEndlessHelperThread {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final ViewTabPanelFunctions controller;
 
   private final Window parent;
@@ -92,7 +95,7 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
     if (!"".equals(errorMsg)) {
       errorMsg = errorMsg.substring(0, errorMsg.length() - 2);
 
-      Logger.logWarning(errorMsg);
+      logger.at(Level.WARNING).log(errorMsg);
       MessageBox.showWarning(parent, errorMsg);
     }
   }
@@ -145,15 +148,15 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
 
       ByteStreams.copy(fis, fos);
     } catch (final FileNotFoundException e) {
-      Logger.logException(
-          e, "Save function diff view failed. Couldn't copy BinDiff file into workspace.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Save function diff view failed. Couldn't copy BinDiff file into workspace.");
       MessageBox.showError(
           parent, "Save function diff view failed. Couldn't copy BinDiff file into workspace.");
 
       return false;
     } catch (final IOException e) {
-      Logger.logException(
-          e, "Save function diff view failed. Couldn't copy BinExport files into workspace.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Save function diff view failed. Couldn't copy BinExport files into workspace.");
       MessageBox.showError(
           parent, "Save function diff view failed. Couldn't copy BinExport files into workspace.");
 
@@ -163,14 +166,14 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
         try {
           fis.close();
         } catch (final IOException e) {
-          Logger.logWarning(e, "Couldn't close file input stream.");
+          logger.at(Level.WARNING).withCause(e).log("Couldn't close file input stream");
         }
       }
       if (fos != null) {
         try {
           fos.close();
         } catch (final IOException e) {
-          Logger.logWarning(e, "Couldn't close file output stream.");
+          logger.at(Level.WARNING).withCause(e).log("Couldn't close file output stream");
         }
       }
     }
@@ -211,25 +214,20 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
           try {
             fis.close();
           } catch (final IOException e) {
-            Logger.logWarning(e, "Couldn't close file input stream.");
+            logger.at(Level.WARNING).withCause(e).log("Couldn't close file input stream");
           }
         }
         if (fos != null) {
           try {
             fos.close();
           } catch (final IOException e) {
-            Logger.logWarning(e, "Couldn't close file output stream.");
+            logger.at(Level.WARNING).withCause(e).log("Couldn't close file output stream");
           }
         }
       }
-    } catch (final FileNotFoundException e) {
-      Logger.logException(e, "Save function diff view failed. Couldn't copy BinExport files.");
-      MessageBox.showError(
-          parent, "Save function diff view failed. Couldn't copy BinExport files.");
-
-      return false;
     } catch (final IOException e) {
-      Logger.logException(e, "Save function diff view failed. Couldn't copy BinExport files.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Save function diff view failed. Couldn't copy BinExport files.");
       MessageBox.showError(
           parent, "Save function diff view failed. Couldn't copy BinExport files.");
 
@@ -250,7 +248,8 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
       savedDiff.setExportFile(primaryExportFileTarget, ESide.PRIMARY);
       savedDiff.setExportFile(secondaryExportFileTarget, ESide.SECONDARY);
     } catch (final UnsupportedOperationException e) {
-      Logger.logException(e, "Save function diff view failed. Couldn't update diff object.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Save function diff view failed. Couldn't update diff object.");
       MessageBox.showError(parent, "Save function diff view failed. Couldn't update diff object.");
 
       return false;
@@ -276,13 +275,10 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
 
       matchesDb.changeFileTable(savedDiff);
     } catch (final SQLException e) {
-      Logger.logSevere(
-          "Save function diff view failed. Couldn't update export file name in matches database."
-              + e.getMessage());
-      MessageBox.showError(
-          parent,
-          "Save function diff view failed. Couldn't update export file name in matches database: "
-              + e.getMessage());
+      final String msg =
+          "Save function diff view failed. Couldn't update export file name in matches database.";
+      logger.at(Level.SEVERE).withCause(e).log(msg);
+      MessageBox.showError(parent, msg + " " + e.getMessage());
       return false;
     }
     return true;

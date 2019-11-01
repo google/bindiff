@@ -286,14 +286,19 @@ public class SingleFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     }
 
     @Override
-    public void addedBasicblockMatch(final IAddress priFunctionAddr, final IAddress secFunctionAddr,
-        final IAddress priBasicblockAddr, final IAddress secBasiblockAddr) {
+    public void addedBasicBlockMatch(
+        final IAddress priFunctionAddr,
+        final IAddress secFunctionAddr,
+        final IAddress priBasicblockAddr,
+        final IAddress secBasiblockAddr) {
       updateTree(priFunctionAddr, secFunctionAddr, priBasicblockAddr, secBasiblockAddr);
     }
 
     @Override
-    public void removedBasicblockMatch(final IAddress priFunctionAddr,
-        final IAddress secFunctionAddr, final IAddress priBasicblockAddr,
+    public void removedBasicBlockMatch(
+        final IAddress priFunctionAddr,
+        final IAddress secFunctionAddr,
+        final IAddress priBasicblockAddr,
         final IAddress secBasiblockAddr) {
       updateTree(priFunctionAddr, secFunctionAddr, priBasicblockAddr, secBasiblockAddr);
     }

@@ -1,13 +1,16 @@
 package com.google.security.zynamics.bindiff.graph.settings;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
 import com.google.security.zynamics.bindiff.enums.EMouseAction;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.zygraph.MouseWheelAction;
 import com.google.security.zynamics.zylib.gui.zygraph.settings.IMouseSettings;
+import java.util.logging.Level;
 
 public class GraphMouseSettings implements IMouseSettings {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private EMouseAction mouseWheelAction;
   private int scrollSensitivity;
   private int zoomSensitivity;
@@ -25,7 +28,7 @@ public class GraphMouseSettings implements IMouseSettings {
     try {
       settingsListeners.addListener(listener);
     } catch (final Exception e) {
-      Logger.logWarning("Listener is already listening.");
+      logger.at(Level.WARNING).log("Listener is already listening");
     }
   }
 
@@ -33,7 +36,7 @@ public class GraphMouseSettings implements IMouseSettings {
     try {
       settingsListeners.removeListener(listener);
     } catch (final Exception e) {
-      Logger.logWarning("Listener was not listening.");
+      logger.at(Level.WARNING).log("Listener was not listening");
     }
   }
 

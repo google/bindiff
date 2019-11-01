@@ -4,13 +4,13 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.CommentsDatabase;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.io.BinExport2Reader;
 import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.AddressPair;
 import com.google.security.zynamics.bindiff.project.matches.AddressTriple;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
@@ -38,9 +38,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 
 public class DiffLoader implements ICommand {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private IProgressDescription descriptionTarget = null;
   private final LinkedHashSet<Diff> diffs;
 
@@ -164,33 +167,28 @@ public class DiffLoader implements ICommand {
 
   private void loadDiff(final Diff diff) throws IOException, SQLException {
     if (diff.isLoaded()) {
-      Logger.logInfo("Diff is already loaded!");
+      logger.at(Level.INFO).log("Diff is already loaded");
       return;
     }
 
     descriptionTarget.setDescription(String.format("Loading Diff '%s'", diff.getDiffName()));
-    Logger.logInfo("Loading Diff '%s'", diff.getDiffName());
+    logger.at(Level.INFO).log("Loading Diff '%s'", diff.getDiffName());
     validateInputFiles(diff);
 
-    try {
-      setSubDescription("Loading function matches...");
-      loadDiffMatches(diff);
+    setSubDescription("Loading function matches...");
+    loadDiffMatches(diff);
 
-      loadRawCallgraphs(diff);
+    loadRawCallgraphs(diff);
 
-      setSubDescription("Setting function matches...");
-      setFunctionMatches(diff);
+    setSubDescription("Setting function matches...");
+    setFunctionMatches(diff);
 
-      setSubDescription("Loading call matches...");
-      setCallMatches(diff);
+    setSubDescription("Loading call matches...");
+    setCallMatches(diff);
 
-      setChangedFunctionsCount(diff);
+    setChangedFunctionsCount(diff);
 
-      diff.setLoaded(true);
-    } catch (final SQLException e) {
-      Logger.logException(e);
-      throw e;
-    }
+    diff.setLoaded(true);
 
     setSubDescription("Preparing UI...");
 
@@ -218,7 +216,7 @@ public class DiffLoader implements ICommand {
               matchesDatabase.getPath(), File.separator, matchesDatabase.getName()));
     }
 
-    Logger.logInfo(" - Loading Diff '%s'", matchesDatabase.getPath());
+    logger.at(Level.INFO).log(" - Loading Diff '%s'", matchesDatabase.getPath());
 
     try (final MatchesDatabase database = new MatchesDatabase(matchesDatabase)) {
       diff.setMatches(database.loadFunctionMatches(diff));
@@ -236,9 +234,9 @@ public class DiffLoader implements ICommand {
 
     if (!diff.isFunctionDiff()) {
       setSubDescription("Read raw primary call graph...");
-      primaryCallGraph = primaryExportFileReader.readCallgraph();
+      primaryCallGraph = primaryExportFileReader.readCallGraph();
       setSubDescription("Read raw secondary call graph...");
-      secondaryCallGraph = secondaryExportFileReader.readCallgraph();
+      secondaryCallGraph = secondaryExportFileReader.readCallGraph();
     } else {
       final FunctionDiffMetaData metaData = (FunctionDiffMetaData) diff.getMetaData();
       final String priFunctionName = metaData.getFunctionName(ESide.PRIMARY);
@@ -271,8 +269,8 @@ public class DiffLoader implements ICommand {
       }
     }
 
-    diff.setCallgraph(primaryCallGraph, ESide.PRIMARY);
-    diff.setCallgraph(secondaryCallGraph, ESide.SECONDARY);
+    diff.setCallGraph(primaryCallGraph, ESide.PRIMARY);
+    diff.setCallGraph(secondaryCallGraph, ESide.SECONDARY);
 
     if (!diff.isFunctionDiff()) {
       setSubDescription("Preprocessing raw primary flow graphs...");
@@ -291,13 +289,13 @@ public class DiffLoader implements ICommand {
         new BinExport2Reader(diff.getExportFile(ESide.SECONDARY), ESide.SECONDARY);
 
     setSubDescription("Read raw primary call graph...");
-    RawCallGraph primaryCallgraph = primaryExportFileReader.readSingleFunctionDiffCallGraph(data);
-    diff.setCallgraph(primaryCallgraph, ESide.PRIMARY);
+    RawCallGraph primaryCallGraph = primaryExportFileReader.readSingleFunctionDiffCallGraph(data);
+    diff.setCallGraph(primaryCallGraph, ESide.PRIMARY);
 
     setSubDescription("Read raw secondary call graph...");
-    RawCallGraph secondaryCallgraph =
+    RawCallGraph secondaryCallGraph =
         secondaryExportFileReader.readSingleFunctionDiffCallGraph(data);
-    diff.setCallgraph(secondaryCallgraph, ESide.SECONDARY);
+    diff.setCallGraph(secondaryCallGraph, ESide.SECONDARY);
   }
 
   private void setCallMatches(final Diff diff) throws IOException, SQLException {
@@ -477,14 +475,15 @@ public class DiffLoader implements ICommand {
 
   public void loadDiff(final Diff diff, final FunctionDiffSocketXmlData data) throws IOException {
     if (diff.isLoaded()) {
-      Logger.logInfo("Single function diff is already loaded! Loading process canceled.");
+      logger.at(Level.INFO).log(
+          "Single function diff is already loaded! Loading process canceled.");
       return;
     }
 
     if (descriptionTarget != null) {
       descriptionTarget.setDescription(String.format("Loading Diff '%s'", diff.getDiffName()));
     }
-    Logger.logInfo("Loading single function diff '%s'", diff.getDiffName());
+    logger.at(Level.INFO).log("Loading single function diff '%s'", diff.getDiffName());
     validateInputFiles(diff);
 
     boolean loadFailed = false;
@@ -500,7 +499,6 @@ public class DiffLoader implements ICommand {
       setChangedFunctionsCount(diff);
     } catch (final IOException | SQLException e) {
       loadFailed = true;
-      Logger.logException(e, "");
       throw new IOException("Load Diff graphs failed: " + e.getMessage());
     } finally {
       diff.setLoaded(!loadFailed);

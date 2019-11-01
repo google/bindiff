@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
@@ -9,7 +10,6 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers.PercentageTwoBarCellData;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers.PercentageTwoBarLabel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.resources.Colors;
@@ -27,6 +27,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Level;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -38,6 +39,8 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
 public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static final int TEXTFIELDHEIGHT = 25;
   private static final int TEXTFIELDLABELWIDTH = 100;
 
@@ -239,7 +242,7 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
       description.setText(matchesDb.loadDiffDescription());
     } catch (final SQLException e) {
       // No message box (many diffs can be batch loaded)
-      Logger.logException(e, "Load diff description failed.");
+      logger.at(Level.SEVERE).withCause(e).log("Load diff description failed");
     }
   }
 

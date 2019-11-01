@@ -1,10 +1,10 @@
 package com.google.security.zynamics.bindiff.socketserver;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -13,6 +13,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -23,6 +24,8 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 public final class SocketServer {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final int port;
   private ServerSocket socket;
 
@@ -35,7 +38,7 @@ public final class SocketServer {
   }
 
   public void handleReceivedByteBuffer(final byte[] bytes) {
-    Logger.logInfo("Received byte stream from socket...");
+    logger.at(Level.INFO).log("Received byte stream from socket...");
 
     try {
       final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -66,27 +69,17 @@ public final class SocketServer {
 
   public void handleError(final Exception e, final String msg) {
     CMessageBox.showError(controller.getMainWindow(), msg);
-
-    if (e != null) {
-      Logger.logException(e, msg);
-    } else {
-      Logger.logSevere(msg);
-    }
+    logger.at(Level.SEVERE).withCause(e).log(msg);
   }
 
   public void handleWarning(final Exception e, final String msg) {
     CMessageBox.showWarning(controller.getMainWindow(), msg);
-
-    if (e != null) {
-      Logger.logException(e, msg);
-    } else {
-      Logger.logWarning(msg);
-    }
+    logger.at(Level.SEVERE).withCause(e).log(msg);
   }
 
   public void startListening() throws IOException {
     socket = new ServerSocket(port);
-    Logger.logInfo("Starting IDA plugin socket socket listener thread...");
+    logger.at(Level.INFO).log("Starting IDA plugin socket socket listener thread...");
     new SocketListenerThread(this).start();
   }
 

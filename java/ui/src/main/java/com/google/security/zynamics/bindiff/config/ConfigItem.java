@@ -3,7 +3,7 @@ package com.google.security.zynamics.bindiff.config;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.google.security.zynamics.bindiff.log.Logger;
+import com.google.security.zynamics.bindiff.logging.Logger;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;

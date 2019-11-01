@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
@@ -14,9 +15,7 @@ import com.google.security.zynamics.bindiff.graph.nodes.CombinedViewNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.ZyEdgeData;
-import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.NodeHelpers;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.ZyNodeData;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
@@ -29,7 +28,10 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNo
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyProximityNodeRealizer;
-
+import java.awt.Font;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Level;
 import y.base.Edge;
 import y.base.Node;
 import y.base.NodeCursor;
@@ -37,11 +39,10 @@ import y.view.Graph2D;
 import y.view.LineType;
 import y.view.NodeRealizer;
 
-import java.awt.Font;
-import java.util.HashSet;
-import java.util.Set;
-
+/** Relayouts a ZyGraph according to current proximity browsing settings. */
 public final class ProximityBrowserUpdater implements ICommand {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>>
       referenceGraph;
 
@@ -54,105 +55,103 @@ public final class ProximityBrowserUpdater implements ICommand {
       final Graph2D combinedGraph2D,
       final CombinedDiffNode combinedDiffNode,
       final int degree,
-      final boolean isIncomming) {
+      final boolean isIncoming) {
     if (degree == 0) {
       return;
     }
 
-    final ZyLabelContent labelcontent = new ZyLabelContent(null);
-    labelcontent.addLineContent(
+    final ZyLabelContent labelContent = new ZyLabelContent(null);
+    labelContent.addLineContent(
         new ZyLineContent(String.valueOf(degree), new Font("New Courier", Font.PLAIN, 12), null));
 
     final ZyProximityNodeRealizer<CombinedViewNode> proxiRealizer =
-        new ZyProximityNodeRealizer<>(labelcontent);
+        new ZyProximityNodeRealizer<>(labelContent);
     final Node node = combinedGraph2D.createNode(proxiRealizer);
 
     final ZyProximityNode<CombinedViewNode> infoNode =
-        new ZyProximityNode<>(node, proxiRealizer, combinedDiffNode, isIncomming);
+        new ZyProximityNode<>(node, proxiRealizer, combinedDiffNode, isIncoming);
     final ZyNodeData<ZyProximityNode<CombinedViewNode>> nodeData = new ZyNodeData<>(infoNode);
     proxiRealizer.setUserData(nodeData);
 
-    final ZyEdgeRealizer<ZyInfoEdge> proxiZyEdgeRelalizer =
+    final ZyEdgeRealizer<ZyInfoEdge> proxiEdgeRealizer =
         new ZyEdgeRealizer<>(new ZyLabelContent(null), null);
-    proxiZyEdgeRelalizer.setLineType(LineType.LINE_2);
+    proxiEdgeRealizer.setLineType(LineType.LINE_2);
 
     final Edge edge =
         combinedGraph2D.createEdge(
-            isIncomming ? combinedDiffNode.getNode() : infoNode.getNode(),
-            isIncomming ? infoNode.getNode() : combinedDiffNode.getNode(),
-            proxiZyEdgeRelalizer);
+            isIncoming ? combinedDiffNode.getNode() : infoNode.getNode(),
+            isIncoming ? infoNode.getNode() : combinedDiffNode.getNode(),
+            proxiEdgeRealizer);
 
     final ZyInfoEdge infoEdge =
         new ZyInfoEdge(
-            isIncomming ? combinedDiffNode : infoNode,
-            isIncomming ? infoNode : combinedDiffNode,
+            isIncoming ? combinedDiffNode : infoNode,
+            isIncoming ? infoNode : combinedDiffNode,
             edge,
-            proxiZyEdgeRelalizer);
+            proxiEdgeRealizer);
 
     final ZyEdgeData<ZyInfoEdge> edgedata = new ZyEdgeData<>(infoEdge);
 
-    proxiZyEdgeRelalizer.setUserData(edgedata);
+    proxiEdgeRealizer.setUserData(edgedata);
   }
 
   private static void createNewProximityNodeAndEdge(
       final Graph2D singleGraph2D,
       final SingleDiffNode singleDiffNode,
       final int degree,
-      final boolean isIncomming) {
+      final boolean isIncoming) {
     if (degree == 0) {
       return;
     }
 
-    final ZyLabelContent labelcontent = new ZyLabelContent(null);
-    labelcontent.addLineContent(
+    final ZyLabelContent labelContent = new ZyLabelContent(null);
+    labelContent.addLineContent(
         new ZyLineContent(String.valueOf(degree), new Font("New Courier", Font.PLAIN, 12), null));
 
     final ZyProximityNodeRealizer<SingleViewNode> proxiRealizer =
-        new ZyProximityNodeRealizer<>(labelcontent);
+        new ZyProximityNodeRealizer<>(labelContent);
     final Node node = singleGraph2D.createNode(proxiRealizer);
 
     final ZyProximityNode<SingleViewNode> infoNode =
-        new ZyProximityNode<>(node, proxiRealizer, singleDiffNode, isIncomming);
+        new ZyProximityNode<>(node, proxiRealizer, singleDiffNode, isIncoming);
     final ZyNodeData<ZyProximityNode<SingleViewNode>> nodeData = new ZyNodeData<>(infoNode);
     proxiRealizer.setUserData(nodeData);
 
-    final ZyEdgeRealizer<ZyInfoEdge> proxiZyEdgeRelalizer =
+    final ZyEdgeRealizer<ZyInfoEdge> proxiEdgeRealizer =
         new ZyEdgeRealizer<>(new ZyLabelContent(null), null);
-    proxiZyEdgeRelalizer.setLineType(LineType.LINE_2);
+    proxiEdgeRealizer.setLineType(LineType.LINE_2);
 
     final Edge edge =
         singleGraph2D.createEdge(
-            isIncomming ? singleDiffNode.getNode() : infoNode.getNode(),
-            isIncomming ? infoNode.getNode() : singleDiffNode.getNode(),
-            proxiZyEdgeRelalizer);
+            isIncoming ? singleDiffNode.getNode() : infoNode.getNode(),
+            isIncoming ? infoNode.getNode() : singleDiffNode.getNode(),
+            proxiEdgeRealizer);
 
     final ZyInfoEdge infoEdge =
         new ZyInfoEdge(
-            isIncomming ? singleDiffNode : infoNode,
-            isIncomming ? infoNode : singleDiffNode,
+            isIncoming ? singleDiffNode : infoNode,
+            isIncoming ? infoNode : singleDiffNode,
             edge,
-            proxiZyEdgeRelalizer);
+            proxiEdgeRealizer);
 
     final ZyEdgeData<ZyInfoEdge> edgedata = new ZyEdgeData<>(infoEdge);
 
-    proxiZyEdgeRelalizer.setUserData(edgedata);
+    proxiEdgeRealizer.setUserData(edgedata);
   }
 
   private static void unhideAllNodes(final BinDiffGraph<? extends ZyGraphNode<?>, ?> graph) {
     for (final ZyGraphNode<?> node : graph.getNodes()) {
       if (!node.isVisible()) {
-        ((IViewNode<?>) node.getRawNode()).setVisible(true);
+        node.getRawNode().setVisible(true);
       }
     }
   }
 
   private static <NodeType extends ZyGraphNode<?>> void updateGraphVisibility(
       final BinDiffGraph<NodeType, ?> graph) {
-    final Set<NodeType> visibleNodes = new HashSet<>();
-    final Set<NodeType> invisibleNodes = new HashSet<>();
 
-    invisibleNodes.addAll(graph.getNodes());
-    visibleNodes.addAll(graph.getSelectedNodes());
+    final Set<NodeType> visibleNodes = new HashSet<>(graph.getSelectedNodes());
+    final Set<NodeType> invisibleNodes = new HashSet<>(graph.getNodes());
     invisibleNodes.removeAll(visibleNodes);
 
     graph.showNodes(visibleNodes, invisibleNodes);
@@ -172,7 +171,7 @@ public final class ProximityBrowserUpdater implements ICommand {
     }
   }
 
-  protected static void adoptSuperGraphVisibility(final SuperGraph superGraph) {
+  static void adoptSuperGraphVisibility(final SuperGraph superGraph) {
     for (final SuperDiffNode superDiffNode : superGraph.getNodes()) {
       final SingleDiffNode primaryDiffNode = superDiffNode.getPrimaryDiffNode();
       if (primaryDiffNode != null) {
@@ -198,7 +197,7 @@ public final class ProximityBrowserUpdater implements ICommand {
     }
   }
 
-  protected static void createProximityNodesAndEdges(final CombinedGraph combinedGraph) {
+  static void createProximityNodesAndEdges(final CombinedGraph combinedGraph) {
     // create single side proximity nodes
     final Graph2D yGraph = combinedGraph.getGraph();
     for (final CombinedDiffNode diffNode : combinedGraph.getNodes()) {
@@ -222,7 +221,7 @@ public final class ProximityBrowserUpdater implements ICommand {
     }
   }
 
-  protected static void createProximityNodesAndEdges(final SingleGraph singleGraph) {
+  static void createProximityNodesAndEdges(final SingleGraph singleGraph) {
     // create single side proximity nodes
     final Graph2D yGraph = singleGraph.getGraph();
     for (final SingleDiffNode diffNode : singleGraph.getNodes()) {
@@ -304,7 +303,7 @@ public final class ProximityBrowserUpdater implements ICommand {
                   secondaryYGraph2D, secondaryDiffNode, secondaryDegree, true);
             }
           } else {
-            Logger.logSevere(
+            logger.at(Level.SEVERE).log(
                 "Malformed graph. Super proximity node without incoming or outgoing edge.");
           }
         }

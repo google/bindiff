@@ -1,5 +1,6 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.mainsettings;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.Launcher;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
@@ -8,7 +9,6 @@ import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels.GeneralPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels.LoggingPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels.SyntaxHighlightingPanel;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
@@ -18,11 +18,14 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
 public class MainSettingsDialog extends BaseDialog {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static final int DIALOG_WIDTH = 600;
   private static final int DIALOG_HEIGHT = 430;
 
@@ -47,12 +50,9 @@ public class MainSettingsDialog extends BaseDialog {
 
   private void adoptChanges() {
     try {
-      Launcher.applyLoggerChanges();
-    } catch (final SecurityException e) {
-      Logger.logException(e, "Couldn't create file logger.");
-      CMessageBox.showError(this, "Couldn't create file logger.");
-    } catch (final IOException e) {
-      Logger.logException(e, "Couldn't create file logger.");
+      Launcher.applyLoggingChanges();
+    } catch (final SecurityException | IOException e) {
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't create file logger");
       CMessageBox.showError(this, "Couldn't create file logger.");
     }
   }
@@ -125,8 +125,8 @@ public class MainSettingsDialog extends BaseDialog {
         try {
           save();
         } catch (final IOException e) {
+          logger.at(Level.SEVERE).withCause(e).log("Couldn't save main settings");
           CMessageBox.showError(MainSettingsDialog.this, "Couldn't save main settings.");
-          Logger.logException(e, "Couldn't save main settings.");
         }
       }
 

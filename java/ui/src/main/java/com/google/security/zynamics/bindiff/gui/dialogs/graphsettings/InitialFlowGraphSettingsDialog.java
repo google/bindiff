@@ -1,5 +1,6 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
 import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
@@ -12,7 +13,6 @@ import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.Lay
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.MiscPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.OrthogonalLayoutPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.ProximityBrowsingPanel;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
@@ -22,11 +22,14 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
 public class InitialFlowGraphSettingsDialog extends BaseDialog {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static final int DIALOG_WIDTH = 630;
   private static final int DIALOG_HEIGHT = 282;
 
@@ -152,9 +155,9 @@ public class InitialFlowGraphSettingsDialog extends BaseDialog {
         try {
           save();
         } catch (final IOException e) {
+          logger.at(Level.SEVERE).withCause(e).log("Couldn't save initial flow graph settings");
           CMessageBox.showError(
               InitialFlowGraphSettingsDialog.this, "Couldn't save initial flow graph settings.");
-          Logger.logException(e, "Couldn't save initial flow graph settings.");
         }
       }
 

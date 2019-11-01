@@ -1,12 +1,12 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.implementations;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.BinExportException;
 import com.google.security.zynamics.bindiff.exceptions.DifferException;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.processes.DiffProcess;
 import com.google.security.zynamics.bindiff.processes.ExportProcess;
 import com.google.security.zynamics.bindiff.project.Workspace;
@@ -22,8 +22,11 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.logging.Level;
 
 public final class NewDiffImplementation extends CEndlessHelperThread {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final MainWindow parentWindow;
   private final Workspace workspace;
 
@@ -99,7 +102,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       setDescription("Creating destination directory...");
 
       if (!destinationDirectory.isDirectory() && !destinationDirectory.mkdirs()) {
-        Logger.logSevere("Could not create destination directory.");
+        logger.at(Level.SEVERE).log("Could not create destination directory");
         CMessageBox.showError(parentWindow, "Could not create destination directory.");
 
         return null;
@@ -111,7 +114,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       // Export primary side
       if (primaryIdbFile != null) {
         try {
-          Logger.logInfo(
+          logger.at(Level.INFO).log(
               "- Exporting primary IDB '%s' to '%s'",
               primaryIdbFile.getPath(), destinationDirectory.getPath());
 
@@ -122,28 +125,23 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           if (idaExe == null || !idaExe.canExecute()) {
             final String msg =
                 "Can't start disassembler. Please set correct path in the main settings first.";
-
-            Logger.logSevere(msg);
+            logger.at(Level.SEVERE).log(msg);
             CMessageBox.showError(parentWindow, msg);
-
             return null;
           }
 
           ExportProcess.startExportProcess(
               idaExe, destinationDirectory, primaryIdbFile, priTargetName);
         } catch (final BinExportException e) {
-          Logger.logException(e, e.getMessage());
+          logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
           CMessageBox.showError(parentWindow, e.getMessage());
 
           try {
             BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException exception) {
-            Logger.logException(
-                exception,
-                String.format(
-                    "Couldn't delete diff folder '%s' after diffing failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
+          } catch (final IOException e2) {
+            logger.at(Level.SEVERE).withCause(e2).log(
+                "Couldn't delete diff folder '%s' after diffing failed",
+                destinationDirectory.getPath());
             CMessageBox.showWarning(
                 parentWindow,
                 String.format(
@@ -171,8 +169,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           primaryBinExportFile = copiedBinExportFile;
         } catch (final IOException e) {
-          Logger.logException(
-              e,
+          logger.at(Level.SEVERE).withCause(e).log(
               "New Diff failed. Couldn't copy already exported primary binaries "
                   + "into the new diff directory.");
           CMessageBox.showError(
@@ -182,13 +179,10 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           try {
             BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException exception) {
-            Logger.logException(
-                exception,
-                String.format(
-                    "Couldn't delete diff folder '%s' after diffing failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
+          } catch (final IOException e2) {
+            logger.at(Level.SEVERE).withCause(e2).log(
+                "Couldn't delete diff folder '%s' after diffing failed",
+                destinationDirectory.getPath());
             CMessageBox.showWarning(
                 parentWindow,
                 String.format(
@@ -204,7 +198,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       // export or copy secondary side
       if (secondaryIdbFile != null) {
         try {
-          Logger.logInfo(
+          logger.at(Level.INFO).log(
               "- Exporting secondary IDB '%s' to '%s'",
               secondaryIdbFile.getPath(), destinationDirectory.getPath());
 
@@ -215,8 +209,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           if (idaExe == null || !idaExe.canExecute()) {
             final String msg =
                 "Can't start disassembler. Please set correct path in the main settings first.";
-
-            Logger.logSevere(msg);
+            logger.at(Level.SEVERE).log(msg);
             CMessageBox.showError(parentWindow, msg);
 
             return null;
@@ -225,18 +218,15 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           ExportProcess.startExportProcess(
               idaExe, destinationDirectory, secondaryIdbFile, secTargetName);
         } catch (final BinExportException e) {
-          Logger.logException(e, e.getMessage());
+          logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
           CMessageBox.showError(parentWindow, e.getMessage());
 
           try {
             BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException exception) {
-            Logger.logException(
-                exception,
-                String.format(
-                    "Couldn't delete diff folder '%s' after exporting failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
+          } catch (final IOException e2) {
+            logger.at(Level.SEVERE).withCause(e2).log(
+                "Couldn't delete diff folder '%s' after exporting failed",
+                destinationDirectory.getPath());
             CMessageBox.showWarning(
                 parentWindow,
                 String.format(
@@ -263,8 +253,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           secondaryBinExportFile = copiedSecBinExportFile;
         } catch (final IOException e) {
-          Logger.logException(
-              e,
+          logger.at(Level.SEVERE).withCause(e).log(
               "New Diff failed. Couldn't copy secondary BinExport binaries into "
                   + "the new diff directory.");
           CMessageBox.showError(
@@ -274,13 +263,10 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           try {
             BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException exception) {
-            Logger.logException(
-                exception,
-                String.format(
-                    "Couldn't delete diff folder '%s' after exporting failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
+          } catch (final IOException e2) {
+            logger.at(Level.SEVERE).withCause(e2).log(
+                "Couldn't delete diff folder '%s' after exporting failed",
+                destinationDirectory.getPath());
             CMessageBox.showWarning(
                 parentWindow,
                 String.format(
@@ -313,7 +299,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
           secondaryDifferArgument = secondaryBinExportFile.getPath();
         }
 
-        Logger.logInfo("- Diffing '%s'", destinationDirectory.getName());
+        logger.at(Level.INFO).log("- Diffing '%s'", destinationDirectory.getName());
 
         setDescription("Diffing...");
 
@@ -323,18 +309,18 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         final String diffBinaryPath =
             DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
 
-        Logger.logInfo("- Diffing done successfully.'");
+        logger.at(Level.INFO).log("- Diffing done successfully");
 
         return diffBinaryPath;
       } catch (final DifferException e) {
-        Logger.logException(e, e.getMessage());
+        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(parentWindow, e.getMessage());
       }
 
       return null;
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, "New Diff failed..");
+      logger.at(Level.SEVERE).withCause(e).log("New Diff failed..");
       CMessageBox.showError(parentWindow, "New Diff failed.");
     }
 
@@ -359,13 +345,13 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
         workspace.addDiff(newMatchesDatabase, preloadedMatches, false);
       } else {
-        Logger.logSevere(
+        logger.at(Level.SEVERE).log(
             "Create and add new Diff to workspace failed. Diff binary does not exist.");
         CMessageBox.showError(
             parentWindow, "Adding new Diff to workspace failed. Diff binary does not exist.");
       }
     } catch (final SQLException e) {
-      Logger.logException(e, "New Diff failed. Couldn't read matches database.");
+      logger.at(Level.SEVERE).withCause(e).log("New Diff failed. Couldn't read matches database.");
       CMessageBox.showError(
           parentWindow, "New Diff failed. Couldn't read matches database: " + e.getMessage());
     }

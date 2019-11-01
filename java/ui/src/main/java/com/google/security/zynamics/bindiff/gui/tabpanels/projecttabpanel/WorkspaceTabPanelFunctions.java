@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
@@ -30,7 +31,6 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projec
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanel;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.IWorkspaceListener;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.WorkspaceLoader;
@@ -66,6 +66,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -73,9 +74,11 @@ import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
 public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private MainSettingsDialog mainSettingsDialog = null;
-  private InitialCallGraphSettingsDialog callgraphSettingsDialog = null;
-  private InitialFlowGraphSettingsDialog flowgraphSettingsDialog = null;
+  private InitialCallGraphSettingsDialog callGraphSettingsDialog = null;
+  private InitialFlowGraphSettingsDialog flowGraphSettingsDialog = null;
 
   private WorkspaceTree workspaceTree;
 
@@ -147,7 +150,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
               String.format("Couldn't delete '%s'.", diff.getMatchesDatabase().toString()));
         }
       } catch (final IOException e) {
-        Logger.logException(e, "Delete diff failed. Couldn't delete diff folder.");
+        logger.at(Level.SEVERE).withCause(e).log(
+            "Delete diff failed. Couldn't delete diff folder.");
         CMessageBox.showError(getMainWindow(), "Delete diff failed. Couldn't delete diff folder.");
 
         return false;
@@ -290,16 +294,15 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
 
       final String errorMsg = loader.getErrorMessage();
-
       if (!"".equals(errorMsg)) {
-        Logger.logSevere("%s", errorMsg);
+        logger.at(Level.SEVERE).log(errorMsg);
         CMessageBox.showError(getMainWindow(), errorMsg);
       } else {
         getWorkspace().saveWorkspace();
       }
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, String.format("Load workspace failed. %s", e.getMessage()));
+      logger.at(Level.SEVERE).withCause(e).log("Load workspace failed. %s", e.getMessage());
       CMessageBox.showError(
           getMainWindow(), String.format("Load workspace failed. %s", e.getMessage()));
     }
@@ -322,7 +325,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     try {
       getWorkspace().saveWorkspace();
     } catch (final SQLException e) {
-      Logger.logException(e, "Couldn't delete temporary files.");
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't delete temporary files");
       CMessageBox.showError(getMainWindow(), "Couldn't delete temporary files: " + e.getMessage());
     }
   }
@@ -354,7 +357,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         getWorkspace().addDiff(newMatchesDatabase, matchesMetadata, false);
       }
     } catch (final IOException | SQLException e) {
-      Logger.logException(e, "Add diff failed. Couldn't add diff to workspace.");
+      logger.at(Level.SEVERE).withCause(e).log("Add diff failed. Couldn't add diff to workspace");
       CMessageBox.showError(
           getMainWindow(), "Add diff failed. Couldn't add diff to workspace: " + e.getMessage());
     }
@@ -364,11 +367,11 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     if (mainSettingsDialog != null) {
       mainSettingsDialog.dispose();
     }
-    if (flowgraphSettingsDialog != null) {
-      flowgraphSettingsDialog.dispose();
+    if (flowGraphSettingsDialog != null) {
+      flowGraphSettingsDialog.dispose();
     }
-    if (callgraphSettingsDialog != null) {
-      callgraphSettingsDialog.dispose();
+    if (callGraphSettingsDialog != null) {
+      callGraphSettingsDialog.dispose();
     }
   }
 
@@ -503,7 +506,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       try {
         ProgressDialog.show(window, "Directory Diffing...", directoryDiffer);
       } catch (final Exception e) {
-        Logger.logException(e, "Directory diffing was canceled because an unexpected exception!");
+        logger.at(Level.SEVERE).withCause(e).log(
+            "Directory diffing was canceled because of an unexpected exception");
         CMessageBox.showError(
             window, "Directory diffing was canceled because of an unexpected exception!");
       }
@@ -607,7 +611,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     final Exception e = progressDialog.getException();
     if (e != null) {
-      Logger.logException(e, e.getMessage());
+      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -638,7 +642,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     final Exception e = progressDialog.getException();
     if (e != null) {
-      Logger.logException(e, e.getMessage());
+      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -671,8 +675,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
       loadWorkspace(workspaceFile, true);
 
-      // TODO: Ensure that a new default workspace can only be set after it has been loaded
-      // sucessfully
+      // TODO(cblichmann): Ensure that a new default workspace can only be set after it has been
+      //                   loaded sucessfully.
       // Set default workspace?
       if (openFileDlg.isSelectedCheckBox()) {
         BinDiffConfig.getInstance()
@@ -686,9 +690,9 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     final File workspaceDir = new File(path);
 
     if (!workspaceDir.exists()) {
-      Logger.logSevere("Load workspace failed. Workspace folder does not exist.");
-      CMessageBox.showError(
-          getMainWindow(), "Load workspace failed. Workspace folder does not exist.");
+      final String msg = "Load workspace failed. Workspace folder does not exist.";
+      logger.at(Level.SEVERE).log(msg);
+      CMessageBox.showError(getMainWindow(), msg);
       return;
     }
 
@@ -726,7 +730,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             newDiffThread);
       } catch (final Exception e) {
         // FIXME: Never catch all exceptions!
-        Logger.logException(e, e.getMessage());
+        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(getMainWindow(), "Unkown error while diffing.");
       }
     }
@@ -767,7 +771,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             .setDefaultWorkspace(workspaceFile.getAbsolutePath());
       }
     } catch (final IOException | SQLException e) {
-      Logger.logException(e);
+      logger.at(Level.SEVERE).withCause(e).log();
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -794,7 +798,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, "Open call graph view failed. Couldn't create graph.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
     }
   }
@@ -832,13 +837,13 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, "Open flow graph view failed. Couldn't create flowgraph.");
-      CMessageBox.showError(
-          getMainWindow(), "Open flow graph view failed. Couldn't create flowgraph.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Open flow graph view failed. Couldn't create graph.");
+      CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
     }
   }
 
-  public void openFlowgraphViews(
+  public void openFlowGraphViews(
       final MainWindow window,
       final LinkedHashSet<Triple<Diff, IAddress, IAddress>> viewsAddresses) {
     final TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
@@ -890,9 +895,9 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, "Open flow graph view failed. Couldn't create flow graph.");
-      CMessageBox.showError(
-          getMainWindow(), "Open flow graph view failed. Couldn't create flow graph.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Open flow graph view failed. Couldn't create graph.");
+      CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
     }
   }
 
@@ -913,7 +918,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, "Open function diff view failed. Couldn't create graph.");
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Open function diff view failed. Couldn't create graph.");
       CMessageBox.showError(
           getMainWindow(), "Open function diff view failed. Couldn't create graph.");
     }
@@ -959,7 +965,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       matchesDb.saveDiffDescription(description);
       return true;
     } catch (final SQLException e) {
-      Logger.logException(e, "Database error. Couldn't save diff description.");
+      logger.at(Level.SEVERE).withCause(e).log("Database error. Couldn't save diff description.");
       CMessageBox.showError(
           getMainWindow(), "Database error. Couldn't save diff description: " + e.getMessage());
     }
@@ -981,7 +987,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     this.workspaceTree = workspaceTree;
   }
 
-  public void showInCallgraph(final Diff diff, final Set<Pair<IAddress, IAddress>> viewAddrPairs) {
+  public void showInCallGraph(final Diff diff, final Set<Pair<IAddress, IAddress>> viewAddrPairs) {
     if (!diff.getViewManager().containsView(null, null)) {
       openCallgraphView(getMainWindow(), diff);
     } else {
@@ -1012,18 +1018,18 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  public void showInitialCallgraphSettingsDialog() {
-    if (callgraphSettingsDialog == null) {
-      callgraphSettingsDialog = new InitialCallGraphSettingsDialog(getMainWindow());
+  public void showInitialCallGraphSettingsDialog() {
+    if (callGraphSettingsDialog == null) {
+      callGraphSettingsDialog = new InitialCallGraphSettingsDialog(getMainWindow());
     }
-    callgraphSettingsDialog.setVisible(true);
+    callGraphSettingsDialog.setVisible(true);
   }
 
-  public void showInitialFlowgraphSettingsDialog() {
-    if (flowgraphSettingsDialog == null) {
-      flowgraphSettingsDialog = new InitialFlowGraphSettingsDialog(getMainWindow());
+  public void showInitialFlowGraphSettingsDialog() {
+    if (flowGraphSettingsDialog == null) {
+      flowGraphSettingsDialog = new InitialFlowGraphSettingsDialog(getMainWindow());
     }
-    flowgraphSettingsDialog.setVisible(true);
+    flowGraphSettingsDialog.setVisible(true);
   }
 
   public void showMainSettingsDialog() {

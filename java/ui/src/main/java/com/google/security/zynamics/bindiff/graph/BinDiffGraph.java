@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.graph;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.listeners.GraphsIntermediateListeners;
@@ -9,7 +10,6 @@ import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcher;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
@@ -19,7 +19,12 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.functions.LayoutFunctions;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ProximityHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.Window;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Set;
+import java.util.logging.Level;
+import javax.swing.SwingUtilities;
 import y.algo.AlgorithmAbortedException;
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -29,16 +34,11 @@ import y.layout.CanonicMultiStageLayouter;
 import y.layout.GraphLayout;
 import y.layout.LabelLayoutTranslator;
 
-import java.awt.Window;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Set;
-
-import javax.swing.SwingUtilities;
-
 public abstract class BinDiffGraph<
         NodeType extends ZyGraphNode<? extends IViewNode<?>>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     extends AbstractZyGraph<NodeType, EdgeType> {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private GraphsIntermediateListeners intermediateListeners;
 
   private final ProximityBrowser<NodeType, EdgeType> proximityBrowser;
@@ -49,7 +49,7 @@ public abstract class BinDiffGraph<
 
   private GraphsContainer graphs;
 
-  @SuppressWarnings({"unchecked"})
+  @SuppressWarnings("unchecked")
   protected BinDiffGraph(
       final ZyGraph2DView view,
       final LinkedHashMap<Node, NodeType> nodeMap,
@@ -104,10 +104,9 @@ public abstract class BinDiffGraph<
       LayoutFunctions.recalculatePorts(layouter, getGraph());
     } catch (final AlgorithmAbortedException e) {
       // Do nothing, user has canceled layout thread
-      Logger.logException(e, e.getMessage());
+      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, e.getMessage());
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }
 
@@ -130,10 +129,9 @@ public abstract class BinDiffGraph<
       LayoutFunctions.recalculatePorts(layouter, getGraph());
     } catch (final AlgorithmAbortedException e) {
       // Do nothing, user has canceled layout thread
-      Logger.logException(e, e.getMessage());
+      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
     } catch (final Exception e) {
       // FIXME: Never catch all exceptions!
-      Logger.logException(e, e.getMessage());
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }
 

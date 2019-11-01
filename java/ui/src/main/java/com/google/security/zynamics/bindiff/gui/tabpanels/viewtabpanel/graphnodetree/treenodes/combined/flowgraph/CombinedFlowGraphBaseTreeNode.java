@@ -16,18 +16,17 @@ import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+
 public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
   private static final Icon MATCHED_IDENTICAL_FUNCTION_ICON =
       ImageUtils.getImageIcon("data/treeicons/matched-functions.png");
@@ -281,8 +280,11 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     }
 
     @Override
-    public void addedBasicblockMatch(final IAddress priFunctionAddr, final IAddress secFunctionAddr,
-        final IAddress priBasicblockAddr, final IAddress secBasicblockAddr) {
+    public void addedBasicBlockMatch(
+        final IAddress priFunctionAddr,
+        final IAddress secFunctionAddr,
+        final IAddress priBasicblockAddr,
+        final IAddress secBasicblockAddr) {
       if (isAffected(priFunctionAddr, secFunctionAddr)) {
         CombinedDiffNode newCombinedDiffNode = null;
 
@@ -351,8 +353,10 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     }
 
     @Override
-    public void removedBasicblockMatch(final IAddress priFunctionAddr,
-        final IAddress secFunctionAddr, final IAddress priBasicblockAddr,
+    public void removedBasicBlockMatch(
+        final IAddress priFunctionAddr,
+        final IAddress secFunctionAddr,
+        final IAddress priBasicblockAddr,
         final IAddress secBasicblockAddr) {
       if (isAffected(priFunctionAddr, secFunctionAddr)) {
         CombinedDiffNode newPriCombinedDiffNode = null;

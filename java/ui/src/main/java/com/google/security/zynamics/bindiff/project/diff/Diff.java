@@ -1,8 +1,8 @@
 package com.google.security.zynamics.bindiff.project.diff;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
@@ -16,8 +16,11 @@ import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 
 public final class Diff {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final ListenerProvider<IDiffListener> listenerProvider = new ListenerProvider<>();
 
   private File matchesDatabaseFile;
@@ -96,7 +99,7 @@ public final class Diff {
   }
 
   public void closeDiff() {
-    Logger.logInfo("Unloading Diff '%s'", getDiffName());
+    logger.at(Level.INFO).log("Unloading Diff '%s'", getDiffName());
     if (matches == null) {
       return;
     }
@@ -172,7 +175,7 @@ public final class Diff {
   }
 
   public void removeDiff() {
-    Logger.logInfo("Removing Diff '%s'", getDiffName());
+    logger.at(Level.INFO).log("Removing Diff '%s'", getDiffName());
 
     close();
 
@@ -189,11 +192,11 @@ public final class Diff {
     listenerProvider.removeListener(listener);
   }
 
-  public void setCallgraph(final RawCallGraph callgraph, final ESide side) {
+  public void setCallGraph(final RawCallGraph callGraph, final ESide side) {
     if (side == ESide.PRIMARY) {
-      primaryCallgraph = callgraph;
+      primaryCallgraph = callGraph;
     } else {
-      secondaryCallgraph = callgraph;
+      secondaryCallgraph = callGraph;
     }
   }
 

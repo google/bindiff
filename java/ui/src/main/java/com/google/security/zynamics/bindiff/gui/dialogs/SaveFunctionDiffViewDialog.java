@@ -1,6 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.MessageBox;
@@ -8,7 +9,6 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanel;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.WorkspaceLoader;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -43,6 +44,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 public class SaveFunctionDiffViewDialog extends BaseDialog {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static final Color NORMAL_COLOR = new JFormattedTextField().getBackground();
   private static final Color OVERWRITE_INDICATION_COLOR = new Color(233, 200, 200);
 
@@ -246,12 +249,13 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
                 String.format("Loading Workspace '%s'", workspaceFile.getName()),
                 loader);
           } catch (final Exception e) {
-            Logger.logException(
-                e, String.format("Load default workspace failed. '%s'", workspaceFile.getPath()));
+            logger.at(Level.SEVERE).withCause(e).log(
+                "Load default workspace failed: '%s'", workspaceFile.getPath());
             MessageBox.showError(
                 getParent(),
                 String.format(
-                    "Faild to load the current default workspace.\n'%s'", workspaceFile.getPath()));
+                    "Failed to load the current default workspace.\n'%s'",
+                    workspaceFile.getPath()));
           }
         } else if (answer == JOptionPane.NO_OPTION) {
           noOption = true;
@@ -274,7 +278,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
           final WorkspaceTabPanel workspaceTabPanel = tabPanelManager.getWorkspaceTabPanel();
           workspaceTabPanel.getController().loadWorkspace();
         } catch (final Exception e) {
-          Logger.logException(e, "Load workspace failed.");
+          logger.at(Level.SEVERE).withCause(e).log("Load workspace failed");
           MessageBox.showError(window, "Load workspace failed.");
         }
       }
@@ -510,10 +514,10 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     }
 
     if (!createSingleViewsDirectory()) {
-      Logger.logSevere(
-          "Save function diff view failed. Couldn't create 'Function Diffs' directory'.");
-      MessageBox.showError(
-          window, "Save function diff view failed. Couldn't create 'Function Diffs' directory'.");
+      final String msg =
+          "Save function diff view failed. Couldn't create 'Function Diffs' directory'.";
+      logger.at(Level.SEVERE).log(msg);
+      MessageBox.showError(window, msg);
 
       dispose();
 
@@ -521,9 +525,9 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     }
 
     if (!createDestinationDirectory()) {
-      Logger.logSevere("Save function diff view failed. Couldn't create destination directory.");
-      MessageBox.showError(
-          window, "Save function diff view failed. Couldn't create destination directory.");
+      final String msg = "Save function diff view failed. Couldn't create destination directory.";
+      logger.at(Level.SEVERE).log(msg);
+      MessageBox.showError(window, msg);
 
       dispose();
 
@@ -533,9 +537,9 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     try {
       setDefaultNames();
     } catch (final IOException e) {
-      Logger.logSevere("Save function diff view failed. Couldn't calculate source BinExport MD5.");
-      MessageBox.showError(
-          window, "Save function diff view failed. Couldn't calculate source BinExport MD5.");
+      final String msg = "Save function diff view failed. Couldn't calculate source BinExport MD5.";
+      logger.at(Level.SEVERE).withCause(e).log(msg);
+      MessageBox.showError(window, msg);
 
       return;
     }
@@ -558,11 +562,10 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
 
           okPressed = true;
         } catch (final IOException e) {
-          Logger.logSevere(
-              "Save function diff view failed. Couldn't calculate source BinExport MD5.");
-          MessageBox.showError(
-              getParent(),
-              "Save function diff view failed. Couldn't calculate source BinExport MD5.");
+          final String msg =
+              "Save function diff view failed. Couldn't calculate source BinExport MD5.";
+          logger.at(Level.SEVERE).withCause(e).log(msg);
+          MessageBox.showError(getParent(), msg);
 
           return;
         }

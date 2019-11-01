@@ -25,6 +25,6 @@ public class ShowInCallGraphAction extends AbstractAction {
     }
 
     final Diff diff = table.getDiff();
-    table.getController().showInCallgraph(diff, viewAddrPairs);
+    table.getController().showInCallGraph(diff, viewAddrPairs);
   }
 }

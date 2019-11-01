@@ -1,8 +1,8 @@
 package com.google.security.zynamics.bindiff.project.builders;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.GraphCreationException;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.BasicBlockMatchData;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
@@ -20,8 +20,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 public class RawCombinedFlowGraphBuilder {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
       buildMatchedCombinedFlowGraph(
           final FunctionMatchData functionMatch,
@@ -210,7 +213,7 @@ public class RawCombinedFlowGraphBuilder {
           final RawFlowGraph primaryFlowGraph,
           final RawFlowGraph secondaryFlowGraph)
           throws GraphCreationException {
-    Logger.logInfo(" - Building combined flow graphs");
+    logger.at(Level.INFO).log(" - Building combined flow graphs");
 
     // Build matched functions's combined basic blocks and combined jumps
     if (primaryFlowGraph != null && secondaryFlowGraph != null) {

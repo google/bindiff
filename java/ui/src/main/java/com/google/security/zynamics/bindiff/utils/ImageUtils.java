@@ -1,14 +1,19 @@
 package com.google.security.zynamics.bindiff.utils;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.Launcher;
-import com.google.security.zynamics.bindiff.log.Logger;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.logging.Level;
 import javax.swing.ImageIcon;
 
 public class ImageUtils {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  private ImageUtils() {}
+
   public static Image getImage(final String imagePath) {
     final String pkgName = Launcher.class.getPackage().getName().replace('.', '/');
     URL imageUrl = null;
@@ -25,7 +30,7 @@ public class ImageUtils {
     }
 
     if (imageUrl == null) {
-      Logger.logWarning("Image resource not found: \"" + imagePath + "\"");
+      logger.at(Level.WARNING).log("Image resource not found: \"%s\"", imagePath);
       return null;
     }
 

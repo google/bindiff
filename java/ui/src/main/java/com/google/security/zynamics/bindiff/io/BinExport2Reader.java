@@ -2,6 +2,7 @@ package com.google.security.zynamics.bindiff.io;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.BinExport.BinExport2;
 import com.google.security.zynamics.BinExport.BinExport2.Expression.Type;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
@@ -10,7 +11,6 @@ import com.google.security.zynamics.bindiff.enums.EJumpType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCall;
@@ -36,9 +36,12 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Level;
 
 /** Reads data from BinExport2 files and renders disassemblies. */
 public class BinExport2Reader {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final ESide side;
 
   private final BinExport2 binexport;
@@ -111,7 +114,7 @@ public class BinExport2Reader {
     }
   }
 
-  public RawCallGraph readCallgraph() {
+  public RawCallGraph readCallGraph() {
     final BinExport2.CallGraph callGraph = binexport.getCallGraph();
 
     final List<RawFunction> nodes = new ArrayList<>();
@@ -216,7 +219,7 @@ public class BinExport2Reader {
                     continue; // Don't render anything or we'll get: eax+-12
                   }
                   if (childImmediate == 0) {
-                    i++;  // Skip "+0"
+                    i++; // Skip "+0"
                     continue;
                   }
                 }
@@ -374,7 +377,7 @@ public class BinExport2Reader {
         final int targetIndex = edge.getTargetBasicBlockIndex();
         final RawBasicBlock target = basicBlocks.get(targetIndex);
         if (source == null || target == null) {
-          Logger.logWarning(
+          logger.at(Level.WARNING).log(
               "Incomplete %s flow graph edge (source %d%s, target %d%s)",
               side == ESide.PRIMARY ? "primary" : "secondary",
               sourceIndex,

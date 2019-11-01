@@ -1,12 +1,15 @@
 package com.google.security.zynamics.bindiff.graph.listeners;
 
 import com.google.common.base.Preconditions;
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
-import com.google.security.zynamics.bindiff.log.Logger;
+import java.util.logging.Level;
 
 public class GraphViewsListenerManager {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private final GraphsContainer graphs;
 
   private final SingleViewCanvasListener primaryViewCanvasListener;
@@ -47,7 +50,7 @@ public class GraphViewsListenerManager {
     } else if (graph == graphs.getCombinedGraph()) {
       combinedGraphMouseListener.addListener();
     } else {
-      Logger.logWarning("Unknown graph! Add graph mouse listener was ignored.");
+      logger.at(Level.WARNING).log("Unknown graph! Add graph mouse listener was ignored.");
     }
   }
 
@@ -57,7 +60,7 @@ public class GraphViewsListenerManager {
     } else if (graph == graphs.getSecondaryGraph()) {
       secondaryViewCanvasListener.addListener();
     } else {
-      Logger.logWarning("Unknown graph! Add view canvas listener was ignored.");
+      logger.at(Level.WARNING).log("Unknown graph! Add view canvas listener was ignored.");
     }
   }
 
@@ -67,7 +70,7 @@ public class GraphViewsListenerManager {
     } else if (graph == graphs.getSecondaryGraph()) {
       secondaryViewFocusListener.addListener();
     } else {
-      Logger.logWarning("Unknown graph! Add graph view focus listener was ignored.");
+      logger.at(Level.WARNING).log("Unknown graph! Add graph view focus listener was ignored.");
     }
   }
 
@@ -92,10 +95,10 @@ public class GraphViewsListenerManager {
       } else if (graph == graphs.getCombinedGraph()) {
         combinedGraphMouseListener.removeListener();
       } else {
-        Logger.logWarning("Unknown graph! Remove graph mouse listener was ignored.");
+        logger.at(Level.WARNING).log("Unknown graph! Remove graph mouse listener was ignored.");
       }
     } catch (final IllegalStateException e) {
-      Logger.logWarning("Listener was not listening.");
+      logger.at(Level.WARNING).log("Listener was not listening");
     }
   }
 
@@ -106,10 +109,10 @@ public class GraphViewsListenerManager {
       } else if (graph == graphs.getSecondaryGraph()) {
         secondaryViewCanvasListener.removeListener();
       } else {
-        Logger.logWarning("Unknown graph! Remove view canvas listener was ignored.");
+        logger.at(Level.WARNING).log("Unknown graph! Remove view canvas listener was ignored.");
       }
     } catch (final IllegalStateException e) {
-      Logger.logWarning("Listener was not listening.");
+      logger.at(Level.WARNING).log("Listener was not listening");
     }
   }
 
@@ -120,10 +123,10 @@ public class GraphViewsListenerManager {
       } else if (graph == graphs.getSecondaryGraph()) {
         secondaryViewFocusListener.addListener();
       } else {
-        Logger.logWarning("Unknown graph! Add graph view focus listener was ignored.");
+        logger.at(Level.WARNING).log("Unknown graph! Add graph view focus listener was ignored.");
       }
     } catch (final IllegalStateException e) {
-      Logger.logWarning("Listener was not listening.");
+      logger.at(Level.WARNING).log("Listener was not listening");
     }
   }
 

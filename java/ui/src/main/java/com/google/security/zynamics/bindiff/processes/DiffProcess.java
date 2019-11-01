@@ -1,13 +1,18 @@
 package com.google.security.zynamics.bindiff.processes;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.exceptions.DifferException;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 
 public class DiffProcess {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  private DiffProcess() {}
+
   private static void handleExitCode(final int exitCode) throws DifferException {
     if (exitCode != 0) {
       if (exitCode == 1) {
@@ -70,7 +75,7 @@ public class DiffProcess {
             outputDir.getPath(),
             "--bin_format");
 
-    Logger.logInfo("%s", String.join(" ", diffProcess.command()));
+    logger.at(Level.INFO).log(String.join(" ", diffProcess.command()));
 
     int exitCode = -1;
     Process processInfo = null;

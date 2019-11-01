@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.project.builders;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.exceptions.GraphCreationException;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCall;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
@@ -15,15 +15,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class RawCombinedCallGraphBuilder {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   private static List<RawCombinedCall> buildCombinedCalls(
-      final RawCallGraph priCallgraph,
-      final RawCallGraph secCallgraph,
+      final RawCallGraph priCallGraph,
+      final RawCallGraph secCallGraph,
       final Map<Pair<IAddress, IAddress>, RawCombinedFunction> helpMap) {
     final List<RawCombinedCall> combinedCalls = new ArrayList<>();
 
-    for (final RawCall priCall : priCallgraph.getEdges()) {
+    for (final RawCall priCall : priCallGraph.getEdges()) {
       final RawFunction priSrcFunction = priCall.getSource();
       final RawFunction priTarFunction = priCall.getTarget();
       final RawFunction secSrcFunction = priSrcFunction.getMatchedFunction();
@@ -48,7 +51,7 @@ public class RawCombinedCallGraphBuilder {
       combinedCalls.add(combinedCall);
     }
 
-    for (final RawCall secCall : secCallgraph.getEdges()) {
+    for (final RawCall secCall : secCallGraph.getEdges()) {
       if (secCall.getMatchedCall() == null || secCall.getMatchedCall().isChanged()) {
         final RawFunction secSrcFunction = secCall.getSource();
         final RawFunction secTarFunction = secCall.getTarget();
@@ -75,30 +78,30 @@ public class RawCombinedCallGraphBuilder {
 
   private static List<RawCombinedFunction> buildCombinedFunctions(
       final MatchData matches,
-      final RawCallGraph priCallgraph,
-      final RawCallGraph secCallgraph,
+      final RawCallGraph priCallGraph,
+      final RawCallGraph secCallGraph,
       final Map<Pair<IAddress, IAddress>, RawCombinedFunction> helpMap) {
     // build combined primary and secondary matched functions add secondary unmatched functions
     final List<RawCombinedFunction> combinedFunctions = new ArrayList<>();
 
-    for (final RawFunction primaryfunction : priCallgraph.getNodes()) {
-      final IAddress primaryAddr = primaryfunction.getAddress();
+    for (final RawFunction primaryFunction : priCallGraph.getNodes()) {
+      final IAddress primaryAddr = primaryFunction.getAddress();
       final IAddress secondaryAddr = matches.getSecondaryFunctionAddr(primaryAddr);
 
       RawFunction secondaryFunction = null;
       if (secondaryAddr != null) {
-        secondaryFunction = secCallgraph.getFunction(secondaryAddr);
+        secondaryFunction = secCallGraph.getFunction(secondaryAddr);
       }
 
       final RawCombinedFunction combinedFunction =
-          new RawCombinedFunction(primaryfunction, secondaryFunction);
+          new RawCombinedFunction(primaryFunction, secondaryFunction);
       helpMap.put(new Pair<>(primaryAddr, secondaryAddr), combinedFunction);
 
       combinedFunctions.add(combinedFunction);
     }
 
     // build combined secondary unmatched functions
-    for (final RawFunction secondaryFunction : secCallgraph.getNodes()) {
+    for (final RawFunction secondaryFunction : secCallGraph.getNodes()) {
       final IAddress secondaryAddr = secondaryFunction.getAddress();
       final IAddress primaryAddr = matches.getPrimaryFunctionAddr(secondaryAddr);
 
@@ -116,10 +119,10 @@ public class RawCombinedCallGraphBuilder {
 
   public static RawCombinedCallGraph buildCombinedCallgraph(
       final MatchData matches,
-      final RawCallGraph primaryRawCallgraph,
-      final RawCallGraph secondaryRawCallgraph)
+      final RawCallGraph primaryRawCallGraph,
+      final RawCallGraph secondaryRawCallGraph)
       throws GraphCreationException {
-    Logger.logInfo(" - Building combined call graph");
+    logger.at(Level.INFO).log(" - Building combined call graph");
 
     try {
       // TODO: Use AddressPair here
@@ -127,10 +130,10 @@ public class RawCombinedCallGraphBuilder {
 
       final List<RawCombinedFunction> combinedFunctions;
       combinedFunctions =
-          buildCombinedFunctions(matches, primaryRawCallgraph, secondaryRawCallgraph, helpMap);
+          buildCombinedFunctions(matches, primaryRawCallGraph, secondaryRawCallGraph, helpMap);
 
       List<RawCombinedCall> combinedCalls =
-          buildCombinedCalls(primaryRawCallgraph, secondaryRawCallgraph, helpMap);
+          buildCombinedCalls(primaryRawCallGraph, secondaryRawCallGraph, helpMap);
 
       helpMap.clear();
 

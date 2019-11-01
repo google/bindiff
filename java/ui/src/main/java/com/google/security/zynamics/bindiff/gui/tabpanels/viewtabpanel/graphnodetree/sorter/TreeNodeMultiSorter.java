@@ -1,5 +1,6 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESortByCriterium;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators.BasicBlockTreeNodeMatchStateComparator;
@@ -11,7 +12,6 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnode
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators.SingleTreeNodeAdressComparator;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators.TreeNodeSelectionComparator;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators.TreeNodeVisibilityComparator;
-import com.google.security.zynamics.bindiff.log.Logger;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.general.Pair;
 import java.util.ArrayList;
@@ -19,8 +19,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 
 public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESortOrder>> {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   public static final int MAX_DEPTH = 5;
 
   private final ListenerProvider<ITreeNodeSorterListener> listeners = new ListenerProvider<>();
@@ -180,7 +183,7 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESor
       final int criteriumDepth,
       final boolean notify) {
     if (criteriumDepth < 0 || criteriumDepth > MAX_DEPTH) {
-      Logger.logSevere("Severe: Criterium depth is out of range.");
+      logger.at(Level.SEVERE).log("Criterium depth is out of range");
 
       return;
     }
