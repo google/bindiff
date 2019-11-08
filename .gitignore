@@ -21,4 +21,4 @@ third_party/zynamics/binexport
 # Auto-generated
 *.pb.cc
 *.pb.h
-version.h
+version.cc

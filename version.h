@@ -12,13 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
+#ifndef VERSION_H_
+#define VERSION_H_
+
+namespace security::binexport {
+
+// The product name, "BinExport"
+extern const char* kBinExportName;
 
 // The BinExport release number. A single stringified integer.
-#define BINEXPORT_RELEASE "@binexport_VERSION_MAJOR@"
+extern const char* kBinExportRelease;
 
-// The Git revision of this build or "internal"
-#define BINEXPORT_REVISION "@REVISION@"
+// Detailed version and build information:
+// "N (@cafec0d, YYYYMMDD, debug build)"
+extern const char* kBinExportDetailedVersion;
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_VERSION_H_
+// Full copyright string with current year
+extern const char* kBinExportCopyright;
+
+}  // namespace security::binexport
+
+#endif  // VERSION_H_
