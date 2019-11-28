@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.menus;
 
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.CriteriumType;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.ICriteriumCreator;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionType;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeActionProvider;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions.AddConditionAction;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions.AppendAndOperatorAction;
@@ -12,10 +12,8 @@ import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressio
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions.InsertOrOperatorAction;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions.RemoveAction;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions.RemoveAllAction;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.CriteriumTreeNode;
-
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.CriterionTreeNode;
 import java.util.List;
-
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -37,13 +35,13 @@ public class NodeMenuBuilder {
   private final JMenuItem remove;
   private final JMenuItem removeAll;
 
-  private final CriteriumTreeNode criteriumNode;
+  private final CriterionTreeNode criterionNode;
 
   public NodeMenuBuilder(
-      final CriteriumTreeNode criteriumTreeNode,
-      final List<ICriteriumCreator> criteria,
+      final CriterionTreeNode criterionTreeNode,
+      final List<CriterionCreator> criteria,
       final ExpressionTreeActionProvider actionProvider) {
-    criteriumNode = criteriumTreeNode;
+    criterionNode = criterionTreeNode;
 
     appendAnd = new JMenuItem(new AppendAndOperatorAction(actionProvider));
     appendOr = new JMenuItem(new AppendOrOperatorAction(actionProvider));
@@ -67,14 +65,14 @@ public class NodeMenuBuilder {
 
     conditionSubmenu = new JMenu("Create Condition");
 
-    for (final ICriteriumCreator condition : criteria) {
+    for (final CriterionCreator condition : criteria) {
       conditionSubmenu.add(new JMenuItem(new AddConditionAction(condition, actionProvider)));
     }
     popup.add(conditionSubmenu);
 
     popup.add(new JSeparator());
 
-    remove = new JMenuItem(new RemoveAction(criteriumTreeNode, actionProvider));
+    remove = new JMenuItem(new RemoveAction(criterionTreeNode, actionProvider));
     popup.add(remove);
 
     popup.add(new JSeparator());
@@ -84,19 +82,19 @@ public class NodeMenuBuilder {
   }
 
   private void updateMenuState() {
-    appendAnd.setEnabled(criteriumNode.allowAppend(CriteriumType.AND));
-    appendOr.setEnabled(criteriumNode.allowAppend(CriteriumType.OR));
-    appendNot.setEnabled(criteriumNode.allowAppend(CriteriumType.NOT));
+    appendAnd.setEnabled(criterionNode.allowAppend(CriterionType.AND));
+    appendOr.setEnabled(criterionNode.allowAppend(CriterionType.OR));
+    appendNot.setEnabled(criterionNode.allowAppend(CriterionType.NOT));
 
-    insertAnd.setEnabled(criteriumNode.allowInsert(CriteriumType.AND));
-    insertOr.setEnabled(criteriumNode.allowInsert(CriteriumType.OR));
-    insertNot.setEnabled(criteriumNode.allowInsert(CriteriumType.NOT));
+    insertAnd.setEnabled(criterionNode.allowInsert(CriterionType.AND));
+    insertOr.setEnabled(criterionNode.allowInsert(CriterionType.OR));
+    insertNot.setEnabled(criterionNode.allowInsert(CriterionType.NOT));
 
-    conditionSubmenu.setEnabled(criteriumNode.allowAppend(CriteriumType.CONDITION));
+    conditionSubmenu.setEnabled(criterionNode.allowAppend(CriterionType.CONDITION));
 
-    remove.setEnabled(!criteriumNode.isRoot());
+    remove.setEnabled(!criterionNode.isRoot());
 
-    removeAll.setEnabled(criteriumNode.getChildCount() != 0);
+    removeAll.setEnabled(criterionNode.getChildCount() != 0);
   }
 
   public JPopupMenu getPopup() {

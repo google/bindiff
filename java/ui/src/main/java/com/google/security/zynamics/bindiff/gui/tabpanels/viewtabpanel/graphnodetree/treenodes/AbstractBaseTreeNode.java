@@ -1,6 +1,6 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes;
 
-import com.google.security.zynamics.bindiff.enums.ESortByCriterium;
+import com.google.security.zynamics.bindiff.enums.ESortByCriterion;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.graph.filter.IGraphNodeMultiFilterListener;
@@ -63,11 +63,11 @@ public abstract class AbstractBaseTreeNode extends AbstractTreeNode {
   }
 
   private class InternalGraphVisibilityListener implements IZyGraphVisibilityListener {
-    private void handleNotifcationAndUpdateTreeNodes() {
+    private void handleNotificationAndUpdateTreeNodes() {
       boolean update = getFilter().getVisibilityFilterValue() != EVisibilityFilter.NONE;
       if (!update) {
-        for (final Pair<ESortByCriterium, ESortOrder> criterium : getSorter()) {
-          update = criterium.first() == ESortByCriterium.VISIBILITY;
+        for (final Pair<ESortByCriterion, ESortOrder> criterion : getSorter()) {
+          update = criterion.first() == ESortByCriterion.VISIBILITY;
           if (update) {
             break;
           }
@@ -81,12 +81,12 @@ public abstract class AbstractBaseTreeNode extends AbstractTreeNode {
 
     @Override
     public void nodeDeleted() {
-      handleNotifcationAndUpdateTreeNodes();
+      handleNotificationAndUpdateTreeNodes();
     }
 
     @Override
     public void visibilityChanged() {
-      handleNotifcationAndUpdateTreeNodes();
+      handleNotificationAndUpdateTreeNodes();
     }
   }
 

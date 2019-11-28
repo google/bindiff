@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter;
 
 import com.google.common.flogger.FluentLogger;
-import com.google.security.zynamics.bindiff.enums.ESortByCriterium;
+import com.google.security.zynamics.bindiff.enums.ESortByCriterion;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators.BasicBlockTreeNodeMatchStateComparator;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators.CombinedTreeNodeAdressComparator;
@@ -21,47 +21,47 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 
-public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESortOrder>> {
+public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterion, ESortOrder>> {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final int MAX_DEPTH = 5;
 
   private final ListenerProvider<ITreeNodeSorterListener> listeners = new ListenerProvider<>();
 
-  private final List<Pair<ESortByCriterium, ESortOrder>> criteria = new ArrayList<>();
+  private final List<Pair<ESortByCriterion, ESortOrder>> criteria = new ArrayList<>();
 
   public TreeNodeMultiSorter() {
-    criteria.add(new Pair<>(ESortByCriterium.NONE, ESortOrder.ASCENDING));
-    criteria.add(new Pair<>(ESortByCriterium.NONE, ESortOrder.ASCENDING));
-    criteria.add(new Pair<>(ESortByCriterium.NONE, ESortOrder.ASCENDING));
-    criteria.add(new Pair<>(ESortByCriterium.NONE, ESortOrder.ASCENDING));
-    criteria.add(new Pair<>(ESortByCriterium.NONE, ESortOrder.ASCENDING));
-    criteria.add(new Pair<>(ESortByCriterium.NONE, ESortOrder.ASCENDING));
+    criteria.add(new Pair<>(ESortByCriterion.NONE, ESortOrder.ASCENDING));
+    criteria.add(new Pair<>(ESortByCriterion.NONE, ESortOrder.ASCENDING));
+    criteria.add(new Pair<>(ESortByCriterion.NONE, ESortOrder.ASCENDING));
+    criteria.add(new Pair<>(ESortByCriterion.NONE, ESortOrder.ASCENDING));
+    criteria.add(new Pair<>(ESortByCriterion.NONE, ESortOrder.ASCENDING));
+    criteria.add(new Pair<>(ESortByCriterion.NONE, ESortOrder.ASCENDING));
   }
 
   public void addListener(final ITreeNodeSorterListener listener) {
     listeners.addListener(listener);
   }
 
-  public List<Comparator<ISortableTreeNode>> getCombinedBasicblockTreeNodeComparatorList() {
+  public List<Comparator<ISortableTreeNode>> getCombinedBasicBlockTreeNodeComparatorList() {
     final List<Comparator<ISortableTreeNode>> comparatorList = new ArrayList<>();
 
-    for (final Pair<ESortByCriterium, ESortOrder> criterium : criteria) {
-      switch (criterium.first()) {
+    for (final Pair<ESortByCriterion, ESortOrder> criterion : criteria) {
+      switch (criterion.first()) {
         case ADDRESS:
-          comparatorList.add(new CombinedTreeNodeAdressComparator(criterium.second()));
+          comparatorList.add(new CombinedTreeNodeAdressComparator(criterion.second()));
           break;
-        case MATCHSTATE:
-          comparatorList.add(new BasicBlockTreeNodeMatchStateComparator(criterium.second()));
+        case MATCH_STATE:
+          comparatorList.add(new BasicBlockTreeNodeMatchStateComparator(criterion.second()));
           break;
         case VISIBILITY:
-          comparatorList.add(new TreeNodeVisibilityComparator(criterium.second()));
+          comparatorList.add(new TreeNodeVisibilityComparator(criterion.second()));
           break;
         case SELECTION:
-          comparatorList.add(new TreeNodeSelectionComparator(criterium.second()));
+          comparatorList.add(new TreeNodeSelectionComparator(criterion.second()));
           break;
         case SIDE:
-          comparatorList.add(new CombinedTreeNodeSideComparator(criterium.second()));
+          comparatorList.add(new CombinedTreeNodeSideComparator(criterion.second()));
           break;
         default:
       }
@@ -75,25 +75,25 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESor
   public List<Comparator<ISortableTreeNode>> getCombinedFunctionTreeNodeComparatorList() {
     final List<Comparator<ISortableTreeNode>> comparatorList = new ArrayList<>();
 
-    for (final Pair<ESortByCriterium, ESortOrder> criterium : criteria) {
-      switch (criterium.first()) {
+    for (final Pair<ESortByCriterion, ESortOrder> criterion : criteria) {
+      switch (criterion.first()) {
         case ADDRESS:
-          comparatorList.add(new CombinedTreeNodeAdressComparator(criterium.second()));
+          comparatorList.add(new CombinedTreeNodeAdressComparator(criterion.second()));
           break;
-        case MATCHSTATE:
-          comparatorList.add(new FunctionTreeNodeMatchStateComparator(criterium.second()));
+        case MATCH_STATE:
+          comparatorList.add(new FunctionTreeNodeMatchStateComparator(criterion.second()));
           break;
         case VISIBILITY:
-          comparatorList.add(new TreeNodeVisibilityComparator(criterium.second()));
+          comparatorList.add(new TreeNodeVisibilityComparator(criterion.second()));
           break;
         case SELECTION:
-          comparatorList.add(new TreeNodeSelectionComparator(criterium.second()));
+          comparatorList.add(new TreeNodeSelectionComparator(criterion.second()));
           break;
         case SIDE:
-          comparatorList.add(new CombinedTreeNodeSideComparator(criterium.second()));
+          comparatorList.add(new CombinedTreeNodeSideComparator(criterion.second()));
           break;
-        case FUNCTIONTYPE:
-          comparatorList.add(new FunctionTreeNodeTypeComparator(criterium.second()));
+        case FUNCTION_TYPE:
+          comparatorList.add(new FunctionTreeNodeTypeComparator(criterion.second()));
           break;
         default:
       }
@@ -104,22 +104,22 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESor
     return comparatorList;
   }
 
-  public List<Comparator<ISortableTreeNode>> getSingleBasicblockTreeNodeComparatorList() {
+  public List<Comparator<ISortableTreeNode>> getSingleBasicBlockTreeNodeComparatorList() {
     final List<Comparator<ISortableTreeNode>> comparatorList = new ArrayList<>();
 
-    for (final Pair<ESortByCriterium, ESortOrder> criterium : criteria) {
-      switch (criterium.first()) {
+    for (final Pair<ESortByCriterion, ESortOrder> criterion : criteria) {
+      switch (criterion.first()) {
         case ADDRESS:
-          comparatorList.add(new SingleTreeNodeAdressComparator(criterium.second()));
+          comparatorList.add(new SingleTreeNodeAdressComparator(criterion.second()));
           break;
-        case MATCHSTATE:
-          comparatorList.add(new BasicBlockTreeNodeMatchStateComparator(criterium.second()));
+        case MATCH_STATE:
+          comparatorList.add(new BasicBlockTreeNodeMatchStateComparator(criterion.second()));
           break;
         case VISIBILITY:
-          comparatorList.add(new TreeNodeVisibilityComparator(criterium.second()));
+          comparatorList.add(new TreeNodeVisibilityComparator(criterion.second()));
           break;
         case SELECTION:
-          comparatorList.add(new TreeNodeSelectionComparator(criterium.second()));
+          comparatorList.add(new TreeNodeSelectionComparator(criterion.second()));
           break;
         default:
       }
@@ -133,25 +133,25 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESor
   public List<Comparator<ISortableTreeNode>> getSingleFunctionTreeNodeComparatorList() {
     final List<Comparator<ISortableTreeNode>> comparatorList = new ArrayList<>();
 
-    for (final Pair<ESortByCriterium, ESortOrder> criterium : criteria) {
-      switch (criterium.first()) {
+    for (final Pair<ESortByCriterion, ESortOrder> criterion : criteria) {
+      switch (criterion.first()) {
         case ADDRESS:
-          comparatorList.add(new CombinedTreeNodeAdressComparator(criterium.second()));
+          comparatorList.add(new CombinedTreeNodeAdressComparator(criterion.second()));
           break;
-        case MATCHSTATE:
-          comparatorList.add(new FunctionTreeNodeMatchStateComparator(criterium.second()));
+        case MATCH_STATE:
+          comparatorList.add(new FunctionTreeNodeMatchStateComparator(criterion.second()));
           break;
         case VISIBILITY:
-          comparatorList.add(new TreeNodeVisibilityComparator(criterium.second()));
+          comparatorList.add(new TreeNodeVisibilityComparator(criterion.second()));
           break;
         case SELECTION:
-          comparatorList.add(new TreeNodeSelectionComparator(criterium.second()));
+          comparatorList.add(new TreeNodeSelectionComparator(criterion.second()));
           break;
-        case FUNCTIONTYPE:
-          comparatorList.add(new FunctionTreeNodeTypeComparator(criterium.second()));
+        case FUNCTION_TYPE:
+          comparatorList.add(new FunctionTreeNodeTypeComparator(criterion.second()));
           break;
-        case FUNCTIONNAME:
-          comparatorList.add(new FunctionTreeNodeNameComparator(criterium.second()));
+        case FUNCTION_NAME:
+          comparatorList.add(new FunctionTreeNodeNameComparator(criterion.second()));
           break;
         default:
       }
@@ -163,7 +163,7 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESor
   }
 
   @Override
-  public Iterator<Pair<ESortByCriterium, ESortOrder>> iterator() {
+  public Iterator<Pair<ESortByCriterion, ESortOrder>> iterator() {
     return criteria.iterator();
   }
 
@@ -177,22 +177,22 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterium, ESor
     listeners.removeListener(listener);
   }
 
-  public void setCriterium(
-      final ESortByCriterium sortBy,
+  public void setCriterion(
+      final ESortByCriterion sortBy,
       final ESortOrder order,
-      final int criteriumDepth,
+      final int criterionDepth,
       final boolean notify) {
-    if (criteriumDepth < 0 || criteriumDepth > MAX_DEPTH) {
-      logger.at(Level.SEVERE).log("Criterium depth is out of range");
+    if (criterionDepth < 0 || criterionDepth > MAX_DEPTH) {
+      logger.at(Level.SEVERE).log("Criterion depth is out of range");
 
       return;
     }
 
-    if (criteria.get(criteriumDepth).first() != sortBy
-        || criteria.get(criteriumDepth).second() != order) {
-      criteria.remove(criteriumDepth);
+    if (criteria.get(criterionDepth).first() != sortBy
+        || criteria.get(criterionDepth).second() != order) {
+      criteria.remove(criterionDepth);
 
-      criteria.add(criteriumDepth, new Pair<>(sortBy, order));
+      criteria.add(criterionDepth, new Pair<>(sortBy, order));
 
       if (notify) {
         notifyListeners();

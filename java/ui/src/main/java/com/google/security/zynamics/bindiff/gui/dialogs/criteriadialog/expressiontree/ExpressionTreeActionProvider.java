@@ -1,37 +1,37 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree;
 
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.ICriterium;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.ICriteriumListener;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriteriumTree;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriteriumTreeNode;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.ICriteriumTreeNode;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.AbstractCriteriumTreeNode;
-
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.Criterion;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.ICriterionListener;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriterionTree;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriterionTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.ICriterionTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.AbstractCriterionTreeNode;
 import javax.swing.tree.TreePath;
 
-/*
+/**
  * This class provides the basic operations of the expression, which are remove, insert and append
- * criterium.
+ * criterion.
  */
 public class ExpressionTreeActionProvider {
-  private final JCriteriumTree jtree;
-  private final CriteriumTree ctree;
-  private final ICriteriumListener internalCriteriumListener = new InternalCriteriumListener();
+  private final JCriterionTree jtree;
+  private final CriterionTree ctree;
+  private final ICriterionListener internalCriterionListener = new InternalCriterionListener();
 
-  public ExpressionTreeActionProvider(final JCriteriumTree jtree, final CriteriumTree ctree) {
+  public ExpressionTreeActionProvider(final JCriterionTree jtree, final CriterionTree ctree) {
     this.jtree = jtree;
     this.ctree = ctree;
 
     jtree.getModel().setActionProvider(this);
   }
 
-  private ICriteriumTreeNode findNode(final ICriteriumTreeNode node, final ICriterium criterium) {
-    if (node.getCriterium() == criterium) {
+  private static ICriterionTreeNode findNode(
+      final ICriterionTreeNode node, final Criterion criterion) {
+    if (node.getCriterion() == criterion) {
       return node;
     }
 
-    for (final ICriteriumTreeNode child : node.getChildren()) {
-      final ICriteriumTreeNode childNode = findNode(child, criterium);
+    for (final ICriterionTreeNode child : node.getChildren()) {
+      final ICriterionTreeNode childNode = findNode(child, criterion);
 
       if (childNode != null) {
         return childNode;
@@ -41,42 +41,42 @@ public class ExpressionTreeActionProvider {
     return null;
   }
 
-  public void appendCriterium(final ICriterium criterium) {
-    final TreePath path = jtree.getCurrentCriteriumPath();
+  public void appendCriterion(final Criterion criterion) {
+    final TreePath path = jtree.getCurrentCriterionPath();
 
     if (path == null) {
       return;
     }
 
-    criterium.addListener(internalCriteriumListener);
+    criterion.addListener(internalCriterionListener);
 
-    final AbstractCriteriumTreeNode node = (AbstractCriteriumTreeNode) path.getLastPathComponent();
-    final ICriteriumTreeNode appendNode = findNode(ctree.getRoot(), node.getCriterium());
+    final AbstractCriterionTreeNode node = (AbstractCriterionTreeNode) path.getLastPathComponent();
+    final ICriterionTreeNode appendNode = findNode(ctree.getRoot(), node.getCriterion());
 
-    ctree.appendNode(appendNode, new CriteriumTreeNode(criterium));
+    ctree.appendNode(appendNode, new CriterionTreeNode(criterion));
   }
 
-  public CriteriumTree getCriteriumTree() {
+  public CriterionTree getCriterionTree() {
     return ctree;
   }
 
-  public JCriteriumTree getJTree() {
+  public JCriterionTree getJTree() {
     return jtree;
   }
 
-  public void insertCriterium(final ICriterium criterium) {
-    final TreePath path = jtree.getCurrentCriteriumPath();
+  public void insertCriterion(final Criterion criterion) {
+    final TreePath path = jtree.getCurrentCriterionPath();
 
     if (path == null) {
       return;
     }
 
-    criterium.addListener(internalCriteriumListener);
+    criterion.addListener(internalCriterionListener);
 
-    final AbstractCriteriumTreeNode node = (AbstractCriteriumTreeNode) path.getLastPathComponent();
-    final ICriteriumTreeNode insertNode = findNode(ctree.getRoot(), node.getCriterium());
+    final AbstractCriterionTreeNode node = (AbstractCriterionTreeNode) path.getLastPathComponent();
+    final ICriterionTreeNode insertNode = findNode(ctree.getRoot(), node.getCriterion());
 
-    ctree.insertNode(insertNode, new CriteriumTreeNode(criterium));
+    ctree.insertNode(insertNode, new CriterionTreeNode(criterion));
   }
 
   public void remove(final TreePath path) {
@@ -84,8 +84,8 @@ public class ExpressionTreeActionProvider {
       return;
     }
 
-    final AbstractCriteriumTreeNode node = (AbstractCriteriumTreeNode) path.getLastPathComponent();
-    final ICriteriumTreeNode removeNode = findNode(ctree.getRoot(), node.getCriterium());
+    final AbstractCriterionTreeNode node = (AbstractCriterionTreeNode) path.getLastPathComponent();
+    final ICriterionTreeNode removeNode = findNode(ctree.getRoot(), node.getCriterion());
 
     ctree.removeNode(removeNode);
   }
@@ -94,9 +94,9 @@ public class ExpressionTreeActionProvider {
     ctree.removeAll();
   }
 
-  private class InternalCriteriumListener implements ICriteriumListener {
+  private class InternalCriterionListener implements ICriterionListener {
     @Override
-    public void criteriumChanged() {
+    public void criterionChanged() {
       jtree.updateUI();
     }
   }

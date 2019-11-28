@@ -1,20 +1,18 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog;
 
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.CriteriumType;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriteriumTree;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.ICriteriumTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionType;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriterionTree;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.ICriterionTreeNode;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeValidator;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ICriteriumTreeListener;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.JCriteriumTree;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.AbstractCriteriumTreeNode;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.CriteriumTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ICriterionTreeListener;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.JCriterionTree;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.AbstractCriterionTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.CriterionTreeNode;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.operators.AbstractOperatorPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.util.Enumeration;
-
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -28,15 +26,15 @@ public class DialogUpdater {
 
   private static final Color VALID_OPERATOR_COLOR = new Color(0, 0, 0);
 
-  private final JCriteriumTree jtree;
+  private final JCriterionTree jtree;
 
   private final InternalTreeSelectionListener treeSelectionListener =
       new InternalTreeSelectionListener();
 
-  private final InternalCriteriumTreeListener treeCriteriumlListener =
-      new InternalCriteriumTreeListener();
+  private final InternalCriterionTreeListener treeCriterionListener =
+      new InternalCriterionTreeListener();
 
-  private final CriteriumTree ctree;
+  private final CriterionTree ctree;
 
   private final JPanel defineConditionPanel;
 
@@ -45,27 +43,27 @@ public class DialogUpdater {
   private final JButton okButton;
 
   public DialogUpdater(
-      final JCriteriumTree tree,
-      final CriteriumTree criteriumTree,
+      final JCriterionTree tree,
+      final CriterionTree criterionTree,
       final JPanel conditionPanel,
       final JButton conditionButton,
       final JButton okButton) {
     jtree = tree;
-    ctree = criteriumTree;
+    ctree = criterionTree;
     defineConditionPanel = conditionPanel;
     addConditionButton = conditionButton;
     this.okButton = okButton;
 
     jtree.addTreeSelectionListener(treeSelectionListener);
 
-    ctree.addListener(treeCriteriumlListener);
+    ctree.addListener(treeCriterionListener);
   }
 
-  private void updateDefineConditionPanel(final AbstractCriteriumTreeNode node) {
+  private void updateDefineConditionPanel(final AbstractCriterionTreeNode node) {
     Component component = null;
 
-    if (node instanceof CriteriumTreeNode) {
-      component = node.getCriterium().getCriteriumPanel();
+    if (node instanceof CriterionTreeNode) {
+      component = node.getCriterion().getCriterionPanel();
     }
 
     defineConditionPanel.removeAll();
@@ -85,44 +83,44 @@ public class DialogUpdater {
 
   public void delete() {
     jtree.removeTreeSelectionListener(treeSelectionListener);
-    ctree.removeListener(treeCriteriumlListener);
+    ctree.removeListener(treeCriterionListener);
   }
 
-  private class InternalCriteriumTreeListener implements ICriteriumTreeListener {
+  private class InternalCriterionTreeListener implements ICriterionTreeListener {
     private void update() {
       updateInfoField();
       okButton.setEnabled(ExpressionTreeValidator.isValid(jtree));
     }
 
-    private void updateCurrentCriteriumPath() {
+    private void updateCurrentCriterionPath() {
       if (jtree.getSelectionPath() != null) {
-        jtree.setCurrentCriteriumPath(jtree.getSelectionPath());
+        jtree.setCurrentCriterionPath(jtree.getSelectionPath());
       } else {
-        jtree.setCurrentCriteriumPath(jtree.getPathForRow(0));
+        jtree.setCurrentCriterionPath(jtree.getPathForRow(0));
       }
 
       updateDefineConditionPanel(
-          (AbstractCriteriumTreeNode) jtree.getCurrentCriteriumPath().getLastPathComponent());
+          (AbstractCriterionTreeNode) jtree.getCurrentCriterionPath().getLastPathComponent());
     }
 
     private void updateInfoField() {
       final Enumeration<?> nodes =
-          ((AbstractCriteriumTreeNode) jtree.getModel().getRoot()).breadthFirstEnumeration();
+          ((AbstractCriterionTreeNode) jtree.getModel().getRoot()).breadthFirstEnumeration();
 
       while (nodes.hasMoreElements()) {
-        final AbstractCriteriumTreeNode node = (AbstractCriteriumTreeNode) nodes.nextElement();
+        final AbstractCriterionTreeNode node = (AbstractCriterionTreeNode) nodes.nextElement();
 
-        final JPanel panel = node.getCriterium().getCriteriumPanel();
+        final JPanel panel = node.getCriterion().getCriterionPanel();
 
         if (panel instanceof AbstractOperatorPanel) {
           final int count = node.getChildCount();
 
-          final CriteriumType type = node.getCriterium().getType();
+          final CriterionType type = node.getCriterion().getType();
 
           final JTextArea infoField = ((AbstractOperatorPanel) panel).getInfoField();
 
-          if (count == 1 && (type == CriteriumType.NOT || node.getLevel() == 0)
-              || count > 1 && type != CriteriumType.NOT) {
+          if ((count == 1 && (type == CriterionType.NOT || node.getLevel() == 0))
+              || (count > 1 && type != CriterionType.NOT)) {
             infoField.setForeground(VALID_OPERATOR_COLOR);
             infoField.setText(((AbstractOperatorPanel) panel).getValidInfoString());
           } else {
@@ -137,29 +135,29 @@ public class DialogUpdater {
 
     @Override
     public void nodeAppended(
-        final CriteriumTree criteriumTree,
-        final ICriteriumTreeNode parent,
-        final ICriteriumTreeNode child) {
+        final CriterionTree criterionTree,
+        final ICriterionTreeNode parent,
+        final ICriterionTreeNode child) {
       update();
     }
 
     @Override
     public void nodeInserted(
-        final CriteriumTree criteriumTree,
-        final ICriteriumTreeNode parent,
-        final ICriteriumTreeNode child) {
+        final CriterionTree criterionTree,
+        final ICriterionTreeNode parent,
+        final ICriterionTreeNode child) {
       update();
     }
 
     @Override
-    public void nodeRemoved(final CriteriumTree criteriumTree, final ICriteriumTreeNode node) {
-      updateCurrentCriteriumPath();
+    public void nodeRemoved(final CriterionTree criterionTree, final ICriterionTreeNode node) {
+      updateCurrentCriterionPath();
       update();
     }
 
     @Override
-    public void removedAll(final CriteriumTree criteriumTree) {
-      updateCurrentCriteriumPath();
+    public void removedAll(final CriterionTree criterionTree) {
+      updateCurrentCriterionPath();
       update();
     }
   }
@@ -171,20 +169,20 @@ public class DialogUpdater {
 
       if (path == null) {
         addConditionButton.setEnabled(false);
-        updateDefineConditionPanel((AbstractCriteriumTreeNode) jtree.getModel().getRoot());
+        updateDefineConditionPanel((AbstractCriterionTreeNode) jtree.getModel().getRoot());
       } else {
-        final AbstractCriteriumTreeNode selectedNode =
-            (AbstractCriteriumTreeNode) path.getLastPathComponent();
+        final AbstractCriterionTreeNode selectedNode =
+            (AbstractCriterionTreeNode) path.getLastPathComponent();
 
-        boolean enable = selectedNode.allowAppend(CriteriumType.CONDITION);
+        boolean enable = selectedNode.allowAppend(CriterionType.CONDITION);
         if (!enable) {
           if (selectedNode.getLevel() > 0) {
-            final AbstractCriteriumTreeNode parentNode =
-                (AbstractCriteriumTreeNode) selectedNode.getParent();
+            final AbstractCriterionTreeNode parentNode =
+                (AbstractCriterionTreeNode) selectedNode.getParent();
 
             if (parentNode.getLevel() != 0) {
-              if (parentNode.getCriterium().getType() != CriteriumType.NOT
-                  && selectedNode.getCriterium().getType() != CriteriumType.NOT) {
+              if (parentNode.getCriterion().getType() != CriterionType.NOT
+                  && selectedNode.getCriterion().getType() != CriterionType.NOT) {
                 enable = true;
               }
             }

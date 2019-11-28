@@ -1,12 +1,10 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree;
 
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.CriteriumType;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.AbstractCriteriumTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionType;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.AbstractCriterionTreeNode;
 import com.google.security.zynamics.zylib.gui.jtree.IconNodeRenderer;
-
 import java.awt.Color;
 import java.awt.Component;
-
 import javax.swing.JTree;
 
 public class TreeNodeRenderer extends IconNodeRenderer {
@@ -25,16 +23,16 @@ public class TreeNodeRenderer extends IconNodeRenderer {
       final boolean hasFocus) {
     super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
-    if (value instanceof AbstractCriteriumTreeNode) {
-      final AbstractCriteriumTreeNode node = (AbstractCriteriumTreeNode) value;
+    if (value instanceof AbstractCriterionTreeNode) {
+      final AbstractCriterionTreeNode node = (AbstractCriterionTreeNode) value;
 
       final int count = node.getChildCount();
 
-      final CriteriumType type = node.getCriterium().getType();
+      final CriterionType type = node.getCriterion().getType();
 
-      if (type != CriteriumType.CONDITION) {
-        if (count == 1 && (type == CriteriumType.NOT || node.getLevel() == 0)
-            || count > 1 && type != CriteriumType.NOT) {
+      if (type != CriterionType.CONDITION) {
+        if ((count == 1 && (type == CriterionType.NOT || node.getLevel() == 0))
+            || (count > 1 && type != CriterionType.NOT)) {
           setForeground(VALID_NODE_FONT_COLOR);
         } else {
           setForeground(INVALID_NODE_FONT_COLOR);

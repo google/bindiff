@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog;
 
 import com.google.common.base.Preconditions;
-import com.google.security.zynamics.bindiff.enums.ESortByCriterium;
+import com.google.security.zynamics.bindiff.enums.ESortByCriterion;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.graph.filter.enums.EMatchStateFilter;
 import com.google.security.zynamics.bindiff.graph.filter.enums.ESelectionFilter;
@@ -144,8 +144,8 @@ public class GraphNodeTreeOptionsDialog extends BaseDialog {
     return filteringPanel.getSideFilter();
   }
 
-  public ESortByCriterium getSortByCriterium(final int depth) {
-    return sortingPanel.getSortByCriterium(depth);
+  public ESortByCriterion getSortByCriterion(final int depth) {
+    return sortingPanel.getSortByCriterion(depth);
   }
 
   public ESortOrder getSortOrder(final int depth) {

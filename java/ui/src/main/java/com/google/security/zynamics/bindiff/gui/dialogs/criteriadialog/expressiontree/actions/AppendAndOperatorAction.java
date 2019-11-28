@@ -1,10 +1,8 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions;
 
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeActionProvider;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.operators.AndCriterium;
-
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.operators.AndCriterion;
 import java.awt.event.ActionEvent;
-
 import javax.swing.AbstractAction;
 
 public class AppendAndOperatorAction extends AbstractAction {
@@ -18,6 +16,6 @@ public class AppendAndOperatorAction extends AbstractAction {
 
   @Override
   public void actionPerformed(final ActionEvent e) {
-    actionProvider.appendCriterium(new AndCriterium());
+    actionProvider.appendCriterion(new AndCriterion());
   }
 }

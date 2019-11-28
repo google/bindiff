@@ -35,8 +35,8 @@ import com.google.security.zynamics.bindiff.gui.dialogs.ProgressDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.SaveFunctionDiffViewDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.CriteriaDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.CriteriaFactory;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.CriteriumExecuter;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriteriumTree;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionExecutor;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriterionTree;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.GraphSettingsDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.printing.PrintGraphPreviewDialog;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelFunctions;
@@ -782,7 +782,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
     final Set<ZyGraphNode<? extends CViewNode<?>>> nodesToSelect = new HashSet<>();
 
-    final CriteriumTree tree = selectByCriteriaDlg.getCriteriumTree();
+    final CriterionTree tree = selectByCriteriaDlg.getCriterionTree();
 
     if (settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
       if (settings.isSync()) {
@@ -798,8 +798,8 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
         final Collection<SingleDiffNode> toUnselectSecondarySingle = new ArrayList<>();
 
         if (selectByCriteriaDlg.doSelectNodes()) {
-          nodesToSelect.addAll(CriteriumExecuter.execute(tree, graphs.getPrimaryGraph()));
-          nodesToSelect.addAll(CriteriumExecuter.execute(tree, graphs.getSecondaryGraph()));
+          nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getPrimaryGraph()));
+          nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getSecondaryGraph()));
 
           for (final SuperDiffNode superNode : graphs.getSuperGraph().getNodes()) {
             final SingleDiffNode primaryNode = superNode.getPrimaryDiffNode();
@@ -851,17 +851,17 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       } else {
         if (settings.getFocus() == ESide.PRIMARY) {
           if (selectByCriteriaDlg.doSelectNodes()) {
-            nodesToSelect.addAll(CriteriumExecuter.execute(tree, graphs.getPrimaryGraph()));
+            nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getPrimaryGraph()));
           }
         } else {
           if (selectByCriteriaDlg.doSelectNodes()) {
-            nodesToSelect.addAll(CriteriumExecuter.execute(tree, graphs.getSecondaryGraph()));
+            nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getSecondaryGraph()));
           }
         }
       }
     } else if (settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW) {
       if (selectByCriteriaDlg.doSelectNodes()) {
-        nodesToSelect.addAll(CriteriumExecuter.execute(tree, graphs.getCombinedGraph()));
+        nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getCombinedGraph()));
       }
 
       final Collection<CombinedDiffNode> toSelectCombined = new ArrayList<>();

@@ -1,38 +1,38 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.actions;
 
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.CriteriumWrapper;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.ICriteriumCreator;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionWrapper;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeActionProvider;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.JComboBox;
 
 public class AddConditionAction extends AbstractAction {
-  private final ICriteriumCreator condition;
+  private final CriterionCreator condition;
 
   private final ExpressionTreeActionProvider actionProvider;
 
   public AddConditionAction(
-      final ICriteriumCreator condition, final ExpressionTreeActionProvider actionProvider) {
-    super(condition.getCriteriumDescription());
+      final CriterionCreator condition, final ExpressionTreeActionProvider actionProvider) {
+    super(condition.getCriterionDescription());
 
     this.condition = condition;
     this.actionProvider = actionProvider;
   }
 
   public AddConditionAction(
-      final JComboBox<CriteriumWrapper> selectionBox,
+      final JComboBox<CriterionWrapper> selectionBox,
       final ExpressionTreeActionProvider actionProvider) {
-    this.condition = ((CriteriumWrapper) selectionBox.getSelectedItem()).getObject();
+    this.condition = ((CriterionWrapper) selectionBox.getSelectedItem()).getObject();
     this.actionProvider = actionProvider;
 
     if (condition != null) {
-      putValue(NAME, condition.getCriteriumDescription());
+      putValue(NAME, condition.getCriterionDescription());
     }
   }
 
   @Override
   public void actionPerformed(final ActionEvent e) {
-    actionProvider.appendCriterium(condition.createCriterium());
+    actionProvider.appendCriterion(condition.createCriterion());
   }
 }

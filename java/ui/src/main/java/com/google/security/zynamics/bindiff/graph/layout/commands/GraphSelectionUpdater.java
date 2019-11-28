@@ -8,7 +8,7 @@ import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.SuperGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
-import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterium;
+import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterion;
 import com.google.security.zynamics.bindiff.graph.layout.LayoutCommandHelper;
 import com.google.security.zynamics.bindiff.graph.listeners.GraphsIntermediateListeners;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
@@ -118,9 +118,9 @@ public final class GraphSelectionUpdater implements ICommand {
         graph.getSettings().getProximitySettings().getProximityBrowsingParents();
 
     final Collection<ZyGraphNode<? extends IViewNode<?>>> visibleNodes =
-        GraphNodeFilter.filterNodes(graph, Criterium.VISIBLE);
+        GraphNodeFilter.filterNodes(graph, Criterion.VISIBLE);
     final Collection<ZyGraphNode<? extends IViewNode<?>>> selectedNodes =
-        GraphNodeFilter.filterNodes(graph, Criterium.SELECTED_VISIBLE);
+        GraphNodeFilter.filterNodes(graph, Criterion.SELECTED_VISIBLE);
 
     final Set<ZyGraphNode<? extends IViewNode<?>>> neighbours;
     neighbours =

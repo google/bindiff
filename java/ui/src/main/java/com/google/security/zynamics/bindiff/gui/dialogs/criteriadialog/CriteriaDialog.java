@@ -2,11 +2,11 @@ package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog;
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterium.ICriteriumCreator;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriteriumTree;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriterionTree;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeActionProvider;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.JCriteriumTree;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.CriteriumTreeNode;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.JCriterionTree;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.nodes.CriterionTreeNode;
 import com.google.security.zynamics.zylib.gui.CPanelTwoButtons;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
@@ -26,15 +26,12 @@ import javax.swing.tree.TreeNode;
  * Dialog class that provides the option to select nodes of a graph according to certain criteria
  * (node color, contains text XYZ, ...).
  */
-// TODO(cblichmann): Merge with BinNavi's "Select by Criteria" dialog.
 public final class CriteriaDialog extends BaseDialog {
-  private final CriteriumTree ctree;
+  private final CriterionTree ctree;
 
   private boolean selectNodes;
 
   private final DialogUpdater updater;
-
-  private final JCriteriumTree jtree;
 
   public CriteriaDialog(final Window owner, final CriteriaFactory conditionFactory) {
     super(owner, "Select by Criteria");
@@ -42,17 +39,17 @@ public final class CriteriaDialog extends BaseDialog {
 
     Preconditions.checkNotNull(conditionFactory);
 
-    final List<ICriteriumCreator> criteria = conditionFactory.getConditions();
+    final List<CriterionCreator> criteria = conditionFactory.getConditions();
 
-    ctree = new CriteriumTree();
+    ctree = new CriterionTree();
 
-    jtree = new JCriteriumTree(ctree, criteria);
+    final JCriterionTree jtree = new JCriterionTree(ctree, criteria);
 
     final ExpressionTreeActionProvider actionProvider =
         new ExpressionTreeActionProvider(jtree, ctree);
 
     final TreeNode rootNode =
-        new CriteriumTreeNode(ctree.getRootCriterium(), criteria, actionProvider);
+        new CriterionTreeNode(ctree.getRootCriterion(), criteria, actionProvider);
     jtree.getModel().setRoot(rootNode);
 
     final ConditionBox selectionBox = new ConditionBox(criteria);
@@ -62,7 +59,7 @@ public final class CriteriaDialog extends BaseDialog {
     final JButton addConditionButton = new JButton(addConditionButtonListner);
 
     final CPanelTwoButtons okCancelPanel =
-        new CPanelTwoButtons(new InternalOkCancelButttonListener(), "Execute", "Cancel");
+        new CPanelTwoButtons(new InternalOkCancelButtonListener(), "Execute", "Cancel");
 
     final JPanel defineConditionPanel = new JPanel(new BorderLayout());
 
@@ -75,17 +72,17 @@ public final class CriteriaDialog extends BaseDialog {
 
   private void initDialog(
       final Window owner,
-      final JCriteriumTree jtree,
+      final JCriterionTree jtree,
       final ConditionBox selectionBox,
       final JPanel defineConditionPanel,
       final CPanelTwoButtons okCancelPanel,
       final JButton addConditionButton) {
     final JPanel mainPanel = new JPanel(new BorderLayout());
 
-    final JPanel deviderBorderPanel = new JPanel(new BorderLayout());
-    deviderBorderPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
+    final JPanel dividerBorderPanel = new JPanel(new BorderLayout());
+    dividerBorderPanel.setBorder(new EmptyBorder(2, 2, 2, 2));
 
-    final JPanel deviderPanel = new JPanel(new GridLayout(1, 2));
+    final JPanel dividerPanel = new JPanel(new GridLayout(1, 2));
 
     final JPanel leftPanel = new JPanel(new BorderLayout());
     leftPanel.setBorder(new TitledBorder("Expression Tree"));
@@ -100,14 +97,14 @@ public final class CriteriaDialog extends BaseDialog {
     final JPanel rightTopAddPanel = new JPanel(new BorderLayout());
     rightTopAddPanel.setBorder(new EmptyBorder(1, 0, 5, 5));
 
-    mainPanel.add(deviderBorderPanel, BorderLayout.CENTER);
+    mainPanel.add(dividerBorderPanel, BorderLayout.CENTER);
     mainPanel.add(okCancelPanel, BorderLayout.SOUTH);
     okCancelPanel.getFirstButton().setEnabled(jtree.getSelectionPath() != null);
 
-    deviderBorderPanel.add(deviderPanel, BorderLayout.CENTER);
+    dividerBorderPanel.add(dividerPanel, BorderLayout.CENTER);
 
-    deviderPanel.add(leftPanel);
-    deviderPanel.add(rightPanel);
+    dividerPanel.add(leftPanel);
+    dividerPanel.add(rightPanel);
 
     final JScrollPane pane = new JScrollPane(jtree);
     pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -147,11 +144,11 @@ public final class CriteriaDialog extends BaseDialog {
     return selectNodes;
   }
 
-  public CriteriumTree getCriteriumTree() {
+  public CriterionTree getCriterionTree() {
     return ctree;
   }
 
-  private class InternalOkCancelButttonListener implements ActionListener {
+  private class InternalOkCancelButtonListener implements ActionListener {
     @Override
     public void actionPerformed(final ActionEvent e) {
       selectNodes = e.getActionCommand().equals("Execute");

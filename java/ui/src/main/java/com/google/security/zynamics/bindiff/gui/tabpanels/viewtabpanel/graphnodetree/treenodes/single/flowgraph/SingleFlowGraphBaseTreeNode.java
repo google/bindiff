@@ -140,7 +140,7 @@ public class SingleFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     }
 
     for (final Comparator<ISortableTreeNode> comparator :
-        getRootNode().getSorter().getSingleBasicblockTreeNodeComparatorList()) {
+        getRootNode().getSorter().getSingleBasicBlockTreeNodeComparatorList()) {
       Collections.sort(filteredTreeNodes, comparator);
     }
 

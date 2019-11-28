@@ -109,7 +109,7 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     }
 
     for (final Comparator<ISortableTreeNode> comparator :
-        getRootNode().getSorter().getCombinedBasicblockTreeNodeComparatorList()) {
+        getRootNode().getSorter().getCombinedBasicBlockTreeNodeComparatorList()) {
       Collections.sort(filteredTreeNodes, comparator);
     }
 

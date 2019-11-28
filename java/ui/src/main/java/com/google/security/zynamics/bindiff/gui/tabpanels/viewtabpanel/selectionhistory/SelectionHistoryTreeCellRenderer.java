@@ -2,6 +2,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.selectio
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
+import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterion;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.awt.Color;
@@ -44,10 +45,10 @@ public class SelectionHistoryTreeCellRenderer extends DefaultTreeCellRenderer {
     }
 
     final List<? extends ZyGraphNode<?>> selectedAndVisibleNodes =
-        GraphNodeFilter.filterNodes(graph, GraphNodeFilter.Criterium.SELECTED_VISIBLE);
+        GraphNodeFilter.filterNodes(graph, Criterion.SELECTED_VISIBLE);
 
     final List<? extends ZyGraphNode<?>> invisibleNodes =
-        GraphNodeFilter.filterNodes(graph, GraphNodeFilter.Criterium.INVISIBLE);
+        GraphNodeFilter.filterNodes(graph, Criterion.INVISIBLE);
 
     setForeground(NORMAL_FONT_COLOR);
 

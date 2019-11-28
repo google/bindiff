@@ -5,13 +5,13 @@ import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphEdgeFilter;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
+import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterion;
 import com.google.security.zynamics.bindiff.graph.listeners.GraphsIntermediateListeners;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.types.common.ICommand;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import javax.swing.JOptionPane;
 
 public class ProximityBrowserDeactivator implements ICommand {
@@ -25,13 +25,12 @@ public class ProximityBrowserDeactivator implements ICommand {
   }
 
   private static boolean hasHiddenNodes(final BinDiffGraph<?, ?> graph) {
-    return GraphNodeFilter.filterNodesCountOnly(graph, GraphNodeFilter.Criterium.INVISIBLE) > 0;
+    return GraphNodeFilter.filterNodesCountOnly(graph, Criterion.INVISIBLE) > 0;
   }
 
   private static boolean showAllNodesVisibilityWarningDialog(final BinDiffGraph<?, ?> graph) {
     final int invisibleEdges = GraphEdgeFilter.filterInvisibleEdges(graph).size();
-    final int invisibleNodes =
-        GraphNodeFilter.filterNodesCountOnly(graph, GraphNodeFilter.Criterium.INVISIBLE);
+    final int invisibleNodes = GraphNodeFilter.filterNodesCountOnly(graph, Criterion.INVISIBLE);
 
     final int threshold = graph.getSettings().getLayoutSettings().getVisibilityWarningThreshold();
 

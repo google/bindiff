@@ -1,15 +1,13 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabpanels;
 
 import com.google.common.collect.Lists;
-import com.google.security.zynamics.bindiff.enums.ESortByCriterium;
+import com.google.security.zynamics.bindiff.enums.ESortByCriterion;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabcomponents.SortingComboboxPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.List;
-
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -25,7 +23,7 @@ public class SortingTabPanel extends JPanel {
   private SortingComboboxPanel fourthSortCombo;
   private SortingComboboxPanel fifthSortCombo;
 
-  private final boolean isCallgraphView;
+  private final boolean isCallGraphView;
 
   private final boolean isCombinedView;
 
@@ -35,18 +33,18 @@ public class SortingTabPanel extends JPanel {
   private ESortOrder initialFourthOrder;
   private ESortOrder initialFifthOrder;
 
-  private ESortByCriterium initialFirstCriterium;
-  private ESortByCriterium initialSecondCriterium;
-  private ESortByCriterium initialThirdCriterium;
-  private ESortByCriterium initialFourthCriterium;
-  private ESortByCriterium initialFifthCriterium;
+  private ESortByCriterion initialFirstCriterion;
+  private ESortByCriterion initialSecondCriterion;
+  private ESortByCriterion initialThirdCriterion;
+  private ESortByCriterion initialFourthCriterion;
+  private ESortByCriterion initialFifthCriterion;
 
-  public SortingTabPanel(final boolean isCombinedView, final boolean isCallgraphView) {
+  public SortingTabPanel(final boolean isCombinedView, final boolean isCallGraphView) {
     super(new BorderLayout());
 
-    add(createPanel(isCombinedView, isCallgraphView), BorderLayout.CENTER);
+    add(createPanel(isCombinedView, isCallGraphView), BorderLayout.CENTER);
 
-    this.isCallgraphView = isCallgraphView;
+    this.isCallGraphView = isCallGraphView;
     this.isCombinedView = isCombinedView;
 
     setDefaults();
@@ -61,20 +59,20 @@ public class SortingTabPanel extends JPanel {
 
     final List<String> sortingItems =
         Lists.newArrayList(
-            ESortByCriterium.NONE.toString(),
-            ESortByCriterium.ADDRESS.toString(),
-            ESortByCriterium.MATCHSTATE.toString(),
-            ESortByCriterium.SELECTION.toString(),
-            ESortByCriterium.VISIBILITY.toString());
+            ESortByCriterion.NONE.toString(),
+            ESortByCriterion.ADDRESS.toString(),
+            ESortByCriterion.MATCH_STATE.toString(),
+            ESortByCriterion.SELECTION.toString(),
+            ESortByCriterion.VISIBILITY.toString());
 
     if (isCombinedView) {
-      sortingItems.add(ESortByCriterium.SIDE.toString());
+      sortingItems.add(ESortByCriterion.SIDE.toString());
     }
 
     if (isCallgraphView) {
-      sortingItems.add(2, ESortByCriterium.FUNCTIONTYPE.toString());
+      sortingItems.add(2, ESortByCriterion.FUNCTION_TYPE.toString());
       if (!isCombinedView) {
-        sortingItems.add(3, ESortByCriterium.FUNCTIONNAME.toString());
+        sortingItems.add(3, ESortByCriterion.FUNCTION_NAME.toString());
       }
     }
 
@@ -105,25 +103,25 @@ public class SortingTabPanel extends JPanel {
     return panel;
   }
 
-  public ESortByCriterium getSortByCriterium(final int sortCriteriumDepth) {
-    switch (sortCriteriumDepth) {
+  public ESortByCriterion getSortByCriterion(final int sortCriterionDepth) {
+    switch (sortCriterionDepth) {
       case 0:
-        return ESortByCriterium.toSortCriterium(firstSortCombo.getValue());
+        return ESortByCriterion.toSortCriterion(firstSortCombo.getValue());
       case 1:
-        return ESortByCriterium.toSortCriterium(secondSortCombo.getValue());
+        return ESortByCriterion.toSortCriterion(secondSortCombo.getValue());
       case 2:
-        return ESortByCriterium.toSortCriterium(thirdSortCombo.getValue());
+        return ESortByCriterion.toSortCriterion(thirdSortCombo.getValue());
       case 3:
-        return ESortByCriterium.toSortCriterium(fourthSortCombo.getValue());
+        return ESortByCriterion.toSortCriterion(fourthSortCombo.getValue());
       case 4:
-        return ESortByCriterium.toSortCriterium(fifthSortCombo.getValue());
+        return ESortByCriterion.toSortCriterion(fifthSortCombo.getValue());
+      default: // fall out
     }
-
-    return ESortByCriterium.NONE;
+    return ESortByCriterion.NONE;
   }
 
-  public ESortOrder getSortOrder(final int sortCriteriumDepth) {
-    switch (sortCriteriumDepth) {
+  public ESortOrder getSortOrder(final int sortCriterionDepth) {
+    switch (sortCriterionDepth) {
       case 0:
         return firstSortCombo.getSortOrder();
       case 1:
@@ -134,34 +132,35 @@ public class SortingTabPanel extends JPanel {
         return fourthSortCombo.getSortOrder();
       case 4:
         return fifthSortCombo.getSortOrder();
+      default: // fall out
     }
-
     return ESortOrder.ASCENDING;
   }
 
   public void restoreInitialSettings() {
-    firstSortCombo.setSelectItem(initialFirstCriterium.toString(), initialFirstOrder);
-    secondSortCombo.setSelectItem(initialSecondCriterium.toString(), initialSecondOrder);
-    thirdSortCombo.setSelectItem(initialThirdCriterium.toString(), initialThirdOrder);
-    fourthSortCombo.setSelectItem(initialFourthCriterium.toString(), initialFourthOrder);
-    fifthSortCombo.setSelectItem(initialFifthCriterium.toString(), initialFifthOrder);
+    firstSortCombo.setSelectItem(initialFirstCriterion.toString(), initialFirstOrder);
+    secondSortCombo.setSelectItem(initialSecondCriterion.toString(), initialSecondOrder);
+    thirdSortCombo.setSelectItem(initialThirdCriterion.toString(), initialThirdOrder);
+    fourthSortCombo.setSelectItem(initialFourthCriterion.toString(), initialFourthOrder);
+    fifthSortCombo.setSelectItem(initialFifthCriterion.toString(), initialFifthOrder);
   }
 
   public void setDefaults() {
-    if (!isCallgraphView) {
-      secondSortCombo.setSelectItem(ESortByCriterium.MATCHSTATE.toString(), ESortOrder.ASCENDING);
+    if (!isCallGraphView) {
+      secondSortCombo.setSelectItem(ESortByCriterion.MATCH_STATE.toString(), ESortOrder.ASCENDING);
 
       if (!isCombinedView) {
-        fourthSortCombo.setSelectItem(ESortByCriterium.ADDRESS.toString(), ESortOrder.ASCENDING);
-        fifthSortCombo.setSelectItem(ESortByCriterium.NONE.toString(), ESortOrder.ASCENDING);
+        fourthSortCombo.setSelectItem(ESortByCriterion.ADDRESS.toString(), ESortOrder.ASCENDING);
+        fifthSortCombo.setSelectItem(ESortByCriterion.NONE.toString(), ESortOrder.ASCENDING);
       } else {
-        fourthSortCombo.setSelectItem(ESortByCriterium.SIDE.toString(), ESortOrder.ASCENDING);
-        fifthSortCombo.setSelectItem(ESortByCriterium.ADDRESS.toString(), ESortOrder.ASCENDING);
+        fourthSortCombo.setSelectItem(ESortByCriterion.SIDE.toString(), ESortOrder.ASCENDING);
+        fifthSortCombo.setSelectItem(ESortByCriterion.ADDRESS.toString(), ESortOrder.ASCENDING);
       }
     } else {
-      secondSortCombo.setSelectItem(ESortByCriterium.FUNCTIONTYPE.toString(), ESortOrder.ASCENDING);
-      thirdSortCombo.setSelectItem(ESortByCriterium.MATCHSTATE.toString(), ESortOrder.ASCENDING);
-      fifthSortCombo.setSelectItem(ESortByCriterium.ADDRESS.toString(), ESortOrder.ASCENDING);
+      secondSortCombo.setSelectItem(
+          ESortByCriterion.FUNCTION_TYPE.toString(), ESortOrder.ASCENDING);
+      thirdSortCombo.setSelectItem(ESortByCriterion.MATCH_STATE.toString(), ESortOrder.ASCENDING);
+      fifthSortCombo.setSelectItem(ESortByCriterion.ADDRESS.toString(), ESortOrder.ASCENDING);
     }
   }
 
@@ -172,10 +171,10 @@ public class SortingTabPanel extends JPanel {
     initialFourthOrder = fourthSortCombo.getSortOrder();
     initialFifthOrder = fifthSortCombo.getSortOrder();
 
-    initialFirstCriterium = getSortByCriterium(0);
-    initialSecondCriterium = getSortByCriterium(1);
-    initialThirdCriterium = getSortByCriterium(2);
-    initialFourthCriterium = getSortByCriterium(3);
-    initialFifthCriterium = getSortByCriterium(4);
+    initialFirstCriterion = getSortByCriterion(0);
+    initialSecondCriterion = getSortByCriterion(1);
+    initialThirdCriterion = getSortByCriterion(2);
+    initialFourthCriterion = getSortByCriterion(3);
+    initialFifthCriterion = getSortByCriterion(4);
   }
 }

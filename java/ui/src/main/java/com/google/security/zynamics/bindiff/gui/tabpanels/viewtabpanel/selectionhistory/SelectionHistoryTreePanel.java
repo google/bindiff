@@ -5,6 +5,7 @@ import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
+import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterion;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -120,7 +121,7 @@ public class SelectionHistoryTreePanel extends JPanel {
 
     if (graph instanceof CombinedGraph) {
       final List<CombinedDiffNode> selectedNodes =
-          GraphNodeFilter.filterNodes((CombinedGraph) graph, GraphNodeFilter.Criterium.SELECTED);
+          GraphNodeFilter.filterNodes((CombinedGraph) graph, Criterion.SELECTED);
 
       ((CombinedGraph) graph).selectNodes(selectedNodes, false);
       ((CombinedGraph) graph).selectNodes(selection, true);
@@ -134,7 +135,7 @@ public class SelectionHistoryTreePanel extends JPanel {
 
     if (graph instanceof SingleGraph) {
       final List<SingleDiffNode> selectedNodes =
-          GraphNodeFilter.filterNodes((SingleGraph) graph, GraphNodeFilter.Criterium.SELECTED);
+          GraphNodeFilter.filterNodes((SingleGraph) graph, Criterion.SELECTED);
 
       ((SingleGraph) graph).selectNodes(selectedNodes, false);
       ((SingleGraph) graph).selectNodes(selection, true);
@@ -193,8 +194,7 @@ public class SelectionHistoryTreePanel extends JPanel {
       @SuppressWarnings("unchecked") // This is safe, actually
       final SelectionSnapshot snapshot =
           new SelectionSnapshot(
-              (Collection<ZyGraphNode<?>>)
-                  GraphNodeFilter.filterNodes(graph, GraphNodeFilter.Criterium.SELECTED));
+              (Collection<ZyGraphNode<?>>) GraphNodeFilter.filterNodes(graph, Criterion.SELECTED));
 
       if (snapshot.getNumberOfSelectedNodes() != 0 && !snapshot.equals(lastSnapshot)) {
         selectionHistory.addSnapshot(snapshot);
@@ -298,8 +298,7 @@ public class SelectionHistoryTreePanel extends JPanel {
                 treenode.getSnapshot().getSingleGraphSelection();
 
             final Collection<SingleDiffNode> alreadySelected =
-                GraphNodeFilter.filterNodes(
-                    (SingleGraph) graph, GraphNodeFilter.Criterium.SELECTED);
+                GraphNodeFilter.filterNodes((SingleGraph) graph, Criterion.SELECTED);
 
             // TODO(cblichmann): Dedupe without the extra HashSet. Maybe deduping is not even
             // necessary, since any node can be selected only once. Same below.
@@ -313,8 +312,7 @@ public class SelectionHistoryTreePanel extends JPanel {
                 treenode.getSnapshot().getCombinedGraphSelection();
 
             final Collection<CombinedDiffNode> alreadySelected =
-                GraphNodeFilter.filterNodes(
-                    (CombinedGraph) graph, GraphNodeFilter.Criterium.SELECTED);
+                GraphNodeFilter.filterNodes((CombinedGraph) graph, Criterion.SELECTED);
 
             if (new HashSet<>(selection).equals(new HashSet<>(alreadySelected))) {
               unselectCombinedNodes(selection);

@@ -8,6 +8,7 @@ import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
+import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterion;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.project.matches.IMatchesChangeListener;
@@ -151,7 +152,7 @@ public class SelectionHistory {
     if (!snapshotList.isEmpty() && canRedo()) {
       if (combinedGraph == null) {
         final List<SingleDiffNode> nodesToUnselect =
-            GraphNodeFilter.filterNodes(singleGraph, GraphNodeFilter.Criterium.SELECTED);
+            GraphNodeFilter.filterNodes(singleGraph, Criterion.SELECTED);
         singleGraph.selectNodes(nodesToUnselect, false);
 
         final Collection<SingleDiffNode> nodesToSelect =
@@ -159,7 +160,7 @@ public class SelectionHistory {
         singleGraph.selectNodes(nodesToSelect, true);
       } else {
         final List<CombinedDiffNode> nodesToUnselect =
-            GraphNodeFilter.filterNodes(combinedGraph, GraphNodeFilter.Criterium.SELECTED);
+            GraphNodeFilter.filterNodes(combinedGraph, Criterion.SELECTED);
         combinedGraph.selectNodes(nodesToUnselect, false);
 
         final Collection<CombinedDiffNode> nodesToSelect =
@@ -210,7 +211,7 @@ public class SelectionHistory {
     if (!snapshotList.isEmpty() && canUndo()) {
       if (combinedGraph == null) {
         final List<SingleDiffNode> nodesToUnselect =
-            GraphNodeFilter.filterNodes(singleGraph, GraphNodeFilter.Criterium.SELECTED);
+            GraphNodeFilter.filterNodes(singleGraph, Criterion.SELECTED);
         singleGraph.selectNodes(nodesToUnselect, false);
 
         final Collection<SingleDiffNode> nodesToSelect =
@@ -218,7 +219,7 @@ public class SelectionHistory {
         singleGraph.selectNodes(nodesToSelect, true);
       } else {
         final List<CombinedDiffNode> nodesToUnselect =
-            GraphNodeFilter.filterNodes(combinedGraph, GraphNodeFilter.Criterium.SELECTED);
+            GraphNodeFilter.filterNodes(combinedGraph, Criterion.SELECTED);
         combinedGraph.selectNodes(nodesToUnselect, false);
 
         final Collection<CombinedDiffNode> nodesToSelect =

@@ -2,7 +2,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanel
 
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.enums.ESortByCriterium;
+import com.google.security.zynamics.bindiff.enums.ESortByCriterion;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
@@ -142,10 +142,10 @@ public class GraphNodeTreePanel extends JPanel {
     final TreeNodeMultiSorter sorter = new TreeNodeMultiSorter();
 
     for (int i = 0; i < TreeNodeMultiSorter.MAX_DEPTH; ++i) {
-      final ESortByCriterium sortBy = optionsDialog.getSortByCriterium(i);
+      final ESortByCriterion sortBy = optionsDialog.getSortByCriterion(i);
       final ESortOrder sortOrder = optionsDialog.getSortOrder(i);
 
-      sorter.setCriterium(sortBy, sortOrder, i, false);
+      sorter.setCriterion(sortBy, sortOrder, i, false);
     }
 
     return sorter;
@@ -351,10 +351,10 @@ public class GraphNodeTreePanel extends JPanel {
           ((AbstractRootTreeNode) tree.getModel().getRoot()).getSorter();
 
       for (int depth = 0; depth < TreeNodeMultiSorter.MAX_DEPTH; ++depth) {
-        final ESortByCriterium sortBy = optionsDialog.getSortByCriterium(depth);
+        final ESortByCriterion sortBy = optionsDialog.getSortByCriterion(depth);
         final ESortOrder sortOrder = optionsDialog.getSortOrder(depth);
 
-        sorter.setCriterium(sortBy, sortOrder, depth, false);
+        sorter.setCriterion(sortBy, sortOrder, depth, false);
       }
 
       if (notify) {
