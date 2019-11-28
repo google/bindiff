@@ -1,22 +1,22 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabcomponents;
 
 import com.google.common.base.Preconditions;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.gui.CHexFormatter;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+/** Panel with UI for entering address ranges. */
 public class AddressRangeFieldPanel extends JPanel {
   private final JLabel label;
 
-  private final JFormattedTextField textfield;
+  private final JFormattedTextField textField;
 
   private final IAddress defaultAddress;
 
@@ -33,17 +33,18 @@ public class AddressRangeFieldPanel extends JPanel {
     this.defaultAddress = defaultAddress;
 
     label = new JLabel(labelText);
-    textfield = new JFormattedTextField(new CHexFormatter(16));
-    textfield.setText(defaultAddress.toHexString());
+    textField =
+        TextComponentUtils.addDefaultEditorActions(new JFormattedTextField(new CHexFormatter(16)));
+    textField.setText(defaultAddress.toHexString());
 
     label.setPreferredSize(new Dimension(labelWidth, height));
-    textfield.setPreferredSize(new Dimension(textfieldWidth, height));
+    textField.setPreferredSize(new Dimension(textfieldWidth, height));
 
     init();
   }
 
   public IAddress getValue() {
-    return new CAddress(textfield.getText(), 16);
+    return new CAddress(textField.getText(), 16);
   }
 
   public void init() {
@@ -52,16 +53,16 @@ public class AddressRangeFieldPanel extends JPanel {
     final JPanel panel = new JPanel(new BorderLayout());
 
     panel.add(label, BorderLayout.WEST);
-    panel.add(textfield, BorderLayout.CENTER);
+    panel.add(textField, BorderLayout.CENTER);
 
     add(panel, BorderLayout.CENTER);
   }
 
   public void setDefault() {
-    textfield.setText(defaultAddress.toHexString());
+    textField.setText(defaultAddress.toHexString());
   }
 
   public void setValue(final IAddress address) {
-    textfield.setValue(address.toHexString());
+    textField.setValue(address.toHexString());
   }
 }

@@ -1,5 +1,6 @@
 package com.google.security.zynamics.bindiff.gui.components.treesearchfield;
 
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.comboboxes.memorybox.JMemoryBox;
 import java.awt.event.KeyEvent;
@@ -18,7 +19,9 @@ public class TreeSearchFieldCombo extends JMemoryBox {
   public TreeSearchFieldCombo() {
     super(SEARCH_STRING_HISTORY_MAX);
 
-    getEditor().getEditorComponent().addKeyListener(listener);
+    final JTextField textField = (JTextField) getEditor().getEditorComponent();
+    TextComponentUtils.addDefaultEditorActions(textField);
+    textField.addKeyListener(listener);
   }
 
   private String getText() {

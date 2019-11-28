@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
@@ -17,6 +18,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultFormatterFactory;
 
+/** Settings panel for hierarchical layouts. */
 public class HierarchicalLayoutPanel extends JPanel {
   private static final int LABEL_WIDTH = 275;
   private static final int ROW_HEIGHT = 25;
@@ -25,9 +27,11 @@ public class HierarchicalLayoutPanel extends JPanel {
   private final JComboBox<String> orientation = new JComboBox<>();
   private final JComboBox<String> layoutStyle = new JComboBox<>();
   private final JFormattedTextField minimumLayerDistance =
-      new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3)));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3))));
   private final JFormattedTextField minimumNodeDistance =
-      new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3)));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3))));
 
   private final ESettingsDialogType dialogType;
 

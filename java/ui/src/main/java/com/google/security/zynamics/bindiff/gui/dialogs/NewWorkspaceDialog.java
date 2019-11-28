@@ -1,14 +1,14 @@
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CFilenameFormatter;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.io.DirectoryChooser;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
-
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
@@ -16,7 +16,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
@@ -25,6 +24,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultFormatterFactory;
 
+/** Dialog for creating new BinDiff workspaces. */
 public class NewWorkspaceDialog extends BaseDialog {
   private static final int LABEL_WIDTH = 100;
   private static final int ROW_HEIGHT = 25;
@@ -41,8 +41,6 @@ public class NewWorkspaceDialog extends BaseDialog {
   private final JButton ok = new JButton("Ok");
   private final JButton cancel = new JButton("Cancel");
 
-  private final InternalActionListener actionListener = new InternalActionListener();
-
   private boolean okPressed;
 
   public NewWorkspaceDialog(final Window parent, final String title) {
@@ -50,13 +48,16 @@ public class NewWorkspaceDialog extends BaseDialog {
 
     final CFilenameFormatter filenameFormatter =
         new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory()));
-    workspaceName = new JFormattedTextField(new DefaultFormatterFactory(filenameFormatter));
+    workspaceName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JFormattedTextField(new DefaultFormatterFactory(filenameFormatter)));
     workspaceName.setText("BinDiff Workspace");
 
     String workspaceDir = BinDiffConfig.getInstance().getMainSettings().getWorkspaceDirectory();
     if ("".equals(workspaceDir) || workspaceDir == null) {
       workspaceDir = SystemHelpers.getUserDirectory();
     }
+    InternalActionListener actionListener = new InternalActionListener();
     workspaceDirectoryPanel =
         new FileChooserPanel(workspaceDir, actionListener, "...", 0, ROW_HEIGHT, 0);
     createDirectory.setSelected(true);

@@ -1,5 +1,6 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.printing;
 
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
@@ -7,9 +8,7 @@ import com.google.security.zynamics.zylib.gui.CDecFormatter;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.ColorPanel.ColorPanel;
-
 import y.view.Graph2DPrinter;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -17,7 +16,6 @@ import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -27,6 +25,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+/** Dialog for settings print options before printing the current graph view. */
 public class PrintGraphOptionsDialog extends BaseDialog {
   private static final int LABEL_WIDTH = 125;
   private static final int ROW_HEIGHT = 25;
@@ -39,15 +38,19 @@ public class PrintGraphOptionsDialog extends BaseDialog {
   private final JButton okButton = new JButton("Ok");
   private final JButton cancelButton = new JButton("Cancel");
 
-  private final JFormattedTextField posterRows = new JFormattedTextField(new CDecFormatter(2));
-  private final JFormattedTextField posterCols = new JFormattedTextField(new CDecFormatter(2));
+  private final JFormattedTextField posterRows =
+      TextComponentUtils.addDefaultEditorActions(new JFormattedTextField(new CDecFormatter(2)));
+  private final JFormattedTextField posterCols =
+      TextComponentUtils.addDefaultEditorActions(new JFormattedTextField(new CDecFormatter(2)));
   private final JComboBox<String> posterCoords = new JComboBox<>();
   private final JComboBox<String> clipArea = new JComboBox<>();
 
-  private final JTextField titel = new JTextField();
+  private final JTextField titleTextField =
+      TextComponentUtils.addDefaultEditorActions(new JTextField());
   private final ColorPanel titleBarColor = new ColorPanel(Colors.GRAY192, true, true);
   private final ColorPanel titleTextColor = new ColorPanel(Color.BLACK, true, true);
-  private final JFormattedTextField fontSize = new JFormattedTextField(new CDecFormatter(2));
+  private final JFormattedTextField fontSize =
+      TextComponentUtils.addDefaultEditorActions(new JFormattedTextField(new CDecFormatter(2)));
 
   public PrintGraphOptionsDialog(final Window parent, final Graph2DPrinter printer) {
     super(parent, "Print Options");
@@ -119,7 +122,9 @@ public class PrintGraphOptionsDialog extends BaseDialog {
 
     fontSize.setText("13");
 
-    panel.add(GuiUtils.createHorizontalNamedComponentPanel("Text", LABEL_WIDTH, titel, ROW_HEIGHT));
+    panel.add(
+        GuiUtils.createHorizontalNamedComponentPanel(
+            "Text", LABEL_WIDTH, titleTextField, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "Text Color", LABEL_WIDTH, titleTextColor, ROW_HEIGHT));
@@ -193,7 +198,7 @@ public class PrintGraphOptionsDialog extends BaseDialog {
         printer.setPrintPosterCoords(posterCoords.getSelectedIndex() == 0);
 
         final Graph2DPrinter.DefaultTitleDrawable dtd = new Graph2DPrinter.DefaultTitleDrawable();
-        dtd.setText(titel.getText());
+        dtd.setText(titleTextField.getText());
         dtd.setTitleBarColor(titleTextColor.getColor());
         dtd.setTextColor(titleBarColor.getColor());
         dtd.setFont(new Font("Dialog", Font.PLAIN, Integer.parseInt(fontSize.getText())));

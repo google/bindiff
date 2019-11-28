@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.resources.Constants;
@@ -50,10 +51,13 @@ public class AddDiffDialog extends BaseDialog {
   private final FileChooserPanel diffChooser =
       new FileChooserPanel("", diffChooserListener, "...", TEXTFIELD_WIDTH, ROW_HEIGHT, 0);
 
-  private final JTextField primaryExportBinary = new JTextField();
-  private final JTextField secondaryExportBinary = new JTextField();
+  private final JTextField primaryExportBinary =
+      TextComponentUtils.addDefaultEditorActions(new JTextField());
+  private final JTextField secondaryExportBinary =
+      TextComponentUtils.addDefaultEditorActions(new JTextField());
 
-  private final JTextField destinationDirName = new JTextField();
+  private final JTextField destinationDirName =
+      TextComponentUtils.addDefaultEditorActions(new JTextField());
 
   private boolean diffPressed = false;
 
@@ -124,10 +128,10 @@ public class AddDiffDialog extends BaseDialog {
     final JPanel sourcesPanel = new JPanel(new GridLayout(2, 1, 5, 5));
     sourcesPanel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Primary Callgraph:", LABEL_WIDTH, primaryExportBinary, ROW_HEIGHT));
+            "Primary Call Graph:", LABEL_WIDTH, primaryExportBinary, ROW_HEIGHT));
     sourcesPanel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Secondary Callgraph:", LABEL_WIDTH, secondaryExportBinary, ROW_HEIGHT));
+            "Secondary Call Graph:", LABEL_WIDTH, secondaryExportBinary, ROW_HEIGHT));
 
     panel.add(sourcesPanel, BorderLayout.NORTH);
 
@@ -183,15 +187,15 @@ public class AddDiffDialog extends BaseDialog {
     }
 
     final String primaryBinExport =
-        String.format(
-            "%s%s%s.%s",
+        String.join(
+            "",
             matchesBinary.getParent(),
             File.separator,
             primaryName,
             Constants.BINDIFF_BINEXPORT_EXTENSION);
     final String secondaryBinExport =
-        String.format(
-            "%s%s%s.%s",
+        String.join(
+            "",
             matchesBinary.getParent(),
             File.separator,
             secondaryName,
@@ -305,9 +309,8 @@ public class AddDiffDialog extends BaseDialog {
     }
 
     return new File(
-        String.format(
-            "%s%s%s",
-            workspace.getWorkspaceDirPath(), File.separator, destinationDirName.getText()));
+        String.join(
+            "", workspace.getWorkspaceDirPath(), File.separator, destinationDirName.getText()));
   }
 
   public File getMatchesBinary() {

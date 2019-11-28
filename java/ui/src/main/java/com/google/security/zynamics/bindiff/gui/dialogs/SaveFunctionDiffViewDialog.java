@@ -5,6 +5,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.MessageBox;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanel;
@@ -43,26 +44,30 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+/** Save dialog for function diff views. */
 public class SaveFunctionDiffViewDialog extends BaseDialog {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final Color NORMAL_COLOR = new JFormattedTextField().getBackground();
   private static final Color OVERWRITE_INDICATION_COLOR = new Color(233, 200, 200);
 
-  private static final int DLGWIDTH = 650;
-  private static final int DLGHEIGHT = 190;
+  private static final int DIALOG_WIDTH = 650;
+  private static final int DIALOG_HEIGHT = 190;
 
   private static final String FUNCTION_DIFF_VIEWS_DIRECTORY_NAME = "Function Diff Views";
 
   private final JFormattedTextField diffDatabaseFileName =
-      new JFormattedTextField(
-          new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory())));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(
+              new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory()))));
   private final JFormattedTextField primaryExportFileName =
-      new JFormattedTextField(
-          new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory())));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(
+              new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory()))));
   private final JFormattedTextField secondaryExportFileName =
-      new JFormattedTextField(
-          new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory())));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(
+              new CFilenameFormatter(new File(SystemHelpers.getApplicationDataDirectory()))));
 
   private final JCheckBox diffDatabaseOverwrite = new JCheckBox("Overwrite");
   private final JCheckBox primaryExportOverwrite = new JCheckBox("Overwrite");
@@ -439,8 +444,8 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
 
     pack();
 
-    setPreferredSize(new Dimension(DLGWIDTH, DLGHEIGHT));
-    setMinimumSize(new Dimension(DLGWIDTH, DLGHEIGHT));
+    setPreferredSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
+    setMinimumSize(new Dimension(DIALOG_WIDTH, DIALOG_HEIGHT));
 
     GuiHelper.centerChildToParent(getParent(), this, true);
   }

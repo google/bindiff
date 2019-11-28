@@ -3,14 +3,14 @@ package com.google.security.zynamics.bindiff.gui.dialogs;
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CFileChooser;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
-
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -19,7 +19,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -29,7 +28,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
 public class NewDiffDialog extends BaseDialog {
-  private static final int IDB_FILEFILTER_INDEX = 0;
+  private static final int IDB_FILE_FILTER_INDEX = 0;
   private static final int TEXTFIELD_WITH = 500;
   private static final int LABEL_WITH = 180;
   private static final int ROW_HEIGHT = 25;
@@ -51,7 +50,8 @@ public class NewDiffDialog extends BaseDialog {
   private final FileChooserPanel secondaryChooser =
       new FileChooserPanel("", secondaryFileListener, "...", TEXTFIELD_WITH, ROW_HEIGHT, 0);
 
-  private final JTextField destinationDirName = new JTextField();
+  private final JTextField destinationDirName =
+      TextComponentUtils.addDefaultEditorActions(new JTextField());
 
   private boolean diffPressed = false;
 
@@ -229,8 +229,7 @@ public class NewDiffDialog extends BaseDialog {
     }
 
     return new File(
-        String.format(
-            "%s%s%s", workspaceDir.getPath(), File.separator, destinationDirName.getText()));
+        String.join("", workspaceDir.getPath(), File.separator, destinationDirName.getText()));
   }
 
   public boolean getDiffButtonPressed() {
@@ -280,7 +279,7 @@ public class NewDiffDialog extends BaseDialog {
               lastSelectedFile == null
                   ? new File(config.getMainSettings().getNewDiffLastPrimaryDir())
                   : lastSelectedFile,
-              IDB_FILEFILTER_INDEX);
+              IDB_FILE_FILTER_INDEX);
 
       if (file != null) {
         primaryChooser.setText(file.getPath());
@@ -304,7 +303,7 @@ public class NewDiffDialog extends BaseDialog {
               lastSelectedFile == null
                   ? new File(config.getMainSettings().getNewDiffLastSecondaryDir())
                   : lastSelectedFile,
-              IDB_FILEFILTER_INDEX);
+              IDB_FILE_FILTER_INDEX);
 
       if (file != null) {
         secondaryChooser.setText(file.getPath());

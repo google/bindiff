@@ -1,5 +1,11 @@
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
+import com.google.security.zynamics.bindiff.utils.GuiUtils;
+import com.google.security.zynamics.zylib.gui.CMessageBox;
+import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
+import com.google.security.zynamics.zylib.io.DirectoryChooser;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -7,7 +13,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JOptionPane;
@@ -16,12 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
-import com.google.security.zynamics.bindiff.utils.GuiUtils;
-import com.google.security.zynamics.zylib.gui.CMessageBox;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
-import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
-import com.google.security.zynamics.zylib.io.DirectoryChooser;
-
+/** Dialog to export the current view into a variety of formats. */
 public class ExportViewDialog extends BaseDialog {
   private static final int DIALOG_WIDTH = 600;
   private static final int DIALOG_HEIGHT = 263;
@@ -44,8 +44,6 @@ public class ExportViewDialog extends BaseDialog {
   private final JButton okButton = new JButton("Ok");
   private final JButton cancelButton = new JButton("Cancel");
 
-  private final ActionListener directoryChooserListener =
-      new InternalDestinationDirectoryListener();
   private final ActionListener buttonListener = new InternalButtonListener();
 
   private boolean okPressed = false;
@@ -64,13 +62,17 @@ public class ExportViewDialog extends BaseDialog {
     okButton.addActionListener(buttonListener);
     cancelButton.addActionListener(buttonListener);
 
+    ActionListener directoryChooserListener = new InternalDestinationDirectoryListener();
     destinationChooserPanel =
         new FileChooserPanel(
             defaultDirectory.getPath(), directoryChooserListener, "...", 0, ROW_HEIGHT, 0);
 
-    primaryImageName = new JTextField("primary_" + defaultFileName);
-    secondaryImageName = new JTextField("secondary_" + defaultFileName);
-    combinedImageName = new JTextField("combined_" + defaultFileName);
+    primaryImageName =
+        TextComponentUtils.addDefaultEditorActions(new JTextField("primary_" + defaultFileName));
+    secondaryImageName =
+        TextComponentUtils.addDefaultEditorActions(new JTextField("secondary_" + defaultFileName));
+    combinedImageName =
+        TextComponentUtils.addDefaultEditorActions(new JTextField("combined_" + defaultFileName));
 
     imageFormat = new JComboBox<>();
     imageFormat.addItem("PNG");

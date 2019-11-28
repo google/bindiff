@@ -14,6 +14,7 @@ import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphAddressSearcher;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSeacherFunctions;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcher;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
@@ -90,15 +91,15 @@ public class GraphSearchField extends JPanel {
   private final JMemoryBox priJumpCombo = new JMemoryBox(SEARCH_STRING_HISTORY_MAX);
   private final JMemoryBox secJumpCombo = new JMemoryBox(SEARCH_STRING_HISTORY_MAX);
 
-  private final JTextField searchField = new JTextField();
-  private final JFormattedTextField priHexField = new JFormattedTextField(new CHexFormatter(16));
-  private final JFormattedTextField secHexField = new JFormattedTextField(new CHexFormatter(16));
+  private final JTextField searchField =
+      TextComponentUtils.addDefaultEditorActions(new JTextField());
+  private final JFormattedTextField priHexField =
+      TextComponentUtils.addDefaultEditorActions(new JFormattedTextField(new CHexFormatter(16)));
+  private final JFormattedTextField secHexField =
+      TextComponentUtils.addDefaultEditorActions(new JFormattedTextField(new CHexFormatter(16)));
 
   private final JButton clearSearchResultsButton;
 
-  private final CEditorBorder border = new CEditorBorder();
-
-  private final CSearchAction searchAction = new CSearchAction();
   private final CPopupChooserAction popupChooserAction = new CPopupChooserAction();
 
   private Icon activeIcon = ICON_NORMAL_SEARCH_FIELD;
@@ -116,6 +117,7 @@ public class GraphSearchField extends JPanel {
 
     setEditors();
 
+    final CEditorBorder border = new CEditorBorder();
     searchField.setBorder(border);
     priHexField.setBorder(border);
     secHexField.setBorder(border);
@@ -123,15 +125,17 @@ public class GraphSearchField extends JPanel {
     searchField.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "search");
     searchField
         .getInputMap()
-        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK), "search");
+        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_DOWN_MASK), "search");
     searchField
         .getInputMap()
-        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_MASK), "search");
+        .put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "search");
     searchField
         .getInputMap()
         .put(
-            KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK | InputEvent.CTRL_MASK),
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_ENTER, InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK),
             "search");
+    final CSearchAction searchAction = new CSearchAction();
     searchField.getActionMap().put("search", searchAction);
 
     priHexField.getInputMap().put(KeyStroke.getKeyStroke("ENTER"), "zoomToAddress");

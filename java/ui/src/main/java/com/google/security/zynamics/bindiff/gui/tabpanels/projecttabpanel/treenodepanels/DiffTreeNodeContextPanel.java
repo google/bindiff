@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts.FunctionMatchesPie3dPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts.SimilarityBarChart2dPanel;
@@ -38,11 +39,12 @@ import javax.swing.border.CompoundBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 
+/** Panel containing the contextual view when a diff is selected in the tree view. */
 public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final int TEXTFIELDHEIGHT = 25;
-  private static final int TEXTFIELDLABELWIDTH = 100;
+  private static final int TEXTFIELD_HEIGHT = 25;
+  private static final int TEXTFIELD_LABEL_WIDTH = 100;
 
   private final InternalDescriptionFocusListener focusListener =
       new InternalDescriptionFocusListener();
@@ -81,15 +83,32 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
 
     final DiffMetaData metaData = diff.getMetaData();
 
-    creationDate = new JTextField(metaData.getDateString());
-    primaryIDBName = new JTextField(metaData.getIdbName(ESide.PRIMARY));
-    primaryImageName = new JTextField(metaData.getImageName(ESide.PRIMARY));
-    primaryImageHash = new JTextField(metaData.getImageHash(ESide.PRIMARY));
-    primaryArchitectureName = new JTextField(metaData.getArchitectureName(ESide.PRIMARY));
-    secondaryIDBName = new JTextField(metaData.getIdbName(ESide.SECONDARY));
-    secondaryImageName = new JTextField(metaData.getImageName(ESide.SECONDARY));
-    secondaryImageHash = new JTextField(metaData.getImageHash(ESide.SECONDARY));
-    secondaryArchitectureName = new JTextField(metaData.getArchitectureName(ESide.SECONDARY));
+    creationDate =
+        TextComponentUtils.addDefaultEditorActions(new JTextField(metaData.getDateString()));
+    primaryIDBName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getIdbName(ESide.PRIMARY)));
+    primaryImageName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getImageName(ESide.PRIMARY)));
+    primaryImageHash =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getImageHash(ESide.PRIMARY)));
+    primaryArchitectureName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getArchitectureName(ESide.PRIMARY)));
+    secondaryIDBName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getIdbName(ESide.SECONDARY)));
+    secondaryImageName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getImageName(ESide.SECONDARY)));
+    secondaryImageHash =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getImageHash(ESide.SECONDARY)));
+    secondaryArchitectureName =
+        TextComponentUtils.addDefaultEditorActions(
+            new JTextField(metaData.getArchitectureName(ESide.SECONDARY)));
 
     final int matchedFunctionsCount = metaData.getSizeOfMatchedFunctions();
     final PercentageTwoBarCellData primaryMatchedFunctionsData =
@@ -104,13 +123,13 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
             primaryMatchedFunctionsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_PRIMARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
     secondaryFunctions =
         new PercentageTwoBarLabel(
             secondaryMatchedFunctionsData,
             Colors.MATCHED_LABEL_BAR,
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
-            TEXTFIELDHEIGHT);
+            TEXTFIELD_HEIGHT);
 
     diffPath = new CPathLabel(diff.getMatchesDatabase().getPath());
     description = new JTextArea(metaData.getDiffDescription());
@@ -147,35 +166,35 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
 
     primary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "IDB Name", TEXTFIELDLABELWIDTH, primaryIDBName, TEXTFIELDHEIGHT));
+            "IDB Name", TEXTFIELD_LABEL_WIDTH, primaryIDBName, TEXTFIELD_HEIGHT));
     primary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Image Name", TEXTFIELDLABELWIDTH, primaryImageName, TEXTFIELDHEIGHT));
+            "Image Name", TEXTFIELD_LABEL_WIDTH, primaryImageName, TEXTFIELD_HEIGHT));
     primary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Hash", TEXTFIELDLABELWIDTH, primaryImageHash, TEXTFIELDHEIGHT));
+            "Hash", TEXTFIELD_LABEL_WIDTH, primaryImageHash, TEXTFIELD_HEIGHT));
     primary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Architecture", TEXTFIELDLABELWIDTH, primaryArchitectureName, TEXTFIELDHEIGHT));
+            "Architecture", TEXTFIELD_LABEL_WIDTH, primaryArchitectureName, TEXTFIELD_HEIGHT));
     primary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Functions", TEXTFIELDLABELWIDTH, primaryFunctions, TEXTFIELDHEIGHT));
+            "Functions", TEXTFIELD_LABEL_WIDTH, primaryFunctions, TEXTFIELD_HEIGHT));
 
     secondary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "IDB Name", TEXTFIELDLABELWIDTH, secondaryIDBName, TEXTFIELDHEIGHT));
+            "IDB Name", TEXTFIELD_LABEL_WIDTH, secondaryIDBName, TEXTFIELD_HEIGHT));
     secondary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Image Name", TEXTFIELDLABELWIDTH, secondaryImageName, TEXTFIELDHEIGHT));
+            "Image Name", TEXTFIELD_LABEL_WIDTH, secondaryImageName, TEXTFIELD_HEIGHT));
     secondary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Hash", TEXTFIELDLABELWIDTH, secondaryImageHash, TEXTFIELDHEIGHT));
+            "Hash", TEXTFIELD_LABEL_WIDTH, secondaryImageHash, TEXTFIELD_HEIGHT));
     secondary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Architecture", TEXTFIELDLABELWIDTH, secondaryArchitectureName, TEXTFIELDHEIGHT));
+            "Architecture", TEXTFIELD_LABEL_WIDTH, secondaryArchitectureName, TEXTFIELD_HEIGHT));
     secondary.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Functions", TEXTFIELDLABELWIDTH, secondaryFunctions, TEXTFIELDHEIGHT));
+            "Functions", TEXTFIELD_LABEL_WIDTH, secondaryFunctions, TEXTFIELD_HEIGHT));
 
     primaryPanel.add(primary, BorderLayout.CENTER);
     secondaryPanel.add(secondary, BorderLayout.CENTER);
@@ -208,10 +227,10 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
 
     metadataPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "Diff Path", TEXTFIELDLABELWIDTH, diffPath, TEXTFIELDHEIGHT));
+            "Diff Path", TEXTFIELD_LABEL_WIDTH, diffPath, TEXTFIELD_HEIGHT));
     metadataPanel.add(
         GuiUtils.createHorizontalNamedLabelPanel(
-            "File Date", TEXTFIELDLABELWIDTH, creationDate, TEXTFIELDHEIGHT));
+            "File Date", TEXTFIELD_LABEL_WIDTH, creationDate, TEXTFIELD_HEIGHT));
 
     final JPanel outerMetadataPanel = new JPanel(new BorderLayout());
     outerMetadataPanel.setBorder(new TitledBorder("Diff Info"));
@@ -225,7 +244,7 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
   }
 
   private void initComponents() {
-    diffPath.setPreferredSize(new Dimension(diffPath.getPreferredSize().width, TEXTFIELDHEIGHT));
+    diffPath.setPreferredSize(new Dimension(diffPath.getPreferredSize().width, TEXTFIELD_HEIGHT));
 
     final JPanel panel = new JPanel(new BorderLayout());
     panel.add(createOverviewPanel(), BorderLayout.CENTER);

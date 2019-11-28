@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.components.SliderPanel;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.ESettingsDialogType;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
@@ -17,6 +18,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.text.DefaultFormatterFactory;
 
+/** Settings panel for graph proximity browsing. */
 public class ProximityBrowsingPanel extends JPanel {
   private static final int LABEL_WIDTH = 275;
   private static final int ROW_HEIGHT = 25;
@@ -33,9 +35,11 @@ public class ProximityBrowsingPanel extends JPanel {
       new SliderPanel(
           0, SLIDER_MIN, SLIDER_MAX, true, true, false, true, SLIDER_LABEL_WIDTH, ROW_HEIGHT);
   private final JFormattedTextField autoProximityBrowsingActivionThreshold =
-      new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(5)));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(5))));
   private final JFormattedTextField visibilityWarningThreshold =
-      new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(5)));
+      TextComponentUtils.addDefaultEditorActions(
+          new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(5))));
 
   private final ESettingsDialogType dialogType;
 

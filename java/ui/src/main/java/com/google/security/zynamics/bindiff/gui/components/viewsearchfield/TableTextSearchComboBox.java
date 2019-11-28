@@ -2,6 +2,7 @@ package com.google.security.zynamics.bindiff.gui.components.viewsearchfield;
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
@@ -17,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JTextField;
 
+/** Editable combo box used for searching in UI tables. */
 public class TableTextSearchComboBox extends JMemoryBox {
   private static final Color BACKGROUND_COLOR_FAIL = Colors.GRAY224;
   private static final Color BACKGROUND_COLOR_SUCCESS = Color.WHITE;
@@ -25,18 +27,14 @@ public class TableTextSearchComboBox extends JMemoryBox {
 
   private final ListenerProvider<IViewSearchFieldListener> listeners = new ListenerProvider<>();
 
-  private final InternalKeyListener listener = new InternalKeyListener();
-
   private final AbstractTable table;
 
   private final List<Pair<Integer, ESide>> affectedColumnIndices;
 
   private boolean isRegEx;
-
   private boolean isCaseSensitive;
 
   private boolean primarySideSearch;
-
   private boolean secondarySideSearch;
 
   private boolean temporaryTableUse;
@@ -48,7 +46,9 @@ public class TableTextSearchComboBox extends JMemoryBox {
     this.table = Preconditions.checkNotNull(table);
     this.affectedColumnIndices = Preconditions.checkNotNull(affectedColumnIndices);
 
-    getEditor().getEditorComponent().addKeyListener(listener);
+    final JTextField textField = (JTextField) getEditor().getEditorComponent();
+    TextComponentUtils.addDefaultEditorActions(textField);
+    textField.addKeyListener(new InternalKeyListener());
   }
 
   private String getText() {
@@ -82,7 +82,7 @@ public class TableTextSearchComboBox extends JMemoryBox {
 
     final int rows = table.getRowCount();
 
-    boolean found = false;
+    boolean found;
 
     boolean primarySearch = primarySideSearch;
     boolean secondarySearch = secondarySideSearch;
@@ -93,12 +93,12 @@ public class TableTextSearchComboBox extends JMemoryBox {
     }
 
     for (int row = 0; row < rows; ++row) {
-      String rowText = "";
+      StringBuilder rowText = new StringBuilder();
       for (final Pair<Integer, ESide> column : affectedColumnIndices) {
         if (column.second() == ESide.PRIMARY && primarySearch) {
-          rowText += table.getValueAt(row, column.first()).toString();
+          rowText.append(table.getValueAt(row, column.first()));
         } else if (column.second() == ESide.SECONDARY && secondarySearch) {
-          rowText += table.getValueAt(row, column.first()).toString();
+          rowText.append(table.getValueAt(row, column.first()));
         }
       }
 
@@ -111,13 +111,13 @@ public class TableTextSearchComboBox extends JMemoryBox {
           pattern = Pattern.compile(searchString, Pattern.CASE_INSENSITIVE);
         }
 
-        final Matcher matcher = pattern.matcher(rowText);
+        final Matcher matcher = pattern.matcher(rowText.toString());
 
         found = matcher.find(0);
       } else if (isCaseSensitive) {
-        found = rowText.indexOf(searchString) != -1;
+        found = rowText.toString().contains(searchString);
       } else {
-        found = rowText.toLowerCase().indexOf(searchString.toLowerCase()) != -1;
+        found = rowText.toString().toLowerCase().contains(searchString.toLowerCase());
       }
 
       if (found) {
