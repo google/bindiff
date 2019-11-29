@@ -9,36 +9,12 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
+#include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
-#include "file/base/file.h"
-#include "file/base/file_closer.h"
-#include "file/base/filesystem.h"
-#include "file/base/helpers.h"
-#include "file/base/path.h"
-#include "net/proto2/io/public/coded_stream.h"
-#include "net/proto2/io/public/zero_copy_stream_impl.h"
-#include "net/proto2/util/public/google_file_stream.h"
-#include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "util/gtl/ptr_util.h"
-#include "util/task/canonical_errors.h"
-#include "util/task/status.h"
-// Google3 uses different namespaces than the open source proto version. This is
-// a hack to make them compatible.
-namespace google {
-namespace protobuf {
-namespace io {
-using ::proto2::io::CodedInputStream;
-}  // namespace io
-}  // namespace protobuf
-}  // namespace google
-#else
-#include "third_party/zynamics/binexport/binexport2.pb.h"
-#include <google/protobuf/io/coded_stream.h>           // NOLINT
-#include <google/protobuf/io/zero_copy_stream_impl.h>  // NOLINT
 #endif
 
 namespace security::bindiff {
@@ -142,43 +118,6 @@ void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
   AddSubsToCallGraph(call_graph, flow_graphs);
 }
 
-#ifdef GOOGLE
-bool ReadGoogle(const std::string& filename, CallGraph* call_graph,
-                FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
-                Instruction::Cache* instruction_cache) {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
-  File* file = nullptr;
-  auto status(file::Open(filename, "r", &file, file::Defaults()));
-  if (!status.ok()) {
-    LOG(ERROR) << "Error opening '" << filename << "': " << status;
-    return false;
-  }
-  FileCloser cleanup(file);
-
-  call_graph->Reset();
-  DeleteFlowGraphs(flow_graphs);
-  flow_graph_infos->clear();
-
-  proto2::util::GoogleFileInputStream stream(file);
-  // We explicitly instantiate our own decoder instead of using the proto's
-  // convenience methods in order to be able to set the bytes limit thresholds.
-  // Our protos are typically very large, and the default limit warns at 32MB.
-  proto2::io::CodedInputStream decoder(&stream);
-  decoder.SetTotalBytesLimit(std::numeric_limits<int32_t>::max(),
-                             std::numeric_limits<int32_t>::max());
-  BinExport2 proto;
-  if (!proto.ParseFromCodedStream(&decoder) ||
-      !decoder.ConsumedEntireMessage()) {
-    return false;
-  }
-  SetupGraphsFromProto(proto, file->filename(), call_graph, flow_graphs,
-                       flow_graph_infos, instruction_cache);
-  return true;
-}
-#endif  // GOOGLE
-
-// TODO(cblichmann): Make this function return an error instead of throwing.
 void Read(const std::string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
