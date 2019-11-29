@@ -1,17 +1,15 @@
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
-cmake_minimum_required(VERSION 3.7)
-if(POLICY CMP0069)  # For CheckIPOSupported
-  cmake_policy(SET CMP0069 NEW)
-endif()
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(VERSION 3.12)
 project(bindiff VERSION 6)
 
 set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
 set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
 set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
 
-# CheckIPOSupported requires at least CMake 3.9
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.9)
+string(TOLOWER "${CMAKE_BUILD_TYPE}" _bindiff_build_type)
+if(NOT _bindiff_build_type STREQUAL "debug")
   include(CheckIPOSupported)
   check_ipo_supported(RESULT _bindiff_ipo_supported)
 else()
