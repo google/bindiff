@@ -49,10 +49,9 @@ bool MatchUnique(const VertexSet& vertices1, const VertexSet& vertices2,
 void GetUnmatchedChildren(const FlowGraph* graph, FlowGraph::Vertex vertex,
                           VertexSet* vertices) {
   vertices->clear();
-  FlowGraph::OutEdgeIterator j, end;
-  for (boost::tie(j, end) = boost::out_edges(vertex, graph->GetGraph());
-       j != end; ++j) {
-    const auto target = boost::target(*j, graph->GetGraph());
+  for (auto [it, end] = boost::out_edges(vertex, graph->GetGraph()); it != end;
+       ++it) {
+    const auto target = boost::target(*it, graph->GetGraph());
     if (!graph->GetFixedPoint(target)) {
       vertices->emplace(target);
     }
@@ -62,10 +61,9 @@ void GetUnmatchedChildren(const FlowGraph* graph, FlowGraph::Vertex vertex,
 void GetUnmatchedParents(const FlowGraph* graph, FlowGraph::Vertex vertex,
                          VertexSet* vertices) {
   vertices->clear();
-  FlowGraph::InEdgeIterator j, end;
-  for (boost::tie(j, end) = boost::in_edges(vertex, graph->GetGraph());
-       j != end; ++j) {
-    const auto source = boost::source(*j, graph->GetGraph());
+  for (auto [it, end] = boost::in_edges(vertex, graph->GetGraph()); it != end;
+       ++it) {
+    const auto source = boost::source(*it, graph->GetGraph());
     if (!graph->GetFixedPoint(source)) {
       vertices->emplace(source);
     }
@@ -90,17 +88,16 @@ void FindFixedPointsBasicBlock(FixedPoint* fixed_point,
   for (MatchingStepsFlowGraph matching_steps_for_current_level = default_steps;
        !matching_steps_for_current_level.empty();
        matching_steps_for_current_level.pop_front()) {
-    FlowGraph::VertexIterator j, end;
-    for (boost::tie(j, end) = boost::vertices(primary->GetGraph()); j != end;
-         ++j) {
-      if (!primary->GetFixedPoint(*j)) {
-        vertices1.emplace(*j);
+    for (auto [it, end] = boost::vertices(primary->GetGraph()); it != end;
+         ++it) {
+      if (!primary->GetFixedPoint(*it)) {
+        vertices1.emplace(*it);
       }
     }
-    for (boost::tie(j, end) = boost::vertices(secondary->GetGraph()); j != end;
-         ++j) {
-      if (!secondary->GetFixedPoint(*j)) {
-        vertices2.emplace(*j);
+    for (auto [it, end] = boost::vertices(secondary->GetGraph()); it != end;
+         ++it) {
+      if (!secondary->GetFixedPoint(*it)) {
+        vertices2.emplace(*it);
       }
     }
     if (vertices1.empty() || vertices2.empty()) {

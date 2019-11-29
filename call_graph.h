@@ -185,7 +185,7 @@ class CallGraph {
   double GetProximityMdIndex(const Edge& edge);
 
   // Expensive and buggy function (see notes in implementation). Try to avoid.
-  void DeleteVertices(Address start, Address end);
+  void DeleteVertices(Address from, Address to);
 
  private:
   void Init();

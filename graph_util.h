@@ -1,11 +1,14 @@
 #ifndef GRAPH_UTIL_H_
 #define GRAPH_UTIL_H_
 
+#include <numeric>
 #include <queue>
 
+// clang-format off
 #include <boost/graph/adjacency_list.hpp>        // NOLINT(readability/boost)
 #include <boost/graph/breadth_first_search.hpp>  // NOLINT(readability/boost)
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
+// clang-format on
 
 #include "third_party/zynamics/bindiff/utility.h"
 
@@ -83,32 +86,21 @@ double CalculateMdIndexNode(const GraphType& parent_graph,
   std::vector<double> md_indices(boost::in_degree(vertex, graph) +
                                  boost::out_degree(vertex, graph));
   size_t index = 0;
-  {
-    typename GraphType::InEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::in_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *i,
-                                                   inverted, weights);
-    }
+  for (auto [it, end] = boost::in_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *it,
+                                                 inverted, weights);
   }
-  {
-    typename GraphType::OutEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::out_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *i,
-                                                   inverted, weights);
-    }
+  for (auto [it, end] = boost::out_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *it,
+                                                 inverted, weights);
   }
 
   // Sorting the summands before adding them together is important because
   // of rounding errors. Summation is _not_ commutative for doubles!
-  double md_index = 0.0;
   std::sort(md_indices.begin(), md_indices.end());
-  for (size_t i = 0; i < md_indices.size(); ++i) {
-    md_index += md_indices[i];
-  }
-
-  return md_index;
+  return std::accumulate(md_indices.begin(), md_indices.end(), 0.0);
 }
 
 // Default weights for the MD index features of a full graph. See
@@ -126,30 +118,24 @@ double CalculateMdIndex(GraphType& parent_graph, bool inverted = false,
   std::vector<double> md_indices(boost::num_edges(graph));
   std::vector<double> md_indices_inverted(boost::num_edges(graph));
   size_t index = 0;
-  typename GraphType::EdgeIterator i, end;
   if (inverted) {
-    for (boost::tie(i, end) = boost::edges(graph); i != end; ++i, ++index) {
-      md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *i,
+    for (auto [it, end] = boost::edges(graph); it != end; ++it, ++index) {
+      md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *it,
                                                    inverted, weights);
-      graph[*i].md_index_bottom_up_ = md_indices[index];
+      graph[*it].md_index_bottom_up_ = md_indices[index];
     }
   } else {
-    for (boost::tie(i, end) = boost::edges(graph); i != end; ++i, ++index) {
-      md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *i,
+    for (auto [it, end] = boost::edges(graph); it != end; ++it, ++index) {
+      md_indices[index] = CalculateMdIndexInternal(parent_graph.GetGraph(), *it,
                                                    inverted, weights);
-      graph[*i].md_index_top_down_ = md_indices[index];
+      graph[*it].md_index_top_down_ = md_indices[index];
     }
   }
 
   // Sorting the summands before adding them together is important because
   // of rounding errors. Summation is _not_ commutative for doubles!
-  double md_index = 0.0;
   std::sort(md_indices.begin(), md_indices.end());
-  for (size_t j = 0; j < md_indices.size(); ++j) {
-    md_index += md_indices[j];
-  }
-
-  return md_index;
+  return std::accumulate(md_indices.begin(), md_indices.end(), 0.0);
 }
 
 // Perform a breadth first search through the graph starting from all vertices
@@ -162,27 +148,23 @@ double CalculateMdIndex(GraphType& parent_graph, bool inverted = false,
 template <typename Graph>
 void BreadthFirstSearch(Graph* graph) {
   std::queue<typename boost::graph_traits<Graph>::vertex_descriptor> next;
-  typename boost::graph_traits<Graph>::vertex_iterator i, end;
-  for (boost::tie(i, end) = boost::vertices(*graph); i != end; ++i) {
-    (*graph)[*i].bfs_top_down_ = 0;
-    if (in_degree(*i, *graph) == 0) {
-      next.push(*i);
+  for (auto [it, end] = boost::vertices(*graph); it != end; ++it) {
+    (*graph)[*it].bfs_top_down_ = 0;
+    if (in_degree(*it, *graph) == 0) {
+      next.push(*it);
     }
   }
 
   while (!next.empty()) {
-    typename boost::graph_traits<Graph>::vertex_descriptor vertex =
-        next.front();
+    auto vertex = next.front();
     next.pop();
 
-    typename boost::graph_traits<Graph>::out_edge_iterator i, end;
-    for (boost::tie(i, end) = out_edges(vertex, *graph); i != end; ++i) {
-      if ((*graph)[boost::target(*i, *graph)].bfs_top_down_) {
+    for (auto [it, end] = out_edges(vertex, *graph); it != end; ++it) {
+      if ((*graph)[boost::target(*it, *graph)].bfs_top_down_) {
         continue;
       }
-
-      next.push(boost::target(*i, *graph));
-      (*graph)[boost::target(*i, *graph)].bfs_top_down_ =
+      next.push(boost::target(*it, *graph));
+      (*graph)[boost::target(*it, *graph)].bfs_top_down_ =
           (*graph)[vertex].bfs_top_down_ + 1;
     }
   }
@@ -196,11 +178,10 @@ void BreadthFirstSearch(Graph* graph) {
 template <typename Graph>
 void InvertedBreadthFirstSearch(Graph* graph) {
   std::queue<typename boost::graph_traits<Graph>::vertex_descriptor> next;
-  typename boost::graph_traits<Graph>::vertex_iterator i, end;
-  for (boost::tie(i, end) = boost::vertices(*graph); i != end; ++i) {
-    (*graph)[*i].bfs_bottom_up_ = 0;
-    if (out_degree(*i, *graph) == 0) {
-      next.push(*i);
+  for (auto [it, end] = boost::vertices(*graph); it != end; ++it) {
+    (*graph)[*it].bfs_bottom_up_ = 0;
+    if (out_degree(*it, *graph) == 0) {
+      next.push(*it);
     }
   }
 
@@ -209,14 +190,12 @@ void InvertedBreadthFirstSearch(Graph* graph) {
         next.front();
     next.pop();
 
-    typename boost::graph_traits<Graph>::in_edge_iterator i, end;
-    for (boost::tie(i, end) = in_edges(vertex, *graph); i != end; ++i) {
-      if ((*graph)[boost::source(*i, *graph)].bfs_bottom_up_) {
+    for (auto [it, end] = in_edges(vertex, *graph); it != end; ++it) {
+      if ((*graph)[boost::source(*it, *graph)].bfs_bottom_up_) {
         continue;
       }
-
-      next.push(boost::source(*i, *graph));
-      (*graph)[boost::source(*i, *graph)].bfs_bottom_up_ =
+      next.push(boost::source(*it, *graph));
+      (*graph)[boost::source(*it, *graph)].bfs_bottom_up_ =
           (*graph)[vertex].bfs_bottom_up_ + 1;
     }
   }

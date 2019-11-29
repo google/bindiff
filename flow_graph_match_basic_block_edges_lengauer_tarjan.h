@@ -1,6 +1,7 @@
 #ifndef FLOW_GRAPH_MATCH_BASIC_BLOCK_EDGES_LENGAUER_TARJAN_H_
 #define FLOW_GRAPH_MATCH_BASIC_BLOCK_EDGES_LENGAUER_TARJAN_H_
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
 namespace security::bindiff {
@@ -22,7 +23,7 @@ class MatchingStepEdgesLoop : public MatchingStepFlowGraph {
 
  private:
   using EdgeFeatures = std::vector<int>;
-  using EdgesByFlowGraph = std::map<const FlowGraph*, EdgeFeatures>;
+  using EdgesByFlowGraph = absl::flat_hash_map<const FlowGraph*, EdgeFeatures>;
 
   enum {
     kIsCircular = 1 << 0,

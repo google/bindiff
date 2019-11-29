@@ -22,25 +22,24 @@ void MatchingStepEdgesLoop::GetUnmatchedEdgesLoop(MatchingContext* context,
   const MatchingContext::FeatureId feature_id = MatchingContext::kEdgeProperies;
   EdgesByFlowGraph* cached = nullptr;
   if (context->HasCachedFeatures(feature_id)) {
-    cached = context->GetCachedFeatures<EdgesByFlowGraph*>(feature_id);
-    if (!cached) {
+    if (cached = context->GetCachedFeatures<EdgesByFlowGraph*>(feature_id);
+        !cached) {
       cached = new EdgesByFlowGraph();
       context->SetCachedFeatures(feature_id, cached, FeatureDestructor);
     }
   }
   edges->clear();
-  FlowGraph::EdgeIterator edge, end;
   EdgeFeatures* features = nullptr;
   if (cached) {
-    auto result = cached->emplace(&flow_graph, EdgeFeatures());
-    // We previously cached data for this flow graph, if it's already present
-    // in the map.
-    features = &result.first->second;
-    if (!result.second) {
+    if (auto [entry, inserted] = cached->emplace(&flow_graph, EdgeFeatures());
+        !inserted) {
+      // We previously cached data for this flow graph, if it's already present
+      // in the map.
+      features = &entry->second;
       // Element wasn't added, features list is filled in.
       int edge_index = 0;
-      for (boost::tie(edge, end) = boost::edges(flow_graph.GetGraph());
-           edge != end; ++edge, ++edge_index) {
+      for (auto [edge, end] = boost::edges(flow_graph.GetGraph()); edge != end;
+           ++edge, ++edge_index) {
         int edge_feature = (*features)[edge_index];
         if (((edge_feature & kIsCircular) != 0) ||
             ((edge_feature & kIsEdgeDominated) == 0)) {
@@ -58,7 +57,7 @@ void MatchingStepEdgesLoop::GetUnmatchedEdgesLoop(MatchingContext* context,
     }
   }
   // Non-cached version, also fills cache, if needed.
-  for (boost::tie(edge, end) = boost::edges(flow_graph.GetGraph()); edge != end;
+  for (auto [edge, end] = boost::edges(flow_graph.GetGraph()); edge != end;
        ++edge) {
     int edge_feature = 0;
     edge_feature |= flow_graph.IsCircular(*edge) ? kIsCircular : 0;

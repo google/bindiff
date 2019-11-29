@@ -50,30 +50,23 @@ void CallGraph::Reset() {
 }
 
 void CallGraph::Init() {
-  {
-    EdgeIterator i, end;
-    for (boost::tie(i, end) = boost::edges(graph_); i != end; ++i) {
-      if (IsDuplicate(*i)) {
-        continue;
-      }
+  for (auto [it, end] = boost::edges(graph_); it != end; ++it) {
+    if (IsDuplicate(*it)) {
+      continue;
+    }
 
-      const Vertex source = boost::source(*i, graph_);
-      const Vertex target = boost::target(*i, graph_);
-      CallGraph::OutEdgeIterator edgeIt, edgeItEnd;
-      for (boost::tie(edgeIt, edgeItEnd) = boost::out_edges(source, graph_);
-           edgeIt != edgeItEnd; ++edgeIt) {
-        if (*edgeIt != *i && boost::target(*edgeIt, graph_) == target) {
-          SetDuplicate(*edgeIt, true);
-        }
+    const Vertex source = boost::source(*it, graph_);
+    const Vertex target = boost::target(*it, graph_);
+    for (auto [edge_it, edge_end] = boost::out_edges(source, graph_);
+         edge_it != edge_end; ++edge_it) {
+      if (*edge_it != *it && boost::target(*edge_it, graph_) == target) {
+        SetDuplicate(*edge_it, true);
       }
     }
   }
 
-  {
-    VertexIterator i, end;
-    for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i) {
-      graph_[*i].flow_graph_ = 0;
-    }
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
+    graph_[*it].flow_graph_ = 0;
   }
 
   CalculateTopology();
@@ -163,12 +156,10 @@ void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
   Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                    edges.end(), properties.begin(), call_graph.vertex_size());
   std::swap(graph_, temp_graph);
-  {
-    VertexIterator i, end;
-    int j = 0;
-    for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i, ++j) {
-      graph_[*i] = temp_vertices[j];
-    }
+
+  int j = 0;
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it, ++j) {
+    graph_[*it] = temp_vertices[j];
   }
   Init();
 }
@@ -211,7 +202,7 @@ void CallGraph::DetachFlowGraph(FlowGraph* flow_graph) {
   } else {
     graph_[vertex].flow_graph_ = nullptr;
   }
-  flow_graph->SetCallGraph(0);
+  flow_graph->SetCallGraph(nullptr);
 }
 
 CallGraph::Vertex CallGraph::GetVertex(Address address) const {
@@ -314,8 +305,7 @@ void CallGraph::SetDuplicate(const Edge& edge, bool duplicate) {
 
 std::pair<CallGraph::Edge, bool> CallGraph::FindEdge(Vertex source,
                                                      Vertex target) const {
-  CallGraph::OutEdgeIterator edge_it, edge_it_end;
-  for (boost::tie(edge_it, edge_it_end) = boost::out_edges(source, graph_);
+  for (auto [edge_it, edge_it_end] = boost::out_edges(source, graph_);
        edge_it != edge_it_end; ++edge_it) {
     if (boost::target(*edge_it, graph_) == target) {
       return std::make_pair(*edge_it, true);
@@ -367,60 +357,38 @@ double CallGraph::GetMdIndex(Vertex vertex) const {
   const Graph& graph = GetGraph();
   std::vector<double> md_indices(boost::in_degree(vertex, graph) +
                                  boost::out_degree(vertex, graph));
-
   size_t index = 0;
-  {
-    InEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::in_edges(vertex, graph);
-         i != end; ++i, ++index) {
-      md_indices[index] = graph_[*i].md_index_top_down_;
-    }
+  for (auto [it, end] = boost::in_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = graph_[*it].md_index_top_down_;
   }
-  {
-    OutEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::out_edges(vertex, graph);
-         i != end; ++i, ++index) {
-      md_indices[index] = graph_[*i].md_index_top_down_;
-    }
+  for (auto [it, end] = boost::out_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = graph_[*it].md_index_top_down_;
   }
 
-  double md_index = 0.0;
+  // Summation is not commutative for doubles.
   std::sort(md_indices.begin(), md_indices.end());
-  for (size_t i = 0; i < md_indices.size(); ++i) {
-    md_index += md_indices[i];
-  }
-
-  return md_index;
+  return std::accumulate(md_indices.begin(), md_indices.end(), 0.0);
 }
 
 double CallGraph::GetMdIndexInverted(Vertex vertex) const {
   const Graph& graph = GetGraph();
   std::vector<double> md_indices(boost::in_degree(vertex, graph) +
                                  boost::out_degree(vertex, graph));
-
   size_t index = 0;
-  {
-    InEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::in_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = graph_[*i].md_index_bottom_up_;
-    }
+  for (auto [it, end] = boost::in_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = graph_[*it].md_index_bottom_up_;
   }
-  {
-    OutEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::out_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = graph_[*i].md_index_bottom_up_;
-    }
+  for (auto [it, end] = boost::out_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = graph_[*it].md_index_bottom_up_;
   }
 
-  double md_index = 0.0;
+  // Summation is not commutative for doubles.
   std::sort(md_indices.begin(), md_indices.end());
-  for (size_t i = 0; i < md_indices.size(); ++i) {
-    md_index += md_indices[i];
-  }
-
-  return md_index;
+  return std::accumulate(md_indices.begin(), md_indices.end(), 0.0);
 }
 
 struct NeighborInfo {
@@ -443,31 +411,21 @@ bool operator<(const NeighborInfo& one, const NeighborInfo& two) {
 // TODO(soerenme): Very bad worst case behavior in high connectivity graphs!
 double CallGraph::CalculateProximityMdIndex(Edge edge) {
   std::vector<NeighborInfo> neighbors;
+  // Collect all nodes with a distance less than or equal to one.
+  const Vertex source = boost::source(edge, graph_);
+  const Vertex target = boost::target(edge, graph_);
   {
-    // Collect all nodes with a distance less than or equal to one.
-    const Vertex source = boost::source(edge, graph_);
-    const Vertex target = boost::target(edge, graph_);
-    {
-      InEdgeIterator i, end;
-      for (boost::tie(i, end) = boost::in_edges(source, graph_); i != end;
-           ++i) {
-        neighbors.emplace_back(boost::source(*i, graph_));
-      }
-      for (boost::tie(i, end) = boost::in_edges(target, graph_); i != end;
-           ++i) {
-        neighbors.emplace_back(boost::source(*i, graph_));
-      }
+    for (auto [it, end] = boost::in_edges(source, graph_); it != end; ++it) {
+      neighbors.emplace_back(boost::source(*it, graph_));
     }
-    {
-      OutEdgeIterator i, end;
-      for (boost::tie(i, end) = boost::out_edges(source, graph_); i != end;
-           ++i) {
-        neighbors.push_back(NeighborInfo(boost::target(*i, graph_)));
-      }
-      for (boost::tie(i, end) = boost::out_edges(target, graph_); i != end;
-           ++i) {
-        neighbors.push_back(NeighborInfo(boost::target(*i, graph_)));
-      }
+    for (auto [it, end] = boost::in_edges(target, graph_); it != end; ++it) {
+      neighbors.emplace_back(boost::source(*it, graph_));
+    }
+    for (auto [it, end] = boost::out_edges(source, graph_); it != end; ++it) {
+      neighbors.push_back(NeighborInfo(boost::target(*it, graph_)));
+    }
+    for (auto [it, end] = boost::out_edges(target, graph_); it != end; ++it) {
+      neighbors.push_back(NeighborInfo(boost::target(*it, graph_)));
     }
   }
   std::sort(neighbors.begin(), neighbors.end());
@@ -479,7 +437,7 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
   for (auto& neighbor : neighbors) {
     {
       InEdgeIterator i, end;
-      for (boost::tie(i, end) = boost::in_edges(neighbor.vertex_, graph_);
+      for (auto [i, end] = boost::in_edges(neighbor.vertex_, graph_);
            i != end; ++i) {
         const Vertex source = boost::source(*i, graph_);
         if (std::binary_search(neighbors.begin(), neighbors.end(),
@@ -493,7 +451,7 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
     }
     {
       OutEdgeIterator i, end;
-      for (boost::tie(i, end) = boost::out_edges(neighbor.vertex_, graph_);
+      for (auto [i, end] = boost::out_edges(neighbor.vertex_, graph_);
            i != end; ++i) {
         const Vertex target = boost::target(*i, graph_);
         if (std::binary_search(neighbors.begin(), neighbors.end(),
@@ -552,36 +510,30 @@ void CallGraph::DeleteVertices(Address from, Address to) {
 
   std::vector<VertexInfo> temp_vertices;
   std::vector<Address> temp_addresses;
-  {
-    VertexIterator i, end;
-    for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i) {
-      const Address address = GetAddress(*i);
-      if (address >= from && address <= to) {
-        // The bfs and MD indices aren't correct after copying - however, the
-        // original indices may still be what we want for correct matching?
-        temp_vertices.push_back(graph_[*i]);
-        temp_addresses.push_back(address);
-      }
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
+    const Address address = GetAddress(*it);
+    if (address >= from && address <= to) {
+      // The bfs and MD indices aren't correct after copying - however, the
+      // original indices may still be what we want for correct matching?
+      temp_vertices.push_back(graph_[*it]);
+      temp_addresses.push_back(address);
     }
   }
 
   std::vector<std::pair<Graph::edges_size_type, Graph::edges_size_type>> edges;
   std::vector<EdgeInfo> properties;
-  {
-    EdgeIterator i, end;
-    for (boost::tie(i, end) = boost::edges(graph_); i != end; ++i) {
-      const Address source_address = GetAddress(boost::source(*i, graph_));
-      const Address target_address = GetAddress(boost::target(*i, graph_));
-      const auto source = std::lower_bound(
-          temp_addresses.begin(), temp_addresses.end(), source_address);
-      const auto target = std::lower_bound(
-          temp_addresses.begin(), temp_addresses.end(), target_address);
-      if (source != temp_addresses.end() && *source == source_address &&
-          target != temp_addresses.end() && *target == target_address) {
-        edges.push_back(std::make_pair(source - temp_addresses.begin(),
-                                       target - temp_addresses.begin()));
-        properties.push_back(graph_[*i]);
-      }
+  for (auto [it, end] = boost::edges(graph_); it != end; ++it) {
+    const Address source_address = GetAddress(boost::source(*it, graph_));
+    const Address target_address = GetAddress(boost::target(*it, graph_));
+    const auto source = std::lower_bound(temp_addresses.begin(),
+                                         temp_addresses.end(), source_address);
+    const auto target = std::lower_bound(temp_addresses.begin(),
+                                         temp_addresses.end(), target_address);
+    if (source != temp_addresses.end() && *source == source_address &&
+        target != temp_addresses.end() && *target == target_address) {
+      edges.push_back(std::make_pair(source - temp_addresses.begin(),
+                                     target - temp_addresses.begin()));
+      properties.push_back(graph_[*it]);
     }
   }
 
@@ -589,12 +541,9 @@ void CallGraph::DeleteVertices(Address from, Address to) {
                  edges.end(), properties.begin(), temp_addresses.size());
   std::swap(graph_, newGraph);
 
-  {
-    VertexIterator i, end;
-    int j = 0;
-    for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i, ++j) {
-      graph_[*i] = temp_vertices[j];
-    }
+  int j = 0;
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it, ++j) {
+    graph_[*it] = temp_vertices[j];
   }
 
   // TODO(cblichmann): Bug: comments_ contains orphans now.

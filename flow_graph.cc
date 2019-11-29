@@ -208,8 +208,7 @@ void FlowGraph::Read(const BinExport2& proto,
 
   prime_ = 0;  // Sum of basic block primes.
 
-  // TODO(cblichmann): We don't export std::string references yet (BinDetego
-  // doesn't
+  // TODO(cblichmann): We don't export string references yet (BinDetego doesn't
   //                   have them, only the IDA plugin).
   string_references_ = 1;
 
@@ -236,8 +235,7 @@ void FlowGraph::Read(const BinExport2& proto,
     // used is VERTEX_LOOPENTRY.
     vertex_info.flags_ = 0;
 
-    // TODO(cblichmann): We don't export std::string references yet (BinDetego
-    //                   doesn't have them, only the IDA plugin).
+    // TODO(cblichmann): We don't export string references, see above.
     vertex_info.string_hash_ = 0;
     vertex_info.call_target_start_ = std::numeric_limits<uint32_t>::max();
     CHECK(proto_basic_block.instruction_index_size());
@@ -343,30 +341,26 @@ void FlowGraph::Read(const BinExport2& proto,
                      temp_addresses.size());
     std::swap(graph_, temp_graph);
 
-    {
-      VertexIterator i, end;
-      int j = 0;
-      for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i, ++j)
-        graph_[*i] = temp_vertices[j];
-    }
+    int j = 0;
+    for (auto [it, end] = boost::vertices(graph_); it != end; ++it, ++j)
+      graph_[*it] = temp_vertices[j];
   }
 
   Init();
 }
 
 void FlowGraph::Init() {
-  instructions_.shrink_to_fit();  // shrink to fit
+  instructions_.shrink_to_fit();
   call_targets_.shrink_to_fit();
 
   // Adjust end iterators to one-past-the-end of instructions array instead of
   // std::numeric_limits::max.
-  VertexIterator i, end;
-  for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i) {
-    graph_[*i].instruction_start_ =
-        std::min(graph_[*i].instruction_start_,
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
+    graph_[*it].instruction_start_ =
+        std::min(graph_[*it].instruction_start_,
                  static_cast<uint32_t>(instructions_.size()));
-    graph_[*i].call_target_start_ =
-        std::min(graph_[*i].call_target_start_,
+    graph_[*it].call_target_start_ =
+        std::min(graph_[*it].call_target_start_,
                  static_cast<uint32_t>(call_targets_.size()));
   }
 
@@ -407,16 +401,15 @@ void FlowGraph::MarkLoops() {
       make_iterator_property_map(dominator_nodes.begin(),
                                  get(boost::vertex_index, graph_)));
 
-  EdgeIterator i, end;
-  for (boost::tie(i, end) = boost::edges(graph_); i != end; ++i) {
-    const Vertex target = boost::target(*i, graph_);
-    const Vertex source = boost::source(*i, graph_);
+  for (auto [it, end] = boost::edges(graph_); it != end; ++it) {
+    const Vertex target = boost::target(*it, graph_);
+    const Vertex source = boost::source(*it, graph_);
     if (dominator_nodes[source] != boost::graph_traits<Graph>::null_vertex()) {
       for (Vertex node = dominator_nodes[source];
            node != boost::graph_traits<Graph>::null_vertex();
            node = dominator_nodes[node]) {
         if (node == target) {
-          SetFlags(*i, GetFlags(*i) | EDGE_DOMINATED);
+          SetFlags(*it, GetFlags(*it) | EDGE_DOMINATED);
           graph_[target].flags_ |= VERTEX_LOOPENTRY;
           ++num_loops_;
           break;
@@ -432,19 +425,18 @@ bool FlowGraph::IsLoopEntry(Vertex vertex) const {
   return (GetFlags(vertex) & VERTEX_LOOPENTRY) != 0;
 }
 
-// Precondition: calculateTopology has been called already.
+// Precondition: CalculateTopology() has been called already.
 void FlowGraph::CalculateCallLevels() {
   level_for_call_.clear();
-  VertexIterator i, end;
-  for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i) {
-    auto calls = GetCallTargets(*i);
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
+    auto calls = GetCallTargets(*it);
     if (calls.first == calls.second) {
       continue;
     }
 
-    const size_t level = GetTopologyLevel(*i);
-    size_t sequence = 0;
-    for (; calls.first != calls.second; ++calls.first, ++sequence) {
+    const size_t level = GetTopologyLevel(*it);
+    for (size_t sequence = 0; calls.first != calls.second;
+         ++calls.first, ++sequence) {
       level_for_call_.emplace_back(*calls.first,
                                    std::make_pair(level, sequence));
     }
@@ -480,27 +472,16 @@ double FlowGraph::GetMdIndex(Vertex vertex) const {
                                  out_degree(vertex, graph));
 
   size_t index = 0;
-  {
-    InEdgeIterator i, end;
-    for (boost::tie(i, end) = in_edges(vertex, graph); i != end; ++i, ++index) {
-      md_indices[index] = GetMdIndex(*i);
-    }
+  for (auto [it, end] = in_edges(vertex, graph); it != end; ++it, ++index) {
+    md_indices[index] = GetMdIndex(*it);
   }
-  {
-    OutEdgeIterator i, end;
-    for (boost::tie(i, end) = out_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = GetMdIndex(*i);
-    }
+  for (auto [it, end] = out_edges(vertex, graph); it != end; ++it, ++index) {
+    md_indices[index] = GetMdIndex(*it);
   }
 
-  double md_index = 0.0;
+  // Summation is not commutative for doubles.
   std::sort(md_indices.begin(), md_indices.end());
-  for (size_t i = 0; i < md_indices.size(); ++i) {
-    md_index += md_indices[i];
-  }
-
-  return md_index;
+  return std::accumulate(md_indices.begin(), md_indices.end(), 0.0);
 }
 
 double FlowGraph::GetMdIndexInverted(Vertex vertex) const {
@@ -509,28 +490,18 @@ double FlowGraph::GetMdIndexInverted(Vertex vertex) const {
                                  boost::out_degree(vertex, graph));
 
   size_t index = 0;
-  {
-    InEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::in_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = GetMdIndexInverted(*i);
-    }
+  for (auto [it, end] = boost::in_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = GetMdIndexInverted(*it);
   }
-  {
-    OutEdgeIterator i, end;
-    for (boost::tie(i, end) = boost::out_edges(vertex, graph); i != end;
-         ++i, ++index) {
-      md_indices[index] = GetMdIndexInverted(*i);
-    }
+  for (auto [it, end] = boost::out_edges(vertex, graph); it != end;
+       ++it, ++index) {
+    md_indices[index] = GetMdIndexInverted(*it);
   }
 
-  double md_index = 0.0;
+  // Summation is not commutative for doubles.
   std::sort(md_indices.begin(), md_indices.end());
-  for (size_t i = 0; i < md_indices.size(); ++i) {
-    md_index += md_indices[i];
-  }
-
-  return md_index;
+  return std::accumulate(md_indices.begin(), md_indices.end(), 0.0);
 }
 
 bool FlowGraph::IsCircular(const Edge& edge) const {
@@ -632,11 +603,13 @@ FlowGraph::Vertex FlowGraph::GetVertex(Address address) const {
     }
   }
 
-  CHECK(first != last && GetAddress(first) == address)
-#ifdef GOOGLE
-      << "Invalid flow graph address " << FormatAddress(address);
-#endif
-  ;
+  if (first == last || GetAddress(first) != address) {
+    LOG(QFATAL) << absl::StrCat(
+        "Invalid flow graph address (first: ", first, ", last: ", last,
+        ", address: ", FormatAddress(address),
+        ", first adress in flow graph: ", FormatAddress(GetAddress(first)),
+        ")");
+  }
   return first;
 }
 
@@ -687,12 +660,10 @@ bool FlowGraph::IsLibrary() const {
 }
 
 void FlowGraph::ResetMatches() {
-  VertexIterator i, end;
-  for (boost::tie(i, end) = boost::vertices(graph_); i != end; ++i) {
-    graph_[*i].fixed_point_ = 0;
+  for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
+    graph_[*it].fixed_point_ = 0;
   }
-
-  SetFixedPoint(0);
+  SetFixedPoint(nullptr);
 }
 
 uint32_t FlowGraph::GetHash() const { return byte_hash_; }

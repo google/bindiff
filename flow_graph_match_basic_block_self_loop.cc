@@ -8,7 +8,8 @@ bool MatchingStepSelfLoops::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
     const VertexSet& vertices2, FixedPoint* fixed_point,
     MatchingContext* context, MatchingStepsFlowGraph* matching_steps) {
-  VertexIntMap vertex_map_1, vertex_map_2;
+  VertexIntMap vertex_map_1;
+  VertexIntMap vertex_map_2;
   GetUnmatchedBasicBlocksSelfLoops(primary, vertices1, &vertex_map_1);
   GetUnmatchedBasicBlocksSelfLoops(secondary, vertices2, &vertex_map_2);
   return FindFixedPointsBasicBlockInternal(primary, secondary, &vertex_map_1,
@@ -20,17 +21,16 @@ void MatchingStepSelfLoops::GetUnmatchedBasicBlocksSelfLoops(
     const FlowGraph* flow_graph, const VertexSet& vertices,
     VertexIntMap* basic_blocks_map) {
   basic_blocks_map->clear();
-  for (auto vertex : vertices) {
+  for (const auto& vertex : vertices) {
     if (flow_graph->GetFixedPoint(vertex)) {
       continue;
     }
 
     size_t count = 0;
-    FlowGraph::OutEdgeIterator j, end;
-    for (boost::tie(j, end) = boost::out_edges(vertex, flow_graph->GetGraph());
-         j != end; ++j) {
-      count += boost::source(*j, flow_graph->GetGraph()) ==
-               boost::target(*j, flow_graph->GetGraph());
+    for (auto [it, end] = boost::out_edges(vertex, flow_graph->GetGraph());
+         it != end; ++it) {
+      count += boost::source(*it, flow_graph->GetGraph()) ==
+               boost::target(*it, flow_graph->GetGraph());
     }
     if (count) {
       basic_blocks_map->emplace(count, vertex);

@@ -21,10 +21,8 @@ void MatchingStepEdgesProximityMdIndex::GetUnmatchedEdgesProximityMdIndex(
   edges->clear();
   // TODO(cblichmann): Very bad worst case behavior with high connectivity
   //                   graphs!
-  CallGraph::EdgeIterator edge;
-  CallGraph::EdgeIterator end;
-  for (boost::tie(edge, end) = boost::edges(call_graph->GetGraph());
-       edge != end; ++edge) {
+  for (auto [edge, end] = boost::edges(call_graph->GetGraph()); edge != end;
+       ++edge) {
     if (call_graph->IsDuplicate(*edge) || call_graph->IsCircular(*edge)) {
       continue;
     }

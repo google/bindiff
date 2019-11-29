@@ -61,22 +61,21 @@ bool IsBranchInversion(const FlowGraph& primary, const FlowGraph& secondary,
 
   int primary_out_edges = 0;
   int secondary_out_edges = 0;
-  FlowGraph::OutEdgeIterator i, end;
-  for (boost::tie(i, end) =
+  for (auto [it, end] =
            out_edges(fixed_point.GetPrimaryVertex(), primary.GetGraph());
-       i != end; ++i, ++primary_out_edges) {
-    // intentionally empty
+       it != end; ++it, ++primary_out_edges) {
+    // Intentionally empty
   }
-  for (boost::tie(i, end) =
+  for (auto [it, end] =
            out_edges(fixed_point.GetSecondaryVertex(), secondary.GetGraph());
-       i != end; ++i, ++secondary_out_edges) {
-    // intentionally empty
+       it != end; ++it, ++secondary_out_edges) {
+    // Intentionally empty
   }
+
   if (primary_out_edges != secondary_out_edges || primary_out_edges < 2 ||
       secondary_out_edges < 2) {
     return false;
   }
-
   return true;
 }
 
@@ -98,7 +97,7 @@ void ClassifyChanges(FixedPoint* fixed_point) {
     // We only need to iterate primary edges since edge count is equal at this
     // point.
     FlowGraph::EdgeIterator edge, end;
-    for (boost::tie(edge, end) = boost::edges(primary.GetGraph()); edge != end;
+    for (auto [edge, end] = boost::edges(primary.GetGraph()); edge != end;
          ++edge) {
       if (primary.GetFixedPoint(boost::source(*edge, primary.GetGraph())) ==
               nullptr ||
@@ -113,25 +112,23 @@ void ClassifyChanges(FixedPoint* fixed_point) {
   // Check for instruction changes, branch inversions and call target changes.
   const auto& basic_block_fixed_points =
       fixed_point->GetBasicBlockFixedPoints();
-  for (auto i = basic_block_fixed_points.cbegin(),
-            end = basic_block_fixed_points.cend();
-       i != end; ++i) {
-    const BasicBlockFixedPoint& basic_block_fixed_point = *i;
-    if (InstructionsChanged(primary, secondary, basic_block_fixed_point)) {
+  for (const auto& basic_block : basic_block_fixed_points) {
+    if (InstructionsChanged(primary, secondary, basic_block)) {
       fixed_point->SetFlag(CHANGE_INSTRUCTIONS);
 
       // Branch inversions
       if (!(fixed_point->GetFlags() & CHANGE_BRANCHINVERSION)) {
-        if (IsBranchInversion(primary, secondary, basic_block_fixed_point)) {
+        if (IsBranchInversion(primary, secondary, basic_block)) {
           fixed_point->SetFlag(CHANGE_BRANCHINVERSION);
         }
       }
     }
 
     if (!(fixed_point->GetFlags() & CHANGE_CALLS)) {  // Call target changes
-      auto call_targets_primary = primary.GetCallTargets(i->GetPrimaryVertex());
+      auto call_targets_primary =
+          primary.GetCallTargets(basic_block.GetPrimaryVertex());
       auto call_targets_secondary =
-          secondary.GetCallTargets(i->GetSecondaryVertex());
+          secondary.GetCallTargets(basic_block.GetSecondaryVertex());
       if (call_targets_primary.second - call_targets_primary.first ==
           call_targets_secondary.second - call_targets_secondary.first) {
         for (; call_targets_primary.first != call_targets_primary.second &&

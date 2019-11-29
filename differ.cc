@@ -6,8 +6,10 @@
 #include <memory>
 
 #include "base/logging.h"
+#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -23,10 +25,9 @@ namespace security::bindiff {
 // address. Skip nodes that have already been matched.
 void GetUnmatchedChildren(const CallGraph& call_graph, CallGraph::Vertex vertex,
                           FlowGraphs* children) {
-  CallGraph::OutEdgeIterator edge_it, edge_it_end;
-  for (boost::tie(edge_it, edge_it_end) =
+  for (auto [edge_it, edge_end] =
            boost::out_edges(vertex, call_graph.GetGraph());
-       edge_it != edge_it_end; ++edge_it) {
+       edge_it != edge_end; ++edge_it) {
     if (call_graph.IsDuplicate(*edge_it)) {
       continue;
     }
@@ -47,10 +48,9 @@ void GetUnmatchedChildren(const CallGraph& call_graph, CallGraph::Vertex vertex,
 // address. Skip nodes that have already been matched.
 void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
                          FlowGraphs* parents) {
-  CallGraph::InEdgeIterator edge_it, edge_it_end;
-  for (boost::tie(edge_it, edge_it_end) =
+  for (auto [edge_it, edge_end] =
            boost::in_edges(vertex, call_graph.GetGraph());
-       edge_it != edge_it_end; ++edge_it) {
+       edge_it != edge_end; ++edge_it) {
     if (call_graph.IsDuplicate(*edge_it)) {
       continue;
     }
@@ -69,10 +69,9 @@ void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
 
 // This adds empty flow graphs for functions imported from dlls.
 void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
-  CallGraph::VertexIterator i, end;
-  for (boost::tie(i, end) = boost::vertices(call_graph->GetGraph()); i != end;
-       ++i) {
-    const CallGraph::Vertex vertex = *i;
+  for (auto [it, end] = boost::vertices(call_graph->GetGraph()); it != end;
+       ++it) {
+    const CallGraph::Vertex vertex = *it;
     const Address address = call_graph->GetAddress(vertex);
     FlowGraph* flow_graph = call_graph->GetFlowGraph(vertex);
     if (flow_graph) {
@@ -95,7 +94,7 @@ void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
     if (proto_flow_graph.basic_block_index_size() == 0) {
       continue;
     }
-    std::unique_ptr<FlowGraph> flow_graph(new FlowGraph());
+    auto flow_graph = absl::make_unique<FlowGraph>();
     flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
 
     Counts counts;
@@ -277,11 +276,10 @@ void Count(const FlowGraphs& flow_graphs, Counts* counts) {
     num_functions += 1 - flow_graph->IsLibrary();
     num_lib_functions += flow_graph->IsLibrary();
 
-    FlowGraph::VertexIterator j, end;
-    for (boost::tie(j, end) = boost::vertices(flow_graph->GetGraph()); j != end;
-         ++j) {
+    for (auto [it, end] = boost::vertices(flow_graph->GetGraph()); it != end;
+         ++it) {
       ++basic_blocks;
-      instructions += flow_graph->GetInstructionCount(*j);
+      instructions += flow_graph->GetInstructionCount(*it);
     }
     edges += boost::num_edges(flow_graph->GetGraph());
   }
@@ -326,17 +324,15 @@ void Count(const FixedPoint& fixed_point, Counts* counts,
   (*histogram)[fixed_point.GetMatchingStep()]++;
   functions++;
   basic_blocks += fixed_point.GetBasicBlockFixedPoints().size();
-  for (auto it = fixed_point.GetBasicBlockFixedPoints().cbegin();
-       it != fixed_point.GetBasicBlockFixedPoints().cend(); ++it) {
-    (*histogram)[it->GetMatchingStep()]++;
-    instructions += it->GetInstructionMatches().size();
+  for (const auto& basic_block : fixed_point.GetBasicBlockFixedPoints()) {
+    (*histogram)[basic_block.GetMatchingStep()]++;
+    instructions += basic_block.GetInstructionMatches().size();
   }
 
-  FlowGraph::EdgeIterator j, jend;
-  for (boost::tie(j, jend) = boost::edges(primary->GetGraph()); j != jend;
-       ++j) {
-    const auto source1 = boost::source(*j, primary->GetGraph());
-    const auto target1 = boost::target(*j, primary->GetGraph());
+  for (auto [primary_it, primary_end] = boost::edges(primary->GetGraph());
+       primary_it != primary_end; ++primary_it) {
+    const auto source1 = boost::source(*primary_it, primary->GetGraph());
+    const auto target1 = boost::target(*primary_it, primary->GetGraph());
     // Source and target basic blocks are matched, check whether there's an
     // edge connecting the two.
     if (primary->GetFixedPoint(source1) && primary->GetFixedPoint(target1)) {
@@ -345,11 +341,10 @@ void Count(const FixedPoint& fixed_point, Counts* counts,
       const Address target2 =
           primary->GetFixedPoint(target1)->GetSecondaryVertex();
       // Both are in secondary graph as well.
-      FlowGraph::OutEdgeIterator k, kend;
-      for (boost::tie(k, kend) =
+      for (auto [secondary_it, secondary_end] =
                boost::out_edges(source2, secondary->GetGraph());
-           k != kend; ++k) {
-        if (boost::target(*k, secondary->GetGraph()) == target2) {
+           secondary_it != secondary_end; ++secondary_it) {
+        if (boost::target(*secondary_it, secondary->GetGraph()) == target2) {
           ++edges;
           break;
         }
@@ -359,26 +354,19 @@ void Count(const FixedPoint& fixed_point, Counts* counts,
 }
 
 double GetConfidence(const Histogram& histogram, Confidences* confidences) {
-  // TODO(cblichmann): Remove the statics!!! Threading issues!
-  {
-    static MatchingSteps steps = GetDefaultMatchingSteps();
-    for (auto i = steps.cbegin(); i != steps.cend(); ++i) {
-      (*confidences)[(*i)->GetName()] = (*i)->GetConfidence();
-    }
+  for (const auto* step : GetDefaultMatchingSteps()) {
+    (*confidences)[step->name()] = step->confidence();
   }
-  {
-    static MatchingStepsFlowGraph steps = GetDefaultMatchingStepsBasicBlock();
-    for (auto i = steps.cbegin(); i != steps.cend(); ++i) {
-      (*confidences)[(*i)->GetName()] = (*i)->GetConfidence();
-    }
+  for (const auto* step : GetDefaultMatchingStepsBasicBlock()) {
+    (*confidences)[step->name()] = step->confidence();
   }
   (*confidences)[MatchingStepFlowGraph::kBasicBlockPropagationName] = 0.0;
   (*confidences)[MatchingStep::kFunctionCallReferenceName] = 0.75;
   double confidence = 0.0;
   double match_count = 0;
-  for (auto i = histogram.cbegin(); i != histogram.cend(); ++i) {
-    confidence += i->second * (*confidences)[i->first];
-    match_count += i->second;
+  for (const auto& [name, value] : histogram) {
+    confidence += value * (*confidences)[name];
+    match_count += value;
   }
   // sigmoid squashing function
   return match_count

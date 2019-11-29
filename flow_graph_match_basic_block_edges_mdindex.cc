@@ -23,7 +23,7 @@ void MatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
     EdgeDoubleMap* edges) {
   edges->clear();
   FlowGraph::EdgeIterator edge, end;
-  for (boost::tie(edge, end) = boost::edges(flow_graph.GetGraph()); edge != end;
+  for (auto [edge, end] = boost::edges(flow_graph.GetGraph()); edge != end;
        ++edge) {
     if (flow_graph.IsCircular(*edge)) {
       continue;

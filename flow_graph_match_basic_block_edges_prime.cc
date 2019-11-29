@@ -19,8 +19,7 @@ bool MatchingStepEdgesPrimeProduct::FindFixedPoints(
 void MatchingStepEdgesPrimeProduct::GetUnmatchedEdgesPrimeProduct(
     const FlowGraph& flow_graph, const VertexSet& vertices, EdgeIntMap* edges) {
   edges->clear();
-  FlowGraph::EdgeIterator edge, end;
-  for (boost::tie(edge, end) = boost::edges(flow_graph.GetGraph()); edge != end;
+  for (auto [edge, end] = boost::edges(flow_graph.GetGraph()); edge != end;
        ++edge) {
     if (flow_graph.IsCircular(*edge)) {
       continue;

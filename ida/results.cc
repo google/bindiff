@@ -1395,28 +1395,26 @@ void Results::InitializeIndexedVectors() {
   }
 
   FlowGraphInfo empty{0};
-  CallGraph::VertexIterator i;
-  CallGraph::VertexIterator end;
-  for (boost::tie(i, end) = boost::vertices(call_graph1_.GetGraph()); i != end;
-       ++i) {
-    const Address address = call_graph1_.GetAddress(*i);
+  for (auto [it, end] = boost::vertices(call_graph1_.GetGraph()); it != end;
+       ++it) {
+    const Address address = call_graph1_.GetAddress(*it);
     if (flow_graph_infos1_.find(address) == flow_graph_infos1_.end()) {
       empty.address = address;
-      empty.name = &call_graph1_.GetName(*i);
-      empty.demangled_name = &call_graph1_.GetDemangledName(*i);
+      empty.name = &call_graph1_.GetName(*it);
+      empty.demangled_name = &call_graph1_.GetDemangledName(*it);
       flow_graph_infos1_[address] = empty;
       if (matched_primaries.find(address) == matched_primaries.end()) {
         indexed_flow_graphs1_.push_back(&flow_graph_infos1_[address]);
       }
     }
   }
-  for (boost::tie(i, end) = boost::vertices(call_graph2_.GetGraph()); i != end;
-       ++i) {
-    const Address address = call_graph2_.GetAddress(*i);
+  for (auto [it, end] = boost::vertices(call_graph2_.GetGraph()); it != end;
+       ++it) {
+    const Address address = call_graph2_.GetAddress(*it);
     if (flow_graph_infos2_.find(address) == flow_graph_infos2_.end()) {
       empty.address = address;
-      empty.name = &call_graph2_.GetName(*i);
-      empty.demangled_name = &call_graph2_.GetDemangledName(*i);
+      empty.name = &call_graph2_.GetName(*it);
+      empty.demangled_name = &call_graph2_.GetDemangledName(*it);
       flow_graph_infos2_[address] = empty;
       if (matched_secondaries.find(address) == matched_secondaries.end()) {
         indexed_flow_graphs2_.push_back(&flow_graph_infos2_[address]);
@@ -1427,9 +1425,8 @@ void Results::InitializeIndexedVectors() {
 
 void Results::Count() {
   counts_.clear();
-  for (auto i = flow_graph_infos1_.cbegin(), end = flow_graph_infos1_.cend();
-       i != end; ++i) {
-    const FlowGraphInfo& info = i->second;
+  for (const auto& entry : flow_graph_infos1_) {
+    const FlowGraphInfo& info = entry.second;
     const int is_lib =
         call_graph1_.IsLibrary(call_graph1_.GetVertex(info.address)) ||
         call_graph1_.IsStub(call_graph1_.GetVertex(info.address)) ||
@@ -1447,19 +1444,17 @@ void Results::Count() {
     counts_["flowGraph edges primary (non-library)"] +=
         (1 - is_lib) * info.edge_count;
   }
-  {
-    CallGraph::VertexIterator i, end;
-    for (boost::tie(i, end) = boost::vertices(call_graph1_.GetGraph());
-         i != end; ++i) {
-      const Address address = call_graph1_.GetAddress(*i);
-      if (flow_graph_infos1_.find(address) == flow_graph_infos1_.end()) {
-        counts_["functions primary (library)"] += 1;
-      }
+
+  for (auto [it, end] = boost::vertices(call_graph1_.GetGraph()); it != end;
+       ++it) {
+    const Address address = call_graph1_.GetAddress(*it);
+    if (flow_graph_infos1_.find(address) == flow_graph_infos1_.end()) {
+      counts_["functions primary (library)"] += 1;
     }
   }
-  for (auto i = flow_graph_infos2_.cbegin(), end = flow_graph_infos2_.cend();
-       i != end; ++i) {
-    const FlowGraphInfo& info = i->second;
+
+  for (const auto& entry : flow_graph_infos2_) {
+    const FlowGraphInfo& info = entry.second;
     const int is_lib =
         call_graph2_.IsLibrary(call_graph2_.GetVertex(info.address)) ||
         call_graph2_.IsStub(call_graph2_.GetVertex(info.address)) ||
@@ -1478,16 +1473,15 @@ void Results::Count() {
     counts_["flowGraph edges secondary (non-library)"] +=
         (1 - is_lib) * info.edge_count;
   }
-  {
-    CallGraph::VertexIterator i, end;
-    for (boost::tie(i, end) = boost::vertices(call_graph2_.GetGraph());
-         i != end; ++i) {
-      const Address address = call_graph2_.GetAddress(*i);
-      if (flow_graph_infos2_.find(address) == flow_graph_infos2_.end()) {
-        counts_["functions secondary (library)"] += 1;
-      }
+
+  for (auto [it, end] = boost::vertices(call_graph2_.GetGraph()); it != end;
+       ++it) {
+    const Address address = call_graph2_.GetAddress(*it);
+    if (flow_graph_infos2_.find(address) == flow_graph_infos2_.end()) {
+      counts_["functions secondary (library)"] += 1;
     }
   }
+
   counts_["function matches (library)"] = 0;
   counts_["basicBlock matches (library)"] = 0;
   counts_["instruction matches (library)"] = 0;
@@ -1496,23 +1490,22 @@ void Results::Count() {
   counts_["basicBlock matches (non-library)"] = 0;
   counts_["instruction matches (non-library)"] = 0;
   counts_["flowGraph edge matches (non-library)"] = 0;
-  for (auto i = fixed_point_infos_.cbegin(), end = fixed_point_infos_.cend();
-       i != end; ++i) {
-    if (call_graph2_.IsLibrary(call_graph2_.GetVertex(i->secondary)) ||
-        flow_graph_infos2_.find(i->secondary) == flow_graph_infos2_.end() ||
-        call_graph1_.IsLibrary(call_graph1_.GetVertex(i->primary)) ||
-        flow_graph_infos1_.find(i->primary) == flow_graph_infos1_.end()) {
+  for (const auto& entry : fixed_point_infos_) {
+    if (call_graph2_.IsLibrary(call_graph2_.GetVertex(entry.secondary)) ||
+        flow_graph_infos2_.find(entry.secondary) == flow_graph_infos2_.end() ||
+        call_graph1_.IsLibrary(call_graph1_.GetVertex(entry.primary)) ||
+        flow_graph_infos1_.find(entry.primary) == flow_graph_infos1_.end()) {
       counts_["function matches (library)"] += 1;
-      counts_["basicBlock matches (library)"] += i->basic_block_count;
-      counts_["instruction matches (library)"] += i->instruction_count;
-      counts_["flowGraph edge matches (library)"] += i->edge_count;
+      counts_["basicBlock matches (library)"] += entry.basic_block_count;
+      counts_["instruction matches (library)"] += entry.instruction_count;
+      counts_["flowGraph edge matches (library)"] += entry.edge_count;
     } else {
       counts_["function matches (non-library)"] += 1;
-      counts_["basicBlock matches (non-library)"] += i->basic_block_count;
-      counts_["instruction matches (non-library)"] += i->instruction_count;
-      counts_["flowGraph edge matches (non-library)"] += i->edge_count;
+      counts_["basicBlock matches (non-library)"] += entry.basic_block_count;
+      counts_["instruction matches (non-library)"] += entry.instruction_count;
+      counts_["flowGraph edge matches (non-library)"] += entry.edge_count;
     }
-    histogram_[*i->algorithm]++;
+    histogram_[*entry.algorithm]++;
   }
 }
 
