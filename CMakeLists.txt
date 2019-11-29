@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.7)
-cmake_policy(VERSION 3.7)
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(VERSION 3.12)
 project(binexport VERSION 10)  # Only major version is used
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})

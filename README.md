@@ -170,7 +170,7 @@ based format, there are quite a few dependencies to satisfy:
 
 *   Boost 1.67.0 or higher (a partial copy of 1.71.0 ships in
     `third_party/boost_parts`)
-*   [CMake](https://cmake.org/download/) 3.7.2 or higher
+*   [CMake](https://cmake.org/download/) 3.12 or higher
 *   GCC 7 or a recent version of Clang on Linux/macOS. On Windows, use the
     Visual Studio 2017 compiler (need at least Update 9) and the Windows SDK
     for Windows 10.
