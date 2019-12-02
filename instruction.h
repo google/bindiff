@@ -70,7 +70,7 @@ enum {
 #pragma pack(push, 1)
 class Instruction {
  public:
-  using GetBytesCallback = std::string (*)(const Instruction& instruction);
+  using GetBytesCallback = std::function<std::string(const Instruction&)>;
   using StringCache = absl::node_hash_set<std::string>;
 
   explicit Instruction(Address address, Address next_instruction = 0,

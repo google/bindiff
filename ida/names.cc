@@ -195,9 +195,10 @@ ModuleMap InitModuleMap() {
     }
     ImportData import_data = {ToString(ida_module_name), &modules};
     enum_import_names(
-        i, static_cast<import_enum_cb_t*>([](ea_t ea, const char* /* name */,
-                                             uval_t /* ord */,
-                                             void* param) -> int {
+        i,
+        static_cast<import_enum_cb_t*>([](ea_t ea, const char* /* name */,
+                                          uval_t /* ord */,
+                                          void* param) -> int {
           auto& import_data = *static_cast<ImportData*>(param);
           (*import_data.modules)[ea] = import_data.module_name;
           return 1;  // Continue enumeration
@@ -249,7 +250,7 @@ size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
     case dt_code:
     case dt_word:
     case dt_half:  // ARM-only (b/70541404)
-      return 2;  // 16 bit
+      return 2;    // 16 bit
     case dt_dword:
     case dt_float:
       return 4;  // 32 bit
@@ -659,7 +660,7 @@ std::vector<Byte> GetSectionBytes(ea_t segment_start_address) {
   if (ida_segment && is_loaded(ida_segment->start_ea)) {
     const ea_t undefined_bytes =
         next_that(ida_segment->start_ea, ida_segment->end_ea, HasNoValue,
-                 nullptr /* user data */);
+                  nullptr /* user data */);
     bytes.resize(
         (undefined_bytes == BADADDR ? ida_segment->end_ea : undefined_bytes) -
         ida_segment->start_ea);
@@ -745,8 +746,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   }
 
   LOG(INFO) << "flow analysis";
-  EntryPointAdder entry_point_adder(entry_points, "flow analysis");
-  while (!entry_points->empty()) {
+  for (EntryPointAdder entry_point_adder(entry_points, "flow analysis");
+       !entry_points->empty();) {
     const Address address = entry_points->back().address_;
     entry_points->pop_back();
 
@@ -867,7 +868,7 @@ void GetRegularComments(Address address, Comments* comments) {
                                ida_comment.c_str(), ida_comment.length())),
                            Comment::REGULAR, false);
   }
-  if (get_cmt(&ida_comment, address, /*rptble=*/ true) > 0) {
+  if (get_cmt(&ida_comment, address, /*rptble=*/true) > 0) {
     comments->emplace_back(address, UA_MAXOP + 2,
                            CallGraph::CacheString(std::string(
                                ida_comment.c_str(), ida_comment.length())),
