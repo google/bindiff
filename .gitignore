@@ -1,7 +1,8 @@
-# Editor backup files
+# Editor backup files/IDE files
 *~
 .*.swp
 .*.swo
+.vscode
 
 # IDEs
 .idea
@@ -21,6 +22,7 @@ build/*
 build_linux/*
 build_msvc/*
 build_mac/*
+build/*
 third_party/zynamics/binexport
 
 # Auto-generated
