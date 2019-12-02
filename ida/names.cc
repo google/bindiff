@@ -61,14 +61,7 @@
 
 namespace security::binexport {
 
-enum Architecture {
-  kX86 = 0,
-  kArm,
-  kPpc,
-  kMips,
-  kGeneric,
-  kDalvik
-};
+enum Architecture { kX86 = 0, kArm, kPpc, kMips, kGeneric, kDalvik };
 
 bool IsCode(Address address) {
   const uchar segment = segtype(address);
@@ -193,7 +186,7 @@ ModuleMap InitModuleMap() {
     if (!get_import_module_name(&ida_module_name, i)) {
       continue;
     }
-    ImportData import_data = {ToString(ida_module_name), &modules};
+    Import Data import_data = {ToString(ida_module_name), &modules};
     enum_import_names(
         i,
         static_cast<import_enum_cb_t*>([](ea_t ea, const char* /* name */,
@@ -504,18 +497,17 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
     if (xref.type == fl_JN || xref.type == fl_JF) {
       ++num_out_edges;
     } else if (unconditional_jump && xref.type == fl_F) {
-      // special case for weird IDA behaviour (fogbugz #4623):
-      // We had a switch jump statement (jmp[eax*4]) in flash11c.idb that
-      // had one unconditional outgoing edge (correct) and a second
-      // codeflow edge (incorrect! An unconditional jump should never have
-      // regular codeflow set).
+      // Special case for weird IDA behavior: We had a switch jump statement
+      // (jmp[eax*4]) in flash11c.idb that had one unconditional outgoing edge
+      // (correct) and a second codeflow edge (incorrect! An unconditional jump
+      // should never have regular codeflow set).
       // This is a workaround for that particular situation.
       ++num_out_edges;
     }
   }
 
   bool handled = false;
-  if (num_out_edges > 1) {  // switch jump table
+  if (num_out_edges > 1) {  // Switch jump table
     ea_t table_address = std::numeric_limits<ea_t>::max();
     for (bool ok = xref.first_from(ida_instruction.ea, XREF_ALL);
          ok && xref.iscode; ok = xref.next_from()) {
@@ -528,28 +520,27 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
       table_address = std::min(table_address, xref.to);
       handled = true;
     }
-    // add a data reference to first address in switch table
+    // Add a data reference to first address in switch table
     address_references->emplace_back(
         ida_instruction.ea, GetSourceExpressionId(*instruction, table_address),
         table_address, TYPE_DATA);
-  } else {  // normal xref
+  } else {  // Normal xref
     for (bool ok = xref.first_from(ida_instruction.ea, XREF_ALL);
          ok && xref.iscode; ok = xref.next_from()) {
-      // regular code flow
+      // Regular code flow
       if (xref.type == fl_F || instruction->GetNextInstruction() == xref.to) {
         // We need the || above because IDA gives me xref type unknown for old
         // idbs.
         if (instruction->GetNextInstruction() != xref.to) {
           LOG(INFO) << absl::StrCat(
-              "warning: ",
-              absl::Hex(instruction->GetAddress(), absl::kZeroPad8),
+              "warning: ", FormatAddress(instruction->GetAddress()),
               " flow xref target != address + instruction size (or "
               "instruction is missing flow flag). Disassembly is "
               "likely erroneous.");
         }
         entry_point_adder->Add(xref.to, EntryPoint::Source::CODE_FLOW);
       } else if (xref.type == fl_CN || xref.type == fl_CF) {
-        // call targets
+        // Call targets
         if (IsPossibleFunction(xref.to, modules)) {
           call_graph->AddFunction(xref.to);
           call_graph->AddEdge(ida_instruction.ea, xref.to);
@@ -561,7 +552,7 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
             xref.to, TYPE_CALL_DIRECT);
         handled = true;
       } else if (xref.type == fl_JN || xref.type == fl_JF) {
-        // jump targets
+        // Jump targets
         if (IsPossibleFunction(xref.to, modules) && xref.type == fl_JF) {
           call_graph->AddEdge(ida_instruction.ea, xref.to);
         }
@@ -604,8 +595,8 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
         }
         entry_point_adder->Add(xref.to, EntryPoint::Source::JUMP_DIRECT);
       } else {
-        LOG(INFO) << absl::StrCat(
-            "unknown xref ", absl::Hex(ida_instruction.ea, absl::kZeroPad8));
+        LOG(INFO) << absl::StrCat("unknown xref ",
+                                  FormatAddress(ida_instruction.ea));
       }
     }
   }
@@ -697,11 +688,9 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   AddressSpace flags;
   for (int i = 0; i < get_segm_qty(); ++i) {
     const segment_t* segment = getnseg(i);
-#ifdef ENABLE_POSTGRESQL
     address_space.AddMemoryBlock(segment->start_ea,
                                  GetSectionBytes(segment->start_ea),
                                  GetPermissions(segment));
-#endif
     flags.AddMemoryBlock(
         segment->start_ea,
         AddressSpace::MemoryBlock(size_t(segment->end_ea - segment->start_ea)),
@@ -793,10 +782,9 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   flow_graph->ReconstructFunctions(instructions, call_graph,
                                    noreturn_heuristic);
 
-  // Must be called after simplifyFlowGraphs since that will sometimes
-  // remove source basic blocks for an edge. Only happens when IDA completely
-  // fucked up its disassembly.
-  // see: https://zynamics.fogbugz.com/default.asp?2304#12584
+  // Must be called after ReconstructFunctions() since that will sometimes
+  // remove source basic blocks for an edge. Only happens when IDA's disassembly
+  // is thoroughly broken.
   flow_graph->PruneFlowGraphEdges();
 
   // Note: PruneFlowGraphEdges might add comments to the callgraph so the

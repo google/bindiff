@@ -34,6 +34,7 @@ set(Protobuf_USE_STATIC_LIBS TRUE)
 find_package(Boost 1.55 REQUIRED)
 find_package(Git)
 find_package(IdaSdk REQUIRED)
+find_package(BinaryNinjaApi)
 find_package(OpenSSL 1.0.2 REQUIRED)
 if(BINEXPORT_ENABLE_POSTGRESQL)
   find_package(PostgreSQL 9.5 REQUIRED)
@@ -342,6 +343,11 @@ ida_install(TARGETS ${binexport_plugin_name}
             ARCHIVE DESTINATION binexport-prefix
             RUNTIME DESTINATION binexport-prefix
             LIBRARY DESTINATION binexport-prefix)
+
+# Binary Ninja plugin (experimental)
+if(BinaryNinjaApi_FOUND)
+  add_subdirectory(binaryninja)
+endif()
 
 # BinExport reader library
 add_library(binexport_reader STATIC
