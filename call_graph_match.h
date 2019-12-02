@@ -154,10 +154,8 @@ bool FindFixedPoints(const FlowGraph* primary_parent,
     // std::distance is linear in the number of elements in the range for
     // multimaps. We are only interested if either one of the feature sets has
     // more than one entry, so we test manually.
-    auto next_1 = range_1.first;
-    ++next_1;
-    auto next_2 = range_2.first;
-    ++next_2;
+    auto next_1 = std::next(range_1.first);
+    auto next_2 = std::next(range_2.first);
     if (next_1 != range_1.second || next_2 != range_2.second) {
       if (!matching_steps.empty()) {
         MatchingStep* drill_down_step = matching_steps.front();
@@ -186,16 +184,14 @@ bool FindFixedPoints(const FlowGraph* primary_parent,
       ++primary_feature;
       continue;
     }
-    std::pair<FixedPoints::iterator, bool> fixed_point_iterator =
-        context->AddFixedPoint(primary, secondary, step->GetName());
-    if (!fixed_point_iterator.second) {
+
+    if (auto [fixed_point_it, inserted] =
+            context->AddFixedPoint(primary, secondary, step->GetName());
+        !inserted) {
       ++primary_feature;
       continue;
-    }
-
-    {
-      FixedPoint& fixed_point =
-          const_cast<FixedPoint&>(*fixed_point_iterator.first);
+    } else {
+      FixedPoint& fixed_point = const_cast<FixedPoint&>(*fixed_point_it);
       FindFixedPointsBasicBlock(&fixed_point, context, default_steps);
       UpdateFixedPointConfidence(fixed_point);
     }

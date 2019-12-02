@@ -1,5 +1,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 
+#include <algorithm>
+#include <cassert>
 #include <cinttypes>
 #include <sstream>
 
@@ -53,15 +55,15 @@ uint8_t TranslateEdge(int edge_type) {
     case 4:
       return FlowGraph::EDGE_SWITCH;
     default:
-      throw std::runtime_error("invalid edge type");
+      assert(false);
   }
+  LOG(QFATAL) << "invalid flow graph edge type: " << edge_type;
 }
 
 // Translates from BinExport2 protocol buffer edge type to the one used
 // internally by the Differ.
-uint8_t ProtoToFlowGraphEdgeType(
-    BinExport2::FlowGraph::Edge::Type type) {
-  switch (type) {
+uint8_t ProtoToFlowGraphEdgeType(BinExport2::FlowGraph::Edge::Type edge_type) {
+  switch (edge_type) {
     case BinExport2::FlowGraph::Edge::CONDITION_TRUE:
       return FlowGraph::EDGE_TRUE;
     case BinExport2::FlowGraph::Edge::CONDITION_FALSE:
@@ -71,8 +73,9 @@ uint8_t ProtoToFlowGraphEdgeType(
     case BinExport2::FlowGraph::Edge::SWITCH:
       return FlowGraph::EDGE_SWITCH;
     default:
-      throw std::runtime_error("invalid edge type");
+      assert(false);
   }
+  LOG(QFATAL) << "invalid flow graph edge type (proto): " << edge_type;
 }
 
 bool SortByAddressLevel(const std::pair<Address, FlowGraph::Level>& one,
@@ -81,24 +84,6 @@ bool SortByAddressLevel(const std::pair<Address, FlowGraph::Level>& one,
 }
 
 }  // namespace
-
-// Returns true iff the addresses are in strictly increasing order.
-bool IsSorted(const std::vector<Address>& addresses) {
-  if (addresses.empty()) {
-    return true;
-  }
-
-  std::vector<Address>::const_iterator i = addresses.begin();
-  std::vector<Address>::const_iterator j = i;
-  ++j;
-  const std::vector<Address>::const_iterator end = addresses.end();
-  for (; j != end; ++i, ++j) {
-    if (*i >= *j) {
-      return false;
-    }
-  }
-  return true;
-}
 
 // Returns the index of address in addresses.
 FlowGraph::Vertex FindVertex(const std::vector<Address>& addresses,
@@ -300,7 +285,7 @@ void FlowGraph::Read(const BinExport2& proto,
 
   byte_hash_ = GetSdbmHash(function_bytes);
 
-  if (!IsSorted(temp_addresses)) {
+  if (!std::is_sorted(temp_addresses.begin(), temp_addresses.end())) {
     throw std::runtime_error("Basic blocks not sorted by address!");
   }
 

@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <functional>
+#include <iterator>
 #include <list>
 
 #include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
@@ -46,6 +47,7 @@ template <typename Iterator, typename OutIterator>
 void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
                 Iterator ylo, Iterator yhi, OutIterator xout,
                 OutIterator yout) {
+  using ReverseIterator = std::reverse_iterator<Iterator>;
   const auto nx = distance(xlo, xhi);
   if (nx == 0) {         // all done
   } else if (nx == 1) {  // single item in x range.
@@ -61,18 +63,21 @@ void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
     // Find LCS lengths at xmid, working from both ends of the range
     Lengths ll_b;
     Lengths ll_e;
-    std::reverse_iterator<Iterator> hix(xhi), midx(xmid), hiy(yhi), loy(ylo);
+    ReverseIterator hix(xhi);
+    ReverseIterator midx(xmid);
+    ReverseIterator hiy(yhi);
+    ReverseIterator loy(ylo);
 
     LcsLens(xlo, xmid, ylo, yhi, ll_b);
     LcsLens(hix, midx, hiy, loy, ll_e);
 
     // Find the optimal place to split the y range
-    Lengths::const_reverse_iterator e = ll_e.rbegin();
+    auto e = ll_e.rbegin();
     int lmax = -1;
     Iterator y = ylo;
     Iterator ymid = ylo;
 
-    for (Lengths::const_iterator b = ll_b.begin(); b != ll_b.end(); ++b, ++e) {
+    for (auto b = ll_b.cbegin(); b != ll_b.cend(); ++b, ++e) {
       if (*b + *e > lmax) {
         lmax = *b + *e;
         ymid = y;

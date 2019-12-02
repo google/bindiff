@@ -91,35 +91,36 @@ bool SortBySimilarity(const FixedPointInfo* one, const FixedPointInfo* two) {
 }
 
 bool PortFunctionName(FixedPoint* fixed_point) {
-  CallGraph* primary_call_graph = fixed_point->GetPrimary()->GetCallGraph();
   CallGraph* secondary_call_graph = fixed_point->GetSecondary()->GetCallGraph();
-  const Address primary_address =
-      fixed_point->GetPrimary()->GetEntryPointAddress();
   const Address secondary_address =
       fixed_point->GetSecondary()->GetEntryPointAddress();
-  if (const func_t* function = get_func(static_cast<ea_t>(primary_address))) {
-    if (function->start_ea == primary_address) {
-      if (!secondary_call_graph->HasRealName(
-              secondary_call_graph->GetVertex(secondary_address))) {
-        return false;
-      }
-
-      const std::string& name = fixed_point->GetSecondary()->GetName();
-      qstring buffer =
-          get_name(static_cast<ea_t>(primary_address), /*gtn_flags=*/0);
-      if (absl::string_view(buffer.c_str(), buffer.length()) != name) {
-        set_name(static_cast<ea_t>(primary_address), name.c_str(),
-                 SN_NOWARN | SN_CHECK);
-        const CallGraph::Vertex vertex =
-            primary_call_graph->GetVertex(primary_address);
-        primary_call_graph->SetName(vertex, name);
-        primary_call_graph->SetDemangledName(
-            vertex, GetDemangledName(static_cast<ea_t>(primary_address)));
-        return true;
-      }
-    }
+  if (!secondary_call_graph->HasRealName(
+          secondary_call_graph->GetVertex(secondary_address))) {
+    return false;  // No name to port
   }
-  return false;
+
+  CallGraph* primary_call_graph = fixed_point->GetPrimary()->GetCallGraph();
+  const Address primary_address =
+      fixed_point->GetPrimary()->GetEntryPointAddress();
+  const func_t* function = get_func(static_cast<ea_t>(primary_address));
+  if (!function || function->start_ea != primary_address) {
+    return false;  // Function does not exist in primary (manually deleted?)
+  }
+
+  const qstring buffer =
+      get_name(static_cast<ea_t>(primary_address), /*gtn_flags=*/0);
+  const std::string& name = fixed_point->GetSecondary()->GetName();
+  if (absl::string_view(buffer.c_str(), buffer.length()) == name) {
+    return false;  // Function already has the same name
+  }
+
+  set_name(static_cast<ea_t>(primary_address), name.c_str(),
+           SN_NOWARN | SN_CHECK);
+  const auto vertex = primary_call_graph->GetVertex(primary_address);
+  primary_call_graph->SetName(vertex, name);
+  primary_call_graph->SetDemangledName(
+      vertex, GetDemangledName(static_cast<ea_t>(primary_address)));
+  return true;
 }
 
 size_t SetComments(Address source, Address target, const Comments& comments,
@@ -283,8 +284,13 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
   Address target = target_flow_graph->GetEntryPointAddress();
   fixed_point->SetCommentsPorted(true);
 
-  if (source >= start_source && source <= end_source &&
-      target >= start_target && target <= end_target) {
+  auto address_pair_in_range = [start_source, end_source, start_target,
+                                end_target](Address source, Address target) {
+    return source >= start_source && source <= end_source &&
+           target >= start_target && target <= end_target;
+  };
+
+  if (address_pair_in_range(source, target)) {
     if (fixed_point->GetConfidence() >= min_confidence &&
         fixed_point->GetSimilarity() >= min_similarity) {
       counts += SetComments(source, target, comments, fixed_point);
@@ -305,8 +311,7 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
       target_vertex = basic_block.GetPrimaryVertex();
       source = source_flow_graph->GetAddress(source_vertex);
       target = target_flow_graph->GetAddress(target_vertex);
-      if (source >= start_source && source <= end_source &&
-          target >= start_target && target <= end_target) {
+      if (address_pair_in_range(source, target)) {
         counts +=
             SetComments(source, target, comments, /*fixed_point=*/nullptr);
       }
@@ -315,8 +320,7 @@ size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
     for (const auto& instruction_match : basic_block.GetInstructionMatches()) {
       source = instruction_match.second->GetAddress();
       target = instruction_match.first->GetAddress();
-      if (source >= start_source && source <= end_source &&
-          target >= start_target && target <= end_target) {
+      if (address_pair_in_range(source, target)) {
         counts +=
             SetComments(source, target, comments, /*fixed_point=*/nullptr);
       }

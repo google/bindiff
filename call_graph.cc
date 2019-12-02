@@ -130,7 +130,7 @@ void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
     }
   }
 
-  if (!IsSorted(temp_addresses)) {
+  if (!std::is_sorted(temp_addresses.begin(), temp_addresses.end())) {
     throw std::runtime_error("Call graph nodes not sorted by address!");
   }
 

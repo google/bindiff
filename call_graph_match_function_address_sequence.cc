@@ -39,10 +39,9 @@ void MatchingStepSequence::GetUnmatchedFlowGraphsByAddress(
   }
 
   sequence = 0;
-  for (FlowGraphIntMap::const_reverse_iterator i = sorted_by_size.rbegin(),
-                                               end = sorted_by_size.rend();
-       i != end; ++i, ++sequence) {
-    flow_graphs_map.emplace(sequence, i->second);
+  for (auto it = sorted_by_size.rbegin(), end = sorted_by_size.rend();
+       it != end; ++it, ++sequence) {
+    flow_graphs_map.emplace(sequence, it->second);
   }
 }
 
