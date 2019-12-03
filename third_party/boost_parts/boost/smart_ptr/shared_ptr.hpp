@@ -777,12 +777,12 @@ public:
         return pn < rhs.pn;
     }
 
-    void * _internal_get_deleter( boost::detail::sp_typeinfo const & ti ) const BOOST_SP_NOEXCEPT
+    void * _internal_get_deleter( boost::detail::sp_typeinfo_ const & ti ) const BOOST_SP_NOEXCEPT
     {
         return pn.get_deleter( ti );
     }
 
-    void * _internal_get_local_deleter( boost::detail::sp_typeinfo const & ti ) const BOOST_SP_NOEXCEPT
+    void * _internal_get_local_deleter( boost::detail::sp_typeinfo_ const & ti ) const BOOST_SP_NOEXCEPT
     {
         return pn.get_local_deleter( ti );
     }
@@ -797,7 +797,7 @@ public:
         return px == r.px && pn == r.pn;
     }
 
-    boost::detail::shared_count _internal_count() const BOOST_NOEXCEPT
+    boost::detail::shared_count _internal_count() const BOOST_SP_NOEXCEPT
     {
         return pn;
     }
@@ -1008,7 +1008,7 @@ namespace detail
 
 template<class D, class T> D * basic_get_deleter( shared_ptr<T> const & p ) BOOST_SP_NOEXCEPT
 {
-    return static_cast<D *>( p._internal_get_deleter(BOOST_SP_TYPEID(D)) );
+    return static_cast<D *>( p._internal_get_deleter(BOOST_SP_TYPEID_(D)) );
 }
 
 template<class D, class T> D * basic_get_local_deleter( D *, shared_ptr<T> const & p ) BOOST_SP_NOEXCEPT;
@@ -1022,7 +1022,7 @@ private:
 
 public:
 
-    esft2_deleter_wrapper()
+    esft2_deleter_wrapper() BOOST_SP_NOEXCEPT
     {
     }
 
@@ -1165,12 +1165,12 @@ namespace detail
 
 template<class D, class T> D * basic_get_local_deleter( D *, shared_ptr<T> const & p ) BOOST_SP_NOEXCEPT
 {
-    return static_cast<D *>( p._internal_get_local_deleter( BOOST_SP_TYPEID(local_sp_deleter<D>) ) );
+    return static_cast<D *>( p._internal_get_local_deleter( BOOST_SP_TYPEID_(local_sp_deleter<D>) ) );
 }
 
 template<class D, class T> D const * basic_get_local_deleter( D const *, shared_ptr<T> const & p ) BOOST_SP_NOEXCEPT
 {
-    return static_cast<D *>( p._internal_get_local_deleter( BOOST_SP_TYPEID(local_sp_deleter<D>) ) );
+    return static_cast<D *>( p._internal_get_local_deleter( BOOST_SP_TYPEID_(local_sp_deleter<D>) ) );
 }
 
 } // namespace detail

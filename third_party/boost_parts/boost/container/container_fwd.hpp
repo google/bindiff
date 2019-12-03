@@ -24,6 +24,7 @@
 //!   - boost::container::vector
 //!   - boost::container::stable_vector
 //!   - boost::container::static_vector
+//!   - boost::container::small_vector_base
 //!   - boost::container::small_vector
 //!   - boost::container::slist
 //!   - boost::container::list
@@ -90,101 +91,105 @@ namespace container {
 
 #ifndef BOOST_CONTAINER_DOXYGEN_INVOKED
 
+template<class T1, class T2>
+struct pair;
+
 template<class T>
 class new_allocator;
 
 template <class T
-         ,class Allocator = new_allocator<T>
-         ,class Options = void>
+         ,class Allocator = void
+         ,class Options   = void>
 class vector;
 
 template <class T
-         ,class Allocator = new_allocator<T> >
+         ,class Allocator = void >
 class stable_vector;
 
-template <class T, std::size_t Capacity>
+template < class T
+         , std::size_t Capacity
+         , class Options = void>
 class static_vector;
 
-template < class T, std::size_t N
-         , class Allocator= new_allocator<T> >
+template < class T
+         , class Allocator = void
+         , class Options   = void >
+class small_vector_base;
+
+template < class T
+         , std::size_t N
+         , class Allocator = void
+         , class Options   = void  >
 class small_vector;
 
 template <class T
-         ,class Allocator = new_allocator<T> >
+         ,class Allocator = void
+         ,class Options   = void>
 class deque;
 
 template <class T
-         ,class Allocator = new_allocator<T> >
+         ,class Allocator = void >
 class list;
 
 template <class T
-         ,class Allocator = new_allocator<T> >
+         ,class Allocator = void >
 class slist;
 
 template <class Key
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<Key>
+         ,class Allocator = void
          ,class Options = void>
 class set;
 
 template <class Key
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<Key>
+         ,class Allocator = void
          ,class Options = void >
 class multiset;
 
 template <class Key
          ,class T
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<std::pair<const Key, T> >
+         ,class Allocator = void
          ,class Options = void >
 class map;
 
 template <class Key
          ,class T
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<std::pair<const Key, T> >
+         ,class Allocator = void
          ,class Options = void >
 class multimap;
 
 template <class Key
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<Key> >
+         ,class Allocator = void >
 class flat_set;
 
 template <class Key
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<Key> >
+         ,class Allocator = void >
 class flat_multiset;
 
 template <class Key
          ,class T
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<std::pair<Key, T> > >
+         ,class Allocator = void >
 class flat_map;
 
 template <class Key
          ,class T
          ,class Compare  = std::less<Key>
-         ,class Allocator = new_allocator<std::pair<Key, T> > >
+         ,class Allocator = void >
 class flat_multimap;
 
 template <class CharT
          ,class Traits = std::char_traits<CharT>
-         ,class Allocator  = new_allocator<CharT> >
+         ,class Allocator  = void >
 class basic_string;
 
-typedef basic_string
-   <char
-   ,std::char_traits<char>
-   ,new_allocator<char> >
-string;
-
-typedef basic_string
-   <wchar_t
-   ,std::char_traits<wchar_t>
-   ,new_allocator<wchar_t> >
-wstring;
+typedef basic_string <char>   string;
+typedef basic_string<wchar_t> wstring;
 
 static const std::size_t ADP_nodes_per_block    = 256u;
 static const std::size_t ADP_max_free_blocks    = 2u;

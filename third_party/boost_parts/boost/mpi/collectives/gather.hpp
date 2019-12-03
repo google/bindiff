@@ -69,8 +69,8 @@ gather_impl(const communicator& comm, const T* in_values, int n, T* out_values,
   std::vector<int> oasizes(is_root ? nproc : 0);
   int oasize = oa.size();
   BOOST_MPI_CHECK_RESULT(MPI_Gather,
-                         (&oasize, 1, MPI_INTEGER,
-                          c_data(oasizes), 1, MPI_INTEGER, 
+                         (&oasize, 1, MPI_INT,
+                          c_data(oasizes), 1, MPI_INT, 
                           root, MPI_Comm(comm)));
   // Gather the archives, which can be of different sizes, so
   // we need to use gatherv.

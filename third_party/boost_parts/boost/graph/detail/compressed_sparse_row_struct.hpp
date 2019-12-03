@@ -459,7 +459,7 @@ namespace detail {
 
     edge_descriptor m_edge;
 
-    friend class iterator_core_access;
+    friend class boost::iterator_core_access;
   };
 
   template<typename CSRGraph>
@@ -547,7 +547,7 @@ namespace detail {
     EdgeIndex m_index_in_backward_graph;
     const CSRGraph* m_graph;
 
-    friend class iterator_core_access;
+    friend class boost::iterator_core_access;
   };
 
   template <typename A, typename B>
