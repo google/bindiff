@@ -25,8 +25,7 @@
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 not_absl::StatusOr<std::string> GetInputFileSha256() {
   constexpr int kBinarySha256Length = 32;
@@ -50,5 +49,4 @@ not_absl::StatusOr<std::string> GetInputFileMd5() {
       reinterpret_cast<const char*>(hash), kBinaryMd5Length)));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

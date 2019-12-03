@@ -31,8 +31,7 @@
 class insn_t;
 class op_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 struct Name {
   Name(const std::string& name, Expression::Type type)
@@ -80,7 +79,6 @@ bool IsStackVariable(Address address, uint8_t operand_num);
 void GetComments(const insn_t& instruction,
                  Comments* comments);  // Cached in callgraph!
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // NAMES_H_

@@ -33,4 +33,4 @@ gradle.properties
 # Auto-generated
 *.pb.cc
 *.pb.h
-version.h
+version.cc

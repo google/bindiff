@@ -57,8 +57,7 @@
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 std::string ToString(const qstring& ida_string) {
   return std::string(ida_string.c_str(), ida_string.length());
@@ -142,11 +141,11 @@ absl::optional<std::string> GetArchitectureName() {
   // This is not strictly correct, i.e. for 16-bit archs and also for 128-bit
   // archs, but is what IDA supports. This needs to be changed if IDA introduces
   // is_128bit().
-  absl::StrAppend(&architecture, inf.is_64bit() ? "-64" : "-32");
+  absl::StrAppend(&architecture, inf_is_64bit() ? "-64" : "-32");
   return architecture;
 }
 
-int GetArchitectureBitness() { return inf.is_64bit() ? 64 : 32; }
+int GetArchitectureBitness() { return inf_is_64bit() ? 64 : 32; }
 
 std::string GetModuleName() {
   char path_buffer[QMAXPATH] = {0};
@@ -246,7 +245,6 @@ std::string GetSizePrefix(const size_t size_in_bytes) {
 }
 
 size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
-  constexpr int dt_half = 0x7f;  // Defined in IDA SDK module/arm/arm.hpp
   switch (operand.dtype) {
     case dt_byte:
       return 1;  // 8 bit
@@ -1057,5 +1055,4 @@ void GetComments(const insn_t& instruction, Comments* comments) {
   GetLocalReferences(instruction, comments);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

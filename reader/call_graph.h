@@ -28,8 +28,7 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class CallGraph {
  public:
@@ -108,7 +107,6 @@ class CallGraph {
   Graph graph_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // READER_CALL_GRAPH_H_

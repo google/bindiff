@@ -22,8 +22,7 @@
 #include "base/integral_types.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 struct EdgeDegrees {
   uint32_t source_in_degree;
@@ -87,7 +86,6 @@ EdgeDegrees GetEdgeDegrees(const typename Graph::Graph& graph,
   return edge_vector;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // READER_GRAPH_UTILITY_H_

@@ -23,15 +23,13 @@
 
 class insn_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 Instruction ParseInstructionIdaMips(const insn_t& instruction,
                                     CallGraph* call_graph,
                                     FlowGraph* flow_graph,
                                     TypeSystem* type_system);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_MIPS_HPP_

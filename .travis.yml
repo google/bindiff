@@ -8,14 +8,16 @@ cache:
   - build_linux/protobuf
 os:
 - linux
-dist: trusty
+dist: bionic
 sudo: false
 before_install:
-- openssl aes-256-cbc -K $encrypted_f9bbc958d433_key -iv $encrypted_f9bbc958d433_iv
-  -in third_party/idasdk72.zip.enc -out third_party/idasdk72.zip -d
-- unzip -q third_party/idasdk72.zip -d third_party/
+- echo "$idasdk_password" | gpg --batch --yes --passphrase-fd 0 --output third_party/idasdk74.zip --decrypt third_party/idasdk74.zip.gpg
+- unzip -q third_party/idasdk74.zip -d third_party/
 script:
 - mkdir -p build_linux
 - cd build_linux
-- cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk72
+- cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk74
 - cmake --build .
+env:
+  global:
+    secure: bc3vDRLDkWWypLMO+HDC85eG4fXtKyAX9JLysJ0BWpi6wTGvKFLVK08qBJli4GFu3SBQN5/lTYHYJzjV01kVlhjbwl5aTR6o/6NDE4nMtyN5+F5zuee7gitlmmC5NDCHoMBAJCZbqCrLWur9NBSTcuUO783i78gMHqNmPu0t7BqWK5BsNQDTCGRDNVI8yChsSmSzJ2qIdej9ZXdQHIjPJrLNHwCpOkjehyWaBwSWc67jVogYJYTIFkTKFmkkASPOsoO+sskXX1ZqKHSSblAPRtXfeI67a1eHBju5VP0fpsgNr0us5EUkuwXtjxccrykWzNT6ICD43pDZsLa9QhXk3B6RpqUKFdhiNVxck9zS44zOo6vtJyowMluApuVlt2SUTQiuE0EkLifED3eXhJTaL7py1lTI15HCjra0F9aEKZ3/7T9ICDLiAV1BAJugC9//igTFTJ2iJbfik+DNRzhHiYiq2KE55w+IdxfkZIOYYTSIVdu4D59xtxwhj0e2RDfYttibg2qBSoZvN2+lTpwcrDTyueaTMARr07ny9CkWHH990N8GzDGzICktuRgo5xD+fARkWiy8PV+Wpu3G325nA7C6u8LztplqylyS1yxG4vpyx/Iz69XUfDYYmo+dJ+WwFu5Xl/WEkp6SGo5KOVNyS+glapxVsD1IUOKw6z1n/+4=
