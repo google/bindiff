@@ -1,0 +1,7 @@
+.settings/
+bin/
+build/
+dist/
+.antProperties.xml
+.classpath
+.project
