@@ -13,7 +13,7 @@
 # limitations under the License.
 
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_SKIP_BUILD_RPATH TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
@@ -47,6 +47,8 @@ if(UNIX)
   add_compile_options(-Wno-deprecated)
 elseif(WIN32)
   add_definitions(
+    # Protobuf iterators trigger deprecation warnings
+    -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
     # Do not define min/max macros which collide with std::min()/std::max()
     -DNOMINMAX
     -DWIN32_LEAN_AND_MEAN

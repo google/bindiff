@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_DATABASE_WRITER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_DATABASE_WRITER_H_
+#ifndef DATABASE_WRITER_H_
+#define DATABASE_WRITER_H_
 
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/operand.h"
@@ -37,10 +37,10 @@ class DatabaseWriter : public Writer {
 
   using AddressSpaceIds = std::map<Address, int>;
 
-  DatabaseWriter(const std::string& schema, const std::string& module_name, int module_id,
-                 const std::string& md5, const std::string& sha1,
-                 const std::string& architecture, const Address base_address,
-                 const std::string& program_version,
+  DatabaseWriter(const std::string& schema, const std::string& module_name,
+                 int module_id, const std::string& md5,
+                 const std::string& sha256, const std::string& architecture,
+                 const Address base_address, const std::string& program_version,
                  const std::string& connection_string);
   ~DatabaseWriter();
 
@@ -62,8 +62,9 @@ class DatabaseWriter : public Writer {
 
   void CreateSchema();
   void CreateModulesTable();
-  void PrepareDatabase(const std::string& md5, const std::string& sha1,
-                       const std::string& architecture, const Address base_address);
+  void PrepareDatabase(const std::string& md5, const std::string& sha256,
+                       const std::string& architecture,
+                       const Address base_address);
   void ExecuteInternalStatement(InternalStatement id,
                                 const std::string& replacement);
 
@@ -94,4 +95,4 @@ class DatabaseWriter : public Writer {
 }  // namespace binexport
 }  // namespace security
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_DATABASE_WRITER_H_
+#endif  // DATABASE_WRITER_H_

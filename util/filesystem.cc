@@ -143,7 +143,8 @@ not_absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
 
 }  // namespace
 
-not_absl::StatusOr<std::string> GetTempDirectory(absl::string_view product_name) {
+not_absl::StatusOr<std::string> GetTempDirectory(
+    absl::string_view product_name) {
   return DoGetOrCreateTempDirectory(product_name, /*create=*/false);
 }
 
@@ -155,8 +156,8 @@ not_absl::StatusOr<std::string> GetOrCreateTempDirectory(
 std::string Basename(absl::string_view path) {
   const auto last_slash = path.find_last_of(kPathSeparator[0]);
   return std::string(last_slash == absl::string_view::npos
-                    ? path
-                    : absl::ClippedSubstr(path, last_slash + 1));
+                         ? path
+                         : absl::ClippedSubstr(path, last_slash + 1));
 }
 
 std::string Dirname(absl::string_view path) {
@@ -183,7 +184,7 @@ std::string GetFileExtension(absl::string_view path) {
 }
 
 std::string ReplaceFileExtension(absl::string_view path,
-                            absl::string_view new_extension) {
+                                 absl::string_view new_extension) {
   auto last_slash = path.find_last_of(kPathSeparator[0]);
   if (last_slash == absl::string_view::npos) {
     last_slash = 0;

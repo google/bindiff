@@ -15,8 +15,8 @@
 // A class to convert and store a BinExport::Callgraph protocol buffer into a
 // Boost compressed sparse row graph.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_CALL_GRAPH_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_CALL_GRAPH_H_
+#ifndef READER_CALL_GRAPH_H_
+#define READER_CALL_GRAPH_H_
 
 #include <memory>
 #include <string>
@@ -28,8 +28,7 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class CallGraph {
  public:
@@ -39,16 +38,17 @@ class CallGraph {
   CallGraph& operator=(const CallGraph&) = delete;
 
   struct VertexProperty {
-    Address address;        // Function address.
+    Address address;             // Function address.
     std::string name;            // Function name.
     std::string demangled_name;  // Demangled function name.
-    uint32_t flags;           // Function flags.
+    uint32_t flags;                // Function flags.
     std::string library_name;    // Library name.
     std::string module_name;     // Module name.
 
     VertexProperty(Address address, const std::string& name,
                    const std::string& demangled_name, uint32_t flags,
-                   const std::string& library_name, const std::string& module_name)
+                   const std::string& library_name,
+                   const std::string& module_name)
         : address(address),
           name(name),
           demangled_name(demangled_name),
@@ -107,7 +107,6 @@ class CallGraph {
   Graph graph_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_CALL_GRAPH_H_
+#endif  // READER_CALL_GRAPH_H_

@@ -17,14 +17,13 @@
 #include "third_party/zynamics/binexport/reader/call_graph.h"
 
 #include "base/logging.h"
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
 #include "third_party/zynamics/binexport/reader/reader_test_util.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 using ::testing::Eq;
@@ -70,5 +69,4 @@ TEST_F(CallGraphTest, GetVertexGetAddress) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

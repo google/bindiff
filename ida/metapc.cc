@@ -18,11 +18,13 @@
 #include <limits>
 #include <string>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <ida.hpp>                                              // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <intel.hpp>                                            // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -32,8 +34,7 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/type_system.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 bool IsStringInstruction(const std::string& mnemonic) {
@@ -520,16 +521,16 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
         } else if (operand.dtype == dt_dword) {
           mnemonic += "d";
         } else {
-          // default add machine word size suffix. IDA sometimes omits the
+          // Default add machine word size suffix. IDA sometimes omits the
           // suffix otherwise.
-          mnemonic += inf.is_64bit() ? "d" : "w";
+          mnemonic += inf_is_64bit() ? "d" : "w";
         }
         break;
       }
     }
   }
 
-  // add prefix (if any) to std::string instructions
+  // add prefix (if any) to string instructions
   if (instruction.auxpref & aux_lock) {
     mnemonic = "lock " + mnemonic;
   }
@@ -550,5 +551,4 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
       ParseOperandsIdaMetaPc(instruction, call_graph, flow_graph, type_system));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

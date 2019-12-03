@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/zynamics/binexport/util/status_matchers.h"
 
 using ::testing::Eq;
@@ -95,7 +95,7 @@ struct IntCtor {
   int operator()() { return kIntElement; }
 };
 
-// Constructs a string.
+// Constructs a std::string.
 struct StringCtor {
   using value_type = std::string;
 
@@ -106,7 +106,9 @@ struct StringCtor {
 struct StringVectorCtor {
   using value_type = std::vector<std::string>;
 
-  std::vector<std::string> operator()() { return {kStringElement, kErrorMessage}; }
+  std::vector<std::string> operator()() {
+    return {kStringElement, kErrorMessage};
+  }
 };
 
 bool operator==(const Foo& lhs, const Foo& rhs) {

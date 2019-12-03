@@ -14,16 +14,15 @@
 
 // Utility class for graph related algorithms.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_GRAPH_UTILITY_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_GRAPH_UTILITY_H_
+#ifndef READER_GRAPH_UTILITY_H_
+#define READER_GRAPH_UTILITY_H_
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
 
 #include "base/integral_types.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 struct EdgeDegrees {
   uint32_t source_in_degree;
@@ -87,7 +86,6 @@ EdgeDegrees GetEdgeDegrees(const typename Graph::Graph& graph,
   return edge_vector;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_GRAPH_UTILITY_H_
+#endif  // READER_GRAPH_UTILITY_H_

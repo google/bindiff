@@ -17,6 +17,7 @@
 #include <cinttypes>
 #include <string>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -24,14 +25,14 @@
 #include <ida.hpp>                                              // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // The condition code of the instruction will be kept in instruction.segpref:
 #define ARM_cond segpref
@@ -503,5 +504,4 @@ Instruction ParseInstructionIdaArm(const insn_t& instruction,
                      mnemonic, DecodeOperandsArm(instruction));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

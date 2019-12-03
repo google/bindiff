@@ -14,13 +14,12 @@
 
 #include "third_party/zynamics/binexport/binexport.h"
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 using ::testing::Eq;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 Address AddInstruction(Address start_address, int8_t size, BinExport2* proto) {
@@ -53,5 +52,4 @@ TEST(BinExportTest, TestInstructionAddress) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

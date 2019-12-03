@@ -14,10 +14,10 @@
 
 // This class provides storage for instruction information. It is targeted
 // towards the instructions stored in a BinExport::Flowgraph::Vertex, where
-// operands are stored as a string.
+// operands are stored as a std::string.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_INSTRUCTION_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_INSTRUCTION_H_
+#ifndef READER_INSTRUCTION_H_
+#define READER_INSTRUCTION_H_
 
 #include <string>
 #include <vector>
@@ -26,8 +26,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/architectures.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class Instruction {
  public:
@@ -36,6 +35,7 @@ class Instruction {
   Address address() const { return address_; }
   const std::vector<int>& operands() const { return operand_indices_; }
   void set_operands(const std::vector<int>& operand_indices);
+
   using CallTargets = std::vector<Address>;
 
   const CallTargets& call_targets() const { return call_targets_; }
@@ -62,7 +62,6 @@ const Instruction* GetInstruction(const Instructions& instructions,
 bool IsJumpInstruction(const Instruction& instruction,
                        absl::optional<Architecture>);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_INSTRUCTION_H_
+#endif  // READER_INSTRUCTION_H_

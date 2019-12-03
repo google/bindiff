@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_READER_TEST_UTIL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_READER_TEST_UTIL_H_
+#ifndef READER_READER_TEST_UTIL_H_
+#define READER_READER_TEST_UTIL_H_
 
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/status.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Reads a BinExport2 proto from the testdata directory. The filename is
 // relative to that directory.
 not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
                                              BinExport2* proto);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_READER_READER_TEST_UTIL_H_
+#endif  // READER_READER_TEST_UTIL_H_

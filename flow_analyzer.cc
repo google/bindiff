@@ -18,8 +18,6 @@
 #include <iostream>
 #include <map>
 #include <set>
-#include <stdexcept>
-#include <string>
 
 #include "base/logging.h"
 #include "third_party/zynamics/binexport/call_graph.h"

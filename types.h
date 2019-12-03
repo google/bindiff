@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPES_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPES_H_
+#ifndef TYPES_H_
+#define TYPES_H_
 
 #include <string>
 
@@ -23,9 +23,4 @@ using Byte = uint8_t;
 using Address = uint64_t;
 using Offset = int64_t;
 
-// For compatibility with Google-style string
-#ifndef HAS_GLOBAL_STRING
-using std::string;
-#endif
-
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_TYPES_H_
+#endif  // TYPES_H_

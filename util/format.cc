@@ -7,8 +7,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 std::string FormatAddress(Address address) {
   if (address <= 0xFFFFFFFF) {
@@ -55,5 +54,4 @@ std::string HumanReadableDuration(absl::Duration duration) {
   return HumanReadableDuration(absl::ToDoubleSeconds(duration));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

@@ -16,18 +16,16 @@
 // util/task/status.h. This will become obsolete and will be replaced once
 // Abseil releases absl::Status.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_H_
+#ifndef UTIL_STATUS_H_
+#define UTIL_STATUS_H_
 
 #include <ostream>
 #include <string>
 
+#include "third_party/absl/base/attributes.h"
 #include "third_party/absl/meta/type_traits.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
-
-#include <google/protobuf/stubs/status.h>    // NOLINT
-#include <google/protobuf/stubs/statusor.h>  // NOLINT
 
 namespace not_absl {
 
@@ -69,24 +67,8 @@ class Status {
   Status(const Status&) = default;
   Status(Status&& other);
 
-  explicit Status(const ::google::protobuf::util::Status& other) {
-    Set(static_cast<int>(other.error_code()), other.error_message());
-  }
-
   Status& operator=(const Status&) = default;
   Status& operator=(Status&& other);
-
-  operator ::google::protobuf::util::Status() {
-    return ::google::protobuf::util::Status{
-        static_cast<::google::protobuf::util::error::Code>(error_code_),
-        message_};
-  }
-
-  template <class T>
-  operator ::google::protobuf::util::StatusOr<T>() {
-    return ::google::protobuf::util::StatusOr<T>{
-        ::google::protobuf::util::Status(*this)};
-  }
 
   int error_code() const { return error_code_; }
   absl::string_view error_message() const { return message_; }
@@ -124,25 +106,8 @@ inline bool operator!=(const Status& lhs, const Status& rhs) {
   return !(lhs == rhs);
 }
 
-inline bool operator==(const Status& lhs,
-                       const ::google::protobuf::util::Status& rhs) {
-  return lhs == Status(rhs);
-}
-inline bool operator==(const ::google::protobuf::util::Status& lhs,
-                       const Status& rhs) {
-  return rhs == lhs;
-}
-inline bool operator!=(const Status& lhs,
-                       const ::google::protobuf::util::Status& rhs) {
-  return !(lhs == rhs);
-}
-inline bool operator!=(const ::google::protobuf::util::Status& lhs,
-                       const Status& rhs) {
-  return !(lhs == rhs);
-}
-
 std::ostream& operator<<(std::ostream& os, const Status& status);
 
 }  // namespace not_absl
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_H_
+#endif  // UTIL_STATUS_H_

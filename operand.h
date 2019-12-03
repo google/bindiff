@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_OPERAND_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_OPERAND_H_
+#ifndef OPERAND_H_
+#define OPERAND_H_
 
 #include <cstdint>
 #include <functional>
@@ -58,4 +58,4 @@ class Operand {
 
 using Operands = std::vector<Operand*>;
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_OPERAND_H_
+#endif  // OPERAND_H_

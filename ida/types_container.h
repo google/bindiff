@@ -14,8 +14,8 @@
 
 // Functionality to collect types from IDA and map them to our type system.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_TYPES_CONTAINER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_TYPES_CONTAINER_H_
+#ifndef IDA_TYPES_CONTAINER_H_
+#define IDA_TYPES_CONTAINER_H_
 
 #include <iostream>
 #include <map>
@@ -26,15 +26,14 @@
 
 class member_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Acts as a container for all types and members collected during the export.
 // Also contains functionality to map an operand that has an associated type
 // to the member it references.
 class IdaTypesContainer : public TypesContainer {
  public:
-  typedef std::map<std::string, const BaseType*> TypesByString;
+  using TypesByString = std::map<std::string, const BaseType*>;
 
   ~IdaTypesContainer();
   // Iterate over IDA's type system in order to create a mapping between
@@ -56,8 +55,8 @@ class IdaTypesContainer : public TypesContainer {
   virtual const BaseType* GetFunctionPrototype(const Function& function) const;
 
  private:
-  typedef std::map<uint64_t, BaseType*> TypeIdMap;
-  typedef std::map<Address, const BaseType*> PrototypesMap;
+  using TypeIdMap = std::map<uint64_t, BaseType*>;
+  using PrototypesMap = std::map<Address, const BaseType*>;
 
   template<class T> void CollectCompoundTypes(T start_it, T end_it);
   template<class T> void CollectMemberTypes(T start_it, T end_it);
@@ -99,7 +98,6 @@ class IdaTypesContainer : public TypesContainer {
   PrototypesMap prototypes_by_address_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_TYPES_CONTAINER_H_
+#endif  // IDA_TYPES_CONTAINER_H_

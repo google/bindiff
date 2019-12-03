@@ -20,6 +20,7 @@
 #include <string>
 #include <tuple>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -33,6 +34,7 @@
 #include <typeinf.hpp>                                          // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/ascii.h"
@@ -55,8 +57,7 @@
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 std::string ToString(const qstring& ida_string) {
   return std::string(ida_string.c_str(), ida_string.length());
@@ -140,11 +141,11 @@ absl::optional<std::string> GetArchitectureName() {
   // This is not strictly correct, i.e. for 16-bit archs and also for 128-bit
   // archs, but is what IDA supports. This needs to be changed if IDA introduces
   // is_128bit().
-  absl::StrAppend(&architecture, inf.is_64bit() ? "-64" : "-32");
+  absl::StrAppend(&architecture, inf_is_64bit() ? "-64" : "-32");
   return architecture;
 }
 
-int GetArchitectureBitness() { return inf.is_64bit() ? 64 : 32; }
+int GetArchitectureBitness() { return inf_is_64bit() ? 64 : 32; }
 
 std::string GetModuleName() {
   char path_buffer[QMAXPATH] = {0};
@@ -244,7 +245,6 @@ std::string GetSizePrefix(const size_t size_in_bytes) {
 }
 
 size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
-  constexpr int dt_half = 0x7f;  // Defined in IDA SDK module/arm/arm.hpp
   switch (operand.dtype) {
     case dt_byte:
       return 1;  // 8 bit
@@ -296,7 +296,7 @@ bool IsCodeSegment(const Address address) {
 }
 
 static std::string GetStringReference(ea_t address) {
-  // This only returns the first std::string ref - there may be several.
+  // This only returns the first string ref - there may be several.
   xrefblk_t xrefs;
   if (xrefs.first_from(address, XREF_DATA) == 0) {
     return "";
@@ -463,7 +463,7 @@ std::string GetRegisterName(size_t index, size_t segment_size) {
   if (get_reg_name(&ida_reg_name, index, segment_size) != -1) {
     return ToString(ida_reg_name);
   }
-  // Do not return empty std::string due to assertion fail in database_writer.cc
+  // Do not return empty string due to assertion fail in database_writer.cc
   return "<bad register>";
 }
 
@@ -1055,5 +1055,4 @@ void GetComments(const insn_t& instruction, Comments* comments) {
   GetLocalReferences(instruction, comments);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

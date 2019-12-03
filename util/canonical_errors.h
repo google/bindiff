@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_CANONICAL_ERRORS_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_CANONICAL_ERRORS_H_
+#ifndef UTIL_CANONICAL_ERRORS_H_
+#define UTIL_CANONICAL_ERRORS_H_
 
 #include "third_party/absl/base/attributes.h"
 #include "third_party/absl/strings/string_view.h"
@@ -64,4 +64,4 @@ ABSL_MUST_USE_RESULT bool IsUnknown(const Status& status);
 
 }  // namespace not_absl
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_CANONICAL_ERRORS_H_
+#endif  // UTIL_CANONICAL_ERRORS_H_

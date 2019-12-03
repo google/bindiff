@@ -14,13 +14,12 @@
 
 #include "third_party/zynamics/binexport/util/format.h"
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 using testing::StrEq;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 TEST(FormatUtilTest, FormatAddress) {
@@ -40,5 +39,4 @@ TEST(FormatUtilTest, HumanReadableDuration) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

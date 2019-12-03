@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_WRITER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_WRITER_H_
+#ifndef WRITER_H_
+#define WRITER_H_
 
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/comment.h"
@@ -24,8 +24,7 @@ class CallGraph;
 class FlowGraph;
 class TypeSystem;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class Writer {
  public:
@@ -44,7 +43,6 @@ class Writer {
                                  const AddressSpace& address_space) = 0;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_WRITER_H_
+#endif  // WRITER_H_

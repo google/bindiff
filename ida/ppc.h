@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_PPC_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_PPC_H_
+#ifndef IDA_PPC_H_
+#define IDA_PPC_H_
 
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
@@ -23,14 +23,12 @@
 
 class insn_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 Instruction ParseInstructionIdaPpc(const insn_t& instruction,
                                    CallGraph* call_graph, FlowGraph* flow_graph,
                                    TypeSystem* type_system);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_IDA_PPC_H_
+#endif  // IDA_PPC_H_

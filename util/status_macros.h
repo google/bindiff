@@ -15,8 +15,8 @@
 // This file is a custom fork of util/task/status_macros.h. This will become
 // obsolete and will be replaced once Abseil releases absl::Status.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_MACROS_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_MACROS_H_
+#ifndef UTIL_STATUS_MACROS_H_
+#define UTIL_STATUS_MACROS_H_
 
 #include "third_party/absl/base/optimization.h"
 #include "third_party/zynamics/binexport/util/status.h"
@@ -45,4 +45,4 @@
   }                                                    \
   lhs = std::move(statusor).ValueOrDie();
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_MACROS_H_
+#endif  // UTIL_STATUS_MACROS_H_

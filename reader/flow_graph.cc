@@ -25,12 +25,12 @@
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 absl::optional<Architecture> GetSupportedArchitecture(const BinExport2& proto) {
-  const std::string& architecture = proto.meta_information().architecture_name();
+  const std::string& architecture =
+      proto.meta_information().architecture_name();
   if (architecture == "arm") {
     return Architecture::kArm;
   }
@@ -237,5 +237,4 @@ bool FlowGraph::IsExitNode(Vertex vertex) const {
   return !IsJumpInstruction(last_instruction, architecture_);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

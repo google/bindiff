@@ -16,8 +16,8 @@
 // util/task/statusor.h. This will become obsolete and will be replaced once
 // Abseil releases absl::Status.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUSOR_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUSOR_H_
+#ifndef UTIL_STATUSOR_H_
+#define UTIL_STATUSOR_H_
 
 #include "base/logging.h"
 #include "third_party/absl/types/variant.h"
@@ -81,4 +81,4 @@ class StatusOr {
 
 }  // namespace not_absl
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUSOR_H_
+#endif  // UTIL_STATUSOR_H_

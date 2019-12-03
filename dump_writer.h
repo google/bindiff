@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_DUMP_WRITER_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_DUMP_WRITER_H_
+#ifndef DUMP_WRITER_H_
+#define DUMP_WRITER_H_
 
 #include <fstream>
 
 #include "third_party/zynamics/binexport/writer.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class DumpWriter : public Writer {
  public:
@@ -39,7 +38,6 @@ class DumpWriter : public Writer {
   std::ostream& stream_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_DUMP_WRITER_H_
+#endif  // DUMP_WRITER_H_

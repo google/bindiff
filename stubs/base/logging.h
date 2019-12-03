@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_LOGGING_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_LOGGING_H_
+#ifndef BASE_LOGGING_H_
+#define BASE_LOGGING_H_
+
 #include <google/protobuf/stubs/logging.h>
 
 // Map names from the Protocol Buffers stubs into the global namespace.
@@ -53,4 +54,4 @@ using ::google::protobuf::SetLogHandler;
 #define QCHECK_GT GOOGLE_CHECK_GT
 #define QCHECK_GE GOOGLE_CHECK_GE
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_BASE_LOGGING_H_
+#endif  // BASE_LOGGING_H_

@@ -21,8 +21,7 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 StatisticsWriter::StatisticsWriter(std::ostream& stream) : stream_(stream) {}
 
@@ -108,5 +107,4 @@ not_absl::Status StatisticsWriter::Write(
   return not_absl::OkStatus();
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

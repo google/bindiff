@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_VIRTUAL_MEMORY_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_VIRTUAL_MEMORY_H_
+#ifndef VIRTUAL_MEMORY_H_
+#define VIRTUAL_MEMORY_H_
 
 #include <atomic>
 #include <map>
@@ -108,4 +108,4 @@ bool AddressSpace::ReadLittleEndian(const MemoryBlock& memory_block,
   return true;
 }
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_VIRTUAL_MEMORY_H_
+#endif  // VIRTUAL_MEMORY_H_

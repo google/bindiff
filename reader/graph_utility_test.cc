@@ -19,11 +19,10 @@
 
 #include <boost/graph/adjacency_list.hpp>  // NOLINT
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class GraphUtilityTest : public testing::Test {
  protected:
@@ -100,5 +99,4 @@ TEST_F(GraphUtilityTest, GetEdgeVector) {
   EXPECT_EQ(edge_vector.target_out_degree, 1);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_MATCHERS_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_MATCHERS_H_
+#ifndef UTIL_STATUS_MATCHERS_H_
+#define UTIL_STATUS_MATCHERS_H_
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
@@ -118,4 +118,4 @@ template <typename Enum>
 
 }  // namespace not_absl
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_STATUS_MATCHERS_H_
+#endif  // UTIL_STATUS_MATCHERS_H_

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_MAINTENANCE_POSTGRESQL_SQL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_MAINTENANCE_POSTGRESQL_SQL_H_
+#ifndef MAINTENANCE_POSTGRESQL_SQL_H_
+#define MAINTENANCE_POSTGRESQL_SQL_H_
 
 #include "third_party/absl/strings/string_view.h"
 
@@ -41,4 +41,4 @@ VACUUM ANALYZE "ex_?_sections";
   return kPostgreSqlMaintenance;
 }
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_MAINTENANCE_POSTGRESQL_SQL_H_
+#endif  // MAINTENANCE_POSTGRESQL_SQL_H_

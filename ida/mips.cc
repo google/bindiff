@@ -17,6 +17,7 @@
 #include <cinttypes>
 #include <string>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -24,14 +25,14 @@
 #include <ida.hpp>                                              // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 std::string GetCoprocessorRegisterName(int index) {
@@ -307,5 +308,4 @@ Instruction ParseInstructionIdaMips(const insn_t& instruction,
                      mnemonic, DecodeOperandsMips(instruction));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

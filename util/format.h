@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_FORMAT_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_FORMAT_H_
+#ifndef UTIL_FORMAT_H_
+#define UTIL_FORMAT_H_
 
 #include <string>
 
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 // Returns a hexadecimal string representation of an address suitable for log
-// lines and display in UIs.
-// The returned string will always be either 8 or 16 uppercase hexadecimal
-// characters, depending on whether the address is larger than 0xFFFFFFFF. In
-// any case, the string is left padded with zeroes.
+// lines and display in UIs. The returned string will always be either 8 or 16
+// uppercase hexadecimal characters, depending on whether the address is larger
+// than 0xFFFFFFFF. In any case, the string is left padded with zeroes.
 //
 // Some examples:
 //   FormatAddress(0x08)               => "00000008"
@@ -44,7 +42,6 @@ std::string FormatAddress(Address address);
 std::string HumanReadableDuration(double seconds);
 std::string HumanReadableDuration(absl::Duration duration);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_UTIL_FORMAT_H_
+#endif  // UTIL_FORMAT_H_

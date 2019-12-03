@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef THIRD_PARTY_ZYNAMICS_BINEXPORT_POSTGRESQL_H_
-#define THIRD_PARTY_ZYNAMICS_BINEXPORT_POSTGRESQL_H_
+#ifndef POSTGRESQL_H_
+#define POSTGRESQL_H_
 
 #include <string>
 #include <vector>
@@ -69,12 +69,12 @@ class Database {
   std::string EscapeIdentifier(const std::string& text) const;
 
   operator bool() const;
-  Database& operator>>(bool& value);    // NOLINT
-  Database& operator>>(int32_t& value);   // NOLINT
-  Database& operator>>(int64_t& value);   // NOLINT
-  Database& operator>>(double& value);  // NOLINT
+  Database& operator>>(bool& value);         // NOLINT
+  Database& operator>>(int32_t& value);        // NOLINT
+  Database& operator>>(int64_t& value);        // NOLINT
+  Database& operator>>(double& value);       // NOLINT
   Database& operator>>(std::string& value);  // NOLINT
-  Database& operator>>(Blob& value);    // NOLINT
+  Database& operator>>(Blob& value);         // NOLINT
 
  private:
   Database(const Database&) = delete;
@@ -98,4 +98,4 @@ class Transaction {
   Database* database_;
 };
 
-#endif  // THIRD_PARTY_ZYNAMICS_BINEXPORT_POSTGRESQL_H_
+#endif  // POSTGRESQL_H_
