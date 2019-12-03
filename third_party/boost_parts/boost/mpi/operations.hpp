@@ -23,7 +23,8 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/and.hpp>
 #include <boost/mpi/datatype.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <boost/core/enable_if.hpp>
+#include <boost/core/uncaught_exceptions.hpp>
 #include <functional>
 
 namespace boost { namespace mpi {
@@ -292,19 +293,17 @@ namespace detail {
   class user_op
   {
   public:
-    explicit user_op(Op& op)
+    user_op()
     {
       BOOST_MPI_CHECK_RESULT(MPI_Op_create,
                              (&user_op<Op, T>::perform,
                               is_commutative<Op, T>::value,
                               &mpi_op));
-
-      op_ptr = &op;
     }
 
     ~user_op()
     {
-      if (std::uncaught_exception()) {
+      if (boost::core::uncaught_exceptions() > 0) {
         // Ignore failure cases: there are obviously other problems
         // already, and we don't want to cause program termination if
         // MPI_Op_free fails.
@@ -321,17 +320,15 @@ namespace detail {
 
   private:
     MPI_Op mpi_op;
-    static Op* op_ptr;
 
     static void BOOST_MPI_CALLING_CONVENTION perform(void* vinvec, void* voutvec, int* plen, MPI_Datatype*)
     {
       T* invec = static_cast<T*>(vinvec);
       T* outvec = static_cast<T*>(voutvec);
-      std::transform(invec, invec + *plen, outvec, outvec, *op_ptr);
+      Op op;
+      std::transform(invec, invec + *plen, outvec, outvec, op);
     }
   };
-
-  template<typename Op, typename T> Op* user_op<Op, T>::op_ptr = 0;
 
 } // end namespace detail
 

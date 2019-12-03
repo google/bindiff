@@ -8,7 +8,7 @@ cache:
   - build_linux/protobuf
 os:
 - linux
-dist: bionic
+dist: trusty
 sudo: false
 before_install:
 - echo "$idasdk_password" | gpg --batch --yes --passphrase-fd 0 --output third_party/idasdk74.zip --decrypt third_party/idasdk74.zip.gpg

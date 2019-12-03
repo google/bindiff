@@ -232,7 +232,6 @@
 // C++0x features in 4.6.n and later
 //
 #if (BOOST_GCC_VERSION < 40600) || !defined(BOOST_GCC_CXX11)
-#define BOOST_NO_CXX11_CONSTEXPR
 #define BOOST_NO_CXX11_DEFAULTED_MOVES
 #define BOOST_NO_CXX11_NOEXCEPT
 #define BOOST_NO_CXX11_NULLPTR
@@ -243,6 +242,9 @@
 // C++0x features in 4.7.n and later
 //
 #if (BOOST_GCC_VERSION < 40700) || !defined(BOOST_GCC_CXX11)
+// Note that while constexpr is partly supported in gcc-4.6 it's a 
+// pre-std version with several bugs:
+#  define BOOST_NO_CXX11_CONSTEXPR
 #  define BOOST_NO_CXX11_FINAL
 #  define BOOST_NO_CXX11_TEMPLATE_ALIASES
 #  define BOOST_NO_CXX11_USER_DEFINED_LITERALS
@@ -299,13 +301,16 @@
 #if !defined(__cpp_fold_expressions) || (__cpp_fold_expressions < 201603)
 #  define BOOST_NO_CXX17_FOLD_EXPRESSIONS
 #endif
+#if !defined(__cpp_if_constexpr) || (__cpp_if_constexpr < 201606)
+#  define BOOST_NO_CXX17_IF_CONSTEXPR
+#endif
 
 #if __GNUC__ >= 7
 #  define BOOST_FALLTHROUGH __attribute__((fallthrough))
 #endif
 
-#ifdef __MINGW32__
-// Currently (June 2017) thread_local is broken on mingw for all current compiler releases, see
+#if defined(__MINGW32__) && !defined(__MINGW64__)
+// Currently (March 2019) thread_local is broken on mingw for all current 32bit compiler releases, see
 // https://sourceforge.net/p/mingw-w64/bugs/527/
 // Not setting this causes program termination on thread exit.
 #define BOOST_NO_CXX11_THREAD_LOCAL
@@ -322,7 +327,7 @@
 
 //
 // __builtin_unreachable:
-#if BOOST_GCC_VERSION >= 40800
+#if BOOST_GCC_VERSION >= 40500
 #define BOOST_UNREACHABLE_RETURN(x) __builtin_unreachable();
 #endif
 
@@ -343,14 +348,14 @@
 #  error "Compiler not configured - please reconfigure"
 #endif
 //
-// last known and checked version is 7.1:
-#if (BOOST_GCC_VERSION > 70100)
+// last known and checked version is 8.1:
+#if (BOOST_GCC_VERSION > 80100)
 #  if defined(BOOST_ASSERT_CONFIG)
 #     error "Boost.Config is older than your compiler - please check for an updated Boost release."
 #  else
 // we don't emit warnings here anymore since there are no defect macros defined for
 // gcc post 3.4, so any failures are gcc regressions...
-//#     warning "Unknown compiler version - please run the configure tests and report the results"
+//#     warning "boost: Unknown compiler version - please run the configure tests and report the results"
 #  endif
 #endif
 

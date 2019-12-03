@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.7)
-cmake_policy(VERSION 3.7)
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(VERSION 3.12)
 project(binexport VERSION 10)  # Only major version is used
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
@@ -125,6 +125,12 @@ if(WIN32)
   target_link_libraries(binexport_shared PUBLIC
     shlwapi.lib
   )
+else()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
+    target_link_libraries(binexport_shared PUBLIC
+      stdc++fs
+    )
+  endif()
 endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
