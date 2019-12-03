@@ -14,12 +14,17 @@
 
 package com.google.security.binexport;
 
-import java.util.HashMap;
-import java.util.Map;
 import ghidra.program.model.lang.Language;
 import ghidra.program.model.listing.Instruction;
+import java.util.HashMap;
+import java.util.Map;
 
-// IDA uses lowercase instruction mnemonics for some architecture (notably X86).
+/**
+ * IDA uses lowercase instruction mnemonics for some architectures (notably
+ * X86).
+ *
+ * @author Christian Blichmann
+ */
 public class IdaProMnemonicMapper implements MnemonicMapper {
 
   private enum IdaProArchitecture {
@@ -27,8 +32,8 @@ public class IdaProMnemonicMapper implements MnemonicMapper {
   }
 
   private final IdaProArchitecture idaArch;
-  
-  private final Map<String,String> mapCache = new HashMap<>();
+
+  private final Map<String, String> mapCache = new HashMap<>();
 
   public IdaProMnemonicMapper(Language language) {
     switch (language.getProcessor().toString().toLowerCase()) {
@@ -44,7 +49,7 @@ public class IdaProMnemonicMapper implements MnemonicMapper {
   @Override
   public String getInstructionMnemonic(Instruction instr) {
     // TODO(cblichmann): Implement a more sophisticated scheme that tries
-    // harder to do what IDA does.
+    //                   harder to do what IDA does.
     final String mnemnonic = instr.getMnemonicString();
     if (idaArch != IdaProArchitecture.METAPC) {
       return mnemnonic;

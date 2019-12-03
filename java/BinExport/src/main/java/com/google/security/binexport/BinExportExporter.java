@@ -14,10 +14,6 @@
 
 package com.google.security.binexport;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
 import com.google.security.zynamics.BinExport.BinExport2;
 import ghidra.app.util.DomainObjectService;
 import ghidra.app.util.Option;
@@ -29,26 +25,34 @@ import ghidra.program.model.address.AddressSetView;
 import ghidra.program.model.listing.Program;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
 
-/** Exports Ghidra disassembly data into BinExport v2 format. */
+/**
+ * Exports Ghidra disassembly data into BinExport v2 format.
+ *
+ * @author Christian Blichmann
+ */
 public class BinExportExporter extends Exporter {
 
   /** Display name that appears in the export dialog. */
-  private final static String BINEXPORT_FORMAT_DISPLAY_NAME =
+  private static final String BINEXPORT_FORMAT_DISPLAY_NAME =
       "Binary BinExport (v2) for BinDiff";
 
-  private final static String BINEXPORT_FILE_EXTENSION = "BinExport";
+  private static final String BINEXPORT_FILE_EXTENSION = "BinExport";
 
   // Option names
-  private final static String IDAPRO_COMPAT_OPTGROUP = "IDA Pro Compatibility";
-  private final static String IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE =
+  private static final String IDAPRO_COMPAT_OPTGROUP = "IDA Pro Compatibility";
+  private static final String IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE =
       "Subtract Imagebase";
-  private final static String IDAPRO_COMPAT_OPT_REMAP_MNEMONICS =
+  private static final String IDAPRO_COMPAT_OPT_REMAP_MNEMONICS =
       "Remap mnemonics";
 
   /** Whether to subtract the program image base from addresses for export. */
   private boolean subtractImagebase = false;
-  
+
   /** Whether to remap Ghidra's mnenomics into IDA Pro style ones. */
   private boolean remapMnemonics = false;
 

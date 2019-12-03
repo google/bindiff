@@ -16,7 +16,14 @@ package com.google.security.binexport;
 
 import ghidra.program.model.listing.Instruction;
 
+/** Remaps Ghidra instruction mnemonics. */
 public interface MnemonicMapper {
+
+  /**
+   * Returns the remapped instruction mnemonic for a Ghidra instruction.
+   *
+   * <p>The default implementation maps each instruction to itself.
+   */
   default String getInstructionMnemonic(Instruction instr) {
     return instr.getMnemonicString();
   }
