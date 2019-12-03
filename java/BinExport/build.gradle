@@ -21,28 +21,27 @@ apply plugin: 'com.google.protobuf'
 apply plugin: 'idea'
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 buildscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.8'
-	}
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.10'
+    }
 }
 
 dependencies {
-	compile 'com.google.protobuf:protobuf-java:3.7.0'
+    compile 'com.google.protobuf:protobuf-java:3.10.0'
 }
 
 protobuf {
-	// Configure the protoc executable
-	protoc {
-		// Download from repositories
-		artifact = 'com.google.protobuf:protoc:3.7.1'
-	}
+    // Configure the protoc executable
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.10.0'
+    }
 }
 
 task copyRuntimeLibs(type: Copy) {
@@ -55,16 +54,16 @@ task copyRuntimeLibs(type: Copy) {
 def ghidraInstallDir
 
 if (System.env.GHIDRA_INSTALL_DIR) {
-	ghidraInstallDir = System.env.GHIDRA_INSTALL_DIR
+    ghidraInstallDir = System.env.GHIDRA_INSTALL_DIR
 }
 else if (project.hasProperty("GHIDRA_INSTALL_DIR")) {
-	ghidraInstallDir = project.getProperty("GHIDRA_INSTALL_DIR")
+    ghidraInstallDir = project.getProperty("GHIDRA_INSTALL_DIR")
 }
 
 if (ghidraInstallDir) {
-	apply from: new File(ghidraInstallDir).getCanonicalPath() + "/support/buildExtension.gradle"
+    apply from: new File(ghidraInstallDir).getCanonicalPath() + "/support/buildExtension.gradle"
 }
 else {
-	throw new GradleException("GHIDRA_INSTALL_DIR is not defined!")
+    throw new GradleException("GHIDRA_INSTALL_DIR is not defined!")
 }
 //----------------------END "DO NOT MODIFY" SECTION-------------------------------
