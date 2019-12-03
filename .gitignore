@@ -23,13 +23,6 @@ build_msvc/*
 build_mac/*
 third_party/zynamics/binexport
 
-# Gradle
-.gradle
-.gradletasknamecache
-gradle-app.setting
-gradle.properties
-!gradle-wrapper.jar
-
 # Auto-generated
 *.pb.cc
 *.pb.h
