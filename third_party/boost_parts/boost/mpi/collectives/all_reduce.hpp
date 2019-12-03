@@ -48,10 +48,10 @@ namespace detail {
   template<typename T, typename Op>
   void
   all_reduce_impl(const communicator& comm, const T* in_values, int n,
-                  T* out_values, Op op, mpl::false_ /*is_mpi_op*/,
+                  T* out_values, Op /* op */, mpl::false_ /*is_mpi_op*/,
                   mpl::true_ /*is_mpi_datatype*/)
   {
-    user_op<Op, T> mpi_op(op);
+    user_op<Op, T> mpi_op;
     BOOST_MPI_CHECK_RESULT(MPI_Allreduce,
                            (const_cast<T*>(in_values), out_values, n,
                             boost::mpi::get_mpi_datatype<T>(*in_values),

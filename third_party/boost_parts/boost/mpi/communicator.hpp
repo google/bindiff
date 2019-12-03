@@ -21,6 +21,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/mpi/datatype.hpp>
 #include <boost/mpi/nonblocking.hpp>
+#include <boost/static_assert.hpp>
 #include <utility>
 #include <iterator>
 #include <stdexcept> // for std::range_error
@@ -32,9 +33,6 @@
 
 // For (de-)serializing skeletons and content
 #include <boost/mpi/skeleton_and_content_fwd.hpp>
-
-// For (de-)serializing arrays
-#include <boost/serialization/array.hpp>
 
 #include <boost/mpi/detail/point_to_point.hpp>
 #include <boost/mpi/status.hpp>
@@ -264,9 +262,17 @@ class BOOST_MPI_DECL communicator
    *  a single MPI_Send call. For variable-length data, e.g.,
    *  serialized types and packed archives, two messages will be sent
    *  via MPI_Send: one containing the length of the data and the
-   *  second containing the data itself. Note that the transmission
-   *  mode for variable-length data is an implementation detail that
-   *  is subject to change.
+   *  second containing the data itself.
+   * 
+   *  Std::vectors of MPI data type
+   *  are considered variable size, e.g. their number of elements is 
+   *  unknown and must be transmited (although the serialization process
+   *  is skipped). You can use the array specialized versions of 
+   *  communication methods is both sender and receiver know the vector 
+   *  size.
+   *  
+   *  Note that the transmission mode for variable-length data is an 
+   *  implementation detail that is subject to change.
    *
    *  @param dest The rank of the remote process to which the data
    *  will be sent.
@@ -277,21 +283,13 @@ class BOOST_MPI_DECL communicator
    *
    *  @param value The value that will be transmitted to the
    *  receiver. The type @c T of this value must meet the aforementioned
-   *  criteria for transmission.
+   *  criteria for transmission. 
    */
   template<typename T>
   void send(int dest, int tag, const T& value) const;
 
   template<typename T, typename A>
   void send(int dest, int tag, const std::vector<T,A>& value) const;
-
-  template<typename T, typename A>
-  void send_vector(int dest, int tag, const std::vector<T,A>& value, 
-    mpl::true_) const;
-
-  template<typename T, typename A>
-  void send_vector(int dest, int tag, const std::vector<T,A>& value, 
-    mpl::false_) const;
 
   /**
    *  @brief Send the skeleton of an object.
@@ -407,14 +405,6 @@ class BOOST_MPI_DECL communicator
 
   template<typename T, typename A>
   status recv(int source, int tag, std::vector<T,A>& value) const;
-
-  template<typename T, typename A>
-  status recv_vector(int source, int tag, std::vector<T,A>& value,
-    mpl::true_) const;
-
-  template<typename T, typename A>
-  status recv_vector(int source, int tag, std::vector<T,A>& value,
-    mpl::false_) const;
 
   /**
    *  @brief Receive a skeleton from a remote process.
@@ -544,7 +534,8 @@ class BOOST_MPI_DECL communicator
    *
    *  @param value The value that will be transmitted to the
    *  receiver. The type @c T of this value must meet the aforementioned
-   *  criteria for transmission.
+   *  criteria for transmission. If modified before transmited, the 
+   *  modification may or may not be transmited.
    *
    *  @returns a @c request object that describes this communication.
    */
@@ -608,6 +599,9 @@ class BOOST_MPI_DECL communicator
    */
   template<typename T>
   request isend(int dest, int tag, const T* values, int n) const;
+
+  template<typename T, class A>
+  request isend(int dest, int tag, const std::vector<T,A>& values) const;
 
   /**
    *  @brief Send a message to another process without any data
@@ -692,6 +686,9 @@ class BOOST_MPI_DECL communicator
    */
   template<typename T>
   request irecv(int source, int tag, T* values, int n) const;
+
+  template<typename T, typename A>
+  request irecv(int source, int tag, std::vector<T,A>& values) const;
 
   /**
    *  @brief Initiate receipt of a message from a remote process that
@@ -802,23 +799,7 @@ class BOOST_MPI_DECL communicator
    * Split the communicator into multiple, disjoint communicators
    * each of which is based on a particular color. This is a
    * collective operation that returns a new communicator that is a
-   * subgroup of @p this. This routine is functionally equivalent to
-   * @c MPI_Comm_split.
-   *
-   *   @param color The color of this process. All processes with the
-   *   same @p color value will be placed into the same group.
-   *
-   *   @returns A new communicator containing all of the processes in
-   *   @p this that have the same @p color.
-   */
-  communicator split(int color) const;
-
-  /**
-   * Split the communicator into multiple, disjoint communicators
-   * each of which is based on a particular color. This is a
-   * collective operation that returns a new communicator that is a
-   * subgroup of @p this. This routine is functionally equivalent to
-   * @c MPI_Comm_split.
+   * subgroup of @p this.
    *
    *   @param color The color of this process. All processes with the
    *   same @p color value will be placed into the same group.
@@ -833,6 +814,7 @@ class BOOST_MPI_DECL communicator
    *   @p this that have the same @p color.
    */
   communicator split(int color, int key) const;
+  communicator split(int color) const;
 
   /**
    * Determine if the communicator is in fact an intercommunicator
@@ -1100,6 +1082,39 @@ class BOOST_MPI_DECL communicator
   request 
   array_irecv_impl(int source, int tag, T* values, int n, mpl::false_) const;
 
+  // We're sending/receivig a vector with associated MPI datatype.
+  // We need to send/recv the size and then the data and make sure 
+  // blocking and non blocking method agrees on the format.
+  template<typename T, typename A>
+  request irecv_vector(int source, int tag, std::vector<T,A>& values, 
+                       mpl::true_) const;
+  template<typename T, class A>
+  request isend_vector(int dest, int tag, const std::vector<T,A>& values,
+                       mpl::true_) const;
+  template<typename T, typename A>
+  void send_vector(int dest, int tag, const std::vector<T,A>& value, 
+		   mpl::true_) const;
+  template<typename T, typename A>
+  status recv_vector(int source, int tag, std::vector<T,A>& value,
+		     mpl::true_) const;
+  
+  // We're sending/receivig a vector with no associated MPI datatype.
+  // We need to send/recv it as an archive and make sure 
+  // blocking and non blocking method agrees on the format.
+  template<typename T, typename A>
+  request irecv_vector(int source, int tag, std::vector<T,A>& values, 
+                       mpl::false_) const;
+  template<typename T, class A>
+  request isend_vector(int dest, int tag, const std::vector<T,A>& values,
+                       mpl::false_) const;
+  template<typename T, typename A>
+  void send_vector(int dest, int tag, const std::vector<T,A>& value, 
+		   mpl::false_) const;
+  template<typename T, typename A>
+  status recv_vector(int source, int tag, std::vector<T,A>& value,
+		     mpl::false_) const;
+
+ protected:
   shared_ptr<MPI_Comm> comm_ptr;
 };
 
@@ -1124,11 +1139,15 @@ inline bool operator!=(const communicator& comm1, const communicator& comm2)
   return !(comm1 == comm2);
 }
 
+}} // boost::mpi
 
 /************************************************************************
  * Implementation details                                               *
  ************************************************************************/
 
+#include <boost/mpi/detail/request_handlers.hpp>
+
+namespace boost { namespace mpi {
 /**
  * INTERNAL ONLY (using the same 'end' name might be considerd unfortunate
  */
@@ -1275,6 +1294,7 @@ template<typename T>
 void
 communicator::send_impl(int dest, int tag, const T& value, mpl::true_) const
 {
+  // received by recv or trivial handler.
   BOOST_MPI_CHECK_RESULT(MPI_Send,
                          (const_cast<T*>(&value), 1, get_mpi_datatype<T>(value),
                           dest, tag, MPI_Comm(*this)));
@@ -1322,26 +1342,37 @@ communicator::array_send_impl(int dest, int tag, const T* values, int n,
                               mpl::false_) const
 {
   packed_oarchive oa(*this);
-  oa << n << boost::serialization::make_array(values, n);
+  T const* v = values;
+  while (v < values+n) {
+    oa << *v++;
+  }
   send(dest, tag, oa);
 }
 
 template<typename T, typename A>
 void communicator::send_vector(int dest, int tag, 
-  const std::vector<T,A>& value, mpl::true_ true_type) const
+  const std::vector<T,A>& values, mpl::true_ primitive) const
 {
-  // send the vector size
-  typename std::vector<T,A>::size_type size = value.size();
-  send(dest, tag, size);
-  // send the data
-  this->array_send_impl(dest, tag, value.data(), size, true_type);
+#if defined(BOOST_MPI_USE_IMPROBE)
+  array_send_impl(dest, tag, values.data(), values.size(), primitive);
+#else
+  {
+    // non blocking recv by legacy_dynamic_primitive_array_handler
+    // blocking recv by recv_vector(source,tag,value,primitive)
+    // send the vector size
+    typename std::vector<T,A>::size_type size = values.size();
+    send(dest, tag, size);
+    // send the data
+    this->array_send_impl(dest, tag, values.data(), size, primitive);
+  }
+#endif
 }
 
 template<typename T, typename A>
 void communicator::send_vector(int dest, int tag, 
-  const std::vector<T,A>& value, mpl::false_ false_type) const
+  const std::vector<T,A>& value, mpl::false_ primitive) const
 {
-  this->send_impl(dest, tag, value, false_type);
+  this->send_impl(dest, tag, value, primitive);
 }
 
 template<typename T, typename A>
@@ -1363,7 +1394,6 @@ template<typename T>
 status communicator::recv_impl(int source, int tag, T& value, mpl::true_) const
 {
   status stat;
-
   BOOST_MPI_CHECK_RESULT(MPI_Recv,
                          (const_cast<T*>(&value), 1, 
                           get_mpi_datatype<T>(value),
@@ -1411,38 +1441,42 @@ status
 communicator::array_recv_impl(int source, int tag, T* values, int n, 
                               mpl::false_) const
 {
-  // Receive the message
   packed_iarchive ia(*this);
   status stat = recv(source, tag, ia);
-
-  // Determine how much data we are going to receive
-  int count;
-  ia >> count;
-
-  // Deserialize the data in the message
-  boost::serialization::array_wrapper<T> arr(values, count > n? n : count);
-  ia >> arr;
-
-  if (count > n) {
-    boost::throw_exception(
-      std::range_error("communicator::recv: message receive overflow"));
+  T* v = values;
+  while (v != values+n) {
+    ia >> *v++;
   }
-
-  stat.m_count = count;
+  stat.m_count = n;
   return stat;
 }
 
 template<typename T, typename A>
 status communicator::recv_vector(int source, int tag, 
-  std::vector<T,A>& value, mpl::true_ true_type) const
+                                 std::vector<T,A>& values, mpl::true_ primitive) const
 {
-  // receive the vector size
-  typename std::vector<T,A>::size_type size = 0;
-  recv(source, tag, size);
-  // size the vector
-  value.resize(size);
-  // receive the data
-  return this->array_recv_impl(source, tag, value.data(), size, true_type);
+#if defined(BOOST_MPI_USE_IMPROBE)
+  {
+    MPI_Message msg;
+    status stat;
+    BOOST_MPI_CHECK_RESULT(MPI_Mprobe, (source,tag,*this,&msg,&stat.m_status));
+    int count;
+    BOOST_MPI_CHECK_RESULT(MPI_Get_count, (&stat.m_status,get_mpi_datatype<T>(),&count));
+    values.resize(count);
+    BOOST_MPI_CHECK_RESULT(MPI_Mrecv, (values.data(), count, get_mpi_datatype<T>(), &msg, &stat.m_status));
+    return stat;
+  }
+#else
+  {
+    // receive the vector size
+    typename std::vector<T,A>::size_type size = 0;
+    recv(source, tag, size);
+    // size the vector
+    values.resize(size);
+    // receive the data
+    return this->array_recv_impl(source, tag, values.data(), size, primitive);
+  }
+#endif
 }
 
 template<typename T, typename A>
@@ -1509,12 +1543,7 @@ template<typename T>
 request
 communicator::isend_impl(int dest, int tag, const T& value, mpl::true_) const
 {
-  request req;
-  BOOST_MPI_CHECK_RESULT(MPI_Isend,
-                         (const_cast<T*>(&value), 1, 
-                          get_mpi_datatype<T>(value),
-                          dest, tag, MPI_Comm(*this), &req.m_requests[0]));
-  return req;
+  return request::make_trivial_send(*this, dest, tag, value);
 }
 
 // We're sending a type that does not have an associated MPI
@@ -1527,7 +1556,7 @@ communicator::isend_impl(int dest, int tag, const T& value, mpl::false_) const
   shared_ptr<packed_oarchive> archive(new packed_oarchive(*this));
   *archive << value;
   request result = isend(dest, tag, *archive);
-  result.m_data = archive;
+  result.preserve(archive);
   return result;
 }
 
@@ -1539,17 +1568,34 @@ request communicator::isend(int dest, int tag, const T& value) const
   return this->isend_impl(dest, tag, value, is_mpi_datatype<T>());
 }
 
+template<typename T, class A>
+request communicator::isend(int dest, int tag, const std::vector<T,A>& values) const
+{
+  return this->isend_vector(dest, tag, values, is_mpi_datatype<T>());
+}
+
+template<typename T, class A>
+request
+communicator::isend_vector(int dest, int tag, const std::vector<T,A>& values,
+                           mpl::true_ primitive) const
+{
+  return request::make_dynamic_primitive_array_send(*this, dest, tag, values);
+}
+
+template<typename T, class A>
+request
+communicator::isend_vector(int dest, int tag, const std::vector<T,A>& values,
+                           mpl::false_ no) const 
+{
+  return this->isend_impl(dest, tag, values, no);
+}
+
 template<typename T>
 request
 communicator::array_isend_impl(int dest, int tag, const T* values, int n,
                                mpl::true_) const
 {
-  request req;
-  BOOST_MPI_CHECK_RESULT(MPI_Isend,
-                         (const_cast<T*>(values), n, 
-                          get_mpi_datatype<T>(*values),
-                          dest, tag, MPI_Comm(*this), &req.m_requests[0]));
-  return req;
+  return request::make_trivial_send(*this, dest, tag, values, n);
 }
 
 template<typename T>
@@ -1558,9 +1604,12 @@ communicator::array_isend_impl(int dest, int tag, const T* values, int n,
                                mpl::false_) const
 {
   shared_ptr<packed_oarchive> archive(new packed_oarchive(*this));
-  *archive << n << boost::serialization::make_array(values, n);
+  T const* v = values;
+  while (v < values+n) {
+    *archive << *v++;
+  }
   request result = isend(dest, tag, *archive);
-  result.m_data = archive;
+  result.preserve(archive);
   return result;
 }
 
@@ -1572,242 +1621,20 @@ request communicator::isend(int dest, int tag, const T* values, int n) const
   return array_isend_impl(dest, tag, values, n, is_mpi_datatype<T>());
 }
 
-namespace detail {
-  /**
-   * Internal data structure that stores everything required to manage
-   * the receipt of serialized data via a request object.
-   */
-  template<typename T>
-  struct serialized_irecv_data
-  {
-    serialized_irecv_data(const communicator& comm, int source, int tag, 
-                          T& value)
-      : comm(comm), source(source), tag(tag), ia(comm), value(value) 
-    { 
-    }
-
-    void deserialize(status& stat) 
-    { 
-      ia >> value; 
-      stat.m_count = 1;
-    }
-
-    communicator comm;
-    int source;
-    int tag;
-    std::size_t count;
-    packed_iarchive ia;
-    T& value;
-  };
-
-  template<>
-  struct serialized_irecv_data<packed_iarchive>
-  {
-    serialized_irecv_data(const communicator& comm, int source, int tag, 
-                          packed_iarchive& ia)
-      : comm(comm), source(source), tag(tag), ia(ia) { }
-
-    void deserialize(status&) { /* Do nothing. */ }
-
-    communicator comm;
-    int source;
-    int tag;
-    std::size_t count;
-    packed_iarchive& ia;
-  };
-
-  /**
-   * Internal data structure that stores everything required to manage
-   * the receipt of an array of serialized data via a request object.
-   */
-  template<typename T>
-  struct serialized_array_irecv_data
-  {
-    serialized_array_irecv_data(const communicator& comm, int source, int tag, 
-                                T* values, int n)
-      : comm(comm), source(source), tag(tag), ia(comm), values(values), n(n)
-    { 
-    }
-
-    void deserialize(status& stat);
-
-    communicator comm;
-    int source;
-    int tag;
-    std::size_t count;
-    packed_iarchive ia;
-    T* values;
-    int n;
-  };
-
-  template<typename T>
-  void serialized_array_irecv_data<T>::deserialize(status& stat)
-  {
-    // Determine how much data we are going to receive
-    int count;
-    ia >> count;
-    
-    // Deserialize the data in the message
-    boost::serialization::array_wrapper<T> arr(values, count > n? n : count);
-    ia >> arr;
-    
-    if (count > n) {
-      boost::throw_exception(
-        std::range_error("communicator::recv: message receive overflow"));
-    }
-    
-    stat.m_count = count;
-  }
-}
-
-template<typename T>
-optional<status> 
-request::handle_serialized_irecv(request* self, request_action action)
-{
-  typedef detail::serialized_irecv_data<T> data_t;
-  shared_ptr<data_t> data = static_pointer_cast<data_t>(self->m_data);
-
-  if (action == ra_wait) {
-    status stat;
-    if (self->m_requests[1] == MPI_REQUEST_NULL) {
-      // Wait for the count message to complete
-      BOOST_MPI_CHECK_RESULT(MPI_Wait,
-                             (self->m_requests, &stat.m_status));
-      // Resize our buffer and get ready to receive its data
-      data->ia.resize(data->count);
-      BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                             (data->ia.address(), data->ia.size(), MPI_PACKED,
-                              stat.source(), stat.tag(), 
-                              MPI_Comm(data->comm), self->m_requests + 1));
-    }
-
-    // Wait until we have received the entire message
-    BOOST_MPI_CHECK_RESULT(MPI_Wait,
-                           (self->m_requests + 1, &stat.m_status));
-
-    data->deserialize(stat);
-    return stat;
-  } else if (action == ra_test) {
-    status stat;
-    int flag = 0;
-
-    if (self->m_requests[1] == MPI_REQUEST_NULL) {
-      // Check if the count message has completed
-      BOOST_MPI_CHECK_RESULT(MPI_Test,
-                             (self->m_requests, &flag, &stat.m_status));
-      if (flag) {
-        // Resize our buffer and get ready to receive its data
-        data->ia.resize(data->count);
-        BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                               (data->ia.address(), data->ia.size(),MPI_PACKED,
-                                stat.source(), stat.tag(), 
-                                MPI_Comm(data->comm), self->m_requests + 1));
-      } else
-        return optional<status>(); // We have not finished yet
-    } 
-
-    // Check if we have received the message data
-    BOOST_MPI_CHECK_RESULT(MPI_Test,
-                           (self->m_requests + 1, &flag, &stat.m_status));
-    if (flag) {
-      data->deserialize(stat);
-      return stat;
-    } else 
-      return optional<status>();
-  } else {
-    return optional<status>();
-  }
-}
-
-template<typename T>
-optional<status> 
-request::handle_serialized_array_irecv(request* self, request_action action)
-{
-  typedef detail::serialized_array_irecv_data<T> data_t;
-  shared_ptr<data_t> data = static_pointer_cast<data_t>(self->m_data);
-
-  if (action == ra_wait) {
-    status stat;
-    if (self->m_requests[1] == MPI_REQUEST_NULL) {
-      // Wait for the count message to complete
-      BOOST_MPI_CHECK_RESULT(MPI_Wait,
-                             (self->m_requests, &stat.m_status));
-      // Resize our buffer and get ready to receive its data
-      data->ia.resize(data->count);
-      BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                             (data->ia.address(), data->ia.size(), MPI_PACKED,
-                              stat.source(), stat.tag(), 
-                              MPI_Comm(data->comm), self->m_requests + 1));
-    }
-
-    // Wait until we have received the entire message
-    BOOST_MPI_CHECK_RESULT(MPI_Wait,
-                           (self->m_requests + 1, &stat.m_status));
-
-    data->deserialize(stat);
-    return stat;
-  } else if (action == ra_test) {
-    status stat;
-    int flag = 0;
-
-    if (self->m_requests[1] == MPI_REQUEST_NULL) {
-      // Check if the count message has completed
-      BOOST_MPI_CHECK_RESULT(MPI_Test,
-                             (self->m_requests, &flag, &stat.m_status));
-      if (flag) {
-        // Resize our buffer and get ready to receive its data
-        data->ia.resize(data->count);
-        BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                               (data->ia.address(), data->ia.size(),MPI_PACKED,
-                                stat.source(), stat.tag(), 
-                                MPI_Comm(data->comm), self->m_requests + 1));
-      } else
-        return optional<status>(); // We have not finished yet
-    } 
-
-    // Check if we have received the message data
-    BOOST_MPI_CHECK_RESULT(MPI_Test,
-                           (self->m_requests + 1, &flag, &stat.m_status));
-    if (flag) {
-      data->deserialize(stat);
-      return stat;
-    } else 
-      return optional<status>();
-  } else {
-    return optional<status>();
-  }
-}
-
 // We're receiving a type that has an associated MPI datatype, so we
 // map directly to that datatype.
 template<typename T>
 request 
 communicator::irecv_impl(int source, int tag, T& value, mpl::true_) const
 {
-  request req;
-  BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                         (const_cast<T*>(&value), 1, 
-                          get_mpi_datatype<T>(value),
-                          source, tag, MPI_Comm(*this), &req.m_requests[0]));
-  return req;
+  return request::make_trivial_recv(*this, source, tag, value);
 }
 
 template<typename T>
 request
 communicator::irecv_impl(int source, int tag, T& value, mpl::false_) const
 {
-  typedef detail::serialized_irecv_data<T> data_t;
-  shared_ptr<data_t> data(new data_t(*this, source, tag, value));
-  request req;
-  req.m_data = data;
-  req.m_handler = request::handle_serialized_irecv<T>;
-
-  BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                         (&data->count, 1, 
-                          get_mpi_datatype<std::size_t>(data->count),
-                          source, tag, MPI_Comm(*this), &req.m_requests[0]));
-  
-  return req;
+  return request::make_serialized(*this, source, tag, value);
 }
 
 template<typename T>
@@ -1822,12 +1649,7 @@ request
 communicator::array_irecv_impl(int source, int tag, T* values, int n, 
                                mpl::true_) const
 {
-  request req;
-  BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                         (const_cast<T*>(values), n, 
-                          get_mpi_datatype<T>(*values),
-                          source, tag, MPI_Comm(*this), &req.m_requests[0]));
-  return req;
+  return request::make_trivial_recv(*this, source, tag, values, n);
 }
 
 template<typename T>
@@ -1835,20 +1657,31 @@ request
 communicator::array_irecv_impl(int source, int tag, T* values, int n, 
                                mpl::false_) const
 {
-  typedef detail::serialized_array_irecv_data<T> data_t;
-  shared_ptr<data_t> data(new data_t(*this, source, tag, values, n));
-  request req;
-  req.m_data = data;
-  req.m_handler = request::handle_serialized_array_irecv<T>;
-
-  BOOST_MPI_CHECK_RESULT(MPI_Irecv,
-                         (&data->count, 1, 
-                          get_mpi_datatype<std::size_t>(data->count),
-                          source, tag, MPI_Comm(*this), &req.m_requests[0]));
-
-  return req;
+  return request::make_serialized_array(*this, source, tag, values, n);
 }
 
+template<typename T, class A>
+request
+communicator::irecv_vector(int source, int tag, std::vector<T,A>& values, 
+                           mpl::true_ primitive) const
+{
+  return request::make_dynamic_primitive_array_recv(*this, source, tag, values);
+}
+
+template<typename T, class A>
+request
+communicator::irecv_vector(int source, int tag, std::vector<T,A>& values, 
+                           mpl::false_ no) const
+{
+  return irecv_impl(source, tag, values, no);
+}
+
+template<typename T, typename A>
+request
+communicator::irecv(int source, int tag, std::vector<T,A>& values) const
+{
+  return irecv_vector(source, tag, values, is_mpi_datatype<T>());
+}
 
 // Array receive must receive the elements directly into a buffer.
 template<typename T>

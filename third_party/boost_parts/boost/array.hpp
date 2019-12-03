@@ -183,7 +183,7 @@ namespace boost {
 
         // check range (may be private because it is static)
         static BOOST_CONSTEXPR bool rangecheck (size_type i) {
-            return i > size() ? boost::throw_exception(std::out_of_range ("array<>: index out of range")), true : true;
+            return i >= size() ? boost::throw_exception(std::out_of_range ("array<>: index out of range")), true : true;
         }
 
     };

@@ -50,44 +50,8 @@ communicator::isend(int dest, int tag, const skeleton_proxy<T>& proxy) const
 
   *archive << proxy.object;
   request result = isend(dest, tag, *archive);
-  result.m_data = archive;
+  result.preserve(archive);
   return result;
-}
-
-namespace detail {
-  template<typename T>
-  struct serialized_irecv_data<const skeleton_proxy<T> >
-  {
-    serialized_irecv_data(const communicator& comm, int source, int tag, 
-                          skeleton_proxy<T> proxy)
-      : comm(comm), source(source), tag(tag), isa(comm), 
-        ia(isa.get_skeleton()), proxy(proxy) { }
-
-    void deserialize(status& stat) 
-    { 
-      isa >> proxy.object;
-      stat.m_count = 1;
-    }
-
-    communicator comm;
-    int source;
-    int tag;
-    std::size_t count;
-    packed_skeleton_iarchive isa;
-    packed_iarchive& ia;
-    skeleton_proxy<T> proxy;
-  };
-
-  template<typename T>
-  struct serialized_irecv_data<skeleton_proxy<T> >
-    : public serialized_irecv_data<const skeleton_proxy<T> >
-  {
-    typedef serialized_irecv_data<const skeleton_proxy<T> > inherited;
-
-    serialized_irecv_data(const communicator& comm, int source, int tag, 
-                          const skeleton_proxy<T>& proxy)
-      : inherited(comm, source, tag, proxy) { }
-  };
 }
 
 } } // end namespace boost::mpi

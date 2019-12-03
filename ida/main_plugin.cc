@@ -118,7 +118,10 @@ void ExportIdb(Writer* writer) {
   FlowGraph flow_graph;
   CallGraph call_graph;
   AnalyzeFlowIda(&entry_points, &modules, writer, &instructions, &flow_graph,
-                 &call_graph);
+                 &call_graph,
+                 Plugin::instance()->x86_noreturn_heuristic()
+                     ? FlowGraph::NoReturnHeuristic::kNopsAfterCall
+                     : FlowGraph::NoReturnHeuristic::kNone);
 
   LOG(INFO) << absl::StrCat(
       GetModuleName(), ": exported ", flow_graph.GetFunctions().size(),
@@ -444,6 +447,12 @@ int Plugin::Init() {
                        .set_log_filename(GetArgument("LogFile")))) {
     LOG(INFO) << "Error initializing logging, skipping BinExport plugin";
     return PLUGIN_SKIP;
+  }
+
+  const auto heuristic = GetArgument("X86NoReturnHeuristic");
+  if (!heuristic.empty()) {
+    // If unset, this leaves the default value
+    x86_noreturn_heuristic_ = absl::AsciiStrToUpper(heuristic) == "TRUE";
   }
 
   LOG(INFO) << kBinExportName << " " << kBinExportDetailedVersion << ", "

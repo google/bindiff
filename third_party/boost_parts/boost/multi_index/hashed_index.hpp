@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <boost/call_traits.hpp>
 #include <boost/core/addressof.hpp>
-#include <boost/detail/allocator_utilities.hpp>
 #include <boost/detail/no_exceptions_support.hpp>
 #include <boost/detail/workaround.hpp>
 #include <boost/foreach_fwd.hpp>
@@ -27,6 +26,7 @@
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/push_front.hpp>
 #include <boost/multi_index/detail/access_specifier.hpp>
+#include <boost/multi_index/detail/allocator_traits.hpp>
 #include <boost/multi_index/detail/auto_space.hpp>
 #include <boost/multi_index/detail/bucket_array.hpp>
 #include <boost/multi_index/detail/do_not_copy_elements_tag.hpp>
@@ -45,7 +45,6 @@
 #include <functional>
 #include <iterator>
 #include <utility>
-#include <memory>
 
 #if !defined(BOOST_NO_CXX11_HDR_INITIALIZER_LIST)
 #include <initializer_list>
@@ -103,66 +102,63 @@ class hashed_index:
 #pragma parse_mfunc_templ off
 #endif
 
-  typedef typename SuperMeta::type                   super;
+  typedef typename SuperMeta::type               super;
 
 protected:
   typedef hashed_index_node<
-    typename super::node_type,Category>              node_type;
+    typename super::node_type,Category>          node_type;
 
 private:
-  typedef typename node_type::node_alg               node_alg;
-  typedef typename node_type::impl_type              node_impl_type;
-  typedef typename node_impl_type::pointer           node_impl_pointer;
-  typedef typename node_impl_type::base_pointer      node_impl_base_pointer;
+  typedef typename node_type::node_alg           node_alg;
+  typedef typename node_type::impl_type          node_impl_type;
+  typedef typename node_impl_type::pointer       node_impl_pointer;
+  typedef typename node_impl_type::base_pointer  node_impl_base_pointer;
   typedef bucket_array<
-    typename super::final_allocator_type>            bucket_array_type;
+    typename super::final_allocator_type>        bucket_array_type;
 
 public:
   /* types */
 
-  typedef typename KeyFromValue::result_type         key_type;
-  typedef typename node_type::value_type             value_type;
-  typedef KeyFromValue                               key_from_value;
-  typedef Hash                                       hasher;
-  typedef Pred                                       key_equal;
-  typedef tuple<std::size_t,
-    key_from_value,hasher,key_equal>                 ctor_args;
-  typedef typename super::final_allocator_type       allocator_type;
-#ifdef BOOST_NO_CXX11_ALLOCATOR
-  typedef typename allocator_type::pointer           pointer;
-  typedef typename allocator_type::const_pointer     const_pointer;
-  typedef typename allocator_type::reference         reference;
-  typedef typename allocator_type::const_reference   const_reference;
-#else
-  typedef std::allocator_traits<allocator_type>      allocator_traits;
-  typedef typename allocator_traits::pointer         pointer;
-  typedef typename allocator_traits::const_pointer   const_pointer;
-  typedef value_type&                                reference;
-  typedef const value_type&                          const_reference;
-#endif
-  typedef std::size_t                                size_type;      
-  typedef std::ptrdiff_t                             difference_type;
+  typedef typename KeyFromValue::result_type     key_type;
+  typedef typename node_type::value_type         value_type;
+  typedef KeyFromValue                           key_from_value;
+  typedef Hash                                   hasher;
+  typedef Pred                                   key_equal;
+  typedef typename super::final_allocator_type   allocator_type;
+
+private:
+  typedef allocator_traits<allocator_type>       alloc_traits;
+
+public:
+  typedef typename alloc_traits::pointer         pointer;
+  typedef typename alloc_traits::const_pointer   const_pointer;
+  typedef value_type&                            reference;
+  typedef const value_type&                      const_reference;
+  typedef typename alloc_traits::size_type       size_type;
+  typedef typename alloc_traits::difference_type difference_type;
+  typedef tuple<size_type,
+    key_from_value,hasher,key_equal>             ctor_args;
 
 #if defined(BOOST_MULTI_INDEX_ENABLE_SAFE_MODE)
   typedef safe_mode::safe_iterator<
     hashed_index_iterator<
       node_type,bucket_array_type,
       hashed_index_global_iterator_tag>,
-    hashed_index>                                    iterator;
+    hashed_index>                                iterator;
 #else
   typedef hashed_index_iterator<
     node_type,bucket_array_type,
-    hashed_index_global_iterator_tag>                iterator;
+    hashed_index_global_iterator_tag>            iterator;
 #endif
 
-  typedef iterator                                   const_iterator;
+  typedef iterator                               const_iterator;
 
   typedef hashed_index_iterator<
     node_type,bucket_array_type,
-    hashed_index_local_iterator_tag>                 local_iterator;
-  typedef local_iterator                             const_local_iterator;
+    hashed_index_local_iterator_tag>             local_iterator;
+  typedef local_iterator                         const_local_iterator;
 
-  typedef TagList                                    tag_list;
+  typedef TagList                                tag_list;
 
 protected:
   typedef typename super::final_node_type     final_node_type;
@@ -528,7 +524,11 @@ public:
 
   /* bucket interface */
 
-  size_type bucket_count()const BOOST_NOEXCEPT{return buckets.size();}
+  size_type bucket_count()const BOOST_NOEXCEPT
+  {
+    return static_cast<size_type>(buckets.size());
+  }
+
   size_type max_bucket_count()const BOOST_NOEXCEPT{return static_cast<size_type>(-1);}
 
   size_type bucket_size(size_type n)const
@@ -543,7 +543,7 @@ public:
 
   size_type bucket(key_param_type k)const
   {
-    return buckets.position(hash_(k));
+    return static_cast<size_type>(buckets.position(hash_(k)));
   }
 
   local_iterator begin(size_type n)
@@ -1072,7 +1072,7 @@ BOOST_MULTI_INDEX_PROTECTED_IF_MEMBER_TEMPLATE_FRIENDS:
       if(it!=it_last){
         for(const_iterator scan=it;scan!=it_last;++scan){
           if(std::find(it,scan,*scan)!=scan)continue;
-          std::ptrdiff_t matches=std::count(it2,it2_last,*scan);
+          difference_type matches=std::count(it2,it2_last,*scan);
           if(matches==0||matches!=std::count(scan,it_last,*scan))return false;
         }
         it=it_last;

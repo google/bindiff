@@ -21,6 +21,7 @@
 #include <tuple>
 
 // clang-format off
+#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -680,7 +681,8 @@ int GetPermissions(const segment_t* ida_segment) {
 
 void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
                     Writer* writer, detego::Instructions* instructions,
-                    FlowGraph* flow_graph, CallGraph* call_graph) {
+                    FlowGraph* flow_graph, CallGraph* call_graph,
+                    FlowGraph::NoReturnHeuristic noreturn_heuristic) {
   Timer<> timer;
   AddressReferences address_references;
 
@@ -720,7 +722,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   switch (GetArchitecture()) {
     case kX86:
       parse_instruction = ParseInstructionIdaMetaPc;
-      mark_x86_nops = true;
+      mark_x86_nops =
+          noreturn_heuristic == FlowGraph::NoReturnHeuristic::kNopsAfterCall;
       break;
     case kArm:
       parse_instruction = ParseInstructionIdaArm;
@@ -785,7 +788,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   ReconstructFlowGraph(instructions, *flow_graph, call_graph);
 
   LOG(INFO) << "reconstructing functions";
-  flow_graph->ReconstructFunctions(instructions, call_graph);
+  flow_graph->ReconstructFunctions(instructions, call_graph,
+                                   noreturn_heuristic);
 
   // Must be called after simplifyFlowGraphs since that will sometimes
   // remove source basic blocks for an edge. Only happens when IDA completely

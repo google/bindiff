@@ -31,8 +31,14 @@ class Plugin : public IdaPlugin<Plugin> {
 
   bool alsologtostderr() const { return alsologtostderr_; }
 
+  bool x86_noreturn_heuristic() const { return x86_noreturn_heuristic_; }
+
  private:
   bool alsologtostderr_ = false;
+
+  // Whether to use an X86-specific heuristic to identify functions that do not
+  // return. See FlowGraph::FindBasicBlockBreaks() for details.
+  bool x86_noreturn_heuristic_ = true;
 };
 
 }  // namespace security::binexport
