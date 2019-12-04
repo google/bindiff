@@ -31,8 +31,7 @@
 class insn_t;
 class op_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 struct Name {
   Name(const std::string& name, Expression::Type type)
@@ -50,7 +49,8 @@ using ModuleMap = std::map<Address, std::string>;
 
 void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
                     Writer* writer, detego::Instructions* instructions,
-                    FlowGraph* flow_graph, CallGraph* call_graph);
+                    FlowGraph* flow_graph, CallGraph* call_graph,
+                    FlowGraph::NoReturnHeuristic noreturn_heuristic);
 
 std::string GetRegisterName(size_t index, size_t segment_size);
 std::string GetVariableName(const insn_t& instruction, uint8_t operand_num);
@@ -80,7 +80,6 @@ bool IsStackVariable(Address address, uint8_t operand_num);
 void GetComments(const insn_t& instruction,
                  Comments* comments);  // Cached in callgraph!
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // NAMES_H_

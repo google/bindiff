@@ -23,14 +23,12 @@
 
 class insn_t;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 Instruction ParseInstructionIdaPpc(const insn_t& instruction,
                                    CallGraph* call_graph, FlowGraph* flow_graph,
                                    TypeSystem* type_system);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // IDA_PPC_H_

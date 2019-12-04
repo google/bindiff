@@ -2136,7 +2136,7 @@ template<class F, class A1, class A2, class A3, class A4, class A5, class A6, cl
 #undef BOOST_BIND_ST
 #undef BOOST_BIND_NOEXCEPT
 
-#ifdef BOOST_BIND_ENABLE_STDCALL
+#if defined(BOOST_BIND_ENABLE_STDCALL) && !defined(_M_X64)
 
 #define BOOST_BIND_CC __stdcall
 #define BOOST_BIND_ST
@@ -2150,7 +2150,7 @@ template<class F, class A1, class A2, class A3, class A4, class A5, class A6, cl
 
 #endif
 
-#ifdef BOOST_BIND_ENABLE_FASTCALL
+#if defined(BOOST_BIND_ENABLE_FASTCALL) && !defined(_M_X64)
 
 #define BOOST_BIND_CC __fastcall
 #define BOOST_BIND_ST
@@ -2197,7 +2197,7 @@ template<class F, class A1, class A2, class A3, class A4, class A5, class A6, cl
 #undef BOOST_BIND_MF_CC
 #undef BOOST_BIND_MF_NOEXCEPT
 
-#ifdef BOOST_MEM_FN_ENABLE_CDECL
+#if defined(BOOST_MEM_FN_ENABLE_CDECL) && !defined(_M_X64)
 
 #define BOOST_BIND_MF_NAME(X) X##_cdecl
 #define BOOST_BIND_MF_CC __cdecl
@@ -2212,7 +2212,7 @@ template<class F, class A1, class A2, class A3, class A4, class A5, class A6, cl
 
 #endif
 
-#ifdef BOOST_MEM_FN_ENABLE_STDCALL
+#if defined(BOOST_MEM_FN_ENABLE_STDCALL) && !defined(_M_X64)
 
 #define BOOST_BIND_MF_NAME(X) X##_stdcall
 #define BOOST_BIND_MF_CC __stdcall
@@ -2227,7 +2227,7 @@ template<class F, class A1, class A2, class A3, class A4, class A5, class A6, cl
 
 #endif
 
-#ifdef BOOST_MEM_FN_ENABLE_FASTCALL
+#if defined(BOOST_MEM_FN_ENABLE_FASTCALL) && !defined(_M_X64)
 
 #define BOOST_BIND_MF_NAME(X) X##_fastcall
 #define BOOST_BIND_MF_CC __fastcall

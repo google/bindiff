@@ -46,8 +46,7 @@
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 // Sorts by descending occurrence count then by mnemonic string. Don't be
@@ -145,11 +144,12 @@ void WriteExpressions(BinExport2* proto) {
   proto->mutable_expression()->Reserve(expressions.size());
   for (const Expression* expression : expressions) {
     // Proto expressions use a zero based index, C++ expressions are one based.
-    QCHECK_EQ(expression->GetId() - 1, proto->expression_size());
-    QCHECK(!expression->GetSymbol().empty() || expression->IsImmediate());
+    DCHECK_EQ(expression->GetId() - 1, proto->expression_size());
+    const auto& symbol = expression->GetSymbol();
+    DCHECK(!symbol.empty() || expression->IsImmediate());
     BinExport2::Expression* proto_expression(proto->add_expression());
-    if (!expression->GetSymbol().empty()) {
-      proto_expression->set_symbol(expression->GetSymbol());
+    if (!symbol.empty()) {
+      proto_expression->set_symbol(symbol);
     }
     if (expression->GetParent() != nullptr) {
       proto_expression->set_parent_index(expression->GetParent()->GetId() - 1);
@@ -775,5 +775,4 @@ not_absl::Status BinExport2Writer::Write(
   return WriteProtoToFile(filename_, &proto);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

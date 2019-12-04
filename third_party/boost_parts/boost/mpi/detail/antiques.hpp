@@ -19,10 +19,10 @@ namespace detail {
   // serve as an incentive to get rid of this when those compilers 
   // are dropped.
   template <typename T, typename A>
-  T* c_data(std::vector<T,A>& v) { return &(v[0]); }
+  T* c_data(std::vector<T,A>& v) { return v.empty() ? static_cast<T*>(0) : &(v[0]); }
 
   template <typename T, typename A>
-  T const* c_data(std::vector<T,A> const& v) { return &(v[0]); }
+  T const* c_data(std::vector<T,A> const& v) { return v.empty() ? static_cast<T const*>(0) : &(v[0]); }
 
   // Some old MPI implementation (OpenMPI 1.6 for example) have non 
   // conforming API w.r.t. constness.

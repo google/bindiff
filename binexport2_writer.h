@@ -19,8 +19,7 @@
 
 class BinExport2;
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 class BinExport2Writer : public Writer {
  public:
@@ -53,7 +52,6 @@ class BinExport2Writer : public Writer {
   std::string architecture_;
 };
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // BINEXPORT2_WRITER_H_

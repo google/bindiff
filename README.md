@@ -54,9 +54,9 @@ plugins directory. These are the default paths:
 
 | OS      | Plugin path                                 |
 | ------- | ------------------------------------------- |
-| Linux   | `/opt/ida-7.0/plugins`                      |
-| macOS   | `/Applications/IDA Pro 7.0/idabin/plugins`  |
-| Windows | `%ProgramFiles(x86)%\IDA 7.0\plugins`       |
+| Linux   | `/opt/idapro-7.4/plugins`                   |
+| macOS   | `/Applications/IDA Pro 7.4/idabin/plugins`  |
+| Windows | `%ProgramFiles(x86)%\IDA 7.4\plugins`       |
 
 To install just for the current user, copy the files into one of these
 directories instead:
@@ -145,18 +145,19 @@ idaapi.run_statements(
 BinExport defines the following plugin options, that can be specified on IDA's
 command line:
 
-| Option                            | Description                                     |
-| --------------------------------- | ----------------------------------------------- |
-| `-OBinExportAutoAction:<ACTION>`  | Invoke a BinExport IDC function and exit.       |
-| `-OBinExportModule:<PARAM>`       | Argument for `BinExportAutoAction`.             |
-| `-OBinExportHost:<HOST>`          | Database server to connect to                   |
-| `-OBinExportPort:<PORT>`          | Port to connect to. PostgreSQL default is 5432. |
-| `-OBinExportUser:<USER>`          | User name                                       |
-| `-OBinExportPassword:<PASS>`      | Password                                        |
-| `-OBinExportDatabase:<DB>`        | Database to use                                 |
-| `-OBinExportSchema:<SCHEMA>`      | Database schema. BinNavi only uses "public".    |
-| `-OBinExportLogFile:<FILE>`       | Log messages to a file                          |
-| `-OBinExportAlsoLogToStdErr:TRUE` | If specified, also log to standard error        |
+| Option                                  | Description                                                            |
+| --------------------------------------- | ---------------------------------------------------------------------- |
+| `-OBinExportAutoAction:<ACTION>`        | Invoke a BinExport IDC function and exit                               |
+| `-OBinExportModule:<PARAM>`             | Argument for `BinExportAutoAction`                                     |
+| `-OBinExportHost:<HOST>`                | Database server to connect to                                          |
+| `-OBinExportPort:<PORT>`                | Port to connect to. PostgreSQL default is 5432.                        |
+| `-OBinExportUser:<USER>`                | User name                                                              |
+| `-OBinExportPassword:<PASS>`            | Password                                                               |
+| `-OBinExportDatabase:<DB>`              | Database to use                                                        |
+| `-OBinExportSchema:<SCHEMA>`            | Database schema. BinNavi only uses "public".                           |
+| `-OBinExportLogFile:<FILE>`             | Log messages to a file                                                 |
+| `-OBinExportAlsoLogToStdErr:TRUE`       | If specified, also log to standard error                               |
+| `-OBinExportX86NoReturnHeuristic:FALSE` | Disable the X86-specific heuristic to identify non-returning functions |
 
 Note that these options must come before any files.
 
@@ -167,14 +168,14 @@ Note that these options must come before any files.
 As we support exporting into PostgreSQL databases as well as a Protocol Buffer
 based format, there are quite a few dependencies to satisfy:
 
-*   Boost 1.67.0 or higher (a partial copy of 1.67.0 ships in
+*   Boost 1.67.0 or higher (a partial copy of 1.71.0 ships in
     `third_party/boost_parts`)
-*   [CMake](https://cmake.org/download/) 3.7.2 or higher
-*   GCC 4.8 or a recent version of Clang on Linux/macOS. On Windows, use the
+*   [CMake](https://cmake.org/download/) 3.12 or higher
+*   GCC 7 or a recent version of Clang on Linux/macOS. On Windows, use the
     Visual Studio 2017 compiler (need at least Update 9) and the Windows SDK
     for Windows 10.
 *   Git 1.8 or higher
-*   IDA SDK 7.2 (unpack into `third_party/idasdk`)
+*   IDA SDK 7.4 (unpack into `third_party/idasdk`)
 *   OpenSSL 1.0.2 or higher
 *   Perl 5.6 or higher (needed for OpenSSL and PostgreSQL)
 *   PostgreSQL client libraries 9.3 or higher
@@ -199,12 +200,12 @@ of the cloned repository.
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.0:
+for IDA 7.4:
 
 ```bash
-unzip PATH/TO/idasdk72.zip -d third_party/idasdk
-mv third_party/idasdk/idasdk72/* third_party/idasdk
-rmdir third_party/idasdk/idasdk72
+unzip PATH/TO/idasdk74.zip -d third_party/idasdk
+mv third_party/idasdk/idasdk74/* third_party/idasdk
+rmdir third_party/idasdk/idasdk74
 ```
 
 #### Build BinExport
@@ -283,12 +284,12 @@ The last command makes CMake available in the system path.
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.2:
+for IDA 7.4:
 
 ```bash
-unzip PATH/TO/idasdk72.zip -d third_party/idasdk
-mv third_party/idasdk/idasdk72/* third_party/idasdk
-rmdir third_party/idasdk/idasdk72
+unzip PATH/TO/idasdk74.zip -d third_party/idasdk
+mv third_party/idasdk/idasdk74/* third_party/idasdk
+rmdir third_party/idasdk/idasdk74
 ```
 
 #### Build BinExport
@@ -347,11 +348,11 @@ cd binexport
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.2, assuming that Git was installed into the default directory first:
+for IDA 7.4, assuming that Git was installed into the default directory first:
 
 ```bat
-"%ProgramFiles%\Git\usr\bin\unzip" PATH\TO\idasdk72.zip -d third_party
-rename third_party\idasdk72 idasdk
+"%ProgramFiles%\Git\usr\bin\unzip" PATH\TO\idasdk74.zip -d third_party
+rename third_party\idasdk74 idasdk
 ```
 
 #### Build BinExport

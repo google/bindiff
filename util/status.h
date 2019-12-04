@@ -22,6 +22,7 @@
 #include <ostream>
 #include <string>
 
+#include "third_party/absl/base/attributes.h"
 #include "third_party/absl/meta/type_traits.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"

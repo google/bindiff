@@ -34,7 +34,7 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 #include "third_party/zynamics/binexport/call_graph.h"
-#include "third_party/zynamics/binexport/database_writer.h"
+#include "third_party/zynamics/binexport/database/postgresql_writer.h"
 #include "third_party/zynamics/binexport/dump_writer.h"
 #include "third_party/zynamics/binexport/entry_point.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
@@ -48,13 +48,11 @@
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
+#include "third_party/zynamics/binexport/version.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
-constexpr char Plugin::kName[];
-constexpr char Plugin::kCopyright[];
 constexpr char Plugin::kComment[];
 constexpr char Plugin::kHotKey[];
 
@@ -120,7 +118,10 @@ void ExportIdb(Writer* writer) {
   FlowGraph flow_graph;
   CallGraph call_graph;
   AnalyzeFlowIda(&entry_points, &modules, writer, &instructions, &flow_graph,
-                 &call_graph);
+                 &call_graph,
+                 Plugin::instance()->x86_noreturn_heuristic()
+                     ? FlowGraph::NoReturnHeuristic::kNopsAfterCall
+                     : FlowGraph::NoReturnHeuristic::kNone);
 
   LOG(INFO) << absl::StrCat(
       GetModuleName(), ": exported ", flow_graph.GetFunctions().size(),
@@ -142,7 +143,7 @@ int ExportSql(absl::string_view schema_name,
     DatabaseWriter writer(
         std::string(schema_name) /* Database */, GetModuleName(),
         /*module_id=*/0, md5, sha256, GetArchitectureName().value(),
-        GetImageBase(), Plugin::kName /* Version string */,
+        GetImageBase(), kBinExportName /* "BinExport " + version */,
         !connection_string.empty() ? std::string(connection_string)
                                    : GetArgument("ConnectionString"));
     int query_size = 0;
@@ -285,7 +286,7 @@ const char* GetDialog() {
       "See https://github.com/google/binexport/ for details on how to "
       "build/install and use this plugin.\n"
       "ENDHELP\n",
-      Plugin::kName,
+      kBinExportName,
       "\n\n\n"
       "<BinExport v2 Binary Export:B:1:30:::>\n\n"
       "<Text Dump Export:B:1:30:::>\n\n"
@@ -439,28 +440,31 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
 }
 
 int Plugin::Init() {
-  LoggingOptions options;
-  options.set_alsologtostderr(
-      absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE");
-  options.set_log_filename(GetArgument("LogFile"));
-  if (!InitLogging(options)) {
+  alsologtostderr_ =
+      absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
+  if (!InitLogging(LoggingOptions{}
+                       .set_alsologtostderr(alsologtostderr_)
+                       .set_log_filename(GetArgument("LogFile")))) {
     LOG(INFO) << "Error initializing logging, skipping BinExport plugin";
     return PLUGIN_SKIP;
   }
 
-  LOG(INFO) << kName << " (@" << BINEXPORT_REVISION << ", " << __DATE__
-#ifndef NDEBUG
-            << ", debug build"
-#endif
-            << "), " << kCopyright;
+  const auto heuristic = GetArgument("X86NoReturnHeuristic");
+  if (!heuristic.empty()) {
+    // If unset, this leaves the default value
+    x86_noreturn_heuristic_ = absl::AsciiStrToUpper(heuristic) == "TRUE";
+  }
+
+  LOG(INFO) << kBinExportName << " " << kBinExportDetailedVersion << ", "
+            << kBinExportCopyright;
 
   addon_info_t addon_info;
   addon_info.id = "com.google.binexport";
-  addon_info.name = kName;
+  addon_info.name = kBinExportName;
   addon_info.producer = "Google";
-  addon_info.version = BINEXPORT_RELEASE " @" BINEXPORT_REVISION;
+  addon_info.version = kBinExportDetailedVersion;
   addon_info.url = "https://github.com/google/binexport";
-  addon_info.freeform = kCopyright;
+  addon_info.freeform = kBinExportCopyright;
   register_addon(&addon_info);
 
   if (!hook_to_notification_point(HT_UI, UiHook, /*user_data=*/nullptr)) {
@@ -516,8 +520,7 @@ bool Plugin::Run(size_t argument) {
   return true;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 using security::binexport::Plugin;
 
@@ -529,6 +532,6 @@ plugin_t PLUGIN = {
     [](size_t argument) { return Plugin::instance()->Run(argument); },
     Plugin::kComment,  // Statusline text
     nullptr,           // Multi-line help about the plugin, unused
-    Plugin::kName,     // Preferred short name of the plugin
-    Plugin::kHotKey    // Preferred hotkey to run the plugin
+    security::binexport::kBinExportName,  // Preferred short name of the plugin
+    Plugin::kHotKey                       // Preferred hotkey to run the plugin
 };

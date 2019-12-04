@@ -23,8 +23,7 @@
 #include "third_party/zynamics/binexport/reader/instruction.h"
 #include "third_party/zynamics/binexport/reader/reader_test_util.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 using ::testing::Eq;
@@ -80,12 +79,6 @@ TEST_F(FlowGraphTest, ReadValidData) {
 // match the instructions specified the test is successful.
 TEST_F(FlowGraphTest, GetInstructions) {
   // Reproduce test data with the following queries:
-  /* gqui print \
-     basic_block[0], instruction[0], instruction[1], instruction[2], \
-     instruction[3], instruction[4],  mnemonic[0], mnemonic[9], mnemonic[49] \
-     from \
-     rawproto:testdata/0000500ed9f688a309ee2176462eb978efa9a2fb80fcceb5d8fd08168ea50dfd.BinExport2
-  */
   FlowGraph::Vertex vertex = flow_graph_->GetVertex(0x322152);
   int counter = 0;
   for (Instructions::const_iterator it =
@@ -156,5 +149,4 @@ TEST_F(FlowGraphTest, GetVertexGoodAddress) {
 }
 
 }  // namespace
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

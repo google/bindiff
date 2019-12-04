@@ -23,11 +23,9 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
-namespace security {
-
 // This namespace collects functions that work directly with BinExport2 protocol
 // buffers, similar to a class with just static methods.
-namespace binexport {
+namespace security::binexport {
 
 // Returns the address for an instruction. Takes care of instructions without an
 // address (that are part of a continuous run of instructions, for example).
@@ -43,7 +41,6 @@ Address GetInstructionAddress(const BinExport2& proto, int index);
 // beginning of continuous instruction runs.
 std::vector<Address> GetAllInstructionAddresses(const BinExport2& proto);
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport
 
 #endif  // BINEXPORT_H_

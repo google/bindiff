@@ -28,6 +28,9 @@ BOOST_AUTO_LINK_NOMANGLE: Specifies that we should link to BOOST_LIB_NAME.lib,
 BOOST_AUTO_LINK_TAGGED:   Specifies that we link to libraries built with the --layout=tagged option.
                           This is essentially the same as the default name-mangled version, but without
                           the compiler name and version, or the Boost version.  Just the build options.
+BOOST_AUTO_LINK_SYSTEM:   Specifies that we link to libraries built with the --layout=system option.
+                          This is essentially the same as the non-name-mangled version, but with
+                          the prefix to differentiate static and dll builds
 
 These macros will be undef'ed at the end of the header, further this header
 has no include guards - so be sure to include it only once from your library!
@@ -96,7 +99,8 @@ BOOST_LIB_VERSION:    The Boost version, in the form x_y, for Boost version x.y.
 #if defined(BOOST_MSVC) \
     || defined(__BORLANDC__) \
     || (defined(__MWERKS__) && defined(_WIN32) && (__MWERKS__ >= 0x3000)) \
-    || (defined(__ICL) && defined(_MSC_EXTENSIONS) && (_MSC_VER >= 1200))
+    || (defined(__ICL) && defined(_MSC_EXTENSIONS) && (_MSC_VER >= 1200)) \
+    || (defined(BOOST_CLANG) && defined(BOOST_WINDOWS) && defined(_MSC_VER) && (__clang_major__ >= 4))
 
 #ifndef BOOST_VERSION_HPP
 #  include <boost/version.hpp>
@@ -170,10 +174,15 @@ BOOST_LIB_VERSION:    The Boost version, in the form x_y, for Boost version x.y.
      // vc14:
 #    define BOOST_LIB_TOOLSET "vc140"
 
-#  elif defined(BOOST_MSVC)
+#  elif defined(BOOST_MSVC) && (BOOST_MSVC < 1920)
 
      // vc14.1:
 #    define BOOST_LIB_TOOLSET "vc141"
+
+#  elif defined(BOOST_MSVC)
+
+     // vc14.2:
+#    define BOOST_LIB_TOOLSET "vc142"
 
 #  elif defined(__BORLANDC__)
 
@@ -194,6 +203,11 @@ BOOST_LIB_VERSION:    The Boost version, in the form x_y, for Boost version x.y.
 
      // Metrowerks CodeWarrior 9.x
 #    define BOOST_LIB_TOOLSET "cw9"
+
+#  elif defined(BOOST_CLANG) && defined(BOOST_WINDOWS) && defined(_MSC_VER) && (__clang_major__ >= 4)
+
+     // Clang on Windows
+#    define BOOST_LIB_TOOLSET "clangw" BOOST_STRINGIZE(__clang_major__)
 
 #  endif
 #endif // BOOST_LIB_TOOLSET
@@ -402,9 +416,14 @@ BOOST_LIB_VERSION:    The Boost version, in the form x_y, for Boost version x.y.
       && defined(BOOST_LIB_VERSION)
 
 #ifdef BOOST_AUTO_LINK_TAGGED
-#  pragma comment(lib, BOOST_LIB_PREFIX BOOST_STRINGIZE(BOOST_LIB_NAME) BOOST_LIB_THREAD_OPT BOOST_LIB_RT_OPT ".lib")
+#  pragma comment(lib, BOOST_LIB_PREFIX BOOST_STRINGIZE(BOOST_LIB_NAME) BOOST_LIB_THREAD_OPT BOOST_LIB_RT_OPT BOOST_LIB_ARCH_AND_MODEL_OPT ".lib")
 #  ifdef BOOST_LIB_DIAGNOSTIC
-#     pragma message ("Linking to lib file: " BOOST_LIB_PREFIX BOOST_STRINGIZE(BOOST_LIB_NAME) BOOST_LIB_THREAD_OPT BOOST_LIB_RT_OPT ".lib")
+#     pragma message ("Linking to lib file: " BOOST_LIB_PREFIX BOOST_STRINGIZE(BOOST_LIB_NAME) BOOST_LIB_THREAD_OPT BOOST_LIB_RT_OPT BOOST_LIB_ARCH_AND_MODEL_OPT ".lib")
+#  endif
+#elif defined(BOOST_AUTO_LINK_SYSTEM)
+#  pragma comment(lib, BOOST_LIB_PREFIX BOOST_STRINGIZE(BOOST_LIB_NAME) ".lib")
+#  ifdef BOOST_LIB_DIAGNOSTIC
+#     pragma message ("Linking to lib file: " BOOST_LIB_PREFIX BOOST_STRINGIZE(BOOST_LIB_NAME) ".lib")
 #  endif
 #elif defined(BOOST_AUTO_LINK_NOMANGLE)
 #  pragma comment(lib, BOOST_STRINGIZE(BOOST_LIB_NAME) ".lib")

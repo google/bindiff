@@ -3,8 +3,7 @@
 #include "third_party/absl/memory/memory.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 std::unique_ptr<google::protobuf::util::MessageDifferencer>
 CreateDifferencer() {
@@ -23,5 +22,4 @@ CreateDifferencer() {
   return differencer;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

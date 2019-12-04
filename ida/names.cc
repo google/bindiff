@@ -21,6 +21,7 @@
 #include <tuple>
 
 // clang-format off
+#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -57,8 +58,7 @@
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 std::string ToString(const qstring& ida_string) {
   return std::string(ida_string.c_str(), ida_string.length());
@@ -142,11 +142,11 @@ absl::optional<std::string> GetArchitectureName() {
   // This is not strictly correct, i.e. for 16-bit archs and also for 128-bit
   // archs, but is what IDA supports. This needs to be changed if IDA introduces
   // is_128bit().
-  absl::StrAppend(&architecture, inf.is_64bit() ? "-64" : "-32");
+  absl::StrAppend(&architecture, inf_is_64bit() ? "-64" : "-32");
   return architecture;
 }
 
-int GetArchitectureBitness() { return inf.is_64bit() ? 64 : 32; }
+int GetArchitectureBitness() { return inf_is_64bit() ? 64 : 32; }
 
 std::string GetModuleName() {
   char path_buffer[QMAXPATH] = {0};
@@ -246,7 +246,6 @@ std::string GetSizePrefix(const size_t size_in_bytes) {
 }
 
 size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
-  constexpr int dt_half = 0x7f;  // Defined in IDA SDK module/arm/arm.hpp
   switch (operand.dtype) {
     case dt_byte:
       return 1;  // 8 bit
@@ -682,7 +681,8 @@ int GetPermissions(const segment_t* ida_segment) {
 
 void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
                     Writer* writer, detego::Instructions* instructions,
-                    FlowGraph* flow_graph, CallGraph* call_graph) {
+                    FlowGraph* flow_graph, CallGraph* call_graph,
+                    FlowGraph::NoReturnHeuristic noreturn_heuristic) {
   Timer<> timer;
   AddressReferences address_references;
 
@@ -722,7 +722,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   switch (GetArchitecture()) {
     case kX86:
       parse_instruction = ParseInstructionIdaMetaPc;
-      mark_x86_nops = true;
+      mark_x86_nops =
+          noreturn_heuristic == FlowGraph::NoReturnHeuristic::kNopsAfterCall;
       break;
     case kArm:
       parse_instruction = ParseInstructionIdaArm;
@@ -787,7 +788,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   ReconstructFlowGraph(instructions, *flow_graph, call_graph);
 
   LOG(INFO) << "reconstructing functions";
-  flow_graph->ReconstructFunctions(instructions, call_graph);
+  flow_graph->ReconstructFunctions(instructions, call_graph,
+                                   noreturn_heuristic);
 
   // Must be called after simplifyFlowGraphs since that will sometimes
   // remove source basic blocks for an edge. Only happens when IDA completely
@@ -1057,5 +1059,4 @@ void GetComments(const insn_t& instruction, Comments* comments) {
   GetLocalReferences(instruction, comments);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

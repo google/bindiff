@@ -35,8 +35,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 #define dex_o_reg o_reg
@@ -359,5 +358,4 @@ Instruction ParseInstructionIdaDalvik(const insn_t& instruction,
       ParseOperandsIdaDalvik(instruction, call_graph, flow_graph));
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

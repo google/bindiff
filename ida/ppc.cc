@@ -32,8 +32,7 @@
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 namespace {
 
 // Various bit definitions:
@@ -619,5 +618,4 @@ Instruction ParseInstructionIdaPpc(const insn_t& instruction,
                      mnemonic, operands);
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

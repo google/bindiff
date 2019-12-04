@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.7)
-cmake_policy(VERSION 3.7)
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(VERSION 3.12)
 project(binexport VERSION 10)  # Only major version is used
 
 # XXX: Replace for OSS!
@@ -69,7 +69,7 @@ if(GIT_FOUND)
   endif()
 endif()
 
-configure_file(version.h.in version.h ESCAPE_QUOTES @ONLY)
+configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
 # Interface library with include paths used by BinExport
 add_library(binexport_base INTERFACE)
@@ -129,6 +129,12 @@ if(WIN32)
   target_link_libraries(binexport_shared PUBLIC
     shlwapi.lib
   )
+else()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
+    target_link_libraries(binexport_shared PUBLIC
+      stdc++fs
+    )
+  endif()
 endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
@@ -210,8 +216,16 @@ add_ida_plugin(${binexport_plugin_name}
   call_graph.h
   comment.cc
   comment.h
-  database_writer.cc
-  database_writer.h
+  database/initialize_constraints_postgresql_sql.h
+  database/initialize_indices_postgresql_sql.h
+  database/initialize_tables_postgresql_sql.h
+  database/maintenance_postgresql_sql.h
+  database/postgresql.cc
+  database/postgresql.h
+  database/postgresql_writer.cc
+  database/postgresql_writer.h
+  database/query_builder.cc
+  database/query_builder.h
   dump_writer.cc
   dump_writer.h
   edge.cc
@@ -240,32 +254,25 @@ add_ida_plugin(${binexport_plugin_name}
   ida/mips.h
   ida/names.cc
   ida/names.h
+  ida/plugin.h
   ida/ppc.cc
   ida/ppc.h
   ida/types_container.cc
   ida/types_container.h
-  ida/plugin.h
   ida/ui.cc
   ida/ui.h
-  initialize_constraints_postgresql_sql.h
-  initialize_indices_postgresql_sql.h
-  initialize_tables_postgresql_sql.h
   instruction.cc
   instruction.h
   library_manager.cc
   library_manager.h
-  maintenance_postgresql_sql.h
   operand.cc
   operand.h
-  postgresql.cc
-  postgresql.h
-  query_builder.cc
-  query_builder.h
   statistics_writer.cc
   statistics_writer.h
   type_system.cc
   type_system.h
   version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
   virtual_memory.cc
   virtual_memory.h
   x86_nop.cc

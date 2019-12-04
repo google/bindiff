@@ -32,9 +32,33 @@
  */
 #define BOOST_MPI_HOMOGENEOUS
 
+#if defined MPI_VERSION
+/** @brief Major version of the underlying MPI implementation supproted standard.
+ * 
+ * If, for some reason, MPI_VERSION is not supported, you should probably set that
+ * according to your MPI documentation
+ */
+# define BOOST_MPI_VERSION MPI_VERSION
+#else 
+// assume a safe default
+# define BOOST_MPI_VERSION 2
+#endif
+
+#if defined MPI_SUBVERSION
+/** @brief Major version of the underlying MPI implementation supproted standard.
+ * 
+ * If, for some reason, MPI_SUBVERSION is not supported, you should probably set that
+ * according to your MPI documentation
+ */
+# define BOOST_MPI_SUBVERSION MPI_SUBVERSION
+#else 
+// assume a safe default
+# define BOOST_MPI_SUBVERSION 2
+#endif
+
 // If this is an MPI-2 implementation, define configuration macros for
 // the features we are interested in.
-#if defined(MPI_VERSION) && MPI_VERSION >= 2
+#if BOOST_MPI_VERSION >= 2
 /** @brief Determine if the MPI implementation has support for memory
  *  allocation.
  *
@@ -94,6 +118,11 @@
 #  undef  BOOST_MPI_BCAST_BOTTOM_WORKS_FINE
 #elif defined(MPICH_NAME)
 // Configuration for MPICH
+#endif
+
+#if BOOST_MPI_VERSION >= 3 && (!defined(I_MPI_NUMVERSION))
+// This is intel
+#define BOOST_MPI_USE_IMPROBE 1
 #endif
 
 /*****************************************************************************

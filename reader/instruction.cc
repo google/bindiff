@@ -14,8 +14,7 @@
 
 #include "third_party/zynamics/binexport/reader/instruction.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 Instruction::Instruction(Address address, const std::string& mnemonic)
     : address_(address), mnemonic_(mnemonic) {}
@@ -42,5 +41,4 @@ bool IsJumpInstruction(const Instruction& instruction,
   return false;
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

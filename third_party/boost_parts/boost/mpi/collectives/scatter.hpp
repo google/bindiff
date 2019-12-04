@@ -100,8 +100,8 @@ dispatch_scatter_sendbuf(const communicator& comm,
   // Distribute the sizes
   int myarchsize;
   BOOST_MPI_CHECK_RESULT(MPI_Scatter,
-                         (non_const_data(archsizes), 1, MPI_INTEGER,
-                          &myarchsize, 1, MPI_INTEGER, root, comm));
+                         (non_const_data(archsizes), 1, MPI_INT,
+                          &myarchsize, 1, MPI_INT, root, comm));
   std::vector<int> offsets;
   if (root == comm.rank()) {
     sizes2offsets(archsizes, offsets);

@@ -20,8 +20,7 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 
-namespace security {
-namespace binexport {
+namespace security::binexport {
 
 DumpWriter::DumpWriter(std::ostream& stream) : stream_(stream) {}
 
@@ -43,5 +42,4 @@ not_absl::Status DumpWriter::Write(const CallGraph& call_graph,
   return not_absl::OkStatus();
 }
 
-}  // namespace binexport
-}  // namespace security
+}  // namespace security::binexport

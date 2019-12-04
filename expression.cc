@@ -14,9 +14,9 @@
 
 #include "third_party/zynamics/binexport/expression.h"
 
-#include <cassert>
 #include <sstream>
 
+#include "base/logging.h"
 #include "third_party/zynamics/binexport/hash.h"
 #include "third_party/zynamics/binexport/instruction.h"
 
@@ -33,7 +33,7 @@ Expression::Expression(Expression* parent, const std::string& symbol,
       position_(position),
       type_(type),
       relocatable_(relocatable) {
-  assert(!symbol.empty() || IsImmediate());
+  DCHECK(!symbol.empty() || IsImmediate());
 }
 
 Expression* Expression::Create(Expression* parent, const std::string& symbol,

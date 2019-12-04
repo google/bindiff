@@ -3,8 +3,12 @@
 .*.swp
 .*.swo
 
+# IDEs
+.idea
+.vscode
+
 # Prevent to accidentally add IDA SDK
-third_party/idasdk/*
+third_party/idasdk*/*
 third_party/idasdk*.zip
 
 # Ignore changes in submodules and code
@@ -13,6 +17,7 @@ third_party/postgresql/*
 third_party/protobuf/*
 
 # Build artifacts
+build/*
 build_linux/*
 build_msvc/*
 build_mac/*
@@ -21,4 +26,4 @@ third_party/zynamics/binexport
 # Auto-generated
 *.pb.cc
 *.pb.h
-version.h
+version.cc

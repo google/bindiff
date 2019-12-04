@@ -44,8 +44,6 @@ void FlowGraph::Render(std::ostream* stream,
 
 void FlowGraph::AddEdge(const FlowGraphEdge& edge) { edges_.push_back(edge); }
 
-const FlowGraph::Edges& FlowGraph::GetEdges() const { return edges_; }
-
 const Function* FlowGraph::GetFunction(Address address) const {
   Functions::const_iterator i = functions_.find(address);
   return i != functions_.end() ? i->second : 0;
@@ -56,13 +54,6 @@ Function* FlowGraph::GetFunction(Address address) {
   return i != functions_.end() ? i->second : 0;
 }
 
-const Functions& FlowGraph::GetFunctions() const { return functions_; }
-
-Functions& FlowGraph::GetFunctions() { return functions_; }
-
-// Sets FLAG_INVALID on all instructions that are no longer referenced by any
-// basic block. Note that we cannot easily delete instructions from the vector
-// as they are stored by value and others are pointing to it.
 void FlowGraph::MarkOrphanInstructions(Instructions* instructions) const {
   // First: Mark all instructions as invalid.
   for (auto& instruction : *instructions) {
@@ -95,15 +86,9 @@ void FlowGraph::AddExpressionSubstitution(Address address, uint8_t operator_num,
       &*string_cache_.insert(substitution).first;
 }
 
-const FlowGraph::Substitutions& FlowGraph::GetSubstitutions() const {
-  return substitutions_;
-}
-
-// Returns a vector of instruction addresses that start new basic blocks. This
-// deals with cases where the end of a basic block is induced from outside the
-// basic block, i.e. branches or calls into the instruction sequence.
 std::vector<Address> FlowGraph::FindBasicBlockBreaks(
-    detego::Instructions* instructions, CallGraph* call_graph) {
+    detego::Instructions* instructions, CallGraph* call_graph,
+    NoReturnHeuristic noreturn_heuristic) {
   // Find non-returning calls. We simply assume any call followed by an invalid
   // instruction or a multi-byte padding (nop) instruction to be non-returning.
   // For a rationale for the nop instruction, please refer to b/24084521.
@@ -132,7 +117,8 @@ std::vector<Address> FlowGraph::FindBasicBlockBreaks(
       num_nop_bytes += instruction->GetSize();
       last_nop = instruction;
     }
-    if (num_nop_bytes > 1) {
+    if (noreturn_heuristic == NoReturnHeuristic::kNopsAfterCall &&
+        num_nop_bytes > 1) {
       // A single byte nop may or may not indicate a non-returning call.
       // http://reverseengineering.stackexchange.com/questions/8030/purpose-of-nop-immediately-after-call-instruction
       call_instruction->SetFlag(FLAG_FLOW, false);
@@ -216,10 +202,9 @@ std::vector<Address> FlowGraph::FindBasicBlockBreaks(
   return basic_block_breaks;
 }
 
-// Follows flow from every function entry point and collects a global "soup" of
-// basic blocks. Not yet attached to any function.
 void FlowGraph::CreateBasicBlocks(Instructions* instructions,
-                                  CallGraph* call_graph) {
+                                  CallGraph* call_graph,
+                                  NoReturnHeuristic noreturn_heuristic) {
   // Sort edges by source address.
   std::sort(edges_.begin(), edges_.end());
   call_graph->SortEdges();
@@ -229,7 +214,7 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
   Edges new_edges;
 
   const auto basic_block_breaks =
-      FindBasicBlockBreaks(instructions, call_graph);
+      FindBasicBlockBreaks(instructions, call_graph, noreturn_heuristic);
 
   // Reset instruction visited flag. Every instruction should belong to exactly
   // one basic block, we use the flag to keep track of this constraint.
@@ -372,11 +357,6 @@ void FlowGraph::CreateBasicBlocks(Instructions* instructions,
   std::sort(edges_.begin(), edges_.end());
 }
 
-// Merges basic blocks iff:
-// 1) source basic block has exactly 1 out-edge
-// 2) target basic block has exactly 1 in-edge
-// 3) source basic block != target basic block
-// 4) target basic block != function entry point (we want to leave that intact)
 void FlowGraph::MergeBasicBlocks(const CallGraph& call_graph) {
   // At this point we have created basic blocks but have not yet added edges to
   // the functions. We perform basic block merging first before finally creating
@@ -552,19 +532,10 @@ void FlowGraph::FinalizeFunctions(CallGraph* call_graph) {
   call_graph->CommitEdges();  // Clear temporary edges.
 }
 
-// Follow code flow from every function entry point. Create basic blocks and
-// functions. If any instruction in a basic block gets executed, all of them
-// will be. This means that we break basic blocks iff:
-// - the instruction is a branch
-// - the instruction is a branch target
-// - the instruction is a call target (function entry point)
-// - the instruction follows a call and is invalid (we assume a non-returning
-//   call)
-// - the instruction is a resynchronization point, i.e. a sequence of
-//   overlapping instructions merges again at the current one.
 void FlowGraph::ReconstructFunctions(Instructions* instructions,
-                                     CallGraph* call_graph) {
-  CreateBasicBlocks(instructions, call_graph);
+                                     CallGraph* call_graph,
+                                     NoReturnHeuristic noreturn_heuristic) {
+  CreateBasicBlocks(instructions, call_graph, noreturn_heuristic);
   MergeBasicBlocks(*call_graph);
   FinalizeFunctions(call_graph);
 }
