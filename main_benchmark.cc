@@ -51,8 +51,8 @@ void Diff(const string& primary_path, const string& secondary_path) {
 
     WallTimer timer;
     timer.Start();
-    ReadGoogle(primary_path, &call_graph1, &flow_graphs1, &flow_graph_infos1,
-               &instruction_cache);
+    Read(primary_path, &call_graph1, &flow_graphs1, &flow_graph_infos1,
+         &instruction_cache);
     const double time_primary = timer.Get();
     LOG(INFO) << "primary:   "
               << strings::HumanReadableElapsedTime::ToShortString(
@@ -60,8 +60,8 @@ void Diff(const string& primary_path, const string& secondary_path) {
               << " " << primary_path;
 
     timer.Restart();
-    ReadGoogle(secondary_path, &call_graph2, &flow_graphs2, &flow_graph_infos2,
-               &instruction_cache);
+    Read(secondary_path, &call_graph2, &flow_graphs2, &flow_graph_infos2,
+         &instruction_cache);
     const double time_secondary = timer.Get();
     LOG(INFO) << "secondary: "
               << strings::HumanReadableElapsedTime::ToShortString(
