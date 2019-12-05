@@ -21,6 +21,7 @@
 #ifdef GOOGLE
 #include "base/commandlineflags.h"
 #include "base/init_google.h"
+#include "base/logging_extensions.h"
 #else
 #include "third_party/absl/flags/flag.h"
 #include "third_party/absl/flags/internal/usage.h"
