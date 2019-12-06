@@ -19,7 +19,7 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-bindiff_release=5
+bindiff_release=6
 binexport_release=10
 
 case "$1" in

@@ -1,9 +1,11 @@
 bindiff (6) unstable; urgency=medium
 
+  * Bug fixes
+  * Experimental exporter for the Ghidra disassembler
   * Updated Roboto fonts
   * Unified configuration file for UI and core engine
 
- -- Christian Blichmann <cblichmann@google.com>  Tue, 07 May 2019 11:39:41 +0200
+ -- Christian Blichmann <cblichmann@google.com>  Fri, 06 Dec 2019 15:56:20 +0100
 
 bindiff (5) unstable; urgency=medium
 
