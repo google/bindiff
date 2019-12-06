@@ -41,7 +41,7 @@
                   Error="A later version of [ProductName] is already installed." />
 
     <CustomAction Id="CA_SetDefaultIdaDirectory"
-                  Property="IDADIRECTORY" Value="[ProgramFilesFolder]IDA\" />
+                  Property="IDADIRECTORY" Value="[ProgramFiles64Folder]IDA\" />
 
     <!-- Launch conditions -->
     <Condition Message="[ProductName] can only be installed on Microsoft Windows 8.1 or later (x64).">
@@ -59,22 +59,13 @@
     <PropertyRef Id="WIX_ACCOUNT_USERS" />
 
     <Property Id="IDADIRECTORY">
+      <RegistrySearch Id="HexRaysIdaRegistry750" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.5_is1"
+                      Name="InstallLocation" />
       <RegistrySearch Id="HexRaysIdaRegistry740" Type="raw" Win64="yes"
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.4_is1"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry730" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.3_is1"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry720" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.2_is1"
-                      Name="InstallLocation" />
-
-      <RegistrySearch Id="HexRaysIdaRegistry710" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.1_is1"
                       Name="InstallLocation" />
     </Property>
 
@@ -213,32 +204,34 @@
                                       Scope="localSubnet" />
             </Component>
           </Directory>
+
+          <Directory Id="BinDiff_Extra" Name="extra">
+            <!-- Ghidra BinExport extension -->
+            <Directory Id="BinDiff_Extra_Ghidra" Name="ghidra">
+              <Component Id="BinDiff_Extra_Ghidra"
+                         Guid="30561A75-8C83-414B-B3F8-9389EA7F27C0">
+                <File Name="ghidra_BinExport.zip" KeyPath="yes" />
+                <File Name="Readme.txt" />
+              </Component>
+            </Directory>
+          </Directory>
         </Directory>
 
         <!-- IDA Pro plugins -->
         <Directory Id="IDADIRECTORY" Name="IDA">
           <Directory Id="Ida_Plugins" Name="plugins">
-            <Component Id="Ida_Plugins_BinDiff" Win64="yes"
-                       Guid="1B498380-C805-46A6-B849-92F361B2C5C2">
-              <File Name="bindiff6.dll" KeyPath="yes" />
-            </Component>
-            <Component Id="Ida_Plugins_BinDiff64" Win64="yes"
-                       Guid="DCB41156-AD64-4C27-AC9D-9779F0DD4CFF">
+            <Component Id="Ida_Plugins" Win64="yes"
+                       Guid="63B2C436-7DB8-466A-8363-3892D61EB89F">
+              <File Name="bindiff6.dll" KeyPath="no" />
               <File Name="bindiff664.dll" KeyPath="yes" />
-            </Component>
-            <Component Id="Ida_Plugins_BinExport" Win64="yes"
-                       Guid="D4F90320-C0AA-45A1-9C51-BBF582F008B1">
-              <File Name="binexport10.dll" KeyPath="yes" />
-            </Component>
-            <Component Id="Ida_Plugins_BinExport64" Win64="yes"
-                       Guid="86D324CC-B553-4A7E-A5AA-A44B8C5B05BD">
-              <File Name="binexport1064.dll" KeyPath="yes" />
+              <File Name="binexport10.dll" KeyPath="no" />
+              <File Name="binexport1064.dll" KeyPath="no" />
             </Component>
           </Directory>
         </Directory>
       </Directory>
 
-      <!-- Start Menu entries -->
+      <!-- Start Menu entries (web links) -->
       <Directory Id="ProgramMenuFolder" Name="ProgramMenu">
         <Directory Id="ProgramMenu_BinDiff" Name="BinDiff">
           <Component Id="ProgramMenu_BinDiff_GoogleSecurityBlog"
@@ -272,6 +265,17 @@
             <util:InternetShortcut Id="ProgramMenu_BinDiff_UserDocumentation"
                                    Name="User Documentation"
                                    Target="https://www.zynamics.com/bindiff/manual/index.html"
+                                   Type="url" />
+          </Component>
+          <Component Id="ProgramMenu_BinDiff_Open_Source_BinExport"
+                     Guid="81637757-4548-4DEC-BBE9-D4318045F111">
+            <RegistryValue Root="HKMU"
+                           Key="SOFTWARE\[Manufacturer]\[ProductName]\OpenSourceBinExportShortCut"
+                           Type="string" Value="1"
+                           KeyPath="yes" />
+            <util:InternetShortcut Id="ProgramMenu_BinDiff_Open_Source_BinExport"
+                                   Name="Open Source BinExport"
+                                   Target="https://github.com/google/binexport"
                                    Type="url" />
           </Component>
           <Component Id="ProgramMenu_BinDiff_ZynamicsHomePage"
@@ -330,103 +334,34 @@
 
       <!-- Roboto Mono font -->
       <Directory Id="FontsFolder" Name="Fonts">
-        <Component Id="Fonts_RobotoBoldTTF"
-                   Guid="1334E4B9-484F-4CF6-A914-3C98EB349C1B">
-          <File Name="Roboto-Bold.ttf" KeyPath="yes"
-                TrueType="yes" />
+        <Component Id="Fonts_Roboto"
+                   Guid="00AD75C2-4D77-4BB5-A07D-34350C2AA764">
+          <File Name="Roboto-Bold.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-BoldItalic.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-Italic.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-Light.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-LightItalic.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-Medium.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-MediumItalic.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-Regular.ttf" KeyPath="yes" TrueType="yes" />
+          <File Name="Roboto-Thin.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="Roboto-ThinItalic.ttf" KeyPath="no" TrueType="yes" />
         </Component>
-        <Component Id="Fonts_RobotoBoldItalicTTF"
-                   Guid="D808F0A1-10A0-48F3-99F0-FDA16A97D19B">
-          <File Name="Roboto-BoldItalic.ttf" KeyPath="yes"
+        <Component Id="Fonts_RobotoMono"
+                   Guid="286A9B3E-5808-4B69-ABBA-45DC0E22A1CA">
+          <File Name="RobotoMono-Bold.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="RobotoMono-BoldItalic.ttf" KeyPath="no"
                 TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoItalicTTF"
-                   Guid="95001A8B-8F2F-43FD-A05E-842D69ABD8D8">
-          <File Name="Roboto-Italic.ttf" KeyPath="yes"
+          <File Name="RobotoMono-Italic.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="RobotoMono-Light.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="RobotoMono-LightItalic.ttf" KeyPath="no"
                 TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoLightTTF"
-                   Guid="F4D092A5-19F1-4E4E-8A94-81411858B76E">
-          <File Name="Roboto-Light.ttf" KeyPath="yes"
+          <File Name="RobotoMono-Medium.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="RobotoMono-MediumItalic.ttf" KeyPath="no"
                 TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoLightItalicTTF"
-                   Guid="30E7FA68-C972-403A-A529-F31D5A316ABA">
-          <File Name="Roboto-LightItalic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMediumTTF"
-                   Guid="C04BE8F7-24B2-447C-AA59-EA02F8690EA9">
-          <File Name="Roboto-Medium.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMediumItalicTTF"
-                   Guid="0DF651F4-EFB6-4F7A-ACAD-3F1EA1908483">
-          <File Name="Roboto-MediumItalic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoRegularTTF"
-                   Guid="A9B26880-E141-4CAD-B608-AFBA6D213666">
-          <File Name="Roboto-Regular.ttf" KeyPath="yes"
-                TrueType="yes" /></Component>
-        <Component Id="Fonts_RobotoThinTTF"
-                   Guid="9372E9E1-15AB-473D-B163-8EF5B758F7D5">
-          <File Name="Roboto-Thin.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoThinItalicTTF"
-                   Guid="1A3A9D67-5AA0-4E9E-9F4B-B5CB15392273">
-          <File Name="Roboto-ThinItalic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoBoldTTF"
-                   Guid="32C69F59-7086-4F4D-A0E6-174BD9EF5CD0">
-          <File Name="RobotoMono-Bold.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoBoldItalicTTF"
-                   Guid="34701F47-2C78-4B01-94DE-723F3F28364F">
-          <File Name="RobotoMono-BoldItalic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoItalicTTF"
-                   Guid="3D995756-231B-4C8D-8F2F-2B4A68C5D69F">
-          <File Name="RobotoMono-Italic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoLightTTF"
-                   Guid="8C6FB3F2-3441-410A-BA4F-B3AF58DE569B">
-          <File Name="RobotoMono-Light.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoLightItalicTTF"
-                   Guid="36BF2B78-2E8A-4D41-B068-6EF39A626483">
-          <File Name="RobotoMono-LightItalic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoMediumTTF"
-                   Guid="79A06EAF-E28C-4BF0-9934-039CD8046E16">
-          <File Name="RobotoMono-Medium.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoMediumItalicTTF"
-                   Guid="2D0E018A-2991-4AF3-A919-E32CA75203C1">
-          <File Name="RobotoMono-MediumItalic.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoRegularTTF"
-                   Guid="EB24ED46-371B-45FC-8D3F-32BFE5C16380">
-          <File Name="RobotoMono-Regular.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoThinTTF"
-                   Guid="7877D31D-6120-4CD5-8958-77B3D0E74B08">
-          <File Name="RobotoMono-Thin.ttf" KeyPath="yes"
-                TrueType="yes" />
-        </Component>
-        <Component Id="Fonts_RobotoMonoThinItalicTTF"
-                   Guid="7D793174-E6C0-4D0C-B0B9-0F0F3EF8ECB1">
-          <File Name="RobotoMono-ThinItalic.ttf" KeyPath="yes"
+          <File Name="RobotoMono-Regular.ttf" KeyPath="yes" TrueType="yes" />
+          <File Name="RobotoMono-Thin.ttf" KeyPath="no" TrueType="yes" />
+          <File Name="RobotoMono-ThinItalic.ttf" KeyPath="no"
                 TrueType="yes" />
         </Component>
       </Directory>
@@ -464,11 +399,9 @@
       <ComponentRef Id="BinDiff_License" />
       <ComponentRef Id="BinDiff_Bin_Bindiff_uiCMD" />
       <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
-      <ComponentRef Id="Ida_Plugins_BinDiff" />
-      <ComponentRef Id="Ida_Plugins_BinDiff64" />
-      <ComponentRef Id="Ida_Plugins_BinExport" />
-      <ComponentRef Id="Ida_Plugins_BinExport64" />
+      <ComponentRef Id="Ida_Plugins" />
       <ComponentRef Id="ProgramMenu_BinDiff_GoogleSecurityBlog" />
+      <ComponentRef Id="ProgramMenu_BinDiff_Open_Source_BinExport" />
       <ComponentRef Id="ProgramMenu_BinDiff_ReportABug" />
       <ComponentRef Id="ProgramMenu_BinDiff_UserDocumentation" />
       <ComponentRef Id="ProgramMenu_BinDiff_ZynamicsHomePage" />
@@ -491,6 +424,14 @@
         <ComponentRef Id="BinDiff_Bin_Binexport2dumpEXE" />
       </Feature>
 
+      <Feature Id="BinExportGhidra"
+                Title="Ghidra Exporter Extension (experimental)"
+                Description="A version of the BinExport exporter to be used with the Ghidra disassembler."
+                Absent="allow"
+                AllowAdvertise="no">
+        <ComponentRef Id="BinDiff_Extra_Ghidra" />
+      </Feature>
+
       <Feature Id="AddToSystemPath"
                Level="1000"
                Title="Entry in Path environment variable"
@@ -508,32 +449,14 @@
         <ComponentRef Id="BinDiff_Bin_WindowsFirewallRule" />
       </Feature>
 
-      <Feature Id="RobotoMono"
-               Title="Roboto Mono Font"
-               Description="Roboto Mono is part of Google’s signature family of fonts, the default font on Android and Chrome OS."
+      <Feature Id="Roboto"
+               Title="Roboto Font"
+               Description="Roboto is part of Google’s signature family of fonts and is the default font on Android and Chrome OS."
                Absent="allow"
                AllowAdvertise="no">
         <ComponentRef Id="BinDiff_FontLicense" />
-        <ComponentRef Id="Fonts_RobotoBoldTTF" />
-        <ComponentRef Id="Fonts_RobotoBoldItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoLightTTF" />
-        <ComponentRef Id="Fonts_RobotoLightItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoMediumTTF" />
-        <ComponentRef Id="Fonts_RobotoMediumItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoRegularTTF" />
-        <ComponentRef Id="Fonts_RobotoThinTTF" />
-        <ComponentRef Id="Fonts_RobotoThinItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoBoldTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoBoldItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoLightTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoLightItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoMediumTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoMediumItalicTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoRegularTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoThinTTF" />
-        <ComponentRef Id="Fonts_RobotoMonoThinItalicTTF" />
+        <ComponentRef Id="Fonts_Roboto" />
+        <ComponentRef Id="Fonts_RobotoMono" />
       </Feature>
     </Feature>
 
@@ -631,6 +554,7 @@
         <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30" NoPrefix="yes" Text="Please provide the full path to your IDA Pro installation directory:" />
         <Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
         <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.CustomizeDlgBrowse)" />
+        <Control Id="NoticeLabel" Type="Text" X="20" Y="140" Width="290" Height="30" NoPrefix="yes" Text="If you do not have IDA Pro, you can click &quot;Next&quot; and try the experimental Ghidra exporter extension instead." />
       </Dialog>
     </UI>
 
