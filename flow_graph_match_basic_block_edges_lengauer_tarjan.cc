@@ -22,8 +22,8 @@ void MatchingStepEdgesLoop::GetUnmatchedEdgesLoop(MatchingContext* context,
   const MatchingContext::FeatureId feature_id = MatchingContext::kEdgeProperies;
   EdgesByFlowGraph* cached = nullptr;
   if (context->HasCachedFeatures(feature_id)) {
-    if (cached = context->GetCachedFeatures<EdgesByFlowGraph*>(feature_id);
-        !cached) {
+    cached = context->GetCachedFeatures<EdgesByFlowGraph*>(feature_id);
+    if (!cached) {
       cached = new EdgesByFlowGraph();
       context->SetCachedFeatures(feature_id, cached, FeatureDestructor);
     }
@@ -31,11 +31,11 @@ void MatchingStepEdgesLoop::GetUnmatchedEdgesLoop(MatchingContext* context,
   edges->clear();
   EdgeFeatures* features = nullptr;
   if (cached) {
-    if (auto [entry, inserted] = cached->emplace(&flow_graph, EdgeFeatures());
-        !inserted) {
-      // We previously cached data for this flow graph, if it's already present
-      // in the map.
-      features = &entry->second;
+    auto [entry, inserted] = cached->emplace(&flow_graph, EdgeFeatures());
+    // We previously cached data for this flow graph, if it's already present in
+    // the map.
+    features = &entry->second;
+    if (!inserted) {
       // Element wasn't added, features list is filled in.
       int edge_index = 0;
       for (auto [edge, end] = boost::edges(flow_graph.GetGraph()); edge != end;
