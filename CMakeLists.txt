@@ -19,6 +19,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
 include(${BinExport_DIR}/util.cmake)
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 include(sqlite.cmake)
 include(tinyxpath.cmake)
 
