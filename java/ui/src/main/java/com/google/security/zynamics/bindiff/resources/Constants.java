@@ -69,11 +69,10 @@ public final class Constants {
 
   // Functions
   public static int getSocketPort() {
-    final Integer port = BinDiffConfig.getInstance().getMainSettings().getSocketPort();
-    if (port == null || port < 0 || port > 65536) {
+    final int port = BinDiffConfig.getInstance().getMainSettings().getSocketPort();
+    if (port <= 0 || port > 65535) {
       return SOCKET_SERVER_PORT;
     }
-
     return port;
   }
 }

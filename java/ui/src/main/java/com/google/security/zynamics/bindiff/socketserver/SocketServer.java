@@ -9,6 +9,8 @@ import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
@@ -23,6 +25,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
+/** Socket handler that listens for commands to display flow graphs. */
 public final class SocketServer {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -37,7 +40,7 @@ public final class SocketServer {
     this.controller = Preconditions.checkNotNull(controller);
   }
 
-  public void handleReceivedByteBuffer(final byte[] bytes) {
+  private void handleReceivedByteBuffer(final byte[] bytes) {
     logger.at(Level.INFO).log("Received byte stream from socket...");
 
     try {
@@ -72,14 +75,10 @@ public final class SocketServer {
     logger.at(Level.SEVERE).withCause(e).log(msg);
   }
 
-  public void handleWarning(final Exception e, final String msg) {
-    CMessageBox.showWarning(controller.getMainWindow(), msg);
-    logger.at(Level.SEVERE).withCause(e).log(msg);
-  }
-
   public void startListening() throws IOException {
-    socket = new ServerSocket(port);
-    logger.at(Level.INFO).log("Starting IDA plugin socket socket listener thread...");
+    logger.at(Level.INFO).log("Starting local command server on port %d...", port);
+    socket = new ServerSocket();
+    socket.bind(new InetSocketAddress(InetAddress.getByName(null), port));
     new SocketListenerThread(this).start();
   }
 
@@ -87,11 +86,7 @@ public final class SocketServer {
     return socket;
   }
 
-  public int getPort() {
-    return port;
-  }
-
-  /** Simple thread class that receives command data from the IDA Pro plugin. */
+  /** Simple thread class that receives command data. */
   static class SocketListenerThread extends Thread {
     private final SocketServer server;
 
@@ -119,8 +114,8 @@ public final class SocketServer {
     @Override
     public void run() {
       while (!interrupted()) {
-        try (final Socket clientSocket = server.getSocket().accept();
-            final InputStream in = clientSocket.getInputStream()) {
+        try (final Socket socket = server.getSocket().accept();
+            final InputStream in = socket.getInputStream()) {
           server.handleReceivedByteBuffer(receiveBoundedBytes(in));
         } catch (final IOException | SecurityException e) {
           server.handleError(e, e.getMessage());
