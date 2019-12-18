@@ -24,6 +24,7 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
+#include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
@@ -33,6 +34,7 @@ namespace security::bindiff {
 
 using binexport::FormatAddress;
 using binexport::HumanReadableDuration;
+using binexport::ToStringView;
 
 namespace {
 
@@ -113,7 +115,7 @@ bool PortFunctionName(FixedPoint* fixed_point) {
   const qstring buffer =
       get_name(static_cast<ea_t>(primary_address), /*gtn_flags=*/0);
   const std::string& name = fixed_point->GetSecondary()->GetName();
-  if (absl::string_view(buffer.c_str(), buffer.length()) == name) {
+  if (ToStringView(buffer) == name) {
     return false;  // Function already has the same name
   }
 
@@ -205,8 +207,7 @@ size_t SetComments(Address source, Address target,
              ok = xb.next_from(), ++count) {
           if (count == operand_id - UA_MAXOP - 1024) {
             qstring current_name = get_name(xb.to, /*gtn_flags=*/0);
-            if (absl::string_view(current_name.c_str(),
-                                  current_name.length()) == comment.comment) {
+            if (ToStringView(current_name) == comment.comment) {
               set_name(xb.to, comment.comment.c_str(), SN_NOWARN | SN_CHECK);
             }
             break;

@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <thread>  // NOLINT(build/c++11)
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <diskio.hpp>                                           // NOLINT
@@ -24,6 +25,7 @@
 #include <ua.hpp>                                               // NOLINT
 #include <xref.hpp>                                             // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"

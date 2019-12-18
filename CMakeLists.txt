@@ -264,13 +264,15 @@ add_test(AllTestsInUtility utility_test)
 # where X is the release number.
 set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
 add_ida_plugin(${bindiff_plugin_name}
+  ${BinExport_DIR}/ida/digest.cc
+  ${BinExport_DIR}/ida/digest.h
   ${BinExport_DIR}/ida/log.cc
   ${BinExport_DIR}/ida/log.h
   ${BinExport_DIR}/ida/plugin.h
   ${BinExport_DIR}/ida/ui.cc
   ${BinExport_DIR}/ida/ui.h
-  ${BinExport_DIR}/ida/digest.cc
-  ${BinExport_DIR}/ida/digest.h
+  ${BinExport_DIR}/ida/util.cc
+  ${BinExport_DIR}/ida/util.h
   ida/bindiff_icon.cc
   ida/bindiff_icon.h
   ida/main_plugin.cc

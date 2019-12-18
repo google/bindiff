@@ -1,18 +1,19 @@
 #include "third_party/zynamics/bindiff/ida/names.h"
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <lines.hpp>                                            // NOLINT
 #include <name.hpp>                                             // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/binexport/ida/util.h"
 
 namespace security::bindiff {
 
-std::string ToString(const qstring& ida_string) {
-  return std::string(ida_string.c_str(), ida_string.length());
-}
+using binexport::ToString;
 
 std::string GetName(Address address) {
   if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
