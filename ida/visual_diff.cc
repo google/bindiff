@@ -66,7 +66,7 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   hints.ai_protocol = IPPROTO_TCP;
   struct addrinfo* address_info = nullptr;
   auto err = getaddrinfo(std::string(server).c_str(),
-                         std::to_string(port).c_str(), &hints, &address_info);
+                         absl::StrCat(port).c_str(), &hints, &address_info);
   if (err != 0) {
     // TODO(cblichmann): This function should return a not_absl::Status and use
     //                   gai_strerror(err).

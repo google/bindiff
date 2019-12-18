@@ -109,6 +109,21 @@ bool CheckHaveResultsWithMessage() {
   return true;
 }
 
+template <typename T>
+class ActionHandlerWithIdb : public ActionHandler<T> {
+  action_state_t idaapi update(action_update_ctx_t* ctx) override {
+    return strlen(get_path(PATH_TYPE_IDB)) ? AST_ENABLE_FOR_IDB
+                                           : AST_DISABLE_FOR_IDB;
+  }
+};
+
+template <typename T>
+class ActionHandlerWithResults : public ActionHandler<T> {
+  action_state_t idaapi update(action_update_ctx_t* ctx) override {
+    return Plugin::instance()->results() ? AST_ENABLE : AST_DISABLE;
+  }
+};
+
 bool ExportIdbs() {
   if (!CheckHaveIdbWithMessage()) {
     return false;
@@ -860,32 +875,33 @@ void idaapi ButtonPortCommentsCallback(int /* button_code */,
   }
 }
 
-class DiffDatabaseAction : public ActionHandler<DiffDatabaseAction> {
+class DiffDatabaseAction : public ActionHandlerWithIdb<DiffDatabaseAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     return DoDiffDatabase(/*filtered=*/false);  // Refresh windows on success
   }
 };
 
-class LoadResultsAction : public ActionHandler<LoadResultsAction> {
+class LoadResultsAction : public ActionHandlerWithIdb<LoadResultsAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     return Plugin::instance()->LoadResults();  // Refresh if user did not cancel
   }
 };
 
-class SaveResultsAction : public ActionHandler<SaveResultsAction> {
+class SaveResultsAction : public ActionHandlerWithResults<SaveResultsAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     return DoSaveResults();  // Refresh if user did not cancel
   }
 };
 
-class ShowMatchedAction : public ActionHandler<ShowMatchedAction> {
+class ShowMatchedAction : public ActionHandlerWithResults<ShowMatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     Plugin::instance()->ShowResults(Plugin::kResultsShowMatched);
     return 0;
   }
 };
 
-class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
+class ShowStatisticsAction
+    : public ActionHandlerWithResults<ShowStatisticsAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     Plugin::instance()->ShowResults(Plugin::kResultsShowStatistics);
     return 0;
@@ -893,7 +909,7 @@ class ShowStatisticsAction : public ActionHandler<ShowStatisticsAction> {
 };
 
 class ShowPrimaryUnmatchedAction
-    : public ActionHandler<ShowPrimaryUnmatchedAction> {
+    : public ActionHandlerWithResults<ShowPrimaryUnmatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     Plugin::instance()->ShowResults(Plugin::kResultsShowPrimaryUnmatched);
     return 0;
@@ -901,7 +917,7 @@ class ShowPrimaryUnmatchedAction
 };
 
 class ShowSecondaryUnmatchedAction
-    : public ActionHandler<ShowSecondaryUnmatchedAction> {
+    : public ActionHandlerWithResults<ShowSecondaryUnmatchedAction> {
   int idaapi activate(action_activation_ctx_t*) override {
     Plugin::instance()->ShowResults(Plugin::kResultsShowSecondaryUnmatched);
     return 0;
@@ -1075,11 +1091,6 @@ class ImportSymbolsCommentsGlobalAction
   }
 };
 
-constexpr const char ImportSymbolsCommentsGlobalAction::kName[];
-constexpr const char ImportSymbolsCommentsGlobalAction::kLabel[];
-constexpr const char ImportSymbolsCommentsGlobalAction::kShortCut[];
-constexpr const char* ImportSymbolsCommentsGlobalAction::kTooltip;
-
 void Plugin::InitActions() {
   const int bindiff_icon_id =
       load_custom_icon(kBinDiffIcon.data(), kBinDiffIcon.size(), "png");
@@ -1137,8 +1148,7 @@ void Plugin::InitMenus() {
   attach_action_to_menu("Edit/Comments/InsertPredefinedComment",
                         "bindiff:port_comments", SETMENU_APP);
 
-  // TODO(cblichmann): Use create_menu() in IDA 7.3
-  attach_action_to_menu("View", nullptr, SETMENU_APP);
+  create_menu("bindiff:view_bindiff", "BinDiff", "View/Open subviews");
   attach_action_to_menu("View/BinDiff/", "bindiff:show_matched",
                         SETMENU_FIRST);
   attach_action_to_menu("View/BinDiff/MatchedFunctions",
@@ -1164,6 +1174,7 @@ void Plugin::TermMenus() {
                           "bindiff:show_primary_unmatched");
   detach_action_from_menu("View/BinDiff/SecondaryUnmatched",
                           "bindiff:show_secondary_unmatched");
+  delete_menu("bindiff:view_bindiff");
 }
 
 int Plugin::Init() {

@@ -16,20 +16,15 @@ namespace security::bindiff {
 
 using binexport::FormatAddress;
 
-constexpr const char DeleteMatchesAction::kName[];
-constexpr const char DeleteMatchesAction::kLabel[];
-constexpr const char DeleteMatchesAction::kShortCut[];
-constexpr const char* DeleteMatchesAction::kTooltip;
-
 int idaapi DeleteMatchesAction::activate(action_activation_ctx_t* context) {
   auto* results = Plugin::instance()->results();
   const auto& ida_selection = context->chooser_selection;
   if (!results || ida_selection.empty()) {
     return 0;
   }
-  not_absl::Status status = results->DeleteMatches(
-      absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
-  if (!status.ok()) {
+  if (not_absl::Status status = results->DeleteMatches(
+          absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
+      !status.ok()) {
     const std::string message(status.message());
     LOG(INFO) << "Error: " << message;
     warning("Error: %s\n", message.c_str());
@@ -42,10 +37,6 @@ int idaapi DeleteMatchesAction::activate(action_activation_ctx_t* context) {
   StatisticsChooser::Refresh();
   return 1;
 }
-
-constexpr const int MatchedFunctionsChooser::kColumnWidths[];
-constexpr const char* const MatchedFunctionsChooser::kColumnNames[];
-constexpr const char MatchedFunctionsChooser::kTitle[];
 
 MatchedFunctionsChooser::MatchedFunctionsChooser()
     : chooser_multi_t{CH_ATTRS | CH_CAN_DEL, ABSL_ARRAYSIZE(kColumnWidths),
@@ -62,7 +53,8 @@ bool MatchedFunctionsChooser::AttachActionsToPopup(TWidget* widget,
   }
   for (const auto& action : {
            // Note: Do not attach DeleteMatchesAction here, as this is invoked
-           //       in del().
+           //       in del(). When attaching normally, DEL cannot be set as
+           //       the accelerator.
            ViewFlowGraphsAction::kName,
            ImportSymbolsCommentsAction::kName,
            ImportSymbolsCommentsExternalAction::kName,
@@ -113,15 +105,15 @@ void MatchedFunctionsChooser::get_row(qstrvec_t* cols, int* /*icon_*/,
   (*cols)[8] =
       match.algorithm_name.substr(match.algorithm_name.size() > 10 ? 10 : 0)
           .c_str();
-  (*cols)[9] = std::to_string(match.basic_block_count).c_str();
-  (*cols)[10] = std::to_string(match.basic_block_count_primary).c_str();
-  (*cols)[11] = std::to_string(match.basic_block_count_secondary).c_str();
-  (*cols)[12] = std::to_string(match.instruction_count).c_str();
-  (*cols)[13] = std::to_string(match.instruction_count_primary).c_str();
-  (*cols)[14] = std::to_string(match.instruction_count_secondary).c_str();
-  (*cols)[15] = std::to_string(match.edge_count).c_str();
-  (*cols)[16] = std::to_string(match.edge_count_primary).c_str();
-  (*cols)[17] = std::to_string(match.edge_count_secondary).c_str();
+  (*cols)[9] = absl::StrCat(match.basic_block_count).c_str();
+  (*cols)[10] = absl::StrCat(match.basic_block_count_primary).c_str();
+  (*cols)[11] = absl::StrCat(match.basic_block_count_secondary).c_str();
+  (*cols)[12] = absl::StrCat(match.instruction_count).c_str();
+  (*cols)[13] = absl::StrCat(match.instruction_count_primary).c_str();
+  (*cols)[14] = absl::StrCat(match.instruction_count_secondary).c_str();
+  (*cols)[15] = absl::StrCat(match.edge_count).c_str();
+  (*cols)[16] = absl::StrCat(match.edge_count_primary).c_str();
+  (*cols)[17] = absl::StrCat(match.edge_count_secondary).c_str();
   attrs->color = GetMatchColor(match.similarity);
   if (match.manual) {
     attrs->flags |= CHITEM_BOLD;
@@ -151,35 +143,5 @@ chooser_t::cbres_t MatchedFunctionsChooser::refresh(sizevec_t* sel) {
   }
   return ALL_CHANGED;
 }
-
-constexpr const char ViewFlowGraphsAction::kName[];
-constexpr const char ViewFlowGraphsAction::kLabel[];
-constexpr const char ViewFlowGraphsAction::kShortCut[];
-constexpr const char* ViewFlowGraphsAction::kTooltip;
-
-constexpr const char ImportSymbolsCommentsAction::kName[];
-constexpr const char ImportSymbolsCommentsAction::kLabel[];
-constexpr const char ImportSymbolsCommentsAction::kShortCut[];
-constexpr const char* ImportSymbolsCommentsAction::kTooltip;
-
-constexpr const char ImportSymbolsCommentsExternalAction::kName[];
-constexpr const char ImportSymbolsCommentsExternalAction::kLabel[];
-constexpr const char ImportSymbolsCommentsExternalAction::kShortCut[];
-constexpr const char* ImportSymbolsCommentsExternalAction::kTooltip;
-
-constexpr const char ConfirmMatchesAction::kName[];
-constexpr const char ConfirmMatchesAction::kLabel[];
-constexpr const char ConfirmMatchesAction::kShortCut[];
-constexpr const char* ConfirmMatchesAction::kTooltip;
-
-constexpr const char CopyPrimaryAddressAction::kName[];
-constexpr const char CopyPrimaryAddressAction::kLabel[];
-constexpr const char CopyPrimaryAddressAction::kShortCut[];
-constexpr const char* CopyPrimaryAddressAction::kTooltip;
-
-constexpr const char CopySecondaryAddressAction::kName[];
-constexpr const char CopySecondaryAddressAction::kLabel[];
-constexpr const char CopySecondaryAddressAction::kShortCut[];
-constexpr const char* CopySecondaryAddressAction::kTooltip;
 
 }  // namespace security::bindiff
