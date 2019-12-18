@@ -171,10 +171,58 @@ Comment::Type ToCommentType(BinExport2::Comment::Type type) {
       return Comment::POSTERIOR;
     case BinExport2::Comment::FUNCTION:
       return Comment::FUNCTION;
+
+    case BinExport2::Comment::ENUM:
+      return Comment::ENUM;
+    case BinExport2::Comment::LOCATION:
+      return Comment::LOCATION;
+    case BinExport2::Comment::GLOBAL_REFERENCE:
+      return Comment::GLOBAL_REFERENCE;
+    case BinExport2::Comment::LOCAL_REFERENCE:
+      return Comment::LOCAL_REFERENCE;
+
     default:
       LOG(QFATAL) << "Invalid comment type: " << type;
       return Comment::REGULAR;  // Not reached
   }
+}
+
+// Returns the internal operand number for a comment using the same offsets as
+// the BinExport plugin.
+int GetInternalCommentOperandNum(int operand_num, Comment::Type type,
+                                 bool repeatable) {
+  // The constants in the switch below are informally defined in BinExport's
+  // ida/names.cc.
+  constexpr int kMaxOp = 8;  // Same as IDA's UA_MAXOP
+  switch (type) {
+    case Comment::REGULAR:
+      operand_num = kMaxOp + (repeatable ? 1 : 2);
+      break;
+    case Comment::ENUM:
+      // Leave as is
+      break;
+    case Comment::ANTERIOR:
+      operand_num = kMaxOp + 3;
+      break;
+    case Comment::POSTERIOR:
+      operand_num = kMaxOp + 4;
+      break;
+    case Comment::FUNCTION:
+      operand_num = kMaxOp + (repeatable ? 5 : 6);
+      break;
+    case Comment::LOCATION:
+      operand_num = kMaxOp + 7;
+      break;
+    case Comment::GLOBAL_REFERENCE:
+      operand_num = kMaxOp + 1024 + operand_num;
+      break;
+    case Comment::LOCAL_REFERENCE:
+      operand_num = kMaxOp + 2018 + operand_num;
+      break;
+    default:
+      LOG(QFATAL) << "Invalid comment type: " << type;
+  }
+  return operand_num;
 }
 
 void FlowGraph::Read(const BinExport2& proto,
@@ -267,11 +315,17 @@ void FlowGraph::Read(const BinExport2& proto,
         for (const auto& comment_index : proto_instruction.comment_index()) {
           const BinExport2::Comment& proto_comment =
               proto.comment(comment_index);
-          auto& comment = comments[{instruction_address, 0}];
+          const auto comment_type = ToCommentType(proto_comment.type());
+          const bool repeatable = proto_comment.repeatable();
+          const int operand_num = GetInternalCommentOperandNum(
+              proto_comment.instruction_operand_index(), comment_type,
+              repeatable);
+
+          auto& comment = comments[{instruction_address, operand_num}];
           comment.comment =
               proto.string_table(proto_comment.string_table_index());
-          comment.repeatable = proto_comment.repeatable();
-          comment.type = ToCommentType(proto_comment.type());
+          comment.repeatable = repeatable;
+          comment.type = comment_type;
         }
       }
     }

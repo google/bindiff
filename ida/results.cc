@@ -136,15 +136,12 @@ size_t SetComments(Address source, Address target, const Comments& comments,
     // Do not port auto-generated names (unfortunately this does not work for
     // comments that were auto-generated).
     if ((comment.type == Comment::ENUM || comment.type == Comment::LOCATION ||
-         comment.type == Comment::GLOBALREFERENCE ||
-         comment.type == Comment::LOCALREFERENCE) &&
+         comment.type == Comment::GLOBAL_REFERENCE ||
+         comment.type == Comment::LOCAL_REFERENCE) &&
         !is_uname(comment.comment.c_str())) {
       continue;
     }
 
-    // TODO(cblichmann): comment.type will only never be ENUM, LOCATION,
-    //                   GLOBALREFERENCE or LOCALREFERENCE, due to changed
-    //                   behavior in BinExport2. See b/63693724 for context.
     switch (comment.type) {
       case Comment::REGULAR:
         set_cmt(static_cast<ea_t>(address), comment.comment.c_str(),
@@ -170,37 +167,34 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         }
         break;
       }
-      case Comment::FUNCTION: {
-        func_t* function = get_func(static_cast<ea_t>(address));
-        if (function && function->start_ea == address) {
+      case Comment::FUNCTION:
+        if (func_t* function = get_func(static_cast<ea_t>(address));
+            function && function->start_ea == address) {
           set_func_cmt(function, comment.comment.c_str(), comment.repeatable);
         }
         break;
-      }
       case Comment::LOCATION:
         if (fixed_point) {
           PortFunctionName(fixed_point);
         }
         break;
-      case Comment::ANTERIOR: {
-        const std::string existing_comment =
-            GetLineComments(address, LineComment::kAnterior);
-        if (existing_comment.rfind(comment.comment) == std::string::npos) {
+      case Comment::ANTERIOR:
+        if (const std::string existing_comment =
+                GetLineComments(address, LineComment::kAnterior);
+            existing_comment.rfind(comment.comment) == std::string::npos) {
           add_extra_cmt(static_cast<ea_t>(address), /*isprev=*/true, "%s",
                         comment.comment.c_str());
         }
         break;
-      }
-      case Comment::POSTERIOR: {
-        const std::string existing_comment =
-            GetLineComments(address, LineComment::kPosterior);
-        if (existing_comment.rfind(comment.comment) == std::string::npos) {
+      case Comment::POSTERIOR:
+        if (const std::string existing_comment =
+                GetLineComments(address, LineComment::kPosterior);
+            existing_comment.rfind(comment.comment) == std::string::npos) {
           add_extra_cmt(static_cast<ea_t>(address), /*isprev=*/false, "%s",
                         comment.comment.c_str());
         }
         break;
-      }
-      case Comment::GLOBALREFERENCE: {
+      case Comment::GLOBAL_REFERENCE: {
         int count = 0;
         xrefblk_t xb;
         for (bool ok = xb.first_from(static_cast<ea_t>(address), XREF_DATA); ok;
@@ -216,7 +210,7 @@ size_t SetComments(Address source, Address target, const Comments& comments,
         }
         break;
       }
-      case Comment::LOCALREFERENCE: {
+      case Comment::LOCAL_REFERENCE: {
         func_t* function = get_func(static_cast<ea_t>(address));
         if (!function) {
           break;

@@ -4,7 +4,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.BinExport.BinExport2;
-import com.google.security.zynamics.BinExport.BinExport2.Expression.Type;
+import com.google.security.zynamics.BinExport.BinExport2.Comment;
+import com.google.security.zynamics.BinExport.BinExport2.Expression;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EInstructionHighlighting;
 import com.google.security.zynamics.bindiff.enums.EJumpType;
@@ -46,7 +47,7 @@ public class BinExport2Reader {
 
   private final BinExport2 binexport;
   private int maxMnemonicLen;
-  private final Map<IAddress, RawInstructionComment> addressComments;
+  private final Map<IAddress, RawInstructionComment> comments;
 
   public BinExport2Reader(final File file, final ESide side) throws IOException {
     this.side = side;
@@ -58,14 +59,29 @@ public class BinExport2Reader {
         maxMnemonicLen = Math.max(maxMnemonicLen, mnemonic.getName().length());
       }
 
+      comments = new TreeMap<>();
+
       // Cache instruction comments
-      addressComments = new TreeMap<>();
-      for (final BinExport2.Reference addressComment : binexport.getAddressCommentList()) {
-        final IAddress address =
-            new CAddress(getInstructionAddress(addressComment.getInstructionIndex()));
-        final String text = binexport.getStringTable(addressComment.getStringTableIndex());
-        addressComments.put(
-            address, new RawInstructionComment(text, ECommentPlacement.BEHIND_LINE));
+      for (final BinExport2.Comment comment : binexport.getCommentList()) {
+        final IAddress address = new CAddress(getInstructionAddress(comment.getInstructionIndex()));
+        final String text = binexport.getStringTable(comment.getStringTableIndex());
+        comments.put(
+            address,
+            new RawInstructionComment(
+                text,
+                comment.getType() != Comment.Type.ANTERIOR
+                    ? ECommentPlacement.BEHIND_LINE
+                    : ECommentPlacement.ABOVE_LINE));
+      }
+
+      // Read deprecated address comments only if there are no new-style comments
+      if (comments.isEmpty()) {
+        for (final BinExport2.Reference addressComment : binexport.getAddressCommentList()) {
+          final IAddress address =
+              new CAddress(getInstructionAddress(addressComment.getInstructionIndex()));
+          final String text = binexport.getStringTable(addressComment.getStringTableIndex());
+          comments.put(address, new RawInstructionComment(text, ECommentPlacement.BEHIND_LINE));
+        }
       }
     }
   }
@@ -210,7 +226,8 @@ public class BinExport2Reader {
                     proto.getExpression(operand.getExpressionIndex(children.get(i + 1)));
                 final BinExport2.Expression.Type childType = childExpression.getType();
                 if ("+".equals(expressionSymbol)
-                    && (childType == Type.IMMEDIATE_INT || childType == Type.IMMEDIATE_FLOAT)) {
+                    && (childType == Expression.Type.IMMEDIATE_INT
+                        || childType == Expression.Type.IMMEDIATE_FLOAT)) {
                   final long childImmediate =
                       longMode
                           ? childExpression.getImmediate()
@@ -343,7 +360,7 @@ public class BinExport2Reader {
             }
 
             final List<RawInstructionComment> instructionComments = new ArrayList<>();
-            final RawInstructionComment comment = addressComments.get(instructionAddress);
+            final RawInstructionComment comment = comments.get(instructionAddress);
             if (comment != null) {
               instructionComments.add(comment);
             }
@@ -390,8 +407,7 @@ public class BinExport2Reader {
       }
     }
 
-    final List<RawBasicBlock> bbs = new ArrayList<>();
-    bbs.addAll(basicBlocks.values());
+    final List<RawBasicBlock> bbs = new ArrayList<>(basicBlocks.values());
     return new RawFlowGraph(
         functionAddress, function.getName(), function.getFunctionType(), bbs, jumps, side);
   }

@@ -18,8 +18,8 @@ struct Comment {
     POSTERIOR = 3,
     FUNCTION = 4,
     LOCATION = 5,
-    GLOBALREFERENCE = 6,
-    LOCALREFERENCE = 7,
+    GLOBAL_REFERENCE = 6,
+    LOCAL_REFERENCE = 7,
     STRUCTURE = 8,
   };
 

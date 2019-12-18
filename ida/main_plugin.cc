@@ -72,10 +72,7 @@ using binexport::GetInputFileMd5;
 using binexport::GetInputFileSha256;
 using binexport::HumanReadableDuration;
 
-constexpr char Plugin::kComment[];
-constexpr char Plugin::kHotKey[];
-
-std::string GetArgument(const char* name) {
+std::string GetArgument(absl::string_view name) {
   const char* option =
       get_plugin_options(absl::StrCat("BinDiff", name).c_str());
   return option ? option : "";
@@ -83,7 +80,7 @@ std::string GetArgument(const char* name) {
 
 bool DoSaveResults();
 
-std::string FindFile(const std::string& path, const std::string& extension) {
+std::string FindFile(absl::string_view path, absl::string_view extension) {
   std::vector<std::string> entries;
   GetDirectoryEntries(path, &entries);
   for (const auto& entry : entries) {
