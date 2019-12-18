@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.12)
 cmake_policy(VERSION 3.12)
-project(binexport VERSION 10)  # Only major version is used
+project(binexport VERSION 11)  # Only major version is used
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(copts.cmake)
