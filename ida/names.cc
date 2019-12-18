@@ -21,7 +21,6 @@
 #include <tuple>
 
 // clang-format off
-#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -43,9 +42,8 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/base_types.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
-#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/arm.h"
 #include "third_party/zynamics/binexport/ida/dalvik.h"
 #include "third_party/zynamics/binexport/ida/generic.h"
@@ -53,8 +51,10 @@
 #include "third_party/zynamics/binexport/ida/mips.h"
 #include "third_party/zynamics/binexport/ida/ppc.h"
 #include "third_party/zynamics/binexport/ida/types_container.h"
-#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/type_system.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
