@@ -192,6 +192,7 @@ public class AddDiffDialog extends BaseDialog {
             matchesBinary.getParent(),
             File.separator,
             primaryName,
+            ".",
             Constants.BINDIFF_BINEXPORT_EXTENSION);
     final String secondaryBinExport =
         String.join(
@@ -199,6 +200,7 @@ public class AddDiffDialog extends BaseDialog {
             matchesBinary.getParent(),
             File.separator,
             secondaryName,
+            ".",
             Constants.BINDIFF_BINEXPORT_EXTENSION);
 
     if (!new File(primaryBinExport).exists()) {
