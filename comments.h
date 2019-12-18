@@ -4,7 +4,6 @@
 #include <map>
 #include <string>
 
-#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security::bindiff {
@@ -29,7 +28,7 @@ struct Comment {
 };
 
 using OperatorId = std::pair<Address, int>;
-using Comments = std::map<OperatorId, Comment>;
+using CommentsByOperatorId = std::map<OperatorId, Comment>;
 
 }  // namespace security::bindiff
 

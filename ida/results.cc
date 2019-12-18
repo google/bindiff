@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <enum.hpp>                                             // NOLINT
@@ -9,6 +10,7 @@
 #include <struct.hpp>                                           // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -18,6 +20,7 @@
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/names.h"
 #include "third_party/zynamics/bindiff/ida/ui.h"
+#include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
@@ -123,7 +126,8 @@ bool PortFunctionName(FixedPoint* fixed_point) {
   return true;
 }
 
-size_t SetComments(Address source, Address target, const Comments& comments,
+size_t SetComments(Address source, Address target,
+                   const CommentsByOperatorId& comments,
                    FixedPoint* fixed_point = nullptr) {
   int comment_count = 0;
   for (auto i = comments.lower_bound({source, 0});
@@ -260,17 +264,17 @@ size_t SetComments(Address source, Address target, const Comments& comments,
   return comment_count;
 }
 
-size_t SetComments(FixedPoint* fixed_point, const Comments& comments,
-                   Address start_source, Address end_source,
-                   Address start_target, Address end_target,
+size_t SetComments(FixedPoint* fixed_point,
+                   const CommentsByOperatorId& comments, Address start_source,
+                   Address end_source, Address start_target, Address end_target,
                    double min_confidence, double min_similarity) {
-  // Comments are always ported from secondary to primary:
+  // Symbols and comments are always ported from secondary to primary:
   const FlowGraph* source_flow_graph = fixed_point->GetSecondary();
   const FlowGraph* target_flow_graph = fixed_point->GetPrimary();
 
   // SetComments is called three times below which potentially sets a single
   // comment multiple times. This is necessary however, because iterating over
-  // fixedpoints might miss comments otherwise. For instance, there may be a
+  // fixed points might miss comments otherwise. For instance, there may be a
   // function fixed point but no corresponding instruction fixed point for the
   // function's entry point address.
   size_t counts = 0;
@@ -482,7 +486,7 @@ bool Results::IncrementalDiff() {
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
                           flow_graphs2_, fixed_points_);
 
-  // try to find any confirmed fixedpoints, if we don't have any we can just ret
+  // Try to find any confirmed fixed points. If there aren't any just return.
   bool has_confirmed_fixedpoints = false;
   for (auto i = fixed_points_.cbegin(), end = fixed_points_.cend(); i != end;
        ++i) {
@@ -495,7 +499,7 @@ bool Results::IncrementalDiff() {
   }
   if (!has_confirmed_fixedpoints) {
     warning(
-        "No manually confirmed fixedpoints found. Please add some matches "
+        "No manually confirmed fixed points found. Please add some matches "
         "or use the matched functions window context menu to confirm automatic "
         "matches before running an incremental diff");
     return false;
@@ -925,8 +929,8 @@ Results::MatchDescription Results::GetMatchDescription(size_t index) const {
 
 void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   // we need to check the temporary database first to get up to date data
-  // (the user may have added fixedpoints manually)
-  // only if we cannot find the fixedpoint there we load from the original db
+  // (the user may have added fixed points manually)
+  // only if we cannot find the fixed point there we load from the original db
   int id = 0;
   temp_database_.GetDatabase()
       ->Statement(
@@ -1176,7 +1180,7 @@ void Results::Read(Reader* reader) {
   confidence_ = reader->GetConfidence();
   dirty_ = false;
 
-  // TODO(cblichmann): Iterate over all fixedpoints that have been added
+  // TODO(cblichmann): Iterate over all fixed points that have been added
   //                   manually by the Java UI and evaluate them (add basic
   //                   block/instruction matches).
 }

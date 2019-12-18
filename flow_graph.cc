@@ -55,9 +55,9 @@ uint8_t TranslateEdge(int edge_type) {
     case 4:
       return FlowGraph::EDGE_SWITCH;
     default:
-      assert(false);
+      LOG(QFATAL) << "Invalid flow graph edge type: " << edge_type;
+      return FlowGraph::EDGE_UNCONDITIONAL;  // Not reached
   }
-  LOG(QFATAL) << "invalid flow graph edge type: " << edge_type;
 }
 
 // Translates from BinExport2 protocol buffer edge type to the one used
@@ -73,9 +73,9 @@ uint8_t ProtoToFlowGraphEdgeType(BinExport2::FlowGraph::Edge::Type edge_type) {
     case BinExport2::FlowGraph::Edge::SWITCH:
       return FlowGraph::EDGE_SWITCH;
     default:
-      assert(false);
+      LOG(QFATAL) << "Invalid flow graph edge type (proto): " << edge_type;
+      return FlowGraph::EDGE_UNCONDITIONAL;  // Not reached
   }
-  LOG(QFATAL) << "invalid flow graph edge type (proto): " << edge_type;
 }
 
 bool SortByAddressLevel(const std::pair<Address, FlowGraph::Level>& one,

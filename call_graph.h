@@ -16,11 +16,11 @@ class FlowGraph;
 class CallGraph {
  public:
   struct VertexInfo {
-    Address address_ = 0;       // Function address
-    std::string name_;          // Function name
+    Address address_ = 0;         // Function address
+    std::string name_;            // Function name
     std::string demangled_name_;  // Only set iff different from name_
-    uint32_t bfs_top_down_ = 0;   // Breadth-first-search level top down
-    uint32_t bfs_bottom_up_ = 0;  // Breadth-first-search level bottom up
+    uint32_t bfs_top_down_ = 0;     // Breadth-first-search level top down
+    uint32_t bfs_bottom_up_ = 0;    // Breadth-first-search level bottom up
     uint32_t flags_ = 0;
     FlowGraph* flow_graph_ = nullptr;  // Flow graph (if loaded and attached)
   };
@@ -75,7 +75,7 @@ class CallGraph {
 
   // Get the fully specified filename including path and extension as passed
   // into read().
-  std::string GetFilePath() const;
+  std::string GetFilePath() const { return filename_; }
 
   // free all associated data and reset to virgin state
   void Reset();
@@ -166,18 +166,18 @@ class CallGraph {
 
   // Return the name of the original input binary if known, else empty
   // std::string.
-  const std::string& GetExeFilename() const;
+  const std::string& GetExeFilename() const { return exe_filename_; }
   void SetExeFilename(const std::string& name);
 
   // Return the hex encoded hash (SHA256, SHA1 or obsolete MD5) of the original
   // input binary.
-  const std::string& GetExeHash() const;
+  const std::string& GetExeHash() const { return exe_hash_; }
   void SetExeHash(const std::string& hash);
 
   // Access comments. The call graph stores theses globally even for operands
   // because we don't want to store them multiple times for shared basic blocks.
-  Comments& GetComments();
-  const Comments& GetComments() const;
+  CommentsByOperatorId& GetComments() { return comments_; }
+  const CommentsByOperatorId& GetComments() const { return comments_; }
 
   // Potentially very expensive function: it reduces the graph to the immediate
   // vicinity of "edge" and recalculates MD indices on that subgraph. The idea
@@ -195,7 +195,7 @@ class CallGraph {
   double md_index_;
   std::string exe_filename_;
   std::string exe_hash_;
-  Comments comments_;
+  CommentsByOperatorId comments_;
   std::string filename_;
 };
 

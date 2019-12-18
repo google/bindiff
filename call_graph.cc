@@ -27,7 +27,7 @@ bool SortEdgeByMdIndex(const std::pair<CallGraph::Edge, double>& one,
 CallGraph::Vertex CallGraph::kInvalidVertex =
     CallGraph::Vertex(std::numeric_limits<int>::max());
 
-CallGraph::CallGraph() : md_index_(0) {}
+CallGraph::CallGraph() : md_index_(0.0) {}
 
 std::string CallGraph::GetFilename() const {
   const std::string::size_type filename_pos = filename_.rfind("/");
@@ -37,8 +37,6 @@ std::string CallGraph::GetFilename() const {
   return filename.substr(
       0, extension_pos != std::string::npos ? extension_pos : filename.size());
 }
-
-std::string CallGraph::GetFilePath() const { return filename_; }
 
 void CallGraph::Reset() {
   graph_.clear();
@@ -65,26 +63,14 @@ void CallGraph::Init() {
     }
   }
 
-  for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
-    graph_[*it].flow_graph_ = 0;
-  }
-
   CalculateTopology();
   SetMdIndex(CalculateMdIndex(*this));
   CalculateMdIndex(*this, true);  // Needs to be here to update edge properties.
 }
 
-Comments& CallGraph::GetComments() { return comments_; }
-
-const Comments& CallGraph::GetComments() const { return comments_; }
-
-const std::string& CallGraph::GetExeFilename() const { return exe_filename_; }
-
 void CallGraph::SetExeFilename(const std::string& name) {
   exe_filename_ = name;
 }
-
-const std::string& CallGraph::GetExeHash() const { return exe_hash_; }
 
 void CallGraph::SetExeHash(const std::string& hash) {
   // The executable hash is used for display purposes only, so we do not check
