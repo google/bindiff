@@ -975,7 +975,7 @@ void GetGlobalReferences(Address address, Comments* comments) {
     // This stores the instance pointer
     comments->emplace_back(address, UA_MAXOP + 1024 + count,
                            CallGraph::CacheString(ToString(ida_name)),
-                           Comment::GLOBALREFERENCE, false);
+                           Comment::GLOBAL_REFERENCE, false);
   }
 }
 
@@ -1044,7 +1044,7 @@ void GetLocalReferences(const insn_t& instruction, Comments* comments) {
     if (cache.local_vars.find(offset) != cache.local_vars.end()) {
       comments->emplace_back(instruction.ea, UA_MAXOP + 2048 + operand_num,
                              CallGraph::CacheString(cache.local_vars[offset]),
-                             Comment::LOCALREFERENCE, false);
+                             Comment::LOCAL_REFERENCE, false);
     }
   }
 }

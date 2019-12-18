@@ -53,16 +53,9 @@
 
 namespace security::binexport {
 
-constexpr char Plugin::kComment[];
-constexpr char Plugin::kHotKey[];
-
-std::string GetArgument(const char* name) {
+std::string GetArgument(absl::string_view name) {
   const char* option =
       get_plugin_options(absl::StrCat("BinExport", name).c_str());
-  if (option == nullptr) {
-    // Try old name as well.
-    get_plugin_options(absl::StrCat("Exporter", name).c_str());
-  }
   return option ? option : "";
 }
 

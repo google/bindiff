@@ -294,7 +294,8 @@ message BinExport2 {
 
   message Comment {
     enum Type {
-      // A regular instruction comment.
+      // A regular instruction comment. Typically displayed next to the
+      // instruction disassembly.
       DEFAULT = 0;
 
       // A comment line that is typically displayed before (above) the
@@ -308,16 +309,32 @@ message BinExport2 {
       // identified function. Programs displaying the proto may choose to render
       // these differently (e.g. above an inferred function signature).
       FUNCTION = 3;
-    }
 
-    // Reserved fields in case we want to support comments per
-    // operand/expression, like in Reference.
-    reserved 2, 3;
+      // Named constants, bitfields and similar.
+      ENUM = 4;
+
+      // Named locations, usually the target of a jump.
+      LOCATION = 5;
+
+      // Data cross references.
+      GLOBAL_REFERENCE = 6;
+
+      // Local/stack variables.
+      LOCAL_REFERENCE = 7;
+    }
 
     // Index into the global instruction table. This is here to enable
     // comment processing without having to iterate over all instructions.
     // There is an N:M mapping of instructions to comments.
     optional int32 instruction_index = 1;
+
+    // Index into the operand array local to an instruction.
+    optional int32 instruction_operand_index = 2 [default = 0];
+
+    // Index into the expression array local to an operand, like in Reference.
+    // This is not currently used, but allows to implement expression
+    // substitutions.
+    optional int32 operand_expression_index = 3 [default = 0];
 
     // Index into the global string table.
     optional int32 string_table_index = 4;
@@ -372,7 +389,11 @@ message BinExport2 {
   optional CallGraph call_graph = 8;
 
   repeated string string_table = 9;
+
+  // No longer written. This is here so that BinDiff can work with older
+  // BinExport files.
   repeated Reference address_comment = 10 [deprecated = true];
+
   // Rich comment index used for BinDiff's comment porting.
   repeated Comment comment = 17;
   repeated Reference string_reference = 11;
