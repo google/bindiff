@@ -12,8 +12,8 @@ files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/plugins opt/bindiff
 files/opt/bindiff/plugins/bindiff6.so opt/bindiff/plugins
 files/opt/bindiff/plugins/bindiff664.so opt/bindiff/plugins
-files/opt/bindiff/plugins/binexport10.so opt/bindiff/plugins
-files/opt/bindiff/plugins/binexport1064.so opt/bindiff/plugins
+files/opt/bindiff/plugins/binexport11.so opt/bindiff/plugins
+files/opt/bindiff/plugins/binexport1164.so opt/bindiff/plugins
 files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications
 files/usr/share/fonts/truetype/robotomono/RobotoMono-Bold.ttf usr/share/fonts/truetype/robotomono
 files/usr/share/fonts/truetype/robotomono/RobotoMono-BoldItalic.ttf usr/share/fonts/truetype/robotomono

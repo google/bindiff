@@ -20,7 +20,7 @@ set -e
 # the debian-policy package
 
 bindiff_release=6
-binexport_release=10
+binexport_release=11
 
 case "$1" in
     purge|remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)

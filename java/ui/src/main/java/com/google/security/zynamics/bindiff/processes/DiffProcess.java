@@ -58,10 +58,10 @@ public class DiffProcess {
       throws DifferException {
     final File differExeFile = new File(differExe);
     if (!differExeFile.exists()) {
-      throw new DifferException("Can't find Diff engine at '" + differExe + "'.");
+      throw new DifferException("Can't find BinDiff engine at '" + differExe + "'.");
     }
     if (!differExeFile.canExecute()) {
-      throw new DifferException("Diff engine is not an executable '" + differExe + "'.");
+      throw new DifferException("BinDiff engine is not an executable '" + differExe + "'.");
     }
 
     final ProcessBuilder diffProcess =
@@ -73,7 +73,7 @@ public class DiffProcess {
             secondaryExportedName,
             "--output_dir",
             outputDir.getPath(),
-            "--bin_format");
+            "--output_format=bin");
 
     logger.at(Level.INFO).log(String.join(" ", diffProcess.command()));
 
@@ -89,8 +89,8 @@ public class DiffProcess {
       // This is needed to avoid a deadlock!
       // More information see:
       // http://www.javakb.com/Uwe/Forum.aspx/java-programmer/7243/Process-waitFor-vs-Process-destroy
-      s1 = new ProcessOutputStreamReader("Diff Process - stdout", processInfo.getInputStream());
-      s2 = new ProcessOutputStreamReader("Diff Process - stderr", processInfo.getErrorStream());
+      s1 = new ProcessOutputStreamReader("BinDiff Process - stdout", processInfo.getInputStream());
+      s2 = new ProcessOutputStreamReader("BinDiff Process - stderr", processInfo.getErrorStream());
       s1.start();
       s2.start();
 

@@ -221,11 +221,11 @@
         <Directory Id="IDADIRECTORY" Name="IDA">
           <Directory Id="Ida_Plugins" Name="plugins">
             <Component Id="Ida_Plugins" Win64="yes"
-                       Guid="63B2C436-7DB8-466A-8363-3892D61EB89F">
+                       Guid="E2F631C8-DF7A-48AC-BAAB-578D9FB107F3">
               <File Name="bindiff6.dll" KeyPath="no" />
               <File Name="bindiff664.dll" KeyPath="yes" />
-              <File Name="binexport10.dll" KeyPath="no" />
-              <File Name="binexport1064.dll" KeyPath="no" />
+              <File Name="binexport11.dll" KeyPath="no" />
+              <File Name="binexport1164.dll" KeyPath="no" />
             </Component>
           </Directory>
         </Directory>

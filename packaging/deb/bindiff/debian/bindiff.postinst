@@ -21,7 +21,7 @@ set -e
 bindiff_root=/opt/bindiff
 bindiff_etc=/etc/opt/bindiff
 bindiff_release=6
-binexport_release=10
+binexport_release=11
 
 case "$1" in
     configure)
