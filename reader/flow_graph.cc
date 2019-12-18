@@ -64,6 +64,7 @@ uint32_t GetEdgeTypeFromProto(BinExport2::FlowGraph::Edge::Type type) {
       return FlowGraph::kEdgeSwitch;
     default:
       LOG(QFATAL) << "Invalid edge type: " << type;
+      return FlowGraph::kEdgeUnconditional;  // Not reached
   }
 }
 

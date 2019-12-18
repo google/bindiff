@@ -51,6 +51,7 @@
 #include "third_party/zynamics/binexport/ida/mips.h"
 #include "third_party/zynamics/binexport/ida/ppc.h"
 #include "third_party/zynamics/binexport/ida/types_container.h"
+#include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
@@ -59,10 +60,6 @@
 #include "third_party/zynamics/binexport/x86_nop.h"
 
 namespace security::binexport {
-
-std::string ToString(const qstring& ida_string) {
-  return std::string(ida_string.c_str(), ida_string.length());
-}
 
 enum Architecture {
   kX86 = 0,

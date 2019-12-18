@@ -179,6 +179,10 @@ add_ida_library(binexport_plugin_shared STATIC
   ida/digest.h
   ida/log.cc
   ida/log.h
+  ida/ui.cc
+  ida/ui.h
+  ida/util.cc
+  ida/util.h
 )
 ida_target_link_libraries(binexport_plugin_shared PUBLIC
   absl::time
@@ -242,8 +246,6 @@ add_ida_plugin(${binexport_plugin_name}
   ida/ppc.h
   ida/types_container.cc
   ida/types_container.h
-  ida/ui.cc
-  ida/ui.h
   instruction.cc
   instruction.h
   library_manager.cc
