@@ -1,48 +1,71 @@
 #!/bin/bash
 set -eux
 
+function log() {
+  syslog -s -l error "BinDiff postinstall: $1"
+}
+
+log "Starting"
+
 # Temporary file created by the installer plugin that contains a single line
 # with the IDA plugins directory.
 TMPFILE=/tmp/__38F74084-9DF1-4C5D-91E1-0E63780ADC57_zy__
 
 # If the file does not exist, bail out
-[ ! -f "$TMPFILE" ] && exit 1
+[ ! -f "${TMPFILE}" ] && exit 1
+log "TMPFILE: ${TMPFILE}"
 
 # Schedule file to be removed at end of script
-trap "rm -f \"$TMPFILE\"" INT TERM EXIT
+trap "rm -f \"${TMPFILE}\"" INT TERM EXIT
 
 # If the application directory does not exist, exit
 APP_DIR=/Applications/BinDiff
-cd "$APP_DIR" || exit 2
+cd "${APP_DIR}" || exit 2
+log "Got APP_DIR: ${APP_DIR}"
 
 # If the plugins directory does not exist, exit
-IDA_DIR=$(sed 's,/plugins$,,' $TMPFILE)
-IDA_PLUGINS_DIR=$(cat $TMPFILE)
-[ ! -d "$IDA_PLUGINS_DIR" ] && exit 3
+IDA_DIR=$(sed 's,/plugins$,,' ${TMPFILE})
+IDA_PLUGINS_DIR=$(cat ${TMPFILE})
+if [ -d "${IDA_PLUGINS_DIR}" ]; then
+  # Create symlinks for the IDA Pro plugins/differ
+  for plugin in \
+    bindiff6.dylib \
+    bindiff664.dylib \
+    binexport11.dylib \
+    binexport1164.dylib
+  do
+    log "Symlink ${APP_DIR}/Plugins/${plugin} -> ${IDA_PLUGINS_DIR}/"
+    chmod +x "${APP_DIR}/Plugins/${plugin}"
+    ln -sf "${APP_DIR}/Plugins/${plugin}" "${IDA_PLUGINS_DIR}/"
+  done
+else
+  log "No IDA installation, skipping plugin symlinks"
+fi
 
-# Create symlinks for the IDA Pro plugins/differ
-for plugin in \
-  bindiff6.dylib \
-  bindiff664.dylib \
-  binexport11.dylib \
-  binexport1164.dylib
-do
-  chmod +x "${APP_DIR}/Plugins/$plugin"
-  ln -sf "${APP_DIR}/Plugins/$plugin" "$IDA_PLUGINS_DIR/"
-done
+BUNDLE_DIR="${APP_DIR}/BinDiff.app/Contents"
 for exe in \
   bindiff \
   binexport2dump
 do
-  chmod +x "${APP_DIR}/BinDiff.app/Contents/MacOS/bin/$exe"
-  ln -sf "${APP_DIR}/BinDiff.app/Contents/MacOS/bin/$exe" /usr/local/bin/
+  log "Symlink ${BUNDLE_DIR}/MacOS/bin/${exe} -> /usr/local/bin/"
+  chmod +x "${BUNDLE_DIR}/MacOS/bin/${exe}"
+  ln -sf "${BUNDLE_DIR}/MacOS/bin/${exe}" /usr/local/bin/
 done
-ln -s "BinDiff.app/Contents/MacOS/bin" bin
+log "Symlink ${BUNDLE_DIR}/MacOS/bin -> ${PWD}/bin"
+ln -s "${BUNDLE_DIR}/MacOS/bin" bin
 
 # Setup install location in config file.
-sed -i "" "s,BINDIFF_DIR,$APP_DIR/BinDiff.app/Contents/Java," \
+log "Adjusting config file for BINDIFF_DIR: ${BUNDLE_DIR}/app"
+sed -i "" "s,BINDIFF_DIR,${BUNDLE_DIR}/app," \
   "/Library/Application Support/BinDiff/bindiff.xml"
 
-escidadir=$(echo $IDA_DIR | sed 's/\//\\\//g')
-sed -i "" "s/IDADIR/${escidadir}/" \
-  "/Library/Application Support/BinDiff/bindiff.xml"
+if [ -d "${IDA_DIR}" ]; then
+  log "Adjusting config file for IDADIR: ${IDADIR}"
+  escidadir=$(echo ${IDA_DIR} | sed 's/\//\\\//g')
+  sed -i "" "s/IDADIR/${escidadir}/" \
+    "/Library/Application Support/BinDiff/bindiff.xml"
+else
+  log "No IDA installation, skipping config change for IDADIR"
+fi
+
+log "Finished"

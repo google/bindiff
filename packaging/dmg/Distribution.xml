@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="2">
+  <title>BinDiff</title>
   <allowed-os-versions>
     <os-version min="10.12"/>
   </allowed-os-versions>

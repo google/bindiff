@@ -60,12 +60,12 @@
                                     isDirectory:YES]];
   [panel beginSheetModalForWindow:parent
                 completionHandler:^(NSModalResponse result) {
-                  if (result != NSFileHandlingPanelOKButton) {
-                    return;
-                  }
-                  [uiIdaDirectoryField setStringValue:
-                   [NSString stringWithFormat:@"%@", [[panel URL] path]]];
-                }];
+    if (result != NSModalResponseOK) {
+      return;
+    }
+    [uiIdaDirectoryField setStringValue:
+     [NSString stringWithFormat:@"%@", [[panel URL] path]]];
+  }];
 }
 
 - (void)didEnterPane:(InstallerSectionDirection)dir {
@@ -85,14 +85,15 @@
   // If we were given an application bundle name that ends with ".app", deal
   // with the additional two directory layers in a MacOS package. Otherwise,
   // assume that the user entered a full path themselves.
-  NSString *pluginDir = [NSString stringWithFormat:@"%@%@/plugins", idaDir,
-                         [idaDir hasSuffix:@".app"] ? @"/Contents/MacOS" : @""];
+  NSString *idaPluginDir =
+      [NSString stringWithFormat:@"%@%@/plugins", idaDir,
+       [idaDir hasSuffix:@".app"] ? @"/Contents/MacOS" : @""];
 
   NSFileManager *fm = [[NSFileManager alloc] init];
   BOOL isDir;
-  BOOL haveValidDir = [fm fileExistsAtPath:pluginDir
-                               isDirectory:&isDir] && isDir;
-  if (!haveValidDir) {
+  BOOL haveValidDir = ([fm fileExistsAtPath:idaPluginDir
+                                isDirectory:&isDir] && isDir);
+  if (!haveValidDir && ([idaDir length] > 0)) {
     NSAlert *alert = [[NSAlert alloc] init];
     [alert setMessageText:@"Invalid IDA installation directory"];
     [alert setInformativeText:@"Please enter the full path to a valid "
@@ -102,23 +103,29 @@
     [alert release];
   }
 
+  // Indicate to postinstall script that no IDA Pro directory was selected.
+  if ([idaDir length] == 0) {
+    idaPluginDir = @"IDADIR/plugins";
+  }
+
   // Write the IDA installation path to a known file in /tmp that will be
   // used and later cleaned up by the postinstall script. We do not use the
   // TMPDIR environment variable because the Installer puts scripts inside
   // a sandbox.
-  NSString *kKnownFile = @"/tmp/__38F74084-9DF1-4C5D-91E1-0E63780ADC57_zy__";
+  NSString *const kKnownFile =
+      @"/tmp/__38F74084-9DF1-4C5D-91E1-0E63780ADC57_zy__";
 
   // Remove file first
   [fm removeItemAtPath:kKnownFile error:nil];
 
   // Write new file atomically
-  [pluginDir writeToFile:kKnownFile
-              atomically:YES
-                encoding:NSUTF8StringEncoding
-                   error:nil];
+  [idaPluginDir writeToFile:kKnownFile
+                 atomically:YES
+                   encoding:NSUTF8StringEncoding
+                      error:nil];
 
   [fm release];
-  return haveValidDir;
+  return haveValidDir || ([idaDir length] == 0);
 }
 
 - (void)queryDidFinishGatheringNotification:(NSNotification *)note {
