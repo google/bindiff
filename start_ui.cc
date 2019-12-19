@@ -23,14 +23,13 @@
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security::bindiff {
 
-constexpr char kGuiJarName[] = "bindiff.jar";
-
 #ifdef _WIN32
 // Minimum required version of the JRE
-constexpr double kMinJavaVersion = 9;
+constexpr double kMinJavaVersion = 11.0;
 
 bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
                          int bufsize) {
@@ -64,16 +63,11 @@ std::string GetJavaHomeDir() {
   }
 
   HKEY key;
-  // Try JDK key first, as newer Java versions (>=10) do not ship the JRE
+  // Only try JDK key, as newer Java versions (> 9) do not ship the JRE
   // separately anymore.
-  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\JavaSoft\\JDK", 0, KEY_READ,
+  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, R"(SOFTWARE\JavaSoft\JDK)", 0, KEY_READ,
                    &key) != ERROR_SUCCESS) {
-    // Not found, try JRE key next.
-    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE,
-                     "SOFTWARE\\JavaSoft\\Java Runtime Environment", 0,
-                     KEY_READ, &key) != ERROR_SUCCESS) {
-      return "";
-    }
+    return "";
   }
 
   if (RegQueryStringValue(key, "CurrentVersion", &buffer[0], MAX_PATH)) {
@@ -123,7 +117,43 @@ uint64_t GetPhysicalMemSize() {
 
 not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
                                     const StartUiOptions& options) {
-  std::vector<std::string> argv = {options.java_binary};
+  std::vector<std::string> argv;
+
+  // Set max heap size to 75% of available physical memory if unset.
+  const int max_heap_mb(
+      options.max_heap_size_mb > 0
+          ? options.max_heap_size_mb
+          : std::max(static_cast<uint64_t>(512),
+                     (GetPhysicalMemSize() / 1024 / 1024) * 3 / 4));
+
+#ifdef __APPLE__
+  // On macOS, try to use the launcher binary first if java-binary is not set
+  // (the default). This improves overall UX: the dock icon will show correctly
+  // for example.
+  if (options.java_binary.empty()) {
+    // Directory layout:
+    //   <prefix>/BinDiff.app/Contents/app            (bindiff.jar)
+    //   <prefix>/BinDiff.app/Contents/MacOS/BinDiff  (Launcher)
+    argv = {JoinPath(options.gui_dir, "../MacOS/BinDiff")};
+
+    // The launcher does not take any JVM arguments, so they have to be set via
+    // environment variable.
+    std::string tool_options = absl::StrFormat("-Xms128m -Xmx%dm", max_heap_mb);
+    if (!options.java_vm_options.empty()) {
+      absl::StrAppend(&tool_options, " ", options.java_vm_options);
+    }
+    SetEnvironmentVariable("JAVA_TOOL_OPTIONS", tool_options);
+
+    argv.insert(argv.end(), extra_args.begin(), extra_args.end());
+
+    if (SpawnProcess(argv).ok()) {
+      return not_absl::OkStatus();
+    }
+    // Try again using the regular process below.
+  }
+#endif
+
+  argv = {options.java_binary};
   std::string& java_exe = argv.front();
   if (java_exe.empty()) {
     java_exe = GetJavaHomeDir();
@@ -136,13 +166,10 @@ not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
     absl::StrAppend(&java_exe, "java");
 #endif
   }
-  argv.push_back("-Xms128m");
 
-  // Set max heap size to 75% of available physical memory if unset.
-  int max_heap_mb(options.max_heap_size_mb > 0
-                      ? options.max_heap_size_mb
-                      : std::max(static_cast<uint64_t>(512),
-                                 (GetPhysicalMemSize() / 1024 / 1024) * 3 / 4));
+  // Command-line takes precedence over JAVA_TOOL_OPTIONS, which may be set on
+  // macOS.
+  argv.push_back("-Xms128m");
   argv.push_back(absl::StrFormat("-Xmx%dm", max_heap_mb));
 
   for (const auto& vm_arg :
@@ -154,6 +181,7 @@ not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
 #endif
 
   argv.push_back("-jar");
+  constexpr char kGuiJarName[] = "bindiff.jar";
   std::string jar_file = JoinPath(options.gui_dir, "bin", kGuiJarName);
   if (!FileExists(jar_file)) {
     // Try again without the "bin" dir (b/63617055).

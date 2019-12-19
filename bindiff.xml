@@ -1,9 +1,11 @@
 <?xml version="1.0"?>
 <bindiff config-version="6">
-  <!-- Settings not shown here are java-binary, java-vm-options and
-       max-heap-size-mb.
+  <!-- Settings not shown here are java-vm-options and max-heap-size-mb. When
+       java-binary is empty or unset, BinDiff will try to auto-detect a
+       suitable JVM.
     -->
-  <ui directory="BINDIFF_DIR" server="127.0.0.1" port="2000" retries="20" />
+  <ui java-binary="" directory="BINDIFF_DIR" server="127.0.0.1" port="2000"
+      retries="20" />
   <!-- The actual IDA Pro executable can be set with executable (for 32-bit
        addresses) and executable64 (for 64-bit).
     -->
