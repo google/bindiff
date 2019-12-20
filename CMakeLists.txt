@@ -108,11 +108,9 @@ if(WIN32)
     shlwapi.lib
   )
 else()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
-    target_link_libraries(binexport_shared PUBLIC
-      stdc++fs
-    )
-  endif()
+  target_link_libraries(binexport_shared PUBLIC
+    stdc++fs
+  )
 endif()
 set_target_properties(binexport_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
