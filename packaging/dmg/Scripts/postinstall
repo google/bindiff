@@ -52,15 +52,15 @@ do
   ln -sf "${BUNDLE_DIR}/MacOS/bin/${exe}" /usr/local/bin/
 done
 log "Symlink ${BUNDLE_DIR}/MacOS/bin -> ${PWD}/bin"
-ln -s "${BUNDLE_DIR}/MacOS/bin" bin
+ln -sf "${BUNDLE_DIR}/MacOS/bin" bin
 
 # Setup install location in config file.
 log "Adjusting config file for BINDIFF_DIR: ${BUNDLE_DIR}/app"
 sed -i "" "s,BINDIFF_DIR,${BUNDLE_DIR}/app," \
   "/Library/Application Support/BinDiff/bindiff.xml"
 
+log "Adjusting config file for IDADIR: ${IDA_DIR}"
 if [ -d "${IDA_DIR}" ]; then
-  log "Adjusting config file for IDADIR: ${IDADIR}"
   escidadir=$(echo ${IDA_DIR} | sed 's/\//\\\//g')
   sed -i "" "s/IDADIR/${escidadir}/" \
     "/Library/Application Support/BinDiff/bindiff.xml"
