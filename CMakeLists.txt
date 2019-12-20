@@ -127,9 +127,11 @@ if(WIN32)
     shlwapi.lib
   )
 else()
-  target_link_libraries(binexport_shared PUBLIC
-    stdc++fs
-  )
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    target_link_libraries(binexport_shared PUBLIC
+      stdc++fs
+    )
+  endif()
 endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
