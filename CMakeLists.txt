@@ -108,9 +108,11 @@ if(WIN32)
     shlwapi.lib
   )
 else()
-  target_link_libraries(binexport_shared PUBLIC
-    stdc++fs
-  )
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    target_link_libraries(binexport_shared PUBLIC
+      stdc++fs
+    )
+  endif()
 endif()
 set_target_properties(binexport_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
