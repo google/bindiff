@@ -2,15 +2,15 @@
 
 #include "third_party/absl/base/attributes.h"
 
-namespace security {
-namespace bindiff {
+namespace security::bindiff {
 
 ABSL_CONST_INIT const char* kBinDiffName = "BinDiff";
 
 ABSL_CONST_INIT const char* kBinDiffRelease = "@bindiff_VERSION_MAJOR@";
 
 ABSL_CONST_INIT const char* kBinDiffDetailedVersion =
-    "@bindiff_VERSION_MAJOR@ ("
+    "@bindiff_VERSION_MAJOR@ (@"
+    "@REVISION@, "
 #ifdef GOOGLE
     "Google internal, "
 #endif
@@ -23,5 +23,4 @@ ABSL_CONST_INIT const char* kBinDiffDetailedVersion =
 ABSL_CONST_INIT const char* kBinDiffCopyright =
     "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
 
-}  // namespace bindiff
-}  // namespace security
+}  // namespace security::bindiff

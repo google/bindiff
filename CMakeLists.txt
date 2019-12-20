@@ -47,6 +47,13 @@ create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/bindiff)
 create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/binexport)
 create_directory_symlink(${absl_src_dir}/absl ${_bindiff_src}/../absl)
 
+# Set revision number, if applicable
+if(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
+  set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
+else()
+  set(REVISION internal)
+endif()
+
 configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
 # Interface library with include paths used by BinDiff
