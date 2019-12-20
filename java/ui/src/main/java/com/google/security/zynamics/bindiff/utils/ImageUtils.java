@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.utils;
 
 import com.google.common.flogger.FluentLogger;
-import com.google.security.zynamics.bindiff.Launcher;
+import com.google.security.zynamics.bindiff.BinDiff;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.net.URL;
@@ -9,13 +9,14 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import javax.swing.ImageIcon;
 
+/** Utility class to load images from BinDiff package resources. */
 public class ImageUtils {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private ImageUtils() {}
 
   public static Image getImage(final String imagePath) {
-    final String pkgName = Launcher.class.getPackage().getName().replace('.', '/');
+    final String pkgName = BinDiff.class.getPackage().getName().replace('.', '/');
     URL imageUrl = null;
     // Blaze packages up resource files differently than Maven. Search "ui" and "zylib" as well.
     for (String path :
@@ -23,7 +24,7 @@ public class ImageUtils {
             "",
             "/ui/src/main/resources/" + pkgName + "/",
             "/zylib/src/main/resources/" + pkgName + "/")) {
-      imageUrl = Launcher.class.getResource(path + imagePath);
+      imageUrl = BinDiff.class.getResource(path + imagePath);
       if (imageUrl != null) {
         break;
       }

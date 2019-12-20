@@ -20,6 +20,7 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+/** Controller class with functions applicable to all "tab panels". */
 public class TabPanelFunctions {
   private static final ImageIcon BINDIFF_ABOUT_IMAGE =
       ImageUtils.getImageIcon(Constants.ABOUT_BINDIFF_IMAGE_PATH);
@@ -62,7 +63,7 @@ public class TabPanelFunctions {
     } catch (final IOException e) {
       JOptionPane.showMessageDialog(
           window,
-          "Couldn' open URL \"" + Constants.BUG_REPORT_URL + "\"!",
+          "Couldn't open URL \"" + Constants.BUG_REPORT_URL + "\"!",
           Constants.DEFAULT_WINDOW_TITLE,
           JOptionPane.ERROR_MESSAGE);
     }
@@ -82,7 +83,8 @@ public class TabPanelFunctions {
     final String message = Constants.PRODUCT_NAME_VERSION + "\n" + Constants.COPYRIGHT_TEXT;
     final String description =
         "\nParts of this software were created by third parties and may have "
-            + "different licensing requirements.\nPlease see the manual file for a complete list.\n";
+            + "different licensing requirements.\n"
+            + "Please see the manual for a complete list.\n";
 
     final Image appImage = BINDIFF_ABOUT_IMAGE.getImage();
     final CDialogAboutEx dlg =
@@ -109,7 +111,7 @@ public class TabPanelFunctions {
     } catch (final IOException e) {
       JOptionPane.showMessageDialog(
           window,
-          "Couldn' open URL \"" + Constants.MANUAL_URL + "\"!",
+          "Couldn't open URL \"" + Constants.MANUAL_URL + "\"!",
           Constants.DEFAULT_WINDOW_TITLE,
           JOptionPane.ERROR_MESSAGE);
     }

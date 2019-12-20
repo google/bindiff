@@ -1,7 +1,7 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.mainsettings;
 
 import com.google.common.flogger.FluentLogger;
-import com.google.security.zynamics.bindiff.Launcher;
+import com.google.security.zynamics.bindiff.BinDiff;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
@@ -23,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
+/** General application settings dialog. */
 public class MainSettingsDialog extends BaseDialog {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -50,7 +51,7 @@ public class MainSettingsDialog extends BaseDialog {
 
   private void adoptChanges() {
     try {
-      Launcher.applyLoggingChanges();
+      BinDiff.applyLoggingChanges();
     } catch (final SecurityException | IOException e) {
       logger.at(Level.SEVERE).withCause(e).log("Couldn't create file logger");
       CMessageBox.showError(this, "Couldn't create file logger.");
