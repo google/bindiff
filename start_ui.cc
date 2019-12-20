@@ -134,7 +134,7 @@ not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
     // Directory layout:
     //   <prefix>/BinDiff.app/Contents/app            (bindiff.jar)
     //   <prefix>/BinDiff.app/Contents/MacOS/BinDiff  (Launcher)
-    argv = {JoinPath(options.gui_dir, "../MacOS/BinDiff")};
+    argv = {"/usr/bin/open", JoinPath(options.gui_dir, "../..")};
 
     // The launcher does not take any JVM arguments, so they have to be set via
     // environment variable.
