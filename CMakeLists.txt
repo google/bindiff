@@ -127,11 +127,9 @@ if(WIN32)
     shlwapi.lib
   )
 else()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
-    target_link_libraries(binexport_shared PUBLIC
-      stdc++fs
-    )
-  endif()
+  target_link_libraries(binexport_shared PUBLIC
+    stdc++fs
+  )
 endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
