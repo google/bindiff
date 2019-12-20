@@ -79,7 +79,7 @@ public final class SystemHelpers {
    */
   public static String getApplicationDataDirectory(final String product) {
     return getApplicationDataDirectory()
-        + (isRunningWindows() ? product : "." + product.toLowerCase())
+        + (isRunningLinux() ? "." + product.toLowerCase() : product)
         + File.separator;
   }
 
