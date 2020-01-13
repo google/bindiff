@@ -190,10 +190,10 @@ void ClassifyChanges(MatchingContext* context) {
   }
 }
 
-std::string GetChangeDescription(ChangeType change) {
+std::string GetChangeDescription(int change_flags) {
   std::string result("GIOJELC");
   for (int i = 0; i < CHANGE_COUNT; ++i) {
-    if (!(change & (1 << i))) {
+    if (!(change_flags & (1 << i))) {
       result[i] = '-';
     }
   }

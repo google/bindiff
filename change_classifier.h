@@ -20,9 +20,13 @@ enum ChangeType {
   CHANGE_COUNT = 7
 };
 
+// Returns a short descirption of the specified change. The returned string is
+// similar to a Posix "ls -l" output. For example, if only structural changes
+// have occured, it looks like this: "G------".
+std::string GetChangeDescription(int change_flags);
+
 void ClassifyChanges(FixedPoint* fixed_point);
 void ClassifyChanges(MatchingContext* context);
-std::string GetChangeDescription(ChangeType change);
 
 }  // namespace security::bindiff
 
