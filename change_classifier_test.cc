@@ -1,5 +1,7 @@
 #include "third_party/zynamics/bindiff/change_classifier.h"
 
+#include "third_party/zynamics/bindiff/test_util.h"
+
 #ifndef GOOGLE
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -13,7 +15,12 @@ using ::testing::StrEq;
 namespace security::bindiff {
 namespace {
 
-TEST(ChangeClassifierTest, ChangeDescription) {
+class ChangeClassifierTest : public ::testing::Test {
+ protected:
+  static void SetUpTestSuite() { ApplyDefaultConfigForTesting(); }
+};
+
+TEST_F(ChangeClassifierTest, ChangeDescription) {
   EXPECT_THAT(GetChangeDescription(CHANGE_NONE), StrEq("-------"));
   EXPECT_THAT(GetChangeDescription(CHANGE_STRUCTURAL | CHANGE_OPERANDS |
                                    CHANGE_ENTRYPOINT | CHANGE_CALLS),
