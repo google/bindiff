@@ -24,7 +24,7 @@ Expression::StringCache Expression::string_cache_;
 Expression::ExpressionCache Expression::expression_cache_;
 int Expression::global_id_ = 0;
 
-Expression::Expression(Expression* parent, const std::string& symbol,
+Expression::Expression(const Expression* parent, const std::string& symbol,
                        int64_t immediate, Type type, uint16_t position,
                        bool relocatable)
     : symbol_(CacheString(symbol)),
@@ -36,9 +36,9 @@ Expression::Expression(Expression* parent, const std::string& symbol,
   DCHECK(!symbol.empty() || IsImmediate());
 }
 
-Expression* Expression::Create(Expression* parent, const std::string& symbol,
-                               int64_t immediate, Type type, uint16_t position,
-                               bool relocatable) {
+Expression* Expression::Create(const Expression* parent,
+                               const std::string& symbol, int64_t immediate,
+                               Type type, uint16_t position, bool relocatable) {
   Expression expression(parent, symbol, immediate, type, position, relocatable);
   const std::string signature = expression.CreateSignature();
   ExpressionCache::iterator i = expression_cache_.find(signature);

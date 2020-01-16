@@ -21,7 +21,6 @@
 #include <tuple>
 
 // clang-format off
-#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
 #include <allins.hpp>                                           // NOLINT
@@ -43,9 +42,8 @@
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/base_types.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
-#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/arm.h"
 #include "third_party/zynamics/binexport/ida/dalvik.h"
 #include "third_party/zynamics/binexport/ida/generic.h"
@@ -53,16 +51,15 @@
 #include "third_party/zynamics/binexport/ida/mips.h"
 #include "third_party/zynamics/binexport/ida/ppc.h"
 #include "third_party/zynamics/binexport/ida/types_container.h"
-#include "third_party/zynamics/binexport/util/timer.h"
+#include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/type_system.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
 namespace security::binexport {
-
-std::string ToString(const qstring& ida_string) {
-  return std::string(ida_string.c_str(), ida_string.length());
-}
 
 enum Architecture {
   kX86 = 0,
@@ -975,7 +972,7 @@ void GetGlobalReferences(Address address, Comments* comments) {
     // This stores the instance pointer
     comments->emplace_back(address, UA_MAXOP + 1024 + count,
                            CallGraph::CacheString(ToString(ida_name)),
-                           Comment::GLOBALREFERENCE, false);
+                           Comment::GLOBAL_REFERENCE, false);
   }
 }
 
@@ -1044,7 +1041,7 @@ void GetLocalReferences(const insn_t& instruction, Comments* comments) {
     if (cache.local_vars.find(offset) != cache.local_vars.end()) {
       comments->emplace_back(instruction.ea, UA_MAXOP + 2048 + operand_num,
                              CallGraph::CacheString(cache.local_vars[offset]),
-                             Comment::LOCALREFERENCE, false);
+                             Comment::LOCAL_REFERENCE, false);
     }
   }
 }

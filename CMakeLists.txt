@@ -14,15 +14,13 @@
 
 cmake_minimum_required(VERSION 3.12)
 cmake_policy(VERSION 3.12)
-project(binexport VERSION 10)  # Only major version is used
-
-# XXX: Replace for OSS!
-set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../binexport10_g3/google3/third_party)
+project(binexport VERSION 11)  # Only major version is used
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(copts.cmake)
 include(util.cmake)
-include(sqlite.cmake)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # Use a copy of a subset of Boost that we ship
 set(Boost_NO_SYSTEM_PATHS TRUE)
@@ -130,7 +128,7 @@ if(WIN32)
     shlwapi.lib
   )
 else()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     target_link_libraries(binexport_shared PUBLIC
       stdc++fs
     )
@@ -183,23 +181,14 @@ add_ida_library(binexport_plugin_shared STATIC
   ida/digest.h
   ida/log.cc
   ida/log.h
+  ida/ui.cc
+  ida/ui.h
+  ida/util.cc
+  ida/util.h
 )
 ida_target_link_libraries(binexport_plugin_shared PUBLIC
   absl::time
   binexport_base
-)
-
-add_ida_library(binexport_db STATIC
-  database.cc
-  database.h
-)
-ida_target_include_directories(binexport_db PUBLIC
-  ${ThirdParty_DIR}/..
-)
-ida_target_link_libraries(binexport_db PUBLIC
-  absl::strings
-  binexport_base
-  sqlite
 )
 
 set(binexport_plugin_name binexport${binexport_VERSION_MAJOR})
@@ -259,8 +248,6 @@ add_ida_plugin(${binexport_plugin_name}
   ida/ppc.h
   ida/types_container.cc
   ida/types_container.h
-  ida/ui.cc
-  ida/ui.h
   instruction.cc
   instruction.h
   library_manager.cc
@@ -295,7 +282,6 @@ ida_target_link_libraries(${binexport_plugin_name}
   absl::optional
   absl::strings
   absl::time
-  binexport_db
   binexport_shared
   binexport_plugin_shared
   ${PostgreSQL_LIBRARIES}
