@@ -23,12 +23,6 @@
 #                [REQUIRED]  # Fail with an error if IDA SDK is not found
 #               )
 #
-# Use this module by invoking find_package with the form:
-#
-#   find_package(IdaSdk
-#                [REQUIRED]  # Fail with an error if IDA SDK is not found
-#               )
-#
 # Defines the following variables:
 #
 #   IdaSdk_INCLUDE_DIRS - Include directories for the IDA Pro SDK.
