@@ -640,20 +640,24 @@ void WriteDataReferences(
 BinExport2::Comment::Type CommentTypeToProtoType(Comment::Type type) {
   switch (type) {
     case Comment::REGULAR:
-    case Comment::ENUM:
-    case Comment::LOCATION:
-    case Comment::GLOBALREFERENCE:
-    case Comment::LOCALREFERENCE:
-    case Comment::STRUCTURE:
       return BinExport2::Comment::DEFAULT;
-
+    case Comment::ENUM:
+      return BinExport2::Comment::ENUM;
+    case Comment::LOCATION:
+      return BinExport2::Comment::LOCATION;
+    case Comment::GLOBAL_REFERENCE:
+      return BinExport2::Comment::GLOBAL_REFERENCE;
+    case Comment::LOCAL_REFERENCE:
+      return BinExport2::Comment::LOCAL_REFERENCE;
+    case Comment::STRUCTURE:
+      // Not currently exported
+      return BinExport2::Comment::DEFAULT;
     case Comment::ANTERIOR:
       return BinExport2::Comment::ANTERIOR;
     case Comment::POSTERIOR:
       return BinExport2::Comment::POSTERIOR;
     case Comment::FUNCTION:
       return BinExport2::Comment::FUNCTION;
-
     default:
       LOG(QFATAL) << "Invalid comment type: " << type;
       return BinExport2::Comment::DEFAULT;  // Not reached
@@ -666,32 +670,49 @@ void WriteComments(
     BinExport2* proto) {
   absl::flat_hash_map<const std::string*, int> comment_to_index;
   for (const Comment& comment : call_graph.GetComments()) {
-    const auto new_comment =
+    const auto [new_comment_it, inserted] =
         comment_to_index.emplace(comment.comment_, proto->string_table_size());
-    if (new_comment.second) {
+    if (inserted) {
       proto->add_string_table(*comment.comment_);
     }
-    const auto instruction =
+    const auto instruction_it =
         lower_bound(instruction_indices.begin(), instruction_indices.end(),
                     std::make_pair(comment.address_, 0));
-    QCHECK(instruction != instruction_indices.end());
+    QCHECK(instruction_it != instruction_indices.end());
 
-    const int string_table_index = new_comment.first->second;
+    const Address instruction_index = instruction_it->second;
+    const int string_table_index = new_comment_it->second;
 
-    auto* proto_address_comment = proto->add_address_comment();
-    proto_address_comment->set_instruction_index(instruction->second);
-    proto_address_comment->set_string_table_index(string_table_index);
-
-    // Write richer comment structure for BinDiff.
+    // Write rich comment structure for BinDiff.
     const int comment_index = proto->comment_size();
     auto* proto_comment = proto->add_comment();
-    proto_comment->set_instruction_index(instruction->second);
+    proto_comment->set_instruction_index(instruction_index);
     proto_comment->set_string_table_index(string_table_index);
     proto_comment->set_type(CommentTypeToProtoType(comment.type_));
     proto_comment->set_repeatable(comment.repeatable_);
 
+    // The IDA specific code encodes the comment type in the operand number.
+    // That's because BinDiff internally adds all comments into a global cache
+    // keyed by a (address, operand_id)-tuple. So all comments for an address
+    // need a unique operand_id.
+    // Do not leak this implementation detail into the written protobuf.
+    constexpr int kMaxOp = 8;  // Same as IDA's UA_MAXOP
+    int operand_num = comment.operand_num_;
+    if (operand_num >= kMaxOp) {
+      if (comment.type_ == Comment::GLOBAL_REFERENCE) {
+        operand_num -= 1024;  // See ida/names.cc GetGlobalReferences()
+      } else if (comment.type_ == Comment::LOCAL_REFERENCE) {
+        operand_num -= 2048;  // See ida/names.cc GetLocalReferences()
+      }
+    }
+    // Operand numbers only need to be written if the comment applies to an
+    // actual operand.
+    if (operand_num >= 0 && operand_num < kMaxOp) {
+      proto_comment->set_instruction_operand_index(operand_num);
+    }
+
     // Add back reference to comment to instruction
-    proto->mutable_instruction(instruction->second)
+    proto->mutable_instruction(instruction_index)
         ->add_comment_index(comment_index);
   }
 }
@@ -750,6 +771,7 @@ not_absl::Status BinExport2Writer::WriteToProto(
     WriteBasicBlocks(instructions, instruction_indices, proto);
     WriteComments(call_graph, instruction_indices, proto);
     WriteStrings(address_references, address_space, instruction_indices, proto);
+    // TODO(cblichmann): Write expression_substitution.
     WriteDataReferences(address_references, address_space, instruction_indices,
                         proto);
   }
@@ -771,7 +793,6 @@ not_absl::Status BinExport2Writer::Write(
   NA_RETURN_IF_ERROR(WriteToProto(call_graph, flow_graph, instructions,
                                   address_references, type_system,
                                   address_space, &proto));
-
   return WriteProtoToFile(filename_, &proto);
 }
 

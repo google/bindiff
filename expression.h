@@ -65,9 +65,10 @@ class Expression {
   int64_t GetImmediate() const;
   const Expression* GetParent() const;
   std::string CreateSignature();
-  static Expression* Create(Expression* parent, const std::string& symbol = "",
-                            int64_t immediate = 0, Type type = TYPE_IMMEDIATE_INT,
-                            uint16_t position = 0, bool relocatable = false);
+  static Expression* Create(const Expression* parent,
+                            const std::string& symbol = "", int64_t immediate = 0,
+                            Type type = TYPE_IMMEDIATE_INT, uint16_t position = 0,
+                            bool relocatable = false);
   static void EmptyCache();
   static const ExpressionCache& GetExpressions();
 
@@ -85,7 +86,7 @@ class Expression {
       return *this;
     }
 
-    Builder& WithParent(Expression* parent) {
+    Builder& WithParent(const Expression* parent) {
       parent_ = parent;
       return *this;
     }
@@ -135,7 +136,7 @@ class Expression {
     uint16_t position_ = 0;
     bool relocatable_ = false;
     Expression::Type type_;
-    Expression* parent_ = nullptr;
+    const Expression* parent_ = nullptr;
   };
 
  private:
@@ -144,13 +145,13 @@ class Expression {
   // - We want to avoid creating duplicate expressions so we just
   //   refer to the expression_cache_ if someone tries (that way archiving
   //   compression/de-duping)
-  Expression(Expression* parent, const std::string& symbol, int64_t immediate,
-             Type type, uint16_t position, bool relocatable);
+  Expression(const Expression* parent, const std::string& symbol,
+             int64_t immediate, Type type, uint16_t position, bool relocatable);
   static const std::string* CacheString(const std::string& value);
 
   const std::string* symbol_;
   int64_t immediate_;
-  Expression* parent_;
+  const Expression* parent_;
   int id_ = 0;
   uint16_t position_;
   Type type_;
