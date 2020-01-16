@@ -41,8 +41,6 @@
 #
 # Example (this assumes Windows):
 #
-#   set(IdaSdk_COMPILE_32BIT ON)
-#   set(IdaSdk_LEGACY_FILE_EXTENSIONS ON)
 #   find_package(IdaSdk REQUIRED)
 #   include_directories(${IdaSdk_INCLUDE_DIRS})
 #
@@ -152,11 +150,6 @@ function(_ida_plugin name ea64 link_script)  # ARGN contains sources
     # TODO(cblichmann): This belongs in an interface library instead.
     target_compile_options(${t} PUBLIC -Wno-non-virtual-dtor)
   elseif(WIN32)
-    if(NOT IdaSdk_COMPILE_32BIT)
-      set(_ida_prefix x64)
-    else()
-      set(_ida_prefix x86)
-    endif()
     if(ea64)
       target_link_libraries(${t} ${IdaSdk_DIR}/lib/x64_win_vc_64/ida.lib)
     else()

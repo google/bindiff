@@ -55,13 +55,14 @@ create_directory_symlink(${PROJECT_BINARY_DIR} ${_binexport_gen}/binexport)
 
 # Find the Git revision number, if applicable
 set(REVISION unknown)
-if(GIT_FOUND)
-  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+if(NOT "$ENV{KOKORO_PIPER_CHANGELIST}" STREQUAL "")
+  set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
+elseif(GIT_FOUND)
+  execute_process(COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
+                  WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
                   OUTPUT_VARIABLE REVISION ERROR_QUIET)
-  if(NOT ${REVISION} STREQUAL "")
-    string(STRIP ${REVISION} REVISION)
-  elseif(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
-    set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
+  if(NOT REVISION STREQUAL "")
+    string(STRIP "${REVISION}" REVISION)
   else()
     set(REVISION internal)
   endif()
