@@ -1,4 +1,4 @@
-// Copyright 2011-2019 Google LLC. All Rights Reserved.
+// Copyright 2011-2020 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,7 +42,8 @@ static auto* g_logging_options = new LoggingOptions{};
 
 class IdaExecutor : public exec_request_t {
  public:
-  explicit IdaExecutor(std::function<void()> callback) : callback_(callback) {}
+  explicit IdaExecutor(std::function<void()> callback)
+      : callback_(std::move(callback)) {}
 
   int idaapi execute() override {
     callback_();
@@ -106,7 +107,9 @@ void LogLine(LogLevel level, const char* filename, int line,
 void IdaLogHandler(LogLevel level, const char* filename, int line,
                    const std::string& message) {
   // Do all logging in IDA's main thread.
-  IdaExecutor executor(std::bind(LogLine, level, filename, line, message));
+  IdaExecutor executor([level, filename, line, &message]() {
+    LogLine(level, filename, line, message);
+  });
   execute_sync(executor, MFF_FAST);
 }
 }  // namespace
