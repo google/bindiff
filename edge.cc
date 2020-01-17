@@ -1,4 +1,4 @@
-// Copyright 2011-2019 Google LLC. All Rights Reserved.
+// Copyright 2011-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 #include "third_party/zynamics/binexport/edge.h"
 
 #include <functional>
+
+#include "base/logging.h"
 
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two) {
   if (one.source == two.source) {
@@ -39,6 +41,9 @@ const char* FlowGraphEdge::GetTypeName() const {
       return "unconditional";
     case TYPE_SWITCH:
       return "switch";
+    default:
+      LOG(QFATAL) << "Invalid flow graph eddge type: " << type;
+      return "";  // Not reached
   }
 }
 
