@@ -16,6 +16,8 @@
 
 #include <functional>
 
+#include "base/logging.h"
+
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two) {
   if (one.source == two.source) {
     if (one.target == two.target) {
@@ -39,6 +41,9 @@ const char* FlowGraphEdge::GetTypeName() const {
       return "unconditional";
     case TYPE_SWITCH:
       return "switch";
+    default:
+      LOG(QFATAL) << "Invalid flow graph eddge type: " << type;
+      return "";  // Not reached
   }
 }
 
