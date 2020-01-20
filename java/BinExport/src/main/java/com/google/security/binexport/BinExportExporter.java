@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC. All Rights Reserved.
+// Copyright 2019-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,7 +58,7 @@ public class BinExportExporter extends Exporter {
 
   public BinExportExporter() {
     super(BINEXPORT_FORMAT_DISPLAY_NAME, BINEXPORT_FILE_EXTENSION, null);
-    log.appendMsg("BinExport 11 (c)2019 Google LLC.");
+    log.appendMsg("BinExport 11 (c)2019-2020 Google LLC");
   }
 
   @Override
