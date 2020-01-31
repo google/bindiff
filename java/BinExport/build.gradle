@@ -1,4 +1,4 @@
-// Copyright 2019 Google LLC. All Rights Reserved.
+// Copyright 2019-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 apply plugin: 'java'
 apply plugin: 'com.google.protobuf'
+apply plugin: 'eclipse'
 apply plugin: 'idea'
 
 repositories {
@@ -33,20 +34,53 @@ buildscript {
     }
 }
 
+configurations {
+    // Configuration that holds jars to include in the jar.
+    extraLibs
+}
+
 dependencies {
-    compile 'com.google.protobuf:protobuf-java:3.10.0'
+    extraLibs 'com.google.protobuf:protobuf-java:3.10.0'
+    configurations.implementation.extendsFrom(configurations.extraLibs)
 }
 
 protobuf {
-    // Configure the protoc executable
+    // Configure the protoc executable.
     protoc {
         artifact = 'com.google.protobuf:protoc:3.10.0'
     }
+    // Make generator tasks visible in Eclipse.
+    generateProtoTasks {
+        all().each {
+            it.group = 'generate proto'
+        }
+    }
 }
 
-task copyRuntimeLibs(type: Copy) {
-    into "lib"
-    from configurations.runtime
+// Required for IDEs to find the generated sources.
+sourceSets {
+    generated {
+        java.srcDirs 'build/generated/source/proto/main/java'
+    }
+}
+eclipse {
+    classpath {
+        file {
+            whenMerged {
+                def source = entries.find {
+                    it.path == 'build/generated/source/proto/main/java'
+                }
+                source.entryAttributes['ignore_optional_problems'] = 'true'
+            }
+        }
+    }
+}
+
+// Extend jar task to collect extra dependencies.
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 // Standard Ghidra extension Gradle code follows.
