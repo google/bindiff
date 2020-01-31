@@ -34,8 +34,14 @@ buildscript {
     }
 }
 
+configurations {
+    // Configuration that holds jars to include in the jar.
+    extraLibs
+}
+
 dependencies {
-    compile 'com.google.protobuf:protobuf-java:3.10.0'
+    extraLibs 'com.google.protobuf:protobuf-java:3.10.0'
+    configurations.implementation.extendsFrom(configurations.extraLibs)
 }
 
 protobuf {
@@ -53,16 +59,28 @@ protobuf {
 
 // Required for IDEs to find the generated sources.
 sourceSets {
-  main {
-    java {
-      srcDirs 'build/generated/source/proto/main/java'
+    generated {
+        java.srcDirs 'build/generated/source/proto/main/java'
     }
-  }
+}
+eclipse {
+    classpath {
+        file {
+            whenMerged {
+                def source = entries.find {
+                    it.path == 'build/generated/source/proto/main/java'
+                }
+                source.entryAttributes['ignore_optional_problems'] = 'true'
+            }
+        }
+    }
 }
 
-task copyRuntimeLibs(type: Copy) {
-    into "lib"
-    from configurations.runtime
+// Extend jar task to collect extra dependencies.
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 // Standard Ghidra extension Gradle code follows.

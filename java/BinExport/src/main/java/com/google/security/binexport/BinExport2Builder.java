@@ -66,7 +66,7 @@ public class BinExport2Builder {
   private final Listing listing;
   private final BasicBlockModel bbModel;
 
-  private MnemonicMapper mnemonicMapper;
+  private MnemonicMapper mnemonicMapper = new IdentityMnemonicMapper();
   private long addressOffset = 0;
 
   public BinExport2Builder(Program ghidraProgram) {
@@ -99,12 +99,13 @@ public class BinExport2Builder {
     // Ghidra uses a quad format like x86:LE:32:default, BinExport just keeps
     // the processor and address size.
     final String[] quad = program.getLanguageID().toString().split(":", 4);
+    // TODO(cblichmann): Canonicalize architecture names
     final String arch = quad[0] + "-" + quad[2];
 
     builder.getMetaInformationBuilder()
         .setExecutableName(new File(program.getExecutablePath()).getName())
-        // TODO(cblichmann): Now that we have SHA256 in Ghidra, use that.
-        .setExecutableId(program.getExecutableMD5()).setArchitectureName(arch)
+        .setExecutableId(program.getExecutableSHA256())
+        .setArchitectureName(arch)
         .setTimestamp(System.currentTimeMillis() / 1000);
   }
 
@@ -253,7 +254,7 @@ public class BinExport2Builder {
       final var indexRange =
           protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
       if (endIndex != beginIndex + 1) {
-        // Like above, Omit end index in the single instruction interval case
+        // Like above, omit end index in the single instruction interval case
         indexRange.setEndIndex(endIndex);
       }
       basicBlockIndices.put(getMappedAddress(bb.getFirstStartAddress()), id++);
@@ -271,8 +272,6 @@ public class BinExport2Builder {
       final var flowGraph = builder.addFlowGraphBuilder();
       while (bbIter.hasNext()) {
         final CodeBlock bb = bbIter.next();
-        // System.out.printf(":: %08X:\n",
-        // bb.getFirstStartAddress().getOffset());
         final long bbAddress = getMappedAddress(bb.getFirstStartAddress());
         final int id = basicBlockIndices.get(bbAddress);
         if (bbAddress == getMappedAddress(func.getEntryPoint())) {
@@ -292,16 +291,8 @@ public class BinExport2Builder {
           if (getMappedAddress(bbRef.getReferent()) != bbLastInstrAddress) {
             continue;
           }
-          final FlowType flow = bbRef.getFlowType();
-          // System.out.printf(
-          // "=> %08X: %30s: %08X -> %08X
-          // (call:%5b,comp:%5b,cond:%5b,data:%5b,fall:%5b,indr:%5b,jump:%5b,read:%5b,term:%5b,writ:%5b)\n",
-          // bb.getFirstStartAddress().getOffset(), flow.toString(),
-          // bbRef.getReferent().getOffset(), bbRef.getReference().getOffset(),
-          // flow.isCall(), flow.isComputed(), flow.isConditional(),
-          // flow.isData(), flow.isFallthrough(), flow.isIndirect(),
-          // flow.isJump(), flow.isRead(), flow.isTerminal(), flow.isWrite());
 
+          final FlowType flow = bbRef.getFlowType();
           final var edge = BinExport2.FlowGraph.Edge.newBuilder();
           if (flow.isConditional() || lastFlow.isConditional()) {
             edge.setType(flow.isConditional()
@@ -324,7 +315,6 @@ public class BinExport2Builder {
           lastFlow = flow;
         }
         flowGraph.addAllEdge(edges);
-        // System.out.printf("---\n");
       }
       assert flowGraph.getEntryBasicBlockIndex() > 0;
     }
@@ -455,9 +445,10 @@ public class BinExport2Builder {
     monitor.setMessage("Exporting basic block structure");
     final var basicBlockIndices = new HashMap<Long, Integer>();
     buildBasicBlocks(instructionIndices, basicBlockIndices);
-    // buildComments()
-    // buildStrings()
-    // buildDataReferences()
+    // TODO(cblichmann): Implement these:
+    //   buildComments()
+    //   buildStrings()
+    //   buildDataReferences()
     monitor.setMessage("Exporting flow graphs");
     buildFlowGraphs(basicBlockIndices);
     monitor.setMessage("Exporting call graph");
@@ -469,7 +460,7 @@ public class BinExport2Builder {
 
   public BinExport2 build() {
     try {
-      return build(null);
+      return build(TaskMonitor.DUMMY);
     } catch (final CancelledException e) {
       assert false : "TaskMonitor.DUMMY should not throw";
       throw new RuntimeException(e);

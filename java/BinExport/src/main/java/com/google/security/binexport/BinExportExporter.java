@@ -98,7 +98,7 @@ public class BinExportExporter extends Exporter {
         new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE,
             Boolean.FALSE),
         new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_REMAP_MNEMONICS,
-            Boolean.TRUE));
+            Boolean.FALSE));
   }
 
   @Override
