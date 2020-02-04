@@ -79,6 +79,8 @@ class CallGraph {
   // Constructs an empty call graph.
   CallGraph();
 
+  virtual ~CallGraph() = default;
+
   // Reads and initializes the call graph from "proto". "filename" is passed in
   // and remembered for informational purposes only (we want to be able to
   // construct default save filenames with it for example).
@@ -201,7 +203,7 @@ class CallGraph {
   // Expensive and buggy function (see notes in implementation). Try to avoid.
   void DeleteVertices(Address from, Address to);
 
- private:
+ protected:
   void Init();
   double CalculateProximityMdIndex(Edge edge);
 

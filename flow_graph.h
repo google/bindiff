@@ -86,7 +86,7 @@ class FlowGraph {
 
   FlowGraph();
   FlowGraph(CallGraph* call_graph, Address entry_point);
-  ~FlowGraph();
+  virtual ~FlowGraph();
 
   // Read and initialize flow graph from given proto message. The instruction
   // cache should be shared between flow graphs and stores mnemonic strings and
@@ -222,7 +222,7 @@ class FlowGraph {
   // Returns the demangled name if available, raw name otherwise.
   const std::string& GetGoodName() const;
 
- private:
+ protected:
   using AddressToLevelMap = std::vector<std::pair<Address, Level>>;
 
   void Init();
