@@ -294,18 +294,19 @@ public class BinExport2Builder {
 
           final FlowType flow = bbRef.getFlowType();
           final var edge = BinExport2.FlowGraph.Edge.newBuilder();
+          final var targetId = basicBlockIndices
+              .get(getMappedAddress(bbRef.getDestinationAddress()));
           if (flow.isConditional() || lastFlow.isConditional()) {
             edge.setType(flow.isConditional()
                 ? BinExport2.FlowGraph.Edge.Type.CONDITION_TRUE
                 : BinExport2.FlowGraph.Edge.Type.CONDITION_FALSE);
             edge.setSourceBasicBlockIndex(id);
-            edge.setTargetBasicBlockIndex(basicBlockIndices
-                .get(getMappedAddress(bbRef.getDestinationAddress())));
+            if (targetId != null) {
+              edge.setTargetBasicBlockIndex(targetId);
+            }
             edges.add(edge.build());
           } else if (flow.isUnConditional() && !flow.isComputed()) {
             edge.setSourceBasicBlockIndex(id);
-            final var targetId = basicBlockIndices
-                .get(getMappedAddress(bbRef.getDestinationAddress()));
             if (targetId != null) {
               edge.setTargetBasicBlockIndex(targetId);
             }
