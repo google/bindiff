@@ -34,18 +34,16 @@ public class GraphAddressSearcher {
       final CombinedViewNode rawNode = node.getRawNode();
 
       if (rawNode instanceof RawCombinedBasicBlock) {
-        final RawBasicBlock basicblock = ((RawCombinedBasicBlock) rawNode).getRawNode(side);
-
-        if (basicblock == null) {
+        final RawBasicBlock basicBlock = ((RawCombinedBasicBlock) rawNode).getRawNode(side);
+        if (basicBlock == null) {
           continue;
         }
 
-        if (basicblock.getInstruction(addr) != null) {
+        if (basicBlock.getInstruction(addr) != null) {
           return node;
         }
       } else {
         final RawFunction function = ((RawCombinedFunction) rawNode).getRawNode(side);
-
         if (function == null) {
           continue;
         }

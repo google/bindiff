@@ -21,12 +21,11 @@ import com.google.security.zynamics.bindiff.enums.EViewType;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
-import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.types.graphs.MutableDirectedGraph;
 import java.util.Date;
 
+/** Base class for storing view related metadata. */
 public abstract class ViewData {
   private final GraphsContainer graphs;
   private String viewName;
@@ -47,15 +46,10 @@ public abstract class ViewData {
   public static String getViewName(final GraphsContainer graphs) {
     final Diff diff = graphs.getDiff();
 
-    if (diff.isFunctionDiff()) {
-      return BinDiffFileUtils.forceFilenameEndsNotWithExtension(
-          diff.getDiffName(), Constants.BINDIFF_MATCHES_DB_EXTENSION);
-    }
-
     final IAddress priFunctionAddr = graphs.getPrimaryGraph().getFunctionAddress();
     final IAddress secFunctionAddr = graphs.getSecondaryGraph().getFunctionAddress();
 
-    String priName = diff.getMetaData().getDisplayName(ESide.PRIMARY);
+    String priName = diff.getMetadata().getDisplayName(ESide.PRIMARY);
     if (priFunctionAddr != null) {
       final RawFunction function = diff.getFunction(priFunctionAddr, ESide.PRIMARY);
       if (function != null) {
@@ -65,7 +59,7 @@ public abstract class ViewData {
       priName = null;
     }
 
-    String secName = diff.getMetaData().getDisplayName(ESide.SECONDARY);
+    String secName = diff.getMetadata().getDisplayName(ESide.SECONDARY);
     if (secFunctionAddr != null) {
       final RawFunction function = diff.getFunction(secFunctionAddr, ESide.SECONDARY);
       if (function != null) {
@@ -97,7 +91,7 @@ public abstract class ViewData {
   }
 
   public EMatchState getMatchState() {
-    if (isCallgraphView()) {
+    if (isCallGraphView()) {
       return null;
     }
 
@@ -128,9 +122,9 @@ public abstract class ViewData {
     return viewName;
   }
 
-  public abstract boolean isCallgraphView();
+  public abstract boolean isCallGraphView();
 
-  public abstract boolean isFlowgraphView();
+  public abstract boolean isFlowGraphView();
 
   public boolean isSingleFunctionDiffView() {
     return viewType == EViewType.SINGLE_FUNCTION_DIFF_VIEW;

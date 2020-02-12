@@ -69,6 +69,7 @@ bool MatchedFunctionsChooser::AttachActionsToPopup(TWidget* widget,
            // Note: Do not attach DeleteMatchesAction here, as this is invoked
            //       in del(). When attaching normally, DEL cannot be set as
            //       the accelerator.
+           ViewCallGraphAction::kName,
            ViewFlowGraphsAction::kName,
            ImportSymbolsCommentsAction::kName,
            ImportSymbolsCommentsExternalAction::kName,
@@ -84,6 +85,7 @@ bool MatchedFunctionsChooser::AttachActionsToPopup(TWidget* widget,
 void MatchedFunctionsChooser::RegisterActions() {
   for (const auto& action : {
            DeleteMatchesAction::MakeActionDesc(),
+           ViewCallGraphAction::MakeActionDesc(),
            ViewFlowGraphsAction::MakeActionDesc(),
            ImportSymbolsCommentsAction::MakeActionDesc(),
            ImportSymbolsCommentsExternalAction::MakeActionDesc(),

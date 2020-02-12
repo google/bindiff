@@ -186,7 +186,7 @@ public class FunctionMatchData implements IAddressPair {
     return similarity;
   }
 
-  public int getSizeOfMatchedBasicblocks() {
+  public int getSizeOfMatchedBasicBlocks() {
     return matchedBasicBlocks;
   }
 

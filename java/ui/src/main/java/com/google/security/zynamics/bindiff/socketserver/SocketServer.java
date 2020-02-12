@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
-import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
+import com.google.security.zynamics.bindiff.io.matches.DiffRequestMessage;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -61,8 +61,9 @@ public final class SocketServer {
       final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
       final Document match = builder.parse(new ByteArrayInputStream(bytes));
       final XPath xpath = XPathFactory.newInstance().newXPath();
-      final FunctionDiffSocketXmlData data = new FunctionDiffSocketXmlData();
-      xpath.evaluate("/BinDiffMatch/@type", match);
+      final DiffRequestMessage data = new DiffRequestMessage();
+      final boolean flowGraphMatch =
+          "flow_graph".equals(xpath.evaluate("/BinDiffMatch/@type", match));
       data.setMatchesDBPath(xpath.evaluate("/BinDiffMatch/Database/@path", match));
       data.setBinExportPath(xpath.evaluate("/BinDiffMatch/Primary/@path", match), ESide.PRIMARY);
       data.setFunctionAddress(
@@ -73,7 +74,11 @@ public final class SocketServer {
       data.setFunctionAddress(
           Long.parseUnsignedLong(xpath.evaluate("/BinDiffMatch/Secondary/@address", match)),
           ESide.SECONDARY);
-      controller.openFunctionDiffView(data);
+      if (flowGraphMatch) {
+        controller.openFunctionDiffView(data);
+      } else {
+        controller.openCallGraphDiffView(data);
+      }
     } catch (final ParserConfigurationException e) {
       // Should not happen as the XML support ships with the JRE.
       throw new RuntimeException(e);
@@ -84,7 +89,7 @@ public final class SocketServer {
     }
   }
 
-  public void handleError(final Exception e, final String msg) {
+  private void handleError(final Exception e, final String msg) {
     CMessageBox.showError(controller.getMainWindow(), msg);
     logger.at(Level.SEVERE).withCause(e).log(msg);
   }
@@ -96,7 +101,7 @@ public final class SocketServer {
     new SocketListenerThread(this).start();
   }
 
-  public ServerSocket getSocket() {
+  ServerSocket getSocket() {
     return socket;
   }
 

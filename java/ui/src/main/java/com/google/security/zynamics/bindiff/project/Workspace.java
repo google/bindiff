@@ -21,7 +21,7 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.io.File;
@@ -83,7 +83,7 @@ public final class Workspace {
   }
 
   public String addDiff(
-      final File matchesDatabase, final DiffMetaData diffMetaData, final boolean isFunctionDiff) {
+      final File matchesDatabase, final DiffMetadata diffMetaData, final boolean isFunctionDiff) {
     final StringBuilder fileErrors = new StringBuilder("");
 
     File primaryExportFile = null;

@@ -40,7 +40,7 @@ public class RawFunction extends SingleViewNode {
   private FunctionMatchData match = null;
   private RawFunction matchedFunction = null;
 
-  private int basicblocks = -1;
+  private int basicBlocks = -1;
   private int jumps = -1;
   private int instructions = -1;
 
@@ -126,8 +126,8 @@ public class RawFunction extends SingleViewNode {
     return side;
   }
 
-  public int getSizeOfBasicblocks() {
-    return basicblocks;
+  public int getSizeOfBasicBlocks() {
+    return basicBlocks;
   }
 
   public int getSizeOfInstructions() {
@@ -138,8 +138,8 @@ public class RawFunction extends SingleViewNode {
     return jumps;
   }
 
-  public int getSizeOfMatchedBasicblocks() {
-    return match == null ? 0 : match.getSizeOfMatchedBasicblocks();
+  public int getSizeOfMatchedBasicBlocks() {
+    return match == null ? 0 : match.getSizeOfMatchedBasicBlocks();
   }
 
   public int getSizeOfMatchedInstructions() {
@@ -150,8 +150,8 @@ public class RawFunction extends SingleViewNode {
     return match == null ? 0 : match.getSizeOfMatchedJumps();
   }
 
-  public int getSizeOfUnmatchedBasicblocks() {
-    return basicblocks - match.getSizeOfMatchedBasicblocks();
+  public int getSizeOfUnmatchedBasicBlocks() {
+    return basicBlocks - match.getSizeOfMatchedBasicBlocks();
   }
 
   public int getSizeOfUnmatchedInstructions() {
@@ -164,16 +164,16 @@ public class RawFunction extends SingleViewNode {
 
   public boolean isChanged() {
     if (getMatchState() == EMatchState.MATCHED) {
-      final boolean basicblocks =
-          this.basicblocks == matchedFunction.getSizeOfBasicblocks()
-              && this.basicblocks == getSizeOfMatchedBasicblocks();
+      final boolean basicBlocks =
+          this.basicBlocks == matchedFunction.getSizeOfBasicBlocks()
+              && this.basicBlocks == getSizeOfMatchedBasicBlocks();
       final boolean jumps =
           this.jumps == matchedFunction.getSizeOfJumps() && this.jumps == getSizeOfMatchedJumps();
       final boolean instructions =
           this.instructions == matchedFunction.getSizeOfInstructions()
               && this.instructions == getSizeOfMatchedInstructions();
 
-      return !basicblocks || !jumps || !instructions;
+      return !basicBlocks || !jumps || !instructions;
     }
 
     return false;
@@ -181,16 +181,16 @@ public class RawFunction extends SingleViewNode {
 
   public boolean isChangedInstructionsOnlyMatch() {
     if (getMatchState() == EMatchState.MATCHED) {
-      final boolean basicblocks =
-          this.basicblocks == matchedFunction.getSizeOfBasicblocks()
-              && this.basicblocks == getSizeOfMatchedBasicblocks();
+      final boolean basicBlocks =
+          this.basicBlocks == matchedFunction.getSizeOfBasicBlocks()
+              && this.basicBlocks == getSizeOfMatchedBasicBlocks();
       final boolean jumps =
           this.jumps == matchedFunction.getSizeOfJumps() && this.jumps == getSizeOfMatchedJumps();
       final boolean instructions =
           this.instructions == matchedFunction.getSizeOfInstructions()
               && this.instructions == getSizeOfMatchedInstructions();
 
-      return basicblocks && jumps && !instructions;
+      return basicBlocks && jumps && !instructions;
     }
 
     return false;
@@ -198,13 +198,13 @@ public class RawFunction extends SingleViewNode {
 
   public boolean isChangedStructuralMatch() {
     if (getMatchState() == EMatchState.MATCHED) {
-      final boolean basicblocks =
-          this.basicblocks == matchedFunction.getSizeOfBasicblocks()
-              && this.basicblocks == getSizeOfMatchedBasicblocks();
+      final boolean basicBlocks =
+          this.basicBlocks == matchedFunction.getSizeOfBasicBlocks()
+              && this.basicBlocks == getSizeOfMatchedBasicBlocks();
       final boolean jumps =
           this.jumps == matchedFunction.getSizeOfJumps() && this.jumps == getSizeOfMatchedJumps();
 
-      return !basicblocks || !jumps;
+      return !basicBlocks || !jumps;
     }
 
     return false;
@@ -212,16 +212,16 @@ public class RawFunction extends SingleViewNode {
 
   public boolean isIdenticalMatch() {
     if (getMatchState() == EMatchState.MATCHED) {
-      final boolean basicblocks =
-          this.basicblocks == matchedFunction.getSizeOfBasicblocks()
-              && this.basicblocks == getSizeOfMatchedBasicblocks();
+      final boolean basicBlocks =
+          this.basicBlocks == matchedFunction.getSizeOfBasicBlocks()
+              && this.basicBlocks == getSizeOfMatchedBasicBlocks();
       final boolean jumps =
           this.jumps == matchedFunction.getSizeOfJumps() && this.jumps == getSizeOfMatchedJumps();
       final boolean instructions =
           this.instructions == matchedFunction.getSizeOfInstructions()
               && this.instructions == getSizeOfMatchedInstructions();
 
-      return basicblocks && jumps && instructions;
+      return basicBlocks && jumps && instructions;
     }
 
     return false;
@@ -236,8 +236,8 @@ public class RawFunction extends SingleViewNode {
     this.match = match;
   }
 
-  public void setSizeOfBasicBlocks(final int basicblocks) {
-    this.basicblocks = basicblocks;
+  public void setSizeOfBasicBlocks(final int basicBlocks) {
+    this.basicBlocks = basicBlocks;
   }
 
   public void setSizeOfInstructions(final int instructions) {

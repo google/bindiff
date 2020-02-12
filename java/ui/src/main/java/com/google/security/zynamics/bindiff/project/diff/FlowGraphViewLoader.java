@@ -93,46 +93,47 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
   private FlowGraphViewData loadFlowGraphViewData(
       final Diff diff, final IAddress priFunctionAddr, final IAddress secFunctionAddr)
       throws IOException, GraphCreationException, SQLException {
-    // Load primary and secondary raw flowgraphs.
-    try (final CommentsDatabase database = new CommentsDatabase(workspace, true)) {
-      RawFlowGraph primaryRawFlowGraph = null;
-      RawFlowGraph secondaryRawFlowGraph = null;
-      final FunctionMatchData functionMatch =
-          loadFunctionMatchData(diff, priFunctionAddr, secFunctionAddr);
-      if (priFunctionAddr != null) {
-        setDescription("Loading primary raw function data...");
-        primaryRawFlowGraph =
-            DiffLoader.loadRawFlowGraph(database, diff, priFunctionAddr, ESide.PRIMARY);
-      }
-      if (secFunctionAddr != null) {
-        setDescription("Loading secondary raw function data...");
-        secondaryRawFlowGraph =
-            DiffLoader.loadRawFlowGraph(database, diff, secFunctionAddr, ESide.SECONDARY);
-      }
+    // Load primary and secondary raw flow graphs.
+    final CommentsDatabase database =
+        workspace.getWorkspaceFile() != null ? new CommentsDatabase(workspace, true) : null;
 
-      setDescription("Building combined flow graph...");
-      final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedRawFlowGraph =
-              RawCombinedFlowGraphBuilder.buildRawCombinedFlowGraph(
-                  functionMatch, primaryRawFlowGraph, secondaryRawFlowGraph);
-
-      setDescription("Creating flow graph view...");
-      final GraphsContainer graphs =
-          ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedRawFlowGraph);
-
-      final FlowGraphViewData view =
-          new FlowGraphViewData(
-              primaryRawFlowGraph,
-              secondaryRawFlowGraph,
-              combinedRawFlowGraph,
-              graphs,
-              FlowGraphViewData.getViewName(graphs),
-              EViewType.FUNCTION_DIFF_VIEW);
-
-      diff.getViewManager().addView(view);
-
-      return view;
+    RawFlowGraph primaryRawFlowGraph = null;
+    RawFlowGraph secondaryRawFlowGraph = null;
+    final FunctionMatchData functionMatch =
+        loadFunctionMatchData(diff, priFunctionAddr, secFunctionAddr);
+    if (priFunctionAddr != null) {
+      setDescription("Loading primary raw function data...");
+      primaryRawFlowGraph =
+          DiffLoader.loadRawFlowGraph(database, diff, priFunctionAddr, ESide.PRIMARY);
     }
+    if (secFunctionAddr != null) {
+      setDescription("Loading secondary raw function data...");
+      secondaryRawFlowGraph =
+          DiffLoader.loadRawFlowGraph(database, diff, secFunctionAddr, ESide.SECONDARY);
+    }
+
+    setDescription("Building combined flow graph...");
+    final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
+        combinedRawFlowGraph =
+            RawCombinedFlowGraphBuilder.buildRawCombinedFlowGraph(
+                functionMatch, primaryRawFlowGraph, secondaryRawFlowGraph);
+
+    setDescription("Creating flow graph view...");
+    final GraphsContainer graphs =
+        ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedRawFlowGraph);
+
+    final FlowGraphViewData view =
+        new FlowGraphViewData(
+            primaryRawFlowGraph,
+            secondaryRawFlowGraph,
+            combinedRawFlowGraph,
+            graphs,
+            FlowGraphViewData.getViewName(graphs),
+            EViewType.FUNCTION_DIFF_VIEW);
+
+    diff.getViewManager().addView(view);
+
+    return view;
   }
 
   private FunctionMatchData loadFunctionMatchData(

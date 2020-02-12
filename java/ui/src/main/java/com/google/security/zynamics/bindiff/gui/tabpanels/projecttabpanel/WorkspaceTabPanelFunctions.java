@@ -44,7 +44,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projec
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.FunctionDiffViewsNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanel;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
+import com.google.security.zynamics.bindiff.io.matches.DiffRequestMessage;
 import com.google.security.zynamics.bindiff.project.IWorkspaceListener;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.WorkspaceLoader;
@@ -54,7 +54,7 @@ import com.google.security.zynamics.bindiff.project.diff.DiffLoader;
 import com.google.security.zynamics.bindiff.project.diff.FlowGraphViewLoader;
 import com.google.security.zynamics.bindiff.project.diff.FunctionDiffViewLoader;
 import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedFunction;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.userview.CallGraphViewData;
@@ -366,7 +366,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
           copyFileIntoNewDiffDir(diffDir, secBinExportFile);
         }
 
-        final DiffMetaData matchesMetadata = DiffLoader.preloadDiffMatches(newMatchesDatabase);
+        final DiffMetadata matchesMetadata = DiffLoader.preloadDiffMatches(newMatchesDatabase);
 
         getWorkspace().addDiff(newMatchesDatabase, matchesMetadata, false);
       }
@@ -534,7 +534,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             errorText.append("...");
             break;
           }
-          errorText.append(msg + "\n");
+          errorText.append(msg).append("\n");
         }
 
         CMessageBox.showError(window, errorText.toString());
@@ -548,7 +548,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             errorText.append("...");
             break;
           }
-          errorText.append(msg + "\n");
+          errorText.append(msg).append("\n");
         }
 
         CMessageBox.showError(window, errorText.toString());
@@ -690,7 +690,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       loadWorkspace(workspaceFile, true);
 
       // TODO(cblichmann): Ensure that a new default workspace can only be set after it has been
-      //                   loaded sucessfully.
+      //                   loaded successfully.
       // Set default workspace?
       if (openFileDlg.isSelectedCheckBox()) {
         BinDiffConfig.getInstance()
@@ -723,8 +723,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     if (dlg.getDiffButtonPressed()) {
       final File priIDBFile = dlg.getIdb(ESide.PRIMARY);
       final File secIDBFile = dlg.getIdb(ESide.SECONDARY);
-      final File priCallgraphFile = dlg.getBinExportBinary(ESide.PRIMARY);
-      final File secCallgraphFile = dlg.getBinExportBinary(ESide.SECONDARY);
+      final File priCallGraphFile = dlg.getBinExportBinary(ESide.PRIMARY);
+      final File secCallGraphFile = dlg.getBinExportBinary(ESide.SECONDARY);
       final File destinationFile = dlg.getDestinationDirectory();
 
       final NewDiffImplementation newDiffThread =
@@ -733,8 +733,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
               workspace,
               priIDBFile,
               secIDBFile,
-              priCallgraphFile,
-              secCallgraphFile,
+              priCallGraphFile,
+              secCallGraphFile,
               destinationFile);
 
       try {
@@ -745,7 +745,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       } catch (final Exception e) {
         // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
-        CMessageBox.showError(getMainWindow(), "Unkown error while diffing.");
+        CMessageBox.showError(getMainWindow(), "Unknown error while diffing.");
       }
     }
   }
@@ -790,7 +790,25 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  public void openCallgraphView(final MainWindow window, final Diff diff) {
+  public void openCallGraphDiffView(final DiffRequestMessage data) {
+    final MainWindow window = getMainWindow();
+    final TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
+
+    // Create a new view
+    final CallGraphViewLoader loader =
+        new CallGraphViewLoader(data, window, tabPanelManager, getWorkspace());
+
+    try {
+      ProgressDialog.show(getMainWindow(), "Loading call graph diff", loader);
+    } catch (final Exception e) {
+      // FIXME: Never catch all exceptions!
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Open call graph view failed. Couldn't create graph.");
+      CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
+    }
+  }
+
+  public void openCallGraphView(final MainWindow window, final Diff diff) {
     try {
       final TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
 
@@ -798,13 +816,12 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         // view is already open
         tabPanelManager.selectTabPanel(null, null, diff);
       } else {
-        // create a new view
+        // Create a new view
         CallGraphViewLoader loader =
             new CallGraphViewLoader(diff, getMainWindow(), tabPanelManager, getWorkspace());
 
         ProgressDialog.show(
             getMainWindow(), String.format("Loading call graph '%s'", diff.getDiffName()), loader);
-        loader = null;
 
         for (final IDiffListener diffListener : diff.getListener()) {
           diffListener.loadedView(diff);
@@ -895,7 +912,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       final FlowGraphViewLoader loader =
           new FlowGraphViewLoader(getMainWindow(), tabPanelMgr, getWorkspace(), viewsAddrsToOpen);
 
-      ProgressDialog.show(getMainWindow(), "Loading flow graph views.", loader);
+      ProgressDialog.show(getMainWindow(), "Loading flow graph views", loader);
 
       final Set<Diff> diffSet = new HashSet<>();
       for (final Triple<Diff, IAddress, IAddress> entry : viewsAddresses) {
@@ -915,7 +932,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  public void openFunctionDiffView(final FunctionDiffSocketXmlData data) {
+  public void openFunctionDiffView(final DiffRequestMessage data) {
     try {
       final MainWindow window = getMainWindow();
       final TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
@@ -923,7 +940,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       // create a new view or select the tab which contains the already opened view
       final FunctionDiffViewLoader loader =
           new FunctionDiffViewLoader(data, window, tabPanelManager, getWorkspace());
-      ProgressDialog.show(window, "Loading function diff from IDA", loader);
+      ProgressDialog.show(window, "Loading function diff", loader);
 
       if (data.getDiff() != null) {
         for (final IDiffListener diffListener : data.getDiff().getListener()) {
@@ -966,7 +983,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     }
 
-    final FunctionDiffSocketXmlData socketData = new FunctionDiffSocketXmlData(diff);
+    final DiffRequestMessage socketData = new DiffRequestMessage(diff);
     socketData.setBinExportPath(diff.getExportFile(ESide.PRIMARY).getPath(), ESide.PRIMARY);
     socketData.setBinExportPath(diff.getExportFile(ESide.SECONDARY).getPath(), ESide.SECONDARY);
     socketData.setMatchesDBPath(diff.getMatchesDatabase().getPath());
@@ -1003,7 +1020,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
   public void showInCallGraph(final Diff diff, final Set<Pair<IAddress, IAddress>> viewAddrPairs) {
     if (!diff.getViewManager().containsView(null, null)) {
-      openCallgraphView(getMainWindow(), diff);
+      openCallGraphView(getMainWindow(), diff);
     } else {
       final TabPanelManager tabPanelMgr = getMainWindow().getController().getTabPanelManager();
       tabPanelMgr.selectTabPanel(null, null, diff);
@@ -1012,7 +1029,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     final List<CombinedDiffNode> nodesToSelect = new ArrayList<>();
     final List<CombinedDiffNode> nodesToUnselect = new ArrayList<>();
 
-    final CallGraphViewData viewData = diff.getViewManager().getCallgraphViewData(diff);
+    final CallGraphViewData viewData = diff.getViewManager().getCallGraphViewData(diff);
     if (viewData != null) {
       final CombinedGraph combinedGraph = viewData.getGraphs().getCombinedGraph();
 

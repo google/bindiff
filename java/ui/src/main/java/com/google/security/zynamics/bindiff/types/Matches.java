@@ -34,8 +34,8 @@ import java.util.Map;
 public class Matches<Match extends IAddressPair> {
   private final Table<Long, Long, Match> store = HashBasedTable.create();
 
-  public Matches(final List<Match> basicblockMatches) {
-    for (final Match match : Preconditions.checkNotNull(basicblockMatches)) {
+  public Matches(final List<Match> basicBlockMatches) {
+    for (final Match match : Preconditions.checkNotNull(basicBlockMatches)) {
       put(match);
     }
   }

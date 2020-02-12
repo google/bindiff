@@ -185,13 +185,13 @@ public final class TabPanelManager implements Iterable<TabPanel> {
         final IAddress priAddr = view.getAddress(ESide.PRIMARY);
         final IAddress secAddr = view.getAddress(ESide.SECONDARY);
 
-        if (view.isCallgraphView()
+        if (view.isCallGraphView()
             && priAddr == null
             && secAddr == null
             && priFunctionAddr == null
             && secFunctionAddr == null) {
           return (ViewTabPanel) panel;
-        } else if (view.isFlowgraphView()) {
+        } else if (view.isFlowGraphView()) {
           boolean priIsEqual = priAddr == null && priFunctionAddr == null;
 
           if (priAddr != null && priFunctionAddr != null) {

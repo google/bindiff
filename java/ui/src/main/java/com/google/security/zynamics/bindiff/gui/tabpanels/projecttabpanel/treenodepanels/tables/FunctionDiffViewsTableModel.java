@@ -100,9 +100,9 @@ public class FunctionDiffViewsTableModel extends AbstractFunctionDiffViewsTableM
     final IAddress primaryAddr = primaryFunction.getAddress();
     final IAddress secondaryAddr = secondaryFunction.getAddress();
 
-    final int mBbs = primaryFunction.getSizeOfMatchedBasicblocks();
-    final int pUBbs = primaryFunction.getSizeOfBasicblocks() - mBbs;
-    final int sUBbs = secondaryFunction.getSizeOfBasicblocks() - mBbs;
+    final int mBbs = primaryFunction.getSizeOfMatchedBasicBlocks();
+    final int pUBbs = primaryFunction.getSizeOfBasicBlocks() - mBbs;
+    final int sUBbs = secondaryFunction.getSizeOfBasicBlocks() - mBbs;
 
     final int mJps = primaryFunction.getSizeOfMatchedJumps();
     final int pUJps = primaryFunction.getSizeOfJumps() - mJps;

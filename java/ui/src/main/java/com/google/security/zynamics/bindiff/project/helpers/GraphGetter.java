@@ -112,9 +112,9 @@ public final class GraphGetter {
       final int matchedInstructions =
           primaryFunction.getFunctionMatch().getSizeOfMatchedInstructions();
 
-      if (!(primaryFunction.getSizeOfUnmatchedBasicblocks() == 0
+      if (!(primaryFunction.getSizeOfUnmatchedBasicBlocks() == 0
           && primaryFunction.getSizeOfUnmatchedJumps() == 0
-          && secondaryFunction.getSizeOfUnmatchedBasicblocks() == 0
+          && secondaryFunction.getSizeOfUnmatchedBasicBlocks() == 0
           && secondaryFunction.getSizeOfUnmatchedJumps() == 0
           && primaryFunction.getSizeOfInstructions() == matchedInstructions
           && secondaryFunction.getSizeOfInstructions() == matchedInstructions)) {

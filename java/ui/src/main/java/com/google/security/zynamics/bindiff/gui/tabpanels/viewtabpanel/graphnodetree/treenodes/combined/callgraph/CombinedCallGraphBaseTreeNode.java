@@ -17,19 +17,17 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnod
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
-import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.ISearchableTreeNode;
+import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter.ISortableTreeNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.AbstractBaseTreeNode;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
-
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
@@ -145,54 +143,61 @@ public class CombinedCallGraphBaseTreeNode extends AbstractBaseTreeNode {
     final JPopupMenu popupMenu = new JPopupMenu();
 
     final JMenuItem copyPriImageNameItem =
-        new JMenuItem(new AbstractAction("Copy Primary Image Name") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final String imageName = getDiff().getMetaData().getImageName(ESide.PRIMARY);
-            ClipboardHelpers.copyToClipboard(imageName);
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Primary Image Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String imageName = getDiff().getMetadata().getImageName(ESide.PRIMARY);
+                ClipboardHelpers.copyToClipboard(imageName);
+              }
+            });
     final JMenuItem copySecImageNameItem =
-        new JMenuItem(new AbstractAction("Copy Secondary Image Name") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final String imageName = getDiff().getMetaData().getImageName(ESide.SECONDARY);
-            ClipboardHelpers.copyToClipboard(imageName);
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Secondary Image Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String imageName = getDiff().getMetadata().getImageName(ESide.SECONDARY);
+                ClipboardHelpers.copyToClipboard(imageName);
+              }
+            });
 
     final JMenuItem copyPriImageHashItem =
-        new JMenuItem(new AbstractAction("Copy Primary Image Hash") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final String imageName = getDiff().getMetaData().getImageHash(ESide.PRIMARY);
-            ClipboardHelpers.copyToClipboard(imageName);
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Primary Image Hash") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String imageName = getDiff().getMetadata().getImageHash(ESide.PRIMARY);
+                ClipboardHelpers.copyToClipboard(imageName);
+              }
+            });
     final JMenuItem copySecImageHashItem =
-        new JMenuItem(new AbstractAction("Copy Secondary Image Hash") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final String imageName = getDiff().getMetaData().getImageHash(ESide.SECONDARY);
-            ClipboardHelpers.copyToClipboard(imageName);
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Secondary Image Hash") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String imageName = getDiff().getMetadata().getImageHash(ESide.SECONDARY);
+                ClipboardHelpers.copyToClipboard(imageName);
+              }
+            });
 
-    final JMenuItem copyPriIdbNameItem = new JMenuItem(new AbstractAction("Copy Primary IDB Name") {
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final String idbName = getDiff().getMetaData().getIdbName(ESide.PRIMARY);
-        ClipboardHelpers.copyToClipboard(idbName);
-      }
-    });
+    final JMenuItem copyPriIdbNameItem =
+        new JMenuItem(
+            new AbstractAction("Copy Primary IDB Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String idbName = getDiff().getMetadata().getIdbName(ESide.PRIMARY);
+                ClipboardHelpers.copyToClipboard(idbName);
+              }
+            });
     final JMenuItem copySecIdbNameItem =
-        new JMenuItem(new AbstractAction("Copy Secondary IDB Name") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final String idbName = getDiff().getMetaData().getIdbName(ESide.SECONDARY);
-            ClipboardHelpers.copyToClipboard(idbName);
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Secondary IDB Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String idbName = getDiff().getMetadata().getIdbName(ESide.SECONDARY);
+                ClipboardHelpers.copyToClipboard(idbName);
+              }
+            });
 
     popupMenu.add(copyPriImageNameItem);
     popupMenu.add(copyPriImageHashItem);
@@ -216,7 +221,6 @@ public class CombinedCallGraphBaseTreeNode extends AbstractBaseTreeNode {
 
   @Override
   public String toString() {
-    return String.format("%s (%d / %d)", "Combined Call Graph", getChildCount(),
-        functionNodes.size());
+    return String.format("Combined Call Graph (%d / %d)", getChildCount(), functionNodes.size());
   }
 }

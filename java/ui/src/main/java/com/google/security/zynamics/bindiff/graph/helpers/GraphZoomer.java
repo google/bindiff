@@ -26,15 +26,12 @@ import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.zylib.gui.zygraph.helpers.GraphHelpers;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ZoomHelpers;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.view.Graph2DView;
-
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
-
 import javax.swing.SwingUtilities;
+import y.view.Graph2DView;
 
 public class GraphZoomer {
   public static final double ZOOM_OUT_FACTOR = 0.95;
@@ -152,13 +149,7 @@ public class GraphZoomer {
     final Collection<ZyGraphNode<?>> nodes = new ArrayList<>();
     nodes.add(node);
 
-    SwingUtilities.invokeLater(
-        new Runnable() {
-          @Override
-          public void run() {
-            zoomToNodes((BinDiffGraph<ZyGraphNode<?>, ?>) graph, nodes);
-          }
-        });
+    SwingUtilities.invokeLater(() -> zoomToNodes((BinDiffGraph<ZyGraphNode<?>, ?>) graph, nodes));
   }
 
   public static void zoomToNodes(

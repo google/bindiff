@@ -135,7 +135,7 @@ public class GraphNodeTreePanel extends JPanel {
     RawFlowGraph priFlowgraph = null;
     RawFlowGraph secFlowgraph = null;
 
-    if (view.isFlowgraphView()) {
+    if (view.isFlowGraphView()) {
       priFlowgraph = (RawFlowGraph) view.getRawGraph(ESide.PRIMARY);
       secFlowgraph = (RawFlowGraph) view.getRawGraph(ESide.SECONDARY);
     }

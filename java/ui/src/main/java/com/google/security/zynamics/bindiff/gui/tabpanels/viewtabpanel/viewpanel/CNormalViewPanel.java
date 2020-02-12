@@ -71,7 +71,7 @@ public class CNormalViewPanel extends JPanel {
 
     add(mainSplitter, BorderLayout.CENTER);
 
-    if (viewData.isFlowgraphView()) {
+    if (viewData.isFlowGraphView()) {
       if (viewData.getAddress(ESide.PRIMARY) == null) {
         mainSplitter.setDividerLocation(0.d);
       } else if (viewData.getAddress(ESide.SECONDARY) == null) {

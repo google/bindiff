@@ -147,9 +147,9 @@ public class ExtendedMatchedFunctionViewsTableModel extends AbstractTableModel {
       priFunctionType = primaryFunction.getFunctionType();
       secFunctionType = secondaryFunction.getFunctionType();
 
-      mBbs = primaryFunction.getSizeOfMatchedBasicblocks();
-      pUBbs = primaryFunction.getSizeOfBasicblocks() - mBbs;
-      sUBbs = secondaryFunction.getSizeOfBasicblocks() - mBbs;
+      mBbs = primaryFunction.getSizeOfMatchedBasicBlocks();
+      pUBbs = primaryFunction.getSizeOfBasicBlocks() - mBbs;
+      sUBbs = secondaryFunction.getSizeOfBasicBlocks() - mBbs;
 
       mJps = primaryFunction.getSizeOfMatchedJumps();
       pUJps = primaryFunction.getSizeOfJumps() - mJps;
@@ -161,7 +161,7 @@ public class ExtendedMatchedFunctionViewsTableModel extends AbstractTableModel {
       priAddr = primaryFunction.getAddress().toHexString();
       priFunctionName = primaryFunction.getName();
       priFunctionType = primaryFunction.getFunctionType();
-      pUBbs = primaryFunction.getSizeOfBasicblocks();
+      pUBbs = primaryFunction.getSizeOfBasicBlocks();
       pUJps = primaryFunction.getSizeOfJumps();
 
       basicblocks = new PercentageThreeBarCellData(pUBbs, mBbs, sUBbs, getColumnSortRelevance(col));
@@ -170,7 +170,7 @@ public class ExtendedMatchedFunctionViewsTableModel extends AbstractTableModel {
       secAddr = secondaryFunction.getAddress().toHexString();
       secFunctionName = secondaryFunction.getName();
       secFunctionType = secondaryFunction.getFunctionType();
-      sUBbs = secondaryFunction.getSizeOfBasicblocks();
+      sUBbs = secondaryFunction.getSizeOfBasicBlocks();
       sUJps = secondaryFunction.getSizeOfJumps();
 
       basicblocks = new PercentageThreeBarCellData(pUBbs, mBbs, sUBbs, getColumnSortRelevance(col));

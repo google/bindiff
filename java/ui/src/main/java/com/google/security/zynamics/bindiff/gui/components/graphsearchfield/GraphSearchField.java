@@ -23,7 +23,6 @@ import com.google.security.zynamics.bindiff.graph.GraphsContainer;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
 import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
-import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphAddressSearcher;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSeacherFunctions;
@@ -476,31 +475,21 @@ public class GraphSearchField extends JPanel {
       }
 
       BinDiffGraph<?, ?> graph = graphs.getCombinedGraph();
-
       if (controller.getGraphSettings().getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
         graph = side == ESide.PRIMARY ? graphs.getPrimaryGraph() : graphs.getSecondaryGraph();
       }
 
+      ZyGraphNode<?> node = null;
       if (graph instanceof SingleGraph) {
-        final SingleDiffNode node = GraphAddressSearcher.searchAddress((SingleGraph) graph, addr);
-
-        if (node != null) {
-          GraphZoomer.zoomToNode(graph, node);
-        }
-
-        return node != null;
+        node = GraphAddressSearcher.searchAddress((SingleGraph) graph, addr);
       } else if (graph instanceof CombinedGraph) {
-        final CombinedDiffNode node =
-            GraphAddressSearcher.searchAddress((CombinedGraph) graph, side, addr);
-
-        if (node != null) {
-          GraphZoomer.zoomToNode(graph, node);
-        }
-
-        return node != null;
+        node = GraphAddressSearcher.searchAddress((CombinedGraph) graph, side, addr);
       }
 
-      return true;
+      if (node != null) {
+        GraphZoomer.zoomToNode(graph, node);
+      }
+      return node != null;
     }
 
     @Override

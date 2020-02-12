@@ -101,6 +101,17 @@ class DeleteMatchesAction : public ActionHandler<DeleteMatchesAction> {
   int idaapi activate(action_activation_ctx_t* context) override;
 };
 
+class ViewCallGraphAction : public ActionHandler<ViewCallGraphAction> {
+ public:
+  static constexpr const char kName[] = "bindiff:view_call_graphs";
+  static constexpr const char kLabel[] = "View context in call ~g~raphs";
+  static constexpr const char kShortCut[] = "";
+  static constexpr const char* kTooltip = nullptr;
+
+ private:
+  int idaapi activate(action_activation_ctx_t* context) override;
+};
+
 class ViewFlowGraphsAction : public ActionHandler<ViewFlowGraphsAction> {
  public:
   static constexpr const char kName[] = "bindiff:view_flow_graphs";
@@ -153,7 +164,7 @@ class CopyPrimaryAddressAction
     : public ActionHandler<CopyPrimaryAddressAction> {
  public:
   static constexpr const char kName[] = "bindiff:copy_primary_address";
-  static constexpr const char kLabel[] = "Copy primary address";
+  static constexpr const char kLabel[] = "Copy ~p~rimary address";
   static constexpr const char kShortCut[] = "";
   static constexpr const char* kTooltip = nullptr;
 
@@ -165,7 +176,7 @@ class CopySecondaryAddressAction
     : public ActionHandler<CopySecondaryAddressAction> {
  public:
   static constexpr const char kName[] = "bindiff:copy_secondary_address";
-  static constexpr const char kLabel[] = "Copy secondary address";
+  static constexpr const char kLabel[] = "Copy ~s~econdary address";
   static constexpr const char kShortCut[] = "";
   static constexpr const char* kTooltip = nullptr;
 

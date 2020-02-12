@@ -60,15 +60,13 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyNormalNodeRealizer;
-
-import y.base.Edge;
-import y.base.Node;
-import y.view.Graph2D;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import y.base.Edge;
+import y.base.Node;
+import y.view.Graph2D;
 
 public class BasicBlockMatchRemover {
   private static CombinedDiffEdge buildDiffEdge(
@@ -345,7 +343,7 @@ public class BasicBlockMatchRemover {
         ((RawCombinedBasicBlock) node.getRawNode()).getSecondaryFunctionAddress();
 
     final ViewManager viewManager = graphs.getDiff().getViewManager();
-    final FlowGraphViewData viewData = viewManager.getFlowgraphViewData(priAddress, secAddress);
+    final FlowGraphViewData viewData = viewManager.getFlowGraphViewData(priAddress, secAddress);
 
     return viewData.getCombinedRawGraph();
   }

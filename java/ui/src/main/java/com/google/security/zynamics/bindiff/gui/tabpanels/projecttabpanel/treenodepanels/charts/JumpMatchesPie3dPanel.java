@@ -74,7 +74,7 @@ public class JumpMatchesPie3dPanel extends JPanel {
     add(piePanel, BorderLayout.CENTER);
 
     if (includeUnmatchedFunctions) {
-      diff.getMetaData().addListener(changeListener);
+      diff.getMetadata().addListener(changeListener);
 
       updateDataset();
     }
@@ -114,7 +114,7 @@ public class JumpMatchesPie3dPanel extends JPanel {
 
   public void dispose() {
     if (includeUnmatchedFunctions) {
-      diff.getMetaData().removeListener(changeListener);
+      diff.getMetadata().removeListener(changeListener);
     }
   }
 

@@ -97,6 +97,6 @@ public class CallGraphViewTable extends AbstractTable {
   @Override
   protected void handleDoubleClick(final int row) {
     final WorkspaceTabPanelFunctions controller = getController();
-    controller.openCallgraphView(controller.getMainWindow(), getDiff());
+    controller.openCallGraphView(controller.getMainWindow(), getDiff());
   }
 }

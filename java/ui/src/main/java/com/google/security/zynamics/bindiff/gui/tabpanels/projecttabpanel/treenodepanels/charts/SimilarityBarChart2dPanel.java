@@ -14,7 +14,7 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts;
 
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.Vector;
@@ -35,7 +35,7 @@ public class SimilarityBarChart2dPanel extends JPanel {
 
   private final double similarity;
 
-  public SimilarityBarChart2dPanel(final DiffMetaData metadata) {
+  public SimilarityBarChart2dPanel(final DiffMetadata metadata) {
     super(new BorderLayout());
 
     similarity = metadata.getTotalSimilarity();

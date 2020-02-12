@@ -83,7 +83,7 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
     callGraphTable = new CallGraphViewTable(new CallGraphViewTableModel(diff), controller);
 
     init();
-    diff.getMetaData().addListener(countsChangeListener);
+    diff.getMetadata().addListener(countsChangeListener);
   }
 
   private JPanel createChartsPanel() {
@@ -221,8 +221,8 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
             TEXTFIELD_HEIGHT);
 
-    final JLabel primaryName = new JLabel(diff.getMetaData().getImageName(ESide.PRIMARY));
-    final JLabel secondaryName = new JLabel(diff.getMetaData().getImageName(ESide.SECONDARY));
+    final JLabel primaryName = new JLabel(diff.getMetadata().getImageName(ESide.PRIMARY));
+    final JLabel secondaryName = new JLabel(diff.getMetadata().getImageName(ESide.SECONDARY));
 
     final JPanel infoPanel = new JPanel(new GridLayout(1, 2, 2, 2));
 
@@ -309,7 +309,7 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
   }
 
   public void dipose() {
-    diff.getMetaData().removeListener(countsChangeListener);
+    diff.getMetadata().removeListener(countsChangeListener);
   }
 
   @Override

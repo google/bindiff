@@ -115,7 +115,7 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
   }
 
   private void cloneDiffObjectOnSaveAs() {
-    final FlowGraphViewData view = diffToSave.getViewManager().getFlowgraphViewsData().get(0);
+    final FlowGraphViewData view = diffToSave.getViewManager().getFlowGraphViewsData().get(0);
 
     if (binDiffFileTarget.exists()
         && !binDiffFileTarget.equals(diffToSave.getMatchesDatabase())

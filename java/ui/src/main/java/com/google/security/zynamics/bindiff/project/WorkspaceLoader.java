@@ -18,8 +18,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.database.WorkspaceDatabase;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
-import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
+import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetadata;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
@@ -87,14 +87,14 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
 
         logger.at(Level.INFO).log(" - Preloading Diff '%s'", matchesDatabaseFile.getPath());
 
-        final DiffMetaData matchesMetadata;
+        final DiffMetadata matchesMetadata;
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
           setDescription(
               String.format(
                   "Preloading Diffs %d/%d '%s'",
                   diffCounter, allDiffs, matchesDatabaseFile.getName()));
 
-          matchesMetadata = matchesDatabase.loadDiffMetaData(matchesDatabaseFile);
+          matchesMetadata = matchesDatabase.loadDiffMetadata(matchesDatabaseFile);
         } catch (final SQLException e) {
           logger.at(Level.SEVERE).withCause(e).log();
           errors.append(" - ").append(matchesDatabaseFile.getName()).append("\n");
@@ -116,14 +116,14 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         logger.at(Level.INFO).log(
             " - Preloading Function Diff '%s'", matchesDatabaseFile.getPath());
 
-        FunctionDiffMetaData matchesMetadata = null;
+        FunctionDiffMetadata matchesMetadata = null;
         setDescription(
             String.format(
                 "Preloading Function Diffs %d/%d '%s'",
                 diffCounter, allDiffs, matchesDatabaseFile.getName()));
 
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
-          matchesMetadata = matchesDatabase.loadFunctionDiffMetaData(false);
+          matchesMetadata = matchesDatabase.loadFunctionDiffMetadata(false);
         } catch (final SQLException e) {
           errors.append(" - ").append(matchesDatabaseFile.getName()).append("\n");
 

@@ -25,7 +25,7 @@ import com.google.security.zynamics.bindiff.processes.DiffProcess;
 import com.google.security.zynamics.bindiff.processes.ExportProcess;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.DiffLoader;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.bindiff.utils.ExternalAppUtils;
@@ -295,7 +295,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         setDescription(String.format("Loading '%s'", newMatchesDatabase.getName()));
 
         if (newMatchesDatabase.exists()) {
-          final DiffMetaData preloadedMatches = DiffLoader.preloadDiffMatches(newMatchesDatabase);
+          final DiffMetadata preloadedMatches = DiffLoader.preloadDiffMatches(newMatchesDatabase);
 
           workspace.addDiff(newMatchesDatabase, preloadedMatches, false);
         }

@@ -25,7 +25,7 @@ import com.google.security.zynamics.bindiff.enums.EInstructionHighlighting;
 import com.google.security.zynamics.bindiff.enums.EJumpType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
+import com.google.security.zynamics.bindiff.io.matches.DiffRequestMessage;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCall;
@@ -445,7 +445,7 @@ public class BinExport2Reader {
     }
   }
 
-  public RawCallGraph readSingleFunctionDiffCallGraph(final FunctionDiffSocketXmlData data) {
+  public RawCallGraph readSingleFunctionDiffCallGraph(final DiffRequestMessage data) {
     final long functionAddress = data.getFunctionAddress(side);
     final List<RawFunction> nodes = new ArrayList<>();
     final List<RawCall> edges = new ArrayList<>();

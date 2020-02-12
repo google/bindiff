@@ -938,6 +938,17 @@ class ShowSecondaryUnmatchedAction
   }
 };
 
+int idaapi ViewCallGraphAction::activate(action_activation_ctx_t* context) {
+  const auto& chooser_selection = context->chooser_selection;
+  if (chooser_selection.empty()) {
+    // Require a selection so the UI can center the call graph on the match.
+    return 0;
+  }
+  Plugin::instance()->VisualDiff(chooser_selection.front(),
+                                 /*call_graph_diff=*/true);
+  return 1;
+}
+
 int idaapi ViewFlowGraphsAction::activate(action_activation_ctx_t* context) {
   const auto& chooser_selection = context->chooser_selection;
   if (chooser_selection.empty()) {

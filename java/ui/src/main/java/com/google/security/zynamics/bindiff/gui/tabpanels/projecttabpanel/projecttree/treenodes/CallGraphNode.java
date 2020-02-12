@@ -55,7 +55,7 @@ public final class CallGraphNode extends AbstractTreeNode {
   @Override
   public void doubleClicked() {
     final WorkspaceTabPanelFunctions controller = getController();
-    controller.openCallgraphView(controller.getMainWindow(), getDiff());
+    controller.openCallGraphView(controller.getMainWindow(), getDiff());
   }
 
   @Override

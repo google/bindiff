@@ -21,6 +21,7 @@ import com.google.security.zynamics.bindiff.graph.GraphsContainer;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 
+/** Stores metadata for call graph views. */
 public class CallGraphViewData extends ViewData {
   private final RawCallGraph primaryRawGraph;
   private final RawCallGraph secondaryRawGraph;
@@ -29,16 +30,16 @@ public class CallGraphViewData extends ViewData {
   private final String secImageName;
 
   public CallGraphViewData(
-      final RawCallGraph primaryRawCallgraph,
-      final RawCallGraph secondaryRawCallgraph,
+      final RawCallGraph primaryRawCallGraph,
+      final RawCallGraph secondaryRawCallGraph,
       final GraphsContainer graphs,
       final String viewName,
       final String priImageName,
       final String secImageName,
       final EViewType viewType) {
     super(graphs, viewName, viewType);
-    this.primaryRawGraph = Preconditions.checkNotNull(primaryRawCallgraph);
-    this.secondaryRawGraph = secondaryRawCallgraph;
+    this.primaryRawGraph = Preconditions.checkNotNull(primaryRawCallGraph);
+    this.secondaryRawGraph = secondaryRawCallGraph;
     this.priImageName = priImageName;
     this.secImageName = secImageName;
   }
@@ -58,12 +59,12 @@ public class CallGraphViewData extends ViewData {
   }
 
   @Override
-  public boolean isCallgraphView() {
+  public boolean isCallGraphView() {
     return true;
   }
 
   @Override
-  public boolean isFlowgraphView() {
+  public boolean isFlowGraphView() {
     return false;
   }
 }

@@ -80,7 +80,7 @@ public class FunctionDiffViewTabPanel extends ViewTabPanel {
   public Icon getIcon() {
     final CombinedGraph combinedGraph = getView().getGraphs().getCombinedGraph();
 
-    if (getView().isFlowgraphView()) {
+    if (getView().isFlowGraphView()) {
       final EMatchType matchType =
           MatchesGetter.getFlowGraphsMatchType(combinedGraph, functionMatch);
 

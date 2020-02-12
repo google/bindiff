@@ -77,7 +77,7 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
     add(piePanel, BorderLayout.CENTER);
 
     if (includeUnmtachedFunctions) {
-      diff.getMetaData().addListener(changeListener);
+      diff.getMetadata().addListener(changeListener);
 
       updateDataset();
     }
@@ -115,7 +115,7 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
 
   public void dispose() {
     if (includeUnmtachedFunctions) {
-      diff.getMetaData().removeListener(changeListener);
+      diff.getMetadata().removeListener(changeListener);
     }
   }
 

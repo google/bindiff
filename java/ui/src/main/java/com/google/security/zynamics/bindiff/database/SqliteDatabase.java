@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.database;
 
 import com.google.common.base.Preconditions;
-
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -14,7 +14,6 @@
 
 package com.google.security.zynamics.bindiff.project.rawcallgraph;
 
-import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -32,15 +31,7 @@ public class RawCallGraph extends MutableDirectedGraph<RawFunction, RawCall> {
     super(nodes, edges);
 
     this.side = Preconditions.checkNotNull(side);
-    this.addressToFunction =
-        Maps.uniqueIndex(
-            nodes,
-            new Function<RawFunction, IAddress>() {
-              @Override
-              public IAddress apply(final RawFunction input) {
-                return input.getAddress();
-              }
-            });
+    this.addressToFunction = Maps.uniqueIndex(nodes, input -> input.getAddress());
   }
 
   public RawFunction getFunction(final IAddress addr) {

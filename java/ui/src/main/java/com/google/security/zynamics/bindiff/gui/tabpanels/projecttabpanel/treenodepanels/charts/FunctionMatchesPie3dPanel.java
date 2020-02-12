@@ -17,7 +17,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treen
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import java.awt.BorderLayout;
@@ -85,7 +85,7 @@ public class FunctionMatchesPie3dPanel extends JPanel {
     return String.format("%s %.1f%s", "Functions", matchedPercent, "%");
   }
 
-  public FunctionMatchesPie3dPanel(final DiffMetaData metadata) {
+  public FunctionMatchesPie3dPanel(final DiffMetadata metadata) {
     super(new BorderLayout());
 
     Preconditions.checkNotNull(metadata);

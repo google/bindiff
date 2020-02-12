@@ -66,7 +66,7 @@ public class BasicBlockMatchAdder {
     final long priAddress = oldRawPriUnmatchedCombinedBasicblock.getAddress(ESide.PRIMARY).toLong();
     final long secAddress =
         oldRawSecUnmatchedCombinedBasicblock.getAddress(ESide.SECONDARY).toLong();
-    final int algoId = MatchesDatabase.UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID;
+    final int algoId = MatchesDatabase.UNSAVED_BASIC_BLOCK_MATCH_ALGORITHM_ID;
     final Matches<InstructionMatchData> instructionsMap = new Matches<>(getNewInstructionMatches());
 
     return new BasicBlockMatchData(priAddress, secAddress, algoId, instructionsMap);
@@ -99,7 +99,7 @@ public class BasicBlockMatchAdder {
         ((RawCombinedBasicBlock) secUnmatchedDiffNode.getRawNode()).getSecondaryFunctionAddress();
 
     final ViewManager viewManager = graphs.getDiff().getViewManager();
-    final FlowGraphViewData viewData = viewManager.getFlowgraphViewData(priAddress, secAddress);
+    final FlowGraphViewData viewData = viewManager.getFlowGraphViewData(priAddress, secAddress);
 
     return viewData.getCombinedRawGraph();
   }

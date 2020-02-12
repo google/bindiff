@@ -40,6 +40,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JMenuBar;
 import y.view.Graph2DView;
 
+/** Tab sheet containing the graph views for flow and call graphs. */
 public class ViewTabPanel extends TabPanel {
   private static final ImageIcon CALLGRAPHS_ICON =
       ImageUtils.getImageIcon("data/tabicons/callgraphs-tab.png");
@@ -160,24 +161,30 @@ public class ViewTabPanel extends TabPanel {
 
   @Override
   public Icon getIcon() {
-    if (viewData.isCallgraphView()) {
+    if (viewData.isCallGraphView()) {
       return CALLGRAPHS_ICON;
-    } else if (viewData.isFlowgraphView()) {
-      if (((FlowGraphViewData) viewData).isMatched()) {
-        if (((FlowGraphViewData) viewData).isMatchedIdentical()) {
+    }
+    if (viewData.isFlowGraphView()) {
+      final FlowGraphViewData flowGraphView = (FlowGraphViewData) viewData;
+      if (flowGraphView.isMatched()) {
+        if (flowGraphView.isMatchedIdentical()) {
           return FLOWGRAPHS_IDENTICAL_MATCHED_ICON;
-        } else if (((FlowGraphViewData) viewData).isChangedOnlyInstructions()) {
+        }
+        if (flowGraphView.isChangedOnlyInstructions()) {
           return FLOWGRAPHS_INSTRUCTION_CHANGED_ONLY_ICON;
-        } else if (((FlowGraphViewData) viewData).isChangedStructural()) {
+        }
+        if (flowGraphView.isChangedStructural()) {
           return FLOWGRAPHS_STRUTURAL_CHANGED_ICON;
         }
-      } else if (((FlowGraphViewData) viewData).getRawGraph(ESide.PRIMARY) == null) {
-        return FLOWGRAPH_SECONDARY_UNMATCHED_ICON;
-      } else if (((FlowGraphViewData) viewData).getRawGraph(ESide.SECONDARY) == null) {
-        return FLOWGRAPH_PRIMARY_UNMATCHED_ICON;
+      } else {
+        if (flowGraphView.getRawGraph(ESide.PRIMARY) == null) {
+          return FLOWGRAPH_SECONDARY_UNMATCHED_ICON;
+        }
+        if (flowGraphView.getRawGraph(ESide.SECONDARY) == null) {
+          return FLOWGRAPH_PRIMARY_UNMATCHED_ICON;
+        }
       }
     }
-
     return null;
   }
 

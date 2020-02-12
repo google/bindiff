@@ -73,7 +73,7 @@ public class CallMatchesPie3dPanel extends JPanel {
 
     updateDataset();
 
-    diff.getMetaData().addListener(changeListener);
+    diff.getMetadata().addListener(changeListener);
   }
 
   private String getTitle() {
@@ -107,7 +107,7 @@ public class CallMatchesPie3dPanel extends JPanel {
   }
 
   public void dispose() {
-    diff.getMetaData().removeListener(changeListener);
+    diff.getMetadata().removeListener(changeListener);
   }
 
   public JFreeChart getChart() {

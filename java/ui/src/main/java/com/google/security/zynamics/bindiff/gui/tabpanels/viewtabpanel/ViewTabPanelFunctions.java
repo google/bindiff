@@ -66,7 +66,7 @@ import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.FunctionDiffViewSaver;
 import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
 import com.google.security.zynamics.bindiff.project.matches.BasicBlockMatchData;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedFunction;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
@@ -199,7 +199,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   private void updateFunctionMatchCounts() {
     final ViewData viewData = viewTabPanel.getView();
 
-    if (viewData.isFlowgraphView() || viewData.isSingleFunctionDiffView()) {
+    if (viewData.isFlowGraphView() || viewData.isSingleFunctionDiffView()) {
       final Diff diff = viewData.getGraphs().getDiff();
       final IAddress priAddr = viewData.getAddress(ESide.PRIMARY);
       final FunctionMatchData functionMatch =
@@ -247,7 +247,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       return;
     }
 
-    if (viewTabPanel.getView().isFlowgraphView()) {
+    if (viewTabPanel.getView().isFlowGraphView()) {
       try {
         BasicBlockMatchAdder.addBasicblockMatch(
             graphs, oldPriUnmatchedCombinedDiffNode, oldSecUnmatchedCombinedDiffNode);
@@ -277,7 +277,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     graphs.dispose();
     viewTabPanel = null;
 
-    if (viewData.isCallgraphView()) {
+    if (viewData.isCallGraphView()) {
       diff.getCallGraph(ESide.PRIMARY).resetVisibilityAndSelection();
       diff.getCallGraph(ESide.SECONDARY).resetVisibilityAndSelection();
     }
@@ -694,7 +694,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       return;
     }
 
-    if (viewTabPanel.getView().isFlowgraphView()) {
+    if (viewTabPanel.getView().isFlowGraphView()) {
       try {
         for (final CombinedDiffNode combinedNode : nodes) {
           BasicBlockMatchRemover.removeBasicblockMatch(graphs, combinedNode);
@@ -1100,7 +1100,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     }
     try {
       final Workspace workspace = getWorkspace();
-      final DiffMetaData metadata = graphs.getDiff().getMetaData();
+      final DiffMetadata metadata = graphs.getDiff().getMetadata();
       final ViewData viewData = viewTabPanel.getView();
 
       final String priMd5 = metadata.getImageHash(ESide.PRIMARY);

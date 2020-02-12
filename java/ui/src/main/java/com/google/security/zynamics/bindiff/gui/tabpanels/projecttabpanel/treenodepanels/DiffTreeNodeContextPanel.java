@@ -26,7 +26,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers.PercentageTwoBarLabel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CPathLabel;
@@ -95,7 +95,7 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
     this.diff = Preconditions.checkNotNull(diff);
     this.controller = Preconditions.checkNotNull(controller);
 
-    final DiffMetaData metaData = diff.getMetaData();
+    final DiffMetadata metaData = diff.getMetadata();
 
     creationDate =
         TextComponentUtils.addDefaultEditorActions(new JTextField(metaData.getDateString()));
@@ -220,7 +220,7 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
   }
 
   private JPanel createOverviewPanel() {
-    final DiffMetaData metadata = diff.getMetaData();
+    final DiffMetadata metadata = diff.getMetadata();
 
     // Outer panel with title and frame
     final JPanel overviewBorderPanel = new JPanel(new BorderLayout(0, 0));

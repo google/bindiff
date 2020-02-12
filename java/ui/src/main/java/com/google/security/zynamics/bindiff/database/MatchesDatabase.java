@@ -22,8 +22,8 @@ import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
 import com.google.security.zynamics.bindiff.project.matches.AddressPair;
 import com.google.security.zynamics.bindiff.project.matches.BasicBlockMatchData;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
-import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
+import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.matches.IAddressPair;
 import com.google.security.zynamics.bindiff.project.matches.InstructionMatchData;
@@ -48,7 +48,7 @@ import java.util.logging.Level;
 public class MatchesDatabase extends SqliteDatabase {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  public static final int UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID = -1;
+  public static final int UNSAVED_BASIC_BLOCK_MATCH_ALGORITHM_ID = -1;
 
   private static final int DEFAULT_FILE_TABLE_COLUMN_COUNT = 13;
 
@@ -74,8 +74,11 @@ public class MatchesDatabase extends SqliteDatabase {
         basicBlockStatement.setLong(4, basicBlockMatch.getAddress(ESide.SECONDARY));
         basicBlockStatement.setInt(
             5,
-            matchAlgoId == UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID ? manualMatchAlgoId : matchAlgoId);
-        basicBlockStatement.setInt(6, matchAlgoId == UNSAVED_BASIC_BLOCK_MATCH_ALGORITH_ID ? 1 : 0);
+            matchAlgoId == UNSAVED_BASIC_BLOCK_MATCH_ALGORITHM_ID
+                ? manualMatchAlgoId
+                : matchAlgoId);
+        basicBlockStatement.setInt(
+            6, matchAlgoId == UNSAVED_BASIC_BLOCK_MATCH_ALGORITHM_ID ? 1 : 0);
 
         basicBlockStatement.addBatch();
 
@@ -217,8 +220,8 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  private void addBinExportMetaData(final File matchesDatabaseFile, final DiffMetaData metaData)
-      throws IOException {
+  private static void addBinExportMetaData(
+      final File matchesDatabaseFile, final DiffMetadata metaData) throws IOException {
     if (matchesDatabaseFile == null) {
       return;
     }
@@ -248,7 +251,7 @@ public class MatchesDatabase extends SqliteDatabase {
             "UPDATE function SET basicblocks = ?, edges = ?, instructions = ?"
                 + "WHERE address1 = ? and address2 = ?")) {
 
-      statement.setInt(1, functionMatch.getSizeOfMatchedBasicblocks());
+      statement.setInt(1, functionMatch.getSizeOfMatchedBasicBlocks());
       statement.setInt(2, functionMatch.getSizeOfMatchedJumps());
       statement.setInt(3, functionMatch.getSizeOfMatchedInstructions());
       statement.setLong(4, priFunctionAddr);
@@ -461,7 +464,7 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  public DiffMetaData loadDiffMetaData(final File matchesDatabaseFile) throws SQLException {
+  public DiffMetadata loadDiffMetadata(final File matchesDatabaseFile) throws SQLException {
     try {
       final String version;
       final String description;
@@ -516,11 +519,11 @@ public class MatchesDatabase extends SqliteDatabase {
         final int matchedFunctions = countMatchedFunctions();
 
         // Return new meta-data object
-        final DiffMetaData metaData =
-            new DiffMetaData(
+        final DiffMetadata metaData =
+            new DiffMetadata(
                 version,
                 description,
-                DiffMetaData.dbDateStringToCalendar(dateCreated),
+                DiffMetadata.dbDateStringToCalendar(dateCreated),
                 similarity,
                 confidence,
                 priFilename,
@@ -568,65 +571,62 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  public FunctionDiffMetaData loadFunctionDiffMetaData(final boolean isDirectlyFromIda)
+  public FunctionDiffMetadata loadFunctionDiffMetadata(final boolean fromDisassembler)
       throws SQLException {
-    final DiffMetaData metaData = loadDiffMetaData(null);
-
-    if (!isDirectlyFromIda) {
-      final IAddressPair addressPair = loadFunctionDiffAddressPair();
-      final IAddress priFunctionAddr = addressPair.getIAddress(ESide.PRIMARY);
-      final IAddress secFunctionAddr = addressPair.getIAddress(ESide.SECONDARY);
-
-      try (final PreparedStatement statement =
-          connection.prepareStatement("SELECT functionname, functiontype FROM file ORDER BY id")) {
-        String priFunctionName = null;
-        String secFunctionName = null;
-        EFunctionType priFunctionType = null;
-        EFunctionType secFunctionType = null;
-
-        final ResultSet result = statement.executeQuery();
-
-        if (result.next()) {
-          priFunctionName = result.getString("functionname");
-          priFunctionType = EFunctionType.getType(result.getInt("functiontype"));
-        }
-
-        if (result.next()) {
-          secFunctionName = result.getString("functionname");
-          secFunctionType = EFunctionType.getType(result.getInt("functiontype"));
-        }
-
-        if (priFunctionName == null || secFunctionName == null) {
-          throw new SQLException(
-              "Failed to load function diff meta data: "
-                  + "Primary and secondary function must not be null.");
-        }
-        if (priFunctionType == null || secFunctionType == null) {
-          throw new SQLException(
-              "Failed to load function diff meta data: "
-                  + "Primary and secondary function type must not be null.");
-        }
-
-        final FunctionDiffMetaData functionDiffMetaData =
-            new FunctionDiffMetaData(
-                metaData,
-                priFunctionAddr,
-                secFunctionAddr,
-                priFunctionName,
-                secFunctionName,
-                priFunctionType,
-                secFunctionType);
-
-        return functionDiffMetaData;
-      }
+    final DiffMetadata metadata = loadDiffMetadata(null);
+    if (fromDisassembler) {
+      return new FunctionDiffMetadata(metadata, null, null, null, null, null, null);
     }
-    return new FunctionDiffMetaData(metaData, null, null, null, null, null, null);
+
+    final IAddressPair addressPair = loadFunctionDiffAddressPair();
+    final IAddress priFunctionAddr = addressPair.getIAddress(ESide.PRIMARY);
+    final IAddress secFunctionAddr = addressPair.getIAddress(ESide.SECONDARY);
+
+    try (final PreparedStatement statement =
+        connection.prepareStatement("SELECT functionname, functiontype FROM file ORDER BY id")) {
+      String priFunctionName = null;
+      String secFunctionName = null;
+      EFunctionType priFunctionType = null;
+      EFunctionType secFunctionType = null;
+
+      final ResultSet result = statement.executeQuery();
+
+      if (result.next()) {
+        priFunctionName = result.getString("functionname");
+        priFunctionType = EFunctionType.getType(result.getInt("functiontype"));
+      }
+
+      if (result.next()) {
+        secFunctionName = result.getString("functionname");
+        secFunctionType = EFunctionType.getType(result.getInt("functiontype"));
+      }
+
+      if (priFunctionName == null || secFunctionName == null) {
+        throw new SQLException(
+            "Failed to load function diff meta data: "
+                + "Primary and secondary function must not be null.");
+      }
+      if (priFunctionType == null || secFunctionType == null) {
+        throw new SQLException(
+            "Failed to load function diff meta data: "
+                + "Primary and secondary function type must not be null.");
+      }
+
+      return new FunctionDiffMetadata(
+          metadata,
+          priFunctionAddr,
+          secFunctionAddr,
+          priFunctionName,
+          secFunctionName,
+          priFunctionType,
+          secFunctionType);
+    }
   }
 
   public MatchData loadFunctionMatches(final Diff diff) throws SQLException {
-    final DiffMetaData metaData = diff.getMetaData();
+    final DiffMetadata metaData = diff.getMetadata();
 
-    int matchedBasicblocks = 0;
+    int matchedBasicBlocks = 0;
     int matchedJumps = 0;
     int matchedInstructions = 0;
 
@@ -642,7 +642,7 @@ public class MatchesDatabase extends SqliteDatabase {
       final List<FunctionMatchData> functionMatches = new ArrayList<>();
 
       while (result.next()) {
-        matchedBasicblocks += result.getInt("basicblocks");
+        matchedBasicBlocks += result.getInt("basicblocks");
         matchedJumps += result.getInt("edges");
         matchedInstructions += result.getInt("instructions");
 
@@ -662,7 +662,7 @@ public class MatchesDatabase extends SqliteDatabase {
         functionMatches.add(functionMatch);
       }
 
-      metaData.setSizeOfMatchedBasicBlocks(matchedBasicblocks);
+      metaData.setSizeOfMatchedBasicBlocks(matchedBasicBlocks);
       metaData.setSizeOfMatchedJumps(matchedJumps);
       metaData.setSizeOfMatchedInstructions(matchedInstructions);
 

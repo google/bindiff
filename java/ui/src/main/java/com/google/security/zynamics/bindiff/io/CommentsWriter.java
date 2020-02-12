@@ -113,7 +113,7 @@ public final class CommentsWriter {
       final ViewData viewData)
       throws SQLException {
     try (final CommentsDatabase database = new CommentsDatabase(workspace, false)) {
-      if (viewData.isFlowgraphView()) {
+      if (viewData.isFlowGraphView()) {
         final RawFlowGraph priFlowgraph;
         priFlowgraph = ((FlowGraphViewData) viewData).getRawGraph(ESide.PRIMARY);
 

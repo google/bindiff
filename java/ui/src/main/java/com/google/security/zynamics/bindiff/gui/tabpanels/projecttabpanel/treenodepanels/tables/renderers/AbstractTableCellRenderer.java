@@ -45,7 +45,7 @@ public abstract class AbstractTableCellRenderer extends DefaultTableCellRenderer
     if (diff == null) {
       final Diff rowDiff = AbstractTable.getRowDiff(absTable, row);
 
-      return rowDiff != null && rowDiff.getViewManager().getFlowgraphViewsData().size() > 0;
+      return rowDiff != null && rowDiff.getViewManager().getFlowGraphViewsData().size() > 0;
     }
 
     final ViewManager viewManager = diff.getViewManager();

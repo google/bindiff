@@ -17,7 +17,7 @@ package com.google.security.zynamics.bindiff.project.diff;
 import com.google.common.base.Preconditions;
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
@@ -46,10 +46,10 @@ public final class Diff {
 
   private final ViewManager viewManager = new ViewManager();
 
-  private RawCallGraph primaryCallgraph = null;
-  private RawCallGraph secondaryCallgraph = null;
+  private RawCallGraph primaryCallGraph = null;
+  private RawCallGraph secondaryCallGraph = null;
 
-  private final DiffMetaData metaData;
+  private final DiffMetadata metadata;
 
   private final boolean isFunctionDiff;
 
@@ -57,12 +57,12 @@ public final class Diff {
   private boolean loaded = false;
 
   public Diff(
-      final DiffMetaData preloadedMatches,
+      final DiffMetadata preloadedMatches,
       final File binDiffBinary,
       final File primaryExportFile,
       final File secondaryExportFile,
       final boolean isFunctionDiff) {
-    this.metaData = Preconditions.checkNotNull(preloadedMatches);
+    this.metadata = Preconditions.checkNotNull(preloadedMatches);
     this.matchesDatabaseFile = Preconditions.checkNotNull(binDiffBinary);
     this.primaryExportFile = Preconditions.checkNotNull(primaryExportFile);
     this.secondaryExportFile = Preconditions.checkNotNull(secondaryExportFile);
@@ -70,8 +70,8 @@ public final class Diff {
   }
 
   private void close() {
-    primaryCallgraph = null;
-    secondaryCallgraph = null;
+    primaryCallGraph = null;
+    secondaryCallGraph = null;
 
     if (matches != null) {
       matches.close();
@@ -80,7 +80,7 @@ public final class Diff {
     loaded = false;
   }
 
-  protected Diff cloneDiffObjectOnSaveAs(
+  Diff cloneDiffObjectOnSaveAs(
       final File binDiffBinary,
       final File primaryExportFile,
       final File secondaryExportFile,
@@ -88,7 +88,7 @@ public final class Diff {
     viewManager.removeView(view);
 
     final Diff cloneDiff =
-        new Diff(metaData, binDiffBinary, primaryExportFile, secondaryExportFile, true);
+        new Diff(metadata, binDiffBinary, primaryExportFile, secondaryExportFile, true);
 
     cloneDiff.primaryExportFile = primaryExportFile;
     cloneDiff.secondaryExportFile = secondaryExportFile;
@@ -96,8 +96,8 @@ public final class Diff {
     cloneDiff.secExportMD5 = secExportMD5;
     cloneDiff.loaded = loaded;
     cloneDiff.viewManager.addView(view);
-    cloneDiff.primaryCallgraph = primaryCallgraph;
-    cloneDiff.secondaryCallgraph = secondaryCallgraph;
+    cloneDiff.primaryCallGraph = primaryCallGraph;
+    cloneDiff.secondaryCallGraph = secondaryCallGraph;
     cloneDiff.matches = matches;
 
     view.setViewName(
@@ -137,15 +137,15 @@ public final class Diff {
   }
 
   public RawCallGraph getCallGraph(final ESide side) {
-    return side == ESide.PRIMARY ? primaryCallgraph : secondaryCallgraph;
+    return side == ESide.PRIMARY ? primaryCallGraph : secondaryCallGraph;
   }
 
   public String getDiffFolder() {
     return getMatchesDatabase().getParent();
   }
 
-  public DiffMetaData getDiffMetaData() {
-    return metaData;
+  public DiffMetadata getDiffMetaData() {
+    return metadata;
   }
 
   public String getDiffName() {
@@ -172,8 +172,8 @@ public final class Diff {
     return matchesDatabaseFile;
   }
 
-  public DiffMetaData getMetaData() {
-    return metaData;
+  public DiffMetadata getMetadata() {
+    return metadata;
   }
 
   public ViewManager getViewManager() {
@@ -208,9 +208,9 @@ public final class Diff {
 
   public void setCallGraph(final RawCallGraph callGraph, final ESide side) {
     if (side == ESide.PRIMARY) {
-      primaryCallgraph = callGraph;
+      primaryCallGraph = callGraph;
     } else {
-      secondaryCallgraph = callGraph;
+      secondaryCallGraph = callGraph;
     }
   }
 

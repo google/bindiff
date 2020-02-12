@@ -130,7 +130,7 @@ public class UnmatchedFunctionViewsTableModel extends AbstractTableModel {
       case TYPE:
         return unmatchedFunction.getFunctionType();
       case BASICBLOCKS:
-        return unmatchedFunction.getSizeOfBasicblocks();
+        return unmatchedFunction.getSizeOfBasicBlocks();
       case JUMPS:
         return unmatchedFunction.getSizeOfJumps();
       case INSTRUCTIONS:

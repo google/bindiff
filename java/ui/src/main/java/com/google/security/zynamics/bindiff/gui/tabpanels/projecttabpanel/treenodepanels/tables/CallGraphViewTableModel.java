@@ -18,7 +18,7 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers.PercentageThreeBarCellData;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers.comparators.PercentageThreeBarCellDataComparator;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.general.comparators.DoubleComparator;
@@ -92,7 +92,7 @@ public class CallGraphViewTableModel extends AbstractTableModel {
             matches.getSizeOfMatchedCalls(),
             matches.getSizeOfUnmatchedCalls(ESide.SECONDARY));
 
-    final DiffMetaData metaData = getDiff().getMetaData();
+    final DiffMetadata metaData = getDiff().getMetadata();
 
     switch (col) {
       case SIMILARITY:

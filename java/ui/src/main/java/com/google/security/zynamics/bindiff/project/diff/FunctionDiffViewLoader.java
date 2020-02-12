@@ -26,10 +26,10 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.detachedviewstabpanel.FunctionDiffViewTabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelInitializer;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
-import com.google.security.zynamics.bindiff.io.matches.FunctionDiffSocketXmlData;
+import com.google.security.zynamics.bindiff.io.matches.DiffRequestMessage;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.builders.RawCombinedFlowGraphBuilder;
-import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.FunctionDiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawCombinedBasicBlock;
@@ -43,8 +43,9 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import java.io.File;
 
+/** Loads flow graphs into a new view. */
 public class FunctionDiffViewLoader extends CEndlessHelperThread {
-  private final FunctionDiffSocketXmlData data;
+  private final DiffRequestMessage data;
   private final MainWindow window;
   private final TabPanelManager tabPanelManager;
   private final Workspace workspace;
@@ -52,7 +53,7 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
   private FlowGraphViewData viewData;
 
   public FunctionDiffViewLoader(
-      final FunctionDiffSocketXmlData data,
+      final DiffRequestMessage data,
       final MainWindow window,
       final TabPanelManager tabPanelManager,
       final Workspace workspace) {
@@ -63,16 +64,16 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
     this.viewData = null;
   }
 
-  private void createSingleFunctionDiffFlowgraphView(
+  private void createSingleFunctionDiffFlowGraphView(
       final Diff diff,
       final FunctionMatchData functionMatch,
-      final RawFlowGraph priFlowgraph,
-      final RawFlowGraph secFlowgraph,
+      final RawFlowGraph priFlowGraph,
+      final RawFlowGraph secFlowGraph,
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedFlowgraph)
+          combinedFlowGraph)
       throws GraphCreationException {
     final GraphsContainer graphs =
-        ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedFlowgraph);
+        ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedFlowGraph);
 
     final RawFunction priFunction =
         diff.getFunction(functionMatch.getIAddress(ESide.PRIMARY), ESide.PRIMARY);
@@ -85,17 +86,15 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
             name, Constants.BINDIFF_MATCHES_DB_EXTENSION);
 
     if (!workspace.isLoaded()
-        || (workspace.isLoaded()
-            && diff.getMatchesDatabase().getParent().indexOf(workspace.getWorkspaceDirPath())
-                != 0)) {
+        || diff.getMatchesDatabase().getParent().indexOf(workspace.getWorkspaceDirPath()) != 0) {
       name = String.format("%s vs %s", priFunction.getName(), secFunction.getName());
     }
 
     viewData =
         new FlowGraphViewData(
-            priFlowgraph,
-            secFlowgraph,
-            combinedFlowgraph,
+            priFlowGraph,
+            secFlowGraph,
+            combinedFlowGraph,
             graphs,
             name,
             EViewType.SINGLE_FUNCTION_DIFF_VIEW);
@@ -126,7 +125,7 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
     final File matchesFile = new File(data.getMatchesDBPath());
 
     try (final MatchesDatabase matchesDB = new MatchesDatabase(matchesFile)) {
-      final FunctionDiffMetaData metaData = matchesDB.loadFunctionDiffMetaData(true);
+      final FunctionDiffMetadata metaData = matchesDB.loadFunctionDiffMetadata(true);
 
       final File primaryExportFile = new File(data.getBinExportPath(ESide.PRIMARY));
       final File secondaryExportFile = new File(data.getBinExportPath(ESide.SECONDARY));
@@ -141,11 +140,11 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
 
       if (diff.getCallGraph(ESide.PRIMARY).getNodes().size() != 1) {
         throw new IllegalStateException(
-            "Primary callgraph of a single function diff has more than one vertex.");
+            "Primary call graph of a single function diff has more than one vertex.");
       }
       if (diff.getCallGraph(ESide.SECONDARY).getNodes().size() != 1) {
         throw new IllegalStateException(
-            "Secondary callgraph of a single function diff has more than one vertex.");
+            "Secondary call graph of a single function diff has more than one vertex.");
       }
 
       final RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
@@ -178,20 +177,20 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
         commentsDatabase = new CommentsDatabase(workspace, true);
       }
 
-      final RawFlowGraph priFlowgraph;
-      priFlowgraph =
+      final RawFlowGraph priFlowGraph;
+      priFlowGraph =
           DiffLoader.loadRawFlowGraph(commentsDatabase, diff, priFunctionAddr, ESide.PRIMARY);
-      final RawFlowGraph secFlowgraph;
-      secFlowgraph =
+      final RawFlowGraph secFlowGraph;
+      secFlowGraph =
           DiffLoader.loadRawFlowGraph(commentsDatabase, diff, secFunctionAddr, ESide.SECONDARY);
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedFlowgraph;
-      combinedFlowgraph =
+          combinedFlowGraph;
+      combinedFlowGraph =
           RawCombinedFlowGraphBuilder.buildRawCombinedFlowGraph(
-              functionMatch, priFlowgraph, secFlowgraph);
+              functionMatch, priFlowGraph, secFlowGraph);
 
-      createSingleFunctionDiffFlowgraphView(
-          diff, functionMatch, priFlowgraph, secFlowgraph, combinedFlowgraph);
+      createSingleFunctionDiffFlowGraphView(
+          diff, functionMatch, priFlowGraph, secFlowGraph, combinedFlowGraph);
     }
   }
 }

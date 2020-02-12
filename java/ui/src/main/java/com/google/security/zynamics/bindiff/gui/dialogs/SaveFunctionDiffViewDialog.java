@@ -27,7 +27,7 @@ import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.WorkspaceLoader;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.gui.CFilenameFormatter;
@@ -144,7 +144,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
   }
 
   private boolean createDestinationDirectory() {
-    final DiffMetaData metaData = diff.getMetaData();
+    final DiffMetadata metaData = diff.getMetadata();
 
     String imagePart =
         String.format(
@@ -439,7 +439,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     for (final Diff diff : workspace.getDiffList()) {
       if (diff.getMatchesDatabase().equals(getMatchesDatabaseTargetFile())) {
         if (this.diff != diff) {
-          return diff.getViewManager().getFlowgraphViewsData().size() == 0;
+          return diff.getViewManager().getFlowGraphViewsData().size() == 0;
         }
       }
     }

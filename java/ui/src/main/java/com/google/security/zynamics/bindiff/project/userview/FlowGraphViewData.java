@@ -94,7 +94,7 @@ public class FlowGraphViewData extends ViewData {
   }
 
   @Override
-  public boolean isCallgraphView() {
+  public boolean isCallGraphView() {
     return false;
   }
 
@@ -111,7 +111,7 @@ public class FlowGraphViewData extends ViewData {
   }
 
   @Override
-  public boolean isFlowgraphView() {
+  public boolean isFlowGraphView() {
     return true;
   }
 

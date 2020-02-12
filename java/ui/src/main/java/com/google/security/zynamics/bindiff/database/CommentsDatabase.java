@@ -19,7 +19,6 @@ import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;

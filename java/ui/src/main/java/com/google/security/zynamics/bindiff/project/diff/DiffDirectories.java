@@ -15,7 +15,7 @@
 package com.google.security.zynamics.bindiff.project.diff;
 
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
@@ -26,7 +26,7 @@ public class DiffDirectories {
   private DiffDirectories() {}
 
   public static File getBinExportFile(
-      final File matchesBinary, final DiffMetaData metaData, final ESide side) {
+      final File matchesBinary, final DiffMetadata metaData, final ESide side) {
     return new File(
         String.format(
             "%s%s%s.%s",

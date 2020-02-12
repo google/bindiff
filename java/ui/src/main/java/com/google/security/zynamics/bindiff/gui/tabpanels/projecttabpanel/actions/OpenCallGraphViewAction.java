@@ -31,6 +31,6 @@ public class OpenCallGraphViewAction extends AbstractAction {
 
   @Override
   public void actionPerformed(final ActionEvent e) {
-    controller.openCallgraphView(controller.getMainWindow(), diff);
+    controller.openCallGraphView(controller.getMainWindow(), diff);
   }
 }

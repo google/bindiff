@@ -85,7 +85,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
     basicBlocksPiePanel = new BasicBlockMatchesPie3dPanel(diff, false);
     jumpsPiePanel = new JumpMatchesPie3dPanel(diff, false);
     instructionsPiePanel = new InstructionMatchesPie3dPanel(diff, false);
-    similarityBarChartPanel = new SimilarityBarChart2dPanel(diff.getMetaData());
+    similarityBarChartPanel = new SimilarityBarChart2dPanel(diff.getMetadata());
 
     matchedFunctionsTableModel = new MatchedFunctionsViewsTableModel(diff, true);
     matchedFunctionsTable = new MatchedFunctionViewsTable(matchedFunctionsTableModel, controller);
@@ -98,7 +98,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
     matchedFunctionsTable.addListener(tableListener);
     matchedFunctionsTableModel.addListener(tableListener);
 
-    diff.getMetaData().addListener(countsChangeListener);
+    diff.getMetadata().addListener(countsChangeListener);
 
     initComponents();
 
@@ -214,9 +214,9 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
       final RawFunction priFunction = diff.getFunction(primaryAddr, ESide.PRIMARY);
       final RawFunction secFunction = diff.getFunction(secondaryAddr, ESide.SECONDARY);
 
-      matchedBasicblocks += priFunction.getSizeOfMatchedBasicblocks();
-      primaryUnmatchedBasicblocks += priFunction.getSizeOfUnmatchedBasicblocks();
-      secondaryUnmatchedBasicblocks += secFunction.getSizeOfUnmatchedBasicblocks();
+      matchedBasicblocks += priFunction.getSizeOfMatchedBasicBlocks();
+      primaryUnmatchedBasicblocks += priFunction.getSizeOfUnmatchedBasicBlocks();
+      secondaryUnmatchedBasicblocks += secFunction.getSizeOfUnmatchedBasicBlocks();
 
       matchedJumps += priFunction.getSizeOfMatchedJumps();
       primaryUnmatchedJumps += priFunction.getSizeOfUnmatchedJumps();
@@ -246,7 +246,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
 
     matchedFunctionsTable.dispose();
 
-    diff.getMetaData().removeListener(countsChangeListener);
+    diff.getMetadata().removeListener(countsChangeListener);
   }
 
   @Override

@@ -22,14 +22,14 @@ import com.google.security.zynamics.zylib.general.ListenerProvider;
 import java.util.List;
 
 public class MatchData {
-  private final DiffMetaData metaData;
+  private final DiffMetadata metadata;
 
   private Matches<FunctionMatchData> functionMatches;
 
   private final ListenerProvider<IMatchesChangeListener> listener = new ListenerProvider<>();
 
-  public MatchData(final List<FunctionMatchData> functionMatchData, final DiffMetaData metaData) {
-    this.metaData = Preconditions.checkNotNull(metaData);
+  public MatchData(final List<FunctionMatchData> functionMatchData, final DiffMetadata metadata) {
+    this.metadata = Preconditions.checkNotNull(metadata);
     functionMatches = new Matches<>(Preconditions.checkNotNull(functionMatchData));
   }
 
@@ -60,71 +60,71 @@ public class MatchData {
   }
 
   public int getSizeOfBasicblocks(final ESide side) {
-    return metaData.getSizeOfBasicblocks(side);
+    return metadata.getSizeOfBasicblocks(side);
   }
 
   public int getSizeOfCalls(final ESide side) {
-    return metaData.getSizeOfCalls(side);
+    return metadata.getSizeOfCalls(side);
   }
 
   public int getSizeOfChangedCalls() {
-    return metaData.getSizeOfChangedCalls();
+    return metadata.getSizeOfChangedCalls();
   }
 
   public int getSizeOfChangedFunctions() {
-    return metaData.getSizeOfChangedFunctions();
+    return metadata.getSizeOfChangedFunctions();
   }
 
   public int getSizeOfFunctions(final ESide side) {
-    return metaData.getSizeOfFunctions(side);
+    return metadata.getSizeOfFunctions(side);
   }
 
   public int getSizeOfInstructions(final ESide side) {
-    return metaData.getSizeOfInstructions(side);
+    return metadata.getSizeOfInstructions(side);
   }
 
   public int getSizeOfJumps(final ESide side) {
-    return metaData.getSizeOfJumps(side);
+    return metadata.getSizeOfJumps(side);
   }
 
   public int getSizeOfMatchedBasicblocks() {
-    return metaData.getSizeOfMatchedBasicblocks();
+    return metadata.getSizeOfMatchedBasicblocks();
   }
 
   public int getSizeOfMatchedCalls() {
-    return metaData.getSizeOfMatchedCalls();
+    return metadata.getSizeOfMatchedCalls();
   }
 
   public int getSizeOfMatchedFunctions() {
-    return metaData.getSizeOfMatchedFunctions();
+    return metadata.getSizeOfMatchedFunctions();
   }
 
   public int getSizeOfMatchedInstructions() {
-    return metaData.getSizeOfMatchedInstructions();
+    return metadata.getSizeOfMatchedInstructions();
   }
 
   public int getSizeOfMatchedJumps() {
-    return metaData.getSizeOfMatchedJumps();
+    return metadata.getSizeOfMatchedJumps();
   }
 
   public int getSizeOfUnmatchedBasicBlocks(final ESide side) {
-    return metaData.getSizeOfUnmatchedBasicblocks(side);
+    return metadata.getSizeOfUnmatchedBasicblocks(side);
   }
 
   public int getSizeOfUnmatchedCalls(final ESide side) {
-    return metaData.getSizeOfUnmatchedCalls(side);
+    return metadata.getSizeOfUnmatchedCalls(side);
   }
 
   public int getSizeOfUnmatchedFunctions(final ESide side) {
-    return metaData.getSizeOfUnmatchedFunctions(side);
+    return metadata.getSizeOfUnmatchedFunctions(side);
   }
 
   public int getSizeOfUnmatchedInstructions(final ESide side) {
-    return metaData.getSizeOfUnmatchedInstructions(side);
+    return metadata.getSizeOfUnmatchedInstructions(side);
   }
 
   public int getSizeOfUnmatchedJumps(final ESide side) {
-    return metaData.getSizeOfUnmatchedJumps(side);
+    return metadata.getSizeOfUnmatchedJumps(side);
   }
 
   public boolean isFunctionMatch(final IAddress priAddr, final IAddress secAddr) {
@@ -158,26 +158,26 @@ public class MatchData {
   }
 
   public void setSizeOfChangedCalls(final int changedCalls) {
-    metaData.setSizeOfChangedCalls(changedCalls);
+    metadata.setSizeOfChangedCalls(changedCalls);
   }
 
   public void setSizeOfChangedFunctions(final int changedFunctions) {
-    metaData.setSizeOfChangedFunctions(changedFunctions);
+    metadata.setSizeOfChangedFunctions(changedFunctions);
   }
 
   public void setSizeOfMatchedBasicblocks(final int matchedBasicblocks) {
-    metaData.setSizeOfMatchedBasicBlocks(matchedBasicblocks);
+    metadata.setSizeOfMatchedBasicBlocks(matchedBasicblocks);
   }
 
   public void setSizeOfMatchedCalls(final int matchedCalls) {
-    metaData.setSizeOfMatchedCalls(matchedCalls);
+    metadata.setSizeOfMatchedCalls(matchedCalls);
   }
 
   public void setSizeOfMatchedInstructions(final int matchedInstructions) {
-    metaData.setSizeOfMatchedInstructions(matchedInstructions);
+    metadata.setSizeOfMatchedInstructions(matchedInstructions);
   }
 
   public void setSizeOfMatchedJumps(final int matchedJumps) {
-    metaData.setSizeOfMatchedJumps(matchedJumps);
+    metadata.setSizeOfMatchedJumps(matchedJumps);
   }
 }

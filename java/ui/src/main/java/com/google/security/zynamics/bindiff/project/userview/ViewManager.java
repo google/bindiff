@@ -23,10 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/** Contains view data for each opened view of a Diff object. */
 public class ViewManager {
-  // Note: Each Diff object has it's own instance of ViewManager containing all opened views
-  // belong to that Diff object
-
   private final Set<ViewData> views = new HashSet<>();
 
   public void addView(final ViewData view) {
@@ -35,14 +33,14 @@ public class ViewManager {
 
   public boolean containsView(final IAddress priFunctionAddr, final IAddress secFunctionAddr) {
     for (final ViewData view : views) {
-      if (view.isFlowgraphView()) {
-        final FlowGraphViewData flowgraphView = (FlowGraphViewData) view;
+      if (view.isFlowGraphView()) {
+        final FlowGraphViewData flowGraphView = (FlowGraphViewData) view;
 
         boolean priIsEqual =
-            priFunctionAddr == null && flowgraphView.getRawGraph(ESide.PRIMARY) == null;
+            priFunctionAddr == null && flowGraphView.getRawGraph(ESide.PRIMARY) == null;
         IAddress priAddr = null;
-        if (flowgraphView.getRawGraph(ESide.PRIMARY) != null) {
-          priAddr = flowgraphView.getRawGraph(ESide.PRIMARY).getAddress();
+        if (flowGraphView.getRawGraph(ESide.PRIMARY) != null) {
+          priAddr = flowGraphView.getRawGraph(ESide.PRIMARY).getAddress();
         }
 
         if (priFunctionAddr != null && priAddr != null) {
@@ -50,10 +48,10 @@ public class ViewManager {
         }
 
         boolean secIsEqual =
-            secFunctionAddr == null && flowgraphView.getRawGraph(ESide.SECONDARY) == null;
+            secFunctionAddr == null && flowGraphView.getRawGraph(ESide.SECONDARY) == null;
         IAddress secAddr = null;
-        if (flowgraphView.getRawGraph(ESide.SECONDARY) != null) {
-          secAddr = flowgraphView.getRawGraph(ESide.SECONDARY).getAddress();
+        if (flowGraphView.getRawGraph(ESide.SECONDARY) != null) {
+          secAddr = flowGraphView.getRawGraph(ESide.SECONDARY).getAddress();
         }
 
         if (secFunctionAddr != null && secAddr != null) {
@@ -64,7 +62,7 @@ public class ViewManager {
           return true;
         }
       }
-      if (view.isCallgraphView()) {
+      if (view.isCallGraphView()) {
         if (view.getAddress(ESide.PRIMARY) == null
             && priFunctionAddr == null
             && view.getAddress(ESide.SECONDARY) == null
@@ -73,36 +71,33 @@ public class ViewManager {
         }
       }
     }
-
     return false;
   }
 
-  public CallGraphViewData getCallgraphViewData(final Diff diff) {
-    for (final CallGraphViewData viewData : getCallgraphViewsData()) {
+  public CallGraphViewData getCallGraphViewData(final Diff diff) {
+    for (final CallGraphViewData viewData : getCallGraphViewsData()) {
       if (viewData.getGraphs().getDiff() == diff) {
         return viewData;
       }
     }
-
     return null;
   }
 
-  public List<CallGraphViewData> getCallgraphViewsData() {
-    final ArrayList<CallGraphViewData> callgraphViews = new ArrayList<>();
+  public List<CallGraphViewData> getCallGraphViewsData() {
+    final ArrayList<CallGraphViewData> callGraphViews = new ArrayList<>();
 
     for (final ViewData viewData : views) {
       if (viewData instanceof CallGraphViewData) {
-        callgraphViews.add((CallGraphViewData) viewData);
+        callGraphViews.add((CallGraphViewData) viewData);
       }
     }
-
-    return callgraphViews;
+    return callGraphViews;
   }
 
-  public FlowGraphViewData getFlowgraphViewData(
+  public FlowGraphViewData getFlowGraphViewData(
       final IAddress priFunctionAddr, final IAddress secFunctionAddr) {
     for (final ViewData viewData : views) {
-      if (viewData.isFlowgraphView() && viewData.getMatchState() == EMatchState.MATCHED) {
+      if (viewData.isFlowGraphView() && viewData.getMatchState() == EMatchState.MATCHED) {
         final FlowGraphViewData flowgraphViewData = (FlowGraphViewData) viewData;
 
         final IAddress priViewAddr = flowgraphViewData.getAddress(ESide.PRIMARY);
@@ -113,20 +108,18 @@ public class ViewManager {
         }
       }
     }
-
     return null;
   }
 
-  public List<FlowGraphViewData> getFlowgraphViewsData() {
-    final ArrayList<FlowGraphViewData> flowgraphViews = new ArrayList<>();
+  public List<FlowGraphViewData> getFlowGraphViewsData() {
+    final ArrayList<FlowGraphViewData> flowGraphViews = new ArrayList<>();
 
     for (final ViewData viewData : views) {
       if (viewData instanceof FlowGraphViewData) {
-        flowgraphViews.add((FlowGraphViewData) viewData);
+        flowGraphViews.add((FlowGraphViewData) viewData);
       }
     }
-
-    return flowgraphViews;
+    return flowGraphViews;
   }
 
   public void removeView(final ViewData view) {

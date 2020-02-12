@@ -324,9 +324,9 @@ public final class MatchesGetter {
     final int matchedInstructions =
         primaryFunction.getFunctionMatch().getSizeOfMatchedInstructions();
 
-    return primaryFunction.getSizeOfUnmatchedBasicblocks() == 0
+    return primaryFunction.getSizeOfUnmatchedBasicBlocks() == 0
         && primaryFunction.getSizeOfUnmatchedJumps() == 0
-        && secondaryFunction.getSizeOfUnmatchedBasicblocks() == 0
+        && secondaryFunction.getSizeOfUnmatchedBasicBlocks() == 0
         && secondaryFunction.getSizeOfUnmatchedJumps() == 0
         && (primaryFunction.getSizeOfInstructions() != matchedInstructions
             || secondaryFunction.getSizeOfInstructions() != matchedInstructions);
@@ -384,9 +384,9 @@ public final class MatchesGetter {
           "Primary and secondary function must be matched to each other.");
     }
 
-    return primaryFunction.getSizeOfUnmatchedBasicblocks() != 0
+    return primaryFunction.getSizeOfUnmatchedBasicBlocks() != 0
         || primaryFunction.getSizeOfUnmatchedJumps() != 0
-        || secondaryFunction.getSizeOfUnmatchedBasicblocks() != 0
+        || secondaryFunction.getSizeOfUnmatchedBasicBlocks() != 0
         || secondaryFunction.getSizeOfUnmatchedJumps() != 0;
   }
 }

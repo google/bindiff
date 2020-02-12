@@ -84,7 +84,7 @@ public class ViewTabPanelInitializer {
   }
 
   public static void initialize(final GraphsContainer graphs, final CEndlessHelperThread thread) {
-    thread.setDescription("Configure View...");
+    thread.setDescription("Configuring view...");
     configureScrollPanes(graphs);
     setDoubleBufferedGraphViews(graphs);
 

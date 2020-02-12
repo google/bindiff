@@ -17,20 +17,18 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnod
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
-import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.ISearchableTreeNode;
+import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter.ISortableTreeNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.AbstractBaseTreeNode;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JMenuItem;
@@ -129,7 +127,6 @@ public class SingleCallGraphBaseTreeNode extends AbstractBaseTreeNode {
     updateTreeNodes(false);
   }
 
-
   @Override
   public Icon getIcon() {
     return CALLGRAPH_ICON;
@@ -145,27 +142,33 @@ public class SingleCallGraphBaseTreeNode extends AbstractBaseTreeNode {
 
     final ESide side = getRootNode().getSide();
 
-    final JMenuItem copyImageNameItem = new JMenuItem(new AbstractAction("Copy Image Name") {
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final String imageName = getDiff().getMetaData().getImageName(side);
-        ClipboardHelpers.copyToClipboard(imageName);
-      }
-    });
-    final JMenuItem copyImageHashItem = new JMenuItem(new AbstractAction("Copy Image Hash") {
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final String imageName = getDiff().getMetaData().getImageName(side);
-        ClipboardHelpers.copyToClipboard(imageName);
-      }
-    });
-    final JMenuItem copyIdbNameItem = new JMenuItem(new AbstractAction("Copy IDB Name") {
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final String idbName = getDiff().getMetaData().getIdbName(side);
-        ClipboardHelpers.copyToClipboard(idbName);
-      }
-    });
+    final JMenuItem copyImageNameItem =
+        new JMenuItem(
+            new AbstractAction("Copy Image Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String imageName = getDiff().getMetadata().getImageName(side);
+                ClipboardHelpers.copyToClipboard(imageName);
+              }
+            });
+    final JMenuItem copyImageHashItem =
+        new JMenuItem(
+            new AbstractAction("Copy Image Hash") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String imageName = getDiff().getMetadata().getImageName(side);
+                ClipboardHelpers.copyToClipboard(imageName);
+              }
+            });
+    final JMenuItem copyIdbNameItem =
+        new JMenuItem(
+            new AbstractAction("Copy IDB Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final String idbName = getDiff().getMetadata().getIdbName(side);
+                ClipboardHelpers.copyToClipboard(idbName);
+              }
+            });
 
     popupMenu.add(copyImageNameItem);
     popupMenu.add(copyImageHashItem);
@@ -207,6 +210,6 @@ public class SingleCallGraphBaseTreeNode extends AbstractBaseTreeNode {
 
   @Override
   public String toString() {
-    return String.format("%s (%d / %d)", "Call Graph", getChildCount(), functionNodes.size());
+    return String.format("Call Graph (%d / %d)", getChildCount(), functionNodes.size());
   }
 }

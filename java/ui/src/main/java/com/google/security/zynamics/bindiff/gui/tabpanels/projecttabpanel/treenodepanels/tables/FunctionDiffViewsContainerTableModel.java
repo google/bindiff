@@ -16,7 +16,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treen
 
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.matches.DiffMetaData;
+import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import com.google.security.zynamics.zylib.general.Pair;
@@ -75,7 +75,7 @@ public class FunctionDiffViewsContainerTableModel extends AbstractFunctionDiffVi
   @Override
   public Object getValueAt(final int row, final int col) {
     final Diff diff = functionDiffViewList.get(row);
-    final DiffMetaData metaData = diff.getMetaData();
+    final DiffMetadata metaData = diff.getMetadata();
 
     final String viewName =
         BinDiffFileUtils.forceFilenameEndsNotWithExtension(
