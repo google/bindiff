@@ -124,7 +124,7 @@ public class BinExport2Builder {
       }
     }
   }
-  
+
   private void buildOperands(Map<String, Integer> expressionIndices) {
     final var entries = new Vector<Map.Entry<String, Integer>>();
     entries.addAll(expressionIndices.entrySet());
@@ -283,19 +283,19 @@ public class BinExport2Builder {
             getMappedAddress(listing.getInstructionBefore(bb.getMaxAddress()));
         final var edges = new Vector<BinExport2.FlowGraph.Edge>();
         var lastFlow = RefType.INVALID;
-        for (final var bbRefIter = bb.getDestinations(monitor); bbRefIter
+        for (final var bbDestIter = bb.getDestinations(monitor); bbDestIter
             .hasNext();) {
-          final CodeBlockReference bbRef = bbRefIter.next();
+          final CodeBlockReference bbRef = bbDestIter.next();
           // BinExport2 only stores flow from the very last instruction of a
           // basic block.
           if (getMappedAddress(bbRef.getReferent()) != bbLastInstrAddress) {
             continue;
           }
 
-          final FlowType flow = bbRef.getFlowType();
           final var edge = BinExport2.FlowGraph.Edge.newBuilder();
           final var targetId = basicBlockIndices
               .get(getMappedAddress(bbRef.getDestinationAddress()));
+          final FlowType flow = bbRef.getFlowType();
           if (flow.isConditional() || lastFlow.isConditional()) {
             edge.setType(flow.isConditional()
                 ? BinExport2.FlowGraph.Edge.Type.CONDITION_TRUE
@@ -321,15 +321,17 @@ public class BinExport2Builder {
     }
   }
 
-  private void buildCallGraph() {
+  private void buildCallGraph() throws CancelledException {
     final var callGraph = builder.getCallGraphBuilder();
     final FunctionManager funcManager = program.getFunctionManager();
     monitor.setIndeterminate(false);
-    monitor.setMaximum(funcManager.getFunctionCount());
+    monitor.setMaximum(funcManager.getFunctionCount() * 2);
     int i = 0;
+    int id = 0;
+    Map<Long, Integer> vertexIndices = new HashMap<>();
     for (final Function func : funcManager.getFunctions(true)) {
-      final var vertex = callGraph.addVertexBuilder()
-          .setAddress(getMappedAddress(func.getEntryPoint()));
+      final long funcAddress = getMappedAddress(func.getEntryPoint());
+      final var vertex = callGraph.addVertexBuilder().setAddress(funcAddress);
       // TODO(cblichmann): Imported/library
       if (func.isExternal()) {
         vertex.setType(BinExport2.CallGraph.Vertex.Type.IMPORTED);
@@ -340,8 +342,43 @@ public class BinExport2Builder {
       // TODO(cblichmann): Check for artificial names
       // Mangled name always needs to be set.
       vertex.setMangledName(func.getName());
+      vertexIndices.put(funcAddress, id++);
       monitor.setProgress(i++);
     }
+
+    for (final Function func : funcManager.getFunctions(true)) {
+      var bbIter = bbModel.getCodeBlocksContaining(func.getBody(), monitor);
+      if (!bbIter.hasNext()) {
+        continue; // Skip empty flow graphs, they only exist as call graph nodes
+      }
+      final long funcAddress = getMappedAddress(func.getEntryPoint());
+      id = vertexIndices.get(funcAddress);
+
+      final var edges = new Vector<BinExport2.CallGraph.Edge>();
+      while (bbIter.hasNext()) {
+        final CodeBlock bb = bbIter.next();
+
+        for (final var bbDestIter = bb.getDestinations(monitor); bbDestIter
+            .hasNext();) {
+          final CodeBlockReference bbRef = bbDestIter.next();
+          final FlowType flow = bbRef.getFlowType();
+          if (!flow.isCall()) {
+            continue;
+          }
+
+          final var targetId = vertexIndices
+              .get(getMappedAddress(bbRef.getDestinationAddress()));
+          if (targetId != null) {
+            final var edge = BinExport2.CallGraph.Edge.newBuilder();
+            edge.setSourceVertexIndex(id);
+            edge.setTargetVertexIndex(targetId);
+            edges.add(edge.build());
+          }
+        }
+      }
+      callGraph.addAllEdge(edges);
+    }
+    monitor.setProgress(i++);
   }
 
   private void buildSections() {
@@ -360,7 +397,8 @@ public class BinExport2Builder {
 
   /**
    * Parses a Ghidra instruction and outputs its components on stdout.
-   * Experimental. 
+   * Experimental.
+   * 
    * @param instr the instruction to parse.
    */
   @SuppressWarnings("unused")
@@ -438,7 +476,7 @@ public class BinExport2Builder {
     final var expressionIndices = new HashMap<String, Integer>();
     buildExpressions(expressionIndices);
     buildOperands(expressionIndices);
-    
+
     final var mnemonics = new TreeMap<String, Integer>();
     buildMnemonics(mnemonics);
     final var instructionIndices = new TreeMap<Long, Integer>();
@@ -447,9 +485,9 @@ public class BinExport2Builder {
     final var basicBlockIndices = new HashMap<Long, Integer>();
     buildBasicBlocks(instructionIndices, basicBlockIndices);
     // TODO(cblichmann): Implement these:
-    //   buildComments()
-    //   buildStrings()
-    //   buildDataReferences()
+    // buildComments()
+    // buildStrings()
+    // buildDataReferences()
     monitor.setMessage("Exporting flow graphs");
     buildFlowGraphs(basicBlockIndices);
     monitor.setMessage("Exporting call graph");
