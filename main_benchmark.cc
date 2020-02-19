@@ -42,7 +42,7 @@ blaze run third_party/zynamics/bindiff:differ_benchmark -c opt -- \
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "util/task/status.h"
 
-ABSL_FLAG(string, data_path,
+ABSL_FLAG(std::string, data_path,
           "/google_src/files/head/depot/google3/third_party/zynamics/bindiff/"
           "fixtures",
           "Path of the BinDiff text fixtures to use (should contain a "
@@ -51,7 +51,7 @@ ABSL_FLAG(string, data_path,
 namespace security::bindiff {
 namespace {
 
-void Diff(const string& primary_path, const string& secondary_path) {
+void Diff(const std::string& primary_path, const std::string& secondary_path) {
   const MatchingSteps default_call_graph_steps(GetDefaultMatchingSteps());
   const MatchingStepsFlowGraph default_basicblock_steps(
       GetDefaultMatchingStepsBasicBlock());
