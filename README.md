@@ -1,6 +1,6 @@
 # BinExport [![Build Status](https://api.travis-ci.org/google/binexport.svg?branch=master)](https://travis-ci.org/google/binexport) [![Coverity Scan Build Status](https://scan.coverity.com/projects/8977/badge.svg)](https://scan.coverity.com/projects/google-binexport)
 
-Copyright 2011-2019 Google LLC.
+Copyright 2011-2020 Google LLC.
 
 Disclaimer: This is not an official Google product (experimental or otherwise),
 it is just code that happens to be owned by Google.
@@ -38,11 +38,15 @@ it is just code that happens to be owned by Google.
 
 ## Introduction
 
-BinExport is the exporter component of the [BinNavi
-project](https://github.com/google/binnavi) as well as
-[BinDiff](https://www.zynamics.com/software.html). It is a plugin for the
-commercial IDA Pro disassembler and exports disassemblies into the PostgreSQL
-database format that BinNavi requires.
+BinExport is the exporter component of
+[BinDiff](https://www.zynamics.com/software.html) as well as
+[BinNavi](https://github.com/google/binnavi). It is a plugin for the commercial
+IDA Pro disassembler and exports disassemblies into the Protocol Buffer format
+that BinDiff requires. Exporting into a PostgreSQL databases for BinNavi is
+supported on a best-effort basis.
+
+An experimental version for the open source sofware reverse engineering suite
+Ghidra is available in the `java/BinExport` directory.
 
 This repository contains the complete source code necessary to build the IDA Pro
 plugin for Linux, macOS and Windows.

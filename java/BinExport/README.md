@@ -65,12 +65,12 @@ command-line, run
 grade clean eclipse
 ```
 
-Then import the project in Eclipse using `File|Open Projects from File
+Then import the project in Eclipse using `File`|`Open Projects from File
 System...`. To enable build and debug configurations for Ghidra, follow the
 [Installation Guide](https://ghidra-sre.org/InstallationGuide.html#Extensions)
 
 Using GhidraDev, link the project to your local Ghidra installation via
-`GhidraDev|Link Ghidra...`.
+`GhidraDev`|`Link Ghidra...`.
 
 **Note**: Due to the way Gradle project generation works, you may need to
 manually clean up the build class path in `.classpath` before linking to your
@@ -81,7 +81,7 @@ local Ghidra installation.
 After a successful `dist`-build the BinExport extension can be installed like
 any other extension:
 
-1.  Start Ghidra, then select `File|Install Extensions...`.
+1.  Start Ghidra, then select `File`|`Install Extensions...`.
 2.  Click the `+` button to `Add extension`.
 3.  In the `Select Extension` dialog, navigate to your source directory and open
     the `dist` folder.
@@ -105,7 +105,7 @@ compared to the native C++ version for IDA Pro:
 
 ### Verifying the installation version
 
-1.  In Ghidra, select `File|Install Extensions...`.
+1.  In Ghidra, select `File`|`Install Extensions...`.
 2.  Verify that `BinExport` is listed and has the correct `Install Path`
 
 ### Invocation
@@ -142,7 +142,7 @@ results displayed in its UI:
 
 4.  Create a new workspace or open an existing one.
 
-5.  Select `Diffs|Add Existing Diff...`.
+5.  Select `Diffs`|`Add Existing Diff...`.
 
 6.  Under `Choose Diff`, select the `primary_vs_secondary.BinDiff` created in
     step 2.
