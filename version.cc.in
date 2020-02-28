@@ -31,6 +31,6 @@ ABSL_CONST_INIT const char* kBinExportDetailedVersion =
     ")";
 
 ABSL_CONST_INIT const char* kBinExportCopyright =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2019 Google LLC.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2020 Google LLC.";
 
 }  // namespace security::binexport
