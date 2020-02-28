@@ -14,6 +14,8 @@
 
 package com.google.security.zynamics.bindiff;
 
+import static com.google.common.base.StandardSystemProperty.JAVA_VERSION;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
@@ -41,8 +43,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 /**
- * Launcher class for BinDiff.
- * Note: The name of this class is used directly as the application name on macOS.
+ * Launcher class for BinDiff. Note: The name of this class is used directly as the application name
+ * on macOS.
  */
 public class BinDiff {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -270,7 +272,8 @@ public class BinDiff {
           }
           initializeLogging();
 
-          logger.at(Level.INFO).log("Starting %s", Constants.PRODUCT_NAME_VERSION);
+          logger.at(Level.INFO).log(
+              "Starting %s (Java %s)", Constants.PRODUCT_NAME_VERSION, JAVA_VERSION.value());
 
           initializeTheme();
           parseCommandLine(args);

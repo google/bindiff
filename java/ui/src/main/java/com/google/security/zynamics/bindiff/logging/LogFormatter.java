@@ -17,6 +17,8 @@ package com.google.security.zynamics.bindiff.logging;
 import com.google.common.base.Ascii;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.logging.LogRecord;
@@ -39,7 +41,7 @@ public class LogFormatter extends SimpleFormatter {
         .forEach(
             s -> {
               b.append('/');
-              b.append(s.charAt(0));
+              b.append(s.length() > 0 ? s.charAt(0) : '?');
             });
     return b.append(className, prefix.length(), className.length()).deleteCharAt(0);
   }
@@ -51,25 +53,37 @@ public class LogFormatter extends SimpleFormatter {
 
     // I1030 12:55:44.747944 1407373 c/g/s/z/b/logging.LogFormatter::format]
     final char shortLevel = Ascii.toUpperCase(Logger.levelToString(record.getLevel()).charAt(0));
-    return (Character.isAlphabetic(shortLevel) ? shortLevel : '?')
-        + Strings.padStart(Integer.toString(time.getMonthValue()), 2, '0')
-        + Strings.padStart(Integer.toString(time.getDayOfMonth()), 2, '0')
-        + ' '
-        + Strings.padStart(Integer.toString(time.getHour()), 2, '0')
-        + ':'
-        + Strings.padStart(Integer.toString(time.getMinute()), 2, '0')
-        + ':'
-        + Strings.padStart(Integer.toString(time.getSecond()), 2, '0')
-        + '.'
-        + Strings.padStart(Integer.toString(time.getNano() / 1000), 6, '0')
-        + ' '
-        + record.getThreadID()
-        + ' '
-        + formatClassName(record.getSourceClassName())
-        + "::"
-        + record.getSourceMethodName()
-        + "] "
-        + record.getMessage()
-        + '\n';
+    final String prefix =
+        (Character.isAlphabetic(shortLevel) ? shortLevel : '?')
+            + Strings.padStart(Integer.toString(time.getMonthValue()), 2, '0')
+            + Strings.padStart(Integer.toString(time.getDayOfMonth()), 2, '0')
+            + ' '
+            + Strings.padStart(Integer.toString(time.getHour()), 2, '0')
+            + ':'
+            + Strings.padStart(Integer.toString(time.getMinute()), 2, '0')
+            + ':'
+            + Strings.padStart(Integer.toString(time.getSecond()), 2, '0')
+            + '.'
+            + Strings.padStart(Integer.toString(time.getNano() / 1000), 6, '0')
+            + ' '
+            + record.getThreadID()
+            + ' '
+            + formatClassName(record.getSourceClassName())
+            + "::"
+            + record.getSourceMethodName()
+            + "] ";
+    final StringBuilder b = new StringBuilder();
+    b.append(prefix).append(record.getMessage()).append('\n');
+
+    final Throwable t = record.getThrown();
+    if (t != null) {
+      final StringWriter sw = new StringWriter();
+      t.printStackTrace(new PrintWriter(sw));
+      Splitter.on('\n')
+          .omitEmptyStrings()
+          .splitToList(sw.getBuffer())
+          .forEach(s -> b.append(prefix).append(s).append('\n'));
+    }
+    return b.toString();
   }
 }
