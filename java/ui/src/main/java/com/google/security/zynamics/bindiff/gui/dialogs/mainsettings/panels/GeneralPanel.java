@@ -17,10 +17,10 @@ package com.google.security.zynamics.bindiff.gui.dialogs.mainsettings.panels;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
-import com.google.security.zynamics.bindiff.utils.SystemUtils;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
 import com.google.security.zynamics.zylib.io.DirectoryChooser;
+import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
@@ -61,7 +61,7 @@ public class GeneralPanel extends JPanel {
 
     String workspaceDir = settings.getWorkspaceDirectory();
     if ("".equals(workspaceDir)) {
-      workspaceDir = SystemUtils.getCurrentUserPersonalFolder();
+      workspaceDir = SystemHelpers.getUserDirectory();
     }
 
     final InternalDirectoryListener workspaceDirectoryListener =
@@ -99,7 +99,7 @@ public class GeneralPanel extends JPanel {
 
     String workspaceDir = settings.getWorkspaceDirectory();
     if ("".equals(workspaceDir)) {
-      workspaceDir = SystemUtils.getCurrentUserPersonalFolder();
+      workspaceDir = SystemHelpers.getUserDirectory();
     }
     workspaceDirectoryPanel.setText(workspaceDir);
   }

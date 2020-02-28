@@ -60,7 +60,6 @@ import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.userview.CallGraphViewData;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
-import com.google.security.zynamics.bindiff.utils.SystemUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.general.Triple;
@@ -68,6 +67,7 @@ import com.google.security.zynamics.zylib.gui.CFileChooser;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CUnlimitedProgressDialog;
 import com.google.security.zynamics.zylib.io.FileUtils;
+import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.io.File;
@@ -669,7 +669,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     if ("".equals(workingDirPath)) {
       BinDiffConfig.getInstance()
           .getMainSettings()
-          .setWorkspaceDirectory(SystemUtils.getCurrentUserPersonalFolder());
+          .setWorkspaceDirectory(SystemHelpers.getUserDirectory());
     }
 
     final File workingDir =
