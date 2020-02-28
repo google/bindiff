@@ -15,6 +15,7 @@
 package com.google.security.zynamics.bindiff.database;
 
 import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -30,7 +31,12 @@ public abstract class SqliteDatabase implements AutoCloseable {
     } catch (final ClassNotFoundException e) {
       throw new SQLException("JDBC driver for SQLite not found", e);
     }
-    connection = DriverManager.getConnection("jdbc:sqlite:" + database.getPath());
+    connection =
+        DriverManager.getConnection(
+            "jdbc:sqlite:"
+                // Support paths longer than MAX_PATH on Windows.
+                + (SystemHelpers.isRunningWindows() ? "\\\\?\\" : "")
+                + database.getPath());
   }
 
   @Override

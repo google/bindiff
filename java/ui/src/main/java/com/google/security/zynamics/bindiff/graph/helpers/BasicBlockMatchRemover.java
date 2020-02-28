@@ -612,18 +612,18 @@ public class BasicBlockMatchRemover {
     functionMatch.removeBasicblockMatch(graphs.getDiff(), oldRawCombinedBasicBlock);
   }
 
-  // TODO: On cancel, restore FunctionDiffData (reload from database) in order to update the
-  // workspace counts
-  // TODO: Do not forget to update the an open callgraph view if a basicblock has been removed (or
-  // added)
-  // - change node color if necessary
-  // - change calls from matched to unmatched color
-  // - change proximity nodes of combined
-  // - change calls from unmatched to matched color (as soon as newly assigned basicblock comments
-  // can be diffed)
   public static void removeBasicBlockMatch(
       final GraphsContainer graphs, final CombinedDiffNode oldCombinedDiffNode)
       throws GraphLayoutException {
+    // TODO(cblichmann): On cancel, restore FunctionDiffData (reload from database) in order to
+    //                   update the workspace counts.
+    // TODO(cblichmann): Update the open call graph view if a basic block has been removed (or
+    //                   added)
+    // - change node color if necessary
+    // - change calls from matched to unmatched color
+    // - change proximity nodes of combined
+    // - change calls from unmatched to matched color (as soon as newly assigned basic block
+    //   comments can be diffed)
     graphs.getCombinedGraph().getIntermediateListeners().blockZyLibVisibilityListeners();
     graphs.getCombinedGraph().getIntermediateListeners().blockZyLibSelectionListeners();
 
