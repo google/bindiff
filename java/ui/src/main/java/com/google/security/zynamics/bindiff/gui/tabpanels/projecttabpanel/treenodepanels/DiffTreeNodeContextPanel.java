@@ -269,9 +269,7 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
   }
 
   private void loadDescription() {
-    MatchesDatabase matchesDb = null;
-    try {
-      matchesDb = new MatchesDatabase(diff.getMatchesDatabase());
+    try (final MatchesDatabase matchesDb = new MatchesDatabase(diff.getMatchesDatabase())) {
       description.setText(matchesDb.loadDiffDescription());
     } catch (final SQLException e) {
       // No message box (many diffs can be batch loaded)

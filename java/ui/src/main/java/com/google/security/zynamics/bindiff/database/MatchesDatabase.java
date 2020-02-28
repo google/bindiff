@@ -302,7 +302,7 @@ public class MatchesDatabase extends SqliteDatabase {
     }
   }
 
-  public void deleteBasicblockMatch(
+  public void deleteBasicBlockMatch(
       final FunctionMatchData functionMatch, final BasicBlockMatchData basicBlockMatch)
       throws SQLException {
     int functionMatchId = -1;

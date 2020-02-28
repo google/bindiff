@@ -94,7 +94,7 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
   private void updateDataset() {
     final MatchData matches = diff.getMatches();
 
-    matchedCount = matches.getSizeOfMatchedBasicblocks();
+    matchedCount = matches.getSizeOfMatchedBasicBlocks();
     primaryUnmatchedCount = matches.getSizeOfUnmatchedBasicBlocks(ESide.PRIMARY);
     secondaryUnmatchedCount = matches.getSizeOfUnmatchedBasicBlocks(ESide.SECONDARY);
 

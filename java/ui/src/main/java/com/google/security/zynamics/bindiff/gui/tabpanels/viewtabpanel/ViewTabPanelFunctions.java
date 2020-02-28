@@ -697,7 +697,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
     if (viewTabPanel.getView().isFlowGraphView()) {
       try {
         for (final CombinedDiffNode combinedNode : nodes) {
-          BasicBlockMatchRemover.removeBasicblockMatch(graphs, combinedNode);
+          BasicBlockMatchRemover.removeBasicBlockMatch(graphs, combinedNode);
           setMatchesChanged(true);
         }
       } catch (final GraphLayoutException e) {

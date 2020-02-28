@@ -159,7 +159,7 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
             Colors.UNMATCHED_SECONDARY_LABEL_BAR,
             TEXTFIELD_HEIGHT);
 
-    final int matchedBasicBlocks = matches.getSizeOfMatchedBasicblocks();
+    final int matchedBasicBlocks = matches.getSizeOfMatchedBasicBlocks();
     final int primaryUnmatchedBasicBlocks = matches.getSizeOfUnmatchedBasicBlocks(ESide.PRIMARY);
     final int secondaryUnmatchedBasicBlocks =
         matches.getSizeOfUnmatchedBasicBlocks(ESide.SECONDARY);
@@ -324,7 +324,7 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
     public void basicBlocksCountChanged() {
       final MatchData matches = diff.getMatches();
 
-      final int matchedBasicblocks = matches.getSizeOfMatchedBasicblocks();
+      final int matchedBasicblocks = matches.getSizeOfMatchedBasicBlocks();
       final int primaryUnmatchedBasicblocks = matches.getSizeOfUnmatchedBasicBlocks(ESide.PRIMARY);
       final int secondaryUnmatchedBasicblocks =
           matches.getSizeOfUnmatchedBasicBlocks(ESide.SECONDARY);

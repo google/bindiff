@@ -21,9 +21,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public abstract class SqliteDatabase implements AutoCloseable {
-  protected final Connection connection;
+  final Connection connection;
 
-  public SqliteDatabase(final File database) throws SQLException {
+  SqliteDatabase(final File database) throws SQLException {
     Preconditions.checkNotNull(database);
     try {
       Class.forName("org.sqlite.JDBC");

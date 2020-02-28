@@ -68,14 +68,13 @@ import y.base.Edge;
 import y.base.Node;
 import y.view.Graph2D;
 
+/** Utility class to remove basic block matches from BinDiff graphs. */
 public class BasicBlockMatchRemover {
   private static CombinedDiffEdge buildDiffEdge(
       final CombinedGraph diffGraph,
       final SuperViewEdge<? extends SuperViewNode> rawSuperJump,
       final SuperDiffEdge superDiffEdge)
       throws GraphLayoutException {
-    Edge yCombinedEdge = null;
-
     @SuppressWarnings("unchecked")
     final RawCombinedJump<RawCombinedBasicBlock> rawCombinedJump =
         (RawCombinedJump<RawCombinedBasicBlock>) rawSuperJump.getCombinedEdge();
@@ -95,7 +94,7 @@ public class BasicBlockMatchRemover {
     srcCombinedDiffNode.getRawNode().setVisible(true);
     tarCombinedDiffNode.getRawNode().setVisible(true);
 
-    yCombinedEdge = diffGraph.getGraph().createEdge(srcCombinedYNode, tarCombinedYNode);
+    Edge yCombinedEdge = diffGraph.getGraph().createEdge(srcCombinedYNode, tarCombinedYNode);
 
     final CombinedDiffEdge combinedDiffEdge =
         new CombinedDiffEdge(
@@ -205,8 +204,6 @@ public class BasicBlockMatchRemover {
       final SuperViewEdge<? extends SuperViewNode> rawSuperJump,
       final SingleDiffEdge primaryDiffEdge,
       final SingleDiffEdge secondaryDiffEdge) {
-    Edge ySuperEdge = null;
-
     final ZyLabelContent superEdgeContent = new ZyLabelContent(null);
     final ZyEdgeRealizer<SuperDiffEdge> superEdgeRealizer =
         new ZyEdgeRealizer<>(superEdgeContent, null);
@@ -230,7 +227,7 @@ public class BasicBlockMatchRemover {
     srcSuperDiffNode.getRawNode().setVisible(true);
     tarSuperDiffNode.getRawNode().setVisible(true);
 
-    ySuperEdge = diffGraph.getGraph().createEdge(srcSuperYNode, tarSuperYNode);
+    Edge ySuperEdge = diffGraph.getGraph().createEdge(srcSuperYNode, tarSuperYNode);
     final SuperDiffEdge superDiffEdge =
         new SuperDiffEdge(
             srcSuperDiffNode,
@@ -472,13 +469,13 @@ public class BasicBlockMatchRemover {
           combinedRawFlowgraph,
       final RawFlowGraph rawFlowgraph,
       final Set<SuperViewEdge<? extends SuperViewNode>> oldRawSuperJumps,
-      final SuperViewNode oldRawSuperBasicblock,
-      final RawBasicBlock newRawBasicblock,
-      final RawCombinedBasicBlock newRawCombinedBasicblock,
-      final SuperViewNode newRawSuperBasicblock) {
-    // add new raw basicblocks to graphs
-    combinedRawFlowgraph.addNode(newRawCombinedBasicblock);
-    rawFlowgraph.addNode(newRawBasicblock);
+      final SuperViewNode oldRawSuperBasicBlock,
+      final RawBasicBlock newRawBasicBlock,
+      final RawCombinedBasicBlock newRawCombinedBasicBlock,
+      final SuperViewNode newRawSuperBasicBlock) {
+    // Add new raw basic blocks to graphs
+    combinedRawFlowgraph.addNode(newRawCombinedBasicBlock);
+    rawFlowgraph.addNode(newRawBasicBlock);
 
     // iterate over all the old edges and create corresponding new ones
     // this edges are already removed out of the graphs
@@ -496,50 +493,40 @@ public class BasicBlockMatchRemover {
       RawCombinedBasicBlock combinedTarget = (RawCombinedBasicBlock) superTarget.getCombinedNode();
       RawBasicBlock target = combinedTarget.getRawNode(side);
 
-      // get target basicblocks
-      if (superTarget == oldRawSuperBasicblock) {
-        superTarget = newRawSuperBasicblock;
-        combinedTarget = newRawCombinedBasicblock;
-        target = newRawBasicblock;
+      // Get target basic blocks
+      if (superTarget == oldRawSuperBasicBlock) {
+        superTarget = newRawSuperBasicBlock;
+        combinedTarget = newRawCombinedBasicBlock;
+        target = newRawBasicBlock;
       }
 
-      // get source basicblocks - no else in case of recursive basicblocks
-      if (superSource == oldRawSuperBasicblock) {
-        superSource = newRawSuperBasicblock;
-        combinedSource = newRawCombinedBasicblock;
-        source = newRawBasicblock;
+      // Get source basic blocks - no else in case of recursive basic blocks
+      if (superSource == oldRawSuperBasicBlock) {
+        superSource = newRawSuperBasicBlock;
+        combinedSource = newRawCombinedBasicBlock;
+        source = newRawBasicBlock;
       }
 
-      // create and add raw jump
-      RawJump rawJump = null;
+      // Create and add raw jump
       final EJumpType type = ((RawJump) oldRawSuperJump.getSingleEdge(side)).getJumpType();
-      rawJump = new RawJump(source, target, type);
+      final RawJump rawJump = new RawJump(source, target, type);
       rawFlowgraph.addEdge(rawJump);
 
-      // create and add combined raw jump
+      // Create and add combined raw jump
       final RawCombinedJump<RawCombinedBasicBlock> newRawCombinedJump =
-          new RawCombinedJump<RawCombinedBasicBlock>(
+          new RawCombinedJump<>(
               combinedSource,
               combinedTarget,
               side == ESide.PRIMARY ? rawJump : null,
               side == ESide.SECONDARY ? rawJump : null);
       combinedRawFlowgraph.addEdge(newRawCombinedJump);
 
-      // create and link super raw jump (see super view edge ctor)
+      // Create and link super raw jump (see super view edge ctor)
       new SuperViewEdge<>(newRawCombinedJump, superSource, superTarget);
     }
   }
 
-  private static void removeBasicblockMatch(
-      final GraphsContainer graphs, final RawCombinedBasicBlock oldRawCombinedBasicblock) {
-    final MatchData matches = graphs.getDiff().getMatches();
-    final FunctionMatchData functionMatch =
-        matches.getFunctionMatch(
-            oldRawCombinedBasicblock.getPrimaryFunctionAddress(), ESide.PRIMARY);
-    functionMatch.removeBasicblockMatch(graphs.getDiff(), oldRawCombinedBasicblock);
-  }
-
-  protected static void syncBasicblockVisibility(
+  protected static void syncBasicBlockVisibility(
       final GraphsContainer graphs, final CombinedDiffNode node) {
     final GraphSettings settings = graphs.getSettings();
     if (settings.isAsync()) {
@@ -616,6 +603,15 @@ public class BasicBlockMatchRemover {
     return null;
   }
 
+  private static void removeBasicBlockMatch(
+      final GraphsContainer graphs, final RawCombinedBasicBlock oldRawCombinedBasicBlock) {
+    final MatchData matches = graphs.getDiff().getMatches();
+    final FunctionMatchData functionMatch =
+        matches.getFunctionMatch(
+            oldRawCombinedBasicBlock.getPrimaryFunctionAddress(), ESide.PRIMARY);
+    functionMatch.removeBasicblockMatch(graphs.getDiff(), oldRawCombinedBasicBlock);
+  }
+
   // TODO: On cancel, restore FunctionDiffData (reload from database) in order to update the
   // workspace counts
   // TODO: Do not forget to update the an open callgraph view if a basicblock has been removed (or
@@ -625,7 +621,7 @@ public class BasicBlockMatchRemover {
   // - change proximity nodes of combined
   // - change calls from unmatched to matched color (as soon as newly assigned basicblock comments
   // can be diffed)
-  public static void removeBasicblockMatch(
+  public static void removeBasicBlockMatch(
       final GraphsContainer graphs, final CombinedDiffNode oldCombinedDiffNode)
       throws GraphLayoutException {
     graphs.getCombinedGraph().getIntermediateListeners().blockZyLibVisibilityListeners();
@@ -636,104 +632,104 @@ public class BasicBlockMatchRemover {
       final SingleDiffNode oldPrimaryDiffNode = oldCombinedDiffNode.getPrimaryDiffNode();
       final SingleDiffNode oldSecondaryDiffNode = oldCombinedDiffNode.getSecondaryDiffNode();
 
-      final RawCombinedBasicBlock oldRawCombinedBasicblock =
+      final RawCombinedBasicBlock oldRawCombinedBasicBlock =
           (RawCombinedBasicBlock) oldCombinedDiffNode.getRawNode();
-      final SuperViewNode oldRawSuperBasicblock = oldSuperDiffNode.getRawNode();
-      final RawBasicBlock oldRawPrimaryBasicblock = (RawBasicBlock) oldPrimaryDiffNode.getRawNode();
-      final RawBasicBlock oldRawSecondaryBasicblock =
+      final SuperViewNode oldRawSuperBasicBlock = oldSuperDiffNode.getRawNode();
+      final RawBasicBlock oldRawPrimaryBasicBlock = (RawBasicBlock) oldPrimaryDiffNode.getRawNode();
+      final RawBasicBlock oldRawSecondaryBasicBlock =
           (RawBasicBlock) oldSecondaryDiffNode.getRawNode();
 
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          combinedRawFlowgraph = getRawCombinedFlowgraph(graphs, oldCombinedDiffNode);
-      final RawFlowGraph priRawFlowgraph = combinedRawFlowgraph.getPrimaryFlowgraph();
-      final RawFlowGraph secRawFlowgraph = combinedRawFlowgraph.getSecondaryFlowgraph();
+          combinedRawFlowGraph = getRawCombinedFlowgraph(graphs, oldCombinedDiffNode);
+      final RawFlowGraph priRawFlowGraph = combinedRawFlowGraph.getPrimaryFlowgraph();
+      final RawFlowGraph secRawFlowGraph = combinedRawFlowGraph.getSecondaryFlowgraph();
 
-      // syncs visibility in async view mode
-      syncBasicblockVisibility(graphs, oldCombinedDiffNode);
+      // Sync visibility in async view mode
+      syncBasicBlockVisibility(graphs, oldCombinedDiffNode);
 
-      // store old incoming and outgoing super jumps
+      // Store old incoming and outgoing super jumps
       final Set<SuperViewEdge<? extends SuperViewNode>> oldRawSuperJumps = new HashSet<>();
-      oldRawSuperJumps.addAll(oldRawSuperBasicblock.getIncomingEdges());
-      oldRawSuperJumps.addAll(oldRawSuperBasicblock.getOutgoingEdges());
+      oldRawSuperJumps.addAll(oldRawSuperBasicBlock.getIncomingEdges());
+      oldRawSuperJumps.addAll(oldRawSuperBasicBlock.getOutgoingEdges());
 
-      // delete raw nodes and edges
-      combinedRawFlowgraph.removeNode(oldRawCombinedBasicblock);
-      oldRawSuperBasicblock.removeNode();
-      priRawFlowgraph.removeNode(oldRawPrimaryBasicblock);
-      secRawFlowgraph.removeNode(oldRawSecondaryBasicblock);
+      // Delete raw nodes and edges
+      combinedRawFlowGraph.removeNode(oldRawCombinedBasicBlock);
+      oldRawSuperBasicBlock.removeNode();
+      priRawFlowGraph.removeNode(oldRawPrimaryBasicBlock);
+      secRawFlowGraph.removeNode(oldRawSecondaryBasicBlock);
 
-      // delete diff nodes and edges including possibly affected proximity nodes
+      // Delete diff nodes and edges including possibly affected proximity nodes
       graphs.getCombinedGraph().deleteNode(oldCombinedDiffNode);
       graphs.getSuperGraph().deleteNode(oldSuperDiffNode);
       graphs.getPrimaryGraph().deleteNode(oldPrimaryDiffNode);
       graphs.getSecondaryGraph().deleteNode(oldSecondaryDiffNode);
 
-      // create new raw basicblocks
-      final RawBasicBlock newRawPrimaryBasicblock =
-          oldRawPrimaryBasicblock.clone(EMatchState.PRIMARY_UNMATCHED);
-      final RawBasicBlock newRawSecondaryBasicblock =
-          oldRawSecondaryBasicblock.clone(EMatchState.SECONDRAY_UNMATCHED);
-      final RawCombinedBasicBlock newRawCombinedPriUnmatchedBasicblock =
+      // Create new raw basic blocks
+      final RawBasicBlock newRawPrimaryBasicBlock =
+          oldRawPrimaryBasicBlock.clone(EMatchState.PRIMARY_UNMATCHED);
+      final RawBasicBlock newRawSecondaryBasicBlock =
+          oldRawSecondaryBasicBlock.clone(EMatchState.SECONDRAY_UNMATCHED);
+      final RawCombinedBasicBlock newRawCombinedPriUnmatchedBasicBlock =
           new RawCombinedBasicBlock(
-              newRawPrimaryBasicblock, null, null, oldRawPrimaryBasicblock.getFunctionAddr(), null);
-      final RawCombinedBasicBlock newRawCombinedSecUnmatchedBasicblock =
+              newRawPrimaryBasicBlock, null, null, oldRawPrimaryBasicBlock.getFunctionAddr(), null);
+      final RawCombinedBasicBlock newRawCombinedSecUnmatchedBasicBlock =
           new RawCombinedBasicBlock(
               null,
-              newRawSecondaryBasicblock,
+              newRawSecondaryBasicBlock,
               null,
               null,
-              oldRawSecondaryBasicblock.getFunctionAddr());
-      final SuperViewNode newRawSuperPriUnmatchedBasicblock =
-          new SuperViewNode(newRawCombinedPriUnmatchedBasicblock);
-      final SuperViewNode newRawSuperSecUnmatchedBasicblock =
-          new SuperViewNode(newRawCombinedSecUnmatchedBasicblock);
+              oldRawSecondaryBasicBlock.getFunctionAddr());
+      final SuperViewNode newRawSuperPriUnmatchedBasicBlock =
+          new SuperViewNode(newRawCombinedPriUnmatchedBasicBlock);
+      final SuperViewNode newRawSuperSecUnmatchedBasicBlock =
+          new SuperViewNode(newRawCombinedSecUnmatchedBasicBlock);
 
-      // add new raw basicblocks to raw graphs
-      // create new raw jumps and add jumps to raw graph
-      // new primary unmatched nodes and edges
+      // Add new raw basic blocks to raw graphs
+      // Create new raw jumps and add jumps to raw graph
+      // New primary unmatched nodes and edges
       insertNewRawNodes(
-          combinedRawFlowgraph,
-          priRawFlowgraph,
+          combinedRawFlowGraph,
+          priRawFlowGraph,
           oldRawSuperJumps,
-          oldRawSuperBasicblock,
-          newRawPrimaryBasicblock,
-          newRawCombinedPriUnmatchedBasicblock,
-          newRawSuperPriUnmatchedBasicblock);
-      // new secondary unmatched nodes and edges
+          oldRawSuperBasicBlock,
+          newRawPrimaryBasicBlock,
+          newRawCombinedPriUnmatchedBasicBlock,
+          newRawSuperPriUnmatchedBasicBlock);
+      // New secondary unmatched nodes and edges
       insertNewRawNodes(
-          combinedRawFlowgraph,
-          secRawFlowgraph,
+          combinedRawFlowGraph,
+          secRawFlowGraph,
           oldRawSuperJumps,
-          oldRawSuperBasicblock,
-          newRawSecondaryBasicblock,
-          newRawCombinedSecUnmatchedBasicblock,
-          newRawSuperSecUnmatchedBasicblock);
+          oldRawSuperBasicBlock,
+          newRawSecondaryBasicBlock,
+          newRawCombinedSecUnmatchedBasicBlock,
+          newRawSuperSecUnmatchedBasicBlock);
 
-      // remove diff basicblock match from function match data
-      removeBasicblockMatch(graphs, oldRawCombinedBasicblock);
+      // Remove diff basic block match from function match data
+      removeBasicBlockMatch(graphs, oldRawCombinedBasicBlock);
 
-      // create new diff nodes and add to diff graphs
-      // create new diff edges and add to diff graphs
-      // new primary unmatched nodes and edges
-      insertNewDiffNodes(graphs, combinedRawFlowgraph, newRawSuperPriUnmatchedBasicblock);
-      // new secondary unmatched nodes and edges
-      insertNewDiffNodes(graphs, combinedRawFlowgraph, newRawSuperSecUnmatchedBasicblock);
+      // Create new diff nodes and add to diff graphs
+      // Create new diff edges and add to diff graphs
+      // New primary unmatched nodes and edges
+      insertNewDiffNodes(graphs, combinedRawFlowGraph, newRawSuperPriUnmatchedBasicBlock);
+      // New secondary unmatched nodes and edges
+      insertNewDiffNodes(graphs, combinedRawFlowGraph, newRawSuperSecUnmatchedBasicBlock);
 
-      // notify intermediate listener to update graph node tree, selection history and main menu of
+      // Notify intermediate listener to update graph node tree, selection history and main menu of
       // this view
       graphs
           .getDiff()
           .getMatches()
-          .notifyBasicblockMatchRemovedListener(
-              newRawPrimaryBasicblock.getFunctionAddr(),
-                  newRawSecondaryBasicblock.getFunctionAddr(),
-              newRawPrimaryBasicblock.getAddress(), newRawSecondaryBasicblock.getAddress());
+          .notifyBasicBlockMatchRemovedListener(
+              newRawPrimaryBasicBlock.getFunctionAddr(),
+                  newRawSecondaryBasicBlock.getFunctionAddr(),
+              newRawPrimaryBasicBlock.getAddress(), newRawSecondaryBasicBlock.getAddress());
     } finally {
       graphs.getCombinedGraph().getIntermediateListeners().freeZyLibVisibilityListeners();
       graphs.getCombinedGraph().getIntermediateListeners().freeZyLibSelectionListeners();
     }
 
-    // layout graphs
+    // Layout graphs
     doSynchronizedLayout(graphs.getCombinedGraph());
   }
 }

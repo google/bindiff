@@ -21,6 +21,7 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import java.util.List;
 
+/** Holds diff metadata, function matches and listeners. */
 public class MatchData {
   private final DiffMetadata metadata;
 
@@ -59,8 +60,8 @@ public class MatchData {
     return match != null ? match.getIAddress(ESide.SECONDARY) : null;
   }
 
-  public int getSizeOfBasicblocks(final ESide side) {
-    return metadata.getSizeOfBasicblocks(side);
+  public int getSizeOfBasicBlocks(final ESide side) {
+    return metadata.getSizeOfBasicBlocks(side);
   }
 
   public int getSizeOfCalls(final ESide side) {
@@ -87,8 +88,8 @@ public class MatchData {
     return metadata.getSizeOfJumps(side);
   }
 
-  public int getSizeOfMatchedBasicblocks() {
-    return metadata.getSizeOfMatchedBasicblocks();
+  public int getSizeOfMatchedBasicBlocks() {
+    return metadata.getSizeOfMatchedBasicBlocks();
   }
 
   public int getSizeOfMatchedCalls() {
@@ -133,7 +134,7 @@ public class MatchData {
     return addr != null && addr.equals(secAddr);
   }
 
-  public void notifyBasicblockMatchAddedListener(
+  public void notifyBasicBlockMatchAddedListener(
       final IAddress priFunctionAddr,
       final IAddress secFunctionAddr,
       final IAddress primaryAddr,
@@ -143,7 +144,7 @@ public class MatchData {
     }
   }
 
-  public void notifyBasicblockMatchRemovedListener(
+  public void notifyBasicBlockMatchRemovedListener(
       final IAddress priFunctionAddr,
       final IAddress secFunctionAddr,
       final IAddress primaryAddr,
@@ -165,8 +166,8 @@ public class MatchData {
     metadata.setSizeOfChangedFunctions(changedFunctions);
   }
 
-  public void setSizeOfMatchedBasicblocks(final int matchedBasicblocks) {
-    metadata.setSizeOfMatchedBasicBlocks(matchedBasicblocks);
+  public void setSizeOfMatchedBasicBlocks(final int matchedBasicBlocks) {
+    metadata.setSizeOfMatchedBasicBlocks(matchedBasicBlocks);
   }
 
   public void setSizeOfMatchedCalls(final int matchedCalls) {

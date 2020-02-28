@@ -150,8 +150,8 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
       final RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
       final RawFunction secFunction = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0);
 
-      priFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicblocks(ESide.PRIMARY));
-      secFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicblocks(ESide.SECONDARY));
+      priFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicBlocks(ESide.PRIMARY));
+      secFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicBlocks(ESide.SECONDARY));
       priFunction.setSizeOfJumps(metaData.getSizeOfJumps(ESide.PRIMARY));
       secFunction.setSizeOfJumps(metaData.getSizeOfJumps(ESide.SECONDARY));
       priFunction.setSizeOfInstructions(metaData.getSizeOfInstructions(ESide.PRIMARY));

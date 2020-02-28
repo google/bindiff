@@ -178,14 +178,14 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   private boolean deleteFunctionDiff(final Diff diffToDelete) {
     if (diffToDelete.getMatchesDatabase().delete()) {
       final File parentFolder = diffToDelete.getMatchesDatabase().getParentFile();
-      final File priBinExortFile = diffToDelete.getExportFile(ESide.PRIMARY);
+      final File priBinExportFile = diffToDelete.getExportFile(ESide.PRIMARY);
       final File secBinExportFile = diffToDelete.getExportFile(ESide.SECONDARY);
 
       boolean deletePriExport = true;
       boolean deleteSecExport = true;
       for (final Diff diff : getWorkspace().getDiffList(true)) {
         if (parentFolder.equals(diff.getMatchesDatabase().getParentFile())) {
-          if (diff.getExportFile(ESide.PRIMARY).equals(priBinExortFile)) {
+          if (diff.getExportFile(ESide.PRIMARY).equals(priBinExportFile)) {
             deletePriExport = false;
           }
 
@@ -196,7 +196,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
 
       if (deletePriExport) {
-        if (!priBinExortFile.delete()) {
+        if (!priBinExportFile.delete()) {
           return false;
         }
       }
@@ -206,7 +206,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
 
-      if (parentFolder.listFiles().length == 0) {
+      final File[] files = parentFolder.listFiles();
+      if (files != null && files.length == 0) {
         final AllFunctionDiffViewsNode containerNode =
             (AllFunctionDiffViewsNode) workspaceTree.getModel().getRoot().getChildAt(0);
 

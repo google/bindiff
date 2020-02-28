@@ -16,43 +16,40 @@ package com.google.security.zynamics.bindiff.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
 /** BinDiff-specific file name and filesystem utility methods. */
 public class BinDiffFileUtils {
 
-  private BinDiffFileUtils() {
-    // Static utility class
-  }
+  private BinDiffFileUtils() {}
 
   public static void deleteDirectory(final File directory) throws IOException {
     if (directory == null || !directory.isDirectory() || !directory.exists()) {
       return;
     }
 
-    try {
-      final File[] files = directory.listFiles();
-      if (files == null) {
-        throw new IOException("Internal error while listing files");
-      }
-      for (final File file : files) {
-        if (file.isDirectory()) {
-          deleteDirectory(file);
-          continue;
-        }
+    Files.walkFileTree(
+        directory.toPath(),
+        new SimpleFileVisitor<Path>() {
+          @Override
+          public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+              throws IOException {
+            Files.delete(file);
+            return FileVisitResult.CONTINUE;
+          }
 
-        if (!file.delete()) {
-          throw new IOException("Error while deleting file");
-        }
-      }
-
-      if (!directory.delete()) {
-        throw new IOException("Error while deleting directory");
-      }
-    } catch (final SecurityException e) {
-      throw new IOException("Error while deleting directory or sub-tree: " + e.getMessage());
-    }
+          @Override
+          public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+            Files.delete(dir);
+            return FileVisitResult.CONTINUE;
+          }
+        });
   }
 
   public static List<String> findFiles(final File directory, final List<String> extensionFilter) {

@@ -212,7 +212,7 @@ public class DiffMetadata {
     return similarityIntervalCounts;
   }
 
-  public int getSizeOfBasicblocks(final ESide side) {
+  public int getSizeOfBasicBlocks(final ESide side) {
     return side == ESide.PRIMARY ? priBasicBlocks : secBasicBlocks;
   }
 
@@ -240,7 +240,7 @@ public class DiffMetadata {
     return side == ESide.PRIMARY ? priJumps : secJumps;
   }
 
-  public int getSizeOfMatchedBasicblocks() {
+  public int getSizeOfMatchedBasicBlocks() {
     return matchedBasicBlocks;
   }
 

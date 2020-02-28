@@ -391,8 +391,8 @@ public class BasicBlockMatchAdder {
       final RawFlowGraph secRawFlowgraph = combinedRawFlowgraph.getSecondaryFlowgraph();
 
       // syncs visibility in async view mode
-      BasicBlockMatchRemover.syncBasicblockVisibility(graphs, oldPriUnmatchedCombinedDiffNode);
-      BasicBlockMatchRemover.syncBasicblockVisibility(graphs, oldSecUnmatchedCombinedDiffNode);
+      BasicBlockMatchRemover.syncBasicBlockVisibility(graphs, oldPriUnmatchedCombinedDiffNode);
+      BasicBlockMatchRemover.syncBasicBlockVisibility(graphs, oldSecUnmatchedCombinedDiffNode);
 
       // store old incoming and outgoing super jumps
       final Set<SuperViewEdge<? extends SuperViewNode>> oldRawSuperJumps = new HashSet<>();
@@ -468,7 +468,7 @@ public class BasicBlockMatchAdder {
       graphs
           .getDiff()
           .getMatches()
-          .notifyBasicblockMatchAddedListener(
+          .notifyBasicBlockMatchAddedListener(
               newRawPrimaryBasicblock.getFunctionAddr(),
                   newRawSecondaryBasicblock.getFunctionAddr(),
               newRawPrimaryBasicblock.getAddress(), newRawSecondaryBasicblock.getAddress());

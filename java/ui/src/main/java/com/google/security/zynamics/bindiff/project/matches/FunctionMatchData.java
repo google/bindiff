@@ -103,7 +103,7 @@ public class FunctionMatchData implements IAddressPair {
 
     final MatchData matches = diff.getMatches();
 
-    matches.setSizeOfMatchedBasicblocks(matches.getSizeOfMatchedBasicblocks() + 1);
+    matches.setSizeOfMatchedBasicBlocks(matches.getSizeOfMatchedBasicBlocks() + 1);
     matches.setSizeOfMatchedJumps(matches.getSizeOfMatchedJumps() + newMatchedJumpsCounter);
     matches.setSizeOfMatchedInstructions(
         matches.getSizeOfMatchedInstructions() + instructionMatches);
@@ -242,7 +242,7 @@ public class FunctionMatchData implements IAddressPair {
 
       final MatchData matches = diff.getMatches();
 
-      matches.setSizeOfMatchedBasicblocks(matches.getSizeOfMatchedBasicblocks() - 1);
+      matches.setSizeOfMatchedBasicBlocks(matches.getSizeOfMatchedBasicBlocks() - 1);
       matches.setSizeOfMatchedJumps(matches.getSizeOfMatchedJumps() - matchedJumpsToRemoveCounter);
       matches.setSizeOfMatchedInstructions(
           matches.getSizeOfMatchedInstructions() - removedMatchedInstructions);
