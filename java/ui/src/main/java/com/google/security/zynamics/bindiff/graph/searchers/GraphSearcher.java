@@ -15,16 +15,15 @@
 package com.google.security.zynamics.bindiff.graph.searchers;
 
 import com.google.security.zynamics.bindiff.enums.ESide;
+import com.google.security.zynamics.bindiff.graph.edges.CombinedDiffEdge;
 import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
 import com.google.security.zynamics.bindiff.graph.edges.SuperDiffEdge;
-import com.google.security.zynamics.bindiff.graph.edges.CombinedDiffEdge;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.bindiff.graph.sorters.SearchResultSorter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -164,7 +163,7 @@ public class GraphSearcher {
 
   public void clearResults() {
     for (final SearchResult result : subObjectResults) {
-      GraphSeacherFunctions.removeSubObjectHightlighing(result);
+      GraphSearcherFunctions.removeSubObjectHighlighting(result);
     }
 
     subObjectResults.clear();

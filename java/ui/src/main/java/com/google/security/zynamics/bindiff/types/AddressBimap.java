@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.types;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.matches.AddressPairComparator;
 import com.google.security.zynamics.bindiff.project.matches.IAddressPair;
@@ -33,7 +34,7 @@ public class AddressBimap {
   private long[] primaryAssignedValues;
 
   public AddressBimap(final List<IAddressPair> addrPairs) {
-    Preconditions.checkNotNull(addrPairs);
+    checkNotNull(addrPairs);
 
     final int size = addrPairs.size();
 

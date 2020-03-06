@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
@@ -72,8 +74,8 @@ public class GraphLayoutCalculator implements ICancelableCommand {
 
   public GraphLayoutCalculator(
       final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> referenceGraph) {
-    Preconditions.checkNotNull(referenceGraph);
-    Preconditions.checkArgument(
+    checkNotNull(referenceGraph);
+    checkArgument(
         !(referenceGraph instanceof SuperGraph), "Reference graph cannot be a super graph");
 
     this.referenceGraph = referenceGraph;
@@ -422,7 +424,6 @@ public class GraphLayoutCalculator implements ICancelableCommand {
     } catch (final GraphLayoutException e) {
       throw e;
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Could not calculate graph layouts.");
     }
   }

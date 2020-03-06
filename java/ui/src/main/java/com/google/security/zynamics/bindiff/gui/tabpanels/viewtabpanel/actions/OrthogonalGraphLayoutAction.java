@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraphLayout;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import java.awt.event.ActionEvent;
@@ -24,7 +25,7 @@ public class OrthogonalGraphLayoutAction extends AbstractAction {
   private final ViewTabPanelFunctions controller;
 
   public OrthogonalGraphLayoutAction(final ViewTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
   }
 
   @Override

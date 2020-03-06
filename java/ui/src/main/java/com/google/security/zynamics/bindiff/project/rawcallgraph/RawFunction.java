@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawcallgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -49,9 +50,9 @@ public class RawFunction extends SingleViewNode {
   public RawFunction(
       final IAddress address, final String name, final EFunctionType type, final ESide side) {
     super(address, -1, 0, 0, Color.WHITE, Color.BLACK, false, true);
-    this.name = Preconditions.checkNotNull(name);
-    this.type = Preconditions.checkNotNull(type);
-    this.side = Preconditions.checkNotNull(side);
+    this.name = checkNotNull(name);
+    this.type = checkNotNull(type);
+    this.side = checkNotNull(side);
   }
 
   public Set<RawFunction> getCallees() {

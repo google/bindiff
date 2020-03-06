@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu.FunctionDiffNodePopupMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.FunctionDiffViewsNodeContextPanel;
@@ -40,9 +41,9 @@ public class FunctionDiffViewsNode extends AbstractTreeNode {
       final List<Diff> functionDiffList) {
     super(controller, null);
 
-    viewDirectory = Preconditions.checkNotNull(viewsDirectory);
+    viewDirectory = checkNotNull(viewsDirectory);
 
-    Preconditions.checkNotNull(functionDiffList);
+    checkNotNull(functionDiffList);
     component = new FunctionDiffViewsNodeContextPanel(getController(), functionDiffList);
   }
 

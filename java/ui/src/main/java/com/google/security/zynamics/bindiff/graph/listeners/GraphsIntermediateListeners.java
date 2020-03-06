@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.listeners;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.eventhandlers.GraphLayoutEventHandler;
@@ -42,7 +43,7 @@ public class GraphsIntermediateListeners {
 
   public GraphsIntermediateListeners(
       final BinDiffGraph<ZyGraphNode<? extends IViewNode<?>>, ?> graph) {
-    Preconditions.checkNotNull(graph);
+    checkNotNull(graph);
 
     this.graph = graph;
 
@@ -80,19 +81,19 @@ public class GraphsIntermediateListeners {
   }
 
   private GraphsIntermediateListeners getGraphIntermediateListener(final EGraph type) {
-    Preconditions.checkNotNull(graph);
+    checkNotNull(graph);
     switch (type) {
       case PRIMARY_GRAPH:
-        Preconditions.checkNotNull(graph.getPrimaryGraph());
+        checkNotNull(graph.getPrimaryGraph());
         return graph.getPrimaryGraph().getIntermediateListeners();
       case SECONDARY_GRAPH:
-        Preconditions.checkNotNull(graph.getSecondaryGraph());
+        checkNotNull(graph.getSecondaryGraph());
         return graph.getSecondaryGraph().getIntermediateListeners();
       case COMBINED_GRAPH:
-        Preconditions.checkNotNull(graph.getCombinedGraph());
+        checkNotNull(graph.getCombinedGraph());
         return graph.getCombinedGraph().getIntermediateListeners();
       case SUPER_GRAPH:
-        Preconditions.checkNotNull(graph.getSuperGraph());
+        checkNotNull(graph.getSuperGraph());
         return graph.getSuperGraph().getIntermediateListeners();
       default:
         throw new IllegalStateException();

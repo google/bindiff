@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.comparators;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter.ISortableTreeNode;
@@ -24,7 +25,7 @@ public class CombinedTreeNodeSideComparator implements Comparator<ISortableTreeN
   private final ESortOrder order;
 
   public CombinedTreeNodeSideComparator(final ESortOrder order) {
-    Preconditions.checkNotNull(order);
+    checkNotNull(order);
 
     this.order = order;
   }

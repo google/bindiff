@@ -153,7 +153,6 @@ public class RawCombinedCallGraphBuilder {
 
       return new RawCombinedCallGraph(combinedFunctions, combinedCalls);
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphCreationException(
           "Combined call graph creation failed." + " " + e.getMessage());
     }

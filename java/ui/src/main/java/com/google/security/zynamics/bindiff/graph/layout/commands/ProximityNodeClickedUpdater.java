@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
@@ -31,15 +32,12 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ProximityHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
-import y.base.Node;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import javax.swing.JOptionPane;
+import y.base.Node;
 
 public final class ProximityNodeClickedUpdater implements ICommand {
   private final BinDiffGraph<? extends ZyGraphNode<? extends IViewNode<?>>, ?> graph;
@@ -49,8 +47,8 @@ public final class ProximityNodeClickedUpdater implements ICommand {
   public ProximityNodeClickedUpdater(
       final BinDiffGraph<? extends ZyGraphNode<? extends IViewNode<?>>, ?> graph,
       final ZyProximityNode<?> proximityNode) {
-    this.graph = Preconditions.checkNotNull(graph);
-    this.proximityNode = Preconditions.checkNotNull(proximityNode);
+    this.graph = checkNotNull(graph);
+    this.proximityNode = checkNotNull(proximityNode);
   }
 
   private static Set<ZyGraphNode<? extends IViewNode<?>>> getNodesToShow(

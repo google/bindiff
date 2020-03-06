@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
@@ -48,7 +49,7 @@ public final class WorkspaceMenu extends JMenu {
 
   public WorkspaceMenu(final WorkspaceTabPanelFunctions controller) {
     super("File");
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     setMnemonic('F');
 

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphEdgeFilter;
@@ -33,7 +34,7 @@ public class ProximityBrowserDeactivator implements ICommand {
 
   public ProximityBrowserDeactivator(
       final BinDiffGraph<? extends ZyGraphNode<? extends IViewNode<?>>, ?> graph) {
-    Preconditions.checkNotNull(graph);
+    checkNotNull(graph);
 
     this.graph = graph;
   }

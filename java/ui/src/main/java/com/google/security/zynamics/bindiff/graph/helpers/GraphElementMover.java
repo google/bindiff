@@ -25,13 +25,11 @@ import com.google.security.zynamics.bindiff.graph.synchronizer.GraphViewCanvasSy
 import com.google.security.zynamics.zylib.gui.zygraph.edges.CBend;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
-import y.base.Node;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import y.base.Node;
 
 public class GraphElementMover {
   private static List<SuperDiffNode> getAffectedSuperDiffNodes(

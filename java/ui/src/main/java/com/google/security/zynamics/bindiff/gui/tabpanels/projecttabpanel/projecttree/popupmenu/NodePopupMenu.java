@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.CloseDiffAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.CloseViewsAction;
@@ -48,7 +49,7 @@ public class NodePopupMenu extends JPopupMenu {
   private Diff lastSelectedDiff = null;
 
   public NodePopupMenu(final WorkspaceTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     openDiff = GuiUtils.buildMenuItem("Open Diff", new LoadDiffAction(controller));
     closeDiff = GuiUtils.buildMenuItem("Close Diff", new CloseDiffAction(controller));

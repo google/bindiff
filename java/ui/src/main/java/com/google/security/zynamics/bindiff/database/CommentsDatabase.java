@@ -224,7 +224,8 @@ public class CommentsDatabase extends SqliteDatabase {
       } else {
         try (final PreparedStatement statement =
             connection.prepareStatement(
-                "UPDATE bd_functionComments SET comment = ? WHERE pe_hash = ? AND functionAddr = ?")) {
+                "UPDATE bd_functionComments SET comment = ? WHERE pe_hash = ? AND functionAddr"
+                    + " = ?")) {
           statement.setString(1, comment);
           statement.setString(2, image);
           statement.setLong(3, functionAddr.toLong());
@@ -260,8 +261,8 @@ public class CommentsDatabase extends SqliteDatabase {
       } else {
         try (PreparedStatement statement =
             connection.prepareStatement(
-                "DELETE FROM bd_instructionComments WHERE "
-                    + "pe_hash = ? AND functionAddr = ? AND instructionAddr = ? AND placement = ?")) {
+                "DELETE FROM bd_instructionComments WHERE pe_hash = ? AND functionAddr = ? AND"
+                    + " instructionAddr = ? AND placement = ?")) {
           statement.setString(1, imageHash);
           statement.setLong(2, functionAddr.toLong());
           statement.setLong(3, instructionAddr.toLong());

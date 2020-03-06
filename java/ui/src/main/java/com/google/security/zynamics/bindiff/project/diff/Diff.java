@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.diff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
@@ -62,10 +63,10 @@ public final class Diff {
       final File primaryExportFile,
       final File secondaryExportFile,
       final boolean isFunctionDiff) {
-    this.metadata = Preconditions.checkNotNull(preloadedMatches);
-    this.matchesDatabaseFile = Preconditions.checkNotNull(binDiffBinary);
-    this.primaryExportFile = Preconditions.checkNotNull(primaryExportFile);
-    this.secondaryExportFile = Preconditions.checkNotNull(secondaryExportFile);
+    this.metadata = checkNotNull(preloadedMatches);
+    this.matchesDatabaseFile = checkNotNull(binDiffBinary);
+    this.primaryExportFile = checkNotNull(primaryExportFile);
+    this.secondaryExportFile = checkNotNull(secondaryExportFile);
     this.isFunctionDiff = isFunctionDiff;
   }
 

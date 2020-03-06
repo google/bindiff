@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraphSynchronization;
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
@@ -55,7 +56,7 @@ public class ModesMenu extends JMenu {
     setMnemonic('M');
 
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     normalViewMode =
         GuiUtils.buildRadioButtonMenuItem(

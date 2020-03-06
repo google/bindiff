@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts.BasicBlockMatchesPie3dPanel;
@@ -78,7 +79,7 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
 
   public MatchedFunctionsTreeNodeContextPanel(
       final WorkspaceTabPanelFunctions controller, final Diff diff) {
-    Preconditions.checkNotNull(diff);
+    checkNotNull(diff);
 
     this.diff = diff;
 
@@ -172,7 +173,6 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
 
   private void updateCharts(final MatchedFunctionViewsTable table) {
     final Vector<Double> similarities = new Vector<>();
-    final Vector<Double> confidences = new Vector<>();
 
     int[] rows = table.getSelectedRows();
 
@@ -184,9 +184,9 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
       }
     }
 
-    int matchedBasicblocks = 0;
-    int primaryUnmatchedBasicblocks = 0;
-    int secondaryUnmatchedBasicblocks = 0;
+    int matchedBasicBlocks = 0;
+    int primaryUnmatchedBasicBlocks = 0;
+    int secondaryUnmatchedBasicBlocks = 0;
 
     int matchedJumps = 0;
     int primaryUnmatchedJumps = 0;
@@ -214,9 +214,9 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
       final RawFunction priFunction = diff.getFunction(primaryAddr, ESide.PRIMARY);
       final RawFunction secFunction = diff.getFunction(secondaryAddr, ESide.SECONDARY);
 
-      matchedBasicblocks += priFunction.getSizeOfMatchedBasicBlocks();
-      primaryUnmatchedBasicblocks += priFunction.getSizeOfUnmatchedBasicBlocks();
-      secondaryUnmatchedBasicblocks += secFunction.getSizeOfUnmatchedBasicBlocks();
+      matchedBasicBlocks += priFunction.getSizeOfMatchedBasicBlocks();
+      primaryUnmatchedBasicBlocks += priFunction.getSizeOfUnmatchedBasicBlocks();
+      secondaryUnmatchedBasicBlocks += secFunction.getSizeOfUnmatchedBasicBlocks();
 
       matchedJumps += priFunction.getSizeOfMatchedJumps();
       primaryUnmatchedJumps += priFunction.getSizeOfUnmatchedJumps();
@@ -229,11 +229,10 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
       final FunctionMatchData functionMatch = priFunction.getFunctionMatch();
 
       similarities.add(functionMatch.getSimilarity());
-      confidences.add(functionMatch.getConfidence());
     }
 
     basicBlocksPiePanel.updateDataset(
-        matchedBasicblocks, primaryUnmatchedBasicblocks, secondaryUnmatchedBasicblocks);
+        matchedBasicBlocks, primaryUnmatchedBasicBlocks, secondaryUnmatchedBasicBlocks);
     jumpsPiePanel.updateDataset(matchedJumps, primaryUnmatchedJumps, secondaryUnmatchedJumps);
     instructionsPiePanel.updateDataset(
         matchedInstructions, primaryUnmatchedInstructions, secondaryUnmatchedInstructions);
@@ -262,27 +261,27 @@ public class MatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeContex
         final boolean structuralChange,
         final boolean instructionOnlyChange,
         final boolean identical) {
-      final RawCallGraph priCallgraph = diff.getCallGraph(ESide.PRIMARY);
-      final RawCallGraph secCallgraph = diff.getCallGraph(ESide.SECONDARY);
+      final RawCallGraph priCallGraph = diff.getCallGraph(ESide.PRIMARY);
+      final RawCallGraph secCallGraph = diff.getCallGraph(ESide.SECONDARY);
 
       final Set<Pair<RawFunction, RawFunction>> filteredFunctions = new HashSet<>();
 
       if (!structuralChange && !instructionOnlyChange && !identical) {
-        filteredFunctions.addAll(GraphGetter.getMatchedFunctionPairs(priCallgraph, secCallgraph));
+        filteredFunctions.addAll(GraphGetter.getMatchedFunctionPairs(priCallGraph, secCallGraph));
       } else {
         if (structuralChange) {
           filteredFunctions.addAll(
-              GraphGetter.getStructuralChangedFunctionPairs(priCallgraph, secCallgraph));
+              GraphGetter.getStructuralChangedFunctionPairs(priCallGraph, secCallGraph));
         }
 
         if (instructionOnlyChange) {
           filteredFunctions.addAll(
-              GraphGetter.getInstructionOnlyChangedFunctionPairs(priCallgraph, secCallgraph));
+              GraphGetter.getInstructionOnlyChangedFunctionPairs(priCallGraph, secCallGraph));
         }
 
         if (identical) {
           filteredFunctions.addAll(
-              GraphGetter.getIdenticalFunctionPairs(priCallgraph, secCallgraph));
+              GraphGetter.getIdenticalFunctionPairs(priCallGraph, secCallGraph));
         }
       }
 

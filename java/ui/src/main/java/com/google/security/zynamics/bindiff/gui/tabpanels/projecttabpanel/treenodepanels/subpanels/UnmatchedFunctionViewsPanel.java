@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.subpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
@@ -41,13 +42,12 @@ public class UnmatchedFunctionViewsPanel extends JPanel {
       final Diff diff, final WorkspaceTabPanelFunctions controller, final ESide side) {
     super(new BorderLayout());
 
-    this.diff = Preconditions.checkNotNull(diff);
-    this.side = Preconditions.checkNotNull(side);
+    this.diff = checkNotNull(diff);
+    this.side = checkNotNull(side);
 
     unmatchedFunctionsTableModel = new UnmatchedFunctionViewsTableModel(diff, side, true);
     unmatchedFunctionsTable =
-        new UnmatchedFunctionViewsTable(
-            unmatchedFunctionsTableModel, Preconditions.checkNotNull(controller));
+        new UnmatchedFunctionViewsTable(unmatchedFunctionsTableModel, checkNotNull(controller));
 
     filterPanel = new UnmatchedFunctionViewsFilterPanel(unmatchedFunctionsTable, side);
 

@@ -24,10 +24,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnode
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.AbstractFlowGraphRootTreeNode;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
-
-
 import java.awt.event.MouseEvent;
-
 import javax.swing.Icon;
 
 public class CombinedFlowGraphRootTreeNode extends AbstractFlowGraphRootTreeNode {

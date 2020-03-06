@@ -23,13 +23,11 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyRegenerateableNodeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 import y.view.Graph2D;
 import y.view.Graph2DView;
 import y.view.NodeRealizer;
-
-import java.awt.event.MouseEvent;
 
 public final class EditCombinedNodeHelper {
   private EditCombinedNodeHelper() {}

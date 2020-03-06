@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.project.userview;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.enums.EViewType;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
@@ -42,10 +44,10 @@ public class FlowGraphViewData extends ViewData {
       final EViewType viewType) {
     super(graphs, viewName, viewType);
 
-    Preconditions.checkArgument(
+    checkArgument(
         primaryRawFlowgraph != null || secondaryRawFlowgraph != null,
         "Raw primary and secondary flow graphs cannot both be null");
-    this.combinedRawFlowgraph = Preconditions.checkNotNull(combinedRawFlowgraph);
+    this.combinedRawFlowgraph = checkNotNull(combinedRawFlowgraph);
     this.primaryRawGraph = primaryRawFlowgraph;
     this.secondaryRawGraph = secondaryRawFlowgraph;
   }

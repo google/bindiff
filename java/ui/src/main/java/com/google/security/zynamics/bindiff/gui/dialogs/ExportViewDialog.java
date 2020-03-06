@@ -180,7 +180,6 @@ public class ExportViewDialog extends BaseDialog {
         combinedFile.delete();
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       return false;
     }
 

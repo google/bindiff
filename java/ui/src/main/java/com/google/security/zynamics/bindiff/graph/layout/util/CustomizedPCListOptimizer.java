@@ -14,6 +14,10 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.util;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import y.base.DataProvider;
 import y.base.Edge;
 import y.base.EdgeCursor;
@@ -34,11 +38,6 @@ import y.layout.hierarchic.incremental.LayoutDataProvider;
 import y.layout.hierarchic.incremental.NodeData;
 import y.layout.hierarchic.incremental.PortConstraintOptimizer;
 import y.util.Maps;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
 
 public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
   private boolean backloopRouting = false;
@@ -276,8 +275,7 @@ public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
     }
 
     // destroy same layer edge construct and write back the changes.
-    for (int i = 0; i < sameLayerNodes.size(); i++) {
-      final Node sameLayerNode = sameLayerNodes.get(i);
+    for (final Node sameLayerNode : sameLayerNodes) {
       final Edge sameLayerEdge = originalEdge[sameLayerNode.index() - sameLayerEdgeOffset];
       graph.unhide(sameLayerEdge);
       EdgeData ed = ldp.getEdgeData(sameLayerEdge);
@@ -287,20 +285,20 @@ public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
         final EdgeData d1ed = ldp.getEdgeData(d1);
         final EdgeData d2ed = ldp.getEdgeData(d2);
         if (d1.target() == sameLayerEdge.source()) {
-          if (d1ed.getTPC() != ed.getSPC()) {
+          if (!d1ed.getTPC().equals(ed.getSPC())) {
             ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, true, d1ed.getTPC());
           }
-          if (d2ed.getTPC() != ed.getTPC()) {
-            ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d2ed.getTPC());
+          if (!d2ed.getTPC().equals(ed.getTPC())) {
+            itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d2ed.getTPC());
           }
           graph.setSourcePointRel(sameLayerEdge, graph.getTargetPointRel(d1));
           graph.setTargetPointRel(sameLayerEdge, graph.getTargetPointRel(d2));
         } else {
-          if (d2ed.getTPC() != ed.getSPC()) {
+          if (!d2ed.getTPC().equals(ed.getSPC())) {
             ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, true, d2ed.getTPC());
           }
-          if (d1ed.getTPC() != ed.getTPC()) {
-            ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d1ed.getTPC());
+          if (!d1ed.getTPC().equals(ed.getTPC())) {
+            itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d1ed.getTPC());
           }
           graph.setSourcePointRel(sameLayerEdge, graph.getTargetPointRel(d2));
           graph.setTargetPointRel(sameLayerEdge, graph.getTargetPointRel(d1));
@@ -311,20 +309,20 @@ public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
         final EdgeData d1ed = ldp.getEdgeData(d1);
         final EdgeData d2ed = ldp.getEdgeData(d2);
         if (d1.source() == sameLayerEdge.source()) {
-          if (d1ed.getSPC() != ed.getSPC()) {
+          if (!d1ed.getSPC().equals(ed.getSPC())) {
             ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, true, d1ed.getSPC());
           }
-          if (d2ed.getSPC() != ed.getTPC()) {
-            ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d2ed.getSPC());
+          if (!d2ed.getSPC().equals(ed.getTPC())) {
+            itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d2ed.getSPC());
           }
           graph.setSourcePointRel(sameLayerEdge, graph.getSourcePointRel(d1));
           graph.setTargetPointRel(sameLayerEdge, graph.getSourcePointRel(d2));
         } else {
-          if (d2ed.getSPC() != ed.getSPC()) {
+          if (!d2ed.getSPC().equals(ed.getSPC())) {
             ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, true, d2ed.getSPC());
           }
-          if (d1ed.getSPC() != ed.getTPC()) {
-            ed = itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d1ed.getSPC());
+          if (!d1ed.getSPC().equals(ed.getTPC())) {
+            itemFactory.setTemporaryPortConstraint(sameLayerEdge, false, d1ed.getSPC());
           }
           graph.setSourcePointRel(sameLayerEdge, graph.getSourcePointRel(d2));
           graph.setTargetPointRel(sameLayerEdge, graph.getSourcePointRel(d1));
@@ -332,8 +330,7 @@ public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
       }
       graph.hide(sameLayerEdge);
     }
-    for (int i = 0; i < sameLayerNodes.size(); i++) {
-      final Node sameLayerNode = sameLayerNodes.get(i);
+    for (final Node sameLayerNode : sameLayerNodes) {
       graph.removeNode(sameLayerNode);
     }
   }
@@ -388,12 +385,10 @@ public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
 
     @Override
     public int compare(final Edge o1, final Edge o2) {
-      final Edge e1 = o1;
-      final Edge e2 = o2;
-      final int e1OppositePos = getPositionOfOpposite(e1);
-      final int e2OppositePos = getPositionOfOpposite(e2);
+      final int e1OppositePos = getPositionOfOpposite(o1);
+      final int e2OppositePos = getPositionOfOpposite(o2);
 
-      if (isSameLayerEdge(e1) && isSameLayerEdge(e2)) {
+      if (isSameLayerEdge(o1) && isSameLayerEdge(o2)) {
         if (nodePos > e1OppositePos && nodePos > e2OppositePos
             || nodePos < e1OppositePos && nodePos < e2OppositePos) {
           return e2OppositePos - e1OppositePos; // the edge with the higher pos value comes first
@@ -405,14 +400,14 @@ public class CustomizedPCListOptimizer implements PortConstraintOptimizer {
             return 1;
           }
         }
-      } else if (isSameLayerEdge(e1)) {
+      } else if (isSameLayerEdge(o1)) {
         if (nodePos > e1OppositePos) {
           // e1 is a same layer edge to the left (and thus comes first)
           return -1;
         } else {
           return 1;
         }
-      } else if (isSameLayerEdge(e2)) {
+      } else if (isSameLayerEdge(o2)) {
         if (nodePos > e2OppositePos) {
           // e2 is a same layer edge to the left (and thus comes first)
           return 1;

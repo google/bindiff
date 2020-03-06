@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.WorkspaceTree;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.WorkspaceTreeModel;
@@ -30,7 +31,7 @@ public abstract class AbstractTreeNode extends DefaultMutableTreeNode {
   private final Diff diff;
 
   public AbstractTreeNode(final WorkspaceTabPanelFunctions controller, final Diff diff) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
     this.diff = diff;
   }
 

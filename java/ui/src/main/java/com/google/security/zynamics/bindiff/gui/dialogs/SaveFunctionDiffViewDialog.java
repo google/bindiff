@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -106,11 +107,11 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
 
   public SaveFunctionDiffViewDialog(
       final MainWindow window, final String title, final Workspace workspace, final Diff diff) {
-    super(Preconditions.checkNotNull(window), title);
+    super(checkNotNull(window), title);
 
     this.window = window;
-    this.workspace = Preconditions.checkNotNull(workspace);
-    this.diff = Preconditions.checkNotNull(diff);
+    this.workspace = checkNotNull(workspace);
+    this.diff = checkNotNull(diff);
 
     init();
 

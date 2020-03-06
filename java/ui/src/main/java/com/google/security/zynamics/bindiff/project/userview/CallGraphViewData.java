@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.userview;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.enums.EViewType;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
@@ -38,7 +39,7 @@ public class CallGraphViewData extends ViewData {
       final String secImageName,
       final EViewType viewType) {
     super(graphs, viewName, viewType);
-    this.primaryRawGraph = Preconditions.checkNotNull(primaryRawCallGraph);
+    this.primaryRawGraph = checkNotNull(primaryRawCallGraph);
     this.secondaryRawGraph = secondaryRawCallGraph;
     this.priImageName = priImageName;
     this.secImageName = secImageName;

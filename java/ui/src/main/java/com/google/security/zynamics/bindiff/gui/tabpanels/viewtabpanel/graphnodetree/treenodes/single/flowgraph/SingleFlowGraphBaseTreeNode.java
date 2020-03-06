@@ -142,7 +142,7 @@ public class SingleFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     final List<SingleFlowGraphBasicBlockTreeNode> filteredTreeNodes = new ArrayList<>();
 
     for (final SingleFlowGraphBasicBlockTreeNode treeNode : treeNodes) {
-      if (filter.filterRawBasicblock(treeNode.getBasicblock())) {
+      if (filter.filterRawBasicBlock(treeNode.getBasicblock())) {
         if (!updateSearch && !"".equals(searcher.getSearchString())) {
           if (searcher.isSearchHit(treeNode.getSingleDiffNode())) {
             filteredTreeNodes.add(treeNode);

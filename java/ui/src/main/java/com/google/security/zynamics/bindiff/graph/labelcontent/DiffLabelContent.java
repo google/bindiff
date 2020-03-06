@@ -20,7 +20,6 @@ import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
-
 import java.util.List;
 
 public class DiffLabelContent extends ZyLabelContent {

@@ -24,13 +24,11 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CNodeMover;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeDraggedLeftState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Node;
-import y.view.Bend;
-
 import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.Set;
+import y.base.Node;
+import y.view.Bend;
 
 public class CombinedNodeDraggedLeftAction<
         NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>

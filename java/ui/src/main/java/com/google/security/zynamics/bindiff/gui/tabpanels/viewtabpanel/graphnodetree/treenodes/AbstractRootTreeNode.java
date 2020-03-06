@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -49,12 +50,12 @@ public abstract class AbstractRootTreeNode extends AbstractTreeNode {
       final TreeNodeMultiSorter sorter) {
     super(null);
 
-    this.controller = Preconditions.checkNotNull(controller);
-    this.tree = Preconditions.checkNotNull(tree);
-    this.view = Preconditions.checkNotNull(view);
-    this.searcher = Preconditions.checkNotNull(searcher);
-    this.filter = Preconditions.checkNotNull(filter);
-    this.sorter = Preconditions.checkNotNull(sorter);
+    this.controller = checkNotNull(controller);
+    this.tree = checkNotNull(tree);
+    this.view = checkNotNull(view);
+    this.searcher = checkNotNull(searcher);
+    this.filter = checkNotNull(filter);
+    this.sorter = checkNotNull(sorter);
     this.diff = diff;
   }
 

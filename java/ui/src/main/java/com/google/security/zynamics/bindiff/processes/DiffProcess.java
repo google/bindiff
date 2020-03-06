@@ -59,7 +59,6 @@ public class DiffProcess {
           + "."
           + Constants.BINDIFF_MATCHES_DB_EXTENSION;
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new DifferException(e, "Adding Diff to workspace.");
     }
   }
@@ -124,7 +123,6 @@ public class DiffProcess {
           e,
           String.format("Diffing process was interrupted unexpectedly. Exit code %d.", exitCode));
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new DifferException(
           e, String.format("Diffing process failed. Exit code %d.", exitCode));
     } finally {

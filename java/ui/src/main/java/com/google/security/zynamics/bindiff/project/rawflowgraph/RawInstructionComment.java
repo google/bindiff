@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawflowgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 
 public class RawInstructionComment {
@@ -23,7 +24,7 @@ public class RawInstructionComment {
   private boolean modified = false;
 
   public RawInstructionComment(final String text, final ECommentPlacement commentPlacement) {
-    this.text = Preconditions.checkNotNull(text);
+    this.text = checkNotNull(text);
     this.commentPlacement = commentPlacement;
   }
 

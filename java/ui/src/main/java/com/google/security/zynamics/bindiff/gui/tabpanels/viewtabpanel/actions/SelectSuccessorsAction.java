@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
@@ -23,7 +24,7 @@ public class SelectSuccessorsAction extends AbstractAction {
   private final ViewTabPanelFunctions controller;
 
   public SelectSuccessorsAction(final ViewTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
   }
 
   @Override

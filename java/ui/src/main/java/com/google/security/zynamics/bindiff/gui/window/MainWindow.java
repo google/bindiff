@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.window;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanel;
@@ -49,7 +50,7 @@ public class MainWindow extends JFrame {
   private String titlePath;
 
   public MainWindow(final Workspace workspace) {
-    Preconditions.checkNotNull(workspace);
+    checkNotNull(workspace);
 
     workspace.addListener(new InternalWorkspaceListener());
 

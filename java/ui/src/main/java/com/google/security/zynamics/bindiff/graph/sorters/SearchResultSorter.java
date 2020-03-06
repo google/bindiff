@@ -24,7 +24,6 @@ import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

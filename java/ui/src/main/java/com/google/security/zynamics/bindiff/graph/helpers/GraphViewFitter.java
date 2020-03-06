@@ -16,13 +16,11 @@ package com.google.security.zynamics.bindiff.graph.helpers;
 
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.SuperGraph;
-
-import y.view.Graph2D;
-import y.view.Graph2DView;
-
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import y.view.Graph2D;
+import y.view.Graph2DView;
 
 public class GraphViewFitter {
   public static void adoptSuperViewCanvasProperties(final SuperGraph superGraph) {

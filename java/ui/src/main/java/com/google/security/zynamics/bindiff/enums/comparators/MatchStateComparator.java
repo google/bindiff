@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.enums.comparators;
 
 import com.google.security.zynamics.bindiff.enums.EMatchState;
-
 import java.util.Comparator;
 
 public class MatchStateComparator implements Comparator<EMatchState> {

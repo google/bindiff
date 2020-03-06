@@ -17,7 +17,6 @@ package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-
 import javax.swing.DefaultCellEditor;
 import javax.swing.JCheckBox;
 import javax.swing.JTable;

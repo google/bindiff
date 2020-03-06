@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
@@ -46,7 +47,7 @@ public class GraphViewUpdater implements ICommand {
   private final GraphLayoutCalculator layoutCalculator;
 
   public GraphViewUpdater(final GraphLayoutCalculator layoutCalculator) {
-    Preconditions.checkNotNull(layoutCalculator);
+    checkNotNull(layoutCalculator);
 
     this.layoutCalculator = layoutCalculator;
     referenceGraph = layoutCalculator.getReferenceGraph();
@@ -122,7 +123,6 @@ public class GraphViewUpdater implements ICommand {
         morphOneGraphLayout(referenceGraph, getReferenceGraphLayout());
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Graph layout failed. Could not morph graph layout.");
     }
   }
@@ -216,7 +216,6 @@ public class GraphViewUpdater implements ICommand {
     } catch (final GraphLayoutException e) {
       throw e;
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Could update graph view.");
     }
   }

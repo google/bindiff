@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -92,8 +93,8 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
   private final WorkspaceTabPanelFunctions controller;
 
   public DiffTreeNodeContextPanel(final Diff diff, final WorkspaceTabPanelFunctions controller) {
-    this.diff = Preconditions.checkNotNull(diff);
-    this.controller = Preconditions.checkNotNull(controller);
+    this.diff = checkNotNull(diff);
+    this.controller = checkNotNull(controller);
 
     final DiffMetadata metaData = diff.getMetadata();
 

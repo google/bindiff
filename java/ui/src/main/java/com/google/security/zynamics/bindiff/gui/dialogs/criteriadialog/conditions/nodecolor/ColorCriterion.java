@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.nodecolor;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.AbstractGraphsContainer;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.ConditionCriterion;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
@@ -34,7 +35,7 @@ public class ColorCriterion extends ConditionCriterion {
   private final AbstractGraphsContainer graphs;
 
   public ColorCriterion(final AbstractGraphsContainer graphs) {
-    Preconditions.checkNotNull(graphs);
+    checkNotNull(graphs);
 
     panel = new ColorCriterionPanel(this);
 

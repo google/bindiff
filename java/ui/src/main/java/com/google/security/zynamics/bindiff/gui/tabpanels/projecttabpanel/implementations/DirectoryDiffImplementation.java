@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.implementations;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.BinExportException;
@@ -57,11 +58,11 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
       String priSourceBasePath,
       String secSourceBasePath,
       List<DiffPairTableData> idbPairs) {
-    parentWindow = Preconditions.checkNotNull(parent);
-    this.workspace = Preconditions.checkNotNull(workspace);
-    primarySourcePath = Preconditions.checkNotNull(priSourceBasePath);
-    secondarySourcePath = Preconditions.checkNotNull(secSourceBasePath);
-    this.idbPairs = Preconditions.checkNotNull(idbPairs);
+    parentWindow = checkNotNull(parent);
+    this.workspace = checkNotNull(workspace);
+    primarySourcePath = checkNotNull(priSourceBasePath);
+    secondarySourcePath = checkNotNull(secSourceBasePath);
+    this.idbPairs = checkNotNull(idbPairs);
   }
 
   private String createUniqueExportFileName(

@@ -18,7 +18,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.helpers.IEdgeCallback;
 import com.google.security.zynamics.zylib.types.common.IterationMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
-
 import java.util.ArrayList;
 import java.util.Collection;
 

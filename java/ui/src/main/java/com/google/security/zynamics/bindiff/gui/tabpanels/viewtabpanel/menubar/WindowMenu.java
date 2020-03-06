@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ResetDefaultPerspectiveAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ToggleGraphsPerspectiveAction;
@@ -36,7 +37,7 @@ public class WindowMenu extends JMenu {
     super("Window");
     setMnemonic('W');
 
-    Preconditions.checkNotNull(controller);
+    checkNotNull(controller);
 
     // TODO(cblichmann): Key won't work on OS X
     togglePrimaryPerspective =

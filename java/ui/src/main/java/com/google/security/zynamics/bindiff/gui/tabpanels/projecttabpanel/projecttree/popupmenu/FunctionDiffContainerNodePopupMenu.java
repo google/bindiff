@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.CloseFunctionDiffsAction;
@@ -27,7 +28,7 @@ import javax.swing.JSeparator;
 
 public class FunctionDiffContainerNodePopupMenu extends JPopupMenu {
   public FunctionDiffContainerNodePopupMenu(final WorkspaceTabPanelFunctions controller) {
-    Preconditions.checkNotNull(controller);
+    checkNotNull(controller);
 
     add(
         GuiUtils.buildMenuItem(

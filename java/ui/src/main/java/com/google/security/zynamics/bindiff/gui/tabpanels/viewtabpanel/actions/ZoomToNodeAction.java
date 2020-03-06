@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedFunction;
@@ -31,8 +32,8 @@ public class ZoomToNodeAction extends AbstractAction {
 
   public ZoomToNodeAction(final BinDiffGraph<?, ?> graph, final ZyGraphNode<?> node) {
     super(getTitel(node));
-    this.graph = Preconditions.checkNotNull(graph);
-    this.node = Preconditions.checkNotNull(node);
+    this.graph = checkNotNull(graph);
+    this.node = checkNotNull(node);
   }
 
   private static String getTitel(final ZyGraphNode<?> node) {

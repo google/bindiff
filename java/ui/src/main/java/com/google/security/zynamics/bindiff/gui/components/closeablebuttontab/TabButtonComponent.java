@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.components.closeablebuttontab;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
@@ -47,8 +48,8 @@ public class TabButtonComponent extends JPanel {
       final JTabbedPane pane, final TabPanel tabPanel, final Icon icon, final boolean enableClose) {
     super(new FlowLayout(FlowLayout.LEFT, 0, 0));
 
-    this.pane = Preconditions.checkNotNull(pane);
-    this.tabPanel = Preconditions.checkNotNull(tabPanel);
+    this.pane = checkNotNull(pane);
+    this.tabPanel = checkNotNull(tabPanel);
 
     closeButton = new TabButton(pane, this, enableClose);
 

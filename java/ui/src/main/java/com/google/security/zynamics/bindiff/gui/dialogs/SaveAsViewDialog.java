@@ -15,14 +15,12 @@
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;

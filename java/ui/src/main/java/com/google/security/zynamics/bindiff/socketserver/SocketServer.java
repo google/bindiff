@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.socketserver;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
@@ -51,7 +52,7 @@ public final class SocketServer {
   public SocketServer(final int port, final WorkspaceTabPanelFunctions controller) {
     this.port = port;
     this.socket = null;
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
   }
 
   private void handleReceivedByteBuffer(final byte[] bytes) {
@@ -110,7 +111,7 @@ public final class SocketServer {
     private final SocketServer server;
 
     public SocketListenerThread(final SocketServer server) {
-      this.server = Preconditions.checkNotNull(server);
+      this.server = checkNotNull(server);
     }
 
     private static byte[] receiveBoundedBytes(final InputStream steam) throws IOException {

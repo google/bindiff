@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.diff.CountsChangedListener;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
@@ -59,7 +60,7 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
 
   public BasicBlockMatchesPie3dPanel(final Diff diff, final boolean includeUnmatchedFunctions) {
     super(new BorderLayout());
-    Preconditions.checkNotNull(diff);
+    checkNotNull(diff);
 
     includeUnmtachedFunctions = includeUnmatchedFunctions;
 

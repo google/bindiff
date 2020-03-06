@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawcallgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -30,7 +31,7 @@ public class RawCallGraph extends MutableDirectedGraph<RawFunction, RawCall> {
   public RawCallGraph(final List<RawFunction> nodes, final List<RawCall> edges, final ESide side) {
     super(nodes, edges);
 
-    this.side = Preconditions.checkNotNull(side);
+    this.side = checkNotNull(side);
     this.addressToFunction = Maps.uniqueIndex(nodes, input -> input.getAddress());
   }
 

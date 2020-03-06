@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.AbstractGraphNodeTree;
@@ -32,7 +33,7 @@ public abstract class AbstractTreeNode extends DefaultMutableTreeNode {
   private AbstractRootTreeNode rootNode;
 
   public AbstractTreeNode(final AbstractRootTreeNode rootNode) {
-    Preconditions.checkArgument(
+    checkArgument(
         rootNode != null || this instanceof AbstractRootTreeNode,
         "Root node cannot be null for non-root nodes");
 
@@ -43,7 +44,6 @@ public abstract class AbstractTreeNode extends DefaultMutableTreeNode {
     for (int i = 0; i < getChildCount(); i++) {
       AbstractTreeNode node = (AbstractTreeNode) getChildAt(i);
       node.delete();
-      node = null;
     }
     removeAllChildren();
 

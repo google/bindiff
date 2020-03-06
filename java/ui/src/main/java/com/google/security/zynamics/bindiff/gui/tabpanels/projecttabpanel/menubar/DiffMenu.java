@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.AddDiffAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.CloseDiffAction;
@@ -56,7 +57,7 @@ public class DiffMenu extends JMenu {
 
   public DiffMenu(final WorkspaceTabPanelFunctions controller) {
     super("Diffs");
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     setMnemonic('D');
     setEnabled(false);

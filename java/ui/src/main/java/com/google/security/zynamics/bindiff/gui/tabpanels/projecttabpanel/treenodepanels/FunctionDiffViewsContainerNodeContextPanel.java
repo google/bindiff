@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.FunctionDiffViewsContainerTable;
@@ -36,7 +37,7 @@ public class FunctionDiffViewsContainerNodeContextPanel extends AbstractTreeNode
 
   public FunctionDiffViewsContainerNodeContextPanel(final WorkspaceTabPanelFunctions controller) {
     final List<Diff> singleFlowgraphViewDiffList =
-        Preconditions.checkNotNull(controller).getWorkspace().getDiffList(true);
+        checkNotNull(controller).getWorkspace().getDiffList(true);
 
     final FunctionDiffViewsContainerTableModel allFunctionDiffViewsTableModel =
         new FunctionDiffViewsContainerTableModel(singleFlowgraphViewDiffList);

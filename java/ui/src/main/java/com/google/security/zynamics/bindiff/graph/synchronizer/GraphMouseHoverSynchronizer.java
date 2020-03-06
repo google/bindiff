@@ -16,16 +16,14 @@ package com.google.security.zynamics.bindiff.graph.synchronizer;
 
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
-
+import java.util.HashSet;
+import java.util.Set;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.view.EdgeRealizer;
 import y.view.Graph2D;
 import y.view.LineType;
 import y.view.NodeRealizer;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class GraphMouseHoverSynchronizer {
   private static void highlightEdge(final Edge edge) {

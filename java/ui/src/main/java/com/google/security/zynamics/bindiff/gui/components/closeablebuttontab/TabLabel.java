@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.components.closeablebuttontab;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import javax.swing.JLabel;
 import javax.swing.JTabbedPane;
 
@@ -24,8 +25,8 @@ public class TabLabel extends JLabel {
   private final TabButtonComponent buttonComponent;
 
   public TabLabel(final JTabbedPane tabbedPane, final TabButtonComponent buttonComponent) {
-    Preconditions.checkNotNull(tabbedPane);
-    Preconditions.checkNotNull(buttonComponent);
+    checkNotNull(tabbedPane);
+    checkNotNull(buttonComponent);
 
     pane = tabbedPane;
     this.buttonComponent = buttonComponent;

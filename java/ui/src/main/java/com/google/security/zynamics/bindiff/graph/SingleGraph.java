@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
@@ -75,7 +76,7 @@ public class SingleGraph extends BinDiffGraph<SingleDiffNode, SingleDiffEdge> {
       final EGraphType graphType) {
     super(view, nodeMap, edgeMap, settings, graphType);
 
-    Preconditions.checkNotNull(side);
+    checkNotNull(side);
 
     functionAddress = address;
     this.side = side;

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.listeners;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
@@ -41,8 +42,8 @@ public class SingleGraphMouseListener implements IZyGraphListener<SingleDiffNode
 
   protected SingleGraphMouseListener(
       final ViewTabPanelFunctions controller, final SingleGraph graph) {
-    this.controller = Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
+    this.controller = checkNotNull(controller);
+    this.graph = checkNotNull(graph);
 
     addListener();
   }

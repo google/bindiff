@@ -14,14 +14,13 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.tables.CTableSorter;
-
 import java.io.File;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
@@ -32,8 +31,8 @@ public class IdbPairTable extends JTable // AbstractTable
   private final IdbPairTableModel model;
 
   public IdbPairTable(final File workspaceDir, final IdbPairTableModel model) {
-    Preconditions.checkNotNull(workspaceDir);
-    this.model = Preconditions.checkNotNull(model);
+    checkNotNull(workspaceDir);
+    this.model = checkNotNull(model);
 
     tableSorter = new CTableSorter(model);
 

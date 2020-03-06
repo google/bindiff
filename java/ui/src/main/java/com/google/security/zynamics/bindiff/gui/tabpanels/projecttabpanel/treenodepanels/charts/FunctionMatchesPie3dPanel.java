@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
@@ -47,7 +48,7 @@ public class FunctionMatchesPie3dPanel extends JPanel {
   public FunctionMatchesPie3dPanel(final Diff diff) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(diff);
+    checkNotNull(diff);
 
     final MatchData matches = diff.getMatches();
 
@@ -88,7 +89,7 @@ public class FunctionMatchesPie3dPanel extends JPanel {
   public FunctionMatchesPie3dPanel(final DiffMetadata metadata) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(metadata);
+    checkNotNull(metadata);
 
     matchedCount = metadata.getSizeOfMatchedFunctions();
     primaryUnmatchedCount = metadata.getSizeOfUnmatchedFunctions(ESide.PRIMARY);

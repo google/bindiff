@@ -19,7 +19,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;

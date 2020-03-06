@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
@@ -33,7 +34,7 @@ public class OpenMultipeFlowGraphsViewsAction extends AbstractAction {
   private final AbstractTable table;
 
   public OpenMultipeFlowGraphsViewsAction(final AbstractTable table) {
-    this.table = Preconditions.checkNotNull(table);
+    this.table = checkNotNull(table);
   }
 
   @Override

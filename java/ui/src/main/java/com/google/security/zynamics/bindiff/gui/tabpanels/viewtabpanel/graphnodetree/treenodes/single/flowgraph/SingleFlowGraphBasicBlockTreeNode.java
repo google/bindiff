@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.single.flowgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.EMatchType;
@@ -34,11 +35,7 @@ import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-
-
 import java.awt.event.MouseEvent;
-
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 
@@ -79,7 +76,7 @@ public class SingleFlowGraphBasicBlockTreeNode extends AbstractTreeNode
       final SingleFlowGraphRootTreeNode rootNode, final SingleDiffNode graphNode) {
     super(rootNode);
 
-    singleDiffNode = Preconditions.checkNotNull(graphNode);
+    singleDiffNode = checkNotNull(graphNode);
 
     rawBasicblock = (RawBasicBlock) singleDiffNode.getRawNode();
 

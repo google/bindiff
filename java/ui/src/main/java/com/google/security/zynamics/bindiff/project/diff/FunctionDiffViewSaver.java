@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.diff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
@@ -63,12 +64,12 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
       final File binDiffFileTarget,
       final boolean overridePrimaryExport,
       final boolean overrideSecondaryExport) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
     this.parent = controller.getMainWindow();
     this.diffToSave = controller.getGraphs().getDiff();
-    this.primaryExportFileTarget = Preconditions.checkNotNull(primaryExportFileTarget);
-    this.secondaryExportFileTarget = Preconditions.checkNotNull(secondaryExportFileTarget);
-    this.binDiffFileTarget = Preconditions.checkNotNull(binDiffFileTarget);
+    this.primaryExportFileTarget = checkNotNull(primaryExportFileTarget);
+    this.secondaryExportFileTarget = checkNotNull(secondaryExportFileTarget);
+    this.binDiffFileTarget = checkNotNull(binDiffFileTarget);
 
     this.overridePrimaryExport = overridePrimaryExport;
     this.overrideSecondaryExport = overrideSecondaryExport;

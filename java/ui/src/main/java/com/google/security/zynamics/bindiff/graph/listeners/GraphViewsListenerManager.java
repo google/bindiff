@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.listeners;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
@@ -38,8 +39,8 @@ public class GraphViewsListenerManager {
 
   public GraphViewsListenerManager(
       final GraphsContainer graphs, final ViewTabPanelFunctions controller) {
-    Preconditions.checkNotNull(controller);
-    this.graphs = Preconditions.checkNotNull(graphs);
+    checkNotNull(controller);
+    this.graphs = checkNotNull(graphs);
 
     primaryViewCanvasListener = new SingleViewCanvasListener(controller, graphs.getPrimaryGraph());
     secondaryViewCanvasListener =

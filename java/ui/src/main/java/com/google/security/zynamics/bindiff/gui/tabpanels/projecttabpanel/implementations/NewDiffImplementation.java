@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.implementations;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -60,9 +61,9 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       final File primaryBinExportFile,
       final File secondaryBinExportFile,
       final File destinationDir) {
-    parentWindow = Preconditions.checkNotNull(window);
-    this.workspace = Preconditions.checkNotNull(workspace);
-    destinationDirectory = Preconditions.checkNotNull(destinationDir);
+    parentWindow = checkNotNull(window);
+    this.workspace = checkNotNull(workspace);
+    destinationDirectory = checkNotNull(destinationDir);
 
     this.primaryIdbFile = primaryIdbFile;
     this.secondaryIdbFile = secondaryIdbFile;
@@ -333,7 +334,6 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
       return null;
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log("New Diff failed..");
       CMessageBox.showError(parentWindow, "New Diff failed.");
     }

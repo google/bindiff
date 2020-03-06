@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraphLayeredRenderer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyOverview;
 import java.awt.BorderLayout;
@@ -33,7 +34,7 @@ public class GraphOverviewPanel extends JPanel {
   public GraphOverviewPanel(final Graph2DView view) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(view);
+    checkNotNull(view);
 
     setBorder(new TitledBorder(""));
 

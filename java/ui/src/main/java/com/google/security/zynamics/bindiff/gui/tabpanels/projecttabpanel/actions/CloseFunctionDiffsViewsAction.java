@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
@@ -32,12 +33,12 @@ public class CloseFunctionDiffsViewsAction extends AbstractAction {
   private final FunctionDiffViewsTable table;
 
   public CloseFunctionDiffsViewsAction(final FunctionDiffViewsTable table) {
-    this.table = Preconditions.checkNotNull(table);
+    this.table = checkNotNull(table);
     this.controller = table.getController();
   }
 
   public CloseFunctionDiffsViewsAction(final WorkspaceTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
     this.table = null;
   }
 

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
@@ -40,7 +41,7 @@ public class GraphLayoutUpdater implements ICommand {
   public GraphLayoutUpdater(
       final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> referenceGraph,
       final boolean showProgress) {
-    this.referenceGraph = Preconditions.checkNotNull(referenceGraph);
+    this.referenceGraph = checkNotNull(referenceGraph);
     this.showProgress = showProgress;
   }
 
@@ -83,7 +84,6 @@ public class GraphLayoutUpdater implements ICommand {
         layoutCalculator.execute();
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Couldn't calculate graph layout.");
     }
 

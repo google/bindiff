@@ -34,7 +34,7 @@ public abstract class AbstractGraphNodeTree extends JTree {
   private InternalGraphVisibilityListener graphVisibilityListener =
       new InternalGraphVisibilityListener();
 
-  private boolean udpateFrozen = false;
+  private boolean updateFrozen = false;
 
   private void handleMouseEvent(final MouseEvent event) {
     final AbstractTreeNode selectedNode =
@@ -78,13 +78,13 @@ public abstract class AbstractGraphNodeTree extends JTree {
     return (AbstractRootTreeNode) getModel().getRoot();
   }
 
-  public void setUpdateFroozen(final boolean freeze) {
-    udpateFrozen = freeze;
+  public void setUpdateFrozen(final boolean freeze) {
+    updateFrozen = freeze;
   }
 
   @Override
   public void updateUI() {
-    if (!udpateFrozen) {
+    if (!updateFrozen) {
       super.updateUI();
     }
   }

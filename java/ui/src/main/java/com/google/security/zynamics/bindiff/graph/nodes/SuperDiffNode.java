@@ -14,15 +14,15 @@
 
 package com.google.security.zynamics.bindiff.graph.nodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
-import y.base.Node;
-
 import java.util.ArrayList;
 import java.util.List;
+import y.base.Node;
 
 public class SuperDiffNode extends ZyGraphNode<SuperViewNode> implements IGraphNode<SuperDiffNode> {
   private final SingleDiffNode primaryDiffNode;
@@ -42,7 +42,7 @@ public class SuperDiffNode extends ZyGraphNode<SuperViewNode> implements IGraphN
       final SingleDiffNode primaryDiffNode,
       final SingleDiffNode secondaryDiffNode) {
     super(node, realizer, superNode);
-    Preconditions.checkArgument(
+    checkArgument(
         primaryDiffNode != null || secondaryDiffNode != null,
         "Primary diff node and secondary diff node cannot be both be null.");
 
@@ -100,7 +100,7 @@ public class SuperDiffNode extends ZyGraphNode<SuperViewNode> implements IGraphN
   }
 
   public void setCombinedDiffNode(final CombinedDiffNode combinedDiffNode) {
-    Preconditions.checkNotNull(combinedDiffNode);
+    checkNotNull(combinedDiffNode);
 
     this.combinedDiffNode = combinedDiffNode;
   }

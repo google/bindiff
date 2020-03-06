@@ -14,12 +14,12 @@
 
 package com.google.security.zynamics.bindiff.graph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,10 +36,10 @@ public class GraphsContainer extends AbstractGraphsContainer {
       final CombinedGraph combinedGraph,
       final SingleGraph primaryGraph,
       final SingleGraph secondaryGraph) {
-    Preconditions.checkNotNull(superGraph);
-    Preconditions.checkNotNull(combinedGraph);
-    Preconditions.checkNotNull(primaryGraph);
-    Preconditions.checkNotNull(secondaryGraph);
+    checkNotNull(superGraph);
+    checkNotNull(combinedGraph);
+    checkNotNull(primaryGraph);
+    checkNotNull(secondaryGraph);
 
     this.diff = diff;
 

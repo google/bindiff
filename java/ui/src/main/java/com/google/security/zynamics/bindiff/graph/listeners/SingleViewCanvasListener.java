@@ -14,12 +14,12 @@
 
 package com.google.security.zynamics.bindiff.graph.listeners;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.synchronizer.GraphViewCanvasSynchronizer;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
-
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -33,8 +33,8 @@ public class SingleViewCanvasListener implements PropertyChangeListener {
 
   protected SingleViewCanvasListener(
       final ViewTabPanelFunctions controller, final SingleGraph graph) {
-    viewPanelController = Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
+    viewPanelController = checkNotNull(controller);
+    this.graph = checkNotNull(graph);
 
     addListener();
   }

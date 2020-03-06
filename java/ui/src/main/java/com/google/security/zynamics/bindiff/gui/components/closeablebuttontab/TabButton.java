@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.components.closeablebuttontab;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.gui.components.MessageBox;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
@@ -63,8 +64,8 @@ public class TabButton extends JButton {
       final JTabbedPane tabPane,
       final TabButtonComponent tabButtonComponent,
       final boolean enableClose) {
-    Preconditions.checkNotNull(tabPane);
-    Preconditions.checkNotNull(tabButtonComponent);
+    checkNotNull(tabPane);
+    checkNotNull(tabButtonComponent);
 
     pane = tabPane;
     this.tabButtonComponent = tabButtonComponent;

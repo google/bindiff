@@ -14,16 +14,15 @@
 
 package com.google.security.zynamics.bindiff.graph.nodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
-import y.base.Node;
-
 import java.util.ArrayList;
 import java.util.List;
+import y.base.Node;
 
 public class SingleDiffNode extends ZyGraphNode<SingleViewNode>
     implements IGraphNode<SingleDiffNode> {
@@ -45,7 +44,7 @@ public class SingleDiffNode extends ZyGraphNode<SingleViewNode>
       final SingleViewNode rawNode,
       final ESide side) {
     super(node, realizer, rawNode);
-    this.side = Preconditions.checkNotNull(side);
+    this.side = checkNotNull(side);
   }
 
   public static void link(final SingleDiffNode sourceNode, final SingleDiffNode targetNode) {
@@ -102,7 +101,7 @@ public class SingleDiffNode extends ZyGraphNode<SingleViewNode>
   }
 
   public void setCombinedDiffNode(final CombinedDiffNode combinedDiffNode) {
-    Preconditions.checkNotNull(combinedDiffNode);
+    checkNotNull(combinedDiffNode);
 
     this.combinedDiffNode = combinedDiffNode;
     superDiffNode = combinedDiffNode.getSuperDiffNode();

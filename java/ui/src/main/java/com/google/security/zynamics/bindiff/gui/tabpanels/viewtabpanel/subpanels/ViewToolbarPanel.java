@@ -14,10 +14,11 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.graph.searchers.GraphSeacherFunctions;
+import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcherFunctions;
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
@@ -247,7 +248,7 @@ public class ViewToolbarPanel extends JPanel {
   public ViewToolbarPanel(final ViewTabPanelFunctions controller) {
     super(new BorderLayout());
 
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     settings = controller.getGraphSettings();
 
@@ -675,7 +676,7 @@ public class ViewToolbarPanel extends JPanel {
     @Override
     public void actionPerformed(final ActionEvent event) {
       if (event.getSource().equals(clearSearchResultsButton)) {
-        GraphSeacherFunctions.clearResults(controller.getGraphs());
+        GraphSearcherFunctions.clearResults(controller.getGraphs());
 
         searchField.notifySearchFieldListener();
       } else if (event.getSource().equals(searchOptionsButton)) {

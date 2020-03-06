@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
@@ -76,10 +77,10 @@ public abstract class GraphPanel extends JPanel {
       final EGraph graphType) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(diff);
-    this.view = Preconditions.checkNotNull(view);
-    this.graph = Preconditions.checkNotNull(graph);
+    checkNotNull(controller);
+    checkNotNull(diff);
+    this.view = checkNotNull(view);
+    this.graph = checkNotNull(graph);
 
     this.graphType = graphType;
 

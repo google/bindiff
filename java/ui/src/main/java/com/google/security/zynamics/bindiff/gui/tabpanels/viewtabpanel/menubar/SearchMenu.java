@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.JumpToAddressAction;
@@ -38,7 +39,7 @@ public class SearchMenu extends JMenu {
     setMnemonic('A');
 
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    Preconditions.checkNotNull(controller);
+    checkNotNull(controller);
 
     jumpToPrimaryAddress =
         GuiUtils.buildMenuItem(

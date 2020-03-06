@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.nodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.edges.SingleViewEdge;
@@ -22,7 +23,6 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IGroupNode;
 import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public abstract class SingleViewNode extends CViewNode<SingleViewEdge<? extends 
       final boolean selected,
       final boolean visible) {
     super(id, x, y, 0, 0, color, borderColor, selected, visible);
-    Preconditions.checkNotNull(addr);
+    checkNotNull(addr);
 
     address = addr;
   }

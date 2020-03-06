@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.types;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -35,7 +36,7 @@ public class Matches<Match extends IAddressPair> {
   private final Table<Long, Long, Match> store = HashBasedTable.create();
 
   public Matches(final List<Match> basicBlockMatches) {
-    for (final Match match : Preconditions.checkNotNull(basicBlockMatches)) {
+    for (final Match match : checkNotNull(basicBlockMatches)) {
       put(match);
     }
   }

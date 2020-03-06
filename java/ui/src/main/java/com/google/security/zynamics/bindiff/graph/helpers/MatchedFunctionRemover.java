@@ -36,7 +36,6 @@ import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.ZyEdgeData;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
 import y.base.Edge;
 import y.base.Node;
 
@@ -46,7 +45,7 @@ public class MatchedFunctionRemover {
       final CombinedGraph diffGraph,
       final RawCombinedCall rawCombinedCall,
       final SuperDiffEdge superDiffEdge) {
-    Edge yCombinedEdge = null;
+    Edge yCombinedEdge;
 
     final ZyLabelContent combinedEdgeContent = new ZyLabelContent(null);
     final CombinedEdgeRealizer combinedEdgeRealizer =
@@ -79,7 +78,7 @@ public class MatchedFunctionRemover {
   private static SingleDiffEdge buildDiffEdge(
       final SingleGraph diffGraph, final RawCombinedCall rawCombinedCall) {
     SingleDiffEdge diffEdge = null;
-    Edge yEdge = null;
+    Edge yEdge;
 
     final RawFunction rawSourceNode = rawCombinedCall.getSource().getRawNode(diffGraph.getSide());
     final RawFunction rawTargetNode = rawCombinedCall.getTarget().getRawNode(diffGraph.getSide());
@@ -89,12 +88,9 @@ public class MatchedFunctionRemover {
             ? rawCombinedCall.getPrimaryEdge()
             : rawCombinedCall.getSecondaryEdge();
 
-    SingleEdgeRealizer edgeRealizer = null;
+    SingleEdgeRealizer edgeRealizer;
 
-    if (rawSourceNode != null
-        && rawTargetNode != null
-        && rawCombinedCall != null
-        && rawCall != null) {
+    if (rawSourceNode != null && rawTargetNode != null && rawCall != null) {
       final ZyLabelContent edgeContent = new ZyLabelContent(null);
       edgeRealizer = new SingleEdgeRealizer(edgeContent, null, diffGraph.getSettings());
 
@@ -121,7 +117,7 @@ public class MatchedFunctionRemover {
       final RawCombinedCall rawCombinedCall,
       final SingleDiffEdge primaryDiffEdge,
       final SingleDiffEdge secondaryDiffEdge) {
-    Edge ySuperEdge = null;
+    Edge ySuperEdge;
 
     final ZyLabelContent superEdgeContent = new ZyLabelContent(null);
     final ZyEdgeRealizer<SuperDiffEdge> superEdgeRealizer =
@@ -181,7 +177,7 @@ public class MatchedFunctionRemover {
     final CombinedDiffEdge combinedDiffEdge =
         buildDiffEdge(combinedDiffGraph, rawCombinedCall, superDiffEdge);
 
-    // each edge gets it's representatives of the parallel views
+    // each edge gets its representatives from the parallel views
     superDiffEdge.setCombinedDiffEdge(combinedDiffEdge);
     if (primaryDiffEdge != null) {
       primaryDiffEdge.setCombinedDiffEdge(combinedDiffEdge);

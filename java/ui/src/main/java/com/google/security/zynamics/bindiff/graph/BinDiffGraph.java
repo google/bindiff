@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
@@ -73,8 +74,8 @@ public abstract class BinDiffGraph<
     super(view, nodeMap, edgeMap, settings);
 
     // Must be set first
-    this.settings = Preconditions.checkNotNull(settings);
-    this.viewType = Preconditions.checkNotNull(graphType);
+    this.settings = checkNotNull(settings);
+    this.viewType = checkNotNull(graphType);
 
     this.intermediateListeners =
         new GraphsIntermediateListeners(
@@ -120,7 +121,6 @@ public abstract class BinDiffGraph<
       // Do nothing, user has canceled layout thread
       logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }
 
@@ -145,7 +145,6 @@ public abstract class BinDiffGraph<
       // Do nothing, user has canceled layout thread
       logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }
 
@@ -306,6 +305,6 @@ public abstract class BinDiffGraph<
   }
 
   public void setGraphs(final GraphsContainer graphs) {
-    this.graphs = Preconditions.checkNotNull(graphs);
+    this.graphs = checkNotNull(graphs);
   }
 }

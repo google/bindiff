@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -26,9 +27,8 @@ import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.CFileChooser;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.FileChooser.FileChooserPanel;
-
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -39,7 +39,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.sql.SQLException;
-
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -78,7 +77,7 @@ public class AddDiffDialog extends BaseDialog {
   public AddDiffDialog(final Window window, final Workspace workspace) {
     super(window, "Add Existing Diff");
 
-    this.workspace = Preconditions.checkNotNull(workspace);
+    this.workspace = checkNotNull(workspace);
 
     init();
     pack();
@@ -269,7 +268,6 @@ public class AddDiffDialog extends BaseDialog {
           errorMsg = "Can't add diff to workspace. Destination folder cannot be created.";
         }
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         errorMsg = "Can't add diff to workspace. Destination folder cannot be created.";
       } finally {
         // TODO: This can fail

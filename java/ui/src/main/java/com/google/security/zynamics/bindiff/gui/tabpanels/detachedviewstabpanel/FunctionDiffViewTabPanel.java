@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.detachedviewstabpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchType;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
@@ -60,8 +61,8 @@ public class FunctionDiffViewTabPanel extends ViewTabPanel {
       final ViewData view) {
     super(window, tabPanelManager, workspace, diff, view);
 
-    this.functionMatch = Preconditions.checkNotNull(functionMatch);
-    this.workspace = Preconditions.checkNotNull(workspace);
+    this.functionMatch = checkNotNull(functionMatch);
+    this.workspace = checkNotNull(workspace);
   }
 
   private boolean isSavedView() {

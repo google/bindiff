@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressionmodel.CriterionTree;
@@ -51,7 +52,7 @@ public final class CriteriaDialog extends BaseDialog {
     super(owner, "Select by Criteria");
     setModal(true);
 
-    Preconditions.checkNotNull(conditionFactory);
+    checkNotNull(conditionFactory);
 
     final List<CriterionCreator> criteria = conditionFactory.getConditions();
 

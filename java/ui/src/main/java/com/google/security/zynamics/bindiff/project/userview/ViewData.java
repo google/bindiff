@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.userview;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.enums.EViewType;
@@ -35,8 +36,8 @@ public abstract class ViewData {
   private final EViewType viewType;
 
   public ViewData(final GraphsContainer graphs, final String name, final EViewType viewType) {
-    this.graphs = Preconditions.checkNotNull(graphs);
-    this.viewName = Preconditions.checkNotNull(name);
+    this.graphs = checkNotNull(graphs);
+    this.viewName = checkNotNull(name);
     this.viewType = viewType;
     this.viewComment = "";
     this.creationDate = null;

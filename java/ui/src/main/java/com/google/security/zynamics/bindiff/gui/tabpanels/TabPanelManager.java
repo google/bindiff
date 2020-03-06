@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.MaterialChromeTabbedPaneUI;
 import com.google.security.zynamics.bindiff.gui.components.closeablebuttontab.ICloseTabButtonListener;
@@ -67,8 +68,8 @@ public final class TabPanelManager implements Iterable<TabPanel> {
   private final Workspace workspace;
 
   public TabPanelManager(final MainWindow window, final Workspace workspace) {
-    this.window = Preconditions.checkNotNull(window);
-    this.workspace = Preconditions.checkNotNull(workspace);
+    this.window = checkNotNull(window);
+    this.workspace = checkNotNull(workspace);
 
     tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
     tabbedPane.setFocusable(false);
@@ -322,7 +323,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
     protected IDiffListener diffListener;
 
     private ColorSlot(final Color color) {
-      this.color = Preconditions.checkNotNull(color);
+      this.color = checkNotNull(color);
       this.diff = null;
       this.diffListener = null;
     }

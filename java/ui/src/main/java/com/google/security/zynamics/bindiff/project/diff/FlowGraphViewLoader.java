@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.diff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.database.CommentsDatabase;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -55,10 +56,10 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
       final TabPanelManager tabPanelManager,
       final Workspace workspace,
       final LinkedHashSet<Triple<Diff, IAddress, IAddress>> viewsAddrs) {
-    this.tabPanelManager = Preconditions.checkNotNull(tabPanelManager);
-    this.window = Preconditions.checkNotNull(window);
-    this.workspace = Preconditions.checkNotNull(workspace);
-    this.viewsAddrs = Preconditions.checkNotNull(viewsAddrs);
+    this.tabPanelManager = checkNotNull(tabPanelManager);
+    this.window = checkNotNull(window);
+    this.workspace = checkNotNull(workspace);
+    this.viewsAddrs = checkNotNull(viewsAddrs);
   }
 
   private void createFlowGraphView(final FlowGraphViewData viewData) throws GraphCreationException {
@@ -78,7 +79,6 @@ public class FlowGraphViewLoader extends CEndlessHelperThread {
     try {
       ViewTabPanelInitializer.initialize(viewData.getGraphs(), this);
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphCreationException("An error occurred while initializing the graph.");
     }
 

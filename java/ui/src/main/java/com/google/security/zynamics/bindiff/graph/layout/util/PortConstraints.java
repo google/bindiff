@@ -20,7 +20,7 @@ import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.edges.CombinedDiffEdge;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
-
+import java.util.Collection;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.EdgeMap;
@@ -31,8 +31,6 @@ import y.layout.PortCandidate;
 import y.layout.hierarchic.IncrementalHierarchicLayouter;
 import y.util.Maps;
 import y.view.Graph2D;
-
-import java.util.Collection;
 
 public class PortConstraints {
   // creates the top and bottom left port

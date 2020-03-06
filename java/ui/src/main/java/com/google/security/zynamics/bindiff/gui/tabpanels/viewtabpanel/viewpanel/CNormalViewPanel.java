@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.viewpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -44,8 +45,8 @@ public class CNormalViewPanel extends JPanel {
       final Diff diff, final ViewTabPanelFunctions controller, final ViewData viewData) {
     super(new BorderLayout());
 
-    this.controller = Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(viewData);
+    this.controller = checkNotNull(controller);
+    checkNotNull(viewData);
 
     primaryPanel = new NormalGraphPanel(controller, diff, viewData, ESide.PRIMARY);
     secondaryPanel = new NormalGraphPanel(controller, diff, viewData, ESide.SECONDARY);

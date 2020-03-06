@@ -21,7 +21,6 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IGroupNode;
 import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;

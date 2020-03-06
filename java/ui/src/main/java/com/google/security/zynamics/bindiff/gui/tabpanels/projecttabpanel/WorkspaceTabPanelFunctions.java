@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteStreams;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
@@ -316,7 +317,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         getWorkspace().saveWorkspace();
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log("Load workspace failed. %s", e.getMessage());
       CMessageBox.showError(
           getMainWindow(), String.format("Load workspace failed. %s", e.getMessage()));
@@ -744,7 +744,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             String.format("New single Diff '%s'", destinationFile.getName()),
             newDiffThread);
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(getMainWindow(), "Unknown error while diffing.");
       }
@@ -802,7 +801,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     try {
       ProgressDialog.show(getMainWindow(), "Loading call graph diff", loader);
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log(
           "Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
@@ -829,7 +827,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log(
           "Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
@@ -868,7 +865,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         diffListener.loadedView(diff);
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log(
           "Open flow graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
@@ -926,7 +922,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log(
           "Open flow graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
@@ -949,7 +944,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.SEVERE).withCause(e).log(
           "Open function diff view failed. Couldn't create graph.");
       CMessageBox.showError(
@@ -958,7 +952,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void openFunctionDiffView(final MainWindow window, final Diff diff) {
-    Preconditions.checkArgument(diff.isFunctionDiff());
+    checkArgument(diff.isFunctionDiff());
 
     final IAddress priFunctionAddr =
         diff.getCallGraph(ESide.PRIMARY).getNodes().get(0).getAddress();

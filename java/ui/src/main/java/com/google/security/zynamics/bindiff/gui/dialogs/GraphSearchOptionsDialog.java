@@ -14,17 +14,16 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcher;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
@@ -53,7 +52,7 @@ public class GraphSearchOptionsDialog extends BaseDialog {
 
   public GraphSearchOptionsDialog(final Window owner, final BinDiffGraph<?, ?> graph) {
     super(owner, "Search Options");
-    Preconditions.checkNotNull(graph);
+    checkNotNull(graph);
 
     setModal(true);
 

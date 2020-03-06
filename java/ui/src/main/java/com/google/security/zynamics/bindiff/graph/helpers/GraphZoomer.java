@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.helpers;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
@@ -63,8 +64,7 @@ public class GraphZoomer {
     view.getGraph2D().updateViews();
   }
 
-  private static void zoomToArea(
-      final SuperGraph graph, final Rectangle2D area, final Collection<SuperDiffNode> nodes) {
+  private static void zoomToArea(final SuperGraph graph, final Rectangle2D area) {
     GraphViewFitter.adoptSuperViewCanvasProperties(graph);
 
     final Graph2DView primaryView = graph.getPrimaryGraph().getView();
@@ -138,8 +138,8 @@ public class GraphZoomer {
 
   @SuppressWarnings("unchecked")
   public static void zoomToNode(final BinDiffGraph<?, ?> graph, final ZyGraphNode<?> node) {
-    Preconditions.checkNotNull(graph);
-    Preconditions.checkNotNull(node);
+    checkNotNull(graph);
+    checkNotNull(node);
 
     if (!node.isVisible()) {
       GraphLayoutEventHandler.handleUnhideInvisibleNode(
@@ -154,8 +154,8 @@ public class GraphZoomer {
 
   public static void zoomToNodes(
       final CombinedGraph graph, final Collection<CombinedDiffNode> nodes) {
-    Preconditions.checkNotNull(graph);
-    Preconditions.checkNotNull(nodes);
+    checkNotNull(graph);
+    checkNotNull(nodes);
 
     for (final CombinedDiffNode node : nodes) {
       if (!node.isVisible()) {
@@ -176,8 +176,8 @@ public class GraphZoomer {
   }
 
   public static void zoomToNodes(final SuperGraph graph, final Collection<SuperDiffNode> nodes) {
-    Preconditions.checkNotNull(graph);
-    Preconditions.checkNotNull(nodes);
+    checkNotNull(graph);
+    checkNotNull(nodes);
 
     for (final SuperDiffNode node : nodes) {
       if (!node.isVisible()) {
@@ -198,7 +198,7 @@ public class GraphZoomer {
     final Rectangle2D area = GraphHelpers.calculateBoundingBox(nodes);
 
     if (graph.getSettings().isSync()) {
-      zoomToArea(graph, area, nodes);
+      zoomToArea(graph, area);
     } else if (graph.getSettings().getFocus() == ESide.PRIMARY) {
       zoomToArea(graph.getPrimaryGraph(), area);
     } else {

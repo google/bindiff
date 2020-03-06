@@ -18,7 +18,6 @@ import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.editmode.helpers.EditCombinedNodeHelper;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IStateAction;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeClickedMiddleState;
-
 import java.awt.event.MouseEvent;
 
 public class CombinedNodeClickedMiddleAction implements IStateAction<CNodeClickedMiddleState> {

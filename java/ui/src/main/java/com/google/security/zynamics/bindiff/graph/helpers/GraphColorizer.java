@@ -16,7 +16,6 @@ package com.google.security.zynamics.bindiff.graph.helpers;
 
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

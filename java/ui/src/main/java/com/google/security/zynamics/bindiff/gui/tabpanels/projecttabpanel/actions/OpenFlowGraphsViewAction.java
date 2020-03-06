@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.awt.event.ActionEvent;
@@ -28,8 +29,8 @@ public class OpenFlowGraphsViewAction extends AbstractAction {
       final ViewTabPanelFunctions controller, final ZyGraphNode<?> node) {
     super("Open Flow Graphs View");
 
-    this.controller = Preconditions.checkNotNull(controller);
-    this.node = Preconditions.checkNotNull(node);
+    this.controller = checkNotNull(controller);
+    this.node = checkNotNull(node);
   }
 
   @Override

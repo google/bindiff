@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawflowgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.edges.SingleViewEdge;
@@ -43,11 +44,11 @@ public class RawBasicBlock extends SingleViewNode implements Iterable<RawInstruc
       final EMatchState matchState) {
     super(basicBlockAddress, -1, 0, 0, Color.WHITE, Color.BLACK, false, true);
 
-    this.functionAddr = Preconditions.checkNotNull(functionAddr);
-    this.functionName = Preconditions.checkNotNull(functionName);
-    this.instructions = Preconditions.checkNotNull(instructions);
-    this.side = Preconditions.checkNotNull(side);
-    this.matchState = Preconditions.checkNotNull(matchState);
+    this.functionAddr = checkNotNull(functionAddr);
+    this.functionName = checkNotNull(functionName);
+    this.instructions = checkNotNull(instructions);
+    this.side = checkNotNull(side);
+    this.matchState = checkNotNull(matchState);
     this.comment = "";
   }
 

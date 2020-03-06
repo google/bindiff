@@ -17,7 +17,6 @@ package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdia
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;

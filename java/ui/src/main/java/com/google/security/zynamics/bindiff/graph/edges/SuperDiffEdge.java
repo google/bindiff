@@ -14,12 +14,12 @@
 
 package com.google.security.zynamics.bindiff.graph.edges;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
 import y.base.Edge;
 
 public class SuperDiffEdge
@@ -39,7 +39,7 @@ public class SuperDiffEdge
       final SingleDiffEdge secondaryDiffEdge) {
     super(source, target, edge, realizer, rawEdge);
 
-    Preconditions.checkArgument(
+    checkArgument(
         primaryDiffEdge != null || secondaryDiffEdge != null,
         "Primary and secondary edge cannot both be null.");
 

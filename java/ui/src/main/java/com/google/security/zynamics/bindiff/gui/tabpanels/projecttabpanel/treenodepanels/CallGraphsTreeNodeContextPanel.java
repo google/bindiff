@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts.BasicBlockMatchesPie3dPanel;
@@ -77,7 +78,7 @@ public class CallGraphsTreeNodeContextPanel extends AbstractTreeNodeContextPanel
 
   public CallGraphsTreeNodeContextPanel(
       final Diff diff, final WorkspaceTabPanelFunctions controller) {
-    Preconditions.checkNotNull(diff);
+    checkNotNull(diff);
 
     this.diff = diff;
     callGraphTable = new CallGraphViewTable(new CallGraphViewTableModel(diff), controller);

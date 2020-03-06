@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.components.graphsearchfield;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
@@ -25,7 +26,7 @@ import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
 import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphAddressSearcher;
-import com.google.security.zynamics.bindiff.graph.searchers.GraphSeacherFunctions;
+import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcherFunctions;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcher;
 import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -124,7 +125,7 @@ public class GraphSearchField extends JPanel {
     this.clearSearchResultsButton = clearSearchResultsButton;
     this.clearSearchResultsButton.setIcon(ICON_CLEAR_GRAY);
 
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     graphs = controller.getGraphs();
 
@@ -307,7 +308,7 @@ public class GraphSearchField extends JPanel {
       graph = graphs.getCombinedGraph();
     }
 
-    GraphSeacherFunctions.jumpToResultObject(graph, obj, true);
+    GraphSearcherFunctions.jumpToResultObject(graph, obj, true);
   }
 
   public void notifySearchFieldListener() {
@@ -363,11 +364,11 @@ public class GraphSearchField extends JPanel {
     private void centerNextSearchHit(final boolean cycleBackwards, final boolean zoomToResult) {
       final String text = searchField.getText();
 
-      if (GraphSeacherFunctions.getHasChanged(graphs, text)) {
+      if (GraphSearcherFunctions.getHasChanged(graphs, text)) {
         if (!text.equals("")) {
           iterateObjectResults(cycleBackwards, zoomToResult);
         } else {
-          GraphSeacherFunctions.clearResults(graphs);
+          GraphSearcherFunctions.clearResults(graphs);
 
           for (final IGraphSearchFieldListener listener : listeners) {
             listener.cleaned();
@@ -381,8 +382,8 @@ public class GraphSearchField extends JPanel {
     }
 
     private void iterateObjectResults(final boolean cycleBackwards, final boolean zoomToResult) {
-      if (!GraphSeacherFunctions.isEmpty(graphs)) {
-        GraphSeacherFunctions.iterateObjectResults(graphs, cycleBackwards, zoomToResult);
+      if (!GraphSearcherFunctions.isEmpty(graphs)) {
+        GraphSearcherFunctions.iterateObjectResults(graphs, cycleBackwards, zoomToResult);
 
         graphs.updateViews();
       }
@@ -391,7 +392,7 @@ public class GraphSearchField extends JPanel {
     private void search(final boolean zoomToResult) {
       final String searchString = searchField.getText();
 
-      if (GraphSeacherFunctions.getHasChanged(graphs, searchString)) {
+      if (GraphSearcherFunctions.getHasChanged(graphs, searchString)) {
         if (!"".equals(searchString)) {
           searchCombo.add(searchString);
           searchField.setCaretPosition(searchField.getText().length());
@@ -402,9 +403,9 @@ public class GraphSearchField extends JPanel {
             listener.cleaned();
           }
 
-          GraphSeacherFunctions.search(graphs, searchString);
+          GraphSearcherFunctions.search(graphs, searchString);
 
-          if (GraphSeacherFunctions.isEmpty(graphs)) {
+          if (GraphSearcherFunctions.isEmpty(graphs)) {
             searchCombo.getEditor().getEditorComponent().setBackground(BACKGROUND_COLOR_FAIL);
             clearSearchResultsButton.setIcon(ICON_CLEAR_GRAY);
           } else {
@@ -412,9 +413,9 @@ public class GraphSearchField extends JPanel {
             clearSearchResultsButton.setIcon(ICON_CLEAR);
           }
 
-          GraphSeacherFunctions.highlightSubObjectResults(graphs);
+          GraphSearcherFunctions.highlightSubObjectResults(graphs);
 
-          GraphSeacherFunctions.jumpToFirstResultObject(graphs.getFocusedGraph(), zoomToResult);
+          GraphSearcherFunctions.jumpToFirstResultObject(graphs.getFocusedGraph(), zoomToResult);
 
           notifySearchFieldListener();
 
@@ -431,7 +432,7 @@ public class GraphSearchField extends JPanel {
     public void actionPerformed(final ActionEvent event) {
       if (event.getSource() == searchField && searchField.getText() != null) {
         if (searchField.getText().isEmpty()) {
-          GraphSeacherFunctions.clearResults(graphs);
+          GraphSearcherFunctions.clearResults(graphs);
           searchField.setBackground(BACKGROUND_COLOR_SUCCESS);
           clearSearchResultsButton.setIcon(ICON_CLEAR_GRAY);
 
@@ -450,7 +451,7 @@ public class GraphSearchField extends JPanel {
             event.getModifiers() == ActionEvent.SHIFT_MASK
                 || event.getModifiers() == (ActionEvent.CTRL_MASK | ActionEvent.SHIFT_MASK);
 
-        if (GraphSeacherFunctions.getHasChanged(graphs, searchField.getText())) {
+        if (GraphSearcherFunctions.getHasChanged(graphs, searchField.getText())) {
           search(zoomToResult);
         } else {
           centerNextSearchHit(cycleBackwards, zoomToResult);

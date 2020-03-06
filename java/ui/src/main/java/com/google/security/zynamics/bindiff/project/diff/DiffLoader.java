@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.diff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.flogger.FluentLogger;
@@ -65,7 +66,7 @@ public class DiffLoader implements ICommand {
   }
 
   public DiffLoader(final LinkedHashSet<Diff> diffs) {
-    this.diffs = Preconditions.checkNotNull(diffs);
+    this.diffs = checkNotNull(diffs);
   }
 
   private static void setBasicBlockComments(

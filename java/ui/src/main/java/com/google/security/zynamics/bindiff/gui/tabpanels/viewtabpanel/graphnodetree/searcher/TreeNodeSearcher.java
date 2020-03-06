@@ -15,7 +15,7 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher;
 
 import com.google.security.zynamics.bindiff.enums.ESide;
-import com.google.security.zynamics.bindiff.graph.searchers.GraphSeacherFunctions;
+import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcherFunctions;
 import com.google.security.zynamics.bindiff.graph.searchers.NodeSearcher;
 import com.google.security.zynamics.bindiff.graph.searchers.SearchResult;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
@@ -95,7 +95,7 @@ public class TreeNodeSearcher {
   public List<? extends ISearchableTreeNode> search(
       final List<? extends ISearchableTreeNode> treeNodes) {
     if ("".equals(searchText) || treeNodes == null) {
-      GraphSeacherFunctions.removeHightlighing(subObjectResults);
+      GraphSearcherFunctions.removeHighlighting(subObjectResults);
       subObjectResults.clear();
 
       return treeNodes;
@@ -129,7 +129,7 @@ public class TreeNodeSearcher {
       }
     }
 
-    GraphSeacherFunctions.highlightResults(subObjectResults);
+    GraphSearcherFunctions.highlightResults(subObjectResults);
 
     return result;
   }

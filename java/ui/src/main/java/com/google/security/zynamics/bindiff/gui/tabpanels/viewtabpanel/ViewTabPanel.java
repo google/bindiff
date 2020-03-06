@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
@@ -83,11 +84,11 @@ public class ViewTabPanel extends TabPanel {
       final ViewData view) {
     super();
 
-    Preconditions.checkNotNull(window);
-    this.tabPanelManager = Preconditions.checkNotNull(tabPanelManager);
-    Preconditions.checkNotNull(workspace);
-    Preconditions.checkNotNull(diff);
-    Preconditions.checkNotNull(view);
+    checkNotNull(window);
+    this.tabPanelManager = checkNotNull(tabPanelManager);
+    checkNotNull(workspace);
+    checkNotNull(diff);
+    checkNotNull(view);
 
     final GraphsContainer graphs = view.getGraphs();
     final GraphSettings settings = graphs.getSettings();

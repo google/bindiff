@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 
 import java.awt.Component;
-
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JTable;

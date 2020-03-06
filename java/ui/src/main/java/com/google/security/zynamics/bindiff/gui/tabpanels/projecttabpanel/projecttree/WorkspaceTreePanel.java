@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import java.awt.BorderLayout;
 import javax.swing.JPanel;
@@ -26,7 +27,7 @@ public class WorkspaceTreePanel extends JPanel {
   public WorkspaceTreePanel(final WorkspaceTabPanelFunctions controller) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(controller);
+    checkNotNull(controller);
 
     workspaceTree = new WorkspaceTree(controller);
 

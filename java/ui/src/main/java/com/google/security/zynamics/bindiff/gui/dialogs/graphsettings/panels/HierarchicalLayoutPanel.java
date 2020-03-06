@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
@@ -59,8 +61,8 @@ public class HierarchicalLayoutPanel extends JPanel {
       final String borderTitle, final ESettingsDialogType type, final GraphSettings settings) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(borderTitle);
-    Preconditions.checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
+    checkNotNull(borderTitle);
+    checkArgument(settings == null ^ type == ESettingsDialogType.GRAPH_VIEW_SETTINGS);
 
     dialogType = type;
 

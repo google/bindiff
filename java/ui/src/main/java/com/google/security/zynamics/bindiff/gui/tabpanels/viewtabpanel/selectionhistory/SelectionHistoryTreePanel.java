@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.selectionhistory;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
@@ -70,9 +71,9 @@ public class SelectionHistoryTreePanel extends JPanel {
       final SelectionHistory selectionHistory) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
-    this.selectionHistory = Preconditions.checkNotNull(selectionHistory);
+    checkNotNull(controller);
+    this.graph = checkNotNull(graph);
+    this.selectionHistory = checkNotNull(selectionHistory);
     tree = createTree(controller);
 
     createPanel();

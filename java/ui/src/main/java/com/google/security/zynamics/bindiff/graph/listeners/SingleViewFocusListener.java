@@ -14,10 +14,10 @@
 
 package com.google.security.zynamics.bindiff.graph.listeners;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
-
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -28,8 +28,8 @@ public class SingleViewFocusListener extends MouseAdapter {
 
   protected SingleViewFocusListener(
       final ViewTabPanelFunctions controller, final SingleGraph graph) {
-    this.controller = Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
+    this.controller = checkNotNull(controller);
+    this.graph = checkNotNull(graph);
 
     addListener();
   }

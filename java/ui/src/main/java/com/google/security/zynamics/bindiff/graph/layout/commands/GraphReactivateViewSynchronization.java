@@ -25,7 +25,6 @@ import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
 import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.HashSet;
 import java.util.Set;
 

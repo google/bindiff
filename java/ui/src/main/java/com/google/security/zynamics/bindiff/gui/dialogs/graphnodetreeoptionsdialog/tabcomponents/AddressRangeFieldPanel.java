@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabcomponents;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
@@ -41,8 +42,8 @@ public class AddressRangeFieldPanel extends JPanel {
       final int textfieldWidth,
       final int height) {
     super(new BorderLayout());
-    Preconditions.checkNotNull(labelText);
-    Preconditions.checkNotNull(defaultAddress);
+    checkNotNull(labelText);
+    checkNotNull(defaultAddress);
 
     this.defaultAddress = defaultAddress;
 

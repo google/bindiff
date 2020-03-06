@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.diff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.database.CommentsDatabase;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -57,10 +58,10 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
       final MainWindow window,
       final TabPanelManager tabPanelManager,
       final Workspace workspace) {
-    this.data = Preconditions.checkNotNull(data);
-    this.window = Preconditions.checkNotNull(window);
-    this.tabPanelManager = Preconditions.checkNotNull(tabPanelManager);
-    this.workspace = Preconditions.checkNotNull(workspace);
+    this.data = checkNotNull(data);
+    this.window = checkNotNull(window);
+    this.tabPanelManager = checkNotNull(tabPanelManager);
+    this.workspace = checkNotNull(workspace);
     this.viewData = null;
   }
 
@@ -108,7 +109,6 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
     try {
       ViewTabPanelInitializer.initialize(viewData.getGraphs(), this);
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphCreationException("An error occurred while initializing the graph.");
     }
 

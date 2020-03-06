@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.matches;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.builders.ViewCodeNodeBuilder;
@@ -203,8 +204,7 @@ public class DiffMetadata {
   }
 
   public int getSimilarityIntervalCount(final int index) {
-    Preconditions.checkArgument(
-        index <= 10, "Confidence interval index cannot be greater than 10.");
+    checkArgument(index <= 10, "Confidence interval index cannot be greater than 10.");
     return similarityIntervalCounts[index];
   }
 

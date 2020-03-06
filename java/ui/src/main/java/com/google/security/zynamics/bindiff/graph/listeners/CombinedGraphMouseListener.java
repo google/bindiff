@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.listeners;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.edges.CombinedDiffEdge;
@@ -40,8 +41,8 @@ public class CombinedGraphMouseListener
 
   protected CombinedGraphMouseListener(
       final ViewTabPanelFunctions controller, final CombinedGraph graph) {
-    this.controller = Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
+    this.controller = checkNotNull(controller);
+    this.graph = checkNotNull(graph);
 
     addListener();
   }

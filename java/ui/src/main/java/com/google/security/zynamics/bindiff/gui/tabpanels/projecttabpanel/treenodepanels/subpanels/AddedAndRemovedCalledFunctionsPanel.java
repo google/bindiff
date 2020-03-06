@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.subpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.security.zynamics.bindiff.enums.ECallDirection;
@@ -71,9 +72,9 @@ public class AddedAndRemovedCalledFunctionsPanel extends JPanel {
       final MatchedFunctionViewsTable matchedfunctionViewTable) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(diff);
-    Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(matchedfunctionViewTable);
+    checkNotNull(diff);
+    checkNotNull(controller);
+    checkNotNull(matchedfunctionViewTable);
 
     this.diff = diff;
     matchedfunctionViewsTable = matchedfunctionViewTable;

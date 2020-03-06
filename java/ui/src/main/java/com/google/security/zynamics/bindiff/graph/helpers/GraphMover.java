@@ -17,15 +17,11 @@ package com.google.security.zynamics.bindiff.graph.helpers;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.eventhandlers.GraphLayoutEventHandler;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.geom.Point2D;
 import y.base.Edge;
 import y.base.Node;
 import y.view.EdgeRealizer;
 import y.view.NodeRealizer;
-
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class GraphMover {
   public static void moveToEdgeNode(
@@ -65,9 +61,6 @@ public class GraphMover {
       GraphLayoutEventHandler.handleUnhideInvisibleNode(
           (BinDiffGraph<ZyGraphNode<?>, ?>) graph, zyNode);
     }
-
-    final Collection<ZyGraphNode<?>> tempList = new ArrayList<>();
-    tempList.add(zyNode);
 
     final Node node = zyNode.getNode();
 

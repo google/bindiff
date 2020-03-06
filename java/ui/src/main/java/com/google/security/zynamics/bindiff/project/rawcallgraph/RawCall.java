@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawcallgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ECallType;
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
@@ -45,8 +46,8 @@ public class RawCall extends SingleViewEdge<RawFunction> {
       final ESide side) {
     super(sourceFunction, targetFunction);
 
-    this.sourceInstructionAddr = Preconditions.checkNotNull(sourceInstructionAddr);
-    this.side = Preconditions.checkNotNull(side);
+    this.sourceInstructionAddr = checkNotNull(sourceInstructionAddr);
+    this.side = checkNotNull(side);
 
     this.callType = ECallType.getType(EFunctionType.getOrdinal(targetFunction.getFunctionType()));
     this.matchState =
@@ -65,7 +66,7 @@ public class RawCall extends SingleViewEdge<RawFunction> {
 
   public EMatchState getMatchState() {
     // NOTE: Return primary or secondary unmatched in case of a changed call!
-    Preconditions.checkNotNull(matchState);
+    checkNotNull(matchState);
 
     return matchState;
   }

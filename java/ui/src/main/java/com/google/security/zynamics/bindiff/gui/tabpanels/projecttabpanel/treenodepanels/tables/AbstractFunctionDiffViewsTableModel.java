@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.diff.DiffListenerAdapter;
 import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
@@ -26,7 +27,7 @@ public abstract class AbstractFunctionDiffViewsTableModel extends AbstractTableM
   List<Diff> functionDiffViewList;
 
   public AbstractFunctionDiffViewsTableModel(final List<Diff> functionDiffViewList) {
-    Preconditions.checkNotNull(functionDiffViewList);
+    checkNotNull(functionDiffViewList);
 
     this.functionDiffViewList = functionDiffViewList;
 

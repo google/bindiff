@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.AbstractGraphsContainer;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.indegrees.IndegreeCriterionCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.nodecolor.ColorCriterionCreator;
@@ -32,7 +33,7 @@ public final class CriteriaFactory {
   private final AbstractGraphsContainer graphs;
 
   public CriteriaFactory(final AbstractGraphsContainer graphs) {
-    this.graphs = Preconditions.checkNotNull(graphs);
+    this.graphs = checkNotNull(graphs);
   }
 
   public List<CriterionCreator> getConditions() {

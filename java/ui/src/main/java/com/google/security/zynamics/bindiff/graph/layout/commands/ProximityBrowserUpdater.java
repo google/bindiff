@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
@@ -62,7 +63,7 @@ public final class ProximityBrowserUpdater implements ICommand {
 
   public ProximityBrowserUpdater(
       final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> referenceGraph) {
-    this.referenceGraph = Preconditions.checkNotNull(referenceGraph);
+    this.referenceGraph = checkNotNull(referenceGraph);
   }
 
   private static void createNewProximityNodeAndEdge(
@@ -381,7 +382,6 @@ public final class ProximityBrowserUpdater implements ICommand {
           unhideAllNodes(graph.getSecondaryGraph());
           unhideAllNodes(graph.getCombinedGraph());
         } catch (final Exception e) {
-          // FIXME: Never catch all exceptions!
           throw new GraphLayoutException(
               e, "Failed to unhide node. Couldn't update proximity browser.");
         }
@@ -389,7 +389,6 @@ public final class ProximityBrowserUpdater implements ICommand {
     } catch (final GraphLayoutException e) {
       throw e;
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, "Failed to update proximity browser.");
     }
   }

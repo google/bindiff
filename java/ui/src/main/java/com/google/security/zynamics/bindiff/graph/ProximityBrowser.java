@@ -17,10 +17,8 @@ package com.google.security.zynamics.bindiff.graph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyDefaultProximityBrowser;
-
-import y.base.Node;
-
 import java.util.List;
+import y.base.Node;
 
 public class ProximityBrowser<
         NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>

@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.renderers.AbstractTableCellRenderer;
 import java.awt.Color;
@@ -34,10 +36,10 @@ public class MatchStateCellRenderer extends AbstractTableCellRenderer {
       final Color matchedColor,
       final Color primaryUnmatchedColor,
       final Color secondaryUnmatchedColor) {
-    this.textColor = Preconditions.checkNotNull(textColor);
-    this.matchedColor = Preconditions.checkNotNull(matchedColor);
-    this.primaryUnmatchedColor = Preconditions.checkNotNull(primaryUnmatchedColor);
-    this.secondaryUnmatchedColor = Preconditions.checkNotNull(secondaryUnmatchedColor);
+    this.textColor = checkNotNull(textColor);
+    this.matchedColor = checkNotNull(matchedColor);
+    this.primaryUnmatchedColor = checkNotNull(primaryUnmatchedColor);
+    this.secondaryUnmatchedColor = checkNotNull(secondaryUnmatchedColor);
   }
 
   @Override
@@ -48,7 +50,7 @@ public class MatchStateCellRenderer extends AbstractTableCellRenderer {
       final boolean focused,
       final int row,
       final int column) {
-    Preconditions.checkArgument(value instanceof EMatchState, "Value must be an EMatchState");
+    checkArgument(value instanceof EMatchState, "Value must be an EMatchState");
 
     buildAndSetToolTip(table, row);
 

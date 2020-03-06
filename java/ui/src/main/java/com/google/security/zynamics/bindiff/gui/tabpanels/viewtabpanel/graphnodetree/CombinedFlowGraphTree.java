@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -38,12 +39,12 @@ public class CombinedFlowGraphTree extends AbstractGraphNodeTree {
       final GraphNodeMultiFilter filter,
       final TreeNodeMultiSorter sorter) {
     super();
-    Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(view);
-    Preconditions.checkNotNull(combinedGraph);
-    Preconditions.checkNotNull(searcher);
-    Preconditions.checkNotNull(filter);
-    Preconditions.checkNotNull(sorter);
+    checkNotNull(controller);
+    checkNotNull(view);
+    checkNotNull(combinedGraph);
+    checkNotNull(searcher);
+    checkNotNull(filter);
+    checkNotNull(sorter);
 
     this.combinedGraph = combinedGraph;
 

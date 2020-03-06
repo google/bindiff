@@ -39,17 +39,14 @@ import com.google.security.zynamics.zylib.gui.zygraph.edges.ZyEdgeData;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.ZyNodeData;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.types.common.CollectionHelpers;
-import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraph2DView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.ZyEditMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Edge;
-import y.base.Node;
-
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
+import y.base.Edge;
+import y.base.Node;
 
 public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, CombinedDiffEdge> {
   private SelectionHistory selectionHistory;
@@ -72,7 +69,7 @@ public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, Combined
       final SuperViewEdge<? extends SuperViewNode> rawSuperJump,
       final SuperDiffEdge superDiffEdge)
       throws GraphLayoutException {
-    Edge yCombinedEdge = null;
+    Edge yCombinedEdge;
 
     @SuppressWarnings("unchecked")
     final RawCombinedJump<RawCombinedBasicBlock> rawCombinedJump =
@@ -113,17 +110,14 @@ public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, Combined
 
     // TODO: Keep proximity nodes instead of resolving them here.
     if (!srcVisible || !tarVisible) {
-      final BinDiffGraph<?, ?> graph = diffGraph;
       @SuppressWarnings("unchecked")
-      final BinDiffGraph<ZyGraphNode<?>, ?> castedGraph = (BinDiffGraph<ZyGraphNode<?>, ?>) graph;
+      final BinDiffGraph<ZyGraphNode<?>, ?> castedGraph =
+          (BinDiffGraph<ZyGraphNode<?>, ?>) (BinDiffGraph<?, ?>) diffGraph;
 
       final boolean autoLayout = LayoutCommandHelper.deactiveAutoLayout(castedGraph);
       try {
         ProximityBrowserUnhideNode.executeStatic(
-            castedGraph,
-            srcVisible
-                ? (ZyGraphNode<?>) srcCombinedDiffNode
-                : (ZyGraphNode<?>) tarCombinedDiffNode);
+            castedGraph, srcVisible ? srcCombinedDiffNode : tarCombinedDiffNode);
       } finally {
         LayoutCommandHelper.activateAutoLayout(castedGraph, autoLayout);
       }
@@ -188,15 +182,7 @@ public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, Combined
 
   @Override
   public Set<CombinedDiffNode> getSelectedNodes() {
-    return new HashSet<>(
-        CollectionHelpers.filter(
-            getNodes(),
-            new ICollectionFilter<CombinedDiffNode>() {
-              @Override
-              public boolean qualifies(final CombinedDiffNode item) {
-                return item.isSelected();
-              }
-            }));
+    return new HashSet<>(CollectionHelpers.filter(getNodes(), item -> item.isSelected()));
   }
 
   public SelectionHistory getSelectionHistory() {

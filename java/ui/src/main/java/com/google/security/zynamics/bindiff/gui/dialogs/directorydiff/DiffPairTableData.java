@@ -14,7 +14,7 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import javax.swing.JCheckBox;
 
@@ -27,9 +27,9 @@ public class DiffPairTableData {
 
   public DiffPairTableData(
       final String idbName, final String location, final String destinationDirectory) {
-    this.idbName = Preconditions.checkNotNull(idbName);
-    this.idbLocation = Preconditions.checkNotNull(location);
-    this.destinationDirectory = Preconditions.checkNotNull(destinationDirectory);
+    this.idbName = checkNotNull(idbName);
+    this.idbLocation = checkNotNull(location);
+    this.destinationDirectory = checkNotNull(destinationDirectory);
 
     selectionCheckbox.setSelected(true);
   }

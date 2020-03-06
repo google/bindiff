@@ -24,7 +24,6 @@ import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.helpers.GraphConverters;
 import com.google.security.zynamics.zylib.types.graphs.GraphAlgorithms;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;

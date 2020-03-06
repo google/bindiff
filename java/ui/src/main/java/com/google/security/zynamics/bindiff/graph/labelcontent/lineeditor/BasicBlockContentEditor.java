@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.labelcontent.lineeditor;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EPlaceholderType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
@@ -35,7 +36,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyLineEditor;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.strings.StringHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,8 +50,8 @@ public class BasicBlockContentEditor implements IZyLineEditor {
       final GraphsContainer graphContainer,
       final ESide side) {
     this.functionMatch = functionMatch;
-    this.graphContainer = Preconditions.checkNotNull(graphContainer);
-    this.side = Preconditions.checkNotNull(side);
+    this.graphContainer = checkNotNull(graphContainer);
+    this.side = checkNotNull(side);
   }
 
   private int preCountLabelCommentLines(final RawBasicBlock basicblock, final ESide side) {

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import java.awt.event.ActionEvent;
@@ -26,8 +27,8 @@ public class PrintViewAction extends AbstractAction {
   private final BinDiffGraph<?, ?> graph;
 
   public PrintViewAction(final ViewTabPanelFunctions controller, final BinDiffGraph<?, ?> graph) {
-    this.controller = Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
+    this.controller = checkNotNull(controller);
+    this.graph = checkNotNull(graph);
   }
 
   @Override

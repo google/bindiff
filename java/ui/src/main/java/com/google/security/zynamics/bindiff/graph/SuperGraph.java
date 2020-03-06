@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
@@ -35,14 +36,12 @@ import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraph2DView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyNormalNodeRealizer;
-
-import y.base.Edge;
-import y.base.Node;
-import y.view.NodeRealizer;
-
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Set;
+import y.base.Edge;
+import y.base.Node;
+import y.view.NodeRealizer;
 
 public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
   private static final int NODELABEL_PADDING = 10;
@@ -58,7 +57,7 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
       final GraphSettings settings,
       final EGraphType graphType) {
     super(view, nodeMap, edgeMap, settings, graphType);
-    Preconditions.checkArgument(
+    checkArgument(
         primaryGraph != null || secondaryGraph != null,
         "Primary graph and secondary graph cannot both be null");
   }
@@ -68,7 +67,7 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
       final SuperViewEdge<? extends SuperViewNode> rawSuperJump,
       final SingleDiffEdge primaryDiffEdge,
       final SingleDiffEdge secondaryDiffEdge) {
-    Edge ySuperEdge = null;
+    Edge ySuperEdge;
 
     final ZyLabelContent superEdgeContent = new ZyLabelContent(null);
     final ZyEdgeRealizer<SuperDiffEdge> superEdgeRealizer =

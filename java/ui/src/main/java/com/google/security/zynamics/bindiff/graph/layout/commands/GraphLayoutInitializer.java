@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.layout.LayoutCommandHelper;
@@ -28,7 +29,7 @@ public class GraphLayoutInitializer implements ICommand {
 
   public GraphLayoutInitializer(
       final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> graph) {
-    Preconditions.checkNotNull(graph);
+    checkNotNull(graph);
 
     this.graph = graph;
   }

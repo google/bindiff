@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.window;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
@@ -43,8 +44,8 @@ public class WindowFunctions {
   private final MainWindow window;
 
   public WindowFunctions(final MainWindow window, final Workspace workspace) {
-    Preconditions.checkNotNull(window);
-    Preconditions.checkNotNull(workspace);
+    checkNotNull(window);
+    checkNotNull(workspace);
 
     tabPanelManager = new TabPanelManager(window, workspace);
 

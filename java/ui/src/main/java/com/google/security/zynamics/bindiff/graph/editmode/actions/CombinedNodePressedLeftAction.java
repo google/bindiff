@@ -21,7 +21,6 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodePressedLeftState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.event.MouseEvent;
 
 public class CombinedNodePressedLeftAction<

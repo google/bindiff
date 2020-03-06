@@ -18,7 +18,6 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.types.AddressPairComparator;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.Pair;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -80,11 +79,9 @@ public class AddressPairSorter {
       // fill up sorted addr pairs
       int maxFallbackIndex = 0;
       for (final Pair<IAddress, IAddress> primaryPair : primaryAddrPairs) {
-        if (primaryPair.second() == null) // passes secondary unmatched only
-        {
+        if (primaryPair.second() == null) { // passes secondary unmatched only
           sortedAddrPairs.add(primaryPair);
-        } else // passes primary unmatched and matched only
-        {
+        } else { // passes primary unmatched and matched only
           final IAddress secondaryAddr = primaryPair.second();
 
           final int secondaryListIndex = secondaryAddrToListIndex.get(secondaryAddr);

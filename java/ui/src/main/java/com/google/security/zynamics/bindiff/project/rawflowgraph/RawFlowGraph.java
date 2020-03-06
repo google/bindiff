@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawflowgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.edges.SingleViewEdge;
@@ -44,10 +45,10 @@ public final class RawFlowGraph extends MutableDirectedGraph<RawBasicBlock, RawJ
       final ESide side) {
     super(basicblocks, jumps);
 
-    this.address = Preconditions.checkNotNull(addr);
-    this.name = Preconditions.checkNotNull(name);
-    this.functionType = Preconditions.checkNotNull(functionType);
-    this.side = Preconditions.checkNotNull(side);
+    this.address = checkNotNull(addr);
+    this.name = checkNotNull(name);
+    this.functionType = checkNotNull(functionType);
+    this.side = checkNotNull(side);
 
     for (final RawBasicBlock basicblock : basicblocks) {
       addrToBasicblockMap.put(basicblock.getAddress(), basicblock);

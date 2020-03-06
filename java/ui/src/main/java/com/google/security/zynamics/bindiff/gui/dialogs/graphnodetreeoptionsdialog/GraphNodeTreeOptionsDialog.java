@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESortByCriterion;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.graph.filter.enums.EMatchStateFilter;
@@ -65,8 +66,8 @@ public class GraphNodeTreeOptionsDialog extends BaseDialog {
       final boolean isCombinedView) {
     super(parent, title);
 
-    Preconditions.checkNotNull(parent);
-    Preconditions.checkNotNull(title);
+    checkNotNull(parent);
+    checkNotNull(title);
 
     setTitle(title);
     setModal(true);

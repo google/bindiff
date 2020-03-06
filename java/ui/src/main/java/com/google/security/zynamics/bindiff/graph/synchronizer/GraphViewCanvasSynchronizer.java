@@ -18,11 +18,9 @@ import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.SuperGraph;
 import com.google.security.zynamics.bindiff.graph.listeners.GraphViewsListenerManager;
-
-import y.view.Graph2DView;
-
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
+import y.view.Graph2DView;
 
 public class GraphViewCanvasSynchronizer {
   private static void addListener(

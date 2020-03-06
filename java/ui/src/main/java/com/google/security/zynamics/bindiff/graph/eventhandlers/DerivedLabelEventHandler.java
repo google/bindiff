@@ -14,8 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.eventhandlers;
 
-import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
+import com.google.security.zynamics.bindiff.graph.CombinedGraph;
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.zylib.gui.zygraph.CDefaultLabelEventHandler;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyRegenerateableRealizer;

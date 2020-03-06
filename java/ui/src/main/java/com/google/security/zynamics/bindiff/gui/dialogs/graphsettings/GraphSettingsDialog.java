@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphMouseSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
@@ -57,7 +58,7 @@ public class GraphSettingsDialog extends BaseDialog implements ActionListener {
   public GraphSettingsDialog(final Window parent, final GraphSettings settings) {
     super(parent, "Graph View Settings");
 
-    this.settings = Preconditions.checkNotNull(settings);
+    this.settings = checkNotNull(settings);
 
     proximityBrowsingPanel =
         new ProximityBrowsingPanel(

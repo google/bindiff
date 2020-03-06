@@ -14,15 +14,14 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabcomponents;
 
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.bindiff.enums.ESortOrder;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.util.List;
-
 import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -49,8 +48,8 @@ public class SortingComboboxPanel extends JPanel {
       final int height) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(labelText);
-    Preconditions.checkNotNull(comboItems);
+    checkNotNull(labelText);
+    checkNotNull(comboItems);
 
     label = new JLabel(labelText);
     final String[] comboItemsArray = new String[comboItems.size()];

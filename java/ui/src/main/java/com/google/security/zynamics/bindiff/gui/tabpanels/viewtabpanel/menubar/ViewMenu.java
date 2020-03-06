@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ISavableListener;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.CloseViewAction;
@@ -46,7 +47,7 @@ public class ViewMenu extends JMenu {
     super("View");
     setMnemonic('V');
 
-    viewTabPanelController = Preconditions.checkNotNull(controller);
+    viewTabPanelController = checkNotNull(controller);
 
     final Diff diff = controller.getGraphs().getDiff();
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();

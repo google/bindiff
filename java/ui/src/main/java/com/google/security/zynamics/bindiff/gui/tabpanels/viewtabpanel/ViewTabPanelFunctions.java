@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
@@ -130,8 +131,8 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       final ViewData view) {
     super(window, workspace);
 
-    viewTabPanel = Preconditions.checkNotNull(tabPanel);
-    Preconditions.checkNotNull(view);
+    viewTabPanel = checkNotNull(tabPanel);
+    checkNotNull(view);
 
     graphs = view.getGraphs();
     settings = graphs.getSettings();
@@ -552,7 +553,6 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           }
         }
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log("Couldn't save exported view images");
         CMessageBox.showError(parent, "Couldn't save exported view images.");
       }
@@ -751,7 +751,6 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           return false;
         }
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log("Save function diff view failed");
         CMessageBox.showError(getMainWindow(), "Save function diff view failed.");
 

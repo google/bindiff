@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
@@ -47,8 +48,8 @@ public abstract class AbstractTable extends JTable {
 
   public AbstractTable(
       final AbstractTableModel model, final WorkspaceTabPanelFunctions controller) {
-    this.model = Preconditions.checkNotNull(model);
-    this.controller = Preconditions.checkNotNull(controller);
+    this.model = checkNotNull(model);
+    this.controller = checkNotNull(controller);
 
     tableSorter = new CTableSorter(model);
 

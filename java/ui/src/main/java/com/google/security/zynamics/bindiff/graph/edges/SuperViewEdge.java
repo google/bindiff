@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.edges;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedViewNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
@@ -45,7 +46,7 @@ public final class SuperViewEdge<NodeType extends SuperViewNode> extends CViewEd
         true,
         new ArrayList<>());
 
-    this.combinedEdge = Preconditions.checkNotNull(combinedEdge);
+    this.combinedEdge = checkNotNull(combinedEdge);
 
     SuperViewNode.link(sourceNode, targetNode);
 

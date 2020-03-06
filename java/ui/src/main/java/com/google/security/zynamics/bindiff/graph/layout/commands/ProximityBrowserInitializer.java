@@ -28,7 +28,6 @@ import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -162,7 +161,6 @@ public class ProximityBrowserInitializer {
     try {
       GraphsIntermediateListeners.notifyIntermediateVisibilityListeners(graph);
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphLayoutException(e, e.getMessage());
     }
   }

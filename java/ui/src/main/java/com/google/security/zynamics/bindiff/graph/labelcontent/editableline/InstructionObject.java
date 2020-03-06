@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.labelcontent.editableline;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawInstruction;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 
@@ -23,7 +24,7 @@ public class InstructionObject extends AbstractEditableLineObject {
 
   public InstructionObject(final RawInstruction rawInstruction, final int start, final int length) {
     super(start, length);
-    Preconditions.checkNotNull(rawInstruction);
+    checkNotNull(rawInstruction);
 
     this.rawInstruction = rawInstruction;
   }
@@ -40,7 +41,7 @@ public class InstructionObject extends AbstractEditableLineObject {
 
   @Override
   public boolean updateComment(final String newContent, final ECommentPlacement placement) {
-    Preconditions.checkNotNull(newContent);
+    checkNotNull(newContent);
 
     rawInstruction.setComment(newContent, placement);
     return true;

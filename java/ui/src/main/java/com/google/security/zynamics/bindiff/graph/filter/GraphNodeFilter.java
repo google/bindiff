@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.filter;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class GraphNodeFilter {
       final Collection<NodeType> nodes,
       final Criterion filterBy,
       final Collection<NodeType> resultSet) {
-    Preconditions.checkNotNull(filterBy);
+    checkNotNull(filterBy);
 
     int count = 0;
     boolean addToResult;

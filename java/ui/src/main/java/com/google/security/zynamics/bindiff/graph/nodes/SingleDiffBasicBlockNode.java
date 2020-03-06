@@ -19,11 +19,9 @@ import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.CStyleRunData;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
-import y.base.Node;
-
 import java.awt.Color;
 import java.util.List;
+import y.base.Node;
 
 public class SingleDiffBasicBlockNode extends SingleDiffNode {
   public SingleDiffBasicBlockNode(
@@ -49,7 +47,7 @@ public class SingleDiffBasicBlockNode extends SingleDiffNode {
         for (final CStyleRunData data : styleRun) {
           final Color currentColor = data.getColor();
 
-          if (currentColor != Colors.SEARCH_HIGHLIGHT_COLOR && currentColor != null) {
+          if (currentColor != null && !Colors.SEARCH_HIGHLIGHT_COLOR.equals(currentColor)) {
             if (lineLength == data.getEnd()) {
               line.setBackgroundColor(data.getStart(), data.getLength(), newColor);
             } else {

@@ -14,12 +14,11 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabcomponents;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.util.List;
-
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -38,8 +37,8 @@ public class FilterComboboxPanel extends JPanel {
       final int height) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(labelText);
-    Preconditions.checkNotNull(comboItems);
+    checkNotNull(labelText);
+    checkNotNull(comboItems);
 
     label = new JLabel(labelText);
     final String[] comboItemsArray = new String[comboItems.size()];

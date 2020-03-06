@@ -45,7 +45,6 @@ public class CriterionTree {
       try {
         listener.nodeAppended(this, parent, child);
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log("Append tree node");
       }
     }
@@ -70,7 +69,6 @@ public class CriterionTree {
       try {
         listener.nodeInserted(this, parent, child);
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log("Insert tree node");
       }
     }
@@ -85,7 +83,6 @@ public class CriterionTree {
       try {
         listener.removedAll(this);
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log("Remove all tree Nodes");
       }
     }
@@ -105,7 +102,6 @@ public class CriterionTree {
       try {
         listener.nodeRemoved(this, node);
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         logger.at(Level.SEVERE).withCause(e).log("Remove tree node");
       }
     }

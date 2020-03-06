@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawcallgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedViewNode;
@@ -28,9 +29,9 @@ public class RawCombinedFunction extends CombinedViewNode {
       final RawFunction primaryFunction, final RawFunction secondaryFunction) {
     super();
 
-    Preconditions.checkArgument(
+    checkArgument(
         primaryFunction != null || secondaryFunction != null,
-        "Primary function and seconday function cannot both be null");
+        "Primary function and secondary function cannot both be null");
 
     this.primaryFunction = primaryFunction;
     this.secondaryFunction = secondaryFunction;

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menubar.WorkspaceMenuBar;
@@ -49,9 +50,9 @@ public class WorkspaceTabPanel extends TabPanel {
   public WorkspaceTabPanel(final MainWindow window, final Workspace workspace) {
     super();
 
-    Preconditions.checkNotNull(workspace);
+    checkNotNull(workspace);
 
-    controller = new WorkspaceTabPanelFunctions(Preconditions.checkNotNull(window), workspace);
+    controller = new WorkspaceTabPanelFunctions(checkNotNull(window), workspace);
 
     workspaceTreePanel = new WorkspaceTreePanel(controller);
     menuBar = new WorkspaceMenuBar(controller);

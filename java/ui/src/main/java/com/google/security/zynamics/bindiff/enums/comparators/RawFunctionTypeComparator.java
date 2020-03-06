@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.enums.comparators;
 
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
-
 import java.util.Comparator;
 
 public class RawFunctionTypeComparator implements Comparator<EFunctionType> {

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.layout.LayoutCommandHelper;
@@ -26,11 +27,9 @@ import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.proximity.ProximityRangeCalculator;
 import com.google.security.zynamics.zylib.types.common.ICommand;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Node;
-
 import java.util.HashSet;
 import java.util.Set;
+import y.base.Node;
 
 public class ProximityBrowserUnhideNode implements ICommand {
   private final BinDiffGraph<ZyGraphNode<?>, ?> graph;
@@ -38,8 +37,8 @@ public class ProximityBrowserUnhideNode implements ICommand {
 
   public ProximityBrowserUnhideNode(
       final BinDiffGraph<ZyGraphNode<?>, ?> graph, final ZyGraphNode<?> nodeToShow) {
-    this.graph = Preconditions.checkNotNull(graph);
-    this.nodeToShow = Preconditions.checkNotNull(nodeToShow);
+    this.graph = checkNotNull(graph);
+    this.nodeToShow = checkNotNull(nodeToShow);
   }
 
   private static void updateVisibility(

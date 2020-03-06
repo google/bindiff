@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.AddDiffAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.NewDiffAction;
@@ -33,7 +34,7 @@ public class NoNodePopupMenu extends JPopupMenu {
   private final InternalWorkspaceListener workspaceListener = new InternalWorkspaceListener();
 
   public NoNodePopupMenu(final WorkspaceTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     newDiff = GuiUtils.buildMenuItem("New Diff...", 'N', new NewDiffAction(controller));
 

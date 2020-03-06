@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.WorkspaceTree;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.AllFunctionDiffViewsNode;
@@ -35,7 +36,7 @@ public class DeleteFunctionDiffViewAction extends AbstractAction {
   private final int hitRowIndex;
 
   public DeleteFunctionDiffViewAction(final AbstractTable table, final int hitRowIndex) {
-    this.table = Preconditions.checkNotNull(table);
+    this.table = checkNotNull(table);
     this.hitRowIndex = hitRowIndex;
   }
 
@@ -72,7 +73,8 @@ public class DeleteFunctionDiffViewAction extends AbstractAction {
         table.removeRow(diff);
       } else {
         throw new IllegalArgumentException(
-            "Table must be an instance of FunctionDiffViewsContainerTable or FunctionDiffViewsTable.");
+            "Table must be an instance of FunctionDiffViewsContainerTable or"
+                + " FunctionDiffViewsTable.");
       }
     }
   }

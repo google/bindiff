@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.FunctionDiffViewsNode;
@@ -37,7 +38,7 @@ public class DeleteFunctionDiffViewsAction extends AbstractAction {
   private final FunctionDiffViewsNode viewsNode;
 
   public DeleteFunctionDiffViewsAction(final FunctionDiffViewsNode viewsNode) {
-    this.viewsNode = Preconditions.checkNotNull(viewsNode);
+    this.viewsNode = checkNotNull(viewsNode);
   }
 
   @Override

@@ -109,7 +109,6 @@ public class CallGraphViewLoader extends CEndlessHelperThread {
         zoomToMatch(new CAddress(data.getFunctionAddress(ESide.PRIMARY)), graph);
       }
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       throw new GraphCreationException("An error occurred while initializing the graph.");
     }
   }

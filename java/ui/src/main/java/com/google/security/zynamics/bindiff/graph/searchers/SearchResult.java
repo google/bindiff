@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.graph.searchers;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.CStyleRunData;
-
 import java.awt.Color;
 import java.util.List;
 

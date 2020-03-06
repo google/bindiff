@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.database;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -32,11 +33,11 @@ public class QueryBuilder {
   private StringBuffer currentBuffer;
 
   public QueryBuilder(final String baseQuery) {
-    Preconditions.checkArgument(baseQuery != null && !baseQuery.isEmpty());
-    Preconditions.checkArgument(
+    checkArgument(baseQuery != null && !baseQuery.isEmpty());
+    checkArgument(
         !baseQuery.toLowerCase().startsWith("insert"),
         "Multi row inserts are not supported by sqlite");
-    Preconditions.checkArgument(
+    checkArgument(
         !baseQuery.toLowerCase().startsWith("update"),
         "Multi row updates with more than one value set are not supported by SQLite");
 
@@ -55,9 +56,9 @@ public class QueryBuilder {
   }
 
   public void appendInSet(final String inSetValues) {
-    Preconditions.checkArgument(
+    checkArgument(
         inSetValues != null && !inSetValues.isEmpty(), "Row insert string cannot be null or empty");
-    Preconditions.checkArgument(
+    checkArgument(
         !inSetValues.startsWith("(") && !inSetValues.endsWith(")"),
         "In set values can not start with a \"(\" and end with a \")\")");
 
@@ -77,7 +78,7 @@ public class QueryBuilder {
   }
 
   public void execute(final Connection connection) throws SQLException {
-    Preconditions.checkNotNull(connection);
+    checkNotNull(connection);
 
     if (currentBuffer.length() != 0) {
       addCurrentQuery();

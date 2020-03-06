@@ -14,13 +14,13 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.bindiff.resources.Colors;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.security.zynamics.bindiff.resources.Colors;
 import java.awt.Color;
 import java.awt.Component;
 import java.io.File;
-
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
@@ -29,9 +29,9 @@ public class DestinationCellRenderer extends DefaultTableCellRenderer {
 
   public DestinationCellRenderer(final String workspacePath) {
     // TODO(cblichmann): File checks are expensive in a GUI component.
-    Preconditions.checkArgument(new File(workspacePath).exists(), "Workspace path must exist");
+    checkArgument(new File(workspacePath).exists(), "Workspace path must exist");
 
-    this.workspacePath = Preconditions.checkNotNull(workspacePath);
+    this.workspacePath = checkNotNull(workspacePath);
   }
 
   @Override

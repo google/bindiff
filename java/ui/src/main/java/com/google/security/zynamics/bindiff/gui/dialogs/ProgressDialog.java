@@ -20,13 +20,11 @@ import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThre
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessProgressDialog;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CStandardHelperThread;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CStandardProgressDialog;
-
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JDialog;
 
 public class ProgressDialog {

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.layout.commands;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.exceptions.GraphLayoutException;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.layout.LayoutCommandHelper;
@@ -25,7 +26,7 @@ public class ProximityBrowserActivator implements ICommand {
   private final BinDiffGraph<ZyGraphNode<?>, ?> graph;
 
   public ProximityBrowserActivator(final BinDiffGraph<ZyGraphNode<?>, ?> graph) {
-    this.graph = Preconditions.checkNotNull(graph);
+    this.graph = checkNotNull(graph);
   }
 
   public static void executeStatic(final BinDiffGraph<ZyGraphNode<?>, ?> graph)

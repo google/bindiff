@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.combined.callgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.EMatchType;
@@ -30,11 +31,7 @@ import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-
-
 import java.awt.event.MouseEvent;
-
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 
@@ -80,7 +77,7 @@ public class CombinedCallGraphFunctionTreeNode extends AbstractTreeNode
   public CombinedCallGraphFunctionTreeNode(
       final CombinedCallGraphRootTreeNode rootNode, final CombinedDiffNode combinedFunction) {
     super(rootNode);
-    Preconditions.checkNotNull(combinedFunction);
+    checkNotNull(combinedFunction);
 
     combinedDiffNode = combinedFunction;
 

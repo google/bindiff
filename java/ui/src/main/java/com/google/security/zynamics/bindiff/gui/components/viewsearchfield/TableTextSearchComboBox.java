@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.components.viewsearchfield;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
@@ -57,8 +58,8 @@ public class TableTextSearchComboBox extends JMemoryBox {
       final AbstractTable table, final List<Pair<Integer, ESide>> affectedColumnIndices) {
     super(SEARCH_STRING_HISTORY_MAX);
 
-    this.table = Preconditions.checkNotNull(table);
-    this.affectedColumnIndices = Preconditions.checkNotNull(affectedColumnIndices);
+    this.table = checkNotNull(table);
+    this.affectedColumnIndices = checkNotNull(affectedColumnIndices);
 
     final JTextField textField = (JTextField) getEditor().getEditorComponent();
     TextComponentUtils.addDefaultEditorActions(textField);

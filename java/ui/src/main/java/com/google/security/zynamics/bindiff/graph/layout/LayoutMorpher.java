@@ -15,13 +15,11 @@
 package com.google.security.zynamics.bindiff.graph.layout;
 
 import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
-
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import y.base.Graph;
 import y.layout.GraphLayout;
 import y.view.Graph2DView;
-
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
 
 public class LayoutMorpher extends y.view.LayoutMorpher {
   private Graph2DView view;

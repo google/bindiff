@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.database.MatchesDatabase;
 import com.google.security.zynamics.bindiff.database.WorkspaceDatabase;
@@ -37,8 +38,8 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
   private StringBuilder errors = new StringBuilder();
 
   public WorkspaceLoader(final File workspaceFile, final Workspace workspace) {
-    this.workspaceFile = Preconditions.checkNotNull(workspaceFile);
-    this.workspace = Preconditions.checkNotNull(workspace);
+    this.workspaceFile = checkNotNull(workspaceFile);
+    this.workspace = checkNotNull(workspace);
   }
 
   @Override

@@ -14,13 +14,13 @@
 
 package com.google.security.zynamics.bindiff.graph.edges;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
 import y.base.Edge;
 
 public class SingleDiffEdge
@@ -39,7 +39,7 @@ public class SingleDiffEdge
       final ESide side) {
     super(source, target, edge, realizer, rawEdge);
 
-    this.side = Preconditions.checkNotNull(side);
+    this.side = checkNotNull(side);
   }
 
   public CombinedDiffEdge getCombinedDiffEdge() {

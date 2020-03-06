@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.matches;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.types.Matches;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
@@ -30,8 +31,8 @@ public class MatchData {
   private final ListenerProvider<IMatchesChangeListener> listener = new ListenerProvider<>();
 
   public MatchData(final List<FunctionMatchData> functionMatchData, final DiffMetadata metadata) {
-    this.metadata = Preconditions.checkNotNull(metadata);
-    functionMatches = new Matches<>(Preconditions.checkNotNull(functionMatchData));
+    this.metadata = checkNotNull(metadata);
+    functionMatches = new Matches<>(checkNotNull(functionMatchData));
   }
 
   public void addListener(final IMatchesChangeListener listener) {

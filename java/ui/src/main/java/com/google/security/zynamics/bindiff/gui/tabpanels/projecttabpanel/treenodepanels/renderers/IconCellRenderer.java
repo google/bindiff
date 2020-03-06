@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.renderers;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.renderers.AbstractTableCellRenderer;
 import java.awt.Component;
 import javax.swing.Icon;
@@ -30,7 +31,7 @@ public class IconCellRenderer extends AbstractTableCellRenderer {
       final boolean focused,
       final int row,
       final int column) {
-    Preconditions.checkArgument(value instanceof Icon, "Value must be an Icon.");
+    checkArgument(value instanceof Icon, "Value must be an Icon.");
 
     setHorizontalAlignment(SwingConstants.CENTER);
     setIcon((Icon) value);

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeMultiFilter;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -39,13 +40,13 @@ public class SingleFlowGraphTree extends AbstractGraphNodeTree {
       final TreeNodeMultiSorter sorter) {
     super();
 
-    Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(diff);
-    Preconditions.checkNotNull(view);
-    singleGraph = Preconditions.checkNotNull(graph);
-    Preconditions.checkNotNull(searcher);
-    Preconditions.checkNotNull(filter);
-    Preconditions.checkNotNull(sorter);
+    checkNotNull(controller);
+    checkNotNull(diff);
+    checkNotNull(view);
+    singleGraph = checkNotNull(graph);
+    checkNotNull(searcher);
+    checkNotNull(filter);
+    checkNotNull(sorter);
 
     createTree(controller, diff, view, searcher, filter, sorter);
 

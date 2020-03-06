@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
@@ -74,8 +76,8 @@ public class NewDiffDialog extends BaseDialog {
   public NewDiffDialog(final Window window, final File workspaceDir) {
     super(window, "New Diff");
 
-    this.workspaceDir = Preconditions.checkNotNull(workspaceDir);
-    Preconditions.checkArgument(workspaceDir.exists(), "Workspace directory doesn't exist.");
+    this.workspaceDir = checkNotNull(workspaceDir);
+    checkArgument(workspaceDir.exists(), "Workspace directory doesn't exist.");
 
     init();
     pack();

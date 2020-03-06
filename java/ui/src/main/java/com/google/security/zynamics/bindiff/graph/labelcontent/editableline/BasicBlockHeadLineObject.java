@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.labelcontent.editableline;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 
@@ -23,7 +24,7 @@ public class BasicBlockHeadLineObject extends AbstractEditableLineObject {
 
   public BasicBlockHeadLineObject(final RawBasicBlock rawBasicblock) {
     super(0, 0);
-    Preconditions.checkNotNull(rawBasicblock);
+    checkNotNull(rawBasicblock);
 
     this.rawBasicblock = rawBasicblock;
   }

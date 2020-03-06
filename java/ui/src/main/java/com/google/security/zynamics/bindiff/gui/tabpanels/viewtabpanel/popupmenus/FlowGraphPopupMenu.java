@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.popupmenus;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
@@ -34,8 +35,8 @@ public class FlowGraphPopupMenu extends JPopupMenu {
       final ViewTabPanelFunctions controller,
       final BinDiffGraph<?, ?> graph,
       final ZyGraphNode<?> node) {
-    Preconditions.checkNotNull(graph);
-    Preconditions.checkNotNull(node);
+    checkNotNull(graph);
+    checkNotNull(node);
 
     final JMenuItem addBasicblockMatchItem =
         new JMenuItem(new AddNodeMatchAction(controller, graph, node));

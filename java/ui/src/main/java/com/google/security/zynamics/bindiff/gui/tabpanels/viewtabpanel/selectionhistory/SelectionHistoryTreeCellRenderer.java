@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.selectionhistory;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter;
 import com.google.security.zynamics.bindiff.graph.filter.GraphNodeFilter.Criterion;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
@@ -36,7 +37,7 @@ public class SelectionHistoryTreeCellRenderer extends DefaultTreeCellRenderer {
   private final AbstractZyGraph<?, ?> graph;
 
   public SelectionHistoryTreeCellRenderer(final AbstractZyGraph<?, ?> graph) {
-    this.graph = Preconditions.checkNotNull(graph);
+    this.graph = checkNotNull(graph);
   }
 
   @Override

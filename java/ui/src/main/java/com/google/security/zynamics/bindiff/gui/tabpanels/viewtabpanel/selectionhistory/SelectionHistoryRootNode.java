@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.selectionhistory;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.utils.ImageUtils;
@@ -33,8 +34,8 @@ public class SelectionHistoryRootNode extends AbstractSelectionHistoryTreeNode {
       final ViewTabPanelFunctions controller, final BinDiffGraph<?, ?> graph, final String name) {
     super(name);
 
-    this.controller = Preconditions.checkNotNull(controller);
-    this.graph = Preconditions.checkNotNull(graph);
+    this.controller = checkNotNull(controller);
+    this.graph = checkNotNull(graph);
   }
 
   @Override

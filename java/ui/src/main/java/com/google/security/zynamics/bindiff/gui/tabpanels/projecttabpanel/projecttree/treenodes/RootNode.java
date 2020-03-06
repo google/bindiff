@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.WorkspaceTree;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.DefaultTreeNodeContextPanel;
@@ -34,7 +35,7 @@ public final class RootNode extends AbstractTreeNode {
   public RootNode(final WorkspaceTree tree, final WorkspaceTabPanelFunctions controller) {
     super(controller, null);
 
-    this.tree = Preconditions.checkNotNull(tree);
+    this.tree = checkNotNull(tree);
 
     createChildren();
   }

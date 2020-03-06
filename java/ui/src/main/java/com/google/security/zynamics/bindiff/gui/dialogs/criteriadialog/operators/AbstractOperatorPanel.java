@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.operators;
 
 import java.awt.BorderLayout;
-
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;

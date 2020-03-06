@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
@@ -32,17 +33,17 @@ public class CopyFunctionAddressAction extends AbstractAction {
             ? "Copy Primary Function Address"
             : "Copy Secondary Function Address");
 
-    Preconditions.checkNotNull(node);
-    Preconditions.checkNotNull(side);
+    checkNotNull(node);
+    checkNotNull(side);
 
     this.node = side == ESide.PRIMARY ? node.getPrimaryDiffNode() : node.getSecondaryDiffNode();
-    Preconditions.checkNotNull(this.node);
+    checkNotNull(this.node);
   }
 
   public CopyFunctionAddressAction(final SingleDiffNode node) {
     super("Copy Function Address");
 
-    this.node = Preconditions.checkNotNull(node);
+    this.node = checkNotNull(node);
   }
 
   @Override

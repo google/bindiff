@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.labelcontent.editableline;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EPlaceholderType;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 
@@ -23,7 +24,7 @@ public class PlaceholderObject extends AbstractEditableLineObject {
 
   public PlaceholderObject(final EPlaceholderType placeholderType) {
     super(0, 0);
-    this.placeholderType = Preconditions.checkNotNull(placeholderType);
+    this.placeholderType = checkNotNull(placeholderType);
   }
 
   @Override

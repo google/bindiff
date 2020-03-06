@@ -15,16 +15,14 @@
 package com.google.security.zynamics.bindiff.graph.layout;
 
 import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
-
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeListener;
 import y.base.Graph;
 import y.layout.GraphLayout;
 import y.view.Graph2D;
 import y.view.Graph2DView;
 import y.view.LayoutMorpher;
-
-import java.awt.Rectangle;
-import java.awt.geom.Rectangle2D;
-import java.beans.PropertyChangeListener;
 
 public class SuperLayoutMorpher extends LayoutMorpher {
   private final Graph2D superGraph;

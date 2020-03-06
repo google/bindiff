@@ -16,11 +16,6 @@ package com.google.security.zynamics.bindiff.gui.dialogs.printing;
 
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
-import y.view.Graph2DPrinter;
-import y.view.Graph2DView;
-import y.view.PrintPreviewPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
@@ -28,13 +23,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterJob;
-
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
+import y.view.Graph2DPrinter;
+import y.view.Graph2DView;
+import y.view.PrintPreviewPanel;
 
 public class PrintGraphPreviewDialog extends BaseDialog {
   private final ActionListener buttonListener = new InternalButtonListener();

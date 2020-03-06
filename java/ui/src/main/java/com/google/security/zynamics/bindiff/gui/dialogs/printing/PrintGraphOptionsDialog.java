@@ -20,9 +20,8 @@ import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.gui.CDecFormatter;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.ColorPanel.ColorPanel;
-import y.view.Graph2DPrinter;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -38,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import y.view.Graph2DPrinter;
 
 /** Dialog for settings print options before printing the current graph view. */
 public class PrintGraphOptionsDialog extends BaseDialog {

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.subpanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.components.viewsearchfield.IViewSearchFieldListener;
 import com.google.security.zynamics.bindiff.gui.components.viewsearchfield.TableTextSearchComboBox;
@@ -80,7 +81,7 @@ public class MatchedFunctionViewsFilterPanel extends JPanel {
   public MatchedFunctionViewsFilterPanel(final MatchedFunctionViewsTable table) {
     super(new BorderLayout());
 
-    Preconditions.checkNotNull(table);
+    checkNotNull(table);
 
     searchResultListener = new InternalSearchResultListener();
     filterCheckboxListener = new InternalFilterCheckboxListener();

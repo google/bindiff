@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.project.rawflowgraph;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EInstructionHighlighting;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
@@ -37,11 +38,11 @@ public class RawInstruction {
       final byte[] taggedOperandDisassembly,
       final long[] callTargetAddr,
       final List<RawInstructionComment> comments) {
-    this.address = Preconditions.checkNotNull(address);
-    this.mnemonic = Preconditions.checkNotNull(mnemonic);
+    this.address = checkNotNull(address);
+    this.mnemonic = checkNotNull(mnemonic);
     this.maxMnemonicLen = maxMnemonicLen;
-    this.taggedOperandDisassembly = Preconditions.checkNotNull(taggedOperandDisassembly);
-    this.callTargetAddresses = Preconditions.checkNotNull(callTargetAddr);
+    this.taggedOperandDisassembly = checkNotNull(taggedOperandDisassembly);
+    this.callTargetAddresses = checkNotNull(callTargetAddr);
     this.comments = comments;
   }
 

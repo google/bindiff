@@ -14,8 +14,9 @@
 
 package com.google.security.zynamics.bindiff.graph.backgroundrendering;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
@@ -37,9 +38,9 @@ public class BackgroundRendererManager extends GraphSettingsChangedListenerAdapt
       final Graph2DView view,
       final EGraph graphType,
       final GraphSettings settings) {
-    Preconditions.checkNotNull(viewData);
-    Preconditions.checkNotNull(graphType);
-    this.settings = Preconditions.checkNotNull(settings);
+    checkNotNull(viewData);
+    checkNotNull(graphType);
+    this.settings = checkNotNull(settings);
     imageBackgroundRenderer = new ImageBackgroundRenderer(viewData, view, graphType);
     view.setBackgroundRenderer(imageBackgroundRenderer);
 

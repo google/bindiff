@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.settings;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
 import com.google.security.zynamics.bindiff.enums.ECircularLayoutStyle;
@@ -86,7 +87,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   private void setCurrentLayouter(final CanonicMultiStageLayouter layouter) {
-    Preconditions.checkNotNull(layouter);
+    checkNotNull(layouter);
 
     currentLayouter = layouter;
   }

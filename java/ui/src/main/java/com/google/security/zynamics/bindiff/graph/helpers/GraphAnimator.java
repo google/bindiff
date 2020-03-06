@@ -19,7 +19,8 @@ import com.google.security.zynamics.bindiff.graph.SingleGraph;
 import com.google.security.zynamics.bindiff.graph.SuperGraph;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.functions.LayoutFunctions;
-
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import y.anim.AnimationFactory;
 import y.anim.AnimationObject;
 import y.anim.AnimationPlayer;
@@ -28,9 +29,6 @@ import y.util.DefaultMutableValue2D;
 import y.util.Value2D;
 import y.view.Graph2DView;
 import y.view.ViewAnimationFactory;
-
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 public class GraphAnimator {
   public static void moveGraph(final BinDiffGraph<?, ?> graph, final Point2D.Double center) {

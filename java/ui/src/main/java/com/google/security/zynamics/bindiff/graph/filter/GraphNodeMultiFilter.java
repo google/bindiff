@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.filter;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.filter.enums.EMatchStateFilter;
@@ -51,29 +52,29 @@ public class GraphNodeMultiFilter {
   private ESideFilter addrRangeSide;
   private boolean notify = false;
 
-  final RawFlowGraph priFlowgraph;
-  final RawFlowGraph secFlowgraph;
+  private final RawFlowGraph priFlowGraph;
+  private final RawFlowGraph secFlowGraph;
 
   public GraphNodeMultiFilter(
       final Diff diff,
-      final RawFlowGraph priFlowgraph,
-      final RawFlowGraph secFlowgraph,
+      final RawFlowGraph priFlowGraph,
+      final RawFlowGraph secFlowGraph,
       final IAddress startAddr,
       final IAddress endAddr,
       final EMatchStateFilter matchStateFilter,
       final ESelectionFilter selectionFilter,
       final EVisibilityFilter visibilityFilter,
       final ESideFilter sideFilter) {
-    this.diff = Preconditions.checkNotNull(diff);
-    this.startRangeAddr = Preconditions.checkNotNull(startAddr);
-    this.endRangeAddr = Preconditions.checkNotNull(endAddr);
-    this.matchStateFilter = Preconditions.checkNotNull(matchStateFilter);
-    this.selectionFilter = Preconditions.checkNotNull(selectionFilter);
-    this.visibilityFilter = Preconditions.checkNotNull(visibilityFilter);
-    this.sideFilter = Preconditions.checkNotNull(sideFilter);
+    this.diff = checkNotNull(diff);
+    this.startRangeAddr = checkNotNull(startAddr);
+    this.endRangeAddr = checkNotNull(endAddr);
+    this.matchStateFilter = checkNotNull(matchStateFilter);
+    this.selectionFilter = checkNotNull(selectionFilter);
+    this.visibilityFilter = checkNotNull(visibilityFilter);
+    this.sideFilter = checkNotNull(sideFilter);
 
-    this.priFlowgraph = priFlowgraph;
-    this.secFlowgraph = secFlowgraph;
+    this.priFlowGraph = priFlowGraph;
+    this.secFlowGraph = secFlowGraph;
   }
 
   private boolean filterAddressRange(final CombinedViewNode node) {
@@ -120,14 +121,13 @@ public class GraphNodeMultiFilter {
 
       if (node instanceof RawCombinedBasicBlock) {
 
-        boolean isIdentical = false;
-
-        final RawBasicBlock priBasicblock =
+        final RawBasicBlock priBasicBlock =
             ((RawCombinedBasicBlock) node).getRawNode(ESide.PRIMARY);
-        final RawBasicBlock secBasicblock =
+        final RawBasicBlock secBasicBlock =
             ((RawCombinedBasicBlock) node).getRawNode(ESide.SECONDARY);
 
-        isIdentical = MatchesGetter.isIdenticalBasicBlock(diff, priBasicblock, secBasicblock);
+        final boolean isIdentical =
+            MatchesGetter.isIdenticalBasicBlock(diff, priBasicBlock, secBasicBlock);
 
         if (matchStateFilter == EMatchStateFilter.MATCHED_IDENTICAL && isIdentical) {
           return true;
@@ -162,36 +162,33 @@ public class GraphNodeMultiFilter {
   }
 
   private boolean filterMatchState(
-      final RawBasicBlock basicblock,
-      final RawFlowGraph priFlowgraph,
-      final RawFlowGraph secFlowgraph) {
+      final RawBasicBlock basicBlock,
+      final RawFlowGraph priFlowGraph,
+      final RawFlowGraph secFlowGraph) {
     if (matchStateFilter == EMatchStateFilter.NONE) {
       return true;
     }
 
-    if (basicblock.getMatchState() == EMatchState.MATCHED) {
+    if (basicBlock.getMatchState() == EMatchState.MATCHED) {
       if (matchStateFilter == EMatchStateFilter.MATCHED) {
         return true;
       }
 
-      boolean isIdentical = false;
+      final ESide side = basicBlock.getSide();
 
-      final ESide side = basicblock.getSide();
+      RawBasicBlock priBasicBlock = basicBlock;
+      RawBasicBlock secBasicBlock = basicBlock;
 
-      RawBasicBlock priBasicblock = basicblock;
-      RawBasicBlock secBasicblock = basicblock;
-
+      final BasicBlockMatchData basicBlockMatch =
+          MatchesGetter.getBasicBlockMatch(diff, basicBlock);
       if (side == ESide.PRIMARY) {
-        final BasicBlockMatchData basicblockMatch =
-            MatchesGetter.getBasicBlockMatch(diff, basicblock);
-        secBasicblock = secFlowgraph.getBasicblock(basicblockMatch.getIAddress(ESide.SECONDARY));
+        secBasicBlock = secFlowGraph.getBasicblock(basicBlockMatch.getIAddress(ESide.SECONDARY));
       } else {
-        final BasicBlockMatchData basicblockMatch =
-            MatchesGetter.getBasicBlockMatch(diff, basicblock);
-        priBasicblock = priFlowgraph.getBasicblock(basicblockMatch.getIAddress(ESide.PRIMARY));
+        priBasicBlock = priFlowGraph.getBasicblock(basicBlockMatch.getIAddress(ESide.PRIMARY));
       }
 
-      isIdentical = MatchesGetter.isIdenticalBasicBlock(diff, priBasicblock, secBasicblock);
+      final boolean isIdentical =
+          MatchesGetter.isIdenticalBasicBlock(diff, priBasicBlock, secBasicBlock);
 
       if (matchStateFilter == EMatchStateFilter.MATCHED_IDENTICAL && isIdentical) {
         return true;
@@ -199,7 +196,7 @@ public class GraphNodeMultiFilter {
           && !isIdentical) {
         return true;
       }
-    } else if (basicblock.getMatchState() != EMatchState.MATCHED
+    } else if (basicBlock.getMatchState() != EMatchState.MATCHED
         && matchStateFilter == EMatchStateFilter.UNMATCHED) {
       return true;
     }
@@ -219,7 +216,7 @@ public class GraphNodeMultiFilter {
 
       final boolean isIdentical = function.isIdenticalMatch();
       final boolean isInstructionOnlyChanged = function.isChangedInstructionsOnlyMatch();
-      final boolean isSturcturalChanged = function.isChangedStructuralMatch();
+      final boolean isStructuralChanged = function.isChangedStructuralMatch();
 
       if (matchStateFilter == EMatchStateFilter.MATCHED_IDENTICAL && isIdentical) {
         return true;
@@ -227,7 +224,7 @@ public class GraphNodeMultiFilter {
           && isInstructionOnlyChanged) {
         return true;
       } else if (matchStateFilter == EMatchStateFilter.MATCHED_STRUTURAL_CHANGES
-          && isSturcturalChanged) {
+          && isStructuralChanged) {
         return true;
       }
     } else if (function.getMatchState() != EMatchState.MATCHED
@@ -391,33 +388,33 @@ public class GraphNodeMultiFilter {
     }
   }
 
-  public boolean filterRawBasicblock(final RawBasicBlock basicblock) {
-    return basicblock != null
-        && filterAddressRange(basicblock)
-        && filterMatchState(basicblock, priFlowgraph, secFlowgraph)
-        && filterSelection(basicblock)
-        && filterVisibility(basicblock)
-        && filterSide(basicblock);
+  public boolean filterRawBasicBlock(final RawBasicBlock basicBlock) {
+    return basicBlock != null
+        && filterAddressRange(basicBlock)
+        && filterMatchState(basicBlock, priFlowGraph, secFlowGraph)
+        && filterSelection(basicBlock)
+        && filterVisibility(basicBlock)
+        && filterSide(basicBlock);
   }
 
-  public boolean filterRawCombinedBasicblock(final RawCombinedBasicBlock combinedBasicblock) {
-    return combinedBasicblock != null
-        && filterAddressRange(combinedBasicblock)
-        && filterMatchState(combinedBasicblock)
-        && filterSelection(combinedBasicblock)
-        && filterVisibility(combinedBasicblock)
-        && filterSide(combinedBasicblock);
+  public boolean filterRawCombinedBasicBlock(final RawCombinedBasicBlock combinedBasicBlock) {
+    return combinedBasicBlock != null
+        && filterAddressRange(combinedBasicBlock)
+        && filterMatchState(combinedBasicBlock)
+        && filterSelection(combinedBasicBlock)
+        && filterVisibility(combinedBasicBlock)
+        && filterSide(combinedBasicBlock);
   }
 
-  public List<RawCombinedBasicBlock> filterRawCombinedBasicblocks(
-      final List<RawCombinedBasicBlock> basicblocks) {
-    Preconditions.checkNotNull(addrRangeSide);
+  public List<RawCombinedBasicBlock> filterRawCombinedBasicBlocks(
+      final List<RawCombinedBasicBlock> basicBlocks) {
+    checkNotNull(addrRangeSide);
 
     final List<RawCombinedBasicBlock> filteredList = new ArrayList<>();
 
-    for (final RawCombinedBasicBlock basicblock : basicblocks) {
-      if (filterRawCombinedBasicblock(basicblock)) {
-        filteredList.add(basicblock);
+    for (final RawCombinedBasicBlock basicBlock : basicBlocks) {
+      if (filterRawCombinedBasicBlock(basicBlock)) {
+        filteredList.add(basicBlock);
       }
     }
 
@@ -435,7 +432,7 @@ public class GraphNodeMultiFilter {
 
   public List<RawCombinedFunction> filterRawCombinedFunctions(
       final List<RawCombinedFunction> combinedFunctions) {
-    Preconditions.checkNotNull(addrRangeSide);
+    checkNotNull(addrRangeSide);
 
     final List<RawCombinedFunction> filteredList = new ArrayList<>();
 

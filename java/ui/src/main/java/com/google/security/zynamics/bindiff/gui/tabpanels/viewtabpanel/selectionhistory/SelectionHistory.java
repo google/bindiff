@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.selectionhistory;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.enums.EGraphType;
 import com.google.security.zynamics.bindiff.enums.ESide;
@@ -57,8 +59,8 @@ public class SelectionHistory {
   private boolean freeze = false;
 
   public SelectionHistory(final AbstractZyGraph<?, ?> graph, final int maxUndoLevel) {
-    Preconditions.checkNotNull(graph);
-    Preconditions.checkArgument(maxUndoLevel > 0, "Invalid undo level");
+    checkNotNull(graph);
+    checkArgument(maxUndoLevel > 0, "Invalid undo level");
 
     if (graph instanceof SingleGraph) {
       singleGraph = (SingleGraph) graph;
@@ -204,7 +206,6 @@ public class SelectionHistory {
     try {
       listeners.removeListener(listener);
     } catch (final Exception e) {
-      // FIXME: Never catch all exceptions!
       logger.at(Level.WARNING).log("Listener was not listening.");
     }
   }
@@ -282,8 +283,8 @@ public class SelectionHistory {
     private void refreshSnapshots(
         final CombinedDiffNode newPriUnmatchedDiffNode,
         final CombinedDiffNode newSecUnmatchedDiffNode) {
-      Preconditions.checkNotNull(newPriUnmatchedDiffNode);
-      Preconditions.checkNotNull(newSecUnmatchedDiffNode);
+      checkNotNull(newPriUnmatchedDiffNode);
+      checkNotNull(newSecUnmatchedDiffNode);
 
       final IAddress priAddress = newPriUnmatchedDiffNode.getRawNode().getAddress(ESide.PRIMARY);
       final IAddress secAddress = newSecUnmatchedDiffNode.getRawNode().getAddress(ESide.SECONDARY);
@@ -303,7 +304,7 @@ public class SelectionHistory {
     }
 
     private void refreshSnapshots(final SingleDiffNode newDiffNode) {
-      Preconditions.checkNotNull(newDiffNode);
+      checkNotNull(newDiffNode);
 
       final IAddress address = newDiffNode.getRawNode().getAddress();
       for (final SelectionSnapshot snapshot : snapshotList) {

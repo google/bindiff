@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.labelcontent.editableline;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 
@@ -23,7 +24,7 @@ public class CFunctionLineObject extends AbstractEditableLineObject {
 
   public CFunctionLineObject(final RawFunction rawFunction, final int start, final int length) {
     super(start, length);
-    Preconditions.checkNotNull(rawFunction);
+    checkNotNull(rawFunction);
 
     this.rawFunction = rawFunction;
   }

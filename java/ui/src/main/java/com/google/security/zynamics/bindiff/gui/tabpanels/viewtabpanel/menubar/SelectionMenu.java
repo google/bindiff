@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.menubar;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ColorInvisibleNodeAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ColorSelectedNodesAction;
@@ -67,7 +68,7 @@ public class SelectionMenu extends JMenu {
     setMnemonic('S');
 
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    Preconditions.checkNotNull(controller);
+    checkNotNull(controller);
 
     undoLastSelection =
         GuiUtils.buildMenuItem(

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import java.awt.event.ActionEvent;
@@ -26,7 +27,7 @@ public class CloseDiffAction extends AbstractAction {
   private final WorkspaceTabPanelFunctions controller;
 
   public CloseDiffAction(final WorkspaceTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
   }
 
   @Override

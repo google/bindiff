@@ -15,7 +15,6 @@
 package com.google.security.zynamics.bindiff.enums.comparators;
 
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
-
 import java.util.Comparator;
 
 public class RawFunctionComparator implements Comparator<RawFunction> {

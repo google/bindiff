@@ -111,7 +111,7 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     final List<CombinedFlowGraphBasicBlockTreeNode> filteredTreeNodes = new ArrayList<>();
 
     for (final CombinedFlowGraphBasicBlockTreeNode treeNode : treeNodes) {
-      if (filter.filterRawCombinedBasicblock(treeNode.getCombinedBasicblock())) {
+      if (filter.filterRawCombinedBasicBlock(treeNode.getCombinedBasicblock())) {
         if (!updateSearch && !"".equals(searcher.getSearchString())) {
           if (searcher.isSearchHit(treeNode.getCombinedDiffNode())) {
             filteredTreeNodes.add(treeNode);

@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.graph.editmode.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.helpers.GraphMover;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IStateAction;
@@ -27,9 +28,9 @@ import javax.swing.SwingUtilities;
 public class SingleEdgeClickLeftAction implements IStateAction<CEdgeClickedLeftState> {
   @Override
   public void execute(final CEdgeClickedLeftState state, final MouseEvent event) {
-    Preconditions.checkNotNull(event);
-    final AbstractZyGraph<?, ?> graph = Preconditions.checkNotNull(state.getGraph());
-    final ZyGraphEdge<?, ?, ?> edge = Preconditions.checkNotNull(state.getEdge());
+    checkNotNull(event);
+    final AbstractZyGraph<?, ?> graph = checkNotNull(state.getGraph());
+    final ZyGraphEdge<?, ?, ?> edge = checkNotNull(state.getEdge());
 
     if (SwingUtilities.isLeftMouseButton(event)) {
       if (event.isShiftDown()) {

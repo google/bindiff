@@ -14,8 +14,11 @@
 
 package com.google.security.zynamics.bindiff.database;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
+
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -25,7 +28,7 @@ public abstract class SqliteDatabase implements AutoCloseable {
   final Connection connection;
 
   SqliteDatabase(final File database) throws SQLException {
-    Preconditions.checkNotNull(database);
+    checkNotNull(database);
     try {
       Class.forName("org.sqlite.JDBC");
     } catch (final ClassNotFoundException e) {

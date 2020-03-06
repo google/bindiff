@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import java.awt.event.ActionEvent;
@@ -25,8 +26,8 @@ public class JumpToAddressAction extends AbstractAction {
   private final ESide side;
 
   public JumpToAddressAction(final ViewTabPanelFunctions controller, final ESide side) {
-    this.controller = Preconditions.checkNotNull(controller);
-    this.side = Preconditions.checkNotNull(side);
+    this.controller = checkNotNull(controller);
+    this.side = checkNotNull(side);
   }
 
   @Override

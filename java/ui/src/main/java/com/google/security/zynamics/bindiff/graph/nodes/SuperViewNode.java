@@ -14,12 +14,12 @@
 
 package com.google.security.zynamics.bindiff.graph.nodes;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.graph.edges.SuperViewEdge;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IGroupNode;
 import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public class SuperViewNode extends CViewNode<SuperViewEdge<? extends SuperViewNo
   public SuperViewNode(final CombinedViewNode combinedNode) {
     super(-1, 0, 0, 0, 0, Color.WHITE, Color.BLACK, false, true);
 
-    Preconditions.checkNotNull(combinedNode);
+    checkNotNull(combinedNode);
 
     this.combinedNode = combinedNode;
   }

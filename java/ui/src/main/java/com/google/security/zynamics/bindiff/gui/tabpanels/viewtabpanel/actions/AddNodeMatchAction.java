@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.graph.GraphsContainer;
@@ -41,7 +42,7 @@ public class AddNodeMatchAction extends AbstractAction {
       final ZyGraphNode<?> clickedNode) {
     super("Add Basic Block Match");
 
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
     this.graph = graph;
     this.clickedNode = clickedNode;
   }

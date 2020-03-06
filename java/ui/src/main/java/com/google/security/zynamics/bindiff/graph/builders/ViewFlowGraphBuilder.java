@@ -57,17 +57,15 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraph2DView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyNormalNodeRealizer;
-
-import y.base.Edge;
-import y.base.Node;
-import y.view.Graph2D;
-import y.view.LineType;
-
 import java.awt.Color;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import y.base.Edge;
+import y.base.Node;
+import y.view.Graph2D;
+import y.view.LineType;
 
 public class ViewFlowGraphBuilder {
   protected static void addGraphEditors(
@@ -120,7 +118,7 @@ public class ViewFlowGraphBuilder {
 
       // primary jumps
       SingleDiffEdge primaryDiffEdge = null;
-      Edge yPrimaryEdge = null;
+      Edge yPrimaryEdge;
       final IAddress priSrcAddr = combinedJump.getSource().getAddress(ESide.PRIMARY);
       final IAddress priTarAddr = combinedJump.getTarget().getAddress(ESide.PRIMARY);
 
@@ -155,7 +153,7 @@ public class ViewFlowGraphBuilder {
 
       // secondary jumps
       SingleDiffEdge secondaryDiffEdge = null;
-      Edge ySecondaryEdge = null;
+      Edge ySecondaryEdge;
       final RawBasicBlock secondaryFunctionSourceNode =
           combinedSourceNode.getRawNode(ESide.SECONDARY);
       final RawBasicBlock secondaryFunctionTargetNode =
@@ -291,17 +289,16 @@ public class ViewFlowGraphBuilder {
       final Map<Pair<IAddress, IAddress>, SuperDiffNode> addrPairToSuperDiffNodeMap,
       final Map<Pair<IAddress, IAddress>, CombinedDiffNode> addrPairToCombinedDiffNodeMap,
       final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-          flowgraph) {
-    for (final RawCombinedBasicBlock combinedBasicBlock : flowgraph) {
+          flowGraph) {
+    for (final RawCombinedBasicBlock combinedBasicBlock : flowGraph) {
       SingleDiffNode primaryDiffNode = null;
       SingleDiffNode secondaryDiffNode = null;
-      SuperDiffNode superDiffNode = null;
-      CombinedDiffNode combinedDiffNode = null;
-
-      Node yPrimaryNode = null;
-      Node ySecondaryNode = null;
-      Node ySuperNode = null;
-      Node yCombinedNode = null;
+      SuperDiffNode superDiffNode;
+      CombinedDiffNode combinedDiffNode;
+      Node yPrimaryNode;
+      Node ySecondaryNode;
+      Node ySuperNode;
+      Node yCombinedNode;
 
       final IAddress secondaryAddress = combinedBasicBlock.getAddress(ESide.SECONDARY);
       final IAddress primaryAddress = combinedBasicBlock.getAddress(ESide.PRIMARY);
@@ -313,7 +310,7 @@ public class ViewFlowGraphBuilder {
       if (primaryBasicBlock != null) {
         primaryNodeContent =
             buildSingleBasicBlockLabelContent(
-                functionMatch, flowgraph, combinedBasicBlock, ESide.PRIMARY);
+                functionMatch, flowGraph, combinedBasicBlock, ESide.PRIMARY);
         final ZyNormalNodeRealizer<SingleDiffNode> primaryNodeRealizer =
             new ZyNormalNodeRealizer<>(primaryNodeContent);
 
@@ -338,7 +335,7 @@ public class ViewFlowGraphBuilder {
       if (secondaryBasicBlock != null) {
         secondaryNodeContent =
             buildSingleBasicBlockLabelContent(
-                functionMatch, flowgraph, combinedBasicBlock, ESide.SECONDARY);
+                functionMatch, flowGraph, combinedBasicBlock, ESide.SECONDARY);
         final ZyNormalNodeRealizer<SingleDiffNode> secondaryNodeRealizer =
             new ZyNormalNodeRealizer<>(secondaryNodeContent);
 
@@ -634,28 +631,20 @@ public class ViewFlowGraphBuilder {
     if (primaryJump != null) {
       switch (primaryJump.getJumpType()) {
         case JUMP_TRUE:
-          {
-            primaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_TRUE);
-            combinedJump.setColor(Colors.JUMP_CONDITIONAL_TRUE);
-            break;
-          }
+          primaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_TRUE);
+          combinedJump.setColor(Colors.JUMP_CONDITIONAL_TRUE);
+          break;
         case JUMP_FALSE:
-          {
-            primaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_FALSE);
-            combinedJump.setColor(Colors.JUMP_CONDITIONAL_FALSE);
-            break;
-          }
+          primaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_FALSE);
+          combinedJump.setColor(Colors.JUMP_CONDITIONAL_FALSE);
+          break;
         case SWITCH:
-          {
-            primaryEdgeRealizer.setLineColor(Colors.JUMP_SWITCH);
-            combinedJump.setColor(Colors.JUMP_SWITCH);
-            break;
-          }
+          primaryEdgeRealizer.setLineColor(Colors.JUMP_SWITCH);
+          combinedJump.setColor(Colors.JUMP_SWITCH);
+          break;
         default:
-          {
-            primaryEdgeRealizer.setLineColor(Colors.JUMP_UNCONDITIONAL);
-            combinedJump.setColor(Colors.JUMP_UNCONDITIONAL);
-          }
+          primaryEdgeRealizer.setLineColor(Colors.JUMP_UNCONDITIONAL);
+          combinedJump.setColor(Colors.JUMP_UNCONDITIONAL);
       }
     }
 
@@ -663,28 +652,20 @@ public class ViewFlowGraphBuilder {
     if (secondaryJump != null) {
       switch (secondaryJump.getJumpType()) {
         case JUMP_TRUE:
-          {
-            secondaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_TRUE);
-            combinedJump.setColor(Colors.JUMP_CONDITIONAL_TRUE);
-            break;
-          }
+          secondaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_TRUE);
+          combinedJump.setColor(Colors.JUMP_CONDITIONAL_TRUE);
+          break;
         case JUMP_FALSE:
-          {
-            secondaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_FALSE);
-            combinedJump.setColor(Colors.JUMP_CONDITIONAL_FALSE);
-            break;
-          }
+          secondaryEdgeRealizer.setLineColor(Colors.JUMP_CONDITIONAL_FALSE);
+          combinedJump.setColor(Colors.JUMP_CONDITIONAL_FALSE);
+          break;
         case SWITCH:
-          {
-            secondaryEdgeRealizer.setLineColor(Colors.JUMP_SWITCH);
-            combinedJump.setColor(Colors.JUMP_SWITCH);
-            break;
-          }
+          secondaryEdgeRealizer.setLineColor(Colors.JUMP_SWITCH);
+          combinedJump.setColor(Colors.JUMP_SWITCH);
+          break;
         default:
-          {
-            secondaryEdgeRealizer.setLineColor(Colors.JUMP_UNCONDITIONAL);
-            combinedJump.setColor(Colors.JUMP_UNCONDITIONAL);
-          }
+          secondaryEdgeRealizer.setLineColor(Colors.JUMP_UNCONDITIONAL);
+          combinedJump.setColor(Colors.JUMP_UNCONDITIONAL);
       }
     }
 

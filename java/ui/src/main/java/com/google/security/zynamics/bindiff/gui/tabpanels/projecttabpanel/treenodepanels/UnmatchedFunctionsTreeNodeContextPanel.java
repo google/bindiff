@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.subpanels.UnmatchedFunctionViewsPanel;
@@ -32,9 +33,9 @@ public class UnmatchedFunctionsTreeNodeContextPanel extends AbstractTreeNodeCont
 
   public UnmatchedFunctionsTreeNodeContextPanel(
       final Diff diff, final WorkspaceTabPanelFunctions controller, final ESide side) {
-    Preconditions.checkNotNull(diff);
-    Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(side);
+    checkNotNull(diff);
+    checkNotNull(controller);
+    checkNotNull(side);
 
     this.side = side;
 

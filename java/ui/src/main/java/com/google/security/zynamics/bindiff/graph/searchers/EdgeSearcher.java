@@ -18,7 +18,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.CStyleRunData;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;

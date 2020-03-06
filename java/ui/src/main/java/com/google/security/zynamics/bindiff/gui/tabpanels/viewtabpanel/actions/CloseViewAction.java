@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanel;
@@ -30,11 +31,11 @@ public class CloseViewAction extends AbstractAction {
 
   public CloseViewAction(final ViewTabPanel viewPanel) {
     this.controller = null;
-    this.viewPanel = Preconditions.checkNotNull(viewPanel);
+    this.viewPanel = checkNotNull(viewPanel);
   }
 
   public CloseViewAction(final ViewTabPanelFunctions controller) {
-    this.controller = Preconditions.checkNotNull(controller);
+    this.controller = checkNotNull(controller);
     this.viewPanel = null;
   }
 

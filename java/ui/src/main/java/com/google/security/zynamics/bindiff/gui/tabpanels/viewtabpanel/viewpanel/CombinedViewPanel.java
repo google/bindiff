@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.viewpanel;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels.CombinedGraphPanel;
@@ -32,9 +33,9 @@ public class CombinedViewPanel extends JPanel {
   public CombinedViewPanel(
       final Diff diff, final ViewTabPanelFunctions controller, final ViewData view) {
     super(new BorderLayout());
-    Preconditions.checkNotNull(diff);
-    Preconditions.checkNotNull(controller);
-    Preconditions.checkNotNull(view);
+    checkNotNull(diff);
+    checkNotNull(controller);
+    checkNotNull(view);
 
     this.controller = controller;
 

@@ -19,7 +19,6 @@ import com.google.security.zynamics.bindiff.graph.edges.SingleViewEdge;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
-
 import java.util.Comparator;
 
 public class SearchResultComparator implements Comparator<SearchResult> {

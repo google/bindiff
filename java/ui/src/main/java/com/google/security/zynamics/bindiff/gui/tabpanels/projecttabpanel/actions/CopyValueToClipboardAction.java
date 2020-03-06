@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.AbstractTable;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.tables.ExtendedMatchedFunctionViewsTableModel;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
@@ -28,7 +29,7 @@ public class CopyValueToClipboardAction extends AbstractAction {
 
   public CopyValueToClipboardAction(
       final AbstractTable table, final int hitRowIndex, final int hitColumnIndex) {
-    this.table = Preconditions.checkNotNull(table);
+    this.table = checkNotNull(table);
     this.hitRowIndex = hitRowIndex;
     this.hitColumnIndex = hitColumnIndex;
   }

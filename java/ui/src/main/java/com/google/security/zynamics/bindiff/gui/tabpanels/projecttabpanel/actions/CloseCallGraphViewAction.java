@@ -14,7 +14,8 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanel;
@@ -29,8 +30,8 @@ public class CloseCallGraphViewAction extends AbstractAction {
   private final Diff diff;
 
   public CloseCallGraphViewAction(final WorkspaceTabPanelFunctions controller, final Diff diff) {
-    this.controller = Preconditions.checkNotNull(controller);
-    this.diff = Preconditions.checkNotNull(diff);
+    this.controller = checkNotNull(controller);
+    this.diff = checkNotNull(diff);
   }
 
   @Override

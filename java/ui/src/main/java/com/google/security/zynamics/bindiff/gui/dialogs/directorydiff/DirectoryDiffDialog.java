@@ -14,7 +14,9 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
@@ -73,8 +75,8 @@ public class DirectoryDiffDialog extends BaseDialog {
   public DirectoryDiffDialog(final Window window, final File workspaceDir) {
     super(window, "Directory Diff");
 
-    Preconditions.checkNotNull(workspaceDir);
-    Preconditions.checkArgument(workspaceDir.exists(), "Workspace directory doesn't exist");
+    checkNotNull(workspaceDir);
+    checkArgument(workspaceDir.exists(), "Workspace directory doesn't exist");
 
     workspacePath = workspaceDir.getPath();
     diffsTable = new IdbPairTable(workspaceDir, new IdbPairTableModel());
@@ -270,7 +272,6 @@ public class DirectoryDiffDialog extends BaseDialog {
           errorMsg_A += String.format(" - %s", destination + "\n");
         }
       } catch (final Exception e) {
-        // FIXME: Never catch all exceptions!
         errorMsg_A += String.format(" - %s", destination + "\n");
       } finally {
         // TODO: This can fail
