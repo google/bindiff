@@ -311,8 +311,14 @@ public class BinExport2Builder {
               edge.setTargetBasicBlockIndex(targetId);
             }
             edges.add(edge.build());
+          } else if (flow.isJump() && flow.isComputed()) {
+            edge.setSourceBasicBlockIndex(id);
+            if (targetId != null) {
+              edge.setTargetBasicBlockIndex(targetId);
+              edge.setType(BinExport2.FlowGraph.Edge.Type.SWITCH);
+            }
+            edges.add(edge.build());
           }
-          // TODO(cblichmann): Handle switch tables
           lastFlow = flow;
         }
         flowGraph.addAllEdge(edges);
