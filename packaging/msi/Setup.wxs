@@ -15,8 +15,7 @@
   limitations under the License.
   -->
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
-     xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension">
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <!-- Never change the UpgradeCode after release -->
   <Product Id="*"
            UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
@@ -214,17 +213,6 @@
                            Action="set" Permanent="no"
                            System="yes" Part="last"
                            Value="[INSTALLDIR]bin" />
-            </Component>
-            <Component Id="BinDiff_Bin_WindowsFirewallRule" Win64="yes"
-                       Guid="D50B9F79-5930-4C8E-96AE-C5A1D586EBA5">
-              <RegistryValue Root="HKLM"
-                             Key="SOFTWARE\[Manufacturer]\[ProductName]\FirewallRule"
-                             Type="string" Value="1"
-                             KeyPath="yes" />
-              <fire:FirewallException Id="Firewall_BinDiffLocalTCP2000"
-                                      Name="[ProductName]"
-                                      Port="2000" Protocol="tcp"
-                                      Scope="localSubnet" />
             </Component>
           </Directory>
 
@@ -456,20 +444,11 @@
       </Feature>
 
       <Feature Id="AddToSystemPath"
-               Level="1000"
                Title="Entry in Path environment variable"
                Description="Add the [ProductName] installation directory to the system path."
                Absent="allow"
                AllowAdvertise="no">
         <ComponentRef Id="BinDiff_Bin_AddToSystemPath" />
-      </Feature>
-      <Feature Id="WindowsFirewallSetting"
-               Level="1000"
-               Title="Windows Firewall Rule"
-               Description="Adds an exception to the Windows Firewall configuration to allow [ProductName] to listen to port 2000 TCP on localhost."
-               Absent="allow"
-               AllowAdvertise="no">
-        <ComponentRef Id="BinDiff_Bin_WindowsFirewallRule" />
       </Feature>
 
       <Feature Id="Roboto"
