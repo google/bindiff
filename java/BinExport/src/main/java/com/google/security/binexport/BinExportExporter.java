@@ -85,7 +85,10 @@ public class BinExportExporter extends Exporter {
       final BinExport2 proto = builder.build(monitor);
 
       monitor.setMessage("Writing BinExport2 file");
-      proto.writeTo(new FileOutputStream(file));
+
+      try (final var outputStream = new FileOutputStream(file)) {
+        proto.writeTo(outputStream);
+      }
     } catch (final CancelledException e) {
       return false;
     }
