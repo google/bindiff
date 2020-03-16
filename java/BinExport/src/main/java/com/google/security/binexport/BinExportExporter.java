@@ -49,6 +49,8 @@ public class BinExportExporter extends Exporter {
       "Subtract Imagebase";
   private static final String IDAPRO_COMPAT_OPT_REMAP_MNEMONICS =
       "Remap mnemonics";
+  private static final String IDAPRO_COMPAT_OPT_PREPEND_NAMESPACE = 
+      "Prepend Namespace to Function Names";
 
   /** Whether to subtract the program image base from addresses for export. */
   private boolean subtractImagebase = false;
@@ -56,6 +58,9 @@ public class BinExportExporter extends Exporter {
   /** Whether to remap Ghidra's mnenomics into IDA Pro style ones. */
   private boolean remapMnemonics = false;
 
+  /** Whether to prepend "namespace::" to function names where the namespace is not "Global" */
+  private boolean prependNamespace = false;
+  
   public BinExportExporter() {
     super(BINEXPORT_FORMAT_DISPLAY_NAME, BINEXPORT_FILE_EXTENSION, null);
     log.appendMsg("BinExport 11 (c)2019-2020 Google LLC");
@@ -82,6 +87,9 @@ public class BinExportExporter extends Exporter {
       if (subtractImagebase) {
         builder.setAddressOffset(program.getImageBase().getOffset());
       }
+      if (prependNamespace) {
+        builder.setPrependNamespace(true);
+      }
       final BinExport2 proto = builder.build(monitor);
 
       monitor.setMessage("Writing BinExport2 file");
@@ -101,6 +109,8 @@ public class BinExportExporter extends Exporter {
         new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_SUBTRACT_IMAGEBASE,
             Boolean.FALSE),
         new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_REMAP_MNEMONICS,
+            Boolean.FALSE),
+        new Option(IDAPRO_COMPAT_OPTGROUP, IDAPRO_COMPAT_OPT_PREPEND_NAMESPACE, 
             Boolean.FALSE));
   }
 
@@ -113,6 +123,9 @@ public class BinExportExporter extends Exporter {
           break;
         case IDAPRO_COMPAT_OPT_REMAP_MNEMONICS:
           remapMnemonics = (boolean) option.getValue();
+          break;
+        case IDAPRO_COMPAT_OPT_PREPEND_NAMESPACE:
+          prependNamespace = (boolean) option.getValue();
           break;
       }
     }

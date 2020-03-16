@@ -68,6 +68,7 @@ public class BinExport2Builder {
 
   private MnemonicMapper mnemonicMapper = new IdentityMnemonicMapper();
   private long addressOffset = 0;
+  private boolean prependNamespace = false;
 
   public BinExport2Builder(Program ghidraProgram) {
     program = ghidraProgram;
@@ -84,6 +85,11 @@ public class BinExport2Builder {
     return this;
   }
 
+  public BinExport2Builder setPrependNamespace(boolean isPrepended) {
+    prependNamespace = isPrepended;
+    return this;
+  }
+  
   private long getMappedAddress(Address address) {
     return address.getOffset() - addressOffset;
   }
@@ -347,7 +353,12 @@ public class BinExport2Builder {
       }
       // TODO(cblichmann): Check for artificial names
       // Mangled name always needs to be set.
-      vertex.setMangledName(func.getName());
+      if (func.getParentNamespace() != null && !func.getParentNamespace().getName().equals("Global") 
+          && this.prependNamespace) {
+        vertex.setMangledName(func.getParentNamespace().getName() + "::" + func.getName());
+      } else {
+        vertex.setMangledName(func.getName());
+      }
       vertexIndices.put(funcAddress, id++);
       monitor.setProgress(i++);
     }
