@@ -36,6 +36,7 @@ import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.scalar.Scalar;
 import ghidra.program.model.symbol.FlowType;
+import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.RefType;
 import ghidra.program.model.symbol.Reference;
 import ghidra.program.model.symbol.Symbol;
@@ -344,6 +345,7 @@ public class BinExport2Builder {
     for (final Function func : funcManager.getFunctions(true)) {
       final long funcAddress = getMappedAddress(func.getEntryPoint());
       final var vertex = callGraph.addVertexBuilder().setAddress(funcAddress);
+      final Namespace parentNamespace = func.getParentNamespace();
       // TODO(cblichmann): Imported/library
       if (func.isExternal()) {
         vertex.setType(BinExport2.CallGraph.Vertex.Type.IMPORTED);
@@ -353,9 +355,9 @@ public class BinExport2Builder {
       }
       // TODO(cblichmann): Check for artificial names
       // Mangled name always needs to be set.
-      if (func.getParentNamespace() != null && !func.getParentNamespace().getName().equals("Global") 
+      if (parentNamespace != null && !"Global".equals(parentNamespace.getName()) 
           && this.prependNamespace) {
-        vertex.setMangledName(func.getParentNamespace().getName() + "::" + func.getName());
+        vertex.setMangledName(parentNamespace.getName() + "::" + func.getName());
       } else {
         vertex.setMangledName(func.getName());
       }
