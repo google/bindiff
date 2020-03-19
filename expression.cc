@@ -68,6 +68,8 @@ const Expression::ExpressionCache& Expression::GetExpressions() {
 
 bool Expression::IsSymbol() const { return type_ == TYPE_SYMBOL; }
 
+bool Expression::IsRegister() const { return type_ == TYPE_REGISTER; }
+
 bool Expression::IsImmediate() const {
   return type_ == TYPE_IMMEDIATE_INT || type_ == TYPE_IMMEDIATE_FLOAT ||
          type_ > TYPE_DEREFERENCE;

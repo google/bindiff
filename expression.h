@@ -58,6 +58,7 @@ class Expression {
   bool IsOperator() const;
   bool IsDereferenceOperator() const;
   bool IsRelocation() const;
+  bool IsRegister() const;
   int GetId() const;
   Type GetType() const;
   const std::string& GetSymbol() const;
