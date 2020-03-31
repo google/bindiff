@@ -16,6 +16,7 @@ cmake_minimum_required(VERSION 3.12)
 cmake_policy(VERSION 3.12)
 project(binexport VERSION 11)  # Only major version is used
 
+include(GoogleTest) # Needs to come before changing module path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(copts.cmake)
 include(util.cmake)
@@ -148,7 +149,7 @@ target_link_libraries(binexport_shared_test PUBLIC
   binexport_test_base
   binexport_shared
 )
-add_test(BinExportSharedTests binexport_shared_test)
+gtest_discover_tests(binexport_shared_test)
 
 add_library(binexport_test_util
   binexport_test_util.cc
@@ -169,7 +170,7 @@ target_link_libraries(binexport_test PUBLIC
   binexport_shared
   absl::memory
 )
-add_test(BinExportTests binexport_test)
+gtest_discover_tests(binexport_test)
 
 # binexport2dump tool
 add_subdirectory(tools)
@@ -325,7 +326,6 @@ target_link_libraries(binexport_reader_test PUBLIC
   gmock
   binexport_reader
 )
-add_test(
-  NAME BinExportReaderTests
-  COMMAND binexport_reader_test ${PROJECT_SOURCE_DIR}/reader
+gtest_discover_tests(binexport_reader_test
+  EXTRA_ARGS ${PROJECT_SOURCE_DIR}/reader
 )

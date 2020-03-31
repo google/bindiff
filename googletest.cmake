@@ -19,6 +19,5 @@ find_path(googletest_src_dir
   PATHS ${PROJECT_BINARY_DIR}/googletest
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-message("${googletest_src_dir}")
 add_subdirectory(${googletest_src_dir} ${PROJECT_BINARY_DIR}/googletest
                  EXCLUDE_FROM_ALL)
