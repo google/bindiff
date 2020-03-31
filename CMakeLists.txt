@@ -22,6 +22,8 @@ set(BinExport_DIR ${PROJECT_SOURCE_DIR}/../binexport)
 set(Google3_DIR ${PROJECT_SOURCE_DIR}/../../..)
 set(ThirdParty_DIR ${PROJECT_SOURCE_DIR}/../../../third_party)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
 string(TOLOWER "${CMAKE_BUILD_TYPE}" _bindiff_build_type)
 if(NOT _bindiff_build_type STREQUAL "debug")
   include(CheckIPOSupported)
@@ -30,10 +32,10 @@ else()
   set(_bindiff_ipo_supported FALSE)
 endif()
 
+include(GoogleTest) # Needs to come before changing module path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
 include(${BinExport_DIR}/util.cmake)
-set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 include(sqlite.cmake)
 include(tinyxpath.cmake)
 
@@ -155,7 +157,7 @@ target_link_libraries(xmlconfig_test
   bindiff_tests_base
   xmlconfig
 )
-add_test(AllTestsInXmlConfig xmlconfig_test)
+gtest_discover_tests(xmlconfig_test)
 
 # Sources shared by the differ and the IDA plugin.
 add_library(bindiff_shared STATIC
@@ -272,14 +274,14 @@ target_link_libraries(prime_signature_test
   bindiff_tests_base
   bindiff_shared
 )
-add_test(AllTestsInPrimeSignature prime_signature_test)
+gtest_discover_tests(prime_signature_test)
 
 add_executable(utility_test utility_test.cc)
 target_link_libraries(utility_test
   bindiff_tests_base
   bindiff_shared
 )
-add_test(AllTestsInUtility utility_test)
+gtest_discover_tests(utility_test)
 
 # Plugins will be named "bindiffX.so" and "bindiffX64.so" (or .dll or .dylib),
 # where X is the release number.
