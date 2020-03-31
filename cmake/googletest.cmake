@@ -14,8 +14,7 @@
 
 ExternalProject_Add(googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  # Snapshot from 2019-05-20
-  GIT_TAG f71fb4f9a912ec945401cc49a287a759b6131026
+  GIT_TAG e588eb1ff9ff6598666279b737b27f983156ad85 # 2020-02-27
   SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/googletest
   # Just use CMake to clone into directory
   CONFIGURE_COMMAND ""
