@@ -60,44 +60,44 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
   GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
                         &counts);
 
-  std::ofstream result_file(filename_.c_str());
-  result_file.precision(16);
-  result_file << call_graph1.GetFilename() << "\n" << call_graph2.GetFilename()
-              << "\n"
-              << "call graph1 MD index " << std::dec << call_graph1.GetMdIndex()
-              << "\ncall graph2 MD index " << std::dec
-              << call_graph2.GetMdIndex() << std::endl
-              << std::dec << "\n --------- statistics ---------\n";
-  for (Counts::const_iterator i = counts.begin(); i != counts.end(); ++i) {
-    const std::string padding(60 - i->first.size(), '.');
-    result_file << i->first << padding << ":" << std::setw(7) << i->second
-                << "\n";
+  std::ofstream result(filename_.c_str());
+  result.precision(16);
+  result << std::dec << call_graph1.GetFilename() << "\n"
+         << call_graph2.GetFilename() << "\n"
+         << "call graph1 MD index " << call_graph1.GetMdIndex() << "\n"
+         << "call graph2 MD index " << call_graph2.GetMdIndex() << "\n"
+         << "\n"
+         << " --------- statistics ---------\n";
+  for (int i = 0; i < counts.ui_entry_size(); ++i) {
+    const auto& [name, value] = counts.GetEntry(i);
+    const std::string padding(60 - name.size(), '.');
+    result << name << padding << ":" << std::setw(7) << value << "\n";
   }
-  result_file << std::endl;
+  result << "\n";
   for (Histogram::const_iterator i = histogram.begin(); i != histogram.end();
        ++i) {
     const std::string padding(60 - i->first.size(), '.');
-    result_file << i->first << padding << ":" << std::setw(7) << i->second
-                << "\n";
+    result << i->first << padding << ":" << std::setw(7) << i->second << "\n";
   }
-  result_file << "\nsimilarity: "
-              << GetSimilarityScore(call_graph1, call_graph2, histogram, counts)
-              << "\nconfidence: " << GetConfidence(histogram, &confidences)
-              << "\n\nindividual confidence values used: " << std::endl;
+  result << "\n"
+         << "similarity: "
+         << GetSimilarityScore(call_graph1, call_graph2, histogram, counts)
+         << "\n"
+         << "confidence: " << GetConfidence(histogram, &confidences) << "\n\n"
+         << "individual confidence values used: \n";
   for (Confidences::const_iterator i = confidences.begin();
        i != confidences.end(); ++i) {
     const std::string padding(60 - i->first.size(), '.');
-    result_file << i->first << padding << ":" << std::setw(7)
-                << std::setprecision(2) << i->second << "\n";
+    result << i->first << padding << ":" << std::setw(7) << std::setprecision(2)
+           << i->second << "\n";
   }
-  result_file << std::endl
-              << " --------- matched " << std::dec << fixed_points.size()
-              << " of "
-              << counts.find("functions primary (non-library)")->second << "/"
-              << counts.find("functions secondary (non-library)")->second
-              << " (" << counts.find("functions primary (library)")->second
-              << "/" << counts.find("functions secondary (library)")->second
-              << ") ------------ " << std::endl;
+  result << "\n"
+         << " --------- matched " << std::dec << fixed_points.size() << " of "
+         << counts[Counts::kFunctionsPrimaryNonLibrary] << "/"
+         << counts[Counts::kFunctionsSecondaryNonLibrary] << " ("
+         << counts[Counts::kFunctionsPrimaryLibrary] << "/"
+         << counts[Counts::kFunctionsSecondaryLibrary] << ") ------------ "
+         << "\n";
   for (FixedPoints::const_iterator i = fixed_points.begin();
        i != fixed_points.end(); ++i) {
     const Address primary_address = i->GetPrimary()->GetEntryPointAddress();
@@ -106,17 +106,18 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
         boost::num_vertices(i->GetPrimary()->GetGraph());
     const size_t basic_blocks2 =
         boost::num_vertices(i->GetSecondary()->GetGraph());
-    result_file << FormatAddress(primary_address) << "\t"
-                << FormatAddress(secondary_address) << "\t"
-                << i->GetSimilarity() << "\t" << i->GetConfidence() << "\t"
-                << i->GetPrimary()->GetMdIndex() << "\t"
-                << i->GetSecondary()->GetMdIndex() << "\t"
-                << i->GetPrimary()->IsLibrary() << "\t"
-                << i->GetSecondary()->IsLibrary() << "\t"
-                << i->GetMatchingStep() << "\t\"" << i->GetPrimary()->GetName()
-                << "\"\t\"" << i->GetSecondary()->GetName() << "\"" << std::endl
-                << std::dec << "\t" << i->GetBasicBlockFixedPoints().size()
-                << "\t" << basic_blocks1 << "\t" << basic_blocks2 << std::endl;
+    result << FormatAddress(primary_address) << "\t"
+           << FormatAddress(secondary_address) << "\t" << i->GetSimilarity()
+           << "\t" << i->GetConfidence() << "\t"
+           << i->GetPrimary()->GetMdIndex() << "\t"
+           << i->GetSecondary()->GetMdIndex() << "\t"
+           << i->GetPrimary()->IsLibrary() << "\t"
+           << i->GetSecondary()->IsLibrary() << "\t" << i->GetMatchingStep()
+           << "\t\"" << i->GetPrimary()->GetName() << "\"\t\""
+           << i->GetSecondary()->GetName() << "\""
+           << "\n"
+           << std::dec << "\t" << i->GetBasicBlockFixedPoints().size() << "\t"
+           << basic_blocks1 << "\t" << basic_blocks2 << "\n";
     for (BasicBlockFixedPoints::const_iterator j =
              i->GetBasicBlockFixedPoints().begin();
          j != i->GetBasicBlockFixedPoints().end(); ++j) {
@@ -125,19 +126,19 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
       const size_t instructions2 =
           i->GetSecondary()->GetInstructionCount(j->GetSecondaryVertex());
       const InstructionMatches& matches = j->GetInstructionMatches();
-      result_file << "\t"
-                  << FormatAddress(
-                         i->GetPrimary()->GetAddress(j->GetPrimaryVertex()))
-                  << "\t"
-                  << FormatAddress(
-                         i->GetSecondary()->GetAddress(j->GetSecondaryVertex()))
-                  << "\t" << j->GetMatchingStep() << "\n"
-                  << "\t\t" << std::dec << matches.size() << "\t"
-                  << instructions1 << "\t" << instructions2 << std::endl;
+      result << "\t"
+             << FormatAddress(
+                    i->GetPrimary()->GetAddress(j->GetPrimaryVertex()))
+             << "\t"
+             << FormatAddress(
+                    i->GetSecondary()->GetAddress(j->GetSecondaryVertex()))
+             << "\t" << j->GetMatchingStep() << "\n"
+             << "\t\t" << std::dec << matches.size() << "\t" << instructions1
+             << "\t" << instructions2 << "\n";
       for (InstructionMatches::const_iterator k = matches.begin();
            k != matches.end(); ++k) {
-        result_file << "\t\t" << FormatAddress(k->first->GetAddress()) << "\t"
-                    << FormatAddress(k->second->GetAddress()) << std::endl;
+        result << "\t\t" << FormatAddress(k->first->GetAddress()) << "\t"
+               << FormatAddress(k->second->GetAddress()) << "\n";
       }
     }
   }
@@ -150,13 +151,14 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
       IteratorPrimary(fixed_points.begin(), ProjectPrimary()),
       IteratorPrimary(fixed_points.end(), ProjectPrimary()),
       std::inserter(unmatched, unmatched.begin()), SortByAddress());
-  result_file << " --------- unmatched primary (" << std::dec
-              << unmatched.size() << ") ------------ " << std::endl;
+  result << " --------- unmatched primary (" << std::dec << unmatched.size()
+         << ") ------------ "
+         << "\n";
   for (FlowGraphs::const_iterator i = unmatched.begin(); i != unmatched.end();
        ++i) {
-    result_file << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
-                << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
-                << (*i)->GetName() << std::endl;
+    result << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
+           << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
+           << (*i)->GetName() << "\n";
   }
 
   using IteratorSecondary =
@@ -169,13 +171,14 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
   std::set_symmetric_difference(
       flow_graphs2.begin(), flow_graphs2.end(), temp.begin(), temp.end(),
       std::inserter(unmatched, unmatched.begin()), SortByAddress());
-  result_file << " --------- unmatched secondary (" << std::dec
-              << unmatched.size() << ") ------------ " << std::endl;
+  result << " --------- unmatched secondary (" << std::dec << unmatched.size()
+         << ") ------------ "
+         << "\n";
   for (FlowGraphs::const_iterator i = unmatched.begin(); i != unmatched.end();
        ++i) {
-    result_file << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
-                << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
-                << (*i)->GetName() << std::endl;
+    result << FormatAddress((*i)->GetEntryPointAddress()) << "\t"
+           << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
+           << (*i)->GetName() << "\n";
   }
 }
 

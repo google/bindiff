@@ -349,8 +349,9 @@ void DifferThread::operator()() {
         PrintMessage(absl::StrCat(
             file1, " vs ", file2, " (", HumanReadableDuration(timer.elapsed()),
             "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence));
-        for (const auto& entry : counts) {
-          PrintMessage(absl::StrCat("\n\t", entry.first, ":\t", entry.second));
+        for (int i = 0; i < counts.ui_entry_size(); ++i) {
+          const auto& [name, value] = counts.GetEntry(i);
+          PrintMessage(absl::StrCat("\n\t", name, ":\t", value));
         }
       }
 
@@ -777,9 +778,8 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
       PrintMessage(absl::StrCat(
           "matched: ", fixed_points.size(), " of ", flow_graphs1.size(), "/",
           flow_graphs2.size(), " (primary/secondary, ",
-          counts.find("functions primary (non-library)")->second, "/",
-          counts.find("functions secondary (non-library)")->second,
-          " non-library)"));
+          counts[Counts::kFunctionsPrimaryNonLibrary], "/",
+          counts[Counts::kFunctionsSecondaryNonLibrary], " non-library)"));
 
       PrintMessage(absl::StrCat("call graph MD index: primary   ",
                                 call_graph1->GetMdIndex()));

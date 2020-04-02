@@ -106,8 +106,8 @@ void Diff(const std::string& primary_path, const std::string& secondary_path) {
             absl::Seconds(time_diff)),
         similarity * 100.0, confidence * 100.0, fixed_points.size(),
         flow_graphs1.size(), flow_graphs2.size(),
-        counts.find("functions primary (non-library)")->second,
-        counts.find("functions secondary (non-library)")->second);
+        counts[Counts::kFunctionsPrimaryNonLibrary],
+        counts[Counts::kFunctionsSecondaryNonLibrary]);
     LOG(INFO) << absl::Substitute(
         "primary call graph MD index $0, secondary call graph MD index $1",
         call_graph1.GetMdIndex(), call_graph2.GetMdIndex());

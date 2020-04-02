@@ -43,9 +43,9 @@ void MatchingStepSequence::GetUnmatchedFlowGraphsByAddress(
       Counts counts;
       Count(*flow_graph, &counts);
       // This should sort by number of instructions first and address second.
-      const auto feature =
-          1000 * static_cast<uint64_t>(counts["instructions (library)"] +
-                                     counts["instructions (non-library)"]) +
+      const uint64_t feature =
+          1000 * (counts[Counts::kInstructionsLibrary] +
+                  counts[Counts::kInstructionsNonLibrary]) +
           sequence;
       sorted_by_size.emplace(feature, flow_graph);
     }

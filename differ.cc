@@ -119,11 +119,12 @@ void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
     info.address = address;
     info.name = &flow_graph->GetName();
     info.demangled_name = &flow_graph->GetDemangledName();
-    info.basic_block_count =
-        counts["basicBlocks (library)"] + counts["basicBlocks (non-library)"];
-    info.edge_count = counts["edges (library)"] + counts["edges (non-library)"];
-    info.instruction_count =
-        counts["instructions (library)"] + counts["instructions (non-library)"];
+    info.basic_block_count = counts[Counts::kBasicBlocksLibrary] +
+                             counts[Counts::kBasicBlocksNonLibrary];
+    info.edge_count =
+        counts[Counts::kEdgesLibrary] + counts[Counts::kEdgesNonLibrary];
+    info.instruction_count = counts[Counts::kInstructionsLibrary] +
+                             counts[Counts::kInstructionsNonLibrary];
 
     flow_graphs->insert(flow_graph.release());
   }
@@ -272,21 +273,20 @@ void Count(const FlowGraph& flow_graph, Counts* counts) {
 }
 
 void Count(const FlowGraphs& flow_graphs, Counts* counts) {
-  Counts::mapped_type num_functions = 0;
-  Counts::mapped_type num_basic_blocks = 0;
-  Counts::mapped_type num_instructions = 0;
-  Counts::mapped_type num_edges = 0;
-  Counts::mapped_type num_lib_functions = 0;
-  Counts::mapped_type num_lib_basic_blocks = 0;
-  Counts::mapped_type num_lib_instructions = 0;
-  Counts::mapped_type num_lib_edges = 0;
+  uint64_t num_functions = 0;
+  uint64_t num_basic_blocks = 0;
+  uint64_t num_instructions = 0;
+  uint64_t num_edges = 0;
+  uint64_t num_lib_functions = 0;
+  uint64_t num_lib_basic_blocks = 0;
+  uint64_t num_lib_instructions = 0;
+  uint64_t num_lib_edges = 0;
   for (const FlowGraph* flow_graph : flow_graphs) {
-    Counts::mapped_type& basic_blocks =
+    uint64_t& basic_blocks =
         flow_graph->IsLibrary() ? num_lib_basic_blocks : num_basic_blocks;
-    Counts::mapped_type& instructions =
+    uint64_t& instructions =
         flow_graph->IsLibrary() ? num_lib_instructions : num_instructions;
-    Counts::mapped_type& edges =
-        flow_graph->IsLibrary() ? num_lib_edges : num_edges;
+    uint64_t& edges = flow_graph->IsLibrary() ? num_lib_edges : num_edges;
     num_functions += 1 - flow_graph->IsLibrary();
     num_lib_functions += flow_graph->IsLibrary();
 
@@ -298,48 +298,47 @@ void Count(const FlowGraphs& flow_graphs, Counts* counts) {
     edges += boost::num_edges(flow_graph->GetGraph());
   }
 
-  (*counts)["functions (library)"] = num_lib_functions;
-  (*counts)["functions (non-library)"] = num_functions;
-  (*counts)["basicBlocks (library)"] = num_lib_basic_blocks;
-  (*counts)["basicBlocks (non-library)"] = num_basic_blocks;
-  (*counts)["instructions (library)"] = num_lib_instructions;
-  (*counts)["instructions (non-library)"] = num_instructions;
-  (*counts)["edges (library)"] = num_lib_edges;
-  (*counts)["edges (non-library)"] = num_edges;
+  (*counts)[Counts::kFunctionsLibrary] = num_lib_functions;
+  (*counts)[Counts::kFunctionsNonLibrary] = num_functions;
+  (*counts)[Counts::kBasicBlocksLibrary] = num_lib_basic_blocks;
+  (*counts)[Counts::kBasicBlocksNonLibrary] = num_basic_blocks;
+  (*counts)[Counts::kInstructionsLibrary] = num_lib_instructions;
+  (*counts)[Counts::kInstructionsNonLibrary] = num_instructions;
+  (*counts)[Counts::kEdgesLibrary] = num_lib_edges;
+  (*counts)[Counts::kEdgesNonLibrary] = num_edges;
 }
 
 void Count(const FixedPoint& fixed_point, Counts* counts,
            Histogram* histogram) {
-  (*counts)["function matches (library)"] = 0;
-  (*counts)["basicBlock matches (library)"] = 0;
-  (*counts)["instruction matches (library)"] = 0;
-  (*counts)["flowGraph edge matches (library)"] = 0;
-  (*counts)["function matches (non-library)"] = 0;
-  (*counts)["basicBlock matches (non-library)"] = 0;
-  (*counts)["instruction matches (non-library)"] = 0;
-  (*counts)["flowGraph edge matches (non-library)"] = 0;
+  (*counts)[Counts::kFunctionMatchesLibrary] = 0;
+  (*counts)[Counts::kBasicBlockMatchesLibrary] = 0;
+  (*counts)[Counts::kInstructionMatchesLibrary] = 0;
+  (*counts)[Counts::kFlowGraphEdgeMatchesLibrary] = 0;
+  (*counts)[Counts::kFunctionMatchesNonLibrary] = 0;
+  (*counts)[Counts::kBasicBlockMatchesNonLibrary] = 0;
+  (*counts)[Counts::kInstructionMatchesNonLibrary] = 0;
+  (*counts)[Counts::kFlowGraphEdgeMatchesNonLibrary] = 0;
 
   const FlowGraph* primary = fixed_point.GetPrimary();
   const FlowGraph* secondary = fixed_point.GetSecondary();
   const bool library = primary->IsLibrary() || secondary->IsLibrary();
-  Counts::mapped_type& functions(
-      library ? (*counts)["function matches (library)"]
-              : (*counts)["function matches (non-library)"]);
-  Counts::mapped_type& basic_blocks(
-      library ? (*counts)["basicBlock matches (library)"]
-              : (*counts)["basicBlock matches (non-library)"]);
-  Counts::mapped_type& instructions(
-      library ? (*counts)["instruction matches (library)"]
-              : (*counts)["instruction matches (non-library)"]);
-  Counts::mapped_type& edges(
-      library ? (*counts)["flowGraph edge matches (library)"]
-              : (*counts)["flowGraph edge matches (non-library)"]);
+  uint64_t& functions = (*counts)[library ? Counts::kFunctionMatchesLibrary
+                                          : Counts::kFunctionMatchesNonLibrary];
+  uint64_t& basic_blocks =
+      (*counts)[library ? Counts::kBasicBlockMatchesLibrary
+                        : Counts::kBasicBlockMatchesNonLibrary];
+  uint64_t& instructions =
+      (*counts)[library ? Counts::kInstructionMatchesLibrary
+                        : Counts::kInstructionMatchesNonLibrary];
+  uint64_t& edges =
+      (*counts)[library ? Counts::kFlowGraphEdgeMatchesLibrary
+                        : Counts::kFlowGraphEdgeMatchesNonLibrary];
 
-  (*histogram)[fixed_point.GetMatchingStep()]++;
-  functions++;
+  ++(*histogram)[fixed_point.GetMatchingStep()];
+  ++functions;
   basic_blocks += fixed_point.GetBasicBlockFixedPoints().size();
   for (const auto& basic_block : fixed_point.GetBasicBlockFixedPoints()) {
-    (*histogram)[basic_block.GetMatchingStep()]++;
+    ++(*histogram)[basic_block.GetMatchingStep()];
     instructions += basic_block.GetInstructionMatches().size();
   }
 
@@ -392,68 +391,74 @@ void GetCountsAndHistogram(const FlowGraphs& flow_graphs1,
                            const FlowGraphs& flow_graphs2,
                            const FixedPoints& fixed_points,
                            Histogram* histogram, Counts* counts) {
-  Counts counts1, counts2;
+  Counts counts1;
+  Counts counts2;
   Count(flow_graphs1, &counts1);
   Count(flow_graphs2, &counts2);
 
-  (*counts)["functions primary (library)"] = counts1["functions (library)"];
-  (*counts)["functions primary (non-library)"] =
-      counts1["functions (non-library)"];
-  (*counts)["functions secondary (library)"] = counts2["functions (library)"];
-  (*counts)["functions secondary (non-library)"] =
-      counts2["functions (non-library)"];
-  (*counts)["basicBlocks primary (library)"] = counts1["basicBlocks (library)"];
-  (*counts)["basicBlocks primary (non-library)"] =
-      counts1["basicBlocks (non-library)"];
-  (*counts)["basicBlocks secondary (library)"] =
-      counts2["basicBlocks (library)"];
-  (*counts)["basicBlocks secondary (non-library)"] =
-      counts2["basicBlocks (non-library)"];
+  (*counts)[Counts::kFunctionsPrimaryLibrary] =
+      counts1[Counts::kFunctionsLibrary];
+  (*counts)[Counts::kFunctionsPrimaryNonLibrary] =
+      counts1[Counts::kFunctionsNonLibrary];
+  (*counts)[Counts::kFunctionsSecondaryLibrary] =
+      counts2[Counts::kFunctionsLibrary];
+  (*counts)[Counts::kFunctionsSecondaryNonLibrary] =
+      counts2[Counts::kFunctionsNonLibrary];
+  (*counts)[Counts::kBasicBlocksPrimaryLibrary] =
+      counts1[Counts::kBasicBlocksLibrary];
+  (*counts)[Counts::kBasicBlocksPrimaryNonLibrary] =
+      counts1[Counts::kBasicBlocksNonLibrary];
+  (*counts)[Counts::kBasicBlocksSecondaryLibrary] =
+      counts2[Counts::kBasicBlocksLibrary];
+  (*counts)[Counts::kBasicBlocksSecondaryNonLibrary] =
+      counts2[Counts::kBasicBlocksNonLibrary];
 
-  (*counts)["instructions primary (library)"] =
-      counts1["instructions (library)"];
-  (*counts)["instructions primary (non-library)"] =
-      counts1["instructions (non-library)"];
-  (*counts)["instructions secondary (library)"] =
-      counts2["instructions (library)"];
-  (*counts)["instructions secondary (non-library)"] =
-      counts2["instructions (non-library)"];
+  (*counts)[Counts::kInstructionsPrimaryLibrary] =
+      counts1[Counts::kInstructionsLibrary];
+  (*counts)[Counts::kInstructionsPrimaryNonLibrary] =
+      counts1[Counts::kInstructionsNonLibrary];
+  (*counts)[Counts::kInstructionsSecondaryLibrary] =
+      counts2[Counts::kInstructionsLibrary];
+  (*counts)[Counts::kInstructionsSecondaryNonLibrary] =
+      counts2[Counts::kInstructionsNonLibrary];
 
-  (*counts)["flowGraph edges primary (library)"] = counts1["edges (library)"];
-  (*counts)["flowGraph edges primary (non-library)"] =
-      counts1["edges (non-library)"];
-  (*counts)["flowGraph edges secondary (library)"] = counts2["edges (library)"];
-  (*counts)["flowGraph edges secondary (non-library)"] =
-      counts2["edges (non-library)"];
+  (*counts)[Counts::kFlowGraphEdgesPrimaryLibrary] =
+      counts1[Counts::kEdgesLibrary];
+  (*counts)[Counts::kFlowGraphEdgesPrimaryNonLibrary] =
+      counts1[Counts::kEdgesNonLibrary];
+  (*counts)[Counts::kFlowGraphEdgesSecondaryLibrary] =
+      counts2[Counts::kEdgesLibrary];
+  (*counts)[Counts::kFlowGraphEdgesSecondaryNonLibrary] =
+      counts2[Counts::kEdgesNonLibrary];
 
-  (*counts)["function matches (library)"] = 0;
-  (*counts)["basicBlock matches (library)"] = 0;
-  (*counts)["instruction matches (library)"] = 0;
-  (*counts)["flowGraph edge matches (library)"] = 0;
-  (*counts)["function matches (non-library)"] = 0;
-  (*counts)["basicBlock matches (non-library)"] = 0;
-  (*counts)["instruction matches (non-library)"] = 0;
-  (*counts)["flowGraph edge matches (non-library)"] = 0;
+  (*counts)[Counts::kFunctionMatchesLibrary] = 0;
+  (*counts)[Counts::kBasicBlockMatchesLibrary] = 0;
+  (*counts)[Counts::kInstructionMatchesLibrary] = 0;
+  (*counts)[Counts::kFlowGraphEdgeMatchesLibrary] = 0;
+  (*counts)[Counts::kFunctionMatchesNonLibrary] = 0;
+  (*counts)[Counts::kBasicBlockMatchesNonLibrary] = 0;
+  (*counts)[Counts::kInstructionMatchesNonLibrary] = 0;
+  (*counts)[Counts::kFlowGraphEdgeMatchesNonLibrary] = 0;
   for (auto i = fixed_points.cbegin(), end = fixed_points.cend(); i != end;
        ++i) {
     Counts fixed_point_counts;
     Count(*i, &fixed_point_counts, histogram);
-    (*counts)["function matches (library)"] +=
-        fixed_point_counts["function matches (library)"];
-    (*counts)["basicBlock matches (library)"] +=
-        fixed_point_counts["basicBlock matches (library)"];
-    (*counts)["instruction matches (library)"] +=
-        fixed_point_counts["instruction matches (library)"];
-    (*counts)["flowGraph edge matches (library)"] +=
-        fixed_point_counts["flowGraph edge matches (library)"];
-    (*counts)["function matches (non-library)"] +=
-        fixed_point_counts["function matches (non-library)"];
-    (*counts)["basicBlock matches (non-library)"] +=
-        fixed_point_counts["basicBlock matches (non-library)"];
-    (*counts)["instruction matches (non-library)"] +=
-        fixed_point_counts["instruction matches (non-library)"];
-    (*counts)["flowGraph edge matches (non-library)"] +=
-        fixed_point_counts["flowGraph edge matches (non-library)"];
+    (*counts)[Counts::kFunctionMatchesLibrary] +=
+        fixed_point_counts[Counts::kFunctionMatchesLibrary];
+    (*counts)[Counts::kBasicBlockMatchesLibrary] +=
+        fixed_point_counts[Counts::kBasicBlockMatchesLibrary];
+    (*counts)[Counts::kInstructionMatchesLibrary] +=
+        fixed_point_counts[Counts::kInstructionMatchesLibrary];
+    (*counts)[Counts::kFlowGraphEdgeMatchesLibrary] +=
+        fixed_point_counts[Counts::kFlowGraphEdgeMatchesLibrary];
+    (*counts)[Counts::kFunctionMatchesNonLibrary] +=
+        fixed_point_counts[Counts::kFunctionMatchesNonLibrary];
+    (*counts)[Counts::kBasicBlockMatchesNonLibrary] +=
+        fixed_point_counts[Counts::kBasicBlockMatchesNonLibrary];
+    (*counts)[Counts::kInstructionMatchesNonLibrary] +=
+        fixed_point_counts[Counts::kInstructionMatchesNonLibrary];
+    (*counts)[Counts::kFlowGraphEdgeMatchesNonLibrary] +=
+        fixed_point_counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
   }
 }
 
@@ -461,33 +466,30 @@ void GetCountsAndHistogram(const FlowGraphs& flow_graphs1,
 double GetSimilarityScore(const FlowGraph& flow_graph1,
                           const FlowGraph& flow_graph2,
                           const Histogram& histogram, const Counts& counts) {
-  const int basic_block_matches =
-      counts.find("basicBlock matches (non-library)")->second +
-      counts.find("basicBlock matches (library)")->second;
+  const int basic_block_matches = counts[Counts::kBasicBlockMatchesNonLibrary] +
+                                  counts[Counts::kBasicBlockMatchesLibrary];
   const int basic_blocks_primary =
-      counts.find("basicBlocks primary (non-library)")->second +
-      counts.find("basicBlocks primary (library)")->second;
+      counts[Counts::kBasicBlocksPrimaryNonLibrary] +
+      counts[Counts::kBasicBlocksPrimaryLibrary];
   const int basic_blocks_secondary =
-      counts.find("basicBlocks secondary (non-library)")->second +
-      counts.find("basicBlocks secondary (library)")->second;
+      counts[Counts::kBasicBlocksSecondaryNonLibrary] +
+      counts[Counts::kBasicBlocksSecondaryLibrary];
   const int instruction_matches =
-      counts.find("instruction matches (non-library)")->second +
-      counts.find("instruction matches (library)")->second;
+      counts[Counts::kInstructionMatchesNonLibrary] +
+      counts[Counts::kInstructionMatchesLibrary];
   const int instructions_primary =
-      counts.find("instructions primary (non-library)")->second +
-      counts.find("instructions primary (library)")->second;
+      counts[Counts::kInstructionsPrimaryNonLibrary] +
+      counts[Counts::kInstructionsPrimaryLibrary];
   const int instructions_secondary =
-      counts.find("instructions secondary (non-library)")->second +
-      counts.find("instructions secondary (library)")->second;
-  const int edge_matches =
-      counts.find("flowGraph edge matches (non-library)")->second +
-      counts.find("flowGraph edge matches (library)")->second;
-  const int edges_primary =
-      counts.find("flowGraph edges primary (non-library)")->second +
-      counts.find("flowGraph edges primary (library)")->second;
+      counts[Counts::kInstructionsSecondaryNonLibrary] +
+      counts[Counts::kInstructionsSecondaryLibrary];
+  const int edge_matches = counts[Counts::kFlowGraphEdgeMatchesNonLibrary] +
+                           counts[Counts::kFlowGraphEdgeMatchesLibrary];
+  const int edges_primary = counts[Counts::kFlowGraphEdgesPrimaryNonLibrary] +
+                            counts[Counts::kFlowGraphEdgesPrimaryLibrary];
   const int edges_secondary =
-      counts.find("flowGraph edges secondary (non-library)")->second +
-      counts.find("flowGraph edges secondary (library)")->second;
+      counts[Counts::kFlowGraphEdgesSecondaryNonLibrary] +
+      counts[Counts::kFlowGraphEdgesSecondaryLibrary];
 
   if (basic_block_matches == basic_blocks_primary &&
       basic_block_matches == basic_blocks_secondary &&
@@ -525,30 +527,22 @@ double GetSimilarityScore(const CallGraph& call_graph1,
                           const Histogram& histogram, const Counts& counts) {
   double similarity = 0;
   similarity +=
-      0.35 * counts.find("flowGraph edge matches (non-library)")->second /
-      (std::max(
-          1.0,
-          0.5 * (counts.find("flowGraph edges primary (non-library)")->second +
-                 counts.find("flowGraph edges secondary (non-library)")
-                     ->second)));
+      0.35 * counts[Counts::kFlowGraphEdgeMatchesNonLibrary] /
+      (std::max(1.0,
+                0.5 * (counts[Counts::kFlowGraphEdgesPrimaryNonLibrary] +
+                       counts[Counts::kFlowGraphEdgesSecondaryNonLibrary])));
   similarity +=
-      0.25 * counts.find("basicBlock matches (non-library)")->second /
-      (std::max(
-          1.0,
-          0.5 * (counts.find("basicBlocks primary (non-library)")->second +
-                 counts.find("basicBlocks secondary (non-library)")->second)));
+      0.25 * counts[Counts::kBasicBlockMatchesNonLibrary] /
+      (std::max(1.0, 0.5 * (counts[Counts::kBasicBlocksPrimaryNonLibrary] +
+                            counts[Counts::kBasicBlocksSecondaryNonLibrary])));
   similarity +=
-      0.10 * counts.find("function matches (non-library)")->second /
-      (std::max(
-          1.0,
-          0.5 * (counts.find("functions primary (non-library)")->second +
-                 counts.find("functions secondary (non-library)")->second)));
+      0.10 * counts[Counts::kInstructionMatchesNonLibrary] /
+      (std::max(1.0, 0.5 * (counts[Counts::kFunctionsPrimaryNonLibrary] +
+                            counts[Counts::kFunctionsSecondaryNonLibrary])));
   similarity +=
-      0.10 * counts.find("instruction matches (non-library)")->second /
-      (std::max(
-          1.0,
-          0.5 * (counts.find("instructions primary (non-library)")->second +
-                 counts.find("instructions secondary (non-library)")->second)));
+      0.10 * counts[Counts::kInstructionMatchesNonLibrary] /
+      (std::max(1.0, 0.5 * (counts[Counts::kInstructionsPrimaryNonLibrary] +
+                            counts[Counts::kInstructionsSecondaryNonLibrary])));
   similarity +=
       0.20 * (1.0 -
               std::fabs(call_graph1.GetMdIndex() - call_graph2.GetMdIndex()) /

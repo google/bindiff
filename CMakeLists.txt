@@ -250,6 +250,7 @@ add_library(bindiff_shared STATIC
   sqlite.cc
   sqlite.h
   start_ui.cc
+  statistics.h
   start_ui.h
   utility.cc
   utility.h

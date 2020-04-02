@@ -575,12 +575,12 @@ bool Results::IncrementalDiff() {
     FixedPoints dummy3;
     dummy3.insert(fixed_point);
     GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
-    info.basic_block_count = counts["basicBlock matches (library)"] +
-                             counts["basicBlock matches (non-library)"];
-    info.instruction_count = counts["instruction matches (library)"] +
-                             counts["instruction matches (non-library)"];
-    info.edge_count = counts["flowGraph edge matches (library)"] +
-                      counts["flowGraph edge matches (non-library)"];
+    info.basic_block_count = counts[Counts::kBasicBlockMatchesLibrary] +
+                             counts[Counts::kBasicBlockMatchesNonLibrary];
+    info.instruction_count = counts[Counts::kInstructionMatchesLibrary] +
+                             counts[Counts::kInstructionMatchesNonLibrary];
+    info.edge_count = counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+                      counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
     fixed_point_infos_.insert(info);
   }
 
@@ -592,7 +592,8 @@ bool Results::IncrementalDiff() {
 }
 
 size_t Results::GetNumStatistics() const {
-  return counts_.size() + histogram_.size() + 2 /* Similarity & Confidence */;
+  return counts_.ui_entry_size() + histogram_.size() +
+         2 /* Similarity & Confidence */;
 }
 
 Results::StatisticDescription Results::GetStatisticDescription(
@@ -603,22 +604,20 @@ Results::StatisticDescription Results::GetStatisticDescription(
   }
 
   size_t nr = 0;
-  if (index < counts_.size()) {
-    auto it = counts_.cbegin();
-    for (; it != counts_.cend() && nr < index; ++it, ++nr) {
-    }
-    desc.name = it->first;
+  if (index < counts_.ui_entry_size()) {
+    const auto entry = counts_.GetEntry(index);
+    desc.name = std::string(entry.first);
     desc.is_count = true;
-    desc.count = it->second;
-  } else if (index < histogram_.size() + counts_.size()) {
-    index -= counts_.size();
+    desc.count = entry.second;
+  } else if (index < histogram_.size() + counts_.ui_entry_size()) {
+    index -= counts_.ui_entry_size();
     auto it = histogram_.cbegin();
     for (; it != histogram_.cend() && nr < index; ++it, ++nr) {
     }
     desc.name = it->first;
     desc.is_count = true;
     desc.count = it->second;
-  } else if (index == histogram_.size() + counts_.size() + 1) {
+  } else if (index == histogram_.size() + counts_.ui_entry_size() + 1) {
     desc.name = "Similarity";
     desc.is_count = false;
     desc.value = similarity_;
@@ -665,20 +664,20 @@ not_absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
 
     if (call_graph2_.IsLibrary(call_graph2_.GetVertex(secondary_address)) ||
         call_graph1_.IsLibrary(call_graph1_.GetVertex(primary_address))) {
-      counts_["function matches (library)"] -= 1;
-      counts_["basicBlock matches (library)"] -=
+      counts_[Counts::kFunctionMatchesLibrary] -= 1;
+      counts_[Counts::kBasicBlockMatchesLibrary] -=
           fixed_point_info.basic_block_count;
-      counts_["instruction matches (library)"] -=
+      counts_[Counts::kInstructionMatchesLibrary] -=
           fixed_point_info.instruction_count;
-      counts_["flowGraph edge matches (library)"] -=
+      counts_[Counts::kFlowGraphEdgeMatchesLibrary] -=
           fixed_point_info.edge_count;
     } else {
-      counts_["function matches (non-library)"] -= 1;
-      counts_["basicBlock matches (non-library)"] -=
+      counts_[Counts::kFunctionMatchesNonLibrary] -= 1;
+      counts_[Counts::kBasicBlockMatchesNonLibrary] -=
           fixed_point_info.basic_block_count;
-      counts_["instruction matches (non-library)"] -=
+      counts_[Counts::kInstructionMatchesNonLibrary] -=
           fixed_point_info.instruction_count;
-      counts_["flowGraph edge matches (non-library)"] -=
+      counts_[Counts::kFlowGraphEdgeMatchesNonLibrary] -=
           fixed_point_info.edge_count;
     }
     auto& algorithm_count = histogram_[*fixed_point_info.algorithm];
@@ -782,14 +781,14 @@ not_absl::Status Results::AddMatch(Address primary, Address secondary) {
           primary_graph, secondary_graph, histogram, counts));
       ClassifyChanges(&fixed_point);
       fixed_point_info.basic_block_count =
-          counts["basicBlock matches (library)"] +
-          counts["basicBlock matches (non-library)"];
+          counts[Counts::kBasicBlockMatchesLibrary] +
+          counts[Counts::kBasicBlockMatchesNonLibrary];
       fixed_point_info.instruction_count =
-          counts["instruction matches (library)"] +
-          counts["instruction matches (non-library)"];
+          counts[Counts::kInstructionMatchesLibrary] +
+          counts[Counts::kInstructionMatchesNonLibrary];
       fixed_point_info.edge_count =
-          counts["flowGraph edge matches (library)"] +
-          counts["flowGraph edge matches (non-library)"];
+          counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
       fixed_point_info.similarity = fixed_point.GetSimilarity();
       fixed_point_info.flags = fixed_point.GetFlags();
 
@@ -831,14 +830,14 @@ not_absl::Status Results::AddMatch(Address primary, Address secondary) {
       fixed_point.SetConfidence(fixed_point_info.confidence);
       ClassifyChanges(&fixed_point);
       fixed_point_info.basic_block_count =
-          counts["basicBlock matches (library)"] +
-          counts["basicBlock matches (non-library)"];
+          counts[Counts::kBasicBlockMatchesLibrary] +
+          counts[Counts::kBasicBlockMatchesNonLibrary];
       fixed_point_info.instruction_count =
-          counts["instruction matches (library)"] +
-          counts["instruction matches (non-library)"];
+          counts[Counts::kInstructionMatchesLibrary] +
+          counts[Counts::kInstructionMatchesNonLibrary];
       fixed_point_info.edge_count =
-          counts["flowGraph edge matches (library)"] +
-          counts["flowGraph edge matches (non-library)"];
+          counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
       fixed_point_info.similarity = fixed_point.GetSimilarity();
       fixed_point_info.flags = fixed_point.GetFlags();
     }
@@ -857,20 +856,20 @@ not_absl::Status Results::AddMatch(Address primary, Address secondary) {
             call_graph1_.GetVertex(fixed_point_info.primary)) ||
         flow_graph_infos1_.find(fixed_point_info.primary) ==
             flow_graph_infos1_.end()) {
-      counts_["function matches (library)"] += 1;
-      counts_["basicBlock matches (library)"] +=
+      counts_[Counts::kFunctionMatchesLibrary] += 1;
+      counts_[Counts::kBasicBlockMatchesLibrary] +=
           fixed_point_info.basic_block_count;
-      counts_["instruction matches (library)"] +=
+      counts_[Counts::kInstructionMatchesLibrary] +=
           fixed_point_info.instruction_count;
-      counts_["flowGraph edge matches (library)"] +=
+      counts_[Counts::kFlowGraphEdgeMatchesLibrary] +=
           fixed_point_info.edge_count;
     } else {
-      counts_["function matches (non-library)"] += 1;
-      counts_["basicBlock matches (non-library)"] +=
+      counts_[Counts::kFunctionMatchesNonLibrary] += 1;
+      counts_[Counts::kBasicBlockMatchesNonLibrary] +=
           fixed_point_info.basic_block_count;
-      counts_["instruction matches (non-library)"] +=
+      counts_[Counts::kInstructionMatchesNonLibrary] +=
           fixed_point_info.instruction_count;
-      counts_["flowGraph edge matches (non-library)"] +=
+      counts_[Counts::kFlowGraphEdgeMatchesNonLibrary] +=
           fixed_point_info.edge_count;
     }
     histogram_[*fixed_point_info.algorithm]++;
@@ -1181,10 +1180,10 @@ void Results::Read(Reader* reader) {
   incomplete_results_ = true;
   reader->Read(call_graph1_, call_graph2_, flow_graph_infos1_,
                flow_graph_infos2_, fixed_point_infos_);
-  if (const DatabaseReader* databaseReader =
+  if (const DatabaseReader* database_reader =
           dynamic_cast<DatabaseReader*>(reader)) {
-    input_filename_ = databaseReader->GetInputFilename();
-    histogram_ = databaseReader->GetBasicBlockFixedPointInfo();
+    input_filename_ = database_reader->GetInputFilename();
+    histogram_ = database_reader->GetBasicBlockFixedPointInfo();
   } else {
     CHECK(false && "unsupported reader");
   }
@@ -1225,14 +1224,14 @@ void Results::CreateIndexedViews() {
       Histogram histogram;
       ::security::bindiff::Count(fixed_point, &counts, &histogram);
       fixed_point_info.basic_block_count =
-          counts["basicBlock matches (library)"] +
-          counts["basicBlock matches (non-library)"];
+          counts[Counts::kBasicBlockMatchesLibrary] +
+          counts[Counts::kBasicBlockMatchesNonLibrary];
       fixed_point_info.instruction_count =
-          counts["instruction matches (library)"] +
-          counts["instruction matches (non-library)"];
+          counts[Counts::kInstructionMatchesLibrary] +
+          counts[Counts::kInstructionMatchesNonLibrary];
       fixed_point_info.edge_count =
-          counts["flowGraph edge matches (library)"] +
-          counts["flowGraph edge matches (non-library)"];
+          counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
       fixed_point_infos_.insert(fixed_point_info);
     }
     InitializeIndexedVectors();
@@ -1448,17 +1447,18 @@ void Results::Count() {
         call_graph1_.IsLibrary(call_graph1_.GetVertex(info.address)) ||
         call_graph1_.IsStub(call_graph1_.GetVertex(info.address)) ||
         info.basic_block_count == 0;
-    counts_["functions primary (library)"] += is_lib;
-    counts_["functions primary (non-library)"] += (1 - is_lib);
-    counts_["basicBlocks primary (library)"] += is_lib * info.basic_block_count;
-    counts_["basicBlocks primary (non-library)"] +=
+    counts_[Counts::kFunctionsPrimaryLibrary] += is_lib;
+    counts_[Counts::kFunctionsPrimaryNonLibrary] += (1 - is_lib);
+    counts_[Counts::kBasicBlocksPrimaryLibrary] +=
+        is_lib * info.basic_block_count;
+    counts_[Counts::kBasicBlocksPrimaryNonLibrary] +=
         (1 - is_lib) * info.basic_block_count;
-    counts_["instructions primary (library)"] +=
+    counts_[Counts::kInstructionsPrimaryLibrary] +=
         is_lib * info.instruction_count;
-    counts_["instructions primary (non-library)"] +=
+    counts_[Counts::kInstructionsPrimaryNonLibrary] +=
         (1 - is_lib) * info.instruction_count;
-    counts_["flowGraph edges primary (library)"] += is_lib * info.edge_count;
-    counts_["flowGraph edges primary (non-library)"] +=
+    counts_[Counts::kFlowGraphEdgesPrimaryLibrary] += is_lib * info.edge_count;
+    counts_[Counts::kFlowGraphEdgesPrimaryNonLibrary] +=
         (1 - is_lib) * info.edge_count;
   }
 
@@ -1466,7 +1466,7 @@ void Results::Count() {
        ++it) {
     const Address address = call_graph1_.GetAddress(*it);
     if (flow_graph_infos1_.find(address) == flow_graph_infos1_.end()) {
-      counts_["functions primary (library)"] += 1;
+      counts_[Counts::kFunctionsPrimaryLibrary] += 1;
     }
   }
 
@@ -1476,18 +1476,19 @@ void Results::Count() {
         call_graph2_.IsLibrary(call_graph2_.GetVertex(info.address)) ||
         call_graph2_.IsStub(call_graph2_.GetVertex(info.address)) ||
         info.basic_block_count == 0;
-    counts_["functions secondary (library)"] += is_lib;
-    counts_["functions secondary (non-library)"] += (1 - is_lib);
-    counts_["basicBlocks secondary (library)"] +=
+    counts_[Counts::kFunctionsSecondaryLibrary] += is_lib;
+    counts_[Counts::kFunctionsSecondaryNonLibrary] += (1 - is_lib);
+    counts_[Counts::kBasicBlocksSecondaryLibrary] +=
         is_lib * info.basic_block_count;
-    counts_["basicBlocks secondary (non-library)"] +=
+    counts_[Counts::kBasicBlocksSecondaryNonLibrary] +=
         (1 - is_lib) * info.basic_block_count;
-    counts_["instructions secondary (library)"] +=
+    counts_[Counts::kInstructionsSecondaryLibrary] +=
         is_lib * info.instruction_count;
-    counts_["instructions secondary (non-library)"] +=
+    counts_[Counts::kInstructionsSecondaryNonLibrary] +=
         (1 - is_lib) * info.instruction_count;
-    counts_["flowGraph edges secondary (library)"] += is_lib * info.edge_count;
-    counts_["flowGraph edges secondary (non-library)"] +=
+    counts_[Counts::kFlowGraphEdgesSecondaryLibrary] +=
+        is_lib * info.edge_count;
+    counts_[Counts::kFlowGraphEdgesSecondaryNonLibrary] +=
         (1 - is_lib) * info.edge_count;
   }
 
@@ -1495,32 +1496,32 @@ void Results::Count() {
        ++it) {
     const Address address = call_graph2_.GetAddress(*it);
     if (flow_graph_infos2_.find(address) == flow_graph_infos2_.end()) {
-      counts_["functions secondary (library)"] += 1;
+      counts_[Counts::kFunctionsSecondaryLibrary] += 1;
     }
   }
 
-  counts_["function matches (library)"] = 0;
-  counts_["basicBlock matches (library)"] = 0;
-  counts_["instruction matches (library)"] = 0;
-  counts_["flowGraph edge matches (library)"] = 0;
-  counts_["function matches (non-library)"] = 0;
-  counts_["basicBlock matches (non-library)"] = 0;
-  counts_["instruction matches (non-library)"] = 0;
-  counts_["flowGraph edge matches (non-library)"] = 0;
+  counts_[Counts::kFunctionMatchesLibrary] = 0;
+  counts_[Counts::kBasicBlockMatchesLibrary] = 0;
+  counts_[Counts::kInstructionMatchesLibrary] = 0;
+  counts_[Counts::kFlowGraphEdgeMatchesLibrary] = 0;
+  counts_[Counts::kFunctionMatchesNonLibrary] = 0;
+  counts_[Counts::kBasicBlockMatchesNonLibrary] = 0;
+  counts_[Counts::kInstructionMatchesNonLibrary] = 0;
+  counts_[Counts::kFlowGraphEdgeMatchesNonLibrary] = 0;
   for (const auto& entry : fixed_point_infos_) {
     if (call_graph2_.IsLibrary(call_graph2_.GetVertex(entry.secondary)) ||
         flow_graph_infos2_.find(entry.secondary) == flow_graph_infos2_.end() ||
         call_graph1_.IsLibrary(call_graph1_.GetVertex(entry.primary)) ||
         flow_graph_infos1_.find(entry.primary) == flow_graph_infos1_.end()) {
-      counts_["function matches (library)"] += 1;
-      counts_["basicBlock matches (library)"] += entry.basic_block_count;
-      counts_["instruction matches (library)"] += entry.instruction_count;
-      counts_["flowGraph edge matches (library)"] += entry.edge_count;
+      counts_[Counts::kFunctionMatchesLibrary] += 1;
+      counts_[Counts::kBasicBlockMatchesLibrary] += entry.basic_block_count;
+      counts_[Counts::kInstructionMatchesLibrary] += entry.instruction_count;
+      counts_[Counts::kFlowGraphEdgeMatchesLibrary] += entry.edge_count;
     } else {
-      counts_["function matches (non-library)"] += 1;
-      counts_["basicBlock matches (non-library)"] += entry.basic_block_count;
-      counts_["instruction matches (non-library)"] += entry.instruction_count;
-      counts_["flowGraph edge matches (non-library)"] += entry.edge_count;
+      counts_[Counts::kFunctionMatchesNonLibrary] += 1;
+      counts_[Counts::kBasicBlockMatchesNonLibrary] += entry.basic_block_count;
+      counts_[Counts::kInstructionMatchesNonLibrary] += entry.instruction_count;
+      counts_[Counts::kFlowGraphEdgeMatchesNonLibrary] += entry.edge_count;
     }
     histogram_[*entry.algorithm]++;
   }

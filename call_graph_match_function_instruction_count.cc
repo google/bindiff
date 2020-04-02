@@ -39,8 +39,9 @@ void MatchingStepFunctionInstructionCount::
     if (IsValidCandidate(graph) && boost::num_vertices(graph->GetGraph())) {
       Counts counts;
       Count(*graph, &counts);
-      const uint64_t instruction_count = counts["instructions (library)"] +
-                                       counts["instructions (non-library)"];
+      const uint64_t instruction_count =
+          counts[Counts::kInstructionsLibrary] +
+          counts[Counts::kInstructionsNonLibrary];
       flow_graphs_map.emplace(instruction_count, graph);
     }
   }

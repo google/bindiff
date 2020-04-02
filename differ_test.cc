@@ -184,18 +184,19 @@ void Diff(const std::string& name, const std::string& primary_path,
     LOG(INFO) << absl::StrCat(name, ".diff_similarity") << similarity;
     LOG(INFO) << absl::StrCat(name, ".diff_confidence") << confidence;
     LOG(INFO) << absl::StrCat(name, ".matched_functions")
-              << static_cast<int>(counts["function matches (library)"] +
-                                  counts["function matches (non-library)"]);
+              << static_cast<int>(counts[Counts::kFunctionMatchesLibrary] +
+                                  counts[Counts::kFunctionMatchesNonLibrary]);
     LOG(INFO) << absl::StrCat(name, ".matched_basicblocks")
-              << static_cast<int>(counts["basicBlock matches (library)"] +
-                                  counts["basicBlock matches (non-library)"]);
+              << static_cast<int>(counts[Counts::kBasicBlockMatchesLibrary] +
+                                  counts[Counts::kBasicBlockMatchesNonLibrary]);
     LOG(INFO) << absl::StrCat(name, ".matched_instructions")
-              << static_cast<int>(counts["instruction matches (library)"] +
-                                  counts["instruction matches (non-library)"]);
+              << static_cast<int>(
+                     counts[Counts::kInstructionMatchesLibrary] +
+                     counts[Counts::kInstructionMatchesNonLibrary]);
     LOG(INFO) << absl::StrCat(name, ".matched_edges")
               << static_cast<int>(
-                     counts["flowGraph edge matches (library)"] +
-                     counts["flowGraph edge matches (non-library)"]);
+                     counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+                     counts[Counts::kFlowGraphEdgeMatchesNonLibrary]);
 
     LOG(INFO) << std::fixed << std::setw(7) << std::setprecision(3)
               << std::setfill(' ') << timer.Get() << " seconds"
@@ -207,8 +208,8 @@ void Diff(const std::string& name, const std::string& primary_path,
               << (confidence * 100.0) << "%"
               << " matched " << fixed_points.size() << " of "
               << flow_graphs1.size() << "/" << flow_graphs2.size() << " ("
-              << counts.find("functions primary (non-library)")->second << "/"
-              << counts.find("functions secondary (non-library)")->second << ")"
+              << counts[Counts::kFunctionsPrimaryNonLibrary] << "/"
+              << counts[Counts::kFunctionsSecondaryNonLibrary] << ")"
               << " call graph1 MD index " << std::fixed << std::setprecision(3)
               << call_graph1.GetMdIndex() << " call graph2 MD index "
               << std::fixed << std::setprecision(3) << call_graph2.GetMdIndex();

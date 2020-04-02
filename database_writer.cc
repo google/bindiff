@@ -20,6 +20,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
+#include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/version.h"
@@ -42,10 +43,10 @@ void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
   GetCountsAndHistogram(flow1, flow2, fix, &hist, &counts);
 
   basic_blocks = fixed_point.GetBasicBlockFixedPoints().size();
-  edges = counts["flowGraph edge matches (non-library)"] +
-      counts["flowGraph edge matches (library)"];
-  instructions = counts["instruction matches (non-library)"] +
-      counts["instruction matches (library)"];
+  edges = counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
+  instructions = counts[Counts::kInstructionMatchesLibrary] +
+                 counts[Counts::kInstructionMatchesNonLibrary];
 }
 
 void ReadInfos(const std::string& filename, CallGraph& call_graph,
@@ -78,11 +79,12 @@ void ReadInfos(const std::string& filename, CallGraph& call_graph,
     info.address = address;
     info.name = &flow_graph.GetName();
     info.demangled_name = &flow_graph.GetDemangledName();
-    info.basic_block_count =
-        counts["basicBlocks (library)"] + counts["basicBlocks (non-library)"];
-    info.edge_count = counts["edges (library)"] + counts["edges (non-library)"];
-    info.instruction_count =
-        counts["instructions (library)"] + counts["instructions (non-library)"];
+    info.basic_block_count = counts[Counts::kBasicBlocksLibrary] +
+                             counts[Counts::kBasicBlocksNonLibrary];
+    info.edge_count =
+        counts[Counts::kEdgesLibrary] + counts[Counts::kEdgesNonLibrary];
+    info.instruction_count = counts[Counts::kInstructionsLibrary] +
+                             counts[Counts::kInstructionsNonLibrary];
   }
 }
 
@@ -284,42 +286,44 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 
   int file1 = 1;
   int file2 = 2;
-  database_.Statement(
-      "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
-      ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
-      ":edges,:libedges,:instructions,:libinstructions )")
+  database_
+      .Statement(
+          "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
+          ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
+          ":edges,:libedges,:instructions,:libinstructions )")
       ->BindInt(file1)
       .BindText(call_graph1.GetFilename().c_str())
       .BindText(call_graph1.GetExeFilename().c_str())
       .BindText(call_graph1.GetExeHash().c_str())
-      .BindInt(counts["functions primary (non-library)"])
-      .BindInt(counts["functions primary (library)"])
+      .BindInt(counts[Counts::kFunctionsPrimaryNonLibrary])
+      .BindInt(counts[Counts::kFunctionsPrimaryLibrary])
       .BindInt(boost::num_edges(call_graph1.GetGraph()))
-      .BindInt(counts["basicBlocks primary (non-library)"])
-      .BindInt(counts["basicBlocks primary (library)"])
-      .BindInt(counts["flowGraph edges primary (non-library)"])
-      .BindInt(counts["flowGraph edges primary (library)"])
-      .BindInt(counts["instructions primary (non-library)"])
-      .BindInt(counts["instructions primary (library)"])
+      .BindInt(counts[Counts::kBasicBlocksPrimaryNonLibrary])
+      .BindInt(counts[Counts::kBasicBlocksPrimaryLibrary])
+      .BindInt(counts[Counts::kFlowGraphEdgesPrimaryNonLibrary])
+      .BindInt(counts[Counts::kFlowGraphEdgesPrimaryLibrary])
+      .BindInt(counts[Counts::kInstructionsPrimaryNonLibrary])
+      .BindInt(counts[Counts::kInstructionsPrimaryLibrary])
       .Execute();
 
-  database_.Statement(
-      "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
-      ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
-      ":edges,:libedges,:instructions,:libinstructions )")
+  database_
+      .Statement(
+          "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
+          ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
+          ":edges,:libedges,:instructions,:libinstructions )")
       ->BindInt(file2)
       .BindText(call_graph2.GetFilename().c_str())
       .BindText(call_graph2.GetExeFilename().c_str())
       .BindText(call_graph2.GetExeHash().c_str())
-      .BindInt(counts["functions secondary (non-library)"])
-      .BindInt(counts["functions secondary (library)"])
+      .BindInt(counts[Counts::kFunctionsSecondaryNonLibrary])
+      .BindInt(counts[Counts::kFunctionsSecondaryLibrary])
       .BindInt(boost::num_edges(call_graph2.GetGraph()))
-      .BindInt(counts["basicBlocks secondary (non-library)"])
-      .BindInt(counts["basicBlocks secondary (library)"])
-      .BindInt(counts["flowGraph edges secondary (non-library)"])
-      .BindInt(counts["flowGraph edges secondary (library)"])
-      .BindInt(counts["instructions secondary (non-library)"])
-      .BindInt(counts["instructions secondary (library)"])
+      .BindInt(counts[Counts::kBasicBlocksSecondaryNonLibrary])
+      .BindInt(counts[Counts::kBasicBlocksSecondaryLibrary])
+      .BindInt(counts[Counts::kFlowGraphEdgesSecondaryNonLibrary])
+      .BindInt(counts[Counts::kFlowGraphEdgesSecondaryLibrary])
+      .BindInt(counts[Counts::kInstructionsSecondaryNonLibrary])
+      .BindInt(counts[Counts::kInstructionsSecondaryLibrary])
       .Execute();
 
   database_
@@ -660,7 +664,7 @@ std::string DatabaseReader::GetSecondaryFilename() const {
   return secondary_filename_;
 }
 
-const Counts& DatabaseReader::GetBasicBlockFixedPointInfo() const {
+const Histogram& DatabaseReader::GetBasicBlockFixedPointInfo() const {
   return basic_block_fixed_point_info_;
 }
 

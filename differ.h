@@ -15,7 +15,7 @@
 #ifndef DIFFER_H_
 #define DIFFER_H_
 
-#include <iostream>
+#include <array>
 #include <map>
 #include <string>
 
@@ -24,14 +24,15 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/reader.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security::bindiff {
 
 class MatchingContext;
 
+// These need to be sorted
 using Histogram = std::map<std::string, size_t>;
-using Counts = std::map<std::string, size_t>;
 using Confidences = std::map<std::string, double>;
 
 // Main entry point to the differ. Runs the core algorithm and produces a
@@ -87,8 +88,7 @@ void GetCountsAndHistogram(const FlowGraphs& flow_graphs1,
                            const FixedPoints& fixed_points,
                            Histogram* histogram, Counts* counts);
 
-// Collect various statistics (no of instructions/edges/basic blocks) into
-// the "counts" histogram.
+// Collect various statistics (no of instructions/edges/basic blocks).
 void Count(const FlowGraphs& flow_graphs, Counts* counts);
 void Count(const FlowGraph& flow_graph, Counts* counts);
 void Count(const FixedPoint& fixed_point, Counts* counts, Histogram* histogram);

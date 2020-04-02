@@ -104,7 +104,7 @@ class DatabaseReader : public Reader {
   std::string GetInputFilename() const;
   std::string GetPrimaryFilename() const;
   std::string GetSecondaryFilename() const;
-  const Counts& GetBasicBlockFixedPointInfo() const;
+  const Histogram& GetBasicBlockFixedPointInfo() const;
 
  private:
   SqliteDatabase& database_;
@@ -113,7 +113,7 @@ class DatabaseReader : public Reader {
   std::string secondary_filename_;
   std::string path_;
   std::string temporary_directory_;
-  Counts basic_block_fixed_point_info_;
+  Histogram basic_block_fixed_point_info_;
 };
 
 }  // namespace security::bindiff
