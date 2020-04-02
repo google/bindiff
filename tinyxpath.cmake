@@ -30,3 +30,13 @@ add_library(tinyxpath STATIC ${ThirdParty_DIR}/tinyxpath/action_store.cpp
                              ${ThirdParty_DIR}/tinyxpath/xpath_static.cpp
                              ${ThirdParty_DIR}/tinyxpath/xpath_stream.cpp
                              ${ThirdParty_DIR}/tinyxpath/xpath_syntax.cpp)
+if(UNIX)
+  target_compile_options(tinyxpath PRIVATE
+    -Wno-switch
+    -Wno-logical-op-parentheses
+  )
+elseif(WIN32)
+  target_compile_options(tinyxpath PRIVATE
+    /wd4267  # conversion from 'size_t' to 'unsigned int'
+  )
+endif()
