@@ -21,24 +21,32 @@ find_path(absl_src_dir
 add_subdirectory(${absl_src_dir} ${PROJECT_BINARY_DIR}/absl
                  EXCLUDE_FROM_ALL)
 
-if(WIN32)
-  foreach(target absl_base
-                 absl_algorithm
-                 absl_debugging
-                 absl_flat_hash_map
-                 absl_flat_hash_set
-                 absl_hash
-                 absl_memory
-                 absl_meta
-                 absl_node_hash_map
-                 absl_node_hash_set
-                 absl_numeric
-                 absl_strings
-                 absl_synchronization
-                 absl_time
-                 absl_utility)
+foreach(target "absl_algorithm;INTERFACE"
+               "absl_debugging;INTERFACE"
+               "absl_flat_hash_map;INTERFACE"
+               "absl_flat_hash_set;INTERFACE"
+               "absl_memory;INTERFACE"
+               "absl_meta;INTERFACE"
+               "absl_node_hash_map;INTERFACE"
+               "absl_node_hash_set;INTERFACE"
+               "absl_numeric;INTERFACE"
+               "absl_utility;INTERFACE"
+               "absl_base;PRIVATE"
+               "absl_hash;PRIVATE"
+               "absl_status;PRIVATE"
+               "absl_strings;PRIVATE"
+               "absl_synchronization;PRIVATE"
+               "absl_time;PRIVATE")
+  if(UNIX)
+    target_compile_options(${target}
+      -Wno-shadow
+      -Wno-tautological-type-limit-compare
+      -Wno-unused-template
+      -Wno-shadow-uncaptured-local
+    )
+  elseif(WIN32)
     if(MSVC)
-      target_compile_options(${target} INTERFACE
+      target_compile_options(${target}
         /wd4005  # macro-redefinition
         /wd4068  # unknown pragma
         /wd4244  # conversion from 'type1' to 'type2'
@@ -46,10 +54,10 @@ if(WIN32)
         /wd4800  # force value to bool 'true' or 'false' (performance warning)
       )
     endif()
-    target_compile_definitions(${target} INTERFACE
-      /DNOMINMAX
-      /DWIN32_LEAN_AND_MEAN=1
-      /D_CRT_SECURE_NO_WARNINGS
+    target_compile_definitions(${target}
+      NOMINMAX
+      WIN32_LEAN_AND_MEAN=1
+      _CRT_SECURE_NO_WARNINGS
     )
-  endforeach()
-endif()
+  endif()
+endforeach()

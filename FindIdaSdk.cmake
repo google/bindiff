@@ -142,7 +142,10 @@ function(_ida_plugin name ea64 link_script)  # ARGN contains sources
 
     # For qrefcnt_obj_t in ida.hpp
     # TODO(cblichmann): This belongs in an interface library instead.
-    target_compile_options(${t} PUBLIC -Wno-non-virtual-dtor)
+    target_compile_options(${t} PUBLIC
+      -Wno-non-virtual-dtor
+      -Wno-varargs
+    )
   elseif(WIN32)
     if(ea64)
       target_link_libraries(${t} ${IdaSdk_DIR}/lib/x64_win_vc_64/ida.lib)
