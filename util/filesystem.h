@@ -29,6 +29,7 @@
 // Some Abseil headers include Windows.h, so undo a few macros
 #undef CopyFile             // winbase.h
 #undef GetCurrentDirectory  // processenv.h
+#undef GetFullPathName      // fileapi.h
 #undef StrCat               // shlwapi.h
 #endif
 
@@ -43,6 +44,9 @@ std::string JoinPathImpl(std::initializer_list<absl::string_view> paths);
 // Returns the current working directory. On error, this returns an empty
 // std::string.
 std::string GetCurrentDirectory();
+
+// Returns the full path and filename of the specified file.
+std::string GetFullPathName(absl::string_view path);
 
 // Recursively creates directories for a specified path.
 not_absl::Status CreateDirectories(absl::string_view path);

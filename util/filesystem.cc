@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #undef CopyFile             // winbase.h
 #undef GetCurrentDirectory  // processenv.h
+#undef GetFullPathName      // fileapi.h
 #undef StrCat               // shlwapi.h
 #else
 #include <dirent.h>
@@ -91,6 +92,19 @@ std::string GetCurrentDirectory() {
   }
 #endif
   return std::string(buffer);
+}
+
+std::string GetFullPathName(absl::string_view path) {
+#ifdef _WIN32
+  if (!PathIsRelativeA(std::string(path).c_str())) {
+    return std::string(path);
+  }
+#else
+  if (absl::StartsWith(path, kPathSeparator)) {
+    return std::string(path);
+  }
+#endif
+  return JoinPath(GetCurrentDirectory(), path);
 }
 
 not_absl::Status CreateDirectories(absl::string_view path) {
