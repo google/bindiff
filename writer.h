@@ -15,10 +15,10 @@
 #ifndef WRITER_H_
 #define WRITER_H_
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/instruction.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 class CallGraph;
 class FlowGraph;
@@ -35,12 +35,12 @@ class Writer {
 
   virtual ~Writer() = default;
 
-  virtual not_absl::Status Write(const CallGraph& call_graph,
-                                 const FlowGraph& flow_graph,
-                                 const detego::Instructions& instructions,
-                                 const AddressReferences& address_references,
-                                 const TypeSystem* type_system,
-                                 const AddressSpace& address_space) = 0;
+  virtual absl::Status Write(const CallGraph& call_graph,
+                             const FlowGraph& flow_graph,
+                             const detego::Instructions& instructions,
+                             const AddressReferences& address_references,
+                             const TypeSystem* type_system,
+                             const AddressSpace& address_space) = 0;
 };
 
 }  // namespace security::binexport

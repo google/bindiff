@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
 #define UTIL_STATUSOR_H_
 
 #include "base/logging.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/types/variant.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 namespace not_absl {
 
@@ -29,9 +29,9 @@ template <typename T>
 class StatusOr {
  public:
   explicit StatusOr()
-      : variant_{Status{StatusCode::kUnknown, "Unknown error"}} {}
+      : variant_(absl::Status(absl::StatusCode::kUnknown, "Unknown error")) {}
 
-  StatusOr(const Status& status) : variant_{status} {
+  StatusOr(const absl::Status& status) : variant_{status} {
     if (status.ok()) {
       LOG(FATAL) << "Cannot instantiate StatusOr with Status::OkStatus()";
     }
@@ -49,8 +49,8 @@ class StatusOr {
 
   bool ok() const { return absl::holds_alternative<T>(variant_); }
 
-  Status status() const {
-    return ok() ? OkStatus() : absl::get<Status>(variant_);
+  absl::Status status() const {
+    return ok() ? absl::OkStatus() : absl::get<absl::Status>(variant_);
   }
 
   const T& ValueOrDie() const& {
@@ -76,7 +76,7 @@ class StatusOr {
   }
 
  private:
-  absl::variant<Status, T> variant_;
+  absl::variant<absl::Status, T> variant_;
 };
 
 }  // namespace not_absl

@@ -15,6 +15,7 @@
 #ifndef DATABASE_POSTGRESQL_WRITER_H_
 #define DATABASE_POSTGRESQL_WRITER_H_
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/binexport/address_references.h"
 #include "third_party/zynamics/binexport/database/postgresql.h"
 #include "third_party/zynamics/binexport/operand.h"
@@ -43,12 +44,11 @@ class DatabaseWriter : public Writer {
                  const std::string& connection_string);
   ~DatabaseWriter();
 
-  not_absl::Status Write(const CallGraph& call_graph,
-                         const FlowGraph& flow_graph,
-                         const Instructions& instructions,
-                         const AddressReferences& address_references,
-                         const TypeSystem* type_system,
-                         const AddressSpace& address_space) override;
+  absl::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
+                     const Instructions& instructions,
+                     const AddressReferences& address_references,
+                     const TypeSystem* type_system,
+                     const AddressSpace& address_space) override;
 
   int query_size() const { return query_size_; }
   void set_query_size(int value) { query_size_ = value; }

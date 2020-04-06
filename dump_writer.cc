@@ -27,19 +27,19 @@ DumpWriter::DumpWriter(std::ostream& stream) : stream_(stream) {}
 DumpWriter::DumpWriter(const std::string& file_name)
     : file_(file_name.c_str()), stream_(file_) {}
 
-not_absl::Status DumpWriter::Write(const CallGraph& call_graph,
-                                   const FlowGraph& flow_graph,
-                                   const Instructions& instructions,
-                                   const AddressReferences& address_references,
-                                   const TypeSystem* type_system,
-                                   const AddressSpace& address_space) {
+absl::Status DumpWriter::Write(const CallGraph& call_graph,
+                               const FlowGraph& flow_graph,
+                               const Instructions& instructions,
+                               const AddressReferences& address_references,
+                               const TypeSystem* type_system,
+                               const AddressSpace& address_space) {
 
   stream_ << std::endl;
   call_graph.Render(&stream_, flow_graph);
   stream_ << std::endl;
   flow_graph.Render(&stream_, call_graph);
   stream_ << std::endl;
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace security::binexport

@@ -104,14 +104,10 @@ add_library(binexport_shared STATIC
   binexport.h
   hash.cc
   hash.h
-  util/canonical_errors.cc
-  util/canonical_errors.h
   util/filesystem.cc
   util/filesystem.h
   util/format.cc
   util/format.h
-  util/status.cc
-  util/status.h
   util/status_macros.h
   util/statusor.h
   util/timer.h
@@ -120,6 +116,7 @@ target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access
   absl::optional
   absl::str_format
+  absl::status
   absl::strings
   absl::time
   absl::variant
@@ -141,7 +138,6 @@ add_executable(binexport_shared_test
   util/format_test.cc
   util/status_macros_test.cc
   util/status_matchers.h
-  util/status_test.cc
   util/statusor_test.cc
   util/timer_test.cc
 )

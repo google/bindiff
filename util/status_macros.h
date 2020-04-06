@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #define UTIL_STATUS_MACROS_H_
 
 #include "third_party/absl/base/optimization.h"
-#include "third_party/zynamics/binexport/util/status.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 
 // Internal helper for concatenating macro values.
@@ -36,7 +36,7 @@
 
 #define NA_ASSIGN_OR_RETURN(lhs, rexpr) \
   NA_ASSIGN_OR_RETURN_IMPL(             \
-      NA_MACROS_IMPL_CONCAT(_sapi_statusor, __LINE__), lhs, rexpr)
+      NA_MACROS_IMPL_CONCAT(_not_absl_statusor, __LINE__), lhs, rexpr)
 
 #define NA_ASSIGN_OR_RETURN_IMPL(statusor, lhs, rexpr) \
   auto statusor = (rexpr);                             \

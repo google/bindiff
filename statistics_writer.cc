@@ -91,11 +91,12 @@ void StatisticsWriter::GenerateStatistics(
   statistics["flowgraph edges"] = edge_count;
 }
 
-not_absl::Status StatisticsWriter::Write(
-    const CallGraph& call_graph, const FlowGraph& flow_graph,
-    const Instructions& /* instructions */, const AddressReferences&,
-    const TypeSystem* /* type_system */,
-    const AddressSpace& /* address_space */) {
+absl::Status StatisticsWriter::Write(const CallGraph& call_graph,
+                                     const FlowGraph& flow_graph,
+                                     const Instructions& /* instructions */,
+                                     const AddressReferences&,
+                                     const TypeSystem* /* type_system */,
+                                     const AddressSpace& /* address_space */) {
   std::map<std::string, size_t> statistics;
   GenerateStatistics(call_graph, flow_graph, &statistics);
   for (const auto& entry : statistics) {
@@ -104,7 +105,7 @@ not_absl::Status StatisticsWriter::Write(
             << std::setfill(' ') << entry.second << std::endl;
   }
 
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace security::binexport

@@ -26,12 +26,11 @@ class DumpWriter : public Writer {
   explicit DumpWriter(std::ostream& stream);
   explicit DumpWriter(const std::string& file_name);
 
-  not_absl::Status Write(const CallGraph& call_graph,
-                         const FlowGraph& flow_graph,
-                         const Instructions& instructions,
-                         const AddressReferences& address_references,
-                         const TypeSystem* type_system,
-                         const AddressSpace& address_space) override;
+  absl::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
+                     const Instructions& instructions,
+                     const AddressReferences& address_references,
+                     const TypeSystem* type_system,
+                     const AddressSpace& address_space) override;
 
  private:
   std::ofstream file_;

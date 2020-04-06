@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2011-2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
 #ifndef UTIL_STATUS_MATCHERS_H_
 #define UTIL_STATUS_MATCHERS_H_
 
+#include <type_traits>
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/types/optional.h"
-#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 
@@ -28,7 +30,7 @@
 
 #define NA_ASSERT_OK_AND_ASSIGN_IMPL(statusor, lhs, rexpr) \
   auto statusor = (rexpr);                                 \
-  ASSERT_THAT(statusor.status(), not_absl::IsOk());        \
+  ASSERT_THAT(statusor.status(), ::not_absl::IsOk());      \
   lhs = std::move(statusor).ValueOrDie();
 
 namespace not_absl {
@@ -51,47 +53,39 @@ class IsOkMatcher {
   void DescribeNegationTo(std::ostream* os) const { *os << "is not OK"; }
 };
 
-template <typename Enum>
 class StatusIsMatcher {
  public:
   StatusIsMatcher(const StatusIsMatcher&) = default;
-  StatusIsMatcher& operator=(const StatusIsMatcher&) = default;
 
-  StatusIsMatcher(Enum code, absl::optional<absl::string_view> message)
-      : code_{code}, message_{message} {}
+  StatusIsMatcher(absl::StatusCode code,
+                  absl::optional<absl::string_view> message)
+      : code_(code), message_(message) {}
 
-  template <typename StatusT>
-  bool MatchAndExplain(const StatusT& status,
+  template <typename T>
+  bool MatchAndExplain(const T& value,
                        ::testing::MatchResultListener* listener) const {
+    auto status = GetStatus(value);
     if (code_ != status.code()) {
-      *listener << "whose error code is generic::"
-                << internal::CodeEnumToString(status.code());
+      *listener << "whose error code is "
+                << absl::StatusCodeToString(status.code());
       return false;
     }
-    if (message_.has_value() && status.error_message() != message_.value()) {
+    if (message_.has_value() && status.message() != message_.value()) {
       *listener << "whose error message is '" << message_.value() << "'";
       return false;
     }
     return true;
   }
 
-  template <typename T>
-  bool MatchAndExplain(const StatusOr<T>& status_or,
-                       ::testing::MatchResultListener* listener) const {
-    return MatchAndExplain(status_or.status(), listener);
-  }
-
   void DescribeTo(std::ostream* os) const {
-    *os << "has a status code that is generic::"
-        << internal::CodeEnumToString(code_);
+    *os << "has a status code that is " << absl::StatusCodeToString(code_);
     if (message_.has_value()) {
       *os << ", and has an error message that is '" << message_.value() << "'";
     }
   }
 
   void DescribeNegationTo(std::ostream* os) const {
-    *os << "has a status code that is not generic::"
-        << internal::CodeEnumToString(code_);
+    *os << "has a status code that is not " << absl::StatusCodeToString(code_);
     if (message_.has_value()) {
       *os << ", and has an error message that is not '" << message_.value()
           << "'";
@@ -99,7 +93,21 @@ class StatusIsMatcher {
   }
 
  private:
-  const Enum code_;
+  template <typename StatusT,
+            typename std::enable_if<
+                !std::is_void<decltype(std::declval<StatusT>().code())>::value,
+                int>::type = 0>
+  static const StatusT& GetStatus(const StatusT& status) {
+    return status;
+  }
+
+  template <typename StatusOrT,
+            typename StatusT = decltype(std::declval<StatusOrT>().status())>
+  static StatusT GetStatus(const StatusOrT& status_or) {
+    return status_or.status();
+  }
+
+  const absl::StatusCode code_;
   const absl::optional<std::string> message_;
 };
 
@@ -109,11 +117,11 @@ inline ::testing::PolymorphicMatcher<internal::IsOkMatcher> IsOk() {
   return ::testing::MakePolymorphicMatcher(internal::IsOkMatcher{});
 }
 
-template <typename Enum>
-::testing::PolymorphicMatcher<internal::StatusIsMatcher<Enum>> StatusIs(
-    Enum code, absl::optional<absl::string_view> message = absl::nullopt) {
+inline ::testing::PolymorphicMatcher<internal::StatusIsMatcher> StatusIs(
+    absl::StatusCode code,
+    absl::optional<absl::string_view> message = absl::nullopt) {
   return ::testing::MakePolymorphicMatcher(
-      internal::StatusIsMatcher<Enum>{code, message});
+      internal::StatusIsMatcher(code, message));
 }
 
 }  // namespace not_absl

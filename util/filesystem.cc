@@ -49,7 +49,6 @@
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/strings/strip.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 #ifdef _WIN32
@@ -107,9 +106,9 @@ std::string GetFullPathName(absl::string_view path) {
   return JoinPath(GetCurrentDirectory(), path);
 }
 
-not_absl::Status CreateDirectories(absl::string_view path) {
+absl::Status CreateDirectories(absl::string_view path) {
   if (path.empty()) {
-    return not_absl::OkStatus();
+    return absl::OkStatus();
   }
 #ifdef _WIN32
   std::string real_path = absl::StrReplaceAll(path, {{"/", "\\"}});
@@ -117,7 +116,7 @@ not_absl::Status CreateDirectories(absl::string_view path) {
       /*hwnd=*/nullptr, real_path.c_str(), /*psa=*/nullptr);
   if (result != ERROR_SUCCESS && result != ERROR_ALREADY_EXISTS &&
       result != ERROR_FILE_EXISTS) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("cannot create directory \"", path, "\""));
   }
 #else
@@ -130,12 +129,12 @@ not_absl::Status CreateDirectories(absl::string_view path) {
   if (mkdir(path_copy.c_str(), 0775) == -1) {
     // Ignore existing directories.
     if (errno != EEXIST) {
-      return not_absl::UnknownError(absl::StrCat(
-          "cannot create directory \"", path, "\": ", strerror(errno)));
+      return absl::UnknownError(absl::StrCat("cannot create directory \"", path,
+                                             "\": ", strerror(errno)));
     }
   }
 #endif
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 namespace {
@@ -146,7 +145,7 @@ not_absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
 #ifdef _WIN32
   char buffer[MAX_PATH] = {0};
   if (GetTempPath(MAX_PATH, buffer) == 0) {
-    return not_absl::UnknownError("error getting temp directory");
+    return absl::UnknownError("error getting temp directory");
   }
   path = JoinPath(buffer, product_name);
 #else
@@ -226,8 +225,8 @@ not_absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
       case ENOTDIR:
         return 0;
       default:
-        not_absl::UnknownError(absl::StrCat("stat() failed for \"", path,
-                                            "\": ", strerror(errno)));
+        return absl::UnknownError(absl::StrCat("stat() failed for \"", path,
+                                               "\": ", strerror(errno)));
     }
   }
   return file_info.st_mode;
@@ -242,8 +241,7 @@ not_absl::StatusOr<int64_t> GetFileSize(absl::string_view path) {
   if (stream) {
     return size;
   }
-  return not_absl::UnknownError(
-      absl::StrCat("cannot get file size for: ", path));
+  return absl::UnknownError(absl::StrCat("cannot get file size for: ", path));
 }
 
 bool FileExists(absl::string_view path) {
@@ -266,8 +264,8 @@ bool IsDirectory(absl::string_view path) {
 #endif
 }
 
-not_absl::Status GetDirectoryEntries(absl::string_view path,
-                                     std::vector<std::string>* result) {
+absl::Status GetDirectoryEntries(absl::string_view path,
+                                 std::vector<std::string>* result) {
 #ifdef _WIN32
   std::string path_copy(JoinPath(path, "*"));  // Assume path is a directory
   WIN32_FIND_DATA entry;
@@ -281,7 +279,7 @@ not_absl::Status GetDirectoryEntries(absl::string_view path,
     FindClose(directory);
   }
   if (error) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("FindFirstFile() failed for: ", path));
   }
 #else
@@ -289,7 +287,7 @@ not_absl::Status GetDirectoryEntries(absl::string_view path,
   errno = 0;
   DIR* directory = opendir(path_copy.c_str());
   if (!directory) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("opendir() failed for \"", path, "\": ", strerror(errno)));
   }
   struct dirent* entry;
@@ -300,32 +298,32 @@ not_absl::Status GetDirectoryEntries(absl::string_view path,
     }
   }
   if (errno != 0) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("readdir() failed: ", strerror(errno)));
   }
   closedir(directory);
 #endif
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
-not_absl::Status RemoveAll(absl::string_view path) {
+absl::Status RemoveAll(absl::string_view path) {
   std::string path_copy(path);
 #ifndef __APPLE__
   // TODO(cblichmann): Use on all platforms once XCode has filesystem.
   namespace fs = std::filesystem;
   if (std::error_code ec;
       fs::remove_all(path_copy, ec) == static_cast<std::uintmax_t>(-1)) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("remove_all() failed for \"", path, "\": ", ec.message()));
   }
 #else
   errno = 0;
   if (!IsDirectory(path)) {
-    return not_absl::UnknownError(absl::StrCat("Not a directory: ", path));
+    return absl::UnknownError(absl::StrCat("Not a directory: ", path));
   }
   DIR* directory = opendir(path_copy.c_str());
   if (!directory) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("opendir() failed for \"", path, "\": ", strerror(errno)));
   }
   struct dirent* entry;
@@ -342,25 +340,25 @@ not_absl::Status RemoveAll(absl::string_view path) {
     }
   }
   if (errno != 0) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("readdir() failed: ", strerror(errno)));
   }
   closedir(directory);
   if (rmdir(path_copy.c_str()) == -1) {
-    return not_absl::UnknownError(
+    return absl::UnknownError(
         absl::StrCat("rmdir() failed: ", strerror(errno)));
   }
 #endif
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
-not_absl::Status CopyFile(absl::string_view from, absl::string_view to) {
+absl::Status CopyFile(absl::string_view from, absl::string_view to) {
   std::ifstream input(std::string(from), std::ios::in | std::ios::binary);
   std::ofstream output(std::string(to),
                        std::ios::out | std::ios::trunc | std::ios::binary);
   output << input.rdbuf();
   if (!input || !output) {
-    return not_absl::UnknownError("error copying file");
+    return absl::UnknownError("error copying file");
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }

@@ -15,16 +15,16 @@
 #ifndef READER_READER_TEST_UTIL_H_
 #define READER_READER_TEST_UTIL_H_
 
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security::binexport {
 
 // Reads a BinExport2 proto from the testdata directory. The filename is
 // relative to that directory.
-not_absl::Status GetBinExportProtoForTesting(absl::string_view filename,
-                                             BinExport2* proto);
+absl::Status GetBinExportProtoForTesting(absl::string_view filename,
+                                         BinExport2* proto);
 
 }  // namespace security::binexport
 

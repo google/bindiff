@@ -21,6 +21,7 @@
 #include <string>
 
 #include "base/logging.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
@@ -783,18 +784,19 @@ void CleanUpZombies(Database* database, int module_id_int) {
           .c_str());
 }
 
-not_absl::Status DatabaseWriter::Write(
-    const CallGraph& call_graph, const FlowGraph& flow_graph,
-    const Instructions& instructions,
-    const AddressReferences& address_references, const TypeSystem* type_system,
-    const AddressSpace& address_space) {
+absl::Status DatabaseWriter::Write(const CallGraph& call_graph,
+                                   const FlowGraph& flow_graph,
+                                   const Instructions& instructions,
+                                   const AddressReferences& address_references,
+                                   const TypeSystem* type_system,
+                                   const AddressSpace& address_space) {
   LOG(INFO) << "Writing module: \"" << module_name_
             << "\" to schema: " << schema_ << ", module id: " << module_id_
             << ".";
 
   const Functions& functions = flow_graph.GetFunctions();
   if (functions.empty()) {
-    return not_absl::OkStatus();
+    return absl::OkStatus();
   }
 
   {
@@ -838,7 +840,7 @@ not_absl::Status DatabaseWriter::Write(
     database_.Execute("DEALLOCATE ALL");  // Release all prepared statements.
   }
   ExecuteInternalStatement(MAINTENANCE, std::to_string(module_id_));
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace security::binexport
