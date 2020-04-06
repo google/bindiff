@@ -27,6 +27,7 @@
 // clang-format on
 
 #include "base/logging.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
@@ -39,7 +40,6 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/ida/util.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
@@ -388,8 +388,8 @@ void Results::DeleteTemporaryFiles() {
   if (!temp_dir_or.ok()) {
     return;
   }
-  RemoveAll(temp_dir_or.ValueOrDie());
-  // Don't care if the above failed - only litters the temp dir a bit.
+  // Don't care if this above fails - only litters the temp dir a bit.
+  RemoveAll(temp_dir_or.ValueOrDie()).IgnoreError();
 }
 
 size_t Results::GetNumUnmatchedPrimary() const {
@@ -481,7 +481,11 @@ bool Results::IncrementalDiff() {
                                 &flow_graphs2_, &flow_graph_infos2_,
                                 &instruction_cache_);
 
-      CopyFile(input_filename_, JoinPath(temp_dir, "incremental.BinDiff"));
+      if (auto status = CopyFile(input_filename_,
+                                 JoinPath(temp_dir, "incremental.BinDiff"));
+          !status.ok()) {
+        throw std::runtime_error(std::string(status.message()));
+      }
 
       SqliteDatabase database(
           JoinPath(temp_dir, "incremental.BinDiff").c_str());
@@ -629,14 +633,14 @@ Results::StatisticDescription Results::GetStatisticDescription(
   return desc;
 }
 
-not_absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
+absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
   if (indices.empty()) {
-    return not_absl::OkStatus();
+    return absl::OkStatus();
   }
   auto num_indexed_fixed_points = indexed_fixed_points_.size();
   for (const auto& index : indices) {
     if (index >= num_indexed_fixed_points) {
-      return not_absl::InvalidArgumentError(
+      return absl::InvalidArgumentError(
           absl::StrCat("Index out of range: ", index));
     }
 
@@ -730,7 +734,7 @@ not_absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
 
   SetDirty();
   should_reset_selection_ = true;
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
@@ -744,7 +748,7 @@ FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
   return 0;
 }
 
-not_absl::Status Results::AddMatch(Address primary, Address secondary) {
+absl::Status Results::AddMatch(Address primary, Address secondary) {
   try {
     FixedPointInfo fixed_point_info;
     fixed_point_info.algorithm = FindString(MatchingStep::kFunctionManualName);
@@ -801,7 +805,7 @@ not_absl::Status Results::AddMatch(Address primary, Address secondary) {
       if (!primary_graph || primary_graph->GetEntryPointAddress() != primary ||
           !secondary_graph ||
           secondary_graph->GetEntryPointAddress() != secondary) {
-        return not_absl::InternalError("Invalid graphs in AddMatch()");
+        return absl::InternalError("Invalid graphs in AddMatch()");
       }
       FixedPoint& fixed_point(const_cast<FixedPoint&>(
           *fixed_points_
@@ -886,12 +890,12 @@ not_absl::Status Results::AddMatch(Address primary, Address secondary) {
                                           &secondary_info));
     SetDirty();
   } catch (const std::exception& message) {
-    return not_absl::InternalError(
+    return absl::InternalError(
         absl::StrCat("Error adding manual match: ", message.what()));
   } catch (...) {
-    return not_absl::UnknownError("Error adding manual match");
+    return absl::UnknownError("Error adding manual match");
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 size_t Results::GetNumMatches() const {
@@ -1262,12 +1266,12 @@ void Results::MarkPortedCommentsInDatabase() {
   }
 }
 
-not_absl::Status Results::PortComments(Address start_address_source,
-                                       Address end_address_source,
-                                       Address start_address_target,
-                                       Address end_address_target,
-                                       double min_confidence,
-                                       double min_similarity) {
+absl::Status Results::PortComments(Address start_address_source,
+                                   Address end_address_source,
+                                   Address start_address_target,
+                                   Address end_address_target,
+                                   double min_confidence,
+                                   double min_similarity) {
   // TODO(cblichmann): Merge with the vector version of PortComments().
   try {
     for (auto* fixed_point_info : indexed_fixed_points_) {
@@ -1297,23 +1301,23 @@ not_absl::Status Results::PortComments(Address start_address_source,
     }
     MarkPortedCommentsInTempDatabase();
   } catch (const std::exception& message) {
-    return not_absl::InternalError(
+    return absl::InternalError(
         absl::StrCat("Importing symbols/comments: ", message.what()));
   } catch (...) {
-    return not_absl::UnknownError("Importing symbols/comments");
+    return absl::UnknownError("Importing symbols/comments");
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
-not_absl::Status Results::PortComments(absl::Span<const size_t> indices,
-                                       Results::PortCommentsKind how) {
+absl::Status Results::PortComments(absl::Span<const size_t> indices,
+                                   Results::PortCommentsKind how) {
   if (indices.empty()) {
-    return not_absl::OkStatus();
+    return absl::OkStatus();
   }
   try {
     for (const size_t index : indices) {
       if (index >= indexed_fixed_points_.size()) {
-        return not_absl::InvalidArgumentError(
+        return absl::InvalidArgumentError(
             absl::StrCat("Index out of range: ", index));
       }
       FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
@@ -1354,21 +1358,21 @@ not_absl::Status Results::PortComments(absl::Span<const size_t> indices,
     }
     MarkPortedCommentsInTempDatabase();
   } catch (const std::exception& message) {
-    return not_absl::InternalError(
+    return absl::InternalError(
         absl::StrCat("Importing symbols/comments: ", message.what()));
   } catch (...) {
-    return not_absl::UnknownError("Importing symbols/comments");
+    return absl::UnknownError("Importing symbols/comments");
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
-not_absl::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
+absl::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
   if (indices.empty()) {
-    return not_absl::OkStatus();
+    return absl::OkStatus();
   }
   for (const auto& index : indices) {
     if (index >= indexed_fixed_points_.size()) {
-      return not_absl::InvalidArgumentError(
+      return absl::InvalidArgumentError(
           absl::StrCat("Index out of range: ", index));
     }
 
@@ -1382,7 +1386,7 @@ not_absl::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
     }
   }
   SetDirty();
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 bool Results::IsIncomplete() const { return incomplete_results_; }

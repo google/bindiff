@@ -17,6 +17,7 @@
 #include <cstring>
 #include <vector>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/zynamics/bindiff/ida/main_plugin.h"
@@ -36,7 +37,7 @@ int idaapi DeleteMatchesAction::activate(action_activation_ctx_t* context) {
   if (!results || ida_selection.empty()) {
     return 0;
   }
-  if (not_absl::Status status = results->DeleteMatches(
+  if (absl::Status status = results->DeleteMatches(
           absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
       !status.ok()) {
     const std::string message(status.message());

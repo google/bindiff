@@ -17,17 +17,16 @@
 #include <string>
 
 #include "base/logging.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 
-not_absl::Status InitConfig() {
+absl::Status InitConfig() {
   constexpr char kBinDiff[] = "BinDiff";
   constexpr char kConfigName[] = "bindiff.xml";
 
@@ -61,22 +60,21 @@ not_absl::Status InitConfig() {
   } else if (have_common_config) {
     use_common_config = true;
   } else {
-    return not_absl::NotFoundError("Missing configuration file");
+    return absl::NotFoundError("Missing configuration file");
   }
 
   auto* config = GetConfig();
   if (use_common_config) {
     *config = std::move(common_config);
     std::remove(user_path.c_str());
-    not_absl::Status status = CopyFile(common_path, user_path);
-    if (!status.ok()) {
+    if (absl::Status status = CopyFile(common_path, user_path); !status.ok()) {
       LOG(ERROR) << "Cannot copy per-machine config: "
                  << std::string(status.message());
     }
   } else {
     *config = std::move(user_config);
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 XmlConfig* GetConfig() {

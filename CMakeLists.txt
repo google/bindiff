@@ -105,14 +105,10 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/binexport.h
   ${BinExport_DIR}/hash.cc
   ${BinExport_DIR}/hash.h
-  ${BinExport_DIR}/util/canonical_errors.cc
-  ${BinExport_DIR}/util/canonical_errors.h
   ${BinExport_DIR}/util/filesystem.cc
   ${BinExport_DIR}/util/filesystem.h
   ${BinExport_DIR}/util/format.cc
   ${BinExport_DIR}/util/format.h
-  ${BinExport_DIR}/util/status.cc
-  ${BinExport_DIR}/util/status.h
   ${BinExport_DIR}/util/status_macros.h
   ${BinExport_DIR}/util/statusor.h
   ${BinExport_DIR}/util/timer.h
@@ -147,6 +143,7 @@ target_link_libraries(xmlconfig
   binexport_shared
   absl::flat_hash_map
   absl::hash
+  absl::status
   tinyxpath
 )
 set_target_properties(xmlconfig PROPERTIES

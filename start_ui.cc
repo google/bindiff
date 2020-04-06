@@ -31,13 +31,12 @@
 
 #include <cstdlib>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security::bindiff {
 
@@ -129,8 +128,8 @@ uint64_t GetPhysicalMemSize() {
 #endif
 }
 
-not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
-                                    const StartUiOptions& options) {
+absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
+                                const StartUiOptions& options) {
   std::vector<std::string> argv;
 
   // Set max heap size to 75% of available physical memory if unset.
@@ -161,7 +160,7 @@ not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
     argv.insert(argv.end(), extra_args.begin(), extra_args.end());
 
     if (SpawnProcess(argv).ok()) {
-      return not_absl::OkStatus();
+      return absl::OkStatus();
     }
     // Try again using the regular process below.
   }
@@ -201,7 +200,7 @@ not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
     // Try again without the "bin" dir (b/63617055).
     jar_file = JoinPath(options.gui_dir, kGuiJarName);
     if (!FileExists(jar_file)) {
-      not_absl::NotFoundError(absl::StrCat("Missing jar file: ", jar_file));
+      return absl::NotFoundError(absl::StrCat("Missing jar file: ", jar_file));
     }
   }
   argv.push_back(jar_file);

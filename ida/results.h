@@ -18,10 +18,13 @@
 #include <string>
 #include <vector>
 
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
 
 #include "base/integral_types.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/types/span.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -31,7 +34,6 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security::bindiff {
 
@@ -90,11 +92,11 @@ class Results {
   Address GetMatchPrimaryAddress(size_t index) const;
   Address GetMatchSecondaryAddress(size_t index) const;
 
-  not_absl::Status DeleteMatches(absl::Span<const size_t> indices);
+  absl::Status DeleteMatches(absl::Span<const size_t> indices);
 
   // Creates a new match for the functions given by their respective addresses
   // in the primary and secondary database.
-  not_absl::Status AddMatch(Address primary, Address secondary);
+  absl::Status AddMatch(Address primary, Address secondary);
 
   size_t GetNumStatistics() const;
   StatisticDescription GetStatisticDescription(size_t index) const;
@@ -112,22 +114,22 @@ class Results {
   // Marks the matches indicated by the given indices as manually confirmed.
   // Returns an error if any of the indices are out of range. Matches already
   // marked are not reset in that case.
-  not_absl::Status ConfirmMatches(absl::Span<const size_t> indices);
+  absl::Status ConfirmMatches(absl::Span<const size_t> indices);
 
   // Imports symbols and comments from matches in other binary into the current
   // database. If specified, mark the imported symbols/comments as coming from
   // an external library.
   enum PortCommentsKind { kNormal, kAsExternalLib };
-  not_absl::Status PortComments(absl::Span<const size_t> indices,
-                                PortCommentsKind how);
+  absl::Status PortComments(absl::Span<const size_t> indices,
+                            PortCommentsKind how);
 
   // Like the vector version of PortComments(), but instead of importing from
   // matches, imports by address ranges.
-  not_absl::Status PortComments(Address start_address_source,
-                                Address end_address_source,
-                                Address start_address_target,
-                                Address end_address_target,
-                                double min_confidence, double min_similarity);
+  absl::Status PortComments(Address start_address_source,
+                            Address end_address_source,
+                            Address start_address_target,
+                            Address end_address_target, double min_confidence,
+                            double min_similarity);
 
   bool IsIncomplete() const;
   void SetDirty();

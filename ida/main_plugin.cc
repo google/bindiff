@@ -43,6 +43,7 @@
 
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
@@ -73,10 +74,8 @@
 #include "third_party/zynamics/binexport/ida/log.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
-#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 #include "third_party/zynamics/binexport/util/timer.h"
@@ -98,7 +97,7 @@ bool DoSaveResults();
 
 std::string FindFile(absl::string_view path, absl::string_view extension) {
   std::vector<std::string> entries;
-  GetDirectoryEntries(path, &entries);
+  GetDirectoryEntries(path, &entries).IgnoreError();
   for (const auto& entry : entries) {
     if (GetFileExtension(entry) == extension) {
       return JoinPath(path, Basename(entry));
@@ -191,7 +190,7 @@ bool ExportIdbs() {
 
   const std::string primary_temp_dir = JoinPath(temp_dir, "primary");
   RemoveAll(primary_temp_dir).IgnoreError();
-  not_absl::Status status = CreateDirectories(primary_temp_dir);
+  absl::Status status = CreateDirectories(primary_temp_dir);
   if (!status.ok()) {
     throw std::runtime_error{std::string(status.message())};
   }
@@ -552,7 +551,7 @@ bool DoPortComments() {
   Timer<> timer;
   const double min_confidence = std::stod(buffer1);
   const double min_similarity = std::stod(buffer2);
-  not_absl::Status status = Plugin::instance()->results()->PortComments(
+  absl::Status status = Plugin::instance()->results()->PortComments(
       start_address_source, end_address_source, start_address_target,
       end_address_target, min_confidence, min_similarity);
   if (!status.ok()) {
@@ -611,26 +610,36 @@ bool WriteResults(const std::string& path) {
     // results are incomplete (have been loaded)
     // copy original result file to temp dir first, so we can overwrite the
     // original if required
-    std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
-    CopyFile(results->input_filename_, JoinPath(temp_dir, "input.BinDiff"));
+    const std::string input_bindiff = JoinPath(temp_dir, "input.BinDiff");
+    std::remove(input_bindiff.c_str());
+    if (auto status = CopyFile(results->input_filename_, input_bindiff);
+        !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
     {
-      SqliteDatabase database(JoinPath(temp_dir, "input.BinDiff").c_str());
+      SqliteDatabase database(input_bindiff.c_str());
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
       results->Write(&writer);
     }
     std::remove(path.c_str());
-    CopyFile(JoinPath(temp_dir, "input.BinDiff"), path);
-    std::remove(JoinPath(temp_dir, "input.BinDiff").c_str());
+    if (auto status = CopyFile(input_bindiff, path); !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
+    std::remove(input_bindiff.c_str());
   }
-  std::string new_export1(JoinPath(out_dir, Basename(export1)));
+  const std::string new_export1(JoinPath(out_dir, Basename(export1)));
   if (export1 != new_export1) {
     std::remove(new_export1.c_str());
-    CopyFile(export1, new_export1);
+    if (auto status = CopyFile(export1, new_export1); !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
   }
-  std::string new_export2(JoinPath(out_dir, Basename(export2)));
+  const std::string new_export2(JoinPath(out_dir, Basename(export2)));
   if (export2 != new_export2) {
     std::remove(new_export2.c_str());
-    CopyFile(export2, new_export2);
+    if (auto status = CopyFile(export2, new_export2); !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
   }
 
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
@@ -960,7 +969,7 @@ int HandleImportSymbolsComments(action_activation_ctx_t* context,
     return 0;
   }
   const auto ida_selection = context->chooser_selection;
-  not_absl::Status status = results->PortComments(
+  absl::Status status = results->PortComments(
       absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()), kind);
   if (!status.ok()) {
     const std::string message(status.message());
@@ -992,7 +1001,7 @@ int idaapi ConfirmMatchesAction::activate(action_activation_ctx_t* context) {
     return 0;
   }
   const auto& ida_selection = context->chooser_selection;
-  not_absl::Status status = results->ConfirmMatches(
+  absl::Status status = results->ConfirmMatches(
       absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
   if (!status.ok()) {
     const std::string message(status.message());
@@ -1005,7 +1014,7 @@ int idaapi ConfirmMatchesAction::activate(action_activation_ctx_t* context) {
 }
 
 int HandleCopyAddress(Address address) {
-  not_absl::Status status = CopyToClipboard(FormatAddress(address));
+  absl::Status status = CopyToClipboard(FormatAddress(address));
   if (!status.ok()) {
     const std::string message(status.message());
     LOG(INFO) << "Error: " << message;
@@ -1077,9 +1086,9 @@ class AddMatchAction : public ActionHandler<AddMatchAction> {
       return 0;  // User cancelled
     }
     WaitBox wait_box("Performing basic block diff...");
-    not_absl::Status status =
+    absl::Status status =
         results->AddMatch(results->GetPrimaryAddress(index_primary),
-                            results->GetSecondaryAddress(index_secondary));
+                          results->GetSecondaryAddress(index_secondary));
     if (!status.ok()) {
       const std::string message(status.message());
       LOG(INFO) << "Error: " << message;

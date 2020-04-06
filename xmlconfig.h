@@ -21,6 +21,7 @@
 #include <utility>
 
 #include "third_party/absl/container/flat_hash_map.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 
@@ -36,11 +37,11 @@ class XmlConfig {
   XmlConfig& operator=(XmlConfig&&);
 
   // Initializes the configuration from an XML string.
-  not_absl::Status LoadFromString(const std::string& data);
+  absl::Status LoadFromString(const std::string& data);
 
-  not_absl::Status LoadFromFile(const std::string& filename);
-  not_absl::Status LoadFromFileWithDefaults(const std::string& filename,
-                                            const std::string& defaults);
+  absl::Status LoadFromFile(const std::string& filename);
+  absl::Status LoadFromFileWithDefaults(const std::string& filename,
+                                        const std::string& defaults);
 
   double ReadDouble(const std::string& key, double default_value) const;
   int ReadInt(const std::string& key, int default_value) const;

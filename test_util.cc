@@ -30,7 +30,8 @@
 namespace security::bindiff {
 
 void ApplyDefaultConfigForTesting() {
-  GetConfig()->LoadFromString(R"raw(<?xml version="1.0"?>
+  GetConfig()
+      ->LoadFromString(R"raw(<?xml version="1.0"?>
 <bindiff config-version="6">
   <function-matching>
     <!-- <step confidence="1.0" algorithm="function: name hash matching" /> -->
@@ -72,7 +73,8 @@ void ApplyDefaultConfigForTesting() {
     <step confidence="0.0" algorithm="basicBlock: instruction count matching" />
     <step confidence="0.0" algorithm="basicBlock: jump sequence matching" />
   </basic-block-matching>
-</bindiff>)raw");
+</bindiff>)raw")
+      .IgnoreError();
 }
 
 DiffBinary::~DiffBinary() {

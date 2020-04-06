@@ -26,7 +26,6 @@
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
@@ -97,7 +96,7 @@ DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
   auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
   if (!tempdir_or.ok()) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error{std::string(tempdir_or.status().error_message())};
+    throw std::runtime_error(std::string(tempdir_or.status().message()));
   }
   filename_ = JoinPath(tempdir_or.ValueOrDie(), Basename(path));
   if (recreate) {
@@ -572,9 +571,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   // Step 2: Merge new matches from temp database.
   auto temp_file_or = GetTempFileName();
   if (!temp_file_or.ok()) {
-    // TODO(cblichmann): Refactor Writer interface to return not_absl::Status.
-    throw std::runtime_error{
-        std::string(temp_file_or.status().error_message())};
+    // TODO(cblichmann): Refactor Writer interface to return absl::Status.
+    throw std::runtime_error(std::string(temp_file_or.status().message()));
   }
   const auto temp_file = std::move(temp_file_or).ValueOrDie();
   if (FileExists(temp_file)) {

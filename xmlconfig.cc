@@ -15,12 +15,13 @@
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 
 #include <algorithm>
-#include <functional>
 #include <fstream>
+#include <functional>
 #include <memory>
 #include <string>
 
 #include "third_party/absl/memory/memory.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/tinyxpath/node_set.h"
@@ -28,8 +29,6 @@
 #include "third_party/tinyxpath/xpath_expression.h"
 #include "third_party/tinyxpath/xpath_static.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
-#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
@@ -41,13 +40,13 @@ not_absl::StatusOr<std::string> ReadFileToString(const std::string& filename) {
               std::ifstream::in | std::ifstream::ate | std::ifstream::binary);
   const auto size = static_cast<size_t>(stream.tellg());
   if (!stream) {
-    return not_absl::NotFoundError(absl::StrCat("File not found: ", filename));
+    return absl::NotFoundError(absl::StrCat("File not found: ", filename));
   }
   stream.seekg(0);
   std::string data(size, '\0');
   stream.read(&data[0], size);
   if (!stream) {
-    return not_absl::InternalError(
+    return absl::InternalError(
         absl::StrCat("I/O error reading file: ", filename));
   }
   return data;
@@ -61,21 +60,21 @@ XmlConfig::~XmlConfig() = default;
 
 XmlConfig& XmlConfig::operator=(XmlConfig&&) = default;
 
-not_absl::Status XmlConfig::LoadFromString(const std::string& data) {
+absl::Status XmlConfig::LoadFromString(const std::string& data) {
   document_ = absl::make_unique<TiXmlDocument>();
   if (!data.empty()) {
     document_->Parse(data.c_str());
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
-not_absl::Status XmlConfig::LoadFromFile(const std::string& filename) {
+absl::Status XmlConfig::LoadFromFile(const std::string& filename) {
   NA_ASSIGN_OR_RETURN(std::string data, ReadFileToString(filename));
   return LoadFromString(data);
 }
 
-not_absl::Status XmlConfig::LoadFromFileWithDefaults(
-    const std::string& filename, const std::string& defaults) {
+absl::Status XmlConfig::LoadFromFileWithDefaults(const std::string& filename,
+                                                 const std::string& defaults) {
   auto status = LoadFromFile(filename);
   if (!status.ok()) {
     return LoadFromString(defaults);

@@ -18,8 +18,8 @@
 #include <string>
 #include <vector>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 namespace security::bindiff {
 
@@ -53,8 +53,8 @@ struct StartUiOptions {
 // Launches the BinDiff Java UI and immediately returns. Extra command-line
 // arguments for the UI can be specified in args, and configuration settings in
 // options.
-not_absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
-                                    const StartUiOptions& options);
+absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
+                                const StartUiOptions& options);
 
 }  // namespace security::bindiff
 

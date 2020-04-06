@@ -37,6 +37,7 @@
 #include <thread>  // NOLINT
 
 #include "base/logging.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"
@@ -82,7 +83,7 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   auto err = getaddrinfo(std::string(server).c_str(),
                          absl::StrCat(port).c_str(), &hints, &address_info);
   if (err != 0) {
-    // TODO(cblichmann): This function should return a not_absl::Status and use
+    // TODO(cblichmann): This function should return a absl::Status and use
     //                   gai_strerror(err).
     return false;
   }
@@ -120,7 +121,7 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
     return true;
   }
   const auto* config = GetConfig();
-  not_absl::Status status = StartUiWithOptions(
+  absl::Status status = StartUiWithOptions(
       /*extra_args=*/{},
       StartUiOptions{}
           .set_java_binary(config->ReadString("/bindiff/ui/@java-binary", ""))

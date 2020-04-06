@@ -27,7 +27,6 @@
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/status.h"
 
 #ifdef GOOGLE
 #define GOOGLE_PROTOBUF_VERIFY_VERSION
@@ -143,8 +142,7 @@ void Read(const std::string& filename, CallGraph* call_graph,
   enum { kMinFileSize = 8 };
   auto file_size_or = GetFileSize(filename);
   if (!file_size_or.ok()) {
-    throw std::runtime_error{
-        std::string(file_size_or.status().error_message())};
+    throw std::runtime_error{std::string(file_size_or.status().message())};
   }
   if (file_size_or.ValueOrDie() <= kMinFileSize) {
     throw std::runtime_error{absl::StrCat("file too small: ", filename)};

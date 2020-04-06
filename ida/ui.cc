@@ -30,13 +30,13 @@
 // clang-format on
 
 #include "third_party/absl/base/macros.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/absl/strings/strip.h"
 #include "third_party/absl/strings/str_replace.h"
+#include "third_party/absl/strings/strip.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/utility.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 
 namespace security::bindiff {
 
@@ -134,17 +134,17 @@ uint32_t GetMatchColor(double value) {
   return (color << 16) | (color & 0xff00) | (color >> 16);
 }
 
-not_absl::Status CopyToClipboard(absl::string_view data) {
+absl::Status CopyToClipboard(absl::string_view data) {
 #ifdef _WIN32
   if (!OpenClipboard(0)) {
-    return not_absl::UnknownError(GetLastOsError());
+    return absl::UnknownError(GetLastOsError());
   }
   struct ClipboardCloser {
     ~ClipboardCloser() { CloseClipboard(); }
   } deleter;
 
   if (!EmptyClipboard()) {
-    return not_absl::UnknownError(GetLastOsError());
+    return absl::UnknownError(GetLastOsError());
   }
 
   // Allocate one byte more than the string size because the CF_TEXT format
@@ -152,7 +152,7 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
   HGLOBAL buffer_handle =
       GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size() + 1);
   if (!buffer_handle) {
-    return not_absl::UnknownError(GetLastOsError());
+    return absl::UnknownError(GetLastOsError());
   }
 
   bool fail = true;
@@ -167,7 +167,7 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
   if (fail) {
     // Only free on failure, as SetClipboardData() takes ownership.
     GlobalFree(buffer_handle);
-    return not_absl::UnknownError(GetLastOsError());
+    return absl::UnknownError(GetLastOsError());
   }
 #else
   // Clipboard handling on Linux is complicated. Luckily, IDA uses Qt and
@@ -176,7 +176,7 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
   // to clipboard.
   extlang_object_t python = find_extlang_by_name("Python");
   if (python.operator->() == nullptr) {  // Need to call operator -> directly
-    return not_absl::InternalError("Cannot find IDAPyton");
+    return absl::InternalError("Cannot find IDAPyton");
   }
   qstring error;
   std::string escaped_snippet;
@@ -192,10 +192,10 @@ not_absl::Status CopyToClipboard(absl::string_view data) {
               escaped_snippet, "', mode=cb.Clipboard)")
               .c_str(),
           &error)) {
-    return not_absl::InternalError(error.c_str());
+    return absl::InternalError(error.c_str());
   }
 #endif
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace security::bindiff

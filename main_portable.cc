@@ -48,6 +48,7 @@
 #include "third_party/absl/base/const_init.h"
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/memory/memory.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
@@ -68,10 +69,8 @@
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/canonical_errors.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
-#include "third_party/zynamics/binexport/util/status.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
@@ -367,7 +366,10 @@ void DifferThread::operator()() {
 
 void ListFiles(const std::string& path) {
   std::vector<std::string> entries;
-  GetDirectoryEntries(path, &entries);
+  if (absl::Status status = GetDirectoryEntries(path, &entries); !status.ok()) {
+    PrintErrorMessage(absl::StrCat("error listing files: ", status.message()));
+    return;
+  }
 
   for (const auto& entry : entries) {
     const auto file_path(JoinPath(path, entry));
@@ -444,7 +446,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   Timer<> timer;
   int num_exported = 0;
   exporter
-      .Export([&num_exported](const not_absl::Status& status,
+      .Export([&num_exported](const absl::Status& status,
                               const std::string& idb_path, double elapsed) {
         if (!status.ok()) {
           PrintErrorMessage(status.message());
@@ -495,7 +497,11 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
 
 void BatchDumpMdIndices(const std::string& path) {
   std::vector<std::string> entries;
-  GetDirectoryEntries(path, &entries);
+  if (absl::Status status = GetDirectoryEntries(path, &entries); !status.ok()) {
+    PrintErrorMessage(absl::StrCat("error listing files in `", path,
+                                   "`: ", status.message()));
+    return;
+  }
   for (const auto& entry : entries) {
     auto file_path(JoinPath(path, entry));
     if (IsDirectory(file_path)) {
@@ -554,7 +560,7 @@ void InstallFlagsUsageConfig() {
 }
 #endif
 
-not_absl::Status BinDiffMain(int argc, char* argv[]) {
+absl::Status BinDiffMain(int argc, char* argv[]) {
 #ifdef WIN32
   signal(SIGBREAK, SignalHandler);
 #endif
@@ -619,13 +625,13 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
             .set_max_heap_size_mb(
                 config->ReadInt("/bindiff/ui/@max-heap-size-mb", -1))
             .set_gui_dir(config->ReadString("/bindiff/ui/@directory", ""))));
-    return not_absl::OkStatus();
+    return absl::OkStatus();
   }
 
   // This initializes static variables before the threads get to them
   if (GetDefaultMatchingSteps().empty() ||
       GetDefaultMatchingStepsBasicBlock().empty()) {
-    return not_absl::FailedPreconditionError("Config file invalid");
+    return absl::FailedPreconditionError("Config file invalid");
   }
 
   for (const auto& entry : absl::GetFlag(FLAGS_output_format)) {
@@ -635,7 +641,7 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
     } else if (format == "LOG") {
       g_output_log = true;
     } else {
-      return not_absl::InvalidArgumentError(
+      return absl::InvalidArgumentError(
           absl::StrCat("Invalid output format: ", entry));
     }
   }
@@ -653,12 +659,12 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
       secondary = *pos_it++;
     }
     if (pos_it != pos_end) {
-      return not_absl::InvalidArgumentError("Extra arguments on command line");
+      return absl::InvalidArgumentError("Extra arguments on command line");
     }
   }
 
   if (primary.empty()) {
-    return not_absl::InvalidArgumentError("Need primary input (--primary)");
+    return absl::InvalidArgumentError("Need primary input (--primary)");
   }
 
   try {
@@ -678,7 +684,7 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
     }
 
     if (!IsDirectory(absl::GetFlag(FLAGS_output_dir))) {
-      return not_absl::FailedPreconditionError(absl::StrCat(
+      return absl::FailedPreconditionError(absl::StrCat(
           "Output parameter (--output_dir) must be a writable directory: ",
           absl::GetFlag(FLAGS_output_dir)));
     }
@@ -719,7 +725,7 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
     if ((!done_something && !FileExists(primary) && !IsDirectory(primary)) ||
         (!secondary.empty() && !FileExists(secondary) &&
          !IsDirectory(secondary))) {
-      return not_absl::FailedPreconditionError(
+      return absl::FailedPreconditionError(
           "Invalid inputs, --primary and --secondary must point to valid "
           "files/directories.");
     }
@@ -801,11 +807,11 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
           usage);
     }
   } catch (const std::exception& error) {
-    return not_absl::UnknownError(error.what());
+    return absl::UnknownError(error.what());
   } catch (...) {
-    return not_absl::UnknownError("An unknown error occurred");
+    return absl::UnknownError("An unknown error occurred");
   }
-  return not_absl::OkStatus();
+  return absl::OkStatus();
 }
 
 }  // namespace security::bindiff
@@ -813,7 +819,7 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
 int main(int argc, char** argv) {
   if (auto status = security::bindiff::BinDiffMain(argc, argv); !status.ok()) {
     security::bindiff::PrintErrorMessage(
-        absl::StrCat("Error: ", status.error_message()));
+        absl::StrCat("Error: ", status.message()));
     return EXIT_FAILURE;
   }
   return EXIT_SUCCESS;
