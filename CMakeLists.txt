@@ -270,6 +270,15 @@ target_link_libraries(bindiff_shared
 set_target_properties(bindiff_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
+add_executable(idb_export_test idb_export_test.cc)
+target_link_libraries(idb_export_test
+  bindiff_tests_base
+  bindiff_shared
+)
+gtest_discover_tests(idb_export_test PROPERTIES
+  ENVIRONMENT "TEST_TMPDIR=${PROJECT_BINARY_DIR}/idb_export_test_tmp"
+)
+
 add_executable(prime_signature_test prime_signature_test.cc)
 target_link_libraries(prime_signature_test
   bindiff_tests_base

@@ -46,21 +46,13 @@
 #endif  // GOOGLE
 #include "base/logging.h"
 #include "third_party/absl/base/const_init.h"
-#include "third_party/absl/container/flat_hash_set.h"
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/synchronization/mutex.h"
 #include "third_party/absl/time/time.h"
-
-#ifdef _WIN32
-// Abseil headers include Windows.h, so undo a few macros
-#undef CopyFile             // winbase.h
-#undef GetCurrentDirectory  // processenv.h
-#undef StrCat               // shlwapi.h
-#endif
-
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/config.h"
@@ -297,8 +289,8 @@ void DifferThread::operator()() {
         PrintMessage(absl::StrCat("Reading ", file1));
         DeleteFlowGraphs(&flow_graphs1);
         FlowGraphInfos infos;
-        Read(JoinPath(path_, file1 + ".BinExport"), &call_graph1, &flow_graphs1,
-             &infos, &instruction_cache);
+        Read(JoinPath(path_, file1), &call_graph1, &flow_graphs1, &infos,
+             &instruction_cache);
       } else {
         ResetMatches(&flow_graphs1);
       }
@@ -307,8 +299,8 @@ void DifferThread::operator()() {
         PrintMessage(absl::StrCat("Reading ", file2));
         DeleteFlowGraphs(&flow_graphs2);
         FlowGraphInfos infos;
-        Read(JoinPath(path_, file2 + ".BinExport"), &call_graph2, &flow_graphs2,
-             &infos, &instruction_cache);
+        Read(JoinPath(path_, file2), &call_graph2, &flow_graphs2, &infos,
+             &instruction_cache);
       } else {
         ResetMatches(&flow_graphs2);
       }
@@ -346,13 +338,14 @@ void DifferThread::operator()() {
         writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
                      fixed_points);
 
-        PrintMessage(absl::StrCat(
+        std::string result_message = absl::StrCat(
             file1, " vs ", file2, " (", HumanReadableDuration(timer.elapsed()),
-            "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence));
+            "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence);
         for (int i = 0; i < counts.ui_entry_size(); ++i) {
           const auto& [name, value] = counts.GetEntry(i);
-          PrintMessage(absl::StrCat("\n\t", name, ":\t", value));
+          absl::StrAppend(&result_message, "\n\t", name, ":\t", value);
         }
+        PrintMessage(result_message);
       }
 
       last_file1 = file1;
@@ -392,75 +385,67 @@ void ListFiles(const std::string& path) {
       PrintErrorMessage(absl::StrCat(file_path, ": ",
                                      meta_information.executable_id(), " (",
                                      meta_information.executable_name(), ")"));
-      continue;
     }
   }
 }
 
 void BatchDiff(const std::string& path, const std::string& reference_file,
                const std::string& out_path) {
-  // Collect idb files to diff.
-  std::vector<std::string> entries;
-  GetDirectoryEntries(path, &entries);
-  std::vector<std::string> idb_files;
-  absl::flat_hash_set<std::string> diff_files;
-  for (const auto& entry : entries) {
-    std::string file_path = JoinPath(path, entry);
-    if (IsDirectory(file_path)) {
-      continue;
-    }
-    // Export all idbs in directory.
-    const std::string extension =
-        absl::AsciiStrToUpper(GetFileExtension(file_path));
-    if (extension == ".IDB" || extension == ".I64") {
-      auto file_size_or = GetFileSize(file_path);
-      if (file_size_or.ok() && file_size_or.ValueOrDie() > 0) {
-        idb_files.push_back(Basename(file_path));
-      } else {
-        PrintMessage(absl::StrCat("Warning: skipping empty file ", file_path));
-      }
-    } else if (extension == ".BINEXPORT") {
-      diff_files.insert(Basename(file_path));
-    }
-  }
+  const std::string full_path = GetFullPathName(path);
+  const std::string full_reference_file =
+      !reference_file.empty() ? GetFullPathName(reference_file) : "";
+  const std::string full_out_path = GetFullPathName(out_path);
 
-  // TODO(cblichmann): Remove all idbs that have already been exported from
-  //                   export todo list.
-  diff_files.insert(idb_files.begin(), idb_files.end());
-
-  // Create todo list of file pairs.
-  DiffPairList files;
-  for (auto i = diff_files.cbegin(), end = diff_files.cend(); i != end; ++i) {
-    for (auto j = diff_files.cbegin(); j != end; ++j) {
-      if (i != j && (reference_file.empty() || reference_file == *i)) {
-        files.emplace_back(*i, *j);
-      }
-    }
+  std::vector<std::string> idbs;
+  std::vector<std::string> binexports;
+  if (auto idbs_or = CollectIdbsToExport(full_path, &binexports);
+      !idbs_or.ok()) {
+    throw std::runtime_error(std::string(idbs_or.status().message()));
+  } else {
+    idbs = std::move(idbs_or).ValueOrDie();
   }
 
   const auto* config = GetConfig();
   const int num_threads = config->ReadInt("/bindiff/threads/@use",
                                           std::thread::hardware_concurrency());
-
-  auto exporter_or = IdbExporter::Create(
-      IdbExporter::Options{}
-          .set_export_dir(absl::GetFlag(FLAGS_output_dir))
+  IdbExporter exporter(
+      IdbExporter::Options()
+          .set_export_dir(full_out_path)
           .set_num_threads(num_threads)
           .set_ida_dir(config->ReadString("/bindiff/ida/@directory", ""))
           .set_ida_exe(config->ReadString("/bindiff/ida/@executable", ""))
           .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", "")));
-  if (!exporter_or.ok()) {
-    PrintErrorMessage(exporter_or.status().message());
-    return;
+  for (const std::string& idb : idbs) {
+    const std::string full_idb_path = JoinPath(full_path, idb);
+    auto size_or = GetFileSize(full_idb_path);
+    if (size_or.ok() && size_or.ValueOrDie() > 0) {
+      exporter.AddDatabase(full_idb_path);
+      binexports.push_back(ReplaceFileExtension(idb, kBinExportExtension));
+    } else {
+      PrintMessage(
+          absl::StrCat("Warning: skipping empty file ", full_idb_path));
+    }
   }
+
+  // Create todo list of file pairs.
+  DiffPairList files;
+  for (auto it = binexports.begin(), end = binexports.end(); it != end; ++it) {
+    for (auto jt = binexports.begin(); jt != end; ++jt) {
+      if (it == jt) {
+        continue;
+      }
+      if (full_reference_file.empty() ||
+          full_reference_file == JoinPath(full_path, *it)) {
+        files.emplace_back(*it, *jt);
+      }
+    }
+  }
+
   Timer<> timer;
-  auto exporter = std::move(exporter_or).ValueOrDie();
-  for (const auto& idb_file : idb_files) {
-    exporter->AddDatabase(idb_file);
-  }
+  int num_exported = 0;
   exporter
-      ->Export([](const not_absl::Status& status, const std::string& idb_path,
-                  double elapsed) {
+      .Export([&num_exported](const not_absl::Status& status,
+                              const std::string& idb_path, double elapsed) {
         if (!status.ok()) {
           PrintErrorMessage(status.message());
         } else {
@@ -469,31 +454,30 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
               absl::StrCat(HumanReadableDuration(elapsed), "\t",
                            file_size_or.ok() ? file_size_or.ValueOrDie() : 0,
                            "\t", idb_path));
+          ++num_exported;
         }
         return !g_wants_to_quit;
       })
       .IgnoreError();
-
   const auto export_time = timer.elapsed();
-  timer.restart();
+  PrintMessage(absl::StrCat(num_exported, " files exported in ",
+                            HumanReadableDuration(export_time)));
 
+  timer.restart();
   if (!absl::GetFlag(FLAGS_export)) {  // Perform diff
     std::vector<std::thread> threads;
     threads.reserve(num_threads);
+    int num_diffed = files.size();
     for (int i = 0; i < num_threads; ++i) {
-      threads.emplace_back(DifferThread(out_path, out_path, &files));
+      threads.emplace_back(DifferThread(full_path, full_out_path, &files));
     }
     for (auto& thread : threads) {
       thread.join();
     }
+    const auto diff_time = timer.elapsed();
+    PrintMessage(absl::StrCat(num_diffed, " pairs diffed in ",
+                              HumanReadableDuration(diff_time)));
   }
-  const auto diff_time = timer.elapsed();
-
-  PrintMessage(absl::StrCat(idb_files.size(), " files exported in ",
-                            HumanReadableDuration(export_time), ", ",
-                            files.size() * (1 - absl::GetFlag(FLAGS_export)),
-                            " pairs diffed in ",
-                            HumanReadableDuration(diff_time)));
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
@@ -590,7 +574,6 @@ not_absl::Status BinDiffMain(int argc, char* argv[]) {
       "  or:  %1$s --ui [UIOPTION...]\n"
       "In the 1st form, diff all files in a directory against each other. If\n"
       "the directory contains IDA Pro databases these will be exported first.\n"
-      "If the directory contains IDA Pro databases these will automatically.\n"
       "In the 2nd and 3rd form, diff two previously exported binaries.\n"
       "In the 4th form, launch the BinDiff UI.",
       binary_name);

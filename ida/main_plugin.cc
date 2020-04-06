@@ -205,23 +205,17 @@ bool ExportIdbs() {
 
   {
     const auto* config = GetConfig();
-    auto exporter_or = IdbExporter::Create(
-        IdbExporter::Options{}
+    IdbExporter exporter(
+        IdbExporter::Options()
             .set_export_dir(secondary_temp_dir)
             .set_ida_dir(idadir(0))
             .set_ida_exe(config->ReadString("/bindiff/ida/@executable", ""))
             .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", ""))
             .set_alsologtostderr(Plugin::instance()->alsologtostderr()));
-    if (!exporter_or.ok()) {
-      throw std::runtime_error{
-          absl::StrCat("Export of the current database failed: ",
-                       exporter_or.status().message())};
-    }
-    auto exporter = std::move(exporter_or).ValueOrDie();
-    exporter->AddDatabase(secondary_idb_path);
+    exporter.AddDatabase(secondary_idb_path);
 
     std::thread export_thread(
-        [&status, &exporter]() { status = exporter->Export(); });
+        [&status, &exporter]() { status = exporter.Export(); });
 
     qstring errbuf;
     idc_value_t arg = primary_temp_dir.c_str();
