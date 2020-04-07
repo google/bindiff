@@ -1,4 +1,4 @@
-// Copyright 2011-2018 Google LLC. All Rights Reserved.
+// Copyright 2020 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ namespace {
 using ::testing::Eq;
 using ::testing::IsFalse;
 using ::testing::Not;
+using ::testing::Pointee;
 
 constexpr auto kErrorCode = absl::StatusCode::kInvalidArgument;
 constexpr char kErrorMessage[] = "Invalid argument";
@@ -95,7 +96,7 @@ struct IntCtor {
   int operator()() { return kIntElement; }
 };
 
-// Constructs a std::string.
+// Constructs a string.
 struct StringCtor {
   using value_type = std::string;
 
@@ -133,7 +134,7 @@ class StatusOrTest : public ::testing::Test {};
 
 using TestTypes = ::testing::Types<IntCtor, FooCtor, StringCtor,
                                    StringVectorCtor, HeapAllocatedObjectCtor>;
-TYPED_TEST_CASE(StatusOrTest, TestTypes);
+TYPED_TEST_SUITE(StatusOrTest, TestTypes);
 
 // Verify that the default constructor for StatusOr constructs an object with a
 // non-ok status.
@@ -182,7 +183,7 @@ TYPED_TEST(StatusOrTest, ConstructorElementRValue) {
 TYPED_TEST(StatusOrTest, CopyConstructorNonOkStatus) {
   StatusOr<typename TypeParam::value_type> statusor1 =
       absl::Status(kErrorCode, kErrorMessage);
-  StatusOr<typename TypeParam::value_type> statusor2{statusor1};
+  StatusOr<typename TypeParam::value_type> statusor2(statusor1);
 
   EXPECT_THAT(statusor1.ok(), Eq(statusor2.ok()));
   EXPECT_THAT(statusor1.status(), Eq(statusor2.status()));
@@ -235,7 +236,6 @@ TYPED_TEST(StatusOrTest, MoveConstructorNonOkStatus) {
 
   // Verify that the status of the donor object was updated.
   EXPECT_THAT(statusor1.ok(), IsFalse());  // NOLINT
-  // NOLINTNEXTLINE
   EXPECT_THAT(statusor1.status(), StatusIs(absl::StatusCode::kInternal));
 
   // Verify that the destination object contains the status previously held by
@@ -269,7 +269,6 @@ TYPED_TEST(StatusOrTest, MoveAssignmentOperatorNonOkStatus) {
 
   // Verify that the status of the donor object was updated.
   EXPECT_THAT(statusor1.ok(), IsFalse());  // NOLINT
-  // NOLINTNEXTLINE
   EXPECT_THAT(statusor1.status(), StatusIs(absl::StatusCode::kInternal));
 
   // Verify that the destination object contains the status previously held by
@@ -366,6 +365,42 @@ TEST(StatusOrTest, ValueOrDieMovedValue) {
   std::unique_ptr<std::string> moved_value = std::move(statusor).ValueOrDie();
   EXPECT_THAT(moved_value.get(), Eq(str));
   EXPECT_THAT(*moved_value, Eq(kStringElement));
+}
+
+TEST(StatusOrTest, MapToStatusOrUniquePtr) {
+  // A reduced version of a problematic type found in the wild. All of the
+  // operations below should compile.
+  using MapType = std::map<std::string, StatusOr<std::unique_ptr<int>>>;
+
+  MapType a;
+
+  // Move-construction
+  MapType b(std::move(a));
+
+  // Move-assignment
+  a = std::move(b);
+}
+
+TEST(StatusOrTest, ValueOrOk) {
+  const StatusOr<int> status_or = 0;
+  EXPECT_EQ(status_or.value_or(-1), 0);
+}
+
+TEST(StatusOrTest, ValueOrDefault) {
+  const StatusOr<int> status_or = absl::CancelledError();
+  EXPECT_EQ(status_or.value_or(-1), -1);
+}
+
+TEST(StatusOrTest, MoveOnlyValueOrOk) {
+  EXPECT_THAT(StatusOr<std::unique_ptr<int>>(absl::make_unique<int>(0))
+                  .value_or(absl::make_unique<int>(-1)),
+              Pointee(0));
+}
+
+TEST(StatusOr, MoveOnlyValueOrDefault) {
+  EXPECT_THAT(StatusOr<std::unique_ptr<int>>(absl::CancelledError())
+                  .value_or(absl::make_unique<int>(-1)),
+              Pointee(-1));
 }
 
 }  // namespace
