@@ -146,7 +146,7 @@ bool ExportIdbs() {
   if (!temp_dir_or.ok()) {
     return false;
   }
-  const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
+  const std::string temp_dir = std::move(temp_dir_or).value();
 
   const char* secondary_idb = ask_file(
       /*for_saving=*/false, "*.idb;*.i64", "%s",
@@ -417,7 +417,7 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   if (!temp_dir_or.ok()) {
     return false;
   }
-  const auto temp_dir = std::move(temp_dir_or).ValueOrDie();
+  const auto temp_dir = std::move(temp_dir_or).value();
   const auto filename1(FindFile(JoinPath(temp_dir, "primary"), ".BinExport"));
   const auto filename2(FindFile(JoinPath(temp_dir, "secondary"), ".BinExport"));
   if (filename1.empty() || filename2.empty()) {
@@ -600,7 +600,7 @@ bool WriteResults(const std::string& path) {
   if (!temp_dir_or.ok()) {
     return false;
   }
-  const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
+  const std::string temp_dir = std::move(temp_dir_or).value();
   const std::string out_dir(Dirname(path));
 
   if (!results->IsIncomplete()) {
@@ -788,7 +788,7 @@ bool Plugin::LoadResults() {
     if (!temp_dir_or.ok()) {
       return false;
     }
-    const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
+    const std::string temp_dir = std::move(temp_dir_or).value();
 
     SqliteDatabase database(filename);
     DatabaseReader reader(database, filename, temp_dir);
@@ -798,16 +798,16 @@ bool Plugin::LoadResults() {
     auto status = sha256_or.status();
     std::string hash;
     if (status.ok()) {
-      hash = std::move(sha256_or).ValueOrDie();
+      hash = std::move(sha256_or).value();
     } else {
       auto md5_or = GetInputFileMd5();
       status = md5_or.status();
       if (status.ok()) {
-        hash = std::move(md5_or).ValueOrDie();
+        hash = std::move(md5_or).value();
       }
     }
     if (hash.empty()) {
-      throw std::runtime_error{std::string(status.message())};
+      throw std::runtime_error(std::string(status.message()));
     }
     if (hash != absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
       const std::string message = absl::StrCat(
@@ -1356,7 +1356,7 @@ bool Plugin::Run(size_t /* argument */) {
     if (!sha256_or.ok()) {
       throw std::runtime_error{std::string(sha256_or.status().message())};
     }
-    if (sha256_or.ValueOrDie() !=
+    if (sha256_or.value() !=
         absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
       DiscardResults(DiscardResultsKind::kDontSave);

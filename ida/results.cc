@@ -388,8 +388,8 @@ void Results::DeleteTemporaryFiles() {
   if (!temp_dir_or.ok()) {
     return;
   }
-  // Don't care if this above fails - only litters the temp dir a bit.
-  RemoveAll(temp_dir_or.ValueOrDie()).IgnoreError();
+  // Don't care if this fails - only litters the temp dir a bit.
+  RemoveAll(temp_dir_or.value()).IgnoreError();
 }
 
 size_t Results::GetNumUnmatchedPrimary() const {

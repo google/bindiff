@@ -38,7 +38,7 @@ absl::Status InitConfig() {
   auto common_path_or = GetCommonAppDataDirectory(kBinDiff);
   const bool have_common_path = common_path_or.ok();
   if (have_common_path) {
-    common_path = JoinPath(std::move(common_path_or).ValueOrDie(), kConfigName);
+    common_path = JoinPath(std::move(common_path_or).value(), kConfigName);
   }
 
   XmlConfig user_config;

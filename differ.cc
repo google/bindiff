@@ -142,17 +142,17 @@ void Read(const std::string& filename, CallGraph* call_graph,
   enum { kMinFileSize = 8 };
   auto file_size_or = GetFileSize(filename);
   if (!file_size_or.ok()) {
-    throw std::runtime_error{std::string(file_size_or.status().message())};
+    throw std::runtime_error(std::string(file_size_or.status().message()));
   }
-  if (file_size_or.ValueOrDie() <= kMinFileSize) {
-    throw std::runtime_error{absl::StrCat("file too small: ", filename)};
+  if (file_size_or.value() <= kMinFileSize) {
+    throw std::runtime_error(absl::StrCat("file too small: ", filename));
   }
 
   std::ifstream stream(filename, std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
-    throw std::runtime_error{
-        absl::StrCat("parsing failed for exported file: ", filename)};
+    throw std::runtime_error(
+        absl::StrCat("parsing failed for exported file: ", filename));
   }
   SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
                        flow_graph_infos, instruction_cache);

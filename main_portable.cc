@@ -404,7 +404,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
       !idbs_or.ok()) {
     throw std::runtime_error(std::string(idbs_or.status().message()));
   } else {
-    idbs = std::move(idbs_or).ValueOrDie();
+    idbs = std::move(idbs_or).value();
   }
 
   const auto* config = GetConfig();
@@ -419,8 +419,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
           .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", "")));
   for (const std::string& idb : idbs) {
     const std::string full_idb_path = JoinPath(full_path, idb);
-    auto size_or = GetFileSize(full_idb_path);
-    if (size_or.ok() && size_or.ValueOrDie() > 0) {
+    if (GetFileSize(full_idb_path).value_or(0) > 0) {
       exporter.AddDatabase(full_idb_path);
       binexports.push_back(ReplaceFileExtension(idb, kBinExportExtension));
     } else {
@@ -451,11 +450,9 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
         if (!status.ok()) {
           PrintErrorMessage(status.message());
         } else {
-          auto file_size_or = GetFileSize(idb_path);
-          PrintMessage(
-              absl::StrCat(HumanReadableDuration(elapsed), "\t",
-                           file_size_or.ok() ? file_size_or.ValueOrDie() : 0,
-                           "\t", idb_path));
+          PrintMessage(absl::StrCat(HumanReadableDuration(elapsed), "\t",
+                                    GetFileSize(idb_path).value_or(0), "\t",
+                                    idb_path));
           ++num_exported;
         }
         return !g_wants_to_quit;

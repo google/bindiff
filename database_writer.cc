@@ -98,7 +98,7 @@ DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
     throw std::runtime_error(std::string(tempdir_or.status().message()));
   }
-  filename_ = JoinPath(tempdir_or.ValueOrDie(), Basename(path));
+  filename_ = JoinPath(tempdir_or.value(), Basename(path));
   if (recreate) {
     std::remove(filename_.c_str());
   }
@@ -525,7 +525,7 @@ not_absl::StatusOr<std::string> GetTempFileName() {
 
 void DatabaseTransmuter::DeleteTempFile() {
   if (GetTempDirectory("BinDiff").ok()) {
-    std::remove(GetTempFileName().ValueOrDie().c_str());
+    std::remove(GetTempFileName().value().c_str());
   }
 }
 
@@ -574,7 +574,7 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
     // TODO(cblichmann): Refactor Writer interface to return absl::Status.
     throw std::runtime_error(std::string(temp_file_or.status().message()));
   }
-  const auto temp_file = std::move(temp_file_or).ValueOrDie();
+  const auto temp_file = std::move(temp_file_or).value();
   if (FileExists(temp_file)) {
     database_.Statement("ATTACH :filename AS newMatches")
         ->BindText(temp_file.c_str())
