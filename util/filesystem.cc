@@ -250,7 +250,7 @@ bool FileExists(absl::string_view path) {
   return PathFileExists(path_copy.c_str()) == TRUE;
 #else
   auto mode_or = GetFileMode(path);
-  return mode_or.ok() ? S_ISREG(mode_or.ValueOrDie()) : false;
+  return mode_or.ok() ? S_ISREG(mode_or.value()) : false;
 #endif
 }
 
@@ -260,7 +260,7 @@ bool IsDirectory(absl::string_view path) {
   return PathIsDirectory(path_copy.c_str()) == FILE_ATTRIBUTE_DIRECTORY;
 #else
   auto mode_or = GetFileMode(path);
-  return mode_or.ok() ? S_ISDIR(mode_or.ValueOrDie()) : false;
+  return mode_or.ok() ? S_ISDIR(mode_or.value()) : false;
 #endif
 }
 

@@ -125,13 +125,10 @@ void ExportIdb(Writer* writer) {
 int ExportSql(absl::string_view schema_name,
               absl::string_view connection_string) {
   try {
-    auto sha256_or = GetInputFileSha256();
-    const std::string sha256 =
-        sha256_or.ok() ? std::move(sha256_or).ValueOrDie() : "";
-    auto md5_or = GetInputFileMd5();
-    const std::string md5 = md5_or.ok() ? std::move(md5_or).ValueOrDie() : "";
+    const std::string sha256 = GetInputFileSha256().value_or("");
+    const std::string md5 = GetInputFileMd5().value_or("");
     if (sha256.empty() && md5.empty()) {
-      throw std::runtime_error{"Failed to load input file hashes"};
+      throw std::runtime_error("Failed to load input file hashes");
     }
     DatabaseWriter writer(
         std::string(schema_name) /* Database */, GetModuleName(),
@@ -160,18 +157,14 @@ int ExportSql(absl::string_view schema_name,
 
 int ExportBinary(const std::string& filename) {
   try {
-    auto sha256_or = GetInputFileSha256();
     std::string hash;
-    if (sha256_or.ok()) {
-      hash = std::move(sha256_or).ValueOrDie();
+    if (auto sha256_or = GetInputFileSha256(); sha256_or.ok()) {
+      hash = std::move(sha256_or).value();
     } else {
-      auto md5_or = GetInputFileMd5();
-      if (md5_or.ok()) {
-        hash = std::move(md5_or).ValueOrDie();
-      }
+      hash = GetInputFileMd5().value_or("");
     }
-    BinExport2Writer writer{filename, GetModuleName(), hash,
-                            GetArchitectureName().value()};
+    BinExport2Writer writer(filename, GetModuleName(), hash,
+                            GetArchitectureName().value());
     ExportIdb(&writer);
   } catch (const std::exception& error) {
     LOG(INFO) << "Error exporting: " << error.what();
@@ -290,9 +283,8 @@ const char* GetDialog() {
 int DoExport(ExportMode mode, std::string name,
              absl::string_view connection_string) {
   if (name.empty()) {
-    auto temp_or = GetOrCreateTempDirectory("BinExport");
-    name =
-        temp_or.ok() ? temp_or.ValueOrDie() : absl::StrCat(".", kPathSeparator);
+    name = GetOrCreateTempDirectory("BinExport")
+               .value_or(absl::StrCat(".", kPathSeparator));
   }
   if (IsDirectory(name) && connection_string.empty()) {
     name = JoinPath(name, GetDefaultName(mode));
