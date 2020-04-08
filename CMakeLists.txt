@@ -108,6 +108,8 @@ add_library(binexport_shared STATIC
   util/filesystem.h
   util/format.cc
   util/format.h
+  util/process.cc
+  util/process.h
   util/status_macros.h
   util/statusor.h
   util/timer.h
@@ -136,6 +138,7 @@ endif()
 add_executable(binexport_shared_test
   util/filesystem_test.cc
   util/format_test.cc
+  util/process_test.cc
   util/status_macros_test.cc
   util/status_matchers.h
   util/statusor_test.cc
