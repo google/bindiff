@@ -22,6 +22,7 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/string_view.h"
 
 // Small RAII class that displays a wait message for long-running actions.
@@ -84,5 +85,10 @@ class ActionHandler : public action_handler_t {
     return AST_ENABLE_FOR_IDB;
   }
 };
+
+// Copies a short unformatted plain text string to clipboard. Short in this
+// context means no more than a few kilobytes. There is no hard limit, but due
+// to escaping there might be some memory blow-up.
+absl::Status CopyToClipboard(absl::string_view data);
 
 #endif  // IDA_UI_H_
