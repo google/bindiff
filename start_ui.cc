@@ -35,10 +35,12 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
-#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/process.h"
 
 namespace security::bindiff {
+
+using ::security::binexport::SpawnProcess;
 
 #ifdef _WIN32
 // Minimum required version of the JRE
@@ -140,6 +142,8 @@ absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
                      (GetPhysicalMemSize() / 1024 / 1024) * 3 / 4));
 
 #ifdef __APPLE__
+  using ::security::binexport::SetEnvironmentVariable;
+
   // On macOS, try to use the launcher binary first if java-binary is not set
   // (the default). This improves overall UX: the dock icon will show correctly
   // for example.

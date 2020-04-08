@@ -36,7 +36,7 @@
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/strip.h"
 #include "third_party/zynamics/bindiff/config.h"
-#include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/util/process.h"
 
 namespace security::bindiff {
 
@@ -136,6 +136,7 @@ uint32_t GetMatchColor(double value) {
 
 absl::Status CopyToClipboard(absl::string_view data) {
 #ifdef _WIN32
+  using ::security::binexport::GetLastOsError;
   if (!OpenClipboard(0)) {
     return absl::UnknownError(GetLastOsError());
   }

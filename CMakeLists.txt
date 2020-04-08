@@ -109,6 +109,8 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/util/filesystem.h
   ${BinExport_DIR}/util/format.cc
   ${BinExport_DIR}/util/format.h
+  ${BinExport_DIR}/util/process.cc
+  ${BinExport_DIR}/util/process.h
   ${BinExport_DIR}/util/status_macros.h
   ${BinExport_DIR}/util/statusor.h
   ${BinExport_DIR}/util/timer.h
@@ -249,8 +251,6 @@ add_library(bindiff_shared STATIC
   start_ui.cc
   statistics.h
   start_ui.h
-  utility.cc
-  utility.h
   version.h
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
   writer.cc
@@ -282,13 +282,6 @@ target_link_libraries(prime_signature_test
   bindiff_shared
 )
 gtest_discover_tests(prime_signature_test)
-
-add_executable(utility_test utility_test.cc)
-target_link_libraries(utility_test
-  bindiff_tests_base
-  bindiff_shared
-)
-gtest_discover_tests(utility_test)
 
 # Plugins will be named "bindiffX.so" and "bindiffX64.so" (or .dll or .dylib),
 # where X is the release number.

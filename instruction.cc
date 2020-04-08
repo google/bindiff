@@ -14,6 +14,7 @@
 
 #include "third_party/zynamics/bindiff/instruction.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <iterator>

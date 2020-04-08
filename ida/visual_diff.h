@@ -16,6 +16,7 @@
 #define IDA_VISUAL_DIFF_H_
 
 #include <functional>
+
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
 

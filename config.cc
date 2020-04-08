@@ -19,12 +19,15 @@
 #include "base/logging.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
+
+using ::security::binexport::GetCommonAppDataDirectory;
+using ::security::binexport::GetOrCreateAppDataDirectory;
 
 absl::Status InitConfig() {
   constexpr char kBinDiff[] = "BinDiff";

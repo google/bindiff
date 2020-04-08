@@ -68,7 +68,6 @@
 #include "third_party/zynamics/bindiff/idb_export.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
-#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log.h"

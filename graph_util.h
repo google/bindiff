@@ -24,8 +24,6 @@
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 // clang-format on
 
-#include "third_party/zynamics/bindiff/utility.h"
-
 enum vertex_flags_t { vertex_flags };
 enum vertex_bfs_index_t { vertex_bfs_index };
 enum vertex_bfs_index_inverted_t { vertex_bfs_index_inverted };

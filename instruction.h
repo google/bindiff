@@ -19,8 +19,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/integral_types.h"
-#include "third_party/zynamics/bindiff/utility.h"
+#include "third_party/zynamics/binexport/types.h"
 
 namespace security::bindiff {
 

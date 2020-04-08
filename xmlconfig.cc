@@ -28,7 +28,6 @@
 #include "third_party/tinyxpath/tinyxml.h"
 #include "third_party/tinyxpath/xpath_expression.h"
 #include "third_party/tinyxpath/xpath_static.h"
-#include "third_party/zynamics/bindiff/utility.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
