@@ -62,7 +62,6 @@
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
-#include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
 #include "third_party/zynamics/bindiff/idb_export.h"

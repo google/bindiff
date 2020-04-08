@@ -23,8 +23,8 @@
 #include "third_party/zynamics/bindiff/ida/main_plugin.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
-#include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
+#include "third_party/zynamics/bindiff/match_colors.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::bindiff {

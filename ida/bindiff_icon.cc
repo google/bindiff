@@ -14,8 +14,7 @@
 
 #include "third_party/zynamics/bindiff/ida/bindiff_icon.h"
 
-#include "third_party/absl/base/attributes.h"
-#include "third_party/zynamics/binexport/types.h"
+#include <cstdint>
 
 namespace security::bindiff {
 

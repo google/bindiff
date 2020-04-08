@@ -19,7 +19,6 @@
 
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/ida/main_plugin.h"
-#include "third_party/zynamics/bindiff/ida/ui.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::bindiff {

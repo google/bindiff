@@ -308,12 +308,12 @@ add_ida_plugin(${bindiff_plugin_name}
   ida/results.h
   ida/statistics_chooser.cc
   ida/statistics_chooser.h
-  ida/ui.cc
-  ida/ui.h
   ida/unmatched_functions_chooser.cc
   ida/unmatched_functions_chooser.h
   ida/visual_diff.cc
   ida/visual_diff.h
+  match_colors.cc
+  match_colors.h
 )
 if(WIN32)
   list(APPEND bindiff_plugin_libraries ws2_32.lib)
