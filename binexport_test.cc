@@ -17,10 +17,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-using ::testing::Eq;
-
 namespace security::binexport {
 namespace {
+
+using ::testing::Eq;
 
 Address AddInstruction(Address start_address, int8_t size, BinExport2* proto) {
   auto* instruction = proto->add_instruction();

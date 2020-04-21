@@ -16,6 +16,9 @@
 
 #include "gtest/gtest.h"
 
+namespace security::binexport {
+namespace {
+
 // Minimal steady clock implementation for testing. Time monotonically
 // increases in units of 5 seconds (until the underlying time_point
 // representation wraps around).
@@ -41,3 +44,6 @@ TEST(TimerTest, Ints) {
   timer.restart();
   EXPECT_EQ(timer.elapsed(), 5);
 }
+
+}  // namespace
+}  // namespace security::binexport

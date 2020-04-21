@@ -17,10 +17,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-using testing::StrEq;
-
 namespace security::binexport {
 namespace {
+
+using ::testing::StrEq;
 
 TEST(FormatUtilTest, FormatAddress) {
   EXPECT_THAT(FormatAddress(0x08), StrEq("00000008"));
