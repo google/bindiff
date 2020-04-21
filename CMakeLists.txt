@@ -88,8 +88,8 @@ target_link_libraries(bindiff_base INTERFACE
 )
 
 # Interface library for tests
-add_library(bindiff_tests_base INTERFACE)
-target_link_libraries(bindiff_tests_base INTERFACE
+add_library(bindiff_test_base INTERFACE)
+target_link_libraries(bindiff_test_base INTERFACE
   bindiff_base
   gtest_main
   gmock
@@ -109,6 +109,8 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/util/filesystem.h
   ${BinExport_DIR}/util/format.cc
   ${BinExport_DIR}/util/format.h
+  ${BinExport_DIR}/util/idb_export.cc
+  ${BinExport_DIR}/util/idb_export.h
   ${BinExport_DIR}/util/logging.cc
   ${BinExport_DIR}/util/logging.h
   ${BinExport_DIR}/util/process.cc
@@ -155,7 +157,7 @@ set_target_properties(xmlconfig PROPERTIES
 
 add_executable(xmlconfig_test xmlconfig_test.cc)
 target_link_libraries(xmlconfig_test
-  bindiff_tests_base
+  bindiff_test_base
   xmlconfig
 )
 gtest_discover_tests(xmlconfig_test)
@@ -236,8 +238,6 @@ add_library(bindiff_shared STATIC
   flow_graph_match_basic_block_string_refs.h
   groundtruth_writer.cc
   groundtruth_writer.h
-  idb_export.cc
-  idb_export.h
   instruction.cc
   instruction.h
   log_writer.cc
@@ -269,18 +269,9 @@ target_link_libraries(bindiff_shared
 set_target_properties(bindiff_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
-add_executable(idb_export_test idb_export_test.cc)
-target_link_libraries(idb_export_test
-  bindiff_tests_base
-  bindiff_shared
-)
-gtest_discover_tests(idb_export_test PROPERTIES
-  ENVIRONMENT "TEST_TMPDIR=${PROJECT_BINARY_DIR}/idb_export_test_tmp"
-)
-
 add_executable(prime_signature_test prime_signature_test.cc)
 target_link_libraries(prime_signature_test
-  bindiff_tests_base
+  bindiff_test_base
   bindiff_shared
 )
 gtest_discover_tests(prime_signature_test)

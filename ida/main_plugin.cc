@@ -64,7 +64,6 @@
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"
 #include "third_party/zynamics/bindiff/ida/unmatched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/visual_diff.h"
-#include "third_party/zynamics/bindiff/idb_export.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/version.h"
@@ -74,6 +73,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
@@ -86,6 +86,7 @@ using ::security::binexport::GetInputFileMd5;
 using ::security::binexport::GetInputFileSha256;
 using ::security::binexport::HumanReadableDuration;
 using ::security::binexport::IdaLogSink;
+using ::security::binexport::IdbExporter;
 using ::security::binexport::InitLogging;
 using ::security::binexport::LoggingOptions;
 using ::security::binexport::ShutdownLogging;

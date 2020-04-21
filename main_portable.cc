@@ -61,7 +61,6 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
-#include "third_party/zynamics/bindiff/idb_export.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/start_ui.h"
@@ -70,6 +69,7 @@
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
@@ -91,8 +91,11 @@ ABSL_FLAG(std::string, config, "", "specify config file name");
 
 namespace security::bindiff {
 
+using ::security::binexport::CollectIdbsToExport;
 using ::security::binexport::FormatAddress;
 using ::security::binexport::HumanReadableDuration;
+using ::security::binexport::IdbExporter;
+using ::security::binexport::kBinExportExtension;
 
 // BinDiff default configuration.
 ABSL_CONST_INIT const absl::string_view kDefaultConfig =
