@@ -107,19 +107,23 @@ add_library(binexport_shared STATIC
   util/filesystem.h
   util/format.cc
   util/format.h
-  util/process.cc
-  util/process.h
+  util/idb_export.cc
+  util/idb_export.h
   util/logging.cc
   util/logging.h
+  util/process.cc
+  util/process.h
   util/status_macros.h
   util/statusor.h
   util/timer.h
 )
 target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access
+  absl::flat_hash_map
+  absl::flat_hash_set
   absl::optional
-  absl::str_format
   absl::status
+  absl::str_format
   absl::strings
   absl::time
   absl::variant
@@ -150,6 +154,15 @@ target_link_libraries(binexport_shared_test PUBLIC
   binexport_shared
 )
 gtest_discover_tests(binexport_shared_test)
+
+add_executable(idb_export_test util/idb_export_test.cc)
+target_link_libraries(idb_export_test
+  binexport_test_base
+  binexport_shared
+)
+gtest_discover_tests(idb_export_test PROPERTIES
+  ENVIRONMENT "TEST_TMPDIR=${PROJECT_BINARY_DIR}/idb_export_test_tmp"
+)
 
 add_library(binexport_test_util
   binexport_test_util.cc

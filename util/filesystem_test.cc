@@ -19,13 +19,13 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/util/status_matchers.h"
 
+namespace security::binexport {
+namespace {
+
 using ::testing::IsEmpty;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
 using ::testing::StrEq;
-
-namespace security::binexport {
-namespace {
 
 TEST(FileSystemTest, Filenames) {
   EXPECT_THAT(Basename(absl::StrCat(kPathSeparator, "subdir", kPathSeparator,
