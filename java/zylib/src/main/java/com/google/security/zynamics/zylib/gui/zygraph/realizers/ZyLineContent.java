@@ -14,6 +14,7 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers;
 
+import com.google.common.base.Preconditions;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -30,8 +31,6 @@ import java.text.AttributedString;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.google.common.base.Preconditions;
 
 /**
  * This class describes a single row of content in a standard line node.
@@ -242,11 +241,17 @@ public class ZyLineContent {
    * @param length Length argument to be checked.
    */
   private void validatePartialLineArguments(final int position, final int length) {
-    Preconditions.checkArgument((position >= 0) && (position < m_text.length()),
-        "Error: Position argument is out of bounds (Position: %d, Length: %d/%d)", position,
-        length, m_text.length());
-    Preconditions.checkArgument((length > 0) || ((position + length) <= m_text.length()),
-        "Error: Length argument is out of bounds (Position: %d, Length: %d)", position, length);
+    Preconditions.checkArgument(
+        (position >= 0) && (position < m_text.length()),
+        "Error: Position argument is out of bounds (Position: %s, Length: %s/%s)",
+        position,
+        length,
+        m_text.length());
+    Preconditions.checkArgument(
+        (length > 0) || ((position + length) <= m_text.length()),
+        "Error: Length argument is out of bounds (Position: %s, Length: %s)",
+        position,
+        length);
   }
 
   /**
