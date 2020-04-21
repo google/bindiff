@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "testing/base/public/gunit-spi.h"
-#include "gtest/gtest.h"
 #include "third_party/zynamics/bindiff/instruction.h"
+
+#include "gtest/gtest.h"
 
 namespace security::bindiff {
 namespace {

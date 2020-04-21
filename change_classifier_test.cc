@@ -18,6 +18,8 @@
 #include <limits>
 #include <vector>
 
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
@@ -28,18 +30,10 @@
 #include "third_party/zynamics/bindiff/prime_signature.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 
-#ifndef GOOGLE
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#else
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#endif
-
-using ::testing::StrEq;
-
 namespace security::bindiff {
 namespace {
+
+using ::testing::StrEq;
 
 class ChangeClassifierTest : public ::testing::Test {
  protected:

@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "gtest/gtest.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+
+#include "gtest/gtest.h"
 
 namespace security::bindiff {
 namespace {

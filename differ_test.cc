@@ -42,10 +42,10 @@
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "util/task/status.h"
 
-using ::testing::IsTrue;
-
 namespace security::bindiff {
 namespace {
+
+using ::testing::IsTrue;
 
 static constexpr const char kFixturesPath[] =
     "/google3/third_party/zynamics/bindiff/fixtures/";

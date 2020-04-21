@@ -14,25 +14,19 @@
 
 #include "third_party/zynamics/bindiff/xmlconfig.h"
 
-#ifndef GOOGLE
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#else
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#endif
-
 #include <string>
 
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/zynamics/binexport/util/status_matchers.h"
+
+namespace security::bindiff {
+namespace {
 
 using ::not_absl::IsOk;
 using ::testing::ElementsAre;
 using ::testing::Eq;
 using ::testing::StrEq;
-
-namespace security::bindiff {
-namespace {
 
 TEST(XmlConfigTest, BasicFunctionality) {
   XmlConfig config;

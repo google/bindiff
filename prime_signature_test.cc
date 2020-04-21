@@ -16,23 +16,19 @@
 
 #include <cmath>
 
-#ifndef GOOGLE
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#else
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
+#ifdef GOOGLE
 #include "testing/base/public/benchmark.h"
 #endif
-
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 #include "third_party/absl/container/flat_hash_set.h"
+
+namespace security::bindiff {
+namespace {
 
 using ::testing::Eq;
 using ::testing::Ne;
 using ::testing::SizeIs;
-
-namespace security::bindiff {
-namespace {
 
 TEST(PrimeSignatureTest, IPow32MathEdgeCases) {
   // Zero exponent
