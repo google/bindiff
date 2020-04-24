@@ -58,8 +58,8 @@
                   Property="IDADIRECTORY" Value="[ProgramFiles64Folder]IDA\" />
 
     <!-- Launch conditions -->
-    <Condition Message="[ProductName] can only be installed on Microsoft Windows 8.1 or later (x64).">
-      VersionNT64 >= 603
+    <Condition Message="[ProductName] requires an x64 edition of Windows.">
+      VersionNT64
     </Condition>
     <Condition Message="You must have Administrative rights on this machine to install [ProductName].">
       Privileged
@@ -71,6 +71,23 @@
     <Property Id="ARPURLINFOABOUT" Value="https://www.zynamics.com/" />
     <PropertyRef Id="WIX_ACCOUNT_LOCALSYSTEM" />
     <PropertyRef Id="WIX_ACCOUNT_USERS" />
+
+    <!-- Need to look into the registry as VersionNT64 is influenced by the
+         default app manifest of Windows Installer itself. So GetVersionEx()
+         will report too old a version.
+      -->
+    <Property Id="WINDOWSVERSIONMAJOR">
+      <RegistrySearch Id="WindowsVersionMajorRegistry" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+                      Name="CurrentMajorVersionNumber" />
+    </Property>
+    <Property Id="WINDOWSBUILDNUMBER">
+      <RegistrySearch Id="WindowsBuildNumberRegistry" Type="raw" Win64="yes"
+                      Root="HKLM"
+                      Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+                      Name="CurrentBuildNumber" />
+    </Property>
 
     <Property Id="IDADIRECTORY">
       <RegistrySearch Id="HexRaysIdaRegistry750NewStylePath" Type="raw" Win64="yes"
@@ -101,6 +118,16 @@
                       Key="SOFTWARE\JavaSoft\Java Runtime Environment"
                       Name="CurrentVersion" />
     </Property>
+
+    <!-- Note (b/150918172): The property below controls the display of a warning
+         when installing on unsupported versions of Windows.
+         We only test on Windows 10, but people started patching out
+         LaunchConditions from the MSI, so now we show a warning message instead.
+      -->
+    <Property Id="ObsoleteOSDetected" Value="0"/>
+    <SetProperty Id="ObsoleteOSDetected" After="AppSearch" Value="1"><![CDATA[
+      WINDOWSVERSIONMAJOR < 10 OR (WINDOWSVERSIONMAJOR = 10 AND WINDOWSBUILDNUMBER < 18362)
+    ]]></SetProperty>
 
     <!-- Note (b/140218119): This custom action deletes an existing empty
          directory or junction. Possible conditions for %ProgramData%\BinDiff:
@@ -479,6 +506,7 @@
     <!-- UI Flow
          First-time install dialog sequence:
           - WixUI_WelcomeDlg
+          - WixUI_WarnAboutObsoleteOSDlg
           - WixUI_LicenseAgreementDlg
           - WixUI_CustomizeDlg
           - WixUI_VerifyReadyDlg
@@ -513,9 +541,14 @@
 
       <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
 
-      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg"><![CDATA[ObsoleteOSDetected <> "1"]]></Publish>
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="WarnAboutObsoleteOSDlg"><![CDATA[ObsoleteOSDetected = "1"]]></Publish>
 
-      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="WarnAboutObsoleteOSDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+      <Publish Dialog="WarnAboutObsoleteOSDlg" Control="Next" Event="NewDialog" Value="LicenseAgreementDlg">1</Publish>
+
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WarnAboutObsoleteOSDlg" Order="1"><![CDATA[ObsoleteOSDetected = "1"]]></Publish>
+      <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2"><![CDATA[ObsoleteOSDetected <> "1"]]></Publish>
       <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="CustomizeDlg">LicenseAccepted = "1"</Publish>
 
       <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
@@ -539,6 +572,22 @@
       <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
       <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
       <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg">1</Publish>
+
+      <Dialog Id="WarnAboutObsoleteOSDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
+        </Control>
+
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Unsupported Operating System" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="The detected operating system is not supported" />
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+
+        <Control Id="NoticeLabel" Type="Text" X="20" Y="60" Width="290" Height="60" NoPrefix="yes" Text="You are installing BinDiff on an unsupported version of Windows. The recommended minimum version is Windows 10 x64 (May 2019 Update). You can continue with the installation, however BinDiff may not function as expected." />
+      </Dialog>
 
       <Dialog Id="BrowseIdaDirectoryDlg" Width="370" Height="270" Title="[ProductName] Setup">
         <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
