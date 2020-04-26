@@ -10,7 +10,10 @@ Configure with locally installed IDA SDK at `/opt/idasdk`:
    cd build
    cmake ../cmake -DIdaSdk_ROOT_DIR=/opt/idasdk -DCMAKE_BUILD_TYPE=Release
 
-Replace `Release` with `Debug` for a debug build.
+Replace `Release` with `Debug` for a debug build. To enable support for
+exporting into PostgreSQL databases, add `-DBINEXPORT_ENABLE_POSTGRESQL=ON` to
+the command.
+
 
 To download, configure and install all other external dependencies and start
 the build:
@@ -32,7 +35,9 @@ the build:
 
    cmake --build . --config Release
 
-Replace `Release` with `Debug` for a debug build.
+Replace `Release` with `Debug` for a debug build. To enable support for
+exporting into PostgreSQL databases, add `-DBINEXPORT_ENABLE_POSTGRESQL=ON` to
+the command.
 
 
 Windows
@@ -49,4 +54,6 @@ the build:
 
    cmake --build . --config Release -- /clp:NoSummary;ForceNoAlign /v:minimal
 
-Replace `Release` with `Debug` for a debug build.
+Replace `Release` with `Debug` for a debug build. To enable support for
+exporting into PostgreSQL databases, add `-DBINEXPORT_ENABLE_POSTGRESQL=ON` to
+the command.

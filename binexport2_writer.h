@@ -33,14 +33,13 @@ class BinExport2Writer : public Writer {
   absl::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions& instructions,
                      const AddressReferences& address_references,
-                     const TypeSystem* type_system,
+                     const TypeSystem*,
                      const AddressSpace& address_space) override;
 
   absl::Status WriteToProto(const CallGraph& call_graph,
                             const FlowGraph& flow_graph,
                             const Instructions& instructions,
                             const AddressReferences& address_references,
-                            const TypeSystem* type_system,
                             const AddressSpace& address_space,
                             BinExport2* proto) const;
 

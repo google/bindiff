@@ -326,8 +326,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
 
 Instruction ParseInstructionIdaDalvik(const insn_t& instruction,
                                       CallGraph* call_graph,
-                                      FlowGraph* flow_graph,
-                                      TypeSystem* /* type_system */) {
+                                      FlowGraph* flow_graph, TypeSystem*) {
   // If the address contains no code of if the text representation could not
   // be generated, return an empty instruction. Do the same if the mnemonic
   // is empty.
