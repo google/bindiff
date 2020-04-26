@@ -696,9 +696,11 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   AddressSpace flags;
   for (int i = 0; i < get_segm_qty(); ++i) {
     const segment_t* segment = getnseg(i);
+#ifdef ENABLE_POSTGRESQL
     address_space.AddMemoryBlock(segment->start_ea,
                                  GetSectionBytes(segment->start_ea),
                                  GetPermissions(segment));
+#endif
     flags.AddMemoryBlock(
         segment->start_ea,
         AddressSpace::MemoryBlock(size_t(segment->end_ea - segment->start_ea)),
