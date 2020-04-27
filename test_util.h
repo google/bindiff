@@ -18,17 +18,12 @@
 #include <memory>
 #include <string>
 
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
-
-#ifndef GOOGLE
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
-#else
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-#endif
 
 namespace security::bindiff {
 
@@ -36,7 +31,7 @@ namespace security::bindiff {
 // avoid using the the built-in default configuration as it has name matching
 // enabled, which can make tests pointless (both binaries contain full symbols
 // and BinDiff will simply match everything based on that).
-// Intended to be calles from a test suite's SetUpTestSuite().
+// Intended to be called from a test suite's SetUpTestSuite().
 void ApplyDefaultConfigForTesting();
 
 // Call graph class that exposes more parts of its internal API for testing.
@@ -58,13 +53,20 @@ class InstructionBuilder {
  public:
   explicit InstructionBuilder(absl::string_view line);
 
+  InstructionBuilder& SetCallsFunction(absl::string_view name) {
+    calls_function_ = std::string(name);
+    return *this;
+  }
+
  private:
   friend class FunctionBuilder;
 
   Address address_ = 0;
   std::string mnemonic_;
   std::string disassembly_;
+  std::string calls_function_;
   uint32_t prime_ = 0;
+  uint8_t length_ = 1;  // Assume single-byte instructions by default
 };
 
 class BasicBlockBuilder {
@@ -122,9 +124,12 @@ class FunctionBuilder {
  private:
   friend class DiffBinaryBuilder;
 
+  void InitInstructions();
+
   Address entry_point_;
   std::string name_;
   std::vector<BasicBlockBuilder> basic_blocks_;
+  std::vector<absl::string_view> out_calls_;
 };
 
 // Holder struct for one size of a diff.

@@ -19,8 +19,10 @@
 #include <utility>
 
 #include "third_party/absl/container/flat_hash_map.h"
+#include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_split.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
@@ -91,17 +93,34 @@ InstructionBuilder::InstructionBuilder(absl::string_view line) {
   prime_ = GetPrime(mnemonic_);
 }
 
+void FunctionBuilder::InitInstructions() {
+  if (!out_calls_.empty()) {
+    return;
+  }
+
+  auto address = entry_point_;
+  for (auto& basic_block : basic_blocks_) {
+    for (auto& instruction : basic_block.instructions_) {
+      instruction.address_ = address;
+      if (!instruction.calls_function_.empty()) {
+        out_calls_.emplace_back(instruction.calls_function_);
+      }
+      address += instruction.length_;
+    }
+  }
+}
+
 std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
                                                   Instruction::Cache* cache) {
   using Graph = FlowGraph::Graph;
   using VertexInfo = FlowGraph::VertexInfo;
   using EdgeInfo = FlowGraph::EdgeInfo;
 
-  auto address = entry_point_;
   int instruction_offset = 0;
   std::vector<VertexInfo> vertices;
 
-  auto flow_graph = absl::make_unique<TestFlowGraph>(call_graph, address);
+  InitInstructions();
+  auto flow_graph = absl::make_unique<TestFlowGraph>(call_graph, entry_point_);
 
   std::vector<std::pair<Graph::edges_size_type, Graph::edges_size_type>> edges;
   std::vector<EdgeInfo> properties;
@@ -115,8 +134,9 @@ std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
     labels[basic_block.label_] = label_id++;
     for (auto& instruction : basic_block.instructions_) {
       ++instruction_offset;
-      flow_graph->instructions_.emplace_back(
-          cache, address++, instruction.mnemonic_, instruction.prime_);
+      flow_graph->instructions_.emplace_back(cache, instruction.address_,
+                                             instruction.mnemonic_,
+                                             instruction.prime_);
       vertex->prime_ += instruction.prime_;
     }
   }
@@ -155,9 +175,34 @@ DiffBinary DiffBinaryBuilder::Build(Instruction::Cache* cache) {
 
   DiffBinary diff_binary;
 
-  auto& graph = diff_binary.call_graph.GetGraph();
+  // Note: Identifying functions by string is terribly inefficient, but this is
+  //       for the benefit of test code that is easier to read. Graphs built by
+  //       DiffBinaryBuilder should always be fairly small, so we can accept
+  //       inefficiencies in this code.
+  int label_id = 0;
+  absl::flat_hash_map<absl::string_view, int>
+      labels;  // Function name to vertex
+  absl::flat_hash_map<int, absl::flat_hash_set<absl::string_view>>
+      all_calls;  // Vertex to list of called function names
+  for (auto& function : functions_) {
+    // Calculate instruction addresses and collect calls to other functions.
+    function.InitInstructions();
+    labels[function.name_] = label_id;
+    all_calls[label_id].insert(function.out_calls_.begin(),
+                               function.out_calls_.end());
+    ++label_id;
+  }
+
   std::vector<std::pair<Graph::edges_size_type, Graph::edges_size_type>> edges;
-  std::vector<EdgeInfo> edge_properties;
+  edges.reserve(all_calls.size());
+  std::vector<EdgeInfo> edge_properties(all_calls.size());
+  for (const auto& [source_id, out_calls] : all_calls) {
+    for (const auto& named_call : out_calls) {
+      edges.emplace_back(source_id, labels[named_call]);
+    }
+  }
+
+  auto& graph = diff_binary.call_graph.GetGraph();
   Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                    edges.end(), edge_properties.begin(), functions_.size());
   std::swap(graph, temp_graph);
@@ -167,13 +212,13 @@ DiffBinary DiffBinaryBuilder::Build(Instruction::Cache* cache) {
     auto& vertex = graph[*it];
     vertex.address_ = func_it->entry_point_;
     vertex.name_ = std::move(func_it->name_);
-
-    diff_binary.flow_graphs.insert(
-        func_it->Build(&diff_binary.call_graph, cache).release());
   }
-  // TODO(cblichmann): Call graph edges
-
   diff_binary.call_graph.Init();
+
+  for (auto& function : functions_) {
+    diff_binary.flow_graphs.insert(
+        function.Build(&diff_binary.call_graph, cache).release());
+  }
   return diff_binary;
 }
 
