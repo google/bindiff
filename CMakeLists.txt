@@ -269,6 +269,24 @@ target_link_libraries(bindiff_shared
 set_target_properties(bindiff_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
 
+# Library that helps with testing BinDiff's core engine.
+add_library(bindiff_test_util STATIC
+  test_util.cc
+  test_util.h
+)
+target_link_libraries(bindiff_test_util
+  bindiff_test_base
+  bindiff_shared
+)
+
+add_executable(change_classifier_test change_classifier_test.cc)
+target_link_libraries(change_classifier_test
+  bindiff_test_util
+  bindiff_test_base
+  bindiff_shared
+)
+gtest_discover_tests(change_classifier_test)
+
 add_executable(prime_signature_test prime_signature_test.cc)
 target_link_libraries(prime_signature_test
   bindiff_test_base

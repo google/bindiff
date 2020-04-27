@@ -55,6 +55,7 @@ using BasicBlockFixedPoints = std::set<BasicBlockFixedPoint>;
 
 class FixedPoint {
  public:
+  // TODO(cblichmann): Fix operator=() and let compiler implement move ops.
   FixedPoint(const FixedPoint&);
   const FixedPoint& operator=(const FixedPoint&);
   explicit FixedPoint(FlowGraph* primary = 0, FlowGraph* secondary = 0,

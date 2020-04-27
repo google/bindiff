@@ -58,7 +58,7 @@ TEST_F(ChangeClassifierTest, BasicChange) {
   auto primary =
       DiffBinaryBuilder()
           .AddFunctions(
-              {FunctionBuilder(0x20000, "func_b")
+              {FunctionBuilder(0x10000, "func_a")
                    .AddBasicBlocks(
                        {BasicBlockBuilder("entry")
                             .AddInstructions(
@@ -85,7 +85,7 @@ TEST_F(ChangeClassifierTest, BasicChange) {
                    .AddBasicBlocks(
                        {BasicBlockBuilder("entry")
                             .AddInstructions(
-                                {InstructionBuilder("test eax, eax"),
+                                {InstructionBuilder("sub eax, eax"),
                                  InstructionBuilder("jz loc_20002")})
                             .SetFlowTrue("loc_20002")
                             .SetFlowFalse("loc_20004"),
@@ -103,26 +103,24 @@ TEST_F(ChangeClassifierTest, BasicChange) {
           .Build(&cache);
 
   FixedPoints fixed_points;
-  {
-    FixedPoint fixed_point(*primary.flow_graphs.begin(),
-                           *secondary.flow_graphs.begin(),
-                           MatchingStep::kFunctionManualName);
-    fixed_point.Add(0, 0, MatchingStepFlowGraph::kBasicBlockManualName);
-    fixed_point.Add(1, 1, MatchingStepFlowGraph::kBasicBlockManualName);
-    fixed_point.Add(2, 2, MatchingStepFlowGraph::kBasicBlockManualName);
-    fixed_point.Add(3, 3, MatchingStepFlowGraph::kBasicBlockManualName);
-    fixed_points.insert(fixed_point);
-  }
+  FixedPoint fixed_point(*primary.flow_graphs.begin(),
+                         *secondary.flow_graphs.begin(),
+                         MatchingStep::kFunctionManualName);
+  fixed_point.Add(0, 0, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_point.Add(1, 1, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_point.Add(2, 2, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_point.Add(3, 3, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_points.insert(fixed_point);
 
   MatchingContext context(primary.call_graph, secondary.call_graph,
                           primary.flow_graphs, secondary.flow_graphs,
                           fixed_points);
   ClassifyChanges(&context);
 
-  // Assert that first fixed point is unchanged.
-  auto& fixed_point = *fixed_points.begin();
-  EXPECT_THAT(GetChangeDescription(fixed_point.GetFlags()), StrEq("----E--"));
-}
+  // Check that the fixed point has changed instructions
+  EXPECT_THAT(GetChangeDescription(fixed_points.begin()->GetFlags()),
+              StrEq("-I--E--"));
+  }
 
 }  // namespace
 }  // namespace security::bindiff
