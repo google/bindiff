@@ -208,7 +208,12 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
     }
   }
 
-  type_system->AddTypeSubstitution(instruction.ea, operand_num, temp->GetId());
+#ifdef ENABLE_POSTGRESQL
+  if (type_system) {
+    type_system->AddTypeSubstitution(instruction.ea, operand_num,
+                                     temp->GetId());
+  }
+#endif
 }
 
 // Creates a tree for expressions of the form:

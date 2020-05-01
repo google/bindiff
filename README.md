@@ -95,7 +95,7 @@ formats:
 #### Via the UI
 
 1.  Open an IDB
-2.  Select `Edit`|`Plugins`|`BinExport 10`
+2.  Select `Edit`|`Plugins`|`BinExport 11`
 3.  The following dialog box appears:
 
     ![BinExport plugin dialog](/doc/binexport10-plugin-dialog.png)
@@ -106,25 +106,26 @@ Note: There is no UI for the database export.
 
 ### IDC Scripting
 
-The BinExport plugin registers the IDC functions below. The function names are
-versioned in order to support side-by-side installation of different versions
-(i.e. BinDiff's BinExport 8).
+The BinExport plugin registers the IDC functions below.
 
 | IDC Function name   | Exports to           | Arguments                                    |
 | ------------------- | -------------------- | -------------------------------------------- |
-| BinExportSql        | PostgreSQL database  | host, port, database, schema, user, password |
+| BinExportSql¹       | PostgreSQL database  | host, port, database, schema, user, password |
 | BinExportDiff       | Protocol Buffer      | filename                                     |
 | BinExportText       | Text file dump       | filename                                     |
 | BinExportStatistics | Statistics text file | filename                                     |
 
-BinExport also supports exporting to a database via the `RunPlugin()` IDC
-function:
+¹Note: Exporting into PostgreSQL databases is deprecated and requires the
+`ENABLE_POSTGRESQL` define to be set.
+
+*Deprecated*: BinExport also supports exporting to a database via the
+`RunPlugin()` IDC function:
 
 ```c
 static main() {
   batch(0);
   auto_wait();
-  load_and_run_plugin("binexport10", 1);
+  load_and_run_plugin("binexport11", 1);
   qexit(0);
 }
 ```
@@ -153,17 +154,20 @@ command line:
 | --------------------------------------- | ---------------------------------------------------------------------- |
 | `-OBinExportAutoAction:<ACTION>`        | Invoke a BinExport IDC function and exit                               |
 | `-OBinExportModule:<PARAM>`             | Argument for `BinExportAutoAction`                                     |
-| `-OBinExportHost:<HOST>`                | Database server to connect to                                          |
-| `-OBinExportPort:<PORT>`                | Port to connect to. PostgreSQL default is 5432.                        |
-| `-OBinExportUser:<USER>`                | User name                                                              |
-| `-OBinExportPassword:<PASS>`            | Password                                                               |
-| `-OBinExportDatabase:<DB>`              | Database to use                                                        |
-| `-OBinExportSchema:<SCHEMA>`            | Database schema. BinNavi only uses "public".                           |
+| `-OBinExportHost:<HOST>`¹               | Database server to connect to                                          |
+| `-OBinExportPort:<PORT>`¹               | Port to connect to. PostgreSQL default is 5432.                        |
+| `-OBinExportUser:<USER>`¹               | User name                                                              |
+| `-OBinExportPassword:<PASS>`¹           | Password                                                               |
+| `-OBinExportDatabase:<DB>`¹             | Database to use                                                        |
+| `-OBinExportSchema:<SCHEMA>`¹           | Database schema. BinNavi only uses "public".                           |
 | `-OBinExportLogFile:<FILE>`             | Log messages to a file                                                 |
 | `-OBinExportAlsoLogToStdErr:TRUE`       | If specified, also log to standard error                               |
 | `-OBinExportX86NoReturnHeuristic:FALSE` | Disable the X86-specific heuristic to identify non-returning functions |
 
-Note that these options must come before any files.
+Note: These options must come before any files.
+
+¹Note: Exporting into PostgreSQL databases is deprecated and requires the
+`ENABLE_POSTGRESQL` define to be set.
 
 ## How to build
 
@@ -176,13 +180,13 @@ based format, there are quite a few dependencies to satisfy:
     `third_party/boost_parts`)
 *   [CMake](https://cmake.org/download/) 3.12 or higher
 *   GCC 7 or a recent version of Clang on Linux/macOS. On Windows, use the
-    Visual Studio 2017 compiler (need at least Update 9) and the Windows SDK
+    Visual Studio 2017 compiler (Update 9 or later) and the Windows SDK
     for Windows 10.
 *   Git 1.8 or higher
 *   IDA SDK 7.4 (unpack into `third_party/idasdk`)
 *   OpenSSL 1.0.2 or higher
 *   Perl 5.6 or higher (needed for OpenSSL and PostgreSQL)
-*   PostgreSQL client libraries 9.3 or higher
+*   Optional: PostgreSQL client libraries 9.3 or higher
 *   Protocol Buffers 3.6.1 or higher
 
 ### Linux
@@ -225,15 +229,19 @@ cmake --build .
 
 This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
 libraries. If all went well, the `build_linux/binexport-prefix` directory should
-contain two IDA plugin binaries `binexport10.so` and `binexport1064.so` for use
+contain two IDA plugin binaries `binexport11.so` and `binexport1164.so` for use
 with `ida` and `ida64`, respectively.
+
+To enable support for exporting into PostgreSQL databases, add
+`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command.
+
 
 ### macOS
 
 #### Prerequisites
 
-The preferred build environment is Mac OS X 10.12 "Sierra" (64-bit Intel) using
-Xcode 8.1. Using macOS 10.13 "High Sierra" should also work.
+The preferred build environment is Mac OS X 10.14 "Mojave" using Xcode 9.
+Using macOS 10.15 "Catalina" should also work.
 
 After installing the Developer Tools, make sure to install the command-line
 tools:
@@ -269,7 +277,7 @@ Download the latest stable version of CMake from the official site and mount its
 disk image:
 
 ```bash
-curl -L https://cmake.org/files/v3.7/cmake-3.7.2-Darwin-x86_64.dmg \
+curl -L https://cmake.org/files/v3.12/cmake-3.12.4-Darwin-x86_64.dmg \
     -o $HOME/Downloads/cmake-osx.dmg
 hdiutil attach $HOME/Downloads/cmake-osx.dmg
 ```
@@ -278,8 +286,8 @@ At this point you will need to review and accept CMake's license agreement. Now
 install CMake:
 
 ```bash
-sudo cp -Rf /Volumes/cmake-3.7.2-Darwin-x86_64/CMake.app /Applications/
-hdiutil detach /Volumes/cmake-3.7.2-Darwin-x86_64
+sudo cp -Rf /Volumes/cmake-3.12.4-Darwin-x86_64/CMake.app /Applications/
+hdiutil detach /Volumes/cmake-3.12.4-Darwin-x86_64
 sudo /Applications/CMake.app/Contents/bin/cmake-gui --install
 ```
 
@@ -309,8 +317,12 @@ cmake --build .
 
 This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
 libraries. If all went well, the `build_mac/binexport-prefix` directory should
-contain two IDA plugin binaries `binexport10.dylib` and `binexport1064.dylib`
+contain two IDA plugin binaries `binexport11.dylib` and `binexport1164.dylib`
 for use with `ida` and `ida64`, respectively.
+
+To enable support for exporting into PostgreSQL databases, add
+`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command.
+
 
 ### Windows
 
@@ -373,5 +385,8 @@ cmake --build . --config Release --install -- /m /clp:NoSummary;ForceNoAlign /v:
 
 This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
 libraries. If all went well, the `build_msvc\binexport-prefix` directory should
-contain two IDA plugin binaries `binexport10.dll` and `binexport1064.dll` for use
+contain two IDA plugin binaries `binexport11.dll` and `binexport1164.dll` for use
 with `ida.exe` and `ida64.exe`, respectively.
+
+To enable support for exporting into PostgreSQL databases, add
+`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command.

@@ -27,7 +27,7 @@ namespace security::binexport {
 
 Instruction ParseInstructionIdaPpc(const insn_t& instruction,
                                    CallGraph* call_graph, FlowGraph* flow_graph,
-                                   TypeSystem* type_system);
+                                   TypeSystem*);
 
 }  // namespace security::binexport
 

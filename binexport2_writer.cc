@@ -750,7 +750,7 @@ BinExport2Writer::BinExport2Writer(const std::string& result_filename,
 absl::Status BinExport2Writer::WriteToProto(
     const CallGraph& call_graph, const FlowGraph& flow_graph,
     const Instructions& instructions,
-    const AddressReferences& address_references, const TypeSystem* type_system,
+    const AddressReferences& address_references,
     const AddressSpace& address_space, BinExport2* proto) const {
   auto* meta_information = proto->mutable_meta_information();
   meta_information->set_executable_name(executable_filename_);
@@ -783,14 +783,13 @@ absl::Status BinExport2Writer::WriteToProto(
 absl::Status BinExport2Writer::Write(
     const CallGraph& call_graph, const FlowGraph& flow_graph,
     const Instructions& instructions,
-    const AddressReferences& address_references, const TypeSystem* type_system,
+    const AddressReferences& address_references, const TypeSystem*,
     const AddressSpace& address_space) {
   LOG(INFO) << "Writing to: \"" << filename_ << "\".";
 
   BinExport2 proto;
   NA_RETURN_IF_ERROR(WriteToProto(call_graph, flow_graph, instructions,
-                                  address_references, type_system,
-                                  address_space, &proto));
+                                  address_references, address_space, &proto));
   return WriteProtoToFile(filename_, &proto);
 }
 

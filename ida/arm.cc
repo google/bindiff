@@ -480,8 +480,7 @@ Operands DecodeOperandsArm(const insn_t& instruction) {
 
 Instruction ParseInstructionIdaArm(const insn_t& instruction,
                                    CallGraph* /* call_graph */,
-                                   FlowGraph* /* flow_graph */,
-                                   TypeSystem* /* type_system */) {
+                                   FlowGraph* /* flow_graph */, TypeSystem*) {
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }

@@ -16,6 +16,8 @@ cmake_minimum_required(VERSION 3.12)
 cmake_policy(VERSION 3.12)
 project(binexport VERSION 11)  # Only major version is used
 
+option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
+
 include(GoogleTest) # Needs to come before changing module path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(copts.cmake)
@@ -33,14 +35,16 @@ find_package(Boost 1.55 REQUIRED)
 find_package(Git)
 find_package(IdaSdk REQUIRED)
 find_package(OpenSSL 1.0.2 REQUIRED)
-find_package(PostgreSQL 9.5 REQUIRED)
+if(BINEXPORT_ENABLE_POSTGRESQL)
+  find_package(PostgreSQL 9.5 REQUIRED)
+endif()
 find_package(Protobuf 3.0.0 REQUIRED)
 include(googletest.cmake)
 include(absl.cmake)
 
 enable_testing()
 
-if(WIN32)
+if(BINEXPORT_ENABLE_POSTGRESQL AND WIN32)
   list(GET PostgreSQL_LIBRARIES 0 postgresql_lib)
   get_filename_component(postgresql_root ${postgresql_lib} DIRECTORY)
   list(APPEND PostgreSQL_LIBRARIES ${postgresql_root}/libpgport.lib)
@@ -78,9 +82,16 @@ target_include_directories(binexport_base INTERFACE
   ${PROJECT_BINARY_DIR}/gen_include
   ${PROJECT_BINARY_DIR}/src_include
   ${Boost_INCLUDE_DIR}
-  ${PostgreSQL_INCLUDE_DIRS}
   ${Protobuf_INCLUDE_DIRS}
 )
+if(BINEXPORT_ENABLE_POSTGRESQL)
+  target_include_directories(binexport_base INTERFACE
+    ${PostgreSQL_INCLUDE_DIRS}
+  )
+  target_compile_definitions(binexport_base INTERFACE
+    ENABLE_POSTGRESQL
+  )
+endif()
 target_link_libraries(binexport_base INTERFACE
   ${Protobuf_LIBRARIES}  # Same as protobuf::libprotobuf
 )
@@ -262,18 +273,24 @@ ida_target_link_libraries(binexport_plugin_shared PUBLIC
   binexport_base
 )
 
+set(binexport_POSTGRESQL_SRCS)
+if(BINEXPORT_ENABLE_POSTGRESQL)
+  set(binexport_plugin_POSTGRESQL_SRCS
+    database/initialize_constraints_postgresql_sql.h
+    database/initialize_indices_postgresql_sql.h
+    database/initialize_tables_postgresql_sql.h
+    database/maintenance_postgresql_sql.h
+    database/postgresql.cc
+    database/postgresql.h
+    database/postgresql_writer.cc
+    database/postgresql_writer.h
+    database/query_builder.cc
+    database/query_builder.h
+  )
+endif()
 set(binexport_plugin_name binexport${binexport_VERSION_MAJOR})
 add_ida_plugin(${binexport_plugin_name}
-  database/initialize_constraints_postgresql_sql.h
-  database/initialize_indices_postgresql_sql.h
-  database/initialize_tables_postgresql_sql.h
-  database/maintenance_postgresql_sql.h
-  database/postgresql.cc
-  database/postgresql.h
-  database/postgresql_writer.cc
-  database/postgresql_writer.h
-  database/query_builder.cc
-  database/query_builder.h
+  ${binexport_plugin_POSTGRESQL_SRCS}
   ida/arm.cc
   ida/arm.h
   ida/dalvik.cc
@@ -296,6 +313,13 @@ add_ida_plugin(${binexport_plugin_name}
   ida/ui.cc
   ida/ui.h
 )
+if(BINEXPORT_ENABLE_POSTGRESQL)
+  list(APPEND binexport_libraries
+    ${PostgreSQL_LIBRARIES}
+    # OpenSSL must come after PostgreSQL
+    OpenSSL::SSL
+  )
+endif()
 if(WIN32)
   list(APPEND binexport_libraries crypt32.lib
                                   secur32.lib
@@ -315,9 +339,6 @@ ida_target_link_libraries(${binexport_plugin_name}
   absl::time
   binexport_core
   binexport_plugin_shared
-  ${PostgreSQL_LIBRARIES}
-  # OpenSSL must come after PostgreSQL
-  OpenSSL::SSL
   ${binexport_libraries}
 )
 set_ida_target_properties(${binexport_plugin_name}

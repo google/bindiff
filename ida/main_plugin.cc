@@ -30,12 +30,15 @@
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
+#include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/numbers.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 #include "third_party/zynamics/binexport/call_graph.h"
+#ifdef ENABLE_POSTGRESQL
 #include "third_party/zynamics/binexport/database/postgresql_writer.h"
+#endif
 #include "third_party/zynamics/binexport/dump_writer.h"
 #include "third_party/zynamics/binexport/entry_point.h"
 #include "third_party/zynamics/binexport/flow_analyzer.h"
@@ -124,6 +127,7 @@ void ExportIdb(Writer* writer) {
       HumanReadableDuration(timer.elapsed()));
 }
 
+#ifdef ENABLE_POSTGRESQL
 int ExportSql(absl::string_view schema_name,
               absl::string_view connection_string) {
   try {
@@ -156,6 +160,7 @@ int ExportSql(absl::string_view schema_name,
   }
   return eOk;
 }
+#endif
 
 int ExportBinary(const std::string& filename) {
   try {
@@ -295,7 +300,13 @@ int DoExport(ExportMode mode, std::string name,
   Instruction::SetBitness(GetArchitectureBitness());
   switch (mode) {
     case ExportMode::kSql:
+#ifdef ENABLE_POSTGRESQL
       return ExportSql(name, connection_string);
+#else
+      LOG(INFO) << "Error: PostgreSQL export not built-in, recompile with "
+                   "ENABLE_POSTGRESQL";
+      return -1;
+#endif
     case ExportMode::kBinary:
       return ExportBinary(name);
     case ExportMode::kText:
@@ -340,6 +351,7 @@ static const ext_idcfunc_t kBinExportStatisticsIdcFunc = {
     EXTFUN_BASE};
 
 error_t idaapi IdcBinExportSql(idc_value_t* argument, idc_value_t*) {
+#ifdef ENABLE_POSTGRESQL
   if (argument[0].vtype != VT_STR || argument[1].vtype != VT_LONG ||
       argument[2].vtype != VT_STR || argument[3].vtype != VT_STR ||
       argument[4].vtype != VT_STR || argument[5].vtype != VT_STR) {
@@ -359,6 +371,11 @@ error_t idaapi IdcBinExportSql(idc_value_t* argument, idc_value_t*) {
     return -1;
   }
   return eOk;
+#else
+  LOG(INFO) << "Error (BinExportSql): PostgreSQL export not built-in, "
+               "recompile with ENABLE_POSTGRESQL";
+  return -1;
+#endif
 }
 static const char kBinExportSqlIdcArgs[] = {VT_STR /* Host */,
                                             VT_LONG /* Port */,
@@ -371,6 +388,7 @@ static const ext_idcfunc_t kBinExportSqlIdcFunc = {
     "BinExportSql", IdcBinExportSql, kBinExportSqlIdcArgs, nullptr, 0,
     EXTFUN_BASE};
 
+#ifdef ENABLE_POSTGRESQL
 // Builds a database connection string from the plugin arguments given on the
 // command-line. Note: This function does not escape any of the strings it gets
 // passed in.
@@ -382,6 +400,7 @@ std::string GetConnectionStringFromArguments() {
                       GetArgument("Password"), "' port='", GetArgument("Port"),
                       "' dbname='" + GetArgument("Database") + "'");
 }
+#endif
 
 ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
   if (event_id != ui_ready_to_run) {
@@ -392,25 +411,26 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
 
   // If IDA was invoked with -OBinExportAutoAction:<action>, wait for auto
   // analysis to finish, then invoke the requested action and exit.
-  const std::string auto_action =
-      absl::AsciiStrToUpper(GetArgument("AutoAction"));
+  const std::string auto_action = GetArgument("AutoAction");
   if (auto_action.empty()) {
     return 0;
   }
   auto_wait();
 
-  if (auto_action == absl::AsciiStrToUpper(kBinExportSqlIdcFunc.name)) {
+#ifdef ENABLE_POSTGRESQL
+  if (absl::EqualsIgnoreCase(auto_action, kBinExportSqlIdcFunc.name)) {
     DoExport(ExportMode::kSql, GetArgument("Schema"),
              GetConnectionStringFromArguments());
-  } else if (auto_action ==
-             absl::AsciiStrToUpper(kBinExportBinaryIdcFunc.name)) {
+  } else  // NOLINT(readability/braces)
+#endif
+      if (absl::EqualsIgnoreCase(auto_action, kBinExportBinaryIdcFunc.name)) {
     DoExport(ExportMode::kBinary, GetArgument("Module"),
              /*connection_string=*/"");
-  } else if (auto_action == absl::AsciiStrToUpper(kBinExportTextIdcFunc.name)) {
+  } else if (absl::EqualsIgnoreCase(auto_action, kBinExportTextIdcFunc.name)) {
     DoExport(ExportMode::kText, GetArgument("Module"),
              /*connection_string=*/"");
-  } else if (auto_action ==
-             absl::AsciiStrToUpper(kBinExportStatisticsIdcFunc.name)) {
+  } else if (absl::EqualsIgnoreCase(auto_action,
+                                    kBinExportStatisticsIdcFunc.name)) {
     DoExport(ExportMode::kStatistics, GetArgument("Module"),
              /*connection_string=*/"");
   } else {
@@ -489,6 +509,7 @@ bool Plugin::Run(size_t argument) {
   try {
     if (argument) {
       std::string connection_string;
+#ifdef ENABLE_POSTGRESQL
       std::string module;
       if (!GetArgument("Host").empty()) {
         connection_string = GetConnectionStringFromArguments();
@@ -496,6 +517,9 @@ bool Plugin::Run(size_t argument) {
       } else {
         module = GetArgument("Module");
       }
+#else
+      std::string module = GetArgument("Module");
+#endif
 
       DoExport(static_cast<ExportMode>(argument), module, connection_string);
     } else {

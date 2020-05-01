@@ -31,10 +31,8 @@ class StatisticsWriter : public Writer {
                           std::map<std::string, size_t>* statistics) const;
 
   absl::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
-                     const Instructions& instructions,
-                     const AddressReferences& address_references,
-                     const TypeSystem* type_system,
-                     const AddressSpace& address_space) override;
+                     const Instructions&, const AddressReferences&,
+                     const TypeSystem*, const AddressSpace&) override;
 
  private:
   std::ofstream file_;

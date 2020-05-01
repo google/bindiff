@@ -33,7 +33,7 @@ namespace security::binexport {
 Instruction ParseInstructionIdaGeneric(const insn_t& instruction,
                                        CallGraph* /* call_graph */,
                                        FlowGraph* /* flow_graph */,
-                                       TypeSystem* /* type_system */) {
+                                       TypeSystem*) {
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
