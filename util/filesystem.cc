@@ -15,11 +15,17 @@
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
 #ifdef _WIN32
+// clang-format off
 #include <windows.h>
 #include <shellapi.h>
 #include <shlobj.h>
 #include <shlwapi.h>
 #include <stdlib.h>
+// clang-format on
+
+#include <filesystem>
+#include <system_error>     // NOLINT(build/c++11)
+
 #undef CopyFile             // winbase.h
 #undef GetCurrentDirectory  // processenv.h
 #undef GetFullPathName      // fileapi.h
@@ -35,9 +41,6 @@
 #ifdef __APPLE__
 #include <cerrno>
 #include <cstring>
-#else
-#include <filesystem>
-#include <system_error>  // NOLINT(build/c++11)
 #endif
 
 #include <algorithm>
@@ -308,8 +311,10 @@ absl::Status GetDirectoryEntries(absl::string_view path,
 
 absl::Status RemoveAll(absl::string_view path) {
   std::string path_copy(path);
-#ifndef __APPLE__
-  // TODO(cblichmann): Use on all platforms once XCode has filesystem.
+#ifdef _WIN32
+  // Linking against filesystem is difficult on Linux and macOS' XCode does not
+  // have it. Visual Studio's standard library has it integrated.
+  // TODO(cblichmann): Use filesystem once libstdc++ is >= 8.3 everywhere.
   namespace fs = std::filesystem;
   if (std::error_code ec;
       fs::remove_all(path_copy, ec) == static_cast<std::uintmax_t>(-1)) {

@@ -17,15 +17,15 @@
 
 #undef uint128
 #undef int128
-#undef uint64
-#undef int64
-#undef uint32
-#undef int32
-#undef uint16
-#undef int16
-#undef uint8
+#undef uint64_t
+#undef int64_t
+#undef uint32_t
+#undef int32_t
+#undef uint16_t
+#undef int16_t
+#undef uint8_t
 #undef sint8
-#undef int8
+#undef int8_t
 
 // Undefine the operand shortcuts Op1-Op8, as those pollute the global
 // namespace.
