@@ -38,7 +38,7 @@ class FlowGraphTest : public testing::Test {
     QCHECK_OK(GetBinExportProtoForTesting(kBinExport2Item, &proto_));
     flow_graph_ = FlowGraph::FromBinExport2Proto(
         proto_, proto_.flow_graph(0),
-        binexport::GetAllInstructionAddresses(proto_));
+        GetAllInstructionAddresses(proto_));
   }
 
   std::unique_ptr<FlowGraph> flow_graph_;
@@ -115,7 +115,7 @@ TEST_F(FlowGraphTest, GetInstructions) {
 TEST_F(FlowGraphTest, GetCallTargets) {
   const auto& flow_graph(FlowGraph::FromBinExport2Proto(
       proto_, proto_.flow_graph(1),
-      binexport::GetAllInstructionAddresses(proto_)));
+      GetAllInstructionAddresses(proto_)));
   const auto& vertex = flow_graph->GetVertex(0x003221BE);
   LOG(INFO) << vertex;
   std::vector<Address> call_targets;
@@ -130,7 +130,7 @@ TEST_F(FlowGraphTest, GetCallTargets) {
 TEST_F(FlowGraphTest, GetCallTargetsMultiple) {
   const auto& flow_graph(FlowGraph::FromBinExport2Proto(
       proto_, proto_.flow_graph(2),
-      binexport::GetAllInstructionAddresses(proto_)));
+      GetAllInstructionAddresses(proto_)));
   const auto& vertex = flow_graph->GetVertex(0x00322310);
   LOG(INFO) << vertex;
   std::vector<Address> call_targets;
