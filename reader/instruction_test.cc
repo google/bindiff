@@ -56,7 +56,8 @@ TEST(InstructionTest, GetInstructionAddresses) {
       instructions.begin(), instructions.end(),
       RepeatedPtrFieldBackInserter(binexport_proto.mutable_instruction()));
 
-  std::vector<Address> addresses = GetAllInstructionAddresses(binexport_proto);
+  std::vector<Address> addresses =
+      binexport::GetAllInstructionAddresses(binexport_proto);
   for (int i = 0; i * i < 51; ++i) {
     for (int j = i * i; j < (i + 1) * (i + 1) && j < kNumInstructions; ++j) {
       EXPECT_EQ(100 * i + (j - i * i) * 2, addresses[j]);
