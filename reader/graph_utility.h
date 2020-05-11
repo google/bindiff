@@ -40,7 +40,7 @@ struct VertexTypeTraits {};
 // underlying code changes there is no specialization for this type in place.
 template <>
 struct VertexTypeTraits<uint32_t> {
-  static constexpr uint32_t kInvalidVertex = kuint32max;
+  static const uint32_t kInvalidVertex = kuint32max;
 };
 
 template <typename Vertex>
