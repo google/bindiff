@@ -360,6 +360,7 @@ add_library(binexport_reader STATIC
   reader/instruction.h
 )
 target_link_libraries(binexport_reader PUBLIC
+  absl::inlined_vector
   absl::strings
   binexport_shared
 )

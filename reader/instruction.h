@@ -22,9 +22,10 @@
 #include <string>
 #include <vector>
 
+#include "third_party/absl/container/inlined_vector.h"
 #include "third_party/absl/types/optional.h"
-#include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/architectures.h"
+#include "third_party/zynamics/binexport/types.h"
 
 namespace security::binexport {
 
@@ -36,7 +37,7 @@ class Instruction {
   const std::vector<int>& operands() const { return operand_indices_; }
   void set_operands(const std::vector<int>& operand_indices);
 
-  using CallTargets = std::vector<Address>;
+  using CallTargets = absl::InlinedVector<Address, 1>;
 
   const CallTargets& call_targets() const { return call_targets_; }
   void set_call_targets(const CallTargets& targets) { call_targets_ = targets; }
