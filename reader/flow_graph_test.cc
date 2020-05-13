@@ -117,7 +117,6 @@ TEST_F(FlowGraphTest, GetCallTargets) {
       proto_, proto_.flow_graph(1),
       GetAllInstructionAddresses(proto_)));
   const auto& vertex = flow_graph->GetVertex(0x003221BE);
-  LOG(INFO) << vertex;
   std::vector<Address> call_targets;
   flow_graph->GetCallTargets(vertex, std::back_inserter(call_targets));
   EXPECT_THAT(call_targets.size(), Eq(9));
