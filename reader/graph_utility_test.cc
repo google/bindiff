@@ -51,9 +51,7 @@ class GraphUtilityTest : public testing::Test {
   };
 
  public:
-  struct EdgeProperty {
-    uint32_t flags;
-  };
+  struct EdgeProperty {};
 
   typedef boost::compressed_sparse_row_graph<boost::bidirectionalS, VertexInfo,
                                              EdgeProperty, boost::no_property,
