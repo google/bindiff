@@ -6,6 +6,7 @@
 
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
+#include "third_party/absl/time/time.h"
 
 namespace security::binexport {
 
@@ -26,7 +27,7 @@ std::string HumanReadableDuration(double seconds) {
       absl::IDivDuration(remainder, absl::Minutes(1), &remainder);
   int64_t full_seconds =
       absl::IDivDuration(remainder, absl::Seconds(1), &remainder);
-  int64_t full_msec = absl::ToInt64Milliseconds(remainder);
+  absl::Duration full = remainder;
 
   bool need_space = false;
   if (full_hours > 0) {
@@ -37,10 +38,10 @@ std::string HumanReadableDuration(double seconds) {
     absl::StrAppend(&result, (need_space ? " " : ""), full_minutes, "m");
     need_space = true;
   }
-  if (full_seconds > 0 || full_msec > 0) {
+  if (full_seconds > 0 || absl::ToInt64Milliseconds(full) > 0) {
     absl::StrAppend(&result, (need_space ? " " : ""), full_seconds);
-    if (full_msec > 0) {
-      absl::StrAppend(&result, ".", full_msec / 10);
+    if (absl::ToInt64Milliseconds(full) > 0) {
+      absl::StrAppend(&result, ".", absl::ToInt64Milliseconds(full) / 10);
     }
     absl::StrAppend(&result, "s");
   }
