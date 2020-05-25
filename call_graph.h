@@ -85,21 +85,21 @@ class CallGraph {
   // construct default save filenames with it for example).
   void Read(const BinExport2& proto, const std::string& filename);
 
-  // Get just the filename part (without path or extension) passed into Read().
+  // Gets just the filename part (without path or extension) passed into Read().
   std::string GetFilename() const;
 
-  // Get the fully specified filename including path and extension as passed
+  // Gets the fully specified filename including path and extension as passed
   // into read().
   std::string GetFilePath() const { return filename_; }
 
-  // free all associated data and reset to virgin state
+  // Frees all associated data and resets to an initial (empty) state.
   void Reset();
 
-  // O(logn) binary search over all vertices to return the one with "address".
-  // returns ms_InvalidVertex if address couldn't be found.
+  // O(log n) Binary searches all vertices to return the one with "address".
+  // Returns kInvalidVertex if address couldn't be found.
   Vertex GetVertex(Address address) const;
 
-  // O(1) return the vertice's address.
+  // O(1) Returns the vertex' address. The argument needs to be a valid vertex.
   Address GetAddress(Vertex vertex) const;
 
   // O(1) calculate and return the edge's MD index.

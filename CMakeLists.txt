@@ -279,6 +279,14 @@ target_link_libraries(bindiff_test_util
   bindiff_shared
 )
 
+add_executable(call_graph_test call_graph_test.cc)
+target_link_libraries(call_graph_test
+  bindiff_test_util
+  bindiff_test_base
+  bindiff_shared
+)
+gtest_discover_tests(call_graph_test)
+
 add_executable(change_classifier_test change_classifier_test.cc)
 target_link_libraries(change_classifier_test
   bindiff_test_util
