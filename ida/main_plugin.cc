@@ -446,7 +446,7 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
   return 0;  // Not reached
 }
 
-int Plugin::Init() {
+Plugin::LoadStatus Plugin::Init() {
   alsologtostderr_ =
       absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
   if (auto status = InitLogging(LoggingOptions{}

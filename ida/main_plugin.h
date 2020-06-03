@@ -25,7 +25,7 @@ class Plugin : public IdaPlugin<Plugin> {
       "Export to SQL RE-DB, BinDiff binary or text dump";
   static constexpr char kHotKey[] = "";
 
-  int Init() override;
+  LoadStatus Init() override;
   bool Run(size_t argument) override;
   void Terminate() override;
 
