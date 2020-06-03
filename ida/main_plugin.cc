@@ -1209,7 +1209,7 @@ void Plugin::TermMenus() {
   delete_menu("bindiff:view_bindiff");
 }
 
-int Plugin::Init() {
+Plugin::LoadStatus Plugin::Init() {
   alsologtostderr_ =
       absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
   if (auto status = InitLogging(LoggingOptions{}

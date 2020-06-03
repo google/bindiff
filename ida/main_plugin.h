@@ -54,7 +54,7 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
 
   bool DiscardResults(DiscardResultsKind kind);
 
-  int Init() override;
+  LoadStatus Init() override;
   void InitActions();
   void InitMenus();
 
