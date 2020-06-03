@@ -16,12 +16,12 @@
 
 #include <fstream>
 
-#include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 
 namespace security::binexport {
 
@@ -29,7 +29,8 @@ static std::string* g_test_srcdir{};
 
 absl::Status GetBinExportProtoForTesting(absl::string_view filename,
                                          BinExport2* proto) {
-  std::string testfile = JoinPath(*g_test_srcdir, "testdata", filename);
+  const std::string testfile = JoinPath(*g_test_srcdir, "testdata", filename);
+
   std::ifstream stream(testfile.c_str(), std::ios::in | std::ios::binary);
   if (!proto->ParseFromIstream(&stream)) {
     return absl::FailedPreconditionError(
@@ -39,3 +40,10 @@ absl::Status GetBinExportProtoForTesting(absl::string_view filename,
 }
 
 }  // namespace security::binexport
+
+int main(int argc, char** argv) {
+  testing::InitGoogleTest(&argc, argv);
+  security::binexport::g_test_srcdir =
+      new std::string(argc >= 2 ? argv[1] : GetCurrentDirectory());
+  return RUN_ALL_TESTS();
+}
