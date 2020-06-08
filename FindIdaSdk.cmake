@@ -15,7 +15,7 @@
 # FindIdaSdk
 # ----------
 #
-# Locates and configures the IDA Pro SDK. Only support version 7.0 or hight.
+# Locates and configures the IDA Pro SDK. Supports version 7.0 or higher.
 #
 # Use this module by invoking find_package with the form:
 #
@@ -36,7 +36,6 @@
 # Example (this assumes Windows):
 #
 #   find_package(IdaSdk REQUIRED)
-#   include_directories(${IdaSdk_INCLUDE_DIRS})
 #
 #   # Builds targets plugin.dll and plugin64.dll
 #   add_ida_plugin(plugin myplugin.cc)
