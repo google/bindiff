@@ -170,16 +170,6 @@ gtest_discover_tests(idb_export_test PROPERTIES
   ENVIRONMENT "TEST_TMPDIR=${PROJECT_BINARY_DIR}/idb_export_test_tmp"
 )
 
-add_library(binexport_test_util
-  binexport_test_util.cc
-  binexport_test_util.h
-)
-target_link_libraries(binexport_test_util PUBLIC
-  binexport_test_base
-  binexport_shared
-  absl::memory
-)
-
 # General BinExport tests
 add_executable(binexport_test
   binexport_test.cc
