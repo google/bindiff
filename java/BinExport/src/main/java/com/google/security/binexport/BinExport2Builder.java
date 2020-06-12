@@ -83,6 +83,7 @@ public class BinExport2Builder {
   }
 
   public BinExport2Builder setAddressOffset(long offset) {
+    addressOffset = offset;
     return this;
   }
 
