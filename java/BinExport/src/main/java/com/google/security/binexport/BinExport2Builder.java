@@ -36,6 +36,7 @@ import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.scalar.Scalar;
 import ghidra.program.model.symbol.FlowType;
+import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.RefType;
 import ghidra.program.model.symbol.Reference;
 import ghidra.program.model.symbol.Symbol;
@@ -68,6 +69,7 @@ public class BinExport2Builder {
 
   private MnemonicMapper mnemonicMapper = new IdentityMnemonicMapper();
   private long addressOffset = 0;
+  private boolean prependNamespace = false;
 
   public BinExport2Builder(Program ghidraProgram) {
     program = ghidraProgram;
@@ -81,6 +83,11 @@ public class BinExport2Builder {
   }
 
   public BinExport2Builder setAddressOffset(long offset) {
+    return this;
+  }
+
+  public BinExport2Builder setPrependNamespace(boolean isPrepended) {
+    prependNamespace = isPrepended;
     return this;
   }
 
@@ -338,6 +345,7 @@ public class BinExport2Builder {
     for (final Function func : funcManager.getFunctions(true)) {
       final long funcAddress = getMappedAddress(func.getEntryPoint());
       final var vertex = callGraph.addVertexBuilder().setAddress(funcAddress);
+      final Namespace parentNamespace = func.getParentNamespace();
       // TODO(cblichmann): Imported/library
       if (func.isExternal()) {
         vertex.setType(BinExport2.CallGraph.Vertex.Type.IMPORTED);
@@ -347,7 +355,12 @@ public class BinExport2Builder {
       }
       // TODO(cblichmann): Check for artificial names
       // Mangled name always needs to be set.
-      vertex.setMangledName(func.getName());
+      if (parentNamespace != null && !"Global".equals(parentNamespace.getName())
+          && this.prependNamespace) {
+        vertex.setMangledName(parentNamespace.getName() + "::" + func.getName());
+      } else {
+        vertex.setMangledName(func.getName());
+      }
       vertexIndices.put(funcAddress, id++);
       monitor.setProgress(i++);
     }
@@ -404,7 +417,7 @@ public class BinExport2Builder {
   /**
    * Parses a Ghidra instruction and outputs its components on stdout.
    * Experimental.
-   * 
+   *
    * @param instr the instruction to parse.
    */
   @SuppressWarnings("unused")
