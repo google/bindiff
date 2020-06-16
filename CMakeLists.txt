@@ -161,6 +161,15 @@ target_link_libraries(binexport_shared_test PUBLIC
 )
 gtest_discover_tests(binexport_shared_test)
 
+add_library(binexport_testing
+  testing.cc
+  testing.h
+)
+target_link_libraries(binexport_testing PUBLIC
+  binexport_test_base
+  binexport_shared
+)
+
 add_executable(idb_export_test util/idb_export_test.cc)
 target_link_libraries(idb_export_test
   binexport_test_base
@@ -359,14 +368,13 @@ add_executable(binexport_reader_test
   reader/flow_graph_test.cc
   reader/graph_utility_test.cc
   reader/instruction_test.cc
-  reader/reader_test_util.cc
-  reader/reader_test_util.h
 )
 target_link_libraries(binexport_reader_test PUBLIC
   gtest_main
   gmock
   binexport_reader
+  binexport_testing
 )
-gtest_discover_tests(binexport_reader_test
-  EXTRA_ARGS ${PROJECT_SOURCE_DIR}/reader
+gtest_discover_tests(binexport_reader_test PROPERTIES
+  ENVIRONMENT "TEST_SRCDIR=${_binexport_src}"
 )

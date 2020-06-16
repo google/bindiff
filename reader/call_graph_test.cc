@@ -21,7 +21,7 @@
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
-#include "third_party/zynamics/binexport/reader/reader_test_util.h"
+#include "third_party/zynamics/binexport/testing.h"
 
 namespace security::binexport {
 namespace {
@@ -29,13 +29,14 @@ namespace {
 using ::testing::Eq;
 
 static constexpr char kBinExport2Item[] =
+    "binexport/reader/testdata/"
     "0000500ed9f688a309ee2176462eb978efa9a2fb80fcceb5d8fd08168ea50dfd."
     "BinExport";
 
 class CallGraphTest : public testing::Test {
  protected:
   void SetUp() override {
-    QCHECK_OK(GetBinExportProtoForTesting(kBinExport2Item, &proto_));
+    proto_ = GetBinExportForTesting(kBinExport2Item);
     call_graph_ = CallGraph::FromBinExport2Proto(proto_);
   }
 

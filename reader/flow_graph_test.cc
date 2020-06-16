@@ -21,7 +21,7 @@
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"
 #include "third_party/zynamics/binexport/reader/instruction.h"
-#include "third_party/zynamics/binexport/reader/reader_test_util.h"
+#include "third_party/zynamics/binexport/testing.h"
 
 namespace security::binexport {
 namespace {
@@ -29,13 +29,14 @@ namespace {
 using ::testing::Eq;
 
 static constexpr char kBinExport2Item[] =
+    "binexport/reader/testdata/"
     "0000500ed9f688a309ee2176462eb978efa9a2fb80fcceb5d8fd08168ea50dfd."
     "BinExport";
 
 class FlowGraphTest : public testing::Test {
  protected:
   void SetUp() override {
-    QCHECK_OK(GetBinExportProtoForTesting(kBinExport2Item, &proto_));
+    proto_ = GetBinExportForTesting(kBinExport2Item);
     flow_graph_ = FlowGraph::FromBinExport2Proto(
         proto_, proto_.flow_graph(0),
         GetAllInstructionAddresses(proto_));
