@@ -52,7 +52,10 @@
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/strings/strip.h"
+#include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
+
+using security::binexport::GetLastOsError;
 
 #ifdef _WIN32
 const char kPathSeparator[] = "\\";
@@ -119,8 +122,8 @@ absl::Status CreateDirectories(absl::string_view path) {
       /*hwnd=*/nullptr, real_path.c_str(), /*psa=*/nullptr);
   if (result != ERROR_SUCCESS && result != ERROR_ALREADY_EXISTS &&
       result != ERROR_FILE_EXISTS) {
-    return absl::UnknownError(
-        absl::StrCat("cannot create directory \"", path, "\""));
+    return absl::UnknownError(absl::StrCat("cannot create directory \"", path,
+                                           "\": ", GetLastOsError()));
   }
 #else
   auto slash = path.rfind('/');
@@ -133,7 +136,7 @@ absl::Status CreateDirectories(absl::string_view path) {
     // Ignore existing directories.
     if (errno != EEXIST) {
       return absl::UnknownError(absl::StrCat("cannot create directory \"", path,
-                                             "\": ", strerror(errno)));
+                                             "\": ", GetLastOsError()));
     }
   }
 #endif
@@ -148,7 +151,8 @@ not_absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
 #ifdef _WIN32
   char buffer[MAX_PATH] = {0};
   if (GetTempPath(MAX_PATH, buffer) == 0) {
-    return absl::UnknownError("error getting temp directory");
+    return absl::UnknownError(
+        absl::StrCat("error getting temp directory", GetLastOsError()));
   }
   path = JoinPath(buffer, product_name);
 #else
@@ -229,7 +233,7 @@ not_absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
         return 0;
       default:
         return absl::UnknownError(absl::StrCat("stat() failed for \"", path,
-                                               "\": ", strerror(errno)));
+                                               "\": ", GetLastOsError()));
     }
   }
   return file_info.st_mode;
@@ -290,8 +294,8 @@ absl::Status GetDirectoryEntries(absl::string_view path,
   errno = 0;
   DIR* directory = opendir(path_copy.c_str());
   if (!directory) {
-    return absl::UnknownError(
-        absl::StrCat("opendir() failed for \"", path, "\": ", strerror(errno)));
+    return absl::UnknownError(absl::StrCat("opendir() failed for \"", path,
+                                           "\": ", GetLastOsError()));
   }
   struct dirent* entry;
   while ((entry = readdir(directory))) {
@@ -302,7 +306,7 @@ absl::Status GetDirectoryEntries(absl::string_view path,
   }
   if (errno != 0) {
     return absl::UnknownError(
-        absl::StrCat("readdir() failed: ", strerror(errno)));
+        absl::StrCat("readdir() failed: ", GetLastOsError()));
   }
   closedir(directory);
 #endif
@@ -328,8 +332,8 @@ absl::Status RemoveAll(absl::string_view path) {
   }
   DIR* directory = opendir(path_copy.c_str());
   if (!directory) {
-    return absl::UnknownError(
-        absl::StrCat("opendir() failed for \"", path, "\": ", strerror(errno)));
+    return absl::UnknownError(absl::StrCat("opendir() failed for \"", path,
+                                           "\": ", GetLastOsError()));
   }
   struct dirent* entry;
   while ((entry = readdir(directory))) {
@@ -346,12 +350,12 @@ absl::Status RemoveAll(absl::string_view path) {
   }
   if (errno != 0) {
     return absl::UnknownError(
-        absl::StrCat("readdir() failed: ", strerror(errno)));
+        absl::StrCat("readdir() failed: ", GetLastOsError()));
   }
   closedir(directory);
   if (rmdir(path_copy.c_str()) == -1) {
     return absl::UnknownError(
-        absl::StrCat("rmdir() failed: ", strerror(errno)));
+        absl::StrCat("rmdir() failed: ", GetLastOsError()));
   }
 #endif
   return absl::OkStatus();
