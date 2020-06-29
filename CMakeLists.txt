@@ -31,6 +31,8 @@ if(NOT _bindiff_build_type STREQUAL "debug")
 else()
   set(_bindiff_ipo_supported FALSE)
 endif()
+option(BINDIFF_ENABLE_IPO "Enable interprocedural optimization"
+                          ${_bindiff_ipo_supported})
 
 include(GoogleTest) # Needs to come before changing module path
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
@@ -140,7 +142,7 @@ else()
   endif()
 endif()
 set_target_properties(binexport_shared PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
 # XML configuration library
 add_library(xmlconfig STATIC xmlconfig.cc
@@ -153,7 +155,7 @@ target_link_libraries(xmlconfig
   tinyxpath
 )
 set_target_properties(xmlconfig PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
 add_executable(xmlconfig_test xmlconfig_test.cc)
 target_link_libraries(xmlconfig_test
@@ -267,7 +269,7 @@ target_link_libraries(bindiff_shared
   sqlite
   xmlconfig)
 set_target_properties(bindiff_shared PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
 # Library that helps with testing BinDiff's core engine.
 add_library(bindiff_test_util STATIC
@@ -346,7 +348,7 @@ ida_target_link_libraries(${bindiff_plugin_name}
 )
 set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
-  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported}
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
 )
 ida_install(TARGETS ${bindiff_plugin_name}
             ARCHIVE DESTINATION bindiff-prefix
@@ -361,5 +363,5 @@ target_link_libraries(bindiff
   absl::time
 )
 set_target_properties(bindiff PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${_bindiff_ipo_supported})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
