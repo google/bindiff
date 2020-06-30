@@ -379,7 +379,7 @@ double GetConfidence(const Histogram& histogram, Confidences* confidences) {
     confidence += value * (*confidences)[name];
     match_count += value;
   }
-  // sigmoid squashing function
+  // Sigmoid squashing function
   return match_count
              ? 1.0 / (1.0 + exp(-(confidence / match_count - 0.5) * 10.0))
              : 0.0;

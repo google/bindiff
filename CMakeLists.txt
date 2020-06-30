@@ -273,6 +273,8 @@ set_target_properties(bindiff_shared PROPERTIES
 
 # Library that helps with testing BinDiff's core engine.
 add_library(bindiff_test_util STATIC
+  ${BinExport_DIR}/testing.cc
+  ${BinExport_DIR}/testing.h
   test_util.cc
   test_util.h
 )

@@ -31,7 +31,7 @@
 
 namespace security::bindiff {
 
-void ApplyDefaultConfigForTesting() {
+void BinDiffEnvironment::SetUp() {
   GetConfig()
       ->LoadFromString(R"raw(<?xml version="1.0"?>
 <bindiff config-version="6">
@@ -169,11 +169,12 @@ std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
   return flow_graph;
 }
 
-DiffBinary DiffBinaryBuilder::Build(Instruction::Cache* cache) {
+std::unique_ptr<DiffBinary> DiffBinaryBuilder::Build(
+    Instruction::Cache* cache) {
   using Graph = CallGraph::Graph;
   using EdgeInfo = CallGraph::EdgeInfo;
 
-  DiffBinary diff_binary;
+  auto diff_binary = absl::make_unique<DiffBinary>();
 
   // Note: Identifying functions by string is terribly inefficient, but this is
   //       for the benefit of test code that is easier to read. Graphs built by
@@ -202,7 +203,7 @@ DiffBinary DiffBinaryBuilder::Build(Instruction::Cache* cache) {
     }
   }
 
-  auto& graph = diff_binary.call_graph.GetGraph();
+  auto& graph = diff_binary->call_graph.GetGraph();
   Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                    edges.end(), edge_properties.begin(), functions_.size());
   std::swap(graph, temp_graph);
@@ -213,13 +214,72 @@ DiffBinary DiffBinaryBuilder::Build(Instruction::Cache* cache) {
     vertex.address_ = func_it->entry_point_;
     vertex.name_ = std::move(func_it->name_);
   }
-  diff_binary.call_graph.Init();
+  diff_binary->call_graph.Init();
 
   for (auto& function : functions_) {
-    diff_binary.flow_graphs.insert(
-        function.Build(&diff_binary.call_graph, cache).release());
+    diff_binary->flow_graphs.insert(
+        function.Build(&diff_binary->call_graph, cache).release());
   }
   return diff_binary;
+}
+
+void BinDiffTest::SetUpBasicFunctionMatch() {
+  primary_ =
+      DiffBinaryBuilder()
+          .AddFunctions(
+              {FunctionBuilder(0x10000, "func_a")
+                   .AddBasicBlocks(
+                       {BasicBlockBuilder("entry")
+                            .AddInstructions(
+                                {InstructionBuilder("test eax, eax"),
+                                 InstructionBuilder("jz loc_10004")})
+                            .SetFlowTrue("loc_10002")
+                            .SetFlowFalse("loc_10004"),
+                        BasicBlockBuilder("loc_10002")
+                            .AddInstructions(
+                                {InstructionBuilder("mov eax, 1"),
+                                 InstructionBuilder("jmp loc_10005")})
+                            .SetFlow("loc_10005"),
+                        BasicBlockBuilder("loc_10004")
+                            .AddInstructions(
+                                {InstructionBuilder("xor eax, eax")})
+                            .SetFlow("loc_10005"),
+                        BasicBlockBuilder("loc_10005")
+                            .AddInstructions({InstructionBuilder("ret")})})})
+          .Build(&cache_);
+  secondary_ =
+      DiffBinaryBuilder()
+          .AddFunctions(
+              {FunctionBuilder(0x20000, "func_b")
+                   .AddBasicBlocks(
+                       {BasicBlockBuilder("entry")
+                            .AddInstructions(
+                                {InstructionBuilder("sub eax, eax"),
+                                 InstructionBuilder("jz loc_20004")})
+                            .SetFlowTrue("loc_20002")
+                            .SetFlowFalse("loc_20004"),
+                        BasicBlockBuilder("loc_20002")
+                            .AddInstructions(
+                                {InstructionBuilder("mov eax, 1"),
+                                 InstructionBuilder("jmp loc_20005")})
+                            .SetFlow("loc_20005"),
+                        BasicBlockBuilder("loc_20004")
+                            .AddInstructions(
+                                {InstructionBuilder("xor eax, eax")})
+                            .SetFlow("loc_20005"),
+                        BasicBlockBuilder("loc_20005")
+                            .AddInstructions({InstructionBuilder("ret")})})})
+          .Build(&cache_);
+
+  fixed_points_.clear();
+  FixedPoint fixed_point(*primary_->flow_graphs.begin(),
+                         *secondary_->flow_graphs.begin(),
+                         MatchingStep::kFunctionManualName);
+  fixed_point.Add(0, 0, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_point.Add(1, 1, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_point.Add(2, 2, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_point.Add(3, 3, MatchingStepFlowGraph::kBasicBlockManualName);
+  fixed_points_.insert(std::move(fixed_point));
 }
 
 }  // namespace security::bindiff

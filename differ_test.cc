@@ -47,7 +47,10 @@ namespace {
 
 using ::testing::IsTrue;
 
-static constexpr const char kFixturesPath[] =
+::testing::Environment* const g_bindiff_env =
+    ::testing::AddGlobalTestEnvironment(new BinDiffEnvironment());
+
+constexpr absl::string_view kFixturesPath =
     "/google3/third_party/zynamics/bindiff/fixtures/";
 
 using Matches = std::vector<std::pair<uint64_t, uint64_t>>;
@@ -236,12 +239,7 @@ void Diff(const std::string& name, const std::string& primary_path,
   }
 }
 
-class GroundtruthIntegrationTest : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() { ApplyDefaultConfigForTesting(); }
-};
-
-TEST_F(GroundtruthIntegrationTest, Run) {
+TEST(GroundtruthIntegrationTest, Run) {
   std::string buffer;
   CHECK_OK(
       file::GetContents(file::JoinPath(absl::GetFlag(FLAGS_test_srcdir),

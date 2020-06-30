@@ -29,7 +29,7 @@
 
 namespace security::bindiff {
 
-// Parses a hex string in s into a number. Returns -1 on error.
+// Parses a hex string in value into a number. Returns -1 on error.
 int64_t HexStringToInt(absl::string_view value) {
   std::string color_string(
       absl::StripPrefix(absl::StripAsciiWhitespace(value), "#"));

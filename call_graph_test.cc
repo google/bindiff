@@ -16,6 +16,7 @@
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 #include <limits>
+#include <memory>
 #include <stdexcept>
 
 #include "gmock/gmock.h"
@@ -110,10 +111,10 @@ class SimpleCallGraphTest : public ::testing::Test {
                                           .SetCallsFunction("func_a"),
                                       InstructionBuilder("ret")})})})
                     .Build(&cache_)),
-        call_graph_(binary_.call_graph) {}
+        call_graph_(binary_->call_graph) {}
 
   Instruction::Cache cache_;
-  DiffBinary binary_;
+  std::unique_ptr<DiffBinary> binary_;
   CallGraph& call_graph_;  // Convenient access to binary_.call_graph
 };
 

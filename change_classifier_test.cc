@@ -35,9 +35,12 @@ namespace {
 
 using ::testing::StrEq;
 
-class ChangeClassifierTest : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() { ApplyDefaultConfigForTesting(); }
+::testing::Environment* const g_bindiff_env =
+    ::testing::AddGlobalTestEnvironment(new BinDiffEnvironment());
+
+class ChangeClassifierTest : public BinDiffTest {
+ private:
+  void SetUp() override { SetUpBasicFunctionMatch(); }
 };
 
 TEST_F(ChangeClassifierTest, ChangeDescription) {
@@ -53,72 +56,13 @@ TEST_F(ChangeClassifierTest, ChangeDescription) {
 }
 
 TEST_F(ChangeClassifierTest, BasicChange) {
-  Instruction::Cache cache;
-
-  auto primary =
-      DiffBinaryBuilder()
-          .AddFunctions(
-              {FunctionBuilder(0x10000, "func_a")
-                   .AddBasicBlocks(
-                       {BasicBlockBuilder("entry")
-                            .AddInstructions(
-                                {InstructionBuilder("test eax, eax"),
-                                 InstructionBuilder("jz loc_10002")})
-                            .SetFlowTrue("loc_10002")
-                            .SetFlowFalse("loc_10004"),
-                        BasicBlockBuilder("loc_10002")
-                            .AddInstructions(
-                                {InstructionBuilder("mov eax, 1"),
-                                 InstructionBuilder("jmp loc_10005")})
-                            .SetFlow("loc_10005"),
-                        BasicBlockBuilder("loc_10004")
-                            .AddInstructions(
-                                {InstructionBuilder("xor eax, eax")})
-                            .SetFlow("loc_10005"),
-                        BasicBlockBuilder("loc_10005")
-                            .AddInstructions({InstructionBuilder("ret")})})})
-          .Build(&cache);
-  auto secondary =
-      DiffBinaryBuilder()
-          .AddFunctions(
-              {FunctionBuilder(0x20000, "func_b")
-                   .AddBasicBlocks(
-                       {BasicBlockBuilder("entry")
-                            .AddInstructions(
-                                {InstructionBuilder("sub eax, eax"),
-                                 InstructionBuilder("jz loc_20002")})
-                            .SetFlowTrue("loc_20002")
-                            .SetFlowFalse("loc_20004"),
-                        BasicBlockBuilder("loc_20002")
-                            .AddInstructions(
-                                {InstructionBuilder("mov eax, 1"),
-                                 InstructionBuilder("jmp loc_20005")})
-                            .SetFlow("loc_20005"),
-                        BasicBlockBuilder("loc_20004")
-                            .AddInstructions(
-                                {InstructionBuilder("xor eax, eax")})
-                            .SetFlow("loc_20005"),
-                        BasicBlockBuilder("loc_20005")
-                            .AddInstructions({InstructionBuilder("ret")})})})
-          .Build(&cache);
-
-  FixedPoints fixed_points;
-  FixedPoint fixed_point(*primary.flow_graphs.begin(),
-                         *secondary.flow_graphs.begin(),
-                         MatchingStep::kFunctionManualName);
-  fixed_point.Add(0, 0, MatchingStepFlowGraph::kBasicBlockManualName);
-  fixed_point.Add(1, 1, MatchingStepFlowGraph::kBasicBlockManualName);
-  fixed_point.Add(2, 2, MatchingStepFlowGraph::kBasicBlockManualName);
-  fixed_point.Add(3, 3, MatchingStepFlowGraph::kBasicBlockManualName);
-  fixed_points.insert(fixed_point);
-
-  MatchingContext context(primary.call_graph, secondary.call_graph,
-                          primary.flow_graphs, secondary.flow_graphs,
-                          fixed_points);
+  MatchingContext context(primary_->call_graph, secondary_->call_graph,
+                          primary_->flow_graphs, secondary_->flow_graphs,
+                          fixed_points_);
   ClassifyChanges(&context);
 
   // Check that the fixed point has changed instructions
-  EXPECT_THAT(GetChangeDescription(fixed_points.begin()->GetFlags()),
+  EXPECT_THAT(GetChangeDescription(fixed_points_.begin()->GetFlags()),
               StrEq("-I--E--"));
   }
 
