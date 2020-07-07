@@ -91,7 +91,7 @@ void ExportIdb(Writer* writer) {
   Timer<> timer;
   EntryPoints entry_points;
   {
-    EntryPointAdder entry_point_adder(&entry_points, "function chunks");
+    EntryPointManager entry_point_adder(&entry_points, "function chunks");
     for (size_t i = 0; i < get_fchunk_qty(); ++i) {
       if (const func_t* ida_func = getn_fchunk(i)) {
         entry_point_adder.Add(ida_func->start_ea,
@@ -106,7 +106,7 @@ void ExportIdb(Writer* writer) {
   // functions).
   const auto modules(InitModuleMap());
   {
-    EntryPointAdder entry_point_adder(&entry_points, "calls");
+    EntryPointManager entry_point_adder(&entry_points, "calls");
     for (const auto& module : modules) {
       entry_point_adder.Add(module.first, EntryPoint::Source::CALL_TARGET);
     }

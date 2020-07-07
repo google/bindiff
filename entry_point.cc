@@ -69,14 +69,14 @@ std::string EntryPoint::SourceToString() {
   }
 }
 
-EntryPointAdder::~EntryPointAdder() {
+EntryPointManager::~EntryPointManager() {
   if (parent_) {
     parent_->count_ += count_;
   }
   LOG(INFO) << "Added " << count_ << " entry points from " << name_;
 }
 
-void EntryPointAdder::Add(Address address, EntryPoint::Source source) {
+void EntryPointManager::Add(Address address, EntryPoint::Source source) {
   entry_points_->emplace_back(address, source);
   ++count_;
 #ifdef GOOGLE

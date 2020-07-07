@@ -495,7 +495,8 @@ Name GetName(Address /* address */, Address immediate,
 void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
                  FlowGraph* flow_graph, CallGraph* call_graph,
                  AddressReferences* address_references,
-                 EntryPointAdder* entry_point_adder, const ModuleMap& modules) {
+                 EntryPointManager* entry_point_adder,
+                 const ModuleMap& modules) {
   const bool unconditional_jump = IsUnconditionalJump(ida_instruction);
   int num_out_edges = 0;
   xrefblk_t xref;
@@ -742,7 +743,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap* modules,
   }
 
   LOG(INFO) << "flow analysis";
-  for (EntryPointAdder entry_point_adder(entry_points, "flow analysis");
+  for (EntryPointManager entry_point_adder(entry_points, "flow analysis");
        !entry_points->empty();) {
     const Address address = entry_points->back().address_;
     entry_points->pop_back();

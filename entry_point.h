@@ -15,6 +15,7 @@
 #ifndef ENTRY_POINT_H_
 #define ENTRY_POINT_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -70,24 +71,24 @@ bool operator==(const EntryPoint& lhs, const EntryPoint& rhs);
 
 typedef std::vector<EntryPoint> EntryPoints;
 
-class EntryPointAdder {
+class EntryPointManager {
  public:
-  EntryPointAdder(EntryPointAdder* parent, std::string name)
+  EntryPointManager(EntryPointManager* parent, std::string name)
       : parent_(parent),
         entry_points_(parent->entry_points_),
         count_(0),
         name_(name) {}
-  EntryPointAdder(EntryPoints* entry_points, std::string name)
+  EntryPointManager(EntryPoints* entry_points, std::string name)
       : parent_(nullptr), entry_points_(entry_points), count_(0), name_(name) {}
 
-  ~EntryPointAdder();
+  ~EntryPointManager();
 
   void Add(Address address, EntryPoint::Source source);
 
   EntryPoints* entry_points() { return entry_points_; }
 
  private:
-  EntryPointAdder* parent_;
+  EntryPointManager* parent_;
   EntryPoints* entry_points_;
   size_t count_;
   std::string name_;
