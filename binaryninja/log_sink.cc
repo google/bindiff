@@ -19,8 +19,7 @@
 // clang-format on
 
 #include "base/logging.h"
-#include "build/absl/absl/base/log_severity.h"
-#include "build/absl/absl/strings/string_view.h"
+#include "third_party/absl/base/log_severity.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 
@@ -42,7 +41,8 @@ void BinaryNinjaLogSink::Send(const not_absl::LogEntry& entry) {
       break;
   }
   absl::string_view message = entry.text_message();
-  BinaryNinja::Log(level, "%*s", message.size(), message.data());
+  BinaryNinja::Log(level, "%*s", static_cast<int>(message.size()),
+                   message.data());
 }
 
 }  // namespace security::binexport

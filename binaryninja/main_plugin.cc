@@ -185,7 +185,7 @@ void AnalyzeFlow(
     const BinaryNinja::InstructionInfo& binja_instruction,
     Instruction* instruction, FlowGraph* flow_graph, CallGraph* call_graph,
     AddressReferences* address_references,
-    EntryPointAdder* entry_point_adder /*, const ModuleMap& modules*/) {
+    EntryPointManager* entry_point_manager /*, const ModuleMap& modules*/) {
   const Address address = instruction->GetAddress();
   bool has_flow = binja_instruction.branchCount == 0;
   bool handled = false;
@@ -199,7 +199,8 @@ void AnalyzeFlow(
         address_references->emplace_back(
             address, GetSourceExpressionId(*instruction, branch_target),
             branch_target, TYPE_UNCONDITIONAL);
-        entry_point_adder->Add(branch_target, EntryPoint::Source::JUMP_DIRECT);
+        entry_point_manager->Add(branch_target,
+                                 EntryPoint::Source::JUMP_DIRECT);
         handled = true;
         break;
       case BNBranchType::CallDestination:
@@ -208,8 +209,8 @@ void AnalyzeFlow(
         if constexpr (false) {
           call_graph->AddFunction(branch_target);
           call_graph->AddEdge(address, branch_target);
-          entry_point_adder->Add(branch_target,
-                                 EntryPoint::Source::CALL_TARGET);
+          entry_point_manager->Add(branch_target,
+                                   EntryPoint::Source::CALL_TARGET);
         }
         instruction->SetFlag(FLAG_CALL, true);
         address_references->emplace_back(
@@ -224,7 +225,7 @@ void AnalyzeFlow(
         address_references->emplace_back(
             address, GetSourceExpressionId(*instruction, branch_target),
             branch_target, TYPE_TRUE);
-        entry_point_adder->Add(
+        entry_point_manager->Add(
             branch_target,
             EntryPoint::Source::JUMP_DIRECT);  // True is main branch
         handled = true;
@@ -235,7 +236,7 @@ void AnalyzeFlow(
         address_references->emplace_back(
             address, GetSourceExpressionId(*instruction, branch_target),
             branch_target, TYPE_FALSE);
-        entry_point_adder->Add(
+        entry_point_manager->Add(
             branch_target,
             EntryPoint::Source::JUMP_DIRECT);  // True is main branch
         handled = true;
@@ -247,8 +248,8 @@ void AnalyzeFlow(
 
   if (has_flow) {
     // Regular code flow
-    entry_point_adder->Add(instruction->GetNextInstruction(),
-                           EntryPoint::Source::CODE_FLOW);
+    entry_point_manager->Add(instruction->GetNextInstruction(),
+                             EntryPoint::Source::CODE_FLOW);
   }
 
   // TODO(cblichmann): Switch tables, address references, indirect calls...
@@ -257,13 +258,14 @@ void AnalyzeFlow(
         view->GetCodeReferences(address);
     const std::vector<BinaryNinja::ReferenceSource> callers =
         view->GetCallers(address);
+    const bool unconditional_jump = false;
     int num_out_edges =
         (unconditional_jump ? 1 : 0) + xrefs.size() + callers.size();
 
     if (binja_instruction.branchCount == 0) {
       // Regular code flow
-      entry_point_adder->Add(instruction->GetNextInstruction(),
-                             EntryPoint::Source::CODE_FLOW);
+      entry_point_manager->Add(instruction->GetNextInstruction(),
+                               EntryPoint::Source::CODE_FLOW);
     } else if (num_out_edges > 1) {  // Switch jump table
       auto table_address = std::numeric_limits<Address>::max();
       for (const auto& xref : xrefs) {
@@ -272,8 +274,9 @@ void AnalyzeFlow(
         address_references->emplace_back(
             address, GetSourceExpressionId(*instruction, xref.addr), xref.addr,
             AddressReferenceType::TYPE_SWITCH);
-        entry_point_adder->Add(xref.addr, EntryPoint::Source::JUMP_TABLE);
-        table_address = std::min(table_address, xref.addr);
+        entry_point_manager->Add(xref.addr, EntryPoint::Source::JUMP_TABLE);
+        table_address =
+            std::min(table_address, static_cast<Address>(xref.addr));
         handled = true;
       }
       // Add a data reference to first address in switch table
@@ -324,7 +327,7 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
   //                   (i.e. ARM/Thumb)
   auto default_arch = view->GetDefaultArchitecture();
   const size_t max_instr_len = default_arch->GetMaxInstructionLength();
-  for (EntryPointAdder entry_point_adder(entry_points, "flow analysis");
+  for (EntryPointManager entry_point_manager(entry_points, "flow analysis");
        !entry_points->empty();) {
     const Address address = entry_points->back().address_;
     entry_points->pop_back();
@@ -356,7 +359,7 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
       continue;
     }
     AnalyzeFlow(view, binja_instruction, &new_instruction, flow_graph,
-                call_graph, &address_references, &entry_point_adder);
+                call_graph, &address_references, &entry_point_manager);
     // call_graph->AddStringReference(address, GetStringReference(address));
     // GetComments(ida_instruction, &call_graph->GetComments());
 
@@ -408,18 +411,18 @@ absl::Status ExportBinaryView(BinaryNinja::BinaryView* view, Writer* writer) {
   EntryPoints entry_points;
 
   {
-    EntryPointAdder function_adder(&entry_points, "functions");
-    EntryPointAdder call_adder(&entry_points, "calls");
-    for (auto func_ref : view->GetAnalysisFunctionList()) {
+    EntryPointManager function_manager(&entry_points, "functions");
+    EntryPointManager call_manager(&entry_points, "calls");
+    for (const auto& func_ref : view->GetAnalysisFunctionList()) {
       auto symbol_ref = func_ref->GetSymbol();
       switch (symbol_ref->GetType()) {
         case BNSymbolType::FunctionSymbol:
-          function_adder.Add(symbol_ref->GetAddress(),
-                             EntryPoint::Source::FUNCTION_PROLOGUE);
+          function_manager.Add(symbol_ref->GetAddress(),
+                               EntryPoint::Source::FUNCTION_PROLOGUE);
           break;
         case BNSymbolType::ImportedFunctionSymbol:
-          call_adder.Add(symbol_ref->GetAddress(),
-                         EntryPoint::Source::CALL_TARGET);
+          call_manager.Add(symbol_ref->GetAddress(),
+                           EntryPoint::Source::CALL_TARGET);
           break;
         default:
           LOG(WARNING) << symbol_ref->GetShortName()
