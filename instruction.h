@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "third_party/absl/container/node_hash_set.h"
-#include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/operand.h"
 #include "third_party/zynamics/binexport/range.h"
 
@@ -65,6 +64,9 @@ enum {
 
   // This instruction is a NOP instruction.
   FLAG_NOP = 1 << 7,
+
+  // This instruction is an entry point.
+  FLAG_ENTRY_POINT = 1 << 8,
 };
 
 #pragma pack(push, 1)
