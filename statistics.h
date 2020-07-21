@@ -74,7 +74,7 @@ class Counts {
     return counts_[static_cast<uint64_t>(key)];
   }
 
-  constexpr absl::string_view GetDisplayName(Kind key) const {
+  static constexpr absl::string_view GetDisplayName(Kind key) {
     switch (key) {
       case kBasicBlockMatchesLibrary:
         return "basicBlock matches (library)";
@@ -155,7 +155,7 @@ class Counts {
 
   void clear() { counts_.fill(0); }
 
-  constexpr size_t ui_entry_size() const { return kUiEntrySize; }
+  static constexpr size_t ui_entry_size() { return kUiEntrySize; }
 
  private:
   std::array<uint64_t, kNumCountEntries> counts_ = {0};

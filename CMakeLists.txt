@@ -306,6 +306,18 @@ target_link_libraries(prime_signature_test
 )
 gtest_discover_tests(prime_signature_test)
 
+add_executable(writer_test
+  log_writer_test.cc
+  writer_test.cc
+)
+target_link_libraries(writer_test
+  bindiff_test_base
+  bindiff_test_util
+  bindiff_shared
+  binexport_shared
+)
+gtest_discover_tests(writer_test)
+
 # Plugins will be named "bindiffX.so" and "bindiffX64.so" (or .dll or .dylib),
 # where X is the release number.
 set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
