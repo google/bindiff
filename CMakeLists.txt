@@ -109,6 +109,8 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/util/filesystem.h
   ${BinExport_DIR}/util/format.cc
   ${BinExport_DIR}/util/format.h
+  ${BinExport_DIR}/util/logging.cc
+  ${BinExport_DIR}/util/logging.h
   ${BinExport_DIR}/util/process.cc
   ${BinExport_DIR}/util/process.h
   ${BinExport_DIR}/util/status_macros.h
@@ -289,8 +291,8 @@ set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
 add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/digest.cc
   ${BinExport_DIR}/ida/digest.h
-  ${BinExport_DIR}/ida/log.cc
-  ${BinExport_DIR}/ida/log.h
+  ${BinExport_DIR}/ida/log_sink.cc
+  ${BinExport_DIR}/ida/log_sink.h
   ${BinExport_DIR}/ida/plugin.h
   ${BinExport_DIR}/ida/ui.cc
   ${BinExport_DIR}/ida/ui.h

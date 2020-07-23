@@ -69,21 +69,26 @@
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
-#include "third_party/zynamics/binexport/ida/log.h"
+#include "third_party/zynamics/binexport/ida/log_sink.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/logging.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/statusor.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
 
-using binexport::FormatAddress;
-using binexport::GetInputFileMd5;
-using binexport::GetInputFileSha256;
-using binexport::HumanReadableDuration;
+using ::security::binexport::FormatAddress;
+using ::security::binexport::GetInputFileMd5;
+using ::security::binexport::GetInputFileSha256;
+using ::security::binexport::HumanReadableDuration;
+using ::security::binexport::IdaLogSink;
+using ::security::binexport::InitLogging;
+using ::security::binexport::LoggingOptions;
+using ::security::binexport::ShutdownLogging;
 
 std::string GetArgument(absl::string_view name) {
   const char* option =
@@ -1206,9 +1211,11 @@ void Plugin::TermMenus() {
 int Plugin::Init() {
   alsologtostderr_ =
       absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
-  if (!InitLogging(LoggingOptions{}
-                       .set_alsologtostderr(alsologtostderr_)
-                       .set_log_filename(GetArgument("LogFile")))) {
+  if (auto status = InitLogging(LoggingOptions{}
+                                    .set_alsologtostderr(alsologtostderr_)
+                                    .set_log_filename(GetArgument("LogFile")),
+                                absl::make_unique<IdaLogSink>());
+      !status.ok()) {
     LOG(INFO) << "Error initializing logging, skipping BinDiff plugin";
     return PLUGIN_SKIP;
   }
