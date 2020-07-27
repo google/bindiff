@@ -20,6 +20,7 @@
 #include <iostream>
 #include <map>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/base_types.h"
 #include "third_party/zynamics/binexport/function.h"
 #include "third_party/zynamics/binexport/types_container.h"
@@ -33,9 +34,11 @@ namespace security::binexport {
 // to the member it references.
 class IdaTypesContainer : public TypesContainer {
  public:
-  using TypesByString = std::map<std::string, const BaseType*>;
+  using TypesByString = absl::flat_hash_map<std::string, const BaseType*>;
 
+  IdaTypesContainer();
   ~IdaTypesContainer();
+
   // Iterate over IDA's type system in order to create a mapping between
   // IDA types and our type system based on BaseType and MemberType.
   virtual void GatherTypes();
@@ -73,6 +76,7 @@ class IdaTypesContainer : public TypesContainer {
   const BaseType* CreateVoidPointerType();
   void CreateIdaType(const std::string& name, size_t bit_size);
   void InitializeBuiltinTypes();
+
   const BaseType* GetVoidPointerType() const;
   const BaseType* GetBuiltinType(size_t type_size) const;
   const BaseType* GetStackFrame(Address function_address) const;
@@ -86,8 +90,8 @@ class IdaTypesContainer : public TypesContainer {
   BaseType::BaseTypes base_types_;
   // Contains and owns all known instances of MemberType.
   BaseType::MemberTypes member_types_;
-  // Associates type names with BaseType instances. This map is used as
-  // a lookup mechanism to check whether a given type already exists.
+  // Associates type names with BaseType instances. This map is used as a lookup
+  // mechanism to check whether a given type already exists.
   TypesByString types_map_;
   // Associates IDA type ids with base type instances. This map does not own
   // the base type ids, instead these instances are owned by base_tpyes_.

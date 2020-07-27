@@ -340,6 +340,10 @@ const struc_t* GetIdaStruct(Address address, size_t operand_num,
 
 }  // namespace
 
+IdaTypesContainer::IdaTypesContainer() {
+  InitializeBuiltinTypes();
+}
+
 // Creates a new void* and void type and updates the list of types as well as
 // the string to type map. Pointers are owned by the base_types container.
 const BaseType* IdaTypesContainer::CreateVoidPointerType() {
@@ -444,18 +448,16 @@ MemberType* IdaTypesContainer::CreateMember(
 }
 
 void IdaTypesContainer::Cleanup() {
-  for (auto it = base_types_.begin(), it_end = base_types_.end(); it != it_end;
-       ++it) {
-    delete *it;
+  for (auto* type : base_types_) {
+    delete type;
   }
-
-  for (auto it = member_types_.begin(), it_end = member_types_.end();
-       it != it_end; ++it) {
-    delete *it;
-  }
-
   base_types_.clear();
+
+  for (auto* type : member_types_) {
+    delete type;
+  }
   member_types_.clear();
+
   types_map_.clear();
   structure_types_by_id_.clear();
   prototypes_by_address_.clear();
