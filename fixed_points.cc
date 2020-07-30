@@ -22,34 +22,33 @@
 
 namespace security::bindiff {
 
-std::vector<std::string> InitStringPool() {
-  std::vector<std::string> pool;
-  try {
-    Confidences confidences;
-    Histogram histogram;
-    GetConfidence(histogram, &confidences);
-    pool.reserve(confidences.size());
-    for (auto i = confidences.cbegin(), end = confidences.cend(); i != end;
-         ++i) {
-      pool.push_back(i->first);
-    }
-  } catch (...) {
-    // May throw if config file is missing.
-  }
-
-  pool.push_back(MatchingStep::kFunctionManualName);
-  std::sort(pool.begin(), pool.end());
-  return pool;
-}
-
 const std::string* FindString(const std::string& name) {
-  static const std::string kStringPoolEmptyString;
-  static const std::vector<std::string> string_pool(InitStringPool());
-  auto i = std::lower_bound(string_pool.begin(), string_pool.end(), name);
-  if (i != string_pool.end() && *i == name) {
-    return &(*i);
+  static const auto* const kStringPoolEmptyString = new std::string();
+  static const auto* const kStringPool =
+      []() -> std::vector<std::string>* {
+    auto* pool = new std::vector<std::string>();
+    try {
+      Confidences confidences;
+      Histogram histogram;
+      GetConfidence(histogram, &confidences);
+      pool->reserve(confidences.size());
+      for (const auto& [key, _] : confidences) {
+        pool->push_back(key);
+      }
+    } catch (...) {
+      // May throw if config file is missing.
+    }
+
+    pool->push_back(MatchingStep::kFunctionManualName);
+    std::sort(pool->begin(), pool->end());
+    return pool;
+  }();
+
+  auto it = std::lower_bound(kStringPool->begin(), kStringPool->end(), name);
+  if (it != kStringPool->end() && *it == name) {
+    return &(*it);
   }
-  return &kStringPoolEmptyString;
+  return kStringPoolEmptyString;
 }
 
 BasicBlockFixedPoint::BasicBlockFixedPoint(
@@ -60,7 +59,7 @@ BasicBlockFixedPoint::BasicBlockFixedPoint(
       primary_vertex_(primary_basic_block),
       secondary_vertex_(secondary_basic_block),
       instruction_matches_() {
-  // matching_step is empty if we are loading results. We do not want to compute
+  // Matching_step is empty if we are loading results. We do not want to compute
   // the LCS automatically in that case since we'll be loading it from disk.
   if (!matching_step.empty()) {
     auto primary_instructions = primary->GetInstructions(primary_vertex_);
@@ -108,38 +107,7 @@ FixedPoint::FixedPoint(FlowGraph* primary, FlowGraph* secondary,
                        const std::string& matching_step)
     : matching_step_(matching_step.empty() ? 0 : FindString(matching_step)),
       primary_(primary),
-      secondary_(secondary),
-      basic_block_fixed_points_(),
-      confidence_(0),
-      similarity_(0),
-      flags_(CHANGE_NONE),
-      comments_ported_(false) {}
-
-FixedPoint::FixedPoint(const FixedPoint& other)
-    : matching_step_(other.matching_step_),
-      primary_(other.primary_),
-      secondary_(other.secondary_),
-      basic_block_fixed_points_(other.basic_block_fixed_points_),
-      confidence_(other.confidence_),
-      similarity_(other.similarity_),
-      flags_(other.flags_),
-      comments_ported_(other.comments_ported_) {}
-
-const FixedPoint& FixedPoint::operator=(const FixedPoint& other) {
-  FixedPoint(other).swap(*this);
-  return *this;
-}
-
-void FixedPoint::swap(FixedPoint& other) throw() {
-  std::swap(matching_step_, other.matching_step_);
-  std::swap(primary_, other.primary_);
-  std::swap(secondary_, other.secondary_);
-  std::swap(basic_block_fixed_points_, other.basic_block_fixed_points_);
-  std::swap(confidence_, other.confidence_);
-  std::swap(similarity_, other.similarity_);
-  std::swap(flags_, other.flags_);
-  std::swap(comments_ported_, other.comments_ported_);
-}
+      secondary_(secondary) {}
 
 void FixedPoint::SetCommentsPorted(bool ported) { comments_ported_ = ported; }
 

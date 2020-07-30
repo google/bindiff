@@ -55,11 +55,10 @@ using BasicBlockFixedPoints = std::set<BasicBlockFixedPoint>;
 
 class FixedPoint {
  public:
-  // TODO(cblichmann): Fix operator=() and let compiler implement move ops.
-  FixedPoint(const FixedPoint&);
-  const FixedPoint& operator=(const FixedPoint&);
-  explicit FixedPoint(FlowGraph* primary = 0, FlowGraph* secondary = 0,
+  explicit FixedPoint(FlowGraph* primary = nullptr,
+                      FlowGraph* secondary = nullptr,
                       const std::string& matching_step = "");
+
   void Create(FlowGraph* primary, FlowGraph* secondary);
   FlowGraph* GetPrimary() const;
   FlowGraph* GetSecondary() const;
@@ -82,16 +81,15 @@ class FixedPoint {
   bool GetCommentsPorted() const;
 
  private:
-  void swap(FixedPoint& other) throw();
-
   const std::string* matching_step_;
   FlowGraph* primary_;
   FlowGraph* secondary_;
+
   BasicBlockFixedPoints basic_block_fixed_points_;
-  double confidence_;
-  double similarity_;
-  int flags_;
-  bool comments_ported_;
+  double confidence_ = 0.0;
+  double similarity_ = 0.0;
+  int flags_ = CHANGE_NONE;
+  bool comments_ported_ = false;
 };
 
 bool operator<(const FixedPoint& one, const FixedPoint& two);
