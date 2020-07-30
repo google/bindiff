@@ -223,7 +223,7 @@ std::unique_ptr<DiffBinary> DiffBinaryBuilder::Build(
   return diff_binary;
 }
 
-void BinDiffTest::SetUpBasicFunctionMatch() {
+void BinDiffTest::SetUpBasicFunctions() {
   primary_ =
       DiffBinaryBuilder()
           .AddFunctions(
@@ -270,6 +270,10 @@ void BinDiffTest::SetUpBasicFunctionMatch() {
                         BasicBlockBuilder("loc_20005")
                             .AddInstructions({InstructionBuilder("ret")})})})
           .Build(&cache_);
+}
+
+void BinDiffTest::SetUpBasicFunctionMatch() {
+  SetUpBasicFunctions();
 
   fixed_points_.clear();
   FixedPoint fixed_point(*primary_->flow_graphs.begin(),

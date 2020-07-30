@@ -187,6 +187,9 @@ class BinDiffTest : public ::testing::Test {
   // matched.
   void SetUpBasicFunctionMatch();
 
+  // Like above, but omit the actual matches.
+  void SetUpBasicFunctions();
+
   Instruction::Cache cache_;
   std::unique_ptr<DiffBinary> primary_;
   std::unique_ptr<DiffBinary> secondary_;

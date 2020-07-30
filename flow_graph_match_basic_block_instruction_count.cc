@@ -18,10 +18,10 @@
 
 namespace security::bindiff {
 
-bool MatchingStepInstructionCount ::FindFixedPoints(
+bool MatchingStepInstructionCount::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
     const VertexSet& vertices2, FixedPoint* fixed_point,
-    MatchingContext* context, MatchingStepsFlowGraph* matching_steps){
+    MatchingContext* context, MatchingStepsFlowGraph* matching_steps) {
   VertexIntMap vertex_map_1;
   VertexIntMap vertex_map_2;
   GetUnmatchedBasicBlocksByInstructionCount(primary, vertices1, &vertex_map_1);
