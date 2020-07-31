@@ -387,11 +387,7 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
   call_graph->PostProcessComments();
 
   LOG(INFO) << "Binary Ninja specific post processing";
-  for (const auto &it : flow_graph->GetFunctions())
-  {
-    Function& function = *it.second;
-    const Address address = function.GetEntryPoint();
-
+  for (const auto& [address, function] : flow_graph->GetFunctions()) {
     // Find function name
     auto bn_symbol_ref = view->GetSymbolByAddress(address);
     if (!bn_symbol_ref) {
@@ -404,7 +400,7 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
       continue;
     }
 
-    function.SetName(bn_symbol_ref->GetRawName(), bn_symbol_ref->GetFullName());
+    function->SetName(bn_symbol_ref->GetRawName(), bn_symbol_ref->GetFullName());
   }
 
   const auto processing_time = absl::Seconds(timer.elapsed());
