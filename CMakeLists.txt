@@ -67,6 +67,7 @@ create_directory_symlink(${PROJECT_SOURCE_DIR} ${_bindiff_src}/bindiff)
 create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/bindiff)
 create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/binexport)
 create_directory_symlink(${absl_src_dir}/absl ${_bindiff_src}/../absl)
+create_directory_symlink(${BinExport_DIR} ${_bindiff_src}/binexport)
 
 # Set revision number, if applicable
 if(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
