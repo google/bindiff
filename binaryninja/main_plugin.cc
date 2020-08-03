@@ -332,7 +332,7 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
     const Address address = entry_points->back().address_;
     entry_points->pop_back();
 
-    if (flags[address] & FLAG_VISITED) {
+    if (!flags.IsValidAddress(address) || (flags[address] & FLAG_VISITED)) {
       continue;
     }
     flags[address] |= FLAG_VISITED;
