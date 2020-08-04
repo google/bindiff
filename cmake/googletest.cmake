@@ -13,11 +13,11 @@
 # limitations under the License.
 
 ExternalProject_Add(googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG e588eb1ff9ff6598666279b737b27f983156ad85 # 2020-02-27
-  SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/googletest
-  # Just use CMake to clone into directory
+  GIT_REPOSITORY    https://github.com/google/googletest.git
+  GIT_TAG           e6e2d3b7614ff4e6017d8968bd4c3f579133666e # 2020-07-31
+  SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest"
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
+  BUILD_COMMAND     ""
+  INSTALL_COMMAND   ""
+  TEST_COMMAND      ""
 )

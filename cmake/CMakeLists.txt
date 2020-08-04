@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.12)
 
 project(binexport-super NONE)
 
@@ -27,6 +27,8 @@ include(postgresql.cmake)  # Depends on openssl
 include(protobuf.cmake)
 
 find_package(IdaSdk REQUIRED)
+
+option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
 
 string(REPLACE ";" "^^" CMAKE_PREFIX_PATH_ALT_SEP "${CMAKE_PREFIX_PATH}")
 ExternalProject_Add(binexport
@@ -44,5 +46,6 @@ ExternalProject_Add(binexport
              "-DABSL_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/absl"
              "-DGOOGLETEST_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/googletest"
              "-DIdaSdk_DIR=${IdaSdk_DIR}"
+             "-DBINEXPORT_ENABLE_POSTGRESQL=${BINEXPORT_ENABLE_POSTGRESQL}"
              "-DBUILD_TESTING=OFF"
 )

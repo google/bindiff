@@ -20,9 +20,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 ExternalProject_Add(protobuf
-  URL https://github.com/google/protobuf/archive/v3.6.1.tar.gz
-  URL_HASH SHA256=3d4e589d81b2006ca603c1ab712c9715a76227293032d05b26fca603f90b3f5b
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/protobuf
+  GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
+  GIT_TAG    v3.12.4 # 2020-07-10
+  PREFIX     "${CMAKE_CURRENT_BINARY_DIR}/protobuf"
   SOURCE_SUBDIR cmake
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
              -DCMAKE_BUILD_TYPE=@CMAKE_BUILD_TYPE@

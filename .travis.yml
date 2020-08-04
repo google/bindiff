@@ -11,12 +11,12 @@ os:
 dist: bionic
 sudo: false
 before_install:
-- echo "$idasdk_password" | gpg --batch --yes --passphrase-fd 0 --output third_party/idasdk74.zip --decrypt third_party/idasdk74.zip.gpg
-- unzip -q third_party/idasdk74.zip -d third_party/
+- echo "$idasdk_password" | gpg --batch --yes --passphrase-fd 0 --output third_party/idasdk75.zip --decrypt third_party/idasdk75.zip.gpg
+- unzip -q third_party/idasdk75.zip -d third_party/
 script:
 - mkdir -p build_linux
 - cd build_linux
-- cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk74
+- cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk75 -DBINEXPORT_ENABLE_POSTGRESQL=ON
 - cmake --build .
 env:
   global:
