@@ -15,159 +15,185 @@
 #include "third_party/zynamics/bindiff/differ.h"
 
 #include <algorithm>
-#include <iomanip>
+#include <charconv>
+#include <cstdint>
 #include <vector>
 
-#include "base/commandlineflags.h"
-#include "base/sysinfo.h"
-#include "base/timer.h"
-#include "file/base/file.h"
-#include "file/base/filelinereader.h"
-#include "file/base/helpers.h"
-#include "file/base/path.h"
-#include "file/util/temp_path.h"
-#include "net/proto2/public/text_format.h"
-#include "strings/numbers.h"
+#include "base/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/flags/flag.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/zynamics/bindiff/bindiff.pb.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
 #include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/test_util.h"
-#include "util/task/status.h"
+#include "third_party/zynamics/binexport/testing.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
 namespace {
 
-using ::testing::IsTrue;
+using ::security::binexport::GetTestFileContents;
+using ::security::binexport::GetTestSourcePath;
+using ::security::binexport::GetTestTempPath;
 
 ::testing::Environment* const g_bindiff_env =
     ::testing::AddGlobalTestEnvironment(new BinDiffEnvironment());
 
-constexpr absl::string_view kFixturesPath =
-    "/google3/third_party/zynamics/bindiff/fixtures/";
-
 using Matches = std::vector<std::pair<uint64_t, uint64_t>>;
 
-void MatchParser(Matches* matches, char* line) {
-  ABSL_DIE_IF_NULL(matches)->emplace_back(
-      strings::ParseLeadingHex64Value(line, 0),
-      strings::ParseLeadingHex64Value(strchr(line, ' '), 0));
-}
+Matches ParseMatches(absl::string_view path) {
+  Matches matches;
+  for (absl::string_view line :
+       absl::StrSplit(GetTestFileContents(path), '\n')) {
+    if (line.empty()) {
+      continue;
+    }
 
-bool IsSorted(const Matches& matches) {
-  return std::is_sorted(
+    std::pair<absl::string_view, absl::string_view> values =
+        absl::StrSplit(line, ' ');
+
+    uint64_t primary = 0;
+    QCHECK(
+        std::from_chars(values.first.begin(), values.first.end(), primary, 16)
+            .ec == std::errc());
+    uint64_t secondary = 0;
+    QCHECK(std::from_chars(values.second.begin(), values.second.end(),
+                           secondary, 16)
+               .ec == std::errc());
+
+    matches.emplace_back(primary, secondary);
+  }
+  QCHECK(std::is_sorted(
       matches.cbegin(), matches.cend(),
       [](const Matches::value_type& first, const Matches::value_type& second) {
         return first.first < second.first;
-      });
+      }));
+  return matches;
 }
 
-void CompareToGroundTruth(const std::string& test_name,
-                          const std::string& result_path,
-                          const std::string& truth_path) {
-  Matches result_matches;
-  Matches true_matches;
-  QCHECK(ParseFileByLines(result_path,
-                          NewPermanentCallback(&MatchParser, &result_matches)));
-  QCHECK(IsSorted(result_matches));
-  QCHECK(ParseFileByLines(truth_path,
-                          NewPermanentCallback(&MatchParser, &true_matches)));
-  QCHECK(IsSorted(true_matches));
+std::string PaddedStr(absl::string_view s) {
+  return absl::StrFormat("  %-24s", s);
+}
+
+void CompareToGroundTruth(absl::string_view test_name,
+                          absl::string_view result_path,
+                          absl::string_view truth_path) {
+  Matches result_matches = ParseMatches(result_path);
+  Matches true_matches = ParseMatches(truth_path);
 
   int correct_matches = 0;
   int incorrect_matches = 0;
   int extra_matches = 0;
   int missing_matches = 0;
-  for (auto i = result_matches.begin(), j = true_matches.begin(),
-            iend = result_matches.end(), jend = true_matches.end();
-       i != iend || j != jend;) {
-    if (i != iend && j != jend) {
-      if (*i == *j) {  // correct match
+  for (auto it = result_matches.cbegin(), jt = true_matches.cbegin(),
+            it_end = result_matches.cend(), jt_end = true_matches.cend();
+       it != it_end || jt != jt_end;) {
+    if (it != it_end && jt != jt_end) {
+      if (*it == *jt) {  // correct match
         ++correct_matches;
-        ++i;
-        ++j;
-      } else if (i->first == j->first) {  // incorrect match
+        ++it;
+        ++jt;
+      } else if (it->first == jt->first) {  // incorrect match
         ++incorrect_matches;
-        ++i;
-        ++j;
-      } else if (i->first < j->first) {  // extra match
+        ++it;
+        ++jt;
+      } else if (it->first < jt->first) {  // extra match
         ++extra_matches;
-        ++i;
-      } else if (i->first > j->first) {  // missing match
+        ++it;
+      } else if (it->first > jt->first) {  // missing match
         ++missing_matches;
-        ++j;
+        ++jt;
       } else {
-        LOG(QFATAL) << "invalid case";
+        FAIL() << "invalid case";
       }
-    } else if (i == iend) {  // no more results => missing match
+    } else if (it == it_end) {  // no more results => missing match
       ++missing_matches;
-      ++j;
-    } else if (j == jend) {  // no more truth => extra match
+      ++jt;
+    } else if (jt == jt_end) {  // no more truth => extra match
       ++extra_matches;
-      ++i;
+      ++it;
     } else {
-      LOG(QFATAL) << "invalid case";
+      FAIL() << "invalid case";
     }
   }
-  LOG(INFO) << "correct: " << correct_matches
-            << ", incorrect: " << incorrect_matches
-            << ", extra: " << extra_matches << ", missing: " << missing_matches;
-
-  LOG(INFO) << absl::StrCat(test_name, ".groundtruth_correct")
-            << correct_matches;
-  LOG(INFO) << absl::StrCat(test_name, ".groundtruth_incorrect")
-            << incorrect_matches;
-  LOG(INFO) << absl::StrCat(test_name, ".groundtruth_extra") << extra_matches;
-  LOG(INFO) << absl::StrCat(test_name, ".groundtruth_missing")
-            << missing_matches;
+  LOG(INFO) << PaddedStr("correct:") << correct_matches;
+  LOG(INFO) << PaddedStr("incorrect:") << incorrect_matches;
+  LOG(INFO) << PaddedStr("extra:") << extra_matches;
+  LOG(INFO) << PaddedStr("missing:") << missing_matches;
 }
 
-void Diff(const std::string& name, const std::string& primary_path,
-          const std::string& secondary_path, const std::string& truth_path) {
-  LOG(INFO) << "'" << name << "': '" << primary_path << "' vs '"
-            << secondary_path << "' -> '" << truth_path << "'";
+struct FixtureMetadata {
+  FixtureMetadata& set_name(absl::string_view value) {
+    name = GetTestSourcePath(value);
+    return *this;
+  }
 
-  const MatchingSteps default_call_graph_steps(GetDefaultMatchingSteps());
-  const MatchingStepsFlowGraph default_basicblock_steps(
-      GetDefaultMatchingStepsBasicBlock());
+  FixtureMetadata& set_primary(absl::string_view value) {
+    primary = GetTestSourcePath(value);
+    return *this;
+  }
+
+  FixtureMetadata& set_secondary(absl::string_view value) {
+    secondary = GetTestSourcePath(value);
+    return *this;
+  }
+
+  FixtureMetadata& set_truth(absl::string_view value) {
+    truth = GetTestSourcePath(value);
+    return *this;
+  }
+
+  std::string name;
+  std::string primary;
+  std::string secondary;
+  std::string truth;
+};
+
+class GroundtruthTest
+    : public testing::TestWithParam<FixtureMetadata> {};
+
+TEST_P(GroundtruthTest, Run) {
+  const FixtureMetadata& meta = GetParam();
+
+  LOG(INFO) << "Testing " << meta.name << " <<<";
+  LOG(INFO) << PaddedStr("primary:") << meta.primary;
+  LOG(INFO) << PaddedStr("secondary:") << meta.secondary;
+  LOG(INFO) << PaddedStr("truth:") << meta.truth;
+
+  const MatchingSteps default_call_graph_steps = GetDefaultMatchingSteps();
+  const MatchingStepsFlowGraph default_basicblock_steps =
+      GetDefaultMatchingStepsBasicBlock();
 
   Instruction::Cache instruction_cache;
   CallGraph call_graph1, call_graph2;
   FlowGraphs flow_graphs1, flow_graphs2;
   ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
   try {
-    FlowGraphInfos flow_graph_infos1, flow_graph_infos2;
+    FlowGraphInfos flow_graph_infos1;
+    FlowGraphInfos flow_graph_infos2;
 
-    WallTimer timer;
-    timer.Start();
-    Read(primary_path, &call_graph1, &flow_graphs1, &flow_graph_infos1,
+    Timer<> timer;
+    Read(meta.primary, &call_graph1, &flow_graphs1, &flow_graph_infos1,
          &instruction_cache);
-    const double time_primary = timer.Get();
-    LOG(INFO) << absl::StrCat(name, ".time_primary") << time_primary;
+    const double time_primary = timer.elapsed();
+    LOG(INFO) << PaddedStr("time primary:") << time_primary;
 
-    timer.Restart();
-    Read(secondary_path, &call_graph2, &flow_graphs2, &flow_graph_infos2,
+    timer.restart();
+    Read(meta.secondary, &call_graph2, &flow_graphs2, &flow_graph_infos2,
          &instruction_cache);
-    const double time_secondary = timer.Get();
-    LOG(INFO) << absl::StrCat(name, ".time_secondary") << time_secondary;
+    const double time_secondary = timer.elapsed();
+    LOG(INFO) << PaddedStr("time secondary:") << time_secondary;
 
-    LOG(INFO) << std::fixed << std::setw(7) << std::setprecision(3)
-              << std::setfill(' ') << time_primary << " seconds"
-              << " read '" << primary_path << "' '"
-              << call_graph1.GetExeFilename() << "' " << std::fixed
-              << std::setw(7) << std::setprecision(3) << std::setfill(' ')
-              << time_secondary << " seconds"
-              << " read '" << secondary_path << "' '"
-              << call_graph2.GetExeFilename() << "'";
-
-    timer.Restart();
+    timer.restart();
     FixedPoints fixed_points;
     MatchingContext context(call_graph1, call_graph2, flow_graphs1,
                             flow_graphs2, fixed_points);
@@ -178,92 +204,81 @@ void Diff(const std::string& name, const std::string& primary_path,
     GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
                           &counts);
 
-    Confidences confidences;
-    const double confidence = GetConfidence(histogram, &confidences);
     const double similarity =
         GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
-    LOG(INFO) << absl::StrCat(name, ".time_diff") << timer.Get();
-    LOG(INFO) << absl::StrCat(name, ".diff_memory") << MemoryUsageForExport();
-    LOG(INFO) << absl::StrCat(name, ".diff_similarity") << similarity;
-    LOG(INFO) << absl::StrCat(name, ".diff_confidence") << confidence;
-    LOG(INFO) << absl::StrCat(name, ".matched_functions")
-              << static_cast<int>(counts[Counts::kFunctionMatchesLibrary] +
-                                  counts[Counts::kFunctionMatchesNonLibrary]);
-    LOG(INFO) << absl::StrCat(name, ".matched_basicblocks")
-              << static_cast<int>(counts[Counts::kBasicBlockMatchesLibrary] +
-                                  counts[Counts::kBasicBlockMatchesNonLibrary]);
-    LOG(INFO) << absl::StrCat(name, ".matched_instructions")
-              << static_cast<int>(
-                     counts[Counts::kInstructionMatchesLibrary] +
-                     counts[Counts::kInstructionMatchesNonLibrary]);
-    LOG(INFO) << absl::StrCat(name, ".matched_edges")
-              << static_cast<int>(
-                     counts[Counts::kFlowGraphEdgeMatchesLibrary] +
-                     counts[Counts::kFlowGraphEdgeMatchesNonLibrary]);
+    Confidences confidences;
+    const double confidence = GetConfidence(histogram, &confidences);
+    LOG(INFO) << PaddedStr("diff time:") << timer.elapsed();
+    // TODO(cblichmann): Collect maximum amount of memory used
+    LOG(INFO) << PaddedStr("max memory:");
+    LOG(INFO) << PaddedStr("similarity:") << similarity;
+    LOG(INFO) << PaddedStr("confidence:") << confidence;
+    LOG(INFO) << PaddedStr("total functions:") << flow_graphs1.size() << " vs "
+              << flow_graphs2.size();
+    LOG(INFO) << PaddedStr("non-library functions:")
+              << counts[Counts::kFunctionsPrimaryNonLibrary] << " vs "
+              << counts[Counts::kFunctionsSecondaryNonLibrary];
+    LOG(INFO) << PaddedStr("matched functions:")
+              << counts[Counts::kFunctionMatchesLibrary] +
+                     counts[Counts::kFunctionMatchesNonLibrary];
+    LOG(INFO) << PaddedStr("matched basic blocks:")
+              << counts[Counts::kBasicBlockMatchesLibrary] +
+                     counts[Counts::kBasicBlockMatchesNonLibrary];
+    LOG(INFO) << PaddedStr("matched instructions:")
+              << counts[Counts::kInstructionMatchesLibrary] +
+                     counts[Counts::kInstructionMatchesNonLibrary];
+    LOG(INFO) << PaddedStr("matched edges:")
+              << counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+                     counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
+    LOG(INFO) << PaddedStr("call graph MD indices:") << call_graph1.GetMdIndex()
+              << " vs " << call_graph2.GetMdIndex();
 
-    LOG(INFO) << std::fixed << std::setw(7) << std::setprecision(3)
-              << std::setfill(' ') << timer.Get() << " seconds"
-              << " similarity: " << std::fixed << std::setw(6)
-              << std::setprecision(3) << std::setfill(' ')
-              << (similarity * 100.0) << "%"
-              << " confidence: " << std::fixed << std::setw(6)
-              << std::setprecision(3) << std::setfill(' ')
-              << (confidence * 100.0) << "%"
-              << " matched " << fixed_points.size() << " of "
-              << flow_graphs1.size() << "/" << flow_graphs2.size() << " ("
-              << counts[Counts::kFunctionsPrimaryNonLibrary] << "/"
-              << counts[Counts::kFunctionsSecondaryNonLibrary] << ")"
-              << " call graph1 MD index " << std::fixed << std::setprecision(3)
-              << call_graph1.GetMdIndex() << " call graph2 MD index "
-              << std::fixed << std::setprecision(3) << call_graph2.GetMdIndex();
-
-    if (!truth_path.empty()) {
-      TempPath path(TempPath::Local);
-      const std::string result_path(
-          absl::StrCat(path.path(), call_graph1.GetFilename().c_str(), "_vs_",
-                       call_graph2.GetFilename().c_str(), ".truth"));
-      GroundtruthWriter writer(result_path);
-      writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                   fixed_points);
-      CompareToGroundTruth(name, result_path, truth_path);
-    }
+    const std::string result_path =
+        GetTestTempPath(absl::StrCat(call_graph1.GetFilename(), "_vs_",
+                                     call_graph2.GetFilename(), ".truth"));
+    GroundtruthWriter writer(result_path);
+    writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                 fixed_points);
+    CompareToGroundTruth(meta.name, result_path, meta.truth);
   } catch (const std::runtime_error& error) {
-    LOG(ERROR) << "error: '" << call_graph1.GetExeFilename() << "' vs '"
-               << call_graph2.GetExeFilename() << "' ('" << primary_path
-               << "' vs '" << secondary_path << "')\n" << error.what();
+    FAIL() << meta.name << ": " << error.what();
   } catch (...) {
-    LOG(ERROR) << "error: '" << call_graph1.GetExeFilename() << "' vs '"
-               << call_graph2.GetExeFilename() << "' ('" << primary_path
-               << "' vs '" << secondary_path << "')\n"
-               << "unknown exception, skipping";
+    FAIL() << meta.name << ": unknown exception";
   }
+  LOG(INFO) << ">>>";
 }
 
-TEST(GroundtruthIntegrationTest, Run) {
-  std::string buffer;
-  CHECK_OK(
-      file::GetContents(file::JoinPath(absl::GetFlag(FLAGS_test_srcdir),
-                                       kFixturesPath, "groundtruth_tests.list"),
-                        &buffer, file::Defaults()))
-      << "Failed opening groundtruth_tests.list";
-  BinDiff::TestPackage test_set;
-  ASSERT_THAT(proto2::TextFormat::ParseFromString(buffer, &test_set), IsTrue());
-
-  for (const auto& test : test_set.test()) {
-    Diff(test.name(),
-         file::JoinPath(absl::GetFlag(FLAGS_test_srcdir), kFixturesPath,
-                        test.primary_item_path()),
-         file::JoinPath(absl::GetFlag(FLAGS_test_srcdir), kFixturesPath,
-                        test.secondary_item_path()),
-         test.truth_file_path().empty()
-             ? ""
-             : file::JoinPath(absl::GetFlag(FLAGS_test_srcdir), kFixturesPath,
-                              test.truth_file_path()));
-  }
-
-  // TODO(cblichmann): This used to store the results to Fortknox. Store in
-  //                   Monarch instead.
-}
+INSTANTIATE_TEST_SUITE_P(
+    GtTest, GroundtruthTest,
+    testing::Values(
+        FixtureMetadata{}
+            .set_name("insider")
+            .set_primary("bindiff/fixtures/insider/insider_gcc.BinExport")
+            .set_secondary("bindiff/fixtures/insider/insider_lcc.BinExport")
+            .set_truth(
+                "bindiff/fixtures/insider/insider_gcc_vs_insider_lcc.truth"),
+        FixtureMetadata{}
+            .set_name("libssl 0.9.8g (x86)")
+            .set_primary("bindiff/fixtures/libssl/"
+                         "libssl.0.9.8g.x86.gcc.4.3.3.a.BinExport")
+            .set_secondary("bindiff/fixtures/libssl/"
+                           "libssl.0.9.8g.x86.gcc.3.4.6.a.BinExport")
+            .set_truth("bindiff/fixtures/libssl/"
+                       "libssl.0.9.8g.x86.gcc.4.3.3.a_vs_libssl.0.9g.x86.gcc.3."
+                       "4.6.a.truth"),
+        FixtureMetadata{}
+            .set_primary("bindiff/fixtures/minievil/"
+                         "0d0d06e42bb39a4a8fd1a3da8a9be8d2abaacd4c7373d4cd36cd6"
+                         "fac6f4d1650.BinExport")
+            .set_secondary("bindiff/fixtures/minievil/"
+                           "70726a39fda45d1e0bb167a2bf3825db0960529368a5814c4f4"
+                           "3d59b4d585e79.BinExport")
+            .set_truth("bindiff/fixtures/minievil/minievil.truth"),
+        FixtureMetadata{}
+            .set_primary("bindiff/fixtures/mydoom/Mydoom-vc_orig.BinExport")
+            .set_secondary("bindiff/fixtures/mydoom/Mydoom-vc_optz.BinExport")
+            .set_truth("bindiff/fixtures/mydoom/"
+                       "Mydoom-vc_orig_vs_Mydoom-vc_optz.truth")));
 
 }  // namespace
 }  // namespace security::bindiff
