@@ -16,7 +16,7 @@
 # BinExport a lot.
 cmake_minimum_required(VERSION 3.12)
 cmake_policy(VERSION 3.12)
-project(bindiff VERSION 6)
+project(bindiff VERSION 7)
 
 set(BinExport_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
     PATH "Path to a BinExport soure tree")

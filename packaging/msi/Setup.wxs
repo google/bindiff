@@ -21,7 +21,7 @@
            UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
            Name="BinDiff"
            Language="1033"
-           Version="6.0.0"
+           Version="7.0.0"
            Manufacturer="Google LLC">
     <Package Id="*"
              Keywords="Installer"
@@ -42,7 +42,7 @@
                       OnlyDetect="yes"
                       Property="NEWERVERSIONDETECTED" />
       <UpgradeVersion Minimum="3.0.0" IncludeMinimum="yes"
-                      Maximum="6.0.0" IncludeMaximum="no"
+                      Maximum="7.0.0" IncludeMaximum="no"
                       IgnoreRemoveFailure="yes"
                       Property="OLDERVERSIONBEINGUPGRADED" />
     </Upgrade>
