@@ -28,6 +28,7 @@
 
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <string>
 #include <fstream>
@@ -580,12 +581,21 @@ void WriteStrings(
     }
 
     std::string content;
+    // In case of block_size_left > reference.size_ we should probably check if
+    // the next memory block can be joined with the current one and provide some
+    // solution to read cross-block strings.
+    const auto block = address_space.GetMemoryBlock(reference.target_);
+    if (block == address_space.data().end()) {
+      continue;
+    }
+    const Address block_address = reference.target_ - block->first;
+    const int block_size_left = block->second.size() - block_address;
     if (reference.kind_ != TYPE_DATA_STRING) {
       continue;
     }
     content = std::string(
         reinterpret_cast<const char*>(&address_space[reference.target_]),
-        reference.size_);
+        std::min(reference.size_, block_size_left));
 
     auto it =
         string_to_string_index.try_emplace(content, proto->string_table_size());
