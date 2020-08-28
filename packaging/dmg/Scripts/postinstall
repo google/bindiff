@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eux
 
+bindiff_release=7
+binexport_release=11
+
 function log() {
   syslog -s -l error "BinDiff postinstall: $1"
 }
@@ -29,10 +32,10 @@ IDA_PLUGINS_DIR=$(cat ${TMPFILE})
 if [ -d "${IDA_PLUGINS_DIR}" ]; then
   # Create symlinks for the IDA Pro plugins/differ
   for plugin in \
-    bindiff6.dylib \
-    bindiff664.dylib \
-    binexport11.dylib \
-    binexport1164.dylib
+    bindiff${bindiff_release}.dylib \
+    bindiff${bindiff_release}64.dylib \
+    binexport${binexport_release}.dylib \
+    binexport${binexport_release}64.dylib
   do
     log "Symlink ${APP_DIR}/Plugins/${plugin} -> ${IDA_PLUGINS_DIR}/"
     chmod +x "${APP_DIR}/Plugins/${plugin}"

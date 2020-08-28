@@ -3,7 +3,7 @@ bindiff (7) unstable; urgency=medium
   * See the manual at https://www.zynamics.com/bindiff/manual/index.html
     for a detailed list of changes.
 
- -- Christian Blichmann <cblichmann@google.com>  Fri, 07 Aug 2020 09:50:43 +0200
+ -- Christian Blichmann <cblichmann@google.com>  Fri, 28 Aug 2020 15:34:14 +0200
 
 bindiff (6) unstable; urgency=medium
 

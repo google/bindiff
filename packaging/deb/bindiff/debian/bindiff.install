@@ -7,8 +7,8 @@ files/opt/bindiff/bin/binexport2dump opt/bindiff/bin
 files/opt/bindiff/extra/ghidra opt/bindiff/extra
 files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra
-files/opt/bindiff/plugins/bindiff6.so opt/bindiff/plugins
-files/opt/bindiff/plugins/bindiff664.so opt/bindiff/plugins
+files/opt/bindiff/plugins/bindiff7.so opt/bindiff/plugins
+files/opt/bindiff/plugins/bindiff764.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport11.so opt/bindiff/plugins
 files/opt/bindiff/plugins/binexport1164.so opt/bindiff/plugins
 files/opt/bindiff/roboto-mono-font-license.txt opt/bindiff
