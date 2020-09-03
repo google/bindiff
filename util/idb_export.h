@@ -19,10 +19,10 @@
 #include <vector>
 
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/synchronization/mutex.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 
 namespace security::binexport {
 
@@ -108,7 +108,7 @@ class IdbExporter {
 // Note: This function treats file extensions without regard to their case in
 //       order to function well on filesystems where this may be an issue
 //       (usually Windows and macOS).
-not_absl::StatusOr<std::vector<std::string>> CollectIdbsToExport(
+absl::StatusOr<std::vector<std::string>> CollectIdbsToExport(
     absl::string_view path, std::vector<std::string>* existing_binexports);
 
 }  // namespace security::binexport

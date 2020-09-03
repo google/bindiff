@@ -20,7 +20,7 @@
 
 #include "third_party/absl/base/optimization.h"
 #include "third_party/absl/status/status.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
+#include "third_party/absl/status/statusor.h"
 
 // Internal helper for concatenating macro values.
 #define NA_MACROS_IMPL_CONCAT_INNER_(x, y) x##y
@@ -43,6 +43,6 @@
   if (ABSL_PREDICT_FALSE(!statusor.ok())) {            \
     return statusor.status();                          \
   }                                                    \
-  lhs = std::move(statusor).ValueOrDie();
+  lhs = std::move(statusor).value();
 
 #endif  // UTIL_STATUS_MACROS_H_

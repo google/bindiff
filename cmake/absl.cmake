@@ -14,7 +14,7 @@
 
 ExternalProject_Add(absl
   GIT_REPOSITORY    https://github.com/abseil/abseil-cpp
-  GIT_TAG           184cf2524101310a0ba315c743e82cf45fccccf8 # 2020-07-31
+  GIT_TAG           0e9921b75a0fdd639a504ec8443fc1fe801becd7 # 2020-09-02
   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/absl"
   CONFIGURE_COMMAND ""
   BUILD_COMMAND     ""

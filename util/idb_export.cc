@@ -23,6 +23,7 @@
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -85,7 +86,7 @@ absl::Status ExportDatabase(const std::string& idb_path,
   };
 
   SetEnvironmentVariable("TVHEADLESS", "1");
-  not_absl::StatusOr<int> exit_or = SpawnProcessAndWait(args);
+  absl::StatusOr<int> exit_or = SpawnProcessAndWait(args);
 
   // Reset environment variable.
   SetEnvironmentVariable("TVHEADLESS", /*value=*/"");
@@ -130,7 +131,7 @@ absl::Status IdbExporter::Export(
   return absl::OkStatus();
 }
 
-not_absl::StatusOr<std::vector<std::string>> CollectIdbsToExport(
+absl::StatusOr<std::vector<std::string>> CollectIdbsToExport(
     absl::string_view path, std::vector<std::string>* existing_binexports) {
   std::vector<std::string> entries;
   NA_RETURN_IF_ERROR(GetDirectoryEntries(path, &entries));

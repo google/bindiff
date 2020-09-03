@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 
+#include "base/logging.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"

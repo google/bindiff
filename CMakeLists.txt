@@ -126,7 +126,6 @@ add_library(binexport_shared STATIC
   util/process.cc
   util/process.h
   util/status_macros.h
-  util/statusor.h
   util/timer.h
 )
 target_link_libraries(binexport_shared PUBLIC
@@ -135,6 +134,7 @@ target_link_libraries(binexport_shared PUBLIC
   absl::flat_hash_set
   absl::optional
   absl::status
+  absl::statusor
   absl::str_format
   absl::strings
   absl::time
@@ -152,7 +152,6 @@ add_executable(binexport_shared_test
   util/process_test.cc
   util/status_macros_test.cc
   util/status_matchers.h
-  util/statusor_test.cc
   util/timer_test.cc
 )
 target_link_libraries(binexport_shared_test PUBLIC

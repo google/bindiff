@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 
 #ifdef WIN32
 // Some Abseil headers include Windows.h, so undo a few macros
@@ -52,12 +52,11 @@ std::string GetFullPathName(absl::string_view path);
 absl::Status CreateDirectories(absl::string_view path);
 
 // Returns the path to an OS-specific directory for temporary files.
-not_absl::StatusOr<std::string> GetTempDirectory(
-    absl::string_view product_name);
+absl::StatusOr<std::string> GetTempDirectory(absl::string_view product_name);
 
 // Like GetTempDirectory(), but creates the directory if it does not exist
 // already.
-not_absl::StatusOr<std::string> GetOrCreateTempDirectory(
+absl::StatusOr<std::string> GetOrCreateTempDirectory(
     absl::string_view product_name);
 
 // Returns the filename (basename) of a path.
@@ -82,7 +81,7 @@ inline std::string JoinPath(const T&... args) {
 }
 
 // Returns the size of a file on disk.
-not_absl::StatusOr<int64_t> GetFileSize(absl::string_view path);
+absl::StatusOr<int64_t> GetFileSize(absl::string_view path);
 
 // Returns whether a file exists.
 bool FileExists(absl::string_view path);

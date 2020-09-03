@@ -27,7 +27,7 @@
 
 namespace security::binexport {
 
-not_absl::StatusOr<std::string> GetInputFileSha256() {
+absl::StatusOr<std::string> GetInputFileSha256() {
   constexpr int kBinarySha256Length = 32;
   unsigned char hash[kBinarySha256Length];
   if (!retrieve_input_file_sha256(hash)) {
@@ -37,7 +37,7 @@ not_absl::StatusOr<std::string> GetInputFileSha256() {
       reinterpret_cast<const char*>(hash), kBinarySha256Length)));
 }
 
-not_absl::StatusOr<std::string> GetInputFileMd5() {
+absl::StatusOr<std::string> GetInputFileMd5() {
   constexpr int kBinaryMd5Length = 16;
   unsigned char hash[kBinaryMd5Length];
   if (!retrieve_input_file_md5(hash)) {

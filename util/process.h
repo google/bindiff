@@ -19,9 +19,9 @@
 #include <vector>
 
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 
 namespace security::binexport {
 
@@ -37,8 +37,7 @@ bool SetEnvironmentVariable(const std::string& name, const std::string& value);
 // of the process' image file.
 // On success this function returns the exit code of the process if wait was
 // true. If wait was false, returns zero on success.
-not_absl::StatusOr<int> SpawnProcessAndWait(
-    const std::vector<std::string>& argv);
+absl::StatusOr<int> SpawnProcessAndWait(const std::vector<std::string>& argv);
 
 // Like SpawnProcessAndWait, but does not wait for the child process to finish.
 absl::Status SpawnProcess(const std::vector<std::string>& argv);
@@ -53,7 +52,7 @@ absl::Status SpawnProcess(const std::vector<std::string>& argv);
 //            %AppData%\BinDiff
 //   Linux    /home/<User>/.bindiff
 //   macOS    /Users/<User>/Library/Application Supprt/BinDiff
-not_absl::StatusOr<std::string> GetOrCreateAppDataDirectory(
+absl::StatusOr<std::string> GetOrCreateAppDataDirectory(
     absl::string_view product_name);
 
 // Returns the platform-specific per-machine application data directory. This is
@@ -65,7 +64,7 @@ not_absl::StatusOr<std::string> GetOrCreateAppDataDirectory(
 //            %ProgramData%\BinDiff
 //   Linux    /etc/opt/bindiff
 //   macOS    /Library/Application Support/BinDiff
-not_absl::StatusOr<std::string> GetCommonAppDataDirectory(
+absl::StatusOr<std::string> GetCommonAppDataDirectory(
     absl::string_view product_name);
 
 }  // namespace security::binexport

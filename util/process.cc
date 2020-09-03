@@ -81,8 +81,8 @@ bool SetEnvironmentVariable(const std::string& name, const std::string& value) {
 
 namespace {
 
-not_absl::StatusOr<int> DoSpawnProcess(const std::vector<std::string>& argv,
-                                       bool wait) {
+absl::StatusOr<int> DoSpawnProcess(const std::vector<std::string>& argv,
+                                   bool wait) {
   if (argv.empty()) {
     return absl::InvalidArgumentError("Empty argument list");
   }
@@ -178,8 +178,7 @@ not_absl::StatusOr<int> DoSpawnProcess(const std::vector<std::string>& argv,
 
 }  // namespace
 
-not_absl::StatusOr<int> SpawnProcessAndWait(
-    const std::vector<std::string>& argv) {
+absl::StatusOr<int> SpawnProcessAndWait(const std::vector<std::string>& argv) {
   return DoSpawnProcess(argv, /*wait=*/true);
 }
 
@@ -187,7 +186,7 @@ absl::Status SpawnProcess(const std::vector<std::string>& argv) {
   return DoSpawnProcess(argv, /*wait=*/false).status();
 }
 
-not_absl::StatusOr<std::string> GetOrCreateAppDataDirectory(
+absl::StatusOr<std::string> GetOrCreateAppDataDirectory(
     absl::string_view product_name) {
   std::string path;
 #ifndef _WIN32
@@ -213,7 +212,7 @@ not_absl::StatusOr<std::string> GetOrCreateAppDataDirectory(
   return path;
 }
 
-not_absl::StatusOr<std::string> GetCommonAppDataDirectory(
+absl::StatusOr<std::string> GetCommonAppDataDirectory(
     absl::string_view product_name) {
   std::string path;
 #ifndef _WIN32

@@ -19,6 +19,8 @@ add_library(${binexport_plugin_name} SHARED
   log_sink.h
 )
 target_link_libraries(${binexport_plugin_name} PRIVATE
+  absl::status
+  absl::statusor
   absl::strings
   BinaryNinja::API
   binexport_core

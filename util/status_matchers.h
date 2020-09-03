@@ -20,9 +20,9 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 
 #define NA_ASSERT_OK_AND_ASSIGN(lhs, rexpr) \
   NA_ASSERT_OK_AND_ASSIGN_IMPL(             \
@@ -31,7 +31,7 @@
 #define NA_ASSERT_OK_AND_ASSIGN_IMPL(statusor, lhs, rexpr) \
   auto statusor = (rexpr);                                 \
   ASSERT_THAT(statusor.status(), ::not_absl::IsOk());      \
-  lhs = std::move(statusor).ValueOrDie();
+  lhs = std::move(statusor).value();
 
 namespace not_absl {
 namespace internal {

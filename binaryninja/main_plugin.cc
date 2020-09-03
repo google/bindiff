@@ -20,6 +20,7 @@
 #include "base/logging.h"
 #include "openssl/sha.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -35,14 +36,12 @@
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/version.h"
 
 namespace security::binexport {
 
-not_absl::StatusOr<std::string> GetInputFileSha256(
-    BinaryNinja::BinaryView* view) {
+absl::StatusOr<std::string> GetInputFileSha256(BinaryNinja::BinaryView* view) {
   auto raw_view = view->GetParentView();
   if (!raw_view) {
     return absl::InternalError("Failed to load SHA256 hash of input file");

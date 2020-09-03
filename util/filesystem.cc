@@ -145,7 +145,7 @@ absl::Status CreateDirectories(absl::string_view path) {
 
 namespace {
 
-not_absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
+absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
     absl::string_view product_name, bool create) {
   std::string path;
 #ifdef _WIN32
@@ -166,12 +166,11 @@ not_absl::StatusOr<std::string> DoGetOrCreateTempDirectory(
 
 }  // namespace
 
-not_absl::StatusOr<std::string> GetTempDirectory(
-    absl::string_view product_name) {
+absl::StatusOr<std::string> GetTempDirectory(absl::string_view product_name) {
   return DoGetOrCreateTempDirectory(product_name, /*create=*/false);
 }
 
-not_absl::StatusOr<std::string> GetOrCreateTempDirectory(
+absl::StatusOr<std::string> GetOrCreateTempDirectory(
     absl::string_view product_name) {
   return DoGetOrCreateTempDirectory(product_name, /*create=*/true);
 }
@@ -222,7 +221,7 @@ std::string ReplaceFileExtension(absl::string_view path,
 #ifndef _WIN32
 namespace {
 
-not_absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
+absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
   struct stat file_info;
   std::string path_copy(path);
   if (stat(path_copy.c_str(), &file_info) == -1) {
@@ -242,7 +241,7 @@ not_absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
 }  // namespace
 #endif
 
-not_absl::StatusOr<int64_t> GetFileSize(absl::string_view path) {
+absl::StatusOr<int64_t> GetFileSize(absl::string_view path) {
   std::ifstream stream(std::string(path), std::ifstream::ate);
   auto size = static_cast<int64_t>(stream.tellg());
   if (stream) {
