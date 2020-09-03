@@ -22,6 +22,7 @@
 
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/tinyxpath/node_set.h"
@@ -33,7 +34,7 @@
 namespace security::bindiff {
 namespace {
 
-not_absl::StatusOr<std::string> ReadFileToString(const std::string& filename) {
+absl::StatusOr<std::string> ReadFileToString(const std::string& filename) {
   std::ifstream stream;
   stream.open(filename,
               std::ifstream::in | std::ifstream::ate | std::ifstream::binary);

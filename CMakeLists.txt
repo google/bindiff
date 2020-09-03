@@ -122,13 +122,14 @@ add_library(binexport_shared STATIC
   ${BinExport_DIR}/util/process.cc
   ${BinExport_DIR}/util/process.h
   ${BinExport_DIR}/util/status_macros.h
-  ${BinExport_DIR}/util/statusor.h
   ${BinExport_DIR}/util/timer.h
 )
 target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access
   absl::optional
   absl::str_format
+  absl::status
+  absl::statusor
   absl::strings
   absl::time
   absl::variant

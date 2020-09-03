@@ -18,6 +18,7 @@
 #include <fstream>
 #include <memory>
 
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/differ.h"
@@ -517,7 +518,7 @@ void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
   }
 }
 
-not_absl::StatusOr<std::string> GetTempFileName() {
+absl::StatusOr<std::string> GetTempFileName() {
   std::string temp_dir;
   NA_ASSIGN_OR_RETURN(temp_dir, GetOrCreateTempDirectory("BinDiff"));
   return JoinPath(temp_dir, "temporary.database");

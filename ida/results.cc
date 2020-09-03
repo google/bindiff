@@ -468,11 +468,11 @@ bool Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
   if (IsIncomplete()) {
-    auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
-    if (!temp_dir_or.ok()) {
+    auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+    if (!temp_dir.ok()) {
       return false;
     }
-    const std::string temp_dir = std::move(temp_dir_or).ValueOrDie();
+    const std::string incremental = JoinPath(*temp_dir, "incremental.BinDiff");
     {
       ::security::bindiff::Read(call_graph1_.GetFilePath(), &call_graph1_,
                                 &flow_graphs1_, &flow_graph_infos1_,
@@ -481,14 +481,11 @@ bool Results::IncrementalDiff() {
                                 &flow_graphs2_, &flow_graph_infos2_,
                                 &instruction_cache_);
 
-      if (auto status = CopyFile(input_filename_,
-                                 JoinPath(temp_dir, "incremental.BinDiff"));
-          !status.ok()) {
+      if (auto status = CopyFile(input_filename_, incremental); !status.ok()) {
         throw std::runtime_error(std::string(status.message()));
       }
 
-      SqliteDatabase database(
-          JoinPath(temp_dir, "incremental.BinDiff").c_str());
+      SqliteDatabase database(incremental.c_str());
       DatabaseTransmuter writer(database, fixed_point_infos_);
       Write(&writer);
 
@@ -497,7 +494,7 @@ bool Results::IncrementalDiff() {
                                       &fixed_points_);
     }
 
-    std::remove(JoinPath(temp_dir, "incremental.BinDiff").c_str());
+    std::remove(incremental.c_str());
     incomplete_results_ = false;
   }
 

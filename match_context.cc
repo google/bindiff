@@ -16,6 +16,7 @@
 
 #include <string>
 
+#include "base/logging.h"
 #include "third_party/absl/base/attributes.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/differ.h"

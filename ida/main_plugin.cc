@@ -44,6 +44,7 @@
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
@@ -76,7 +77,6 @@
 #include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
-#include "third_party/zynamics/binexport/util/statusor.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
