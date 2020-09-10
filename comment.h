@@ -49,6 +49,6 @@ class Comment {
 #pragma pack(pop)
 
 using Comments = std::vector<Comment>;
-bool SortComments(const Comment& one, const Comment& two);
+bool SortComments(const Comment& lhs, const Comment& rhs);
 
 #endif  // COMMENT_H_

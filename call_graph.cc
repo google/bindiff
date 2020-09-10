@@ -190,7 +190,8 @@ Comments& CallGraph::GetComments() { return comments_; }
 std::pair<Comments::const_iterator, Comments::const_iterator>
 CallGraph::GetComments(Address address) const {
   return std::equal_range(comments_.begin(), comments_.end(),
-                          Comment(address, 0), &SortComments);
+                          Comment(address, 0, nullptr, Comment::REGULAR),
+                          &SortComments);
 }
 
 void CallGraph::AddComment(Address address, size_t operand,
