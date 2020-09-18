@@ -16,8 +16,12 @@ package com.google.security.zynamics.bindiff.utils;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.BinDiff;
+import com.google.security.zynamics.zylib.io.FileUtils;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -29,7 +33,16 @@ public class ImageUtils {
 
   private ImageUtils() {}
 
+  public static boolean isScaledDisplay() {
+    final GraphicsConfiguration config =
+        GraphicsEnvironment.getLocalGraphicsEnvironment()
+            .getDefaultScreenDevice()
+            .getDefaultConfiguration();
+    return !config.getDefaultTransform().isIdentity();
+  }
+
   public static Image getImage(final String imagePath) {
+    final boolean scaledDisplay = isScaledDisplay();
     final String pkgName = BinDiff.class.getPackage().getName().replace('.', '/');
     URL imageUrl = null;
     // Blaze packages up resource files differently than Maven. Search "ui" and "zylib" as well.
@@ -38,7 +51,19 @@ public class ImageUtils {
             "",
             "/ui/src/main/resources/" + pkgName + "/",
             "/zylib/src/main/resources/" + pkgName + "/")) {
-      imageUrl = BinDiff.class.getResource(path + imagePath);
+      if (scaledDisplay) {
+        // On scaled displays, try to find a 2x scaled version of the image first.
+        final File imageFilePath = new File(imagePath);
+        imageUrl =
+            BinDiff.class.getResource(
+                path
+                    + FileUtils.getFileBasename(imageFilePath)
+                    + "@2."
+                    + FileUtils.getFileExtension(imageFilePath));
+      }
+      if (imageUrl == null) {
+        imageUrl = BinDiff.class.getResource(path + imagePath);
+      }
       if (imageUrl != null) {
         break;
       }

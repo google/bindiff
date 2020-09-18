@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.system;
 
 import com.google.security.zynamics.zylib.io.FileUtils;
-
 import java.io.File;
 
 /**
@@ -155,17 +154,5 @@ public final class SystemHelpers {
    */
   public static boolean isRunningWindows() {
     return System.getProperty("os.name").startsWith("Windows");
-  }
-
-  /**
-   * Returns true if the current system has a 64bit architecture.
-   */
-  public static boolean is64BitArchitecture() {
-    if (isRunningWindows()) {
-      return "AMD64".equals(System.getenv("PROCESSOR_ARCHITECTURE"))
-          || "AMD64".equals(System.getenv("PROCESSOR_ARCHITEW6432"));
-    }
-
-    throw new RuntimeException("Not implemented");
   }
 }

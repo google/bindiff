@@ -74,38 +74,6 @@ public class FileUtils {
     return md5.toString();
   }
 
-  public static boolean containsDirectory(final File directory, final String filename) {
-    if (directory == null || !directory.isDirectory()) {
-      return false;
-    }
-
-    for (final File file : directory.listFiles()) {
-      if (file.isDirectory() && file.getName().equals(filename)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public static boolean containsFile(final File directory, final String filename) {
-    if (directory == null || !directory.isDirectory()) {
-      return false;
-    }
-
-    for (final File file : directory.listFiles()) {
-      if (file.getName().equals(filename)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  public static boolean createDirectory(final String directory) {
-    return new File(directory).mkdirs();
-  }
-
   /**
    * Returns a copy of the specified String with a trailing path separator. This method ensures that
    * there are no duplicate trailing separators.
@@ -164,8 +132,7 @@ public class FileUtils {
       // Local file system path
       final Package classPackage = klazz.getPackage();
       if (classPackage != null) {
-        final String classPackagePath =
-            classPackage != null ? classPackage.getName().replace('.', '/') : "";
+        final String classPackagePath = classPackage.getName().replace('.', '/');
         // If the ClassLoader did load the class specified by klazz,
         // classPackagePath can always be found in resPath
         result = classUrlPath.substring(startIdx, classUrlPath.lastIndexOf(classPackagePath));

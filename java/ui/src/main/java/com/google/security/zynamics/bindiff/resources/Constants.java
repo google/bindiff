@@ -61,7 +61,8 @@ public final class Constants {
   public static final String IDB64_EXTENSION = "i64";
 
   // BinDiff Engine Executable Name
-  public static final String BINDIFF_ENGINE_EXECUTABLE;
+  public static final String BINDIFF_ENGINE_EXECUTABLE =
+      SystemHelpers.isRunningWindows() ? "bindiff.exe" : "bindiff";
 
   // File format Versions
   public static final int WORKSPACE_DATABASE_FORMAT_VERSION = 2;
@@ -71,15 +72,6 @@ public final class Constants {
   public static final int CONFIG_FILEVERSION = 6;
 
   private static final int SOCKET_SERVER_PORT = 2000;
-
-  static {
-    if (SystemHelpers.isRunningWindows()) {
-      BINDIFF_ENGINE_EXECUTABLE = "bindiff.exe";
-    } else {
-      // Linux and OS X use "bindiff"
-      BINDIFF_ENGINE_EXECUTABLE = "bindiff";
-    }
-  }
 
   // Functions
   public static int getSocketPort() {
