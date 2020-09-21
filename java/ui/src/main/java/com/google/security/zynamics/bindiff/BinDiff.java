@@ -47,6 +47,7 @@ import javax.swing.UIManager;
  * on macOS.
  */
 public class BinDiff {
+
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static String workspaceFileName = null;
@@ -54,11 +55,17 @@ public class BinDiff {
   private BinDiff() {}
 
   static {
-    // Use Apple L&F screen menu bar if available. This property must be set before any frames are
-    // displayed. Setting the Apple-specific properties has no effect on other platforms.
     try {
+      // Set the default for JRE managed UI scaling.
+      if (System.getProperty("sun.java2d.uiScale.enabled") == null) {
+        System.setProperty("sun.java2d.uiScale.enabled", "true");
+      }
+
+      // Use Apple L&F screen menu bar if available. This property must be set before any frames
+      // are displayed. Setting the Apple-specific properties has no effect on other platforms.
       System.setProperty("apple.laf.useScreenMenuBar", "true");
       System.setProperty("com.apple.macos.useScreenMenuBar", "true");
+      System.setProperty("com.apple.mrj.application.live-resize", "true");
 
       // Set application name
       System.setProperty(
