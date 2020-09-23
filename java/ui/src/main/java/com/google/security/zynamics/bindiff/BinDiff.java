@@ -41,6 +41,12 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 /**
  * Launcher class for BinDiff. Note: The name of this class is used directly as the application name
@@ -49,6 +55,13 @@ import javax.swing.UIManager;
 public class BinDiff {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
+  private static final Option HELP =
+      Option.builder().longOpt("help").desc("Print this message").build();
+  private static final Option CONSOLE_LOGGING =
+      Option.builder("c").longOpt("logtostderr").desc("Enable console logging").build();
+  private static final Option FILE_LOGGING =
+      Option.builder("f").longOpt("log_file").hasArg().argName("FILE").desc("Log to file").build();
 
   private static String workspaceFileName = null;
 
@@ -197,21 +210,39 @@ public class BinDiff {
   }
 
   private static void parseCommandLine(final String[] args) {
-    for (final String arg : args) {
-      if ("-c".equals(arg)) {
-        Logger.setConsoleLogging(true);
-      } else if ("-f".equals(arg)) {
-        final FileHandler filehandler;
-        try {
-          filehandler = new FileHandler(Logger.getDefaultLoggingDirectoryPath());
-        } catch (final IOException e) {
-          logger.at(Level.WARNING).withCause(e).log("Could not create log file handler");
-          continue;
-        }
-        Logger.setFileHandler(filehandler);
-      } else if (workspaceFileName == null && !arg.startsWith("-")) {
-        workspaceFileName = arg;
+    final Options flags =
+        new Options().addOption(HELP).addOption(CONSOLE_LOGGING).addOption(FILE_LOGGING);
+    final CommandLine cmd;
+    final String[] positional;
+    try {
+      cmd = new DefaultParser().parse(flags, args);
+      positional = cmd.getArgs();
+      if (positional.length > 1) {
+        throw new ParseException("More than one workspace file specified");
       }
+    } catch (final ParseException e) {
+      logger.at(Level.WARNING).withCause(e).log("Invalid command line arguments");
+      return;
+    }
+
+    if (cmd.hasOption(HELP.getLongOpt())) {
+      new HelpFormatter().printHelp("bindiff --ui [OPTION]... [WORKSPACE]", flags);
+      System.exit(0);
+    }
+
+    Logger.setConsoleLogging(cmd.hasOption(CONSOLE_LOGGING.getLongOpt()));
+    if (cmd.hasOption(FILE_LOGGING.getLongOpt())) {
+      try {
+        final String logDir = cmd.getOptionValue(FILE_LOGGING.getLongOpt());
+        Logger.setFileHandler(
+            new FileHandler(logDir.isEmpty() ? Logger.getDefaultLoggingDirectoryPath() : logDir));
+      } catch (final IOException e) {
+        logger.at(Level.WARNING).withCause(e).log("Could not create log file handler");
+      }
+    }
+
+    if (positional.length > 0) {
+      workspaceFileName = positional[0];
     }
   }
 
