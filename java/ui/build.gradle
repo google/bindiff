@@ -1,0 +1,139 @@
+import proguard.gradle.ProGuardTask
+
+buildscript {
+    dependencies {
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.13'
+    }
+}
+
+apply plugin: 'com.google.protobuf'
+
+protobuf {
+    // Configure the protoc executable
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.13.0'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.32.1'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+          grpc {}
+        }
+    }
+}
+
+dependencies {
+    compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
+    implementation ':y:'
+    implementation ':ysvg:'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'com.google.errorprone:error_prone_annotations:2.4.0'
+    implementation 'com.google.flogger:flogger-system-backend:0.4'
+    implementation 'com.google.flogger:flogger:0.4'
+    implementation 'com.google.guava:guava:28.1-jre'
+    implementation 'com.google.protobuf:protobuf-java:3.13.0'
+    implementation 'commons-cli:commons-cli:1.4'
+    implementation 'io.grpc:grpc-netty-shaded:1.32.1'
+    implementation 'io.grpc:grpc-protobuf:1.32.1'
+    implementation 'io.grpc:grpc-stub:1.32.1'
+    implementation 'javax.xml.bind:jaxb-api:2.3.1'
+    implementation 'org.apache.xmlgraphics:batik-anim:1.11'
+    implementation 'org.apache.xmlgraphics:batik-bridge:1.11'
+    implementation 'org.apache.xmlgraphics:batik-gvt:1.11'
+    implementation 'org.apache.xmlgraphics:batik-svggen:1.11'
+    implementation 'org.jfree:jcommon:1.0.24'
+    implementation 'org.jfree:jfreechart:1.0.19'
+    implementation 'org.xerial.thirdparty:nestedvm:1.0'
+    implementation 'org.xerial:sqlite-jdbc:3.28.0'
+    implementation project(':zylib')
+}
+
+buildscript {
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
+        classpath 'net.sf.proguard:proguard-gradle:6.2.0'
+    }
+}
+
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+mainClassName = 'com.google.security.zynamics.bindiff.BinDiff'
+
+shadowJar {
+    baseName = 'bindiff-ui'
+    // Exclude non-essential files from jar
+    exclude('META-INF/LICENSE*',
+            'META-INF/NOTICE*',
+            'META-INF/maven/',
+            'binexport2.proto',
+            'google/protobuf/**/*.proto',
+            'license/**',
+            // Unsupported platforms: drop FreeBSD, drop 32-bit
+            'org/sqlite/native/FreeBSD/**',
+            'org/sqlite/native/Linux/android-arm/**',
+            'org/sqlite/native/Linux/arm/**',
+            'org/sqlite/native/Linux/armv6/**',
+            'org/sqlite/native/Linux/armv7/**',
+            'org/sqlite/native/Linux/ppc64/**',
+            'org/sqlite/native/Linux/x86/**',
+            'org/sqlite/native/Windows/x86/**')
+}
+
+task obfuscatedJar(type: ProGuardTask) {
+    injars shadowJar
+    outjars 'build/libs/bindiff-ui-all.out.jar'
+
+    // Java 11 modules
+    libraryjars "${System.getProperty('java.home')}/jmods"
+
+    // Only obfuscate yFiles, as required per their license
+    keep 'class !y.**,!yext.**,!y.x.**,**'
+    keepclassmembers 'class !y.**,!yext.**,!y.x.**,** { *; }'
+    keepattributes '*Annotation*,Signature,InnerClasses,EnclosingMethod,Module*'
+    renamesourcefileattribute 'SourceFile'
+    useuniqueclassmembernames
+
+    dontoptimize  // Optimization uses ~2G RAM
+
+    // Generally no notices
+    dontnote
+
+    // gRPC compile time dependency
+    dontwarn 'io.grpc.netty.shaded.io.netty.**'
+
+    // Annotations
+    dontwarn 'com.google.errorprone.**'
+    dontwarn 'com.google.j2objc.annotations.**'
+    dontwarn 'javax.annotation.**'
+    dontwarn 'org.codehaus.mojo.animal_sniffer.**'
+
+    // System and system-like packages
+    dontwarn 'com.sun.**'
+    dontwarn 'java.**'
+    dontwarn 'javax.**'
+    dontwarn 'jdk.**'
+
+    // Class unexpectedly contains class
+    dontwarn 'javax.xml.bind.ModuleUtil'
+
+    // Library class depends on program class
+    dontwarn 'org.w3c.dom.**'
+
+    // Unused packages
+    dontwarn 'javax.servlet.**'
+    dontwarn 'org.ibex.nestedvm.ClassFileCompiler'
+    dontwarn 'org.mozilla.javascript.**'
+
+    // Unused methods/classes
+    dontwarn 'org.apache.batik.bridge.**'
+    dontwarn 'org.apache.batik.script.**'
+    dontwarn 'org.apache.commons.logging.**'
+    dontwarn 'org.apache.xml.dtm.**'
+
+    // SAXSVGDocumentFactory has moved to batik-anim
+    dontwarn 'yext.svg.view.**'
+}
