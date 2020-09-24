@@ -91,8 +91,8 @@ public final class RawFlowGraph extends MutableDirectedGraph<RawBasicBlock, RawJ
     return address;
   }
 
-  public RawBasicBlock getBasicblock(final IAddress basicblockAddr) {
-    return addrToBasicblockMap.get(basicblockAddr);
+  public RawBasicBlock getBasicBlock(final IAddress basicBlockAddr) {
+    return addrToBasicblockMap.get(basicBlockAddr);
   }
 
   public EFunctionType getFunctionType() {

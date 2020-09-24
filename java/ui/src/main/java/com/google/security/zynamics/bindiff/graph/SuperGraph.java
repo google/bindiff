@@ -21,6 +21,7 @@ import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
 import com.google.security.zynamics.bindiff.graph.edges.SuperDiffEdge;
 import com.google.security.zynamics.bindiff.graph.edges.SuperViewEdge;
+import com.google.security.zynamics.bindiff.graph.editmode.EditMode;
 import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
@@ -34,6 +35,7 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.types.common.CollectionHelpers;
 import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraph2DView;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.ZyEditMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyNormalNodeRealizer;
 import java.util.HashSet;
@@ -117,7 +119,7 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
       final SuperGraph superGraph,
       final SingleDiffNode primaryDiffNode,
       final SingleDiffNode secondaryDiffNode,
-      final SuperViewNode superBasicblock) {
+      final SuperViewNode superBasicBlock) {
     final ZyLabelContent superNodeContent = new ZyLabelContent(null);
     final ZyNormalNodeRealizer<SuperDiffNode> superNodeRealizer =
         new ZyNormalNodeRealizer<>(superNodeContent);
@@ -126,10 +128,15 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
 
     final SuperDiffNode superDiffNode =
         new SuperDiffNode(
-            ySuperNode, superNodeRealizer, superBasicblock, primaryDiffNode, secondaryDiffNode);
+            ySuperNode, superNodeRealizer, superBasicBlock, primaryDiffNode, secondaryDiffNode);
     superNodeRealizer.setUserData(new ZyNodeData<>(superDiffNode));
 
     return superDiffNode;
+  }
+
+  @Override
+  protected ZyEditMode<SuperDiffNode, SuperDiffEdge> createEditMode() {
+    return new EditMode<>(this);
   }
 
   private void synchronizeSize(

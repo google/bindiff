@@ -224,7 +224,7 @@ public class GeneralSettingsConfigItem extends ConfigItem {
     this.diffEnginePath = diffEnginePath;
   }
 
-  public final String getIdaDirectory() {
+  public String getIdaDirectory() {
     return idaDirectory;
   }
 

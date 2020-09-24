@@ -28,10 +28,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
 public class WindowMenu extends JMenu {
-  private JMenuItem togglePrimaryPerspective;
-  private JMenuItem toggleSecondaryPerspective;
-  private JMenuItem toogleGraphsPerspective;
-  private JMenuItem resetDefaultPerspective;
 
   public WindowMenu(final ViewTabPanelFunctions controller) {
     super("Window");
@@ -39,8 +35,7 @@ public class WindowMenu extends JMenu {
 
     checkNotNull(controller);
 
-    // TODO(cblichmann): Key won't work on OS X
-    togglePrimaryPerspective =
+    final JMenuItem togglePrimaryPerspective =
         GuiUtils.buildMenuItem(
             "Show/Hide Primary",
             'P',
@@ -48,7 +43,7 @@ public class WindowMenu extends JMenu {
             0,
             new TogglePrimaryPerspectiveAction(controller));
 
-    toggleSecondaryPerspective =
+    final JMenuItem toggleSecondaryPerspective =
         GuiUtils.buildMenuItem(
             "Show/Hide Secondary",
             'S',
@@ -56,7 +51,7 @@ public class WindowMenu extends JMenu {
             0,
             new ToggleSecondaryPerspectiveAction(controller));
 
-    toogleGraphsPerspective =
+    final JMenuItem toggleGraphsPerspective =
         GuiUtils.buildMenuItem(
             "Show/Hide Overviews",
             'G',
@@ -64,7 +59,7 @@ public class WindowMenu extends JMenu {
             0,
             new ToggleGraphsPerspectiveAction(controller));
 
-    resetDefaultPerspective =
+    final JMenuItem resetDefaultPerspective =
         GuiUtils.buildMenuItem(
             "Reset Window Layout",
             'R',
@@ -74,17 +69,8 @@ public class WindowMenu extends JMenu {
 
     add(togglePrimaryPerspective);
     add(toggleSecondaryPerspective);
-    add(toogleGraphsPerspective);
-
+    add(toggleGraphsPerspective);
     add(new JSeparator());
-
     add(resetDefaultPerspective);
-  }
-
-  public void dispose() {
-    togglePrimaryPerspective = null;
-    toggleSecondaryPerspective = null;
-    toogleGraphsPerspective = null;
-    resetDefaultPerspective = null;
   }
 }

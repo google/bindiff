@@ -42,6 +42,7 @@ public final class BinDiffConfig {
   private static final BinDiffConfig instance = new BinDiffConfig();
 
   private final GeneralSettingsConfigItem mainSettings;
+  private final DebugConfigItem debugSettings;
   private final ThemeConfigItem colorSettings;
   private final GraphViewSettingsConfigItem initialCallGraphSettings;
   private final GraphViewSettingsConfigItem initialFlowGraphSettings;
@@ -49,6 +50,7 @@ public final class BinDiffConfig {
   /** Creates a new config file object. */
   private BinDiffConfig() {
     mainSettings = new GeneralSettingsConfigItem();
+    debugSettings = new DebugConfigItem();
     colorSettings = new ThemeConfigItem();
     initialCallGraphSettings = new InitialCallGraphViewSettingsConfigItem();
     initialFlowGraphSettings = new InitialFlowGraphViewSettingsConfigItem();
@@ -70,6 +72,10 @@ public final class BinDiffConfig {
 
   public GeneralSettingsConfigItem getMainSettings() {
     return mainSettings;
+  }
+
+  public DebugConfigItem getDebugSettings() {
+    return debugSettings;
   }
 
   public ThemeConfigItem getThemeSettings() {

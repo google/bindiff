@@ -33,21 +33,15 @@ import javax.swing.JSeparator;
 public class ViewMenu extends JMenu {
   private final InternalViewListener viewListener = new InternalViewListener();
 
-  private ViewTabPanelFunctions viewTabPanelController;
+  private ViewTabPanelFunctions controller;
 
-  private JMenuItem saveView;
-
-  private JMenuItem printPrimaryGraph;
-  private JMenuItem printSecondaryGraph;
-  private JMenuItem printCombinedGraph;
-  private JMenuItem exportViewAsPng;
-  private JMenuItem closeView;
+  private final JMenuItem saveView;
 
   public ViewMenu(final ViewTabPanelFunctions controller) {
     super("View");
     setMnemonic('V');
 
-    viewTabPanelController = checkNotNull(controller);
+    this.controller = checkNotNull(controller);
 
     final Diff diff = controller.getGraphs().getDiff();
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
@@ -56,67 +50,55 @@ public class ViewMenu extends JMenu {
         GuiUtils.buildMenuItem(
             "Save View", 'S', KeyEvent.VK_S, CTRL_MASK, new SaveViewAction(controller));
 
-    printPrimaryGraph =
+    final JMenuItem printPrimaryGraph =
         GuiUtils.buildMenuItem(
             "Print Primary Graph...",
             'P',
             new PrintViewAction(controller, controller.getGraphs().getPrimaryGraph()));
 
-    printSecondaryGraph =
+    final JMenuItem printSecondaryGraph =
         GuiUtils.buildMenuItem(
             "Print Secondary Graph...",
             'S',
             new PrintViewAction(controller, controller.getGraphs().getSecondaryGraph()));
 
-    printCombinedGraph =
+    final JMenuItem printCombinedGraph =
         GuiUtils.buildMenuItem(
             "Print Combined Graph...",
             'C',
             new PrintViewAction(controller, controller.getGraphs().getCombinedGraph()));
 
-    exportViewAsPng =
+    final JMenuItem exportViewAsPng =
         GuiUtils.buildMenuItem(
             "Export View as Image...", 'E', new ExportViewAsImageAction(controller));
 
-    closeView = GuiUtils.buildMenuItem("Close View", 'C', new CloseViewAction(controller));
+    final JMenuItem closeView =
+        GuiUtils.buildMenuItem("Close View", 'C', new CloseViewAction(controller));
 
     saveView.setEnabled(diff.isFunctionDiff());
 
     add(saveView);
-
     add(new JSeparator());
-
     add(printPrimaryGraph);
     add(printSecondaryGraph);
     add(printCombinedGraph);
-
     add(new JSeparator());
-
     add(exportViewAsPng);
-
     add(new JSeparator());
-
     add(closeView);
 
-    viewTabPanelController.addListener(viewListener);
+    this.controller.addListener(viewListener);
   }
 
   public void dispose() {
-    viewTabPanelController.removeListener(viewListener);
-    viewTabPanelController = null;
-
-    saveView = null;
-    printPrimaryGraph = null;
-    printSecondaryGraph = null;
-    printCombinedGraph = null;
-    exportViewAsPng = null;
-    closeView = null;
+    controller.removeListener(viewListener);
+    controller = null;
   }
 
   private class InternalViewListener implements ISavableListener {
     @Override
     public void isSavable(final boolean saveable) {
-      if (!viewTabPanelController.getGraphs().getDiff().isFunctionDiff()) {
+      if (!controller.getGraphs().getDiff().isFunctionDiff()) {
         if (saveView.isEnabled() != saveable) {
           saveView.setEnabled(saveable);
         }

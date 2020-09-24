@@ -29,10 +29,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
 public class SearchMenu extends JMenu {
-  private JMenuItem jumpToPrimaryAddress;
-  private JMenuItem jumpToSecondaryAddress;
-
-  private JMenuItem search;
 
   public SearchMenu(final ViewTabPanelFunctions controller) {
     super("Search");
@@ -41,7 +37,7 @@ public class SearchMenu extends JMenu {
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     checkNotNull(controller);
 
-    jumpToPrimaryAddress =
+    final JMenuItem jumpToPrimaryAddress =
         GuiUtils.buildMenuItem(
             "Jump to Primary Address",
             'P',
@@ -49,7 +45,7 @@ public class SearchMenu extends JMenu {
             CTRL_MASK,
             new JumpToAddressAction(controller, ESide.PRIMARY));
 
-    jumpToSecondaryAddress =
+    final JMenuItem jumpToSecondaryAddress =
         GuiUtils.buildMenuItem(
             "Jump to Secondary Address",
             'S',
@@ -57,21 +53,13 @@ public class SearchMenu extends JMenu {
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new JumpToAddressAction(controller, ESide.SECONDARY));
 
-    search =
+    final JMenuItem search =
         GuiUtils.buildMenuItem(
             "Search", 'S', KeyEvent.VK_F, CTRL_MASK, new SearchAction(controller));
 
     add(search);
-
     add(new JSeparator());
-
     add(jumpToPrimaryAddress);
     add(jumpToSecondaryAddress);
-  }
-
-  public void dispose() {
-    jumpToPrimaryAddress = null;
-    jumpToSecondaryAddress = null;
-    search = null;
   }
 }

@@ -38,14 +38,14 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 
 public class ModesMenu extends JMenu {
-  private JRadioButtonMenuItem normalViewMode;
-  private JRadioButtonMenuItem combinedViewMode;
+  private final JRadioButtonMenuItem normalViewMode;
+  private final JRadioButtonMenuItem combinedViewMode;
 
-  private JCheckBoxMenuItem synchronizeGraphs;
+  private final JCheckBoxMenuItem synchronizeGraphs;
 
-  private JCheckBoxMenuItem automaticLayout;
-  private JCheckBoxMenuItem proximityBrowsing;
-  private JCheckBoxMenuItem proximityFreezeMode;
+  private final JCheckBoxMenuItem automaticLayout;
+  private final JCheckBoxMenuItem proximityBrowsing;
+  private final JCheckBoxMenuItem proximityFreezeMode;
 
   private InternalSettingsListener settingsListener = new InternalSettingsListener();
 
@@ -111,15 +111,11 @@ public class ModesMenu extends JMenu {
 
     add(normalViewMode);
     add(combinedViewMode);
-
     add(new JSeparator());
-
     add(automaticLayout);
     add(proximityBrowsing);
     add(proximityFreezeMode);
-
     add(new JSeparator());
-
     add(synchronizeGraphs);
 
     final GraphSettings settings = controller.getGraphSettings();
@@ -151,13 +147,6 @@ public class ModesMenu extends JMenu {
     controller.getGraphSettings().removeListener(settingsListener);
     settingsListener = null;
     controller = null;
-
-    normalViewMode = null;
-    combinedViewMode = null;
-    synchronizeGraphs = null;
-    automaticLayout = null;
-    proximityBrowsing = null;
-    proximityFreezeMode = null;
   }
 
   private class InternalSettingsListener extends GraphSettingsChangedListenerAdapter {

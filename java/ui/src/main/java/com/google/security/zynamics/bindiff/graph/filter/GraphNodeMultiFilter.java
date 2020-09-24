@@ -182,9 +182,9 @@ public class GraphNodeMultiFilter {
       final BasicBlockMatchData basicBlockMatch =
           MatchesGetter.getBasicBlockMatch(diff, basicBlock);
       if (side == ESide.PRIMARY) {
-        secBasicBlock = secFlowGraph.getBasicblock(basicBlockMatch.getIAddress(ESide.SECONDARY));
+        secBasicBlock = secFlowGraph.getBasicBlock(basicBlockMatch.getIAddress(ESide.SECONDARY));
       } else {
-        priBasicBlock = priFlowGraph.getBasicblock(basicBlockMatch.getIAddress(ESide.PRIMARY));
+        priBasicBlock = priFlowGraph.getBasicBlock(basicBlockMatch.getIAddress(ESide.PRIMARY));
       }
 
       final boolean isIdentical =

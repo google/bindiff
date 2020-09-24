@@ -42,26 +42,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
 public class SelectionMenu extends JMenu {
-  private JMenuItem undoLastSelection;
-  private JMenuItem redoLastSelection;
-
-  private JMenuItem selectAncestors;
-  private JMenuItem selectSuccessors;
-  private JMenuItem inverseSelection;
-
-  private JMenuItem selectParents;
-  private JMenuItem selectChildren;
-  private JMenuItem selectNeighbours;
-  private JMenuItem deselectRoots;
-  private JMenuItem deselectLeafs;
-  private JMenuItem deselectPeriphery;
-
-  private JMenuItem selectByCriteria;
-
-  private JMenuItem colorSelectedNodes;
-  private JMenuItem colorUnselectedNodes;
-  private JMenuItem colorInvisibleNodes;
-  private JMenuItem resetDefaultNodeColors;
 
   public SelectionMenu(final ViewTabPanelFunctions controller) {
     super("Selection");
@@ -70,7 +50,7 @@ public class SelectionMenu extends JMenu {
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     checkNotNull(controller);
 
-    undoLastSelection =
+    final JMenuItem undoLastSelection =
         GuiUtils.buildMenuItem(
             "Undo Selection",
             'U',
@@ -78,7 +58,7 @@ public class SelectionMenu extends JMenu {
             CTRL_MASK,
             new UndoLastSelectionAction(controller));
 
-    redoLastSelection =
+    final JMenuItem redoLastSelection =
         GuiUtils.buildMenuItem(
             "Redo Selection",
             'R',
@@ -86,11 +66,11 @@ public class SelectionMenu extends JMenu {
             CTRL_MASK,
             new RedoLastSelectionAction(controller));
 
-    selectAncestors =
+    final JMenuItem selectAncestors =
         GuiUtils.buildMenuItem("Select Ancestors", 'A', new SelectAncestorsAction(controller));
-    selectSuccessors =
+    final JMenuItem selectSuccessors =
         GuiUtils.buildMenuItem("Select Successors", 'S', new SelectSuccessorsAction(controller));
-    inverseSelection =
+    final JMenuItem inverseSelection =
         GuiUtils.buildMenuItem(
             "Invert Selection",
             'I',
@@ -98,21 +78,21 @@ public class SelectionMenu extends JMenu {
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new InverseSelectionAction(controller));
 
-    selectNeighbours =
+    final JMenuItem selectNeighbours =
         GuiUtils.buildMenuItem("Select Neighbors", 'N', new SelectNeighboursAction(controller));
-    deselectPeriphery =
+    final JMenuItem deselectPeriphery =
         GuiUtils.buildMenuItem("Deselect Periphery", 'D', new DeselectPeripheryAction(controller));
-    selectParents =
+    final JMenuItem selectParents =
         GuiUtils.buildMenuItem("Select Parents", 'P', new SelectParentsAction(controller));
-    selectChildren =
+    final JMenuItem selectChildren =
         GuiUtils.buildMenuItem("Select Children", 'C', new SelectChildrenAction(controller));
-    deselectRoots =
+    final JMenuItem deselectRoots =
         GuiUtils.buildMenuItem("Deselect Roots", 'R', new DeselectRootsAction(controller));
 
-    deselectLeafs =
+    final JMenuItem deselectLeafs =
         GuiUtils.buildMenuItem("Deselect Leafs", 'L', new DeselectLeafsAction(controller));
 
-    selectByCriteria =
+    final JMenuItem selectByCriteria =
         GuiUtils.buildMenuItem(
             "Select by Criteria...",
             'I',
@@ -120,68 +100,39 @@ public class SelectionMenu extends JMenu {
             0,
             new SelectByCriteriaAction(controller));
 
-    colorSelectedNodes =
+    final JMenuItem colorSelectedNodes =
         GuiUtils.buildMenuItem(
             "Color selected Nodes", 'S', new ColorSelectedNodesAction(controller));
-    colorUnselectedNodes =
+    final JMenuItem colorUnselectedNodes =
         GuiUtils.buildMenuItem(
             "Color unselected Nodes", 'U', new ColorUnselectedNodesAction(controller));
-    colorInvisibleNodes =
+    final JMenuItem colorInvisibleNodes =
         GuiUtils.buildMenuItem(
             "Color invisible Nodes", 'N', new ColorInvisibleNodeAction(controller));
-    resetDefaultNodeColors =
+    final JMenuItem resetDefaultNodeColors =
         GuiUtils.buildMenuItem(
             "Reset default Node Colors", 'R', new ResetDefaultNodeColorsAction(controller));
 
     add(undoLastSelection);
     add(redoLastSelection);
-
     add(new JSeparator());
-
     add(selectAncestors);
     add(selectSuccessors);
     add(inverseSelection);
-
     add(new JSeparator());
-
     add(selectNeighbours);
     add(deselectPeriphery);
-
     add(new JSeparator());
-
     add(selectParents);
     add(selectChildren);
     add(deselectRoots);
     add(deselectLeafs);
-
     add(new JSeparator());
-
     add(selectByCriteria);
-
     add(new JSeparator());
-
     add(colorSelectedNodes);
     add(colorUnselectedNodes);
     add(colorInvisibleNodes);
     add(resetDefaultNodeColors);
-  }
-
-  public void dispose() {
-    undoLastSelection = null;
-    redoLastSelection = null;
-    selectAncestors = null;
-    selectSuccessors = null;
-    inverseSelection = null;
-    selectParents = null;
-    selectChildren = null;
-    selectNeighbours = null;
-    deselectRoots = null;
-    deselectLeafs = null;
-    deselectPeriphery = null;
-    selectByCriteria = null;
-    colorSelectedNodes = null;
-    colorUnselectedNodes = null;
-    colorInvisibleNodes = null;
-    resetDefaultNodeColors = null;
   }
 }

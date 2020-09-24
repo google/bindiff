@@ -31,7 +31,7 @@ import y.view.MoveViewPortMode;
 public class EditMode<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     extends ZyEditMode<NodeType, EdgeType> {
 
-  protected boolean invertMoveViewPort;
+  protected boolean invertMoveViewPort = true;
 
   public EditMode(AbstractZyGraph<NodeType, EdgeType> graph) {
     super(graph);
@@ -41,10 +41,7 @@ public class EditMode<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphE
 
     setSelectionBoxMode(new CSelectionMode<NodeType>(graph));
 
-    invertMoveViewPort = true; // TODO(cblichmann): Expose this as a setting
-    if (invertMoveViewPort) {
-      moveViewPortMode = new InvertMoveViewPortMode();
-    }
+    moveViewPortMode = new InvertMoveViewPortMode();
   }
 
   public boolean isInvertMoveViewPort() {

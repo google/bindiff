@@ -19,11 +19,6 @@ import com.google.security.zynamics.zylib.system.SystemHelpers;
 
 /** Application-global constants. */
 public final class Constants {
-  // Show supergraph switch (MUST BE FALSE FOR RELEASE)
-  // TODO(cblichmann): Instead of this constant consider implementing a
-  // --enable-debug-menu command line option that allows to enable this setting on-the-fly.
-  public static final boolean SHOW_SUPERGRAPH = false;
-
   // Application Generals
   public static final String PRODUCT_NAME = "BinDiff";
   public static final String PRODUCT_VERSION = "7";

@@ -72,7 +72,7 @@ public class DiffLoader implements ICommand {
   private static void setBasicBlockComments(
       final RawFlowGraph flowGraph, final Map<IAddress, String> basicBlockComments) {
     for (final Entry<IAddress, String> comment : basicBlockComments.entrySet()) {
-      final RawBasicBlock basicBlock = flowGraph.getBasicblock(comment.getKey());
+      final RawBasicBlock basicBlock = flowGraph.getBasicBlock(comment.getKey());
       basicBlock.setComment(comment.getValue());
     }
   }

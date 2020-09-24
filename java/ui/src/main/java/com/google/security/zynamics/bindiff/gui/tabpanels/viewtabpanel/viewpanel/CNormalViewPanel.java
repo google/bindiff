@@ -16,6 +16,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.viewpane
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -23,7 +24,6 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels.SuperGraphPanel;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
-import com.google.security.zynamics.bindiff.resources.Constants;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import javax.swing.JFrame;
@@ -83,7 +83,7 @@ public class CNormalViewPanel extends JPanel {
   }
 
   private void showSupergraph(final ViewData viewData) {
-    if (Constants.SHOW_SUPERGRAPH) {
+    if (BinDiffConfig.getInstance().getDebugSettings().getShowSuperGraph()) {
       final JFrame frame = new JFrame();
       frame.setAlwaysOnTop(true);
       frame.setLayout(new BorderLayout());

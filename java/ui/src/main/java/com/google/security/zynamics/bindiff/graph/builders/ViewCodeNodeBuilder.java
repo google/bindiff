@@ -509,7 +509,7 @@ public class ViewCodeNodeBuilder {
                 instructionMatch.getIAddress(ESide.SECONDARY)));
       }
 
-      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicblock(primaryBasicblockAddr);
+      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicBlock(primaryBasicblockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           primaryBasicblock.getInstructions().entrySet()) {
         if (basicblockMatch.getInstructionMatch(e.getKey(), ESide.PRIMARY) == null) {
@@ -517,7 +517,7 @@ public class ViewCodeNodeBuilder {
         }
       }
 
-      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicblock(secondaryBasicblockAddr);
+      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicBlock(secondaryBasicblockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           secondaryBasicblock.getInstructions().entrySet()) {
         if (basicblockMatch.getInstructionMatch(e.getKey(), ESide.SECONDARY) == null) {
@@ -525,13 +525,13 @@ public class ViewCodeNodeBuilder {
         }
       }
     } else if (primaryBasicblockAddr != null) {
-      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicblock(primaryBasicblockAddr);
+      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicBlock(primaryBasicblockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           primaryBasicblock.getInstructions().entrySet()) {
         instructionAddrPairs.add(new Pair<>(e.getKey(), null));
       }
     } else if (secondaryBasicblockAddr != null) {
-      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicblock(secondaryBasicblockAddr);
+      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicBlock(secondaryBasicblockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           secondaryBasicblock.getInstructions().entrySet()) {
         instructionAddrPairs.add(new Pair<>(null, e.getKey()));
@@ -837,9 +837,9 @@ public class ViewCodeNodeBuilder {
             functionMatch, combinedFlowgraph, priBasicblockAddr, secBasicblockAddr, ESide.PRIMARY);
 
     final RawBasicBlock priBasicblock =
-        combinedFlowgraph.getPrimaryFlowgraph().getBasicblock(priBasicblockAddr);
+        combinedFlowgraph.getPrimaryFlowgraph().getBasicBlock(priBasicblockAddr);
     final RawBasicBlock secBasicblock =
-        combinedFlowgraph.getSecondaryFlowgraph().getBasicblock(secBasicblockAddr);
+        combinedFlowgraph.getSecondaryFlowgraph().getBasicBlock(secBasicblockAddr);
 
     buildMatchedCodeNodeContent(
         priBasicblock, secBasicblock, instructionAddrPairs, basicblockContent, side);

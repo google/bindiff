@@ -45,23 +45,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
 public class GraphsMenu extends JMenu {
-  private JMenuItem graphSettings;
+  private final ViewTabPanelFunctions controller;
 
-  private JMenuItem HierarchicalLayout;
-  private JMenuItem orthogonalLayout;
-  private JMenuItem circularLayout;
+  final JMenuItem addMatch;
+  final JMenuItem deleteMatch;
 
-  private JMenuItem fitContent;
-  private JMenuItem zoomToSelected;
-  private final JMenuItem zoomIn;
-  private final JMenuItem zoomOut;
-
-  private JMenuItem deleteMatch;
-  private JMenuItem addMatch;
-
-  private ViewTabPanelFunctions controller;
-
-  private InternalGraphSelectionListener listener = new InternalGraphSelectionListener();
+  private final InternalGraphSelectionListener listener = new InternalGraphSelectionListener();
 
   public GraphsMenu(final ViewTabPanelFunctions controller) {
     super("Graphs");
@@ -87,7 +76,7 @@ public class GraphsMenu extends JMenu {
 
     setMnemonic('G');
 
-    graphSettings =
+    final JMenuItem graphSettings =
         GuiUtils.buildMenuItem(
             "Graph Settings",
             'G',
@@ -95,21 +84,21 @@ public class GraphsMenu extends JMenu {
             0,
             new ShowGraphSettingsDialogAction(controller));
 
-    HierarchicalLayout =
+    final JMenuItem hierarchicalLayout =
         GuiUtils.buildMenuItem(
             "Hierarchical Layout",
             'H',
             KeyEvent.VK_H,
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new HierarchicalGraphLayoutAction(controller));
-    orthogonalLayout =
+    final JMenuItem orthogonalLayout =
         GuiUtils.buildMenuItem(
             "Orthogonal Layout",
             'L',
             KeyEvent.VK_O,
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new OrthogonalGraphLayoutAction(controller));
-    circularLayout =
+    final JMenuItem circularLayout =
         GuiUtils.buildMenuItem(
             "Circular Layout",
             'C',
@@ -117,14 +106,14 @@ public class GraphsMenu extends JMenu {
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new CircularGraphLayoutAction(controller));
 
-    fitContent =
+    final JMenuItem fitContent =
         GuiUtils.buildMenuItem(
             "Fit Graph",
             'F',
             KeyEvent.VK_M,
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new FitGraphContentAction(controller));
-    zoomToSelected =
+    final JMenuItem zoomToSelected =
         GuiUtils.buildMenuItem(
             "Zoom to Selected",
             'Z',
@@ -132,11 +121,11 @@ public class GraphsMenu extends JMenu {
             CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new ZoomToSelectedAction(controller));
 
-    zoomIn =
+    final JMenuItem zoomIn =
         GuiUtils.buildMenuItem(
             "Zoom in", 'I', KeyEvent.VK_PLUS, CTRL_MASK, new ZoomInAction(controller));
 
-    zoomOut =
+    final JMenuItem zoomOut =
         GuiUtils.buildMenuItem(
             "Zoom out", 'O', KeyEvent.VK_MINUS, CTRL_MASK, new ZoomOutAction(controller));
 
@@ -145,22 +134,16 @@ public class GraphsMenu extends JMenu {
     addMatch = GuiUtils.buildMenuItem("Add Match", 'A', new AddNodeMatchAction(controller));
 
     add(graphSettings);
-
     add(new JSeparator());
-
-    add(HierarchicalLayout);
+    add(hierarchicalLayout);
     add(orthogonalLayout);
     add(circularLayout);
-
     add(new JSeparator());
-
     add(fitContent);
     add(zoomToSelected);
     add(zoomIn);
     add(zoomOut);
-
     add(new JSeparator());
-
     add(deleteMatch);
     add(addMatch);
 
@@ -184,18 +167,6 @@ public class GraphsMenu extends JMenu {
         .getCombinedGraph()
         .getIntermediateListeners()
         .removeIntermediateListener(listener);
-
-    controller = null;
-    listener = null;
-
-    graphSettings = null;
-    HierarchicalLayout = null;
-    orthogonalLayout = null;
-    circularLayout = null;
-    fitContent = null;
-    zoomToSelected = null;
-    deleteMatch = null;
-    addMatch = null;
   }
 
   private class InternalGraphSelectionListener implements IZyGraphSelectionListener {
@@ -246,30 +217,30 @@ public class GraphsMenu extends JMenu {
     public void selectionChanged() {
       final GraphsContainer graphs = controller.getGraphs();
 
-      boolean addAble = false;
-      boolean deleteAble = false;
+      boolean canAdd = false;
+      boolean canDelete = false;
 
       if (graphs.getPrimaryGraph().getNodes().size() != 0
           && graphs.getSecondaryGraph().getNodes().size() != 0) {
         if (controller.getGraphSettings().getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
-          addAble =
+          canAdd =
               countSelectedNodes(graphs.getPrimaryGraph(), false) == 1
                   && countSelectedNodes(graphs.getSecondaryGraph(), false) == 1;
-          deleteAble =
+          canDelete =
               countSelectedNodes(graphs.getPrimaryGraph(), true) > 0
                   || countSelectedNodes(graphs.getSecondaryGraph(), true) > 0;
         } else if (controller.getGraphSettings().getDiffViewMode() == EDiffViewMode.COMBINED_VIEW) {
           final CombinedGraph combinedGraph = graphs.getCombinedGraph();
 
-          addAble =
+          canAdd =
               countSelectedUnmatchedNodes(combinedGraph, ESide.PRIMARY) == 1
                   && countSelectedUnmatchedNodes(combinedGraph, ESide.SECONDARY) == 1;
-          deleteAble = countSelectedMatchedNodes(combinedGraph) > 0;
+          canDelete = countSelectedMatchedNodes(combinedGraph) > 0;
         }
       }
 
-      addMatch.setEnabled(addAble);
-      deleteMatch.setEnabled(deleteAble);
+      addMatch.setEnabled(canAdd);
+      deleteMatch.setEnabled(canDelete);
     }
   }
 }

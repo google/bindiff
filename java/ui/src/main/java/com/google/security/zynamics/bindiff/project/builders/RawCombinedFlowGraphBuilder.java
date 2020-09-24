@@ -60,7 +60,7 @@ public class RawCombinedFlowGraphBuilder {
           functionMatch.getSecondaryBasicblockAddr(priBasicBlockAddr);
       RawBasicBlock secondaryBasicBlock = null;
       if (secBasicBlockAddr != null) {
-        secondaryBasicBlock = secondaryFlowGraph.getBasicblock(secBasicBlockAddr);
+        secondaryBasicBlock = secondaryFlowGraph.getBasicBlock(secBasicBlockAddr);
       }
 
       final BasicBlockMatchData basicBlockMatch =

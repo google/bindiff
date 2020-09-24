@@ -62,6 +62,8 @@ public class BinDiff {
       Option.builder("c").longOpt("logtostderr").desc("Enable console logging").build();
   private static final Option FILE_LOGGING =
       Option.builder("f").longOpt("log_file").hasArg().argName("FILE").desc("Log to file").build();
+  private static final Option DEBUG_MENU =
+      Option.builder().longOpt("debug_menu").desc("Display the \"Debug\" menu").build();
 
   private static String workspaceFileName = null;
 
@@ -211,7 +213,11 @@ public class BinDiff {
 
   private static void parseCommandLine(final String[] args) {
     final Options flags =
-        new Options().addOption(HELP).addOption(CONSOLE_LOGGING).addOption(FILE_LOGGING);
+        new Options()
+            .addOption(HELP)
+            .addOption(CONSOLE_LOGGING)
+            .addOption(FILE_LOGGING)
+            .addOption(DEBUG_MENU);
     final CommandLine cmd;
     final String[] positional;
     try {
@@ -239,6 +245,10 @@ public class BinDiff {
       } catch (final IOException e) {
         logger.at(Level.WARNING).withCause(e).log("Could not create log file handler");
       }
+    }
+
+    if (cmd.hasOption(DEBUG_MENU.getLongOpt())) {
+      BinDiffConfig.getInstance().getDebugSettings().setShowMenu(true);
     }
 
     if (positional.length > 0) {
