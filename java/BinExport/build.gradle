@@ -30,7 +30,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.10'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.13'
     }
 }
 
@@ -40,14 +40,14 @@ configurations {
 }
 
 dependencies {
-    extraLibs 'com.google.protobuf:protobuf-java:3.10.0'
+    extraLibs 'com.google.protobuf:protobuf-java:3.13.0'
     configurations.implementation.extendsFrom(configurations.extraLibs)
 }
 
 protobuf {
-    // Configure the protoc executable.
+    // Configure the protoc executable
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.10.0'
+        artifact = 'com.google.protobuf:protoc:3.13.0'
     }
     // Make generator tasks visible in Eclipse.
     generateProtoTasks {
