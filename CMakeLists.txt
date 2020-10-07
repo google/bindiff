@@ -75,6 +75,11 @@ endif()
 
 configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
+# Plugin names for IDA Pro and Binary Ninja
+# TODO(cblichmann): Change IDA name when releasing BinExport 12
+set(binexport_ida_plugin_name binexport${binexport_VERSION_MAJOR})
+set(binexport_bn_plugin_name binexport${binexport_VERSION_MAJOR}_binaryninja)
+
 # Interface library with include paths used by BinExport
 add_library(binexport_base INTERFACE)
 target_include_directories(binexport_base INTERFACE
@@ -281,8 +286,7 @@ if(BINEXPORT_ENABLE_POSTGRESQL)
     database/query_builder.h
   )
 endif()
-set(binexport_plugin_name binexport${binexport_VERSION_MAJOR})
-add_ida_plugin(${binexport_plugin_name}
+add_ida_plugin(${binexport_ida_plugin_name}
   ${binexport_plugin_POSTGRESQL_SRCS}
   ida/arm.cc
   ida/arm.h
@@ -320,7 +324,7 @@ if(WIN32)
                                   ws2_32.lib
                                   wldap32.lib)
 endif()
-ida_target_link_libraries(${binexport_plugin_name}
+ida_target_link_libraries(${binexport_ida_plugin_name}
   absl::bad_optional_access
   absl::flat_hash_map
   absl::flat_hash_set
@@ -334,17 +338,33 @@ ida_target_link_libraries(${binexport_plugin_name}
   binexport_plugin_shared
   ${binexport_libraries}
 )
-set_ida_target_properties(${binexport_plugin_name}
+set_ida_target_properties(${binexport_ida_plugin_name}
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
-ida_install(TARGETS ${binexport_plugin_name}
+ida_install(TARGETS ${binexport_ida_plugin_name}
             ARCHIVE DESTINATION binexport-prefix
             RUNTIME DESTINATION binexport-prefix
             LIBRARY DESTINATION binexport-prefix)
 
-# Binary Ninja plugin (experimental)
-if(BinaryNinjaApi_FOUND)
+# Binary Ninja plugin (beta)
+if(BinaryNinjaApi_FOUND OR BinaryNinjaApi_ROOT_DIR)
+  if(BinaryNinjaApi_ROOT_DIR)
+    file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/binaryninjacore_empty.cc")
+    add_library(binaryninjacore_empty STATIC
+      "${CMAKE_CURRENT_BINARY_DIR}/binaryninjacore_empty.cc"
+    )
+    set(BN_CORE_LIBRARY binaryninjacore_empty)
+
+    add_subdirectory("${BinaryNinjaApi_ROOT_DIR}"
+                     "${CMAKE_BINARY_DIR}/binaryninja-api-build"
+                     EXCLUDE_FROM_ALL)
+    add_library(BinaryNinja::API ALIAS binaryninjaapi)
+  endif()
   add_subdirectory(binaryninja)
+  install(TARGETS ${binexport_bn_plugin_name}
+          ARCHIVE DESTINATION binexport-prefix
+          RUNTIME DESTINATION binexport-prefix
+          LIBRARY DESTINATION binexport-prefix)
 endif()
 
 # BinExport reader library
