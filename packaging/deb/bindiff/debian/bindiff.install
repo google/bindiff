@@ -4,6 +4,9 @@ files/opt/bindiff/bin/bindiff opt/bindiff/bin
 files/opt/bindiff/bin/bindiff-256x256-rgba.png opt/bindiff/bin
 files/opt/bindiff/bin/bindiff.jar opt/bindiff/bin
 files/opt/bindiff/bin/binexport2dump opt/bindiff/bin
+files/opt/bindiff/extra/binaryninja opt/bindiff/extra
+files/opt/bindiff/extra/binaryninja/README opt/bindiff/extra/binaryninja
+files/opt/bindiff/extra/binaryninja/binexport11_binaryninja.so opt/bindiff/extra/binaryninja
 files/opt/bindiff/extra/ghidra opt/bindiff/extra
 files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra

@@ -6,6 +6,7 @@
 override_dh_strip:
 	strip debian/bindiff/opt/bindiff/bin/bindiff \
 	    debian/bindiff/opt/bindiff/bin/binexport2dump \
+	    debian/bindiff/opt/bindiff/extra/binaryninja/*.so \
 	    debian/bindiff/opt/bindiff/plugins/*.so || true
 	chrpath -d debian/bindiff/opt/bindiff/bin/bindiff \
 	    debian/bindiff/opt/bindiff/bin/binexport2dump \

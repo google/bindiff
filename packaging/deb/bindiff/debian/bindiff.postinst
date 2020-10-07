@@ -20,7 +20,7 @@ set -e
 
 bindiff_root=/opt/bindiff
 bindiff_etc=/etc/opt/bindiff
-bindiff_release=6
+bindiff_release=7
 binexport_release=11
 
 case "$1" in
