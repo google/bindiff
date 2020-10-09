@@ -349,11 +349,13 @@ ida_install(TARGETS ${binexport_ida_plugin_name}
 # Binary Ninja plugin (beta)
 if(BinaryNinjaApi_FOUND OR BinaryNinjaApi_ROOT_DIR)
   if(BinaryNinjaApi_ROOT_DIR)
-    file(TOUCH "${CMAKE_CURRENT_BINARY_DIR}/binaryninjacore_empty.cc")
-    add_library(binaryninjacore_empty STATIC
-      "${CMAKE_CURRENT_BINARY_DIR}/binaryninjacore_empty.cc"
+    add_library(binaryninjacore SHARED
+      third_party/binaryninja_api/binaryninjacore.cc
     )
-    set(BN_CORE_LIBRARY binaryninjacore_empty)
+    target_include_directories(binaryninjacore PRIVATE
+      ${BinaryNinjaApi_INCLUDE_DIRS}
+    )
+    set(BN_CORE_LIBRARY binaryninjacore)
 
     add_subdirectory("${BinaryNinjaApi_ROOT_DIR}"
                      "${CMAKE_BINARY_DIR}/binaryninja-api-build"
