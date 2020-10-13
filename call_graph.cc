@@ -243,7 +243,7 @@ void CallGraph::FoldComments() {
       *(++result) = *first;
     } else {
       std::string accumulated_comment(*result->comment_);
-      while (AreDuplicateRegularComments(*result, *first)) {
+      while (first != last && AreDuplicateRegularComments(*result, *first)) {
         accumulated_comment.append("\n");
         accumulated_comment.append(*first->comment_);
         ++first;
