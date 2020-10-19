@@ -1,5 +1,7 @@
 #!/bin/bash
-set -eux
+
+# Exit on error, unbound variables
+set -eu
 
 bindiff_release=7
 binexport_release=11
@@ -10,40 +12,16 @@ function log() {
 
 log "Starting"
 
-# Temporary file created by the installer plugin that contains a single line
-# with the IDA plugins directory.
-TMPFILE=/tmp/__38F74084-9DF1-4C5D-91E1-0E63780ADC57_zy__
-
-# If the file does not exist, bail out
-[ ! -f "${TMPFILE}" ] && exit 1
-log "TMPFILE: ${TMPFILE}"
-
-# Schedule file to be removed at end of script
-trap "rm -f \"${TMPFILE}\"" INT TERM EXIT
+log "Environment:"
+env | while read line; do log "  ${line}"; done
 
 # If the application directory does not exist, exit
 APP_DIR=/Applications/BinDiff
 cd "${APP_DIR}" || exit 2
-log "Got APP_DIR: ${APP_DIR}"
+CONFIG_FILE="/Library/Application Support/BinDiff/bindiff.xml"
 
-# If the plugins directory does not exist, exit
-IDA_DIR=$(sed 's,/plugins$,,' ${TMPFILE})
-IDA_PLUGINS_DIR=$(cat ${TMPFILE})
-if [ -d "${IDA_PLUGINS_DIR}" ]; then
-  # Create symlinks for the IDA Pro plugins/differ
-  for plugin in \
-    bindiff${bindiff_release}.dylib \
-    bindiff${bindiff_release}64.dylib \
-    binexport${binexport_release}.dylib \
-    binexport${binexport_release}64.dylib
-  do
-    log "Symlink ${APP_DIR}/Plugins/${plugin} -> ${IDA_PLUGINS_DIR}/"
-    chmod +x "${APP_DIR}/Plugins/${plugin}"
-    ln -sf "${APP_DIR}/Plugins/${plugin}" "${IDA_PLUGINS_DIR}/"
-  done
-else
-  log "No IDA installation, skipping plugin symlinks"
-fi
+LOGGED_IN_UID=$(id -u "${USER}")
+log "LOGGED_IN_UID: ${LOGGED_IN_UID}"
 
 BUNDLE_DIR="${APP_DIR}/BinDiff.app/Contents"
 for exe in \
@@ -54,21 +32,58 @@ do
   chmod +x "${BUNDLE_DIR}/MacOS/bin/${exe}"
   ln -sf "${BUNDLE_DIR}/MacOS/bin/${exe}" /usr/local/bin/
 done
-log "Symlink ${BUNDLE_DIR}/MacOS/bin -> ${PWD}/bin"
-ln -sf "${BUNDLE_DIR}/MacOS/bin" bin
 
 # Setup install location in config file.
 log "Adjusting config file for BINDIFF_DIR: ${BUNDLE_DIR}/app"
-sed -i "" "s,BINDIFF_DIR,${BUNDLE_DIR}/app," \
-  "/Library/Application Support/BinDiff/bindiff.xml"
+sed -i "" "s,BINDIFF_DIR,${BUNDLE_DIR}/app," "${CONFIG_FILE}"
 
-log "Adjusting config file for IDADIR: ${IDA_DIR}"
+# Pre-populate the IDA Pro installation path, looking for the latest version.
+IDA_DIR=$(mdfind kMDItemCFBundleIdentifier==com.hexrays.ida64 | \
+  sort -r | head -n 1)/Contents/MacOS
 if [ -d "${IDA_DIR}" ]; then
+  log "Adjusting config file for IDADIR: ${IDA_DIR}"
   escidadir=$(echo ${IDA_DIR} | sed 's/\//\\\//g')
-  sed -i "" "s/IDADIR/${escidadir}/" \
-    "/Library/Application Support/BinDiff/bindiff.xml"
+  sed -i "" "s/IDADIR/${escidadir}/" "${CONFIG_FILE}"
 else
-  log "No IDA installation, skipping config change for IDADIR"
+  log "No installation of IDA Pro found, skipping config change for IDADIR"
+fi
+
+# Create symlinks for the IDA Pro plugins. These get recreated on each log in,
+# if they don't exist.
+# Note the double escape below, first bash, then sed.
+load_cmd="mkdir -p \"\${HOME}/.idapro/plugins\" \\&\\& "
+load_cmd+="cd \"\${HOME}/.idapro/plugins\""
+for plugin in \
+  "bindiff${bindiff_release}.dylib" \
+  "bindiff${bindiff_release}64.dylib" \
+  "binexport${binexport_release}.dylib" \
+  "binexport${binexport_release}64.dylib"
+do
+  load_cmd+=" \\&\\& ("
+  load_cmd+="[ ! -f "${plugin}" ] \\&\\& "
+  load_cmd+="ln -sf \"${APP_DIR}/Plugins/IDA Pro/${plugin}\" ${plugin}"
+  load_cmd+=")"
+done
+log "Adjusting launch agent file: ${load_cmd}"
+sed -i "" "s,LOAD_CMD,${load_cmd}," \
+  /Library/LaunchAgents/com.google.security.zynamics.bindiff.plist
+
+if [ -z "${COMMAND_LINE_INSTALL+x}" ]; then
+  # Remove all previous plugins once. This allows users to
+  # customize/overwrite later. HOME is only valid for non-root,
+  # UI installs.
+  log "Interactive install, removing old plugins once"
+  rm -f "${HOME}/.idapro/plugins/"{bindiff,binexport}*.dylib
+
+  log "Running launchctl as current user for final config"
+  /bin/launchctl asuser "${LOGGED_IN_UID}" \
+    /bin/launchctl unload \
+    -F /Library/LaunchAgents/com.google.security.zynamics.bindiff.plist
+  /bin/launchctl asuser "${LOGGED_IN_UID}" \
+    /bin/launchctl load \
+    -F /Library/LaunchAgents/com.google.security.zynamics.bindiff.plist
+else
+  log "Command line install, skipping launchctl"
 fi
 
 log "Finished"

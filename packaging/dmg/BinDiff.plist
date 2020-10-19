@@ -8,7 +8,8 @@
       <key>BundleIsRelocatable</key>
       <false/>
       <key>BundleIsVersionChecked</key>
-      <true/>
+      <!-- Allow users to downgrade -->
+      <false/>
       <key>BundleOverwriteAction</key>
       <string>upgrade</string>
       <key>RootRelativeBundlePath</key>

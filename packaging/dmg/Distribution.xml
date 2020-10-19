@@ -2,8 +2,9 @@
 <installer-gui-script minSpecVersion="2">
   <title>BinDiff</title>
   <allowed-os-versions>
-    <os-version min="10.12"/>
+    <os-version min="10.13"/>
   </allowed-os-versions>
+
   <welcome file="welcome.rtf"/>
   <background alignment="bottomleft" file="background.tiff" scaling="proportional"/>
   <license file="license.rtf"/>
