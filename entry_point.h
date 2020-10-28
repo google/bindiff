@@ -45,6 +45,7 @@ class EntryPoint {
     ENTRY_POINT_FILE,   // Entry point text file
     PE64_EXCEPTION_INFO,
     MSIL_EXCEPTION_RECORD,
+    GOLANG_TYPE_INFO,
   };
 
   EntryPoint(Address address, EntryPoint::Source source);
