@@ -1251,6 +1251,12 @@ Plugin::LoadStatus Plugin::Init() {
         << "Error: Could not load configuration file, skipping BinDiff plugin.";
     return PLUGIN_SKIP;
   }
+  DLOG(INFO) << "New-style config version: " << config::Proto().version();
+  if (auto& config = config::Proto(); config.ida().directory().empty()) {
+    config.mutable_ida()->set_directory(idadir(/*subdir=*/nullptr));
+    config::SaveUserConfig(config).IgnoreError();
+  }
+
   InitActions();
   InitMenus();
   init_done_ = true;

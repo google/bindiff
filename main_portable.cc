@@ -14,6 +14,7 @@
 
 // Command-line version of BinDiff.
 
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <csignal>
@@ -52,6 +53,7 @@
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
+#include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/synchronization/mutex.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
@@ -88,6 +90,8 @@ ABSL_FLAG(bool, export, false,
 ABSL_FLAG(bool, ls, false,
           "list hash/filenames for all .BinExport files in input directory");
 ABSL_FLAG(std::string, config, "", "specify config file name");
+ABSL_FLAG(bool, print_config, false,
+          "Print parsed configuration to stdout and exit");
 
 namespace security::bindiff {
 
@@ -601,7 +605,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
   SetLogHandler(&UnprefixedLogHandler);
 #endif
 
-  if (!absl::GetFlag(FLAGS_nologo)) {
+  if (!absl::GetFlag(FLAGS_nologo) && !absl::GetFlag(FLAGS_print_config)) {
     PrintMessage(absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, ", ",
                               kBinDiffCopyright));
   }
@@ -612,6 +616,17 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
           ? config->LoadFromFileWithDefaults(absl::GetFlag(FLAGS_config),
                                              std::string(kDefaultConfig))
           : InitConfig());
+
+  // Print configuration to stdout if requested
+  if (absl::GetFlag(FLAGS_print_config)) {
+    const std::string config = config::AsJsonString(config::Proto());
+    const std::vector<absl::string_view> lines = absl::StrSplit(config, '\n');
+    if (lines.front().empty()) {
+      return absl::InternalError("Serialization error");
+    }
+    std::for_each(lines.begin(), lines.end(), PrintMessage);
+    return absl::OkStatus();
+  }
 
   // Launch Java UI if requested
   if (binary_name == "bindiff_ui" || absl::GetFlag(FLAGS_ui)) {

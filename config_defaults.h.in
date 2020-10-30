@@ -1,0 +1,37 @@
+// Copyright 2011-2020 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#ifndef THIRD_PARTY_ZYNAMICS_BINDIFF_CONFIG_DEFAULTS_H_
+#define THIRD_PARTY_ZYNAMICS_BINDIFF_CONFIG_DEFAULTS_H_
+
+#include "third_party/absl/strings/string_view.h"
+
+namespace security::bindiff::config {
+
+// BinDiff default configuration
+//
+// Disabled by default for functions:
+// {"confidence": 0.7, "algorithm": "function: edges proximity MD index"}
+//
+// Colors are Google Material colors:
+// Deep Orange (500) -> Google Yellow (A700) -> Light Green (A400)
+// Manual matches are Light Blue (900)
+//
+// The color ramp has been generated using:
+// https://gka.github.io/palettes/#/256|s|ff5722,ff9e00,84fa02|ffffe0,ff005e,93003a|1|1
+inline constexpr absl::string_view kDefaultJson = R"raw(@bindiff_BINDIFF_JSON@)raw";
+
+}  // namespace security::bindiff::config
+
+#endif  // THIRD_PARTY_ZYNAMICS_BINDIFF_CONFIG_DEFAULTS_H_

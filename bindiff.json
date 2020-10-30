@@ -1,0 +1,502 @@
+{
+ "version": 7,
+ "ui": {
+  "java_binary": "",
+  "java_vm_option": [],
+  "max_heap_size_mb": 0,
+  "directory": "",
+  "server": "127.0.0.1",
+  "port": 2000,
+  "retries": 20
+ },
+ "num_threads": 0,
+ "log": {
+  "level": "INFO",
+  "to_stderr": false,
+  "directory": ""
+ },
+ "function_matching": {
+  "function: call sequence matching(topology)": {
+   "confidence": 0
+  },
+  "function: call sequence matching(exact)": {
+   "confidence": 0.1
+  },
+  "function: MD index matching (callGraph MD index, bottom up)": {
+   "confidence": 0.8
+  },
+  "function: MD index matching (flowgraph MD index, bottom up)": {
+   "confidence": 0.9
+  },
+  "function: MD index matching (flowgraph MD index, top down)": {
+   "confidence": 0.9
+  },
+  "function: call sequence matching(sequence)": {
+   "confidence": 0
+  },
+  "function: address sequence": {
+   "confidence": 0.4
+  },
+  "function: string references": {
+   "confidence": 0.7
+  },
+  "function: instruction count": {
+   "confidence": 0.4
+  },
+  "function: hash matching": {
+   "confidence": 1
+  },
+  "function: edges callgraph MD index": {
+   "confidence": 0.9
+  },
+  "function: MD index matching (callGraph MD index, top down)": {
+   "confidence": 0.8
+  },
+  "function: edges flowgraph MD index": {
+   "confidence": 1
+  },
+  "function: prime signature matching": {
+   "confidence": 0.9
+  },
+  "function: name hash matching": {
+   "confidence": 1
+  },
+  "function: relaxed MD index matching": {
+   "confidence": 0.7
+  },
+  "function: loop count matching": {
+   "confidence": 0.6
+  }
+ },
+ "basic_block_matching": {
+  "basicBlock: entry point matching": {
+   "confidence": 0.2
+  },
+  "basicBlock: edges Lengauer Tarjan dominated": {
+   "confidence": 0.4
+  },
+  "basicBlock: edges MD index (top down)": {
+   "confidence": 0.7
+  },
+  "basicBlock: prime matching (0 instructions minimum)": {
+   "confidence": 0.5
+  },
+  "basicBlock: edges MD index (bottom up)": {
+   "confidence": 0.7
+  },
+  "basicBlock: prime matching (4 instructions minimum)": {
+   "confidence": 0.9
+  },
+  "basicBlock: hash matching (4 instructions minimum)": {
+   "confidence": 1
+  },
+  "basicBlock: call reference matching": {
+   "confidence": 0.8
+  },
+  "basicBlock: string references matching": {
+   "confidence": 0.8
+  },
+  "basicBlock: relaxed MD index matching": {
+   "confidence": 0.6
+  },
+  "basicBlock: loop entry matching": {
+   "confidence": 0.4
+  },
+  "basicBlock: self loop matching": {
+   "confidence": 0.3
+  },
+  "basicBlock: edges prime product": {
+   "confidence": 1
+  },
+  "basicBlock: MD index matching (bottom up)": {
+   "confidence": 0.7
+  },
+  "basicBlock: MD index matching (top down)": {
+   "confidence": 0.7
+  },
+  "basicBlock: instruction count matching": {
+   "confidence": 0
+  },
+  "basicBlock: exit point matching": {
+   "confidence": 0.1
+  },
+  "basicBlock: jump sequence matching": {
+   "confidence": 0
+  }
+ },
+ "themes": {
+  "Google Material": {
+   "similarity_ramp": [
+    "#ff5722",
+    "#ff5722",
+    "#ff5922",
+    "#ff5922",
+    "#ff5a22",
+    "#ff5b21",
+    "#ff5b21",
+    "#ff5c21",
+    "#ff5d21",
+    "#ff5e21",
+    "#ff5f21",
+    "#ff5f21",
+    "#ff5f21",
+    "#ff6120",
+    "#ff6120",
+    "#ff6220",
+    "#ff6220",
+    "#ff6320",
+    "#ff6420",
+    "#ff6520",
+    "#ff661f",
+    "#ff671f",
+    "#ff661f",
+    "#ff671f",
+    "#ff681f",
+    "#ff691f",
+    "#ff691f",
+    "#ff6a1e",
+    "#ff6b1e",
+    "#ff6c1e",
+    "#fe6c1e",
+    "#fe6d1e",
+    "#fe6f1e",
+    "#fe6f1e",
+    "#fe701d",
+    "#fe711d",
+    "#fe701d",
+    "#fe721d",
+    "#fe721d",
+    "#fe731d",
+    "#fe731d",
+    "#fe741d",
+    "#fd751c",
+    "#fe751c",
+    "#fd761c",
+    "#fd771c",
+    "#fd771c",
+    "#fd791b",
+    "#fd791b",
+    "#fd7a1b",
+    "#fd7a1b",
+    "#fd7a1b",
+    "#fc7c1b",
+    "#fc7d1b",
+    "#fc7d1a",
+    "#fc7e1a",
+    "#fc7f1a",
+    "#fc7f1a",
+    "#fc7f1a",
+    "#fb811a",
+    "#fb8119",
+    "#fb8119",
+    "#fb8319",
+    "#fb8219",
+    "#fb8419",
+    "#fb8419",
+    "#fa8518",
+    "#fa8618",
+    "#fa8718",
+    "#fa8718",
+    "#fa8818",
+    "#fa8718",
+    "#f98a17",
+    "#f98917",
+    "#f98b17",
+    "#f98a17",
+    "#f98c17",
+    "#f88d17",
+    "#f88c17",
+    "#f88d16",
+    "#f88e16",
+    "#f78f16",
+    "#f79016",
+    "#f79015",
+    "#f79115",
+    "#f79215",
+    "#f69215",
+    "#f69215",
+    "#f69315",
+    "#f69415",
+    "#f59514",
+    "#f59514",
+    "#f59614",
+    "#f49714",
+    "#f49714",
+    "#f49813",
+    "#f49813",
+    "#f49913",
+    "#f39a13",
+    "#f39a13",
+    "#f39b13",
+    "#f29c12",
+    "#f29d12",
+    "#f29d12",
+    "#f19e12",
+    "#f19e11",
+    "#f19f11",
+    "#f0a011",
+    "#f1a011",
+    "#f0a011",
+    "#f0a111",
+    "#efa210",
+    "#efa210",
+    "#efa410",
+    "#eea410",
+    "#eea510",
+    "#eea50f",
+    "#eda60f",
+    "#eda70f",
+    "#eda80f",
+    "#eca90e",
+    "#eca80e",
+    "#eca90e",
+    "#eba90e",
+    "#ebaa0e",
+    "#ebab0e",
+    "#eaac0d",
+    "#eaac0d",
+    "#e9ad0d",
+    "#e9ad0d",
+    "#e8ae0c",
+    "#e8af0c",
+    "#e8af0c",
+    "#e7b00b",
+    "#e7b10b",
+    "#e6b20b",
+    "#e6b20b",
+    "#e6b20b",
+    "#e5b30a",
+    "#e5b30a",
+    "#e4b50a",
+    "#e4b50a",
+    "#e3b609",
+    "#e3b709",
+    "#e3b709",
+    "#e2b709",
+    "#e1b809",
+    "#e1b908",
+    "#e1ba08",
+    "#e1b908",
+    "#dfbb08",
+    "#dfbb08",
+    "#debc07",
+    "#debc07",
+    "#debe07",
+    "#debd07",
+    "#ddbe07",
+    "#ddbe07",
+    "#dbc006",
+    "#dbc006",
+    "#dac206",
+    "#dac106",
+    "#dac206",
+    "#d9c205",
+    "#d8c405",
+    "#d8c405",
+    "#d7c405",
+    "#d7c504",
+    "#d7c504",
+    "#d6c604",
+    "#d5c804",
+    "#d5c704",
+    "#d4c904",
+    "#d3c903",
+    "#d3ca03",
+    "#d2cb03",
+    "#d2ca03",
+    "#d1cc03",
+    "#d0cd03",
+    "#d0cc03",
+    "#d0cc03",
+    "#cfcd02",
+    "#cece02",
+    "#cdcf02",
+    "#cbd002",
+    "#cbd102",
+    "#cbd002",
+    "#cad202",
+    "#cad102",
+    "#c9d301",
+    "#c8d401",
+    "#c7d401",
+    "#c7d501",
+    "#c5d601",
+    "#c5d601",
+    "#c4d701",
+    "#c3d800",
+    "#c3d700",
+    "#c2d800",
+    "#c2d800",
+    "#c0da00",
+    "#bfda00",
+    "#bfda00",
+    "#bedc00",
+    "#bedb00",
+    "#bcdd00",
+    "#bbde00",
+    "#bbdd00",
+    "#bade00",
+    "#bade00",
+    "#b8e000",
+    "#b7e100",
+    "#b7e100",
+    "#b5e100",
+    "#b5e100",
+    "#b4e300",
+    "#b4e200",
+    "#b2e400",
+    "#b1e400",
+    "#b1e400",
+    "#afe600",
+    "#aee600",
+    "#ade600",
+    "#ace800",
+    "#ace700",
+    "#aae900",
+    "#aae800",
+    "#a8e900",
+    "#a6eb00",
+    "#a6ea00",
+    "#a4eb00",
+    "#a4ec00",
+    "#a3ed00",
+    "#a1ee00",
+    "#a1ee00",
+    "#a1ed00",
+    "#9fee00",
+    "#9def00",
+    "#9def00",
+    "#9bf000",
+    "#98f200",
+    "#98f200",
+    "#96f300",
+    "#96f300",
+    "#94f301",
+    "#94f401",
+    "#92f401",
+    "#8ff601",
+    "#8ff601",
+    "#8df601",
+    "#8cf701",
+    "#8bf701",
+    "#88f802",
+    "#88f902",
+    "#85fa02",
+    "#84fa02"
+   ],
+   "manual_match": "#01579b",
+   "text": "#000000",
+   "address": "#000000",
+   "mnemonic": "#000080",
+   "symbol": "#940707",
+   "immediate": "#8c0000",
+   "operator": "#010101",
+   "register": "#0067e9",
+   "size_prefix": "#9f9e9e",
+   "dereference": "#010101",
+   "operator_separator": "#000000",
+   "stack_variable": "#8c0000",
+   "global_variable": "#8c0000",
+   "jump_label": "#a000a0",
+   "function": "#8c0000",
+   "comment": "#646464",
+   "background": [
+    "#ffffff"
+   ],
+   "background_primary": [
+    "#ffffff"
+   ],
+   "background_secondary": [
+    "#ffffff"
+   ],
+   "ui": {
+    "family": "Roboto",
+    "size": 13
+   },
+   "code": {
+    "family": "Roboto Mono",
+    "size": 13
+   }
+  }
+ },
+ "preferences": {
+  "default_workspace": "",
+  "layout": {
+   "x": 100,
+   "y": 100,
+   "width": 1200,
+   "height": 900,
+   "screen_width": 0,
+   "screen_height": 0,
+   "maximized": false,
+   "divider_position": 300
+  },
+  "use_theme": "Google Material",
+  "call_graph_options": {
+   "layout": "HIERARCHICAL",
+   "auto_layout": true,
+   "draw_bends": false,
+   "animation_speed": 4,
+   "hierarchical_options": {
+    "style": "DEFAULT",
+    "orientation": "VERTICAL",
+    "min_layer_distance": 50,
+    "min_node_distance": 25
+   },
+   "orthogonal_options": {
+    "style": "DEFAULT",
+    "orientation": "VERTICAL",
+    "min_node_distance": 25
+   },
+   "circular_options": {
+    "style": "COMPACT",
+    "min_node_distance": 50
+   },
+   "proximity_browsing": {
+    "enabled": true,
+    "auto_enable_threshold": 300,
+    "child_depth": 1,
+    "parent_depth": 1,
+    "visibility_warn_threshold": 400
+   },
+   "scroll_sensitivity": 9,
+   "show_scrollbars": false,
+   "zoom_sensitivity": 10,
+   "wheel_action": "SCROLL",
+   "view_synchronization": true
+  },
+  "flow_graph_options": {
+   "layout": "HIERARCHICAL",
+   "auto_layout": true,
+   "draw_bends": false,
+   "animation_speed": 5,
+   "hierarchical_options": {
+    "style": "ORTHOGONAL_EDGE_ROUTING",
+    "orientation": "VERTICAL",
+    "min_layer_distance": 50,
+    "min_node_distance": 25
+   },
+   "orthogonal_options": {
+    "style": "DEFAULT",
+    "orientation": "HORIZONTAL",
+    "min_node_distance": 25
+   },
+   "circular_options": {
+    "style": "COMPACT",
+    "min_node_distance": 50
+   },
+   "proximity_browsing": {
+    "enabled": true,
+    "auto_enable_threshold": 200,
+    "child_depth": 2,
+    "parent_depth": 2,
+    "visibility_warn_threshold": 300
+   },
+   "scroll_sensitivity": 4,
+   "show_scrollbars": false,
+   "zoom_sensitivity": 4,
+   "wheel_action": "SCROLL",
+   "view_synchronization": true
+  }
+ }
+}

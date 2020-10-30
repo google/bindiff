@@ -76,8 +76,6 @@ else()
   set(REVISION internal)
 endif()
 
-configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
-
 # Interface library with include paths used by BinDiff
 add_library(bindiff_base INTERFACE)
 target_include_directories(bindiff_base INTERFACE
@@ -149,23 +147,53 @@ endif()
 set_target_properties(binexport_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
-# XML configuration library
-add_library(xmlconfig STATIC xmlconfig.cc
-                             xmlconfig.h)
-target_link_libraries(xmlconfig
+# Version information
+configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
+
+add_library(bindiff_version STATIC
+  version.h
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
+)
+target_link_libraries(bindiff_version
+  absl::strings
+  absl::time
+  bindiff_base
+)
+set_target_properties(bindiff_version PROPERTIES
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
+
+# Configuration library
+file(READ bindiff.json bindiff_BINDIFF_JSON)
+configure_file(config_defaults.h.in config_defaults.h @ONLY)
+
+protobuf_generate_cpp(bd_config_proto bd_config_proto_h
+  bindiff_config.proto
+)
+
+add_library(bindiff_config STATIC
+  ${bd_config_proto_h}
+  ${bd_config_proto}
+  config.cc
+  config.h
+  ${CMAKE_CURRENT_BINARY_DIR}/config_defaults.h
+  xmlconfig.cc
+  xmlconfig.h
+)
+target_link_libraries(bindiff_config
+  bindiff_version
   binexport_shared
   absl::flat_hash_map
   absl::hash
   absl::status
   tinyxpath
 )
-set_target_properties(xmlconfig PROPERTIES
+set_target_properties(bindiff_config PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
 add_executable(xmlconfig_test xmlconfig_test.cc)
 target_link_libraries(xmlconfig_test
   bindiff_test_base
-  xmlconfig
+  bindiff_config
 )
 gtest_discover_tests(xmlconfig_test)
 
@@ -203,8 +231,6 @@ add_library(bindiff_shared STATIC
   change_classifier.cc
   change_classifier.h
   comments.h
-  config.cc
-  config.h
   database_writer.cc
   database_writer.h
   differ.cc
@@ -260,8 +286,6 @@ add_library(bindiff_shared STATIC
   start_ui.cc
   statistics.h
   start_ui.h
-  version.h
-  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
   writer.cc
   writer.h
 )
@@ -272,7 +296,9 @@ target_link_libraries(bindiff_shared
   absl::strings
   binexport_shared
   sqlite
-  xmlconfig)
+  bindiff_version
+  bindiff_config
+)
 set_target_properties(bindiff_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
