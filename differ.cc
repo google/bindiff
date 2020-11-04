@@ -534,7 +534,7 @@ double GetSimilarityScore(const CallGraph& call_graph1,
       (std::max(1.0, 0.5 * (counts[Counts::kBasicBlocksPrimaryNonLibrary] +
                             counts[Counts::kBasicBlocksSecondaryNonLibrary])));
   similarity +=
-      0.10 * counts[Counts::kInstructionMatchesNonLibrary] /
+      0.10 * counts[Counts::kFunctionMatchesNonLibrary] /
       (std::max(1.0, 0.5 * (counts[Counts::kFunctionsPrimaryNonLibrary] +
                             counts[Counts::kFunctionsSecondaryNonLibrary])));
   similarity +=
@@ -542,9 +542,9 @@ double GetSimilarityScore(const CallGraph& call_graph1,
       (std::max(1.0, 0.5 * (counts[Counts::kInstructionsPrimaryNonLibrary] +
                             counts[Counts::kInstructionsSecondaryNonLibrary])));
   similarity +=
-      0.20 * (1.0 -
-              std::fabs(call_graph1.GetMdIndex() - call_graph2.GetMdIndex()) /
-                  (1.0 + call_graph1.GetMdIndex() + call_graph2.GetMdIndex()));
+      0.20 *
+      (1.0 - std::fabs(call_graph1.GetMdIndex() - call_graph2.GetMdIndex()) /
+                 (1.0 + call_graph1.GetMdIndex() + call_graph2.GetMdIndex()));
   similarity = std::min(similarity, 1.0);
 
   Confidences confidences;
