@@ -101,53 +101,6 @@ using ::security::binexport::HumanReadableDuration;
 using ::security::binexport::IdbExporter;
 using ::security::binexport::kBinExportExtension;
 
-// BinDiff default configuration.
-ABSL_CONST_INIT const absl::string_view kDefaultConfig =
-    R"raw(<?xml version="1.0"?>
-<bindiff config-version="6">
-  <ui server="127.0.0.1" port="2000" retries="20" />
-  <function-matching>
-    <step confidence="1.0" algorithm="function: name hash matching" />
-    <step confidence="1.0" algorithm="function: hash matching" />
-    <step confidence="1.0" algorithm="function: edges flowgraph MD index" />
-    <step confidence="0.9" algorithm="function: edges callgraph MD index" />
-    <step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, top down)" />
-    <step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, bottom up)" />
-    <step confidence="0.9" algorithm="function: prime signature matching" />
-    <step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, top down)" />
-    <step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, bottom up)" />
-    <!-- <step confidence="0.7" algorithm="function: edges proximity MD index" /> -->
-    <step confidence="0.7" algorithm="function: relaxed MD index matching" />
-    <step confidence="0.4" algorithm="function: instruction count" />
-    <step confidence="0.4" algorithm="function: address sequence" />
-    <step confidence="0.7" algorithm="function: string references" />
-    <step confidence="0.6" algorithm="function: loop count matching" />
-    <step confidence="0.1" algorithm="function: call sequence matching(exact)" />
-    <step confidence="0.0" algorithm="function: call sequence matching(topology)" />
-    <step confidence="0.0" algorithm="function: call sequence matching(sequence)" />
-  </function-matching>
-  <basic-block-matching>
-    <step confidence="1.0" algorithm="basicBlock: edges prime product" />
-    <step confidence="1.0" algorithm="basicBlock: hash matching (4 instructions minimum)" />
-    <step confidence="0.9" algorithm="basicBlock: prime matching (4 instructions minimum)" />
-    <step confidence="0.8" algorithm="basicBlock: call reference matching" />
-    <step confidence="0.8" algorithm="basicBlock: string references matching" />
-    <step confidence="0.7" algorithm="basicBlock: edges MD index (top down)" />
-    <step confidence="0.7" algorithm="basicBlock: MD index matching (top down)" />
-    <step confidence="0.7" algorithm="basicBlock: edges MD index (bottom up)" />
-    <step confidence="0.7" algorithm="basicBlock: MD index matching (bottom up)" />
-    <step confidence="0.6" algorithm="basicBlock: relaxed MD index matching" />
-    <step confidence="0.5" algorithm="basicBlock: prime matching (0 instructions minimum)" />
-    <step confidence="0.4" algorithm="basicBlock: edges Lengauer Tarjan dominated" />
-    <step confidence="0.4" algorithm="basicBlock: loop entry matching" />
-    <step confidence="0.3" algorithm="basicBlock: self loop matching" />
-    <step confidence="0.2" algorithm="basicBlock: entry point matching" />
-    <step confidence="0.1" algorithm="basicBlock: exit point matching" />
-    <step confidence="0.0" algorithm="basicBlock: instruction count matching" />
-    <step confidence="0.0" algorithm="basicBlock: jump sequence matching" />
-  </basic-block-matching>
-</bindiff>)raw";
-
 ABSL_CONST_INIT absl::Mutex g_queue_mutex(absl::kConstInit);
 std::atomic<bool> g_wants_to_quit = ATOMIC_VAR_INIT(false);
 
@@ -413,16 +366,16 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
     idbs = std::move(idbs_or).value();
   }
 
-  const auto* config = GetConfig();
-  const int num_threads = config->ReadInt("/bindiff/threads/@use",
-                                          std::thread::hardware_concurrency());
-  IdbExporter exporter(
-      IdbExporter::Options()
-          .set_export_dir(full_out_path)
-          .set_num_threads(num_threads)
-          .set_ida_dir(config->ReadString("/bindiff/ida/@directory", ""))
-          .set_ida_exe(config->ReadString("/bindiff/ida/@executable", ""))
-          .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", "")));
+  const auto& config = config::Proto();
+  const int num_threads = config.num_threads() > 0
+                              ? config.num_threads()
+                              : std::thread::hardware_concurrency();
+  IdbExporter exporter(IdbExporter::Options()
+                           .set_export_dir(full_out_path)
+                           .set_num_threads(num_threads)
+                           .set_ida_dir(config.ida().directory())
+                           .set_ida_exe(config.ida().executable())
+                           .set_ida_exe64(config.ida().executable64()));
   for (const std::string& idb : idbs) {
     const std::string full_idb_path = JoinPath(full_path, idb);
     if (GetFileSize(full_idb_path).value_or(0) > 0) {
@@ -610,12 +563,13 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
                               kBinDiffCopyright));
   }
 
-  auto config = GetConfig();
-  NA_RETURN_IF_ERROR(
-      !absl::GetFlag(FLAGS_config).empty()
-          ? config->LoadFromFileWithDefaults(absl::GetFlag(FLAGS_config),
-                                             std::string(kDefaultConfig))
-          : InitConfig());
+  auto& config = config::Proto();
+  if (!absl::GetFlag(FLAGS_config).empty()) {
+    NA_ASSIGN_OR_RETURN(auto loaded_config,
+                        config::LoadFromFile(absl::GetFlag(FLAGS_config)));
+    config = config::Defaults();
+    config.MergeFrom(loaded_config);
+  }
 
   // Print configuration to stdout if requested
   if (absl::GetFlag(FLAGS_print_config)) {
@@ -631,14 +585,11 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
   // Launch Java UI if requested
   if (binary_name == "bindiff_ui" || absl::GetFlag(FLAGS_ui)) {
     NA_RETURN_IF_ERROR(StartUiWithOptions(
-        positional,
-        StartUiOptions{}
-            .set_java_binary(config->ReadString("/bindiff/ui/@java-binary", ""))
-            .set_java_vm_options(
-                config->ReadString("/bindiff/ui/@java-vm-options", ""))
-            .set_max_heap_size_mb(
-                config->ReadInt("/bindiff/ui/@max-heap-size-mb", -1))
-            .set_gui_dir(config->ReadString("/bindiff/ui/@directory", ""))));
+        positional, StartUiOptions{}
+                        .set_java_binary(config.ui().java_binary())
+                        .set_java_vm_options(config.ui().java_vm_option())
+                        .set_max_heap_size_mb(config.ui().max_heap_size_mb())
+                        .set_gui_dir(config.ui().directory())));
     return absl::OkStatus();
   }
 

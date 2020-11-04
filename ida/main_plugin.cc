@@ -207,13 +207,13 @@ bool ExportIdbs() {
   }
 
   {
-    const auto* config = GetConfig();
+    const auto& config = config::Proto();
     IdbExporter exporter(
         IdbExporter::Options()
             .set_export_dir(secondary_temp_dir)
-            .set_ida_dir(idadir(0))
-            .set_ida_exe(config->ReadString("/bindiff/ida/@executable", ""))
-            .set_ida_exe64(config->ReadString("/bindiff/ida/@executable64", ""))
+            .set_ida_dir(idadir(/*subdir=*/nullptr))
+            .set_ida_exe(config.ida().executable())
+            .set_ida_exe64(config.ida().executable64())
             .set_alsologtostderr(Plugin::instance()->alsologtostderr()));
     exporter.AddDatabase(secondary_idb_path);
 
@@ -255,15 +255,22 @@ void Plugin::VisualDiff(uint32_t index, bool call_graph_diff) {
     }
 
     LOG(INFO) << "Sending result to BinDiff GUI...";
-    const auto* config = GetConfig();
+    const auto& ui_config = config::Proto().ui();
+
+    const std::string default_ui_dir =
+#if defined(_WIN32)
+        absl::StrCat("C:\\Program Files\\BinDiff ", kBinDiffRelease, "\\bin");
+#elif defined(__APPLE__)
+        "/Applications/BinDiff/BinDiff.app/Contents/app";
+#else
+        "/opt/bindiff/bin";
+#endif
     SendGuiMessage(
-        config->ReadInt("/bindiff/ui/@retries", 20),
-        config->ReadString("/bindiff/ui/@directory",
-                           // TODO(cblichmann): Use better defaults
-                           "C:\\Program Files\\zynamics\\BinDiff 6\\bin"),
-        config->ReadString("/bindiff/ui/@server", "127.0.0.1"),
-        static_cast<uint16_t>(config->ReadInt("/bindiff/ui/@port", 2000)),
-        message, nullptr);
+        ui_config.retries() != 0 ? ui_config.retries() : 20,
+        !ui_config.directory().empty() ? ui_config.directory() : default_ui_dir,
+        !ui_config.server().empty() ? ui_config.server() : "127.0.0.1",
+        ui_config.port() != 0 ? ui_config.port() : 2000, message,
+        /*callback=*/nullptr);
   } catch (const std::runtime_error& message) {
     LOG(INFO) << "Error while calling BinDiff UI: " << message.what();
     warning("Error while calling BinDiff UI: %s\n", message.what());
@@ -1246,12 +1253,6 @@ Plugin::LoadStatus Plugin::Init() {
     return PLUGIN_SKIP;
   }
 
-  if (!InitConfig().ok()) {
-    LOG(ERROR)
-        << "Error: Could not load configuration file, skipping BinDiff plugin.";
-    return PLUGIN_SKIP;
-  }
-  DLOG(INFO) << "New-style config version: " << config::Proto().version();
   if (auto& config = config::Proto(); config.ida().directory().empty()) {
     config.mutable_ida()->set_directory(idadir(/*subdir=*/nullptr));
     config::SaveUserConfig(config).IgnoreError();

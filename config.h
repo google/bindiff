@@ -19,14 +19,11 @@
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
 
 #undef ERROR  // Abseil headers include Windows.h, which defines this
 #include "third_party/zynamics/bindiff/bindiff_config.pb.h"
 
-namespace security::bindiff {
-
-namespace config {
+namespace security::bindiff::config {
 
 inline constexpr char kConfigName[] = "bindiff.json";
 
@@ -49,18 +46,6 @@ std::string AsJsonString(const Config& config);
 // Saves configuration to the per-user configuration directory.
 absl::Status SaveUserConfig(const Config& config);
 
-}  // namespace config
-
-// Initializes the config file. First tries to read per-user configuration and
-// falls back to per-machine configuration if not found.
-ABSL_DEPRECATED("Migrate to JSON config")
-absl::Status InitConfig();
-
-// Returns the current application global configuration. If InitConfig() has not
-// been called, this returns an empty configuration.
-ABSL_DEPRECATED("Migrate to JSON config")
-XmlConfig* GetConfig();
-
-}  // namespace security::bindiff
+}  // namespace security::bindiff::config
 
 #endif  // CONFIG_H_

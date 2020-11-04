@@ -14,6 +14,7 @@
 
 #include "third_party/zynamics/bindiff/test_util.h"
 
+#include <initializer_list>
 #include <memory>
 #include <tuple>
 #include <utility>
@@ -32,51 +33,54 @@
 namespace security::bindiff {
 
 void BinDiffEnvironment::SetUp() {
-  GetConfig()
-      ->LoadFromString(R"raw(<?xml version="1.0"?>
-<bindiff config-version="6">
-  <function-matching>
-    <!-- <step confidence="1.0" algorithm="function: name hash matching" /> -->
-    <step confidence="1.0" algorithm="function: hash matching" />
-    <step confidence="1.0" algorithm="function: edges flowgraph MD index" />
-    <step confidence="0.9" algorithm="function: edges callgraph MD index" />
-    <step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, top down)" />
-    <step confidence="0.9" algorithm="function: MD index matching (flowgraph MD index, bottom up)" />
-    <step confidence="0.9" algorithm="function: prime signature matching" />
-    <step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, top down)" />
-    <step confidence="0.8" algorithm="function: MD index matching (callGraph MD index, bottom up)" />
-    <!-- <step confidence="0.7" algorithm="function: edges proximity MD index" /> -->
-    <step confidence="0.7" algorithm="function: relaxed MD index matching" />
-    <step confidence="0.4" algorithm="function: instruction count" />
-    <step confidence="0.4" algorithm="function: address sequence" />
-    <step confidence="0.7" algorithm="function: string references" />
-    <step confidence="0.6" algorithm="function: loop count matching" />
-    <step confidence="0.1" algorithm="function: call sequence matching(exact)" />
-    <step confidence="0.0" algorithm="function: call sequence matching(topology)" />
-    <step confidence="0.0" algorithm="function: call sequence matching(sequence)" />
-  </function-matching>
-  <basic-block-matching>
-    <step confidence="1.0" algorithm="basicBlock: edges prime product" />
-    <step confidence="1.0" algorithm="basicBlock: hash matching (4 instructions minimum)" />
-    <step confidence="0.9" algorithm="basicBlock: prime matching (4 instructions minimum)" />
-    <step confidence="0.8" algorithm="basicBlock: call reference matching" />
-    <step confidence="0.8" algorithm="basicBlock: string references matching" />
-    <step confidence="0.7" algorithm="basicBlock: edges MD index (top down)" />
-    <step confidence="0.7" algorithm="basicBlock: MD index matching (top down)" />
-    <step confidence="0.7" algorithm="basicBlock: edges MD index (bottom up)" />
-    <step confidence="0.7" algorithm="basicBlock: MD index matching (bottom up)" />
-    <step confidence="0.6" algorithm="basicBlock: relaxed MD index matching" />
-    <step confidence="0.5" algorithm="basicBlock: prime matching (0 instructions minimum)" />
-    <step confidence="0.4" algorithm="basicBlock: edges Lengauer Tarjan dominated" />
-    <step confidence="0.4" algorithm="basicBlock: loop entry matching" />
-    <step confidence="0.3" algorithm="basicBlock: self loop matching" />
-    <step confidence="0.2" algorithm="basicBlock: entry point matching" />
-    <step confidence="0.1" algorithm="basicBlock: exit point matching" />
-    <step confidence="0.0" algorithm="basicBlock: instruction count matching" />
-    <step confidence="0.0" algorithm="basicBlock: jump sequence matching" />
-  </basic-block-matching>
-</bindiff>)raw")
-      .IgnoreError();
+  auto& config = config::Proto();
+  config.Clear();
+  for (const auto& [name, confidence] :
+       std::initializer_list<std::pair<std::string, double>>{
+           {"function: hash matching", 1.0},
+           {"function: edges flowgraph MD index", 1.0},
+           {"function: edges callgraph MD index", 0.9},
+           {"function: MD index matching (flowgraph MD index, top down)", 0.9},
+           {"function: MD index matching (flowgraph MD index, bottom up)", 0.9},
+           {"function: prime signature matching", 0.9},
+           {"function: MD index matching (callGraph MD index, top down)", 0.8},
+           {"function: MD index matching (callGraph MD index, bottom up)", 0.8},
+           // Disabled by default. Included here for completeness.
+           // {"function: edges proximity MD index", 0.7},
+           {"function: relaxed MD index matching", 0.7},
+           {"function: instruction count", 0.4},
+           {"function: address sequence", 0.4},
+           {"function: string references", 0.7},
+           {"function: loop count matching", 0.6},
+           {"function: call sequence matching(exact)", 0.1},
+           {"function: call sequence matching(topology)", 0.0},
+           {"function: call sequence matching(sequence)", 0.0},
+       }) {
+    (*config.mutable_function_matching())[name].set_confidence(confidence);
+  }
+  for (const auto& [name, confidence] :
+       std::initializer_list<std::pair<std::string, double>>{
+           {"basicBlock: edges prime product", 1.0},
+           {"basicBlock: hash matching (4 instructions minimum)", 1.0},
+           {"basicBlock: prime matching (4 instructions minimum)", 0.9},
+           {"basicBlock: call reference matching", 0.8},
+           {"basicBlock: string references matching", 0.8},
+           {"basicBlock: edges MD index (top down)", 0.7},
+           {"basicBlock: MD index matching (top down)", 0.7},
+           {"basicBlock: edges MD index (bottom up)", 0.7},
+           {"basicBlock: MD index matching (bottom up)", 0.7},
+           {"basicBlock: relaxed MD index matching", 0.6},
+           {"basicBlock: prime matching (0 instructions minimum)", 0.5},
+           {"basicBlock: edges Lengauer Tarjan dominated", 0.4},
+           {"basicBlock: loop entry matching", 0.4},
+           {"basicBlock: self loop matching", 0.3},
+           {"basicBlock: entry point matching", 0.2},
+           {"basicBlock: exit point matching", 0.1},
+           {"basicBlock: instruction count matching", 0.0},
+           {"basicBlock: jump sequence matching", 0.0},
+       }) {
+    (*config.mutable_basic_block_matching())[name].set_confidence(confidence);
+  }
 }
 
 DiffBinary::~DiffBinary() {

@@ -30,7 +30,6 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/config_defaults.h"
 #include "third_party/zynamics/bindiff/version.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
@@ -48,8 +47,7 @@ using google::protobuf::util::MessageToJsonString;
 using security::binexport::GetCommonAppDataDirectory;
 using security::binexport::GetOrCreateAppDataDirectory;
 
-namespace security::bindiff {
-namespace config {
+namespace security::bindiff::config {
 
 namespace {
 
@@ -164,61 +162,4 @@ absl::Status SaveUserConfig(const Config& config) {
   return absl::OkStatus();
 }
 
-}  // namespace config
-
-absl::Status InitConfig() {
-  constexpr char kConfigName[] = "bindiff.xml";
-
-  std::string path;
-  NA_ASSIGN_OR_RETURN(path, GetOrCreateAppDataDirectory(kBinDiffName));
-  const std::string user_path = JoinPath(path, kConfigName);
-
-  std::string common_path;
-  auto common_path_or = GetCommonAppDataDirectory(kBinDiffName);
-  const bool have_common_path = common_path_or.ok();
-  if (have_common_path) {
-    common_path = JoinPath(std::move(common_path_or).value(), kConfigName);
-  }
-
-  XmlConfig user_config;
-  XmlConfig common_config;
-  // Try to read user's local config
-  const bool have_user_config = user_config.LoadFromFile(user_path).ok();
-  // Try to read machine config
-  const bool have_common_config =
-      have_common_path && common_config.LoadFromFile(common_path).ok();
-
-  bool use_common_config = false;
-  if (have_user_config && have_common_config) {
-    use_common_config = user_config.ReadInt("/bindiff/@config-version", 0) <
-                        common_config.ReadInt("/bindiff/@config-version", 0);
-    LOG_IF(WARNING, use_common_config)
-        << "User config version is out of date, using per-machine config";
-  } else if (have_user_config) {
-    use_common_config = false;
-  } else if (have_common_config) {
-    use_common_config = true;
-  } else {
-    return absl::NotFoundError("Missing configuration file");
-  }
-
-  auto* config = GetConfig();
-  if (use_common_config) {
-    *config = std::move(common_config);
-    std::remove(user_path.c_str());
-    if (absl::Status status = CopyFile(common_path, user_path); !status.ok()) {
-      LOG(ERROR) << "Cannot copy per-machine config: "
-                 << std::string(status.message());
-    }
-  } else {
-    *config = std::move(user_config);
-  }
-  return absl::OkStatus();
-}
-
-XmlConfig* GetConfig() {
-  static auto* config = new XmlConfig{};
-  return config;
-}
-
-}  // namespace security::bindiff
+}  // namespace security::bindiff::config

@@ -16,23 +16,38 @@
   "directory": ""
  },
  "function_matching": {
-  "function: call sequence matching(topology)": {
-   "confidence": 0
+  "function: name hash matching": {
+   "confidence": 1
   },
-  "function: call sequence matching(exact)": {
-   "confidence": 0.1
+  "function: hash matching": {
+   "confidence": 1
   },
-  "function: MD index matching (callGraph MD index, bottom up)": {
-   "confidence": 0.8
+  "function: edges flowgraph MD index": {
+   "confidence": 1
   },
-  "function: MD index matching (flowgraph MD index, bottom up)": {
+  "function: edges callgraph MD index": {
    "confidence": 0.9
   },
   "function: MD index matching (flowgraph MD index, top down)": {
    "confidence": 0.9
   },
-  "function: call sequence matching(sequence)": {
-   "confidence": 0
+  "function: MD index matching (flowgraph MD index, bottom up)": {
+   "confidence": 0.9
+  },
+  "function: prime signature matching": {
+   "confidence": 0.9
+  },
+  "function: MD index matching (callGraph MD index, top down)": {
+   "confidence": 0.8
+  },
+  "function: MD index matching (callGraph MD index, bottom up)": {
+   "confidence": 0.8
+  },
+  "function: relaxed MD index matching": {
+   "confidence": 0.7
+  },
+  "function: instruction count": {
+   "confidence": 0.4
   },
   "function: address sequence": {
    "confidence": 0.4
@@ -40,55 +55,28 @@
   "function: string references": {
    "confidence": 0.7
   },
-  "function: instruction count": {
-   "confidence": 0.4
-  },
-  "function: hash matching": {
-   "confidence": 1
-  },
-  "function: edges callgraph MD index": {
-   "confidence": 0.9
-  },
-  "function: MD index matching (callGraph MD index, top down)": {
-   "confidence": 0.8
-  },
-  "function: edges flowgraph MD index": {
-   "confidence": 1
-  },
-  "function: prime signature matching": {
-   "confidence": 0.9
-  },
-  "function: name hash matching": {
-   "confidence": 1
-  },
-  "function: relaxed MD index matching": {
-   "confidence": 0.7
-  },
   "function: loop count matching": {
    "confidence": 0.6
+  },
+  "function: call sequence matching(exact)": {
+   "confidence": 0.1
+  },
+  "function: call sequence matching(topology)": {
+   "confidence": 0
+  },
+  "function: call sequence matching(sequence)": {
+   "confidence": 0
   }
  },
  "basic_block_matching": {
-  "basicBlock: entry point matching": {
-   "confidence": 0.2
-  },
-  "basicBlock: edges Lengauer Tarjan dominated": {
-   "confidence": 0.4
-  },
-  "basicBlock: edges MD index (top down)": {
-   "confidence": 0.7
-  },
-  "basicBlock: prime matching (0 instructions minimum)": {
-   "confidence": 0.5
-  },
-  "basicBlock: edges MD index (bottom up)": {
-   "confidence": 0.7
-  },
-  "basicBlock: prime matching (4 instructions minimum)": {
-   "confidence": 0.9
+  "basicBlock: edges prime product": {
+   "confidence": 1
   },
   "basicBlock: hash matching (4 instructions minimum)": {
    "confidence": 1
+  },
+  "basicBlock: prime matching (4 instructions minimum)": {
+   "confidence": 0.9
   },
   "basicBlock: call reference matching": {
    "confidence": 0.8
@@ -96,8 +84,26 @@
   "basicBlock: string references matching": {
    "confidence": 0.8
   },
+  "basicBlock: edges MD index (top down)": {
+   "confidence": 0.7
+  },
+  "basicBlock: MD index matching (top down)": {
+   "confidence": 0.7
+  },
+  "basicBlock: edges MD index (bottom up)": {
+   "confidence": 0.7
+  },
+  "basicBlock: MD index matching (bottom up)": {
+   "confidence": 0.7
+  },
   "basicBlock: relaxed MD index matching": {
    "confidence": 0.6
+  },
+  "basicBlock: prime matching (0 instructions minimum)": {
+   "confidence": 0.5
+  },
+  "basicBlock: edges Lengauer Tarjan dominated": {
+   "confidence": 0.4
   },
   "basicBlock: loop entry matching": {
    "confidence": 0.4
@@ -105,20 +111,14 @@
   "basicBlock: self loop matching": {
    "confidence": 0.3
   },
-  "basicBlock: edges prime product": {
-   "confidence": 1
-  },
-  "basicBlock: MD index matching (bottom up)": {
-   "confidence": 0.7
-  },
-  "basicBlock: MD index matching (top down)": {
-   "confidence": 0.7
-  },
-  "basicBlock: instruction count matching": {
-   "confidence": 0
+  "basicBlock: entry point matching": {
+   "confidence": 0.2
   },
   "basicBlock: exit point matching": {
    "confidence": 0.1
+  },
+  "basicBlock: instruction count matching": {
+   "confidence": 0
   },
   "basicBlock: jump sequence matching": {
    "confidence": 0

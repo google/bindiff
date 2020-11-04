@@ -29,8 +29,9 @@ struct StartUiOptions {
     return *this;
   }
 
-  StartUiOptions& set_java_vm_options(std::string value) {
-    java_vm_options = std::move(value);
+  template <typename StringsT>
+  StartUiOptions& set_java_vm_options(const StringsT& value) {
+    java_vm_options.assign(value.begin(), value.end());
     return *this;
   }
 
@@ -45,7 +46,7 @@ struct StartUiOptions {
   }
 
   std::string java_binary;
-  std::string java_vm_options;
+  std::vector<std::string> java_vm_options;
   int max_heap_size_mb = -1;  // Default means 75% of physical memory
   std::string gui_dir;
 };

@@ -17,10 +17,9 @@
 #include <iomanip>
 
 #include "base/logging.h"
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/tinyxpath/xpath_processor.h"
-#include "third_party/tinyxpath/xpath_static.h"
 #include "third_party/zynamics/bindiff/call_graph_match_function_address_sequence.h"
 #include "third_party/zynamics/bindiff/call_graph_match_function_call_graph_edges_mdindex.h"
 #include "third_party/zynamics/bindiff/call_graph_match_function_call_graph_edges_proximity_mdindex.h"
@@ -39,6 +38,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/config.h"
+#include "third_party/zynamics/bindiff/match_context.h"
 
 namespace security::bindiff {
 
@@ -57,10 +57,10 @@ bool KeyLessThan(const EdgeFeature& one, const EdgeFeature& two) {
 }
 
 double GetConfidenceFromConfig(const std::string& name) {
-  return GetConfig()->ReadDouble(
-      absl::StrCat("/bindiff/function-matching/step[@algorithm=\"", name,
-                   "\"]/@confidence"),
-      /*default_value=*/-1.0 /* Not found/commented out */);
+  const auto& algorithms = config::Proto().function_matching();
+  const auto found = algorithms.find(name);
+  return found != algorithms.end() ? found->second.confidence()
+                                   : -1.0 /* Not found/commented out */;
 }
 
 // Returns whether any eligible flow graphs have been found.
@@ -229,11 +229,6 @@ bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
   return fixed_points_discovered;
 }
 
-constexpr const char MatchingStep::kFunctionManualName[];
-constexpr const char MatchingStep::kFunctionManualDisplayName[];
-constexpr const char MatchingStep::kFunctionCallReferenceName[];
-constexpr const char MatchingStep::kFunctionCallReferenceDisplayName[];
-
 MatchingStep::MatchingStep(std::string name, std::string display_name)
     : name_{std::move(name)},
       display_name_{std::move(display_name)},
@@ -356,8 +351,9 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(
 }
 
 MatchingSteps GetDefaultMatchingSteps() {
-  static auto* algorithms = []() -> std::map<std::string, MatchingStep*>* {
-    auto* result = new std::map<std::string, MatchingStep*>();
+  static const auto* algorithms =
+      []() -> absl::flat_hash_map<std::string, MatchingStep*>* {
+    auto* algorithms = new absl::flat_hash_map<std::string, MatchingStep*>;
     for (auto* step : std::initializer_list<MatchingStep*>{
              // Edge based matching algorithms:
              new MatchingStepEdgesFlowGraphMdIndex(),
@@ -380,35 +376,24 @@ MatchingSteps GetDefaultMatchingSteps() {
              new MatchingStepFunctionInstructionCount(),
              new MatchingStepSequence(),
          }) {
-      (*result)[step->name()] = step;
+      (*algorithms)[step->name()] = step;
     }
-    return result;
+    return algorithms;
   }();
 
-  MatchingSteps matching_steps;
-  TinyXPath::xpath_processor processor(GetConfig()->document()->RootElement(),
-                                       "/bindiff/function-matching/step");
-  const size_t num_nodes = processor.u_compute_xpath_node_set();
-  for (size_t i = 0; i < num_nodes; ++i) {
-    bool is_attribute = false;
-    const TiXmlBase* node = nullptr;
-    processor.v_get_xpath_base(i, node, is_attribute);
-    const std::string name =
-        TinyXPath::XAp_xpath_attribute(dynamic_cast<const TiXmlNode*>(node),
-                                       "@algorithm")
-            ->Value();
-    auto algorithm = algorithms->find(name);
-    if (algorithm != algorithms->end()) {
-      matching_steps.push_back(algorithm->second);
+  static const auto* matching_steps = []() -> const MatchingSteps* {
+    auto* matching_steps = new MatchingSteps();
+    for (const auto& [name, _] : config::Proto().function_matching()) {
+      if (auto found = algorithms->find(name); found != algorithms->end()) {
+        matching_steps->push_back(found->second);
+      }
     }
-  }
-  if (matching_steps.empty()) {
-    throw std::runtime_error(
-        "no function matching algorithms registered - is the config file "
-        "valid?");
-  }
+    LOG_IF(FATAL, matching_steps->empty())
+        << "No function matching algorithms registered";
+    return matching_steps;
+  }();
 
-  return matching_steps;
+  return *matching_steps;
 }
 
 }  // namespace security::bindiff

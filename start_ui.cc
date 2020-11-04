@@ -33,7 +33,7 @@
 
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/absl/strings/str_format.h"
+#include "third_party/absl/strings/str_join.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/process.h"
@@ -155,10 +155,9 @@ absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
 
     // The launcher does not take any JVM arguments, so they have to be set via
     // environment variable.
-    std::string tool_options = absl::StrFormat("-Xms128m -Xmx%dm", max_heap_mb);
-    if (!options.java_vm_options.empty()) {
-      absl::StrAppend(&tool_options, " ", options.java_vm_options);
-    }
+    std::string tool_options =
+        absl::StrCat("-Xms128m -Xmx", max_heap_mb, "m",
+                     absl::StrJoin(options.java_vm_options, " "));
     SetEnvironmentVariable("JAVA_TOOL_OPTIONS", tool_options);
 
     argv.insert(argv.end(), extra_args.begin(), extra_args.end());
@@ -187,12 +186,10 @@ absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
   // Command-line takes precedence over JAVA_TOOL_OPTIONS, which may be set on
   // macOS.
   argv.push_back("-Xms128m");
-  argv.push_back(absl::StrFormat("-Xmx%dm", max_heap_mb));
+  argv.push_back(absl::StrCat("-Xmx", max_heap_mb, "m"));
 
-  for (const auto& vm_arg :
-       absl::StrSplit(options.java_vm_options, ' ', absl::SkipWhitespace())) {
-    argv.emplace_back(vm_arg);
-  }
+  argv.insert(argv.end(), options.java_vm_options.begin(),
+              options.java_vm_options.end());
 #ifdef __APPLE__
   argv.push_back("-Xdock:name=BinDiff");
 #endif

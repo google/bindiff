@@ -176,8 +176,6 @@ add_library(bindiff_config STATIC
   config.cc
   config.h
   ${CMAKE_CURRENT_BINARY_DIR}/config_defaults.h
-  xmlconfig.cc
-  xmlconfig.h
 )
 target_link_libraries(bindiff_config
   bindiff_version
@@ -189,13 +187,6 @@ target_link_libraries(bindiff_config
 )
 set_target_properties(bindiff_config PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
-
-add_executable(xmlconfig_test xmlconfig_test.cc)
-target_link_libraries(xmlconfig_test
-  bindiff_test_base
-  bindiff_config
-)
-gtest_discover_tests(xmlconfig_test)
 
 # Sources shared by the differ and the IDA plugin.
 add_library(bindiff_shared STATIC

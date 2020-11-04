@@ -17,9 +17,10 @@
 #include <map>
 #include <unordered_map>
 
+#include "base/logging.h"
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/tinyxpath/xpath_processor.h"
-#include "third_party/tinyxpath/xpath_static.h"
+#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_call_refs.h"
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_edges_lengauer_tarjan.h"
@@ -35,17 +36,16 @@
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_prime.h"
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_self_loop.h"
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_string_refs.h"
-#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 
 namespace security::bindiff {
 namespace {
 
 double GetConfidenceFromConfig(const std::string& name) {
-  return GetConfig()->ReadDouble(
-      absl::StrCat("/bindiff/basic-block-matching/step[@algorithm=\"", name,
-                   "\"]/@confidence"),
-      /*default_value=*/-1.0 /* Not found/commented out */);
+  const auto& algorithms = config::Proto().basic_block_matching();
+  const auto found = algorithms.find(name);
+  return found != algorithms.end() ? found->second.confidence()
+                                   : -1.0 /* Not found/commented out */;
 }
 
 // Special matching step of last resort. Single unmatched parents/children of
@@ -188,22 +188,17 @@ void FindFixedPointsBasicBlock(FixedPoint* fixed_point,
   } while (more_fixed_points_discovered);
 }
 
-constexpr const char MatchingStepFlowGraph::kBasicBlockPropagationName[];
-constexpr const char MatchingStepFlowGraph::kBasicBlockPropagationDisplayName[];
-
-constexpr const char MatchingStepFlowGraph::kBasicBlockManualName[];
-constexpr const char MatchingStepFlowGraph::kBasicBlockManualDisplayName[];
-
 MatchingStepFlowGraph::MatchingStepFlowGraph(std::string name,
                                              std::string display_name)
-    : name_{std::move(name)},
-      display_name_{std::move(display_name)},
-      confidence_{GetConfidenceFromConfig(name_)} {}
+    : name_(std::move(name)),
+      display_name_(std::move(display_name)),
+      confidence_(GetConfidenceFromConfig(name_)) {}
 
 MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
-  static auto* algorithms =
-      []() -> std::map<std::string, MatchingStepFlowGraph*>* {
-    auto* result = new std::map<std::string, MatchingStepFlowGraph*>();
+  static const auto* algorithms =
+      []() -> absl::flat_hash_map<std::string, MatchingStepFlowGraph*>* {
+    auto* algorithms =
+        new absl::flat_hash_map<std::string, MatchingStepFlowGraph*>;
     // TODO(cblichmann): Add proximity md index matching.
     // TODO(cblichmann): Add relaxed and proximity edge matching.
     // TODO(cblichmann): Make it possible to disable propagation == 1 matching.
@@ -229,34 +224,24 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
              new MatchingStepInstructionCount(),
              new MatchingStepJumpSequence(),
          }) {
-      (*result)[step->name()] = step;
+      (*algorithms)[step->name()] = step;
     }
-    return result;
+    return algorithms;
   }();
 
-  MatchingStepsFlowGraph matching_steps_basic_block;
-  TinyXPath::xpath_processor processor(GetConfig()->document()->RootElement(),
-                                       "/bindiff/basic-block-matching/step");
-  const size_t num_nodes = processor.u_compute_xpath_node_set();
-  for (size_t i = 0; i < num_nodes; ++i) {
-    bool is_attribute = false;
-    const TiXmlBase* node = 0;
-    processor.v_get_xpath_base(i, node, is_attribute);
-    const std::string name =
-        TinyXPath::XAp_xpath_attribute(dynamic_cast<const TiXmlNode*>(node),
-                                       "@algorithm")
-            ->Value();
-    auto algorithm = algorithms->find(name);
-    if (algorithm != algorithms->end())
-      matching_steps_basic_block.push_back(algorithm->second);
-  }
-  if (matching_steps_basic_block.empty()) {
-    throw std::runtime_error(
-        "no basic block matching algorithms registered - "
-        "is the config file valid?");
-  }
+  static const auto* matching_steps = []() -> const MatchingStepsFlowGraph* {
+    auto* matching_steps = new MatchingStepsFlowGraph();
+    for (const auto& [name, _] : config::Proto().basic_block_matching()) {
+      if (auto found = algorithms->find(name); found != algorithms->end()) {
+        matching_steps->push_back(found->second);
+      }
+    }
+    LOG_IF(FATAL, matching_steps->empty())
+        << "No basic block matching algorithms registered";
+    return matching_steps;
+  }();
 
-  return matching_steps_basic_block;
+  return *matching_steps;
 }
 
 }  // namespace security::bindiff

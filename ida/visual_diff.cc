@@ -119,16 +119,13 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
   if (DoSendGuiMessageTCP(server, port, arguments)) {
     return true;
   }
-  const auto* config = GetConfig();
+  const auto& ui_config = config::Proto().ui();
   absl::Status status = StartUiWithOptions(
-      /*extra_args=*/{},
-      StartUiOptions{}
-          .set_java_binary(config->ReadString("/bindiff/ui/@java-binary", ""))
-          .set_java_vm_options(
-              config->ReadString("/bindiff/ui/@java-vm-options", ""))
-          .set_max_heap_size_mb(
-              config->ReadInt("/bindiff/ui/@max-heap-size-mb", -1))
-          .set_gui_dir(config->ReadString("/bindiff/ui/@directory", "")));
+      /*extra_args=*/{}, StartUiOptions{}
+                             .set_java_binary(ui_config.java_binary())
+                             .set_java_vm_options(ui_config.java_vm_option())
+                             .set_max_heap_size_mb(ui_config.max_heap_size_mb())
+                             .set_gui_dir(std::string(gui_dir)));
   if (!status.ok()) {
     throw std::runtime_error{absl::StrCat(
         "Cannot launch BinDiff user interface. Process creation failed: ",

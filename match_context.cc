@@ -21,7 +21,6 @@
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/xmlconfig.h"
 
 namespace security::bindiff {
 
