@@ -24,11 +24,20 @@ allprojects {
     }
 }
 
+def yFilesDir
+if (System.env.YFILES_DIR) {
+    yFilesDir = System.env.YFILES_DIR
+} else if (project.hasProperty("YFILES_DIR")) {
+    yFilesDir = project.getProperty("YFILES_DIR")
+} else {
+    // Note: This path is relative to the sub-project
+    yFilesDir = '../../../../java/yfiles/v2_15'
+}
+
 subprojects {
     repositories {
         flatDir {
-            // Note: This path is relative to the sub-project
-            dirs '../../../../java/yfiles/v2_15'
+            dirs yFilesDir
         }
         jcenter()
         mavenCentral()
@@ -38,18 +47,18 @@ subprojects {
 
 // Downloads all projects dependencies from the repository
 task resolveDependencies {
-  doLast {
-    rootProject.allprojects { project ->
-      project.buildscript.configurations.forEach { configuration ->
-        if (configuration.canBeResolved) {
-          configuration.resolve()
+    doLast {
+        rootProject.allprojects { project ->
+            project.buildscript.configurations.forEach { configuration ->
+                if (configuration.canBeResolved) {
+                    configuration.resolve()
+                }
+            }
+            project.configurations.forEach { configuration ->
+                if (configuration.canBeResolved) {
+                    configuration.resolve()
+                }
+            }
         }
-      }
-      project.configurations.forEach { configuration ->
-        if (configuration.canBeResolved) {
-          configuration.resolve()
-        }
-      }
     }
-  }
 }
