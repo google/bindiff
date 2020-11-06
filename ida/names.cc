@@ -29,20 +29,6 @@ namespace security::bindiff {
 
 using binexport::ToString;
 
-std::string GetName(Address address) {
-  if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
-    return ToString(get_name(static_cast<ea_t>(address)));
-  }
-  return "";
-}
-
-std::string GetDemangledName(Address address) {
-  if (has_user_name(get_full_flags(static_cast<ea_t>(address)))) {
-    return ToString(get_short_name(static_cast<ea_t>(address)));
-  }
-  return "";
-}
-
 bool GetLineComment(Address address, int n, std::string* output) {
   qstring ida_comment;
   ssize_t result = get_extra_cmt(&ida_comment, address, n);

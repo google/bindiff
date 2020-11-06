@@ -38,6 +38,7 @@
 #include "third_party/zynamics/bindiff/match_colors.h"
 #include "third_party/zynamics/bindiff/match_context.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
+#include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -47,6 +48,8 @@
 namespace security::bindiff {
 
 using binexport::FormatAddress;
+using binexport::GetDemangledName;
+using binexport::GetName;
 using binexport::HumanReadableDuration;
 using binexport::ToStringView;
 

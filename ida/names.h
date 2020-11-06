@@ -21,9 +21,6 @@
 
 namespace security::bindiff {
 
-std::string GetName(Address address);
-std::string GetDemangledName(Address address);
-
 enum class LineComment {
   kAnterior,
   kPosterior
