@@ -58,22 +58,6 @@ enum {
   kMaxFunctionInstructions = 10000
 };
 
-uint8_t TranslateEdge(int edge_type) {
-  switch (edge_type) {
-    case 1:
-      return FlowGraph::EDGE_TRUE;
-    case 2:
-      return FlowGraph::EDGE_FALSE;
-    case 3:
-      return FlowGraph::EDGE_UNCONDITIONAL;
-    case 4:
-      return FlowGraph::EDGE_SWITCH;
-    default:
-      LOG(QFATAL) << "Invalid flow graph edge type: " << edge_type;
-      return FlowGraph::EDGE_UNCONDITIONAL;  // Not reached
-  }
-}
-
 // Translates from BinExport2 protocol buffer edge type to the one used
 // internally by the Differ.
 uint8_t ProtoToFlowGraphEdgeType(BinExport2::FlowGraph::Edge::Type edge_type) {
