@@ -219,8 +219,8 @@ add_library(binexport_core
   entry_point.h
   expression.cc
   expression.h
-  flow_analyzer.cc
-  flow_analyzer.h
+  flow_analysis.cc
+  flow_analysis.h
   flow_graph.cc
   flow_graph.h
   function.cc
@@ -292,6 +292,8 @@ add_ida_plugin(${binexport_ida_plugin_name}
   ida/arm.h
   ida/dalvik.cc
   ida/dalvik.h
+  ida/flow_analysis.cc
+  ida/flow_analysis.h
   ida/generic.cc
   ida/generic.h
   ida/main_plugin.cc

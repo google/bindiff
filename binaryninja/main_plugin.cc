@@ -29,7 +29,7 @@
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/entry_point.h"
-#include "third_party/zynamics/binexport/flow_analyzer.h"
+#include "third_party/zynamics/binexport/flow_analysis.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"

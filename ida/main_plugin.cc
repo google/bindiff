@@ -41,11 +41,12 @@
 #endif
 #include "third_party/zynamics/binexport/dump_writer.h"
 #include "third_party/zynamics/binexport/entry_point.h"
-#include "third_party/zynamics/binexport/flow_analyzer.h"
+#include "third_party/zynamics/binexport/flow_analysis.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/digest.h"
-#include "third_party/zynamics/binexport/ida/names.h"
+#include "third_party/zynamics/binexport/ida/flow_analysis.h"
 #include "third_party/zynamics/binexport/ida/log_sink.h"
+#include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/statistics_writer.h"
@@ -104,7 +105,7 @@ void ExportIdb(Writer* writer) {
 
   // Add imported functions (so we won't miss imported but not referenced
   // functions).
-  const auto modules(InitModuleMap());
+  const auto modules = InitModuleMap();
   {
     EntryPointManager entry_point_adder(&entry_points, "calls");
     for (const auto& module : modules) {
@@ -115,7 +116,7 @@ void ExportIdb(Writer* writer) {
   Instructions instructions;
   FlowGraph flow_graph;
   CallGraph call_graph;
-  AnalyzeFlowIda(&entry_points, &modules, writer, &instructions, &flow_graph,
+  AnalyzeFlowIda(&entry_points, modules, writer, &instructions, &flow_graph,
                  &call_graph,
                  Plugin::instance()->x86_noreturn_heuristic()
                      ? FlowGraph::NoReturnHeuristic::kNopsAfterCall

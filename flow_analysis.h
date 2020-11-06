@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FLOW_ANALYZER_H_
-#define FLOW_ANALYZER_H_
+#ifndef FLOW_ANALYSIS_H_
+#define FLOW_ANALYSIS_H_
 
+#include "third_party/zynamics/binexport/call_graph.h"
+#include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/instruction.h"
-
-class CallGraph;
-class FlowGraph;
 
 // Note: Keep the detego namespace, plain "Instructions" clashes with IDA.
 void ReconstructFlowGraph(detego::Instructions* instructions,
                           const FlowGraph& flow_graph, CallGraph* call_graph);
 
-#endif  // FLOW_ANALYZER_H_
+#endif  // FLOW_ANALYSIS_H_

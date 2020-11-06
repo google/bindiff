@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "third_party/zynamics/binexport/flow_analyzer.h"
+#include "third_party/zynamics/binexport/flow_analysis.h"
 
 #include <exception>
 #include <iostream>
