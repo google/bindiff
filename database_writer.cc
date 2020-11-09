@@ -94,12 +94,12 @@ DatabaseWriter::DatabaseWriter(const std::string& path)
 }
 
 DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
-  auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
-  if (!tempdir_or.ok()) {
+  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir.ok()) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error(std::string(tempdir_or.status().message()));
+    throw std::runtime_error(std::string(temp_dir.status().message()));
   }
-  filename_ = JoinPath(tempdir_or.value(), Basename(path));
+  filename_ = JoinPath(*temp_dir, Basename(path));
   if (recreate) {
     std::remove(filename_.c_str());
   }
@@ -122,21 +122,19 @@ void DatabaseWriter::Close() {
 }
 
 void DatabaseWriter::SetCommentsPorted(const FixedPointInfos& fixed_points) {
-  database_.Statement(
-      "create table if not exists \"commentsported\" "
-      "(\"address\" bigint primary key);")->Execute();
-  database_.Statement("delete from \"commentsported\"")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE IF NOT EXISTS commentsported ("
+          "address BIGINT PRIMARY KEY)")
+      ->Execute();
+  database_.Statement("DELETE FROM commentsported")->Execute();
   // We don't have to account for address2 because every function can only be
   // matched once.
   SqliteStatement statement(&database_,
-      "insert into \"commentsported\" values (:address)");
-  for (auto i = fixed_points.cbegin(), end = fixed_points.cend(); i != end;
-       ++i) {
-    if (i->comments_ported) {
-      statement
-          .BindInt64(i->primary)
-          .Execute()
-          .Reset();
+                            "INSERT INTO commentsported VALUES (:address)");
+  for (const auto& fixed_point : fixed_points) {
+    if (fixed_point.comments_ported) {
+      statement.BindInt64(fixed_point.primary).Execute().Reset();
     }
   }
 }
@@ -153,124 +151,140 @@ void DatabaseWriter::WriteToTempDatabase(const FixedPoint& fixed_point) {
 // Deletes a function match from the result database.
 void DatabaseWriter::DeleteFromTempDatabase(Address primary,
                                             Address secondary) {
-  // delete instructions
-  database_.Statement(
-      "delete from instruction where basicblockid in ( select b.id from "
-      "function as f inner join basicblock as b on b.functionid = f.id "
-      "where f.address1 = :address1 and f.address2 = :address2 )")
+  // Delete instructions
+  database_
+      .Statement(
+          "DELETE FROM instruction WHERE basicblockid IN ("
+          "SELECT b.id FROM function AS f "
+          "INNER JOIN basicblock AS b ON b.functionid = f.id "
+          "WHERE f.address1 = :address1 AND f.address2 = :address2"
+          ")")
       ->BindInt64(primary)
       .BindInt64(secondary)
       .Execute();
 
-  // delete basic blocks
-  database_.Statement(
-      "delete from basicblock where functionid in ( select f.id from "
-      "\"function\" as f where f.address1 = :address1 and f.address2 = "
-      ":address2 )")
+  // Delete basic blocks
+  database_
+      .Statement(
+          "DELETE FROM basicblock WHERE functionid IN ("
+          "SELECT f.id FROM function AS f "
+          "WHERE f.address1 = :address1 AND f.address2 = :address2"
+          ")")
       ->BindInt64(primary)
       .BindInt64(secondary)
       .Execute();
 
-  // delete functions
-  database_.Statement(
-      "delete from \"function\" where address1 = :address1 and address2 = "
-      ":address2")
+  // Delete functions
+  database_
+      .Statement(
+          "DELETE FROM function "
+          "WHERE address1 = :address1 AND address2 = :address2")
       ->BindInt64(primary)
       .BindInt64(secondary)
       .Execute();
 }
 
 void DatabaseWriter::PrepareDatabase() {
-  database_.Statement("DROP TABLE IF EXISTS metadata;")->Execute();
-  database_.Statement("DROP TABLE IF EXISTS \"file\";")->Execute();
-  database_.Statement("DROP TABLE IF EXISTS instruction;")->Execute();
-  database_.Statement("DROP TABLE IF EXISTS basicblock;")->Execute();
+  database_.Statement("DROP TABLE IF EXISTS metadata")->Execute();
+  database_.Statement("DROP TABLE IF EXISTS file")->Execute();
+  database_.Statement("DROP TABLE IF EXISTS instruction")->Execute();
+  database_.Statement("DROP TABLE IF EXISTS basicblock")->Execute();
   database_.Statement("DROP TABLE IF EXISTS basicblockalgorithm")->Execute();
-  database_.Statement("DROP TABLE IF EXISTS function;")->Execute();
+  database_.Statement("DROP TABLE IF EXISTS function")->Execute();
   database_.Statement("DROP TABLE IF EXISTS functionalgorithm")->Execute();
 
   database_.Statement(
       "CREATE TABLE basicblockalgorithm ("
       "id SMALLINT PRIMARY KEY, "
       "name TEXT"
-      ");")->Execute();
+      ")")->Execute();
 
   database_.Statement(
       "CREATE TABLE functionalgorithm ("
       "id SMALLINT PRIMARY KEY, "
       "name TEXT"
-      ");")->Execute();
+      ")")->Execute();
 
-  database_.Statement(
-      "CREATE TABLE \"file\" ("
-      "id INT,"
-      "filename TEXT,"
-      "exefilename TEXT,"
-      "hash CHARACTER(40),"
-      "functions INT,"
-      "libfunctions INT,"
-      "calls INT,"
-      "basicblocks INT,"
-      "libbasicblocks INT,"
-      "edges INT,"
-      "libedges INT,"
-      "instructions INT,"
-      "libinstructions INT"
-      ");")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE file ("
+          "id INT,"
+          "filename TEXT,"
+          "exefilename TEXT,"
+          "hash CHARACTER(40),"
+          "functions INT,"
+          "libfunctions INT,"
+          "calls INT,"
+          "basicblocks INT,"
+          "libbasicblocks INT,"
+          "edges INT,"
+          "libedges INT,"
+          "instructions INT,"
+          "libinstructions INT"
+          ")")
+      ->Execute();
 
-  database_.Statement(
-      "CREATE TABLE \"metadata\" ("
-      "version TEXT,"
-      "file1 INT,"
-      "file2 INT,"
-      "description TEXT,"
-      "created DATE,"
-      "modified DATE,"
-      "similarity DOUBLE PRECISION,"
-      "confidence DOUBLE PRECISION,"
-      "FOREIGN KEY(file1) REFERENCES file(id),"
-      "FOREIGN KEY(file2) REFERENCES file(id)"
-      ");")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE metadata ("
+          "version TEXT,"
+          "file1 INT,"
+          "file2 INT,"
+          "description TEXT,"
+          "created DATE,"
+          "modified DATE,"
+          "similarity DOUBLE PRECISION,"
+          "confidence DOUBLE PRECISION,"
+          "FOREIGN KEY(file1) REFERENCES file(id),"
+          "FOREIGN KEY(file2) REFERENCES file(id)"
+          ")")
+      ->Execute();
 
-  database_.Statement(
-      "CREATE TABLE \"function\" ("
-      "id INT,"
-      "address1 BIGINT,"
-      "address2 BIGINT,"
-      "similarity DOUBLE PRECISION,"
-      "confidence DOUBLE PRECISION,"
-      "flags INTEGER,"
-      "algorithm SMALLINT,"
-      "evaluate BOOLEAN,"
-      "commentsported BOOLEAN,"
-      "basicblocks INTEGER,"
-      "edges INTEGER,"
-      "instructions INTEGER,"
-      "UNIQUE(address1, address2),"
-      "PRIMARY KEY(id),"
-      "FOREIGN KEY(algorithm) REFERENCES functionalgorithm(id)"
-      ");")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE function ("
+          "id INT,"
+          "address1 BIGINT,"
+          "address2 BIGINT,"
+          "similarity DOUBLE PRECISION,"
+          "confidence DOUBLE PRECISION,"
+          "flags INTEGER,"
+          "algorithm SMALLINT,"
+          "evaluate BOOLEAN,"
+          "commentsported BOOLEAN,"
+          "basicblocks INTEGER,"
+          "edges INTEGER,"
+          "instructions INTEGER,"
+          "UNIQUE(address1, address2),"
+          "PRIMARY KEY(id),"
+          "FOREIGN KEY(algorithm) REFERENCES functionalgorithm(id)"
+          ")")
+      ->Execute();
 
-  database_.Statement(
-      "CREATE TABLE basicblock ("
-      "id INT,"
-      "functionid INT,"
-      "address1 BIGINT,"
-      "address2 BIGINT,"
-      "algorithm SMALLINT,"
-      "evaluate BOOLEAN,"
-      "PRIMARY KEY(id),"
-      "FOREIGN KEY(functionid) REFERENCES \"function\"(id),"
-      "FOREIGN KEY(algorithm) REFERENCES basicblockalgorithm(id)"
-      ");")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE basicblock ("
+          "id INT,"
+          "functionid INT,"
+          "address1 BIGINT,"
+          "address2 BIGINT,"
+          "algorithm SMALLINT,"
+          "evaluate BOOLEAN,"
+          "PRIMARY KEY(id),"
+          "FOREIGN KEY(functionid) REFERENCES function(id),"
+          "FOREIGN KEY(algorithm) REFERENCES basicblockalgorithm(id)"
+          ")")
+      ->Execute();
 
-  database_.Statement(
-      "CREATE TABLE instruction ("
-      "basicblockid INT,"
-      "address1 BIGINT,"
-      "address2 BIGINT,"
-      "FOREIGN KEY(basicblockid) REFERENCES basicblock(id)"
-      ");")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE instruction ("
+          "basicblockid INT,"
+          "address1 BIGINT,"
+          "address2 BIGINT,"
+          "FOREIGN KEY(basicblockid) REFERENCES basicblock(id)"
+          ")")
+      ->Execute();
 }
 
 void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
@@ -288,9 +302,11 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
   int file2 = 2;
   database_
       .Statement(
-          "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
-          ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
-          ":edges,:libedges,:instructions,:libinstructions )")
+          "INSERT INTO file VALUES ("
+          ":id,:filename,:exefilename,:hash,:functions,:libfunctions,:calls,"
+          ":basicblocks,:libbasicblocks,:edges,:libedges,:instructions,"
+          ":libinstructions"
+          ")")
       ->BindInt(file1)
       .BindText(call_graph1.GetFilename().c_str())
       .BindText(call_graph1.GetExeFilename().c_str())
@@ -308,9 +324,11 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 
   database_
       .Statement(
-          "INSERT INTO \"file\" VALUES (:id,:filename,:exefilename,:hash,"
-          ":functions,:libfunctions,:calls,:basicblocks,:libbasicblocks,"
-          ":edges,:libedges,:instructions,:libinstructions )")
+          "INSERT INTO file VALUES ("
+          ":id,:filename,:exefilename,:hash,:functions,:libfunctions,:calls,"
+          ":basicblocks,:libbasicblocks,:edges,:libedges,:instructions,"
+          ":libinstructions"
+          ")")
       ->BindInt(file2)
       .BindText(call_graph2.GetFilename().c_str())
       .BindText(call_graph2.GetExeFilename().c_str())
@@ -328,9 +346,10 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 
   database_
       .Statement(
-          "INSERT INTO \"metadata\" VALUES "
-          "(:version,:file1,:file2,:description,"
-          "DATETIME('NOW'),DATETIME('NOW'),:similarity,:confidence );")
+          "INSERT INTO metadata VALUES ("
+          ":version,:file1,:file2,:description,DATETIME('NOW'),"
+          "DATETIME('NOW'),:similarity,:confidence"
+          ")")
       ->BindText(absl::StrCat("BinDiff ", kBinDiffDetailedVersion))
       .BindInt(file1)
       .BindInt(file2)
@@ -343,7 +362,7 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 
 void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
   std::string temp;
-  database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM \"function\"")
+  database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM function")
       ->Execute()
       .Into(&temp);
 
@@ -356,24 +375,30 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
 
   SqliteStatement function_match_statement(
       &database_,
-      "INSERT INTO \"function\" VALUES (:id,:primary,:secondary,:similarity,"
-      ":confidence,:flags,:step,:evaluate,:commentsported,:basicblocks,:edges,"
-      ":instructions)");
+      "INSERT INTO function VALUES ("
+      ":id,:primary,:secondary,:similarity,:confidence,:flags,:step,"
+      ":evaluate,:commentsported,:basicblocks,:edges,:instructions"
+      ")");
   SqliteStatement basic_block_match_statement(
       &database_,
-      "INSERT INTO \"basicblock\" VALUES "
-      "(:id,:functionId,:primaryBB,:secondaryBB,:step,:evaluate)");
+      "INSERT INTO basicblock VALUES ("
+      ":id,:functionId,:primaryBB,:secondaryBB,:step,:evaluate"
+      ")");
   SqliteStatement instruction_statement(
       &database_,
-      "INSERT INTO \"instruction\" VALUES (:basicBlockId,:primaryInstruction,"
-      ":secondaryInstruction)");
+      "INSERT INTO instruction VALUES ("
+      ":basicBlockId,:primaryInstruction,:secondaryInstruction"
+      ")");
   for (auto i = fixed_points.cbegin(); i != fixed_points.cend();
        ++i, ++function_id) {
-    int basic_block_count, edge_count, instruction_count;
+    int basic_block_count;
+    int edge_count;
+    int instruction_count;
     GetCounts(*i, basic_block_count, edge_count, instruction_count);
     const FlowGraph& primary = *i->GetPrimary();
     const FlowGraph& secondary = *i->GetSecondary();
-    function_match_statement.BindInt(function_id)
+    function_match_statement
+        .BindInt(function_id)
         .BindInt64(primary.GetEntryPointAddress())
         .BindInt64(secondary.GetEntryPointAddress())
         .BindDouble(i->GetSimilarity())
@@ -443,7 +468,8 @@ void DatabaseWriter::WriteAlgorithms() {
   id = 0;
   for (const auto* step : GetDefaultMatchingSteps()) {
     function_steps_[step->name()] = ++id;
-    database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
+    database_
+        .Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
         ->BindInt(id)
         .BindText(step->name().c_str())
         .Execute();
@@ -493,25 +519,31 @@ void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
   for (auto i = kill_me.cbegin(), end = kill_me.cend(); i != end; ++i) {
     const Address primary_address = i->first;
     const Address secondary_address = i->second;
-    database_.Statement(
-        "delete from instruction where basicblockid in ( select b.id from "
-        "function as f inner join basicblock as b on b.functionid = f.id "
-        "where f.address1 = :address1 and f.address2 = :address2 )")
+    database_
+        .Statement(
+            "DELETE FROM instruction WHERE basicblockid IN ("
+            "SELECT b.id FROM function AS f "
+            "INNER JOIN basicblock AS b ON b.functionid = f.id "
+            "WHERE f.address1 = :address1 AND f.address2 = :address2"
+            ")")
         ->BindInt64(primary_address)
         .BindInt64(secondary_address)
         .Execute();
 
-    database_.Statement(
-        "delete from basicblock where functionid in ( select f.id from "
-        "\"function\" as f where f.address1 = :address1 and f.address2 = "
-        ":address2 )")
+    database_
+        .Statement(
+            "DELETE FROM basicblock WHERE functionid IN ("
+            "SELECT f.id FROM function AS f "
+            "WHERE f.address1 = :address1 AND f.address2 = :address2"
+            ")")
         ->BindInt64(primary_address)
         .BindInt64(secondary_address)
         .Execute();
 
-    database_.Statement(
-        "delete from \"function\" where address1 = :address1 and address2 = "
-        ":address2")
+    database_
+        .Statement(
+            "DELETE FROM function "
+            "WHERE address1 = :address1 AND address2 = :address2")
         ->BindInt64(primary_address)
         .BindInt64(secondary_address)
         .Execute();
@@ -533,12 +565,16 @@ void DatabaseTransmuter::DeleteTempFile() {
 void DatabaseTransmuter::MarkPortedComments(
     SqliteDatabase* database, const char* temp_database,
     const FixedPointInfos& /* fixed_points */) {
-  database->Statement("attach :filename as ported")->BindText(temp_database)
-                      .Execute();
+  database->Statement("ATTACH :filename AS ported")
+      ->BindText(temp_database)
+      .Execute();
 
-  database->Statement("update function set commentsported = exists "
-      "(select * from ported.commentsported where address = address1)"
-      " where commentsported = 0")
+  database
+      ->Statement(
+          "UPDATE function SET commentsported = EXISTS("
+          "SELECT * FROM ported.commentsported WHERE address = address1"
+          ") "
+          "WHERE commentsported = 0")
       ->Execute();
 }
 
@@ -552,7 +588,7 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
 
   {
     SqliteStatement statement(&database_,
-                              "select address1, address2 from \"function\"");
+                              "SELECT address1, address2 FROM function");
     statement.Execute();
     for (; statement.GotData(); statement.Execute()) {
       int64_t primary;
@@ -570,43 +606,45 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   DeleteMatches(kill_me);
 
   // Step 2: Merge new matches from temp database.
-  auto temp_file_or = GetTempFileName();
-  if (!temp_file_or.ok()) {
+  auto temp_file = GetTempFileName();
+  if (!temp_file.ok()) {
     // TODO(cblichmann): Refactor Writer interface to return absl::Status.
-    throw std::runtime_error(std::string(temp_file_or.status().message()));
+    throw std::runtime_error(std::string(temp_file.status().message()));
   }
-  const auto temp_file = std::move(temp_file_or).value();
-  if (FileExists(temp_file)) {
-    database_.Statement("ATTACH :filename AS newMatches")
-        ->BindText(temp_file.c_str())
+  if (FileExists(*temp_file)) {
+    database_.Statement("ATTACH :filename AS newmatches")
+        ->BindText(temp_file->c_str())
         .Execute();
     int function_id = 0, basic_block_id = 0;
-    database_.Statement("SELECT COALESCE(MAX(id), 0) FROM \"function\"")
+    database_.Statement("SELECT COALESCE(MAX(id), 0) FROM function")
         ->Execute()
         .Into(&function_id);
-    database_.Statement("SELECT COALESCE(MAX(id), 0) FROM \"basicblock\"")
+    database_.Statement("SELECT COALESCE(MAX(id), 0) FROM basicblock")
         ->Execute()
         .Into(&basic_block_id);
     database_
         .Statement(
-            "INSERT INTO \"function\" SELECT id + :id, address1, address2, "
-            "similarity, confidence, flags, algorithm, evaluate, "
-            "commentsported, basicblocks, edges, instructions FROM "
-            "newMatches.\"function\"")
+            "INSERT INTO function SELECT "
+            "id + :id, address1, address2, similarity, confidence, flags, "
+            "algorithm, evaluate, commentsported, basicblocks, edges, "
+            "instructions "
+            "FROM newmatches.function")
         ->BindInt(function_id)
         .Execute();
     database_
         .Statement(
-            "INSERT INTO basicblock select id + :id, functionId + :fid, "
-            "address1, address2, algorithm, evaluate FROM "
-            "newMatches.basicblock")
+            "INSERT INTO basicblock SELECT "
+            "id + :id, functionId + :fid, address1, address2, algorithm, "
+            "evaluate "
+            "FROM newmatches.basicblock")
         ->BindInt(basic_block_id)
         .BindInt(function_id)
         .Execute();
     database_
         .Statement(
-            "INSERT INTO instruction select basicblockid + :id, address1, "
-            "address2 FROM newMatches.instruction")
+            "INSERT INTO instruction SELECT "
+            "basicblockid + :id, address1, address2 "
+            "FROM newmatches.instruction")
         ->BindInt(basic_block_id)
         .Execute();
   }
@@ -617,8 +655,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
       ->Execute().Into(&algorithm);
   SqliteStatement statement(
       &database_,
-      "UPDATE \"function\" SET confidence=1.0, algorithm=:algorithm WHERE "
-      "address1=:address1 AND address2=:address2");
+      "UPDATE function SET confidence=1.0, algorithm=:algorithm "
+      "WHERE address1=:address1 AND address2=:address2");
   for (auto i = fixed_point_infos_.cbegin(), end = fixed_point_infos_.cend();
        i != end; ++i) {
     if (!i->IsManual())
@@ -632,7 +670,7 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   }
 
   // Step 4: Update last changed timestamp.
-  database_.Statement("UPDATE \"metadata\" SET modified=DATETIME('NOW')")
+  database_.Statement("UPDATE metadata SET modified=DATETIME('NOW')")
       ->Execute();
 }
 
@@ -673,7 +711,8 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
                                      FlowGraphs* /*flow_graphs1*/,
                                      FlowGraphs* /*flow_graphs2*/,
                                      FixedPoints* fixed_points) {
-  SqliteStatement statement(database,
+  SqliteStatement statement(
+      database,
       "SELECT "
       " function.address1, function.address2, functionalgorithm.name, "
       " function.similarity, function.confidence, "
@@ -736,10 +775,10 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
                           FlowGraphInfos& flow_graphs2,
                           FixedPointInfos& fixed_points) {
   database_.Statement(
-      "select file1.filename as filename1, file2.filename as filename2, "
+      "SELECT file1.filename AS filename1, file2.filename AS filename2, "
       "similarity, confidence from metadata "
-      "inner join file as file1 on file1.id = file1 "
-      "inner join file as file2 on file2.id = file2;")
+      "INNER JOIN file AS file1 ON file1.id = file1 "
+      "INNER JOIN file AS file2 ON file2.id = file2;")
       ->Execute()
       .Into(&primary_filename_)
       .Into(&secondary_filename_)
@@ -747,16 +786,18 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
       .Into(&confidence_);
 
   {  // function matches
-    SqliteStatement statement(&database_,
-        "select address1, address2, similarity, confidence, flags, a.name, "
+    SqliteStatement statement(
+        &database_,
+        "SELECT address1, address2, similarity, confidence, flags, a.name, "
         "evaluate, commentsported, basicblocks, edges, instructions "
-        "from \"function\" as f "
-        "inner join functionalgorithm as a on a.id = f.algorithm");
+        "FROM function AS f "
+        "INNER JOIN Functionalgorithm AS a ON a.id = f.algorithm");
     statement.Execute();
     for (; statement.GotData(); statement.Execute()) {
       std::string algorithm;
       FixedPointInfo fixed_point;
-      int evaluate = 0, comments_ported = 0;
+      int evaluate = 0;
+      int comments_ported = 0;
       statement
           .Into(&fixed_point.primary)
           .Into(&fixed_point.secondary)
@@ -778,8 +819,8 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
 
   {  // basic block matches
     SqliteStatement statement(&database_,
-        "select a.name, count(*) from basicblock as b inner join "
-        "basicblockalgorithm as a on a.id = b.algorithm group by b.algorithm");
+        "SELECT a.name, COUNT(*) FROM basicblock AS b INNER JOIN "
+        "basicblockalgorithm AS a ON a.id = b.algorithm GROUP BY b.algorithm");
     statement.Execute();
     for (; statement.GotData(); statement.Execute()) {
       std::string algorithm_name;

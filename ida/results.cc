@@ -952,8 +952,8 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   int id = 0;
   temp_database_.GetDatabase()
       ->Statement(
-          "select coalesce(id, 0) from function where function.address1 = "
-          ":address1 and function.address2 = :address2")
+          "SELECT COALESCE(id, 0) FROM function WHERE function.address1 = "
+          ":address1 AND function.address2 = :address2")
       ->BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress())
       .BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress())
       .Execute()
@@ -968,7 +968,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   std::map<int, std::string> algorithms;
   {
     SqliteStatement statement(database.get(),
-                              "select id, name from basicblockalgorithm");
+                              "SELECT id, name FROM basicblockalgorithm");
     for (statement.Execute(); statement.GotData(); statement.Execute()) {
       int id;
       std::string name;

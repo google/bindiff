@@ -24,6 +24,7 @@
 namespace security::bindiff {
 
 MatchingSteps GetDefaultMatchingSteps();
+
 bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
                                   MatchingContext* context,
                                   const MatchingStepsFlowGraph& default_steps);

@@ -348,6 +348,8 @@ add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/digest.h
   ${BinExport_DIR}/ida/log_sink.cc
   ${BinExport_DIR}/ida/log_sink.h
+  ${BinExport_DIR}/ida/names.cc
+  ${BinExport_DIR}/ida/names.h
   ${BinExport_DIR}/ida/plugin.h
   ${BinExport_DIR}/ida/ui.cc
   ${BinExport_DIR}/ida/ui.h
