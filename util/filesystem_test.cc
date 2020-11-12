@@ -27,11 +27,19 @@ using ::testing::IsFalse;
 using ::testing::IsTrue;
 using ::testing::StrEq;
 
-TEST(FileSystemTest, Filenames) {
+TEST(FileSystemTest, Basename) {
   EXPECT_THAT(Basename(absl::StrCat(kPathSeparator, "subdir", kPathSeparator,
                                     "filename.ext")),
               StrEq("filename.ext"));
+#ifdef _WIN32
+  EXPECT_THAT(Basename(R"(C:\subdir/with\mixed_separators\filename.ext)"),
+              StrEq("filename.ext"));
+  EXPECT_THAT(Basename(R"(C:\subdir/with\mixed_separators/filename.ext)"),
+              StrEq("filename.ext"));
+#endif
+}
 
+TEST(FileSystemTest, Filenames) {
   EXPECT_THAT(Dirname(absl::StrCat("subdir1", kPathSeparator, "subdir2",
                                    kPathSeparator, "filename.ext")),
               StrEq(absl::StrCat("subdir1", kPathSeparator, "subdir2")));

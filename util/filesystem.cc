@@ -57,14 +57,6 @@
 
 using security::binexport::GetLastOsError;
 
-#ifdef _WIN32
-const char kPathSeparator[] = "\\";
-const char kAllFilesFilter[] = "*.*";
-#else
-const char kPathSeparator[] = "/";
-const char kAllFilesFilter[] = "*";
-#endif
-
 namespace internal {
 
 std::string JoinPathImpl(std::initializer_list<absl::string_view> paths) {
@@ -176,7 +168,7 @@ absl::StatusOr<std::string> GetOrCreateTempDirectory(
 }
 
 std::string Basename(absl::string_view path) {
-  const auto last_slash = path.find_last_of(kPathSeparator[0]);
+  const auto last_slash = path.find_last_of(kSupportedPathSeparators);
   return std::string(last_slash == absl::string_view::npos
                          ? path
                          : absl::ClippedSubstr(path, last_slash + 1));
@@ -207,7 +199,7 @@ std::string GetFileExtension(absl::string_view path) {
 
 std::string ReplaceFileExtension(absl::string_view path,
                                  absl::string_view new_extension) {
-  auto last_slash = path.find_last_of(kPathSeparator[0]);
+  auto last_slash = path.find_last_of(kSupportedPathSeparators);
   if (last_slash == absl::string_view::npos) {
     last_slash = 0;
   }
@@ -365,8 +357,13 @@ absl::Status CopyFile(absl::string_view from, absl::string_view to) {
   std::ofstream output(std::string(to),
                        std::ios::out | std::ios::trunc | std::ios::binary);
   output << input.rdbuf();
-  if (!input || !output) {
-    return absl::UnknownError("error copying file");
+  if (!input) {
+    return absl::UnknownError(absl::StrCat("Stream read failed for \"", from,
+                                           "\": ", GetLastOsError()));
+  }
+  if (!output) {
+    return absl::UnknownError(absl::StrCat("Stream write failed for \"", to,
+                                           "\": ", GetLastOsError()));
   }
   return absl::OkStatus();
 }

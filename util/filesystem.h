@@ -33,8 +33,15 @@
 #undef StrCat               // shlwapi.h
 #endif
 
-extern const char kPathSeparator[];
-extern const char kAllFilesFilter[];
+#ifdef _WIN32
+inline constexpr char kPathSeparator[] = R"(\)";
+inline constexpr char kSupportedPathSeparators[] = R"(\/)";
+inline constexpr char kAllFilesFilter[] = "*.*";
+#else
+inline constexpr char kPathSeparator[] = R"(/)";
+inline constexpr char kSupportedPathSeparators[] = R"(/)";
+inline constexpr char kAllFilesFilter[] = "*";
+#endif
 
 namespace internal {
 // Not part of the public API.

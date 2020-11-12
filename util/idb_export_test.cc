@@ -50,6 +50,7 @@ TEST(IdbExportTest, CollectIdbsTest) {
            JoinPath(tmp_dir, "second.IDB"),
            JoinPath(tmp_dir, "third.I64"),
            JoinPath(tmp_dir, "third.BinExport"),
+           // Will overwrite the file above on Windows/case-insensitive FS.
            JoinPath(tmp_dir, "third.BiNeXpOrT"),
        }) {
     AssertEmptyFile(filename);
