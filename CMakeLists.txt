@@ -344,6 +344,20 @@ gtest_discover_tests(writer_test)
 # where X is the release number.
 set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
 add_ida_plugin(${bindiff_plugin_name}
+  ${BinExport_DIR}/basic_block.cc
+  ${BinExport_DIR}/basic_block.h
+  ${BinExport_DIR}/call_graph.cc
+  ${BinExport_DIR}/call_graph.h
+  ${BinExport_DIR}/comment.cc
+  ${BinExport_DIR}/comment.h
+  ${BinExport_DIR}/edge.cc
+  ${BinExport_DIR}/edge.h
+  ${BinExport_DIR}/expression.cc
+  ${BinExport_DIR}/expression.h
+  ${BinExport_DIR}/flow_graph.cc
+  ${BinExport_DIR}/flow_graph.h
+  ${BinExport_DIR}/function.cc
+  ${BinExport_DIR}/function.h
   ${BinExport_DIR}/ida/digest.cc
   ${BinExport_DIR}/ida/digest.h
   ${BinExport_DIR}/ida/log_sink.cc
@@ -355,6 +369,12 @@ add_ida_plugin(${bindiff_plugin_name}
   ${BinExport_DIR}/ida/ui.h
   ${BinExport_DIR}/ida/util.cc
   ${BinExport_DIR}/ida/util.h
+  ${BinExport_DIR}/instruction.cc
+  ${BinExport_DIR}/instruction.h
+  ${BinExport_DIR}/operand.cc
+  ${BinExport_DIR}/operand.h
+  ${BinExport_DIR}/virtual_memory.cc
+  ${BinExport_DIR}/virtual_memory.h
   ida/bindiff_icon.cc
   ida/bindiff_icon.h
   ida/main_plugin.cc

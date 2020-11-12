@@ -88,18 +88,20 @@ void ReadInfos(const std::string& filename, CallGraph& call_graph,
   }
 }
 
-DatabaseWriter::DatabaseWriter(const std::string& path)
-    : database_(path.c_str()), filename_(path) {
+DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
+    : database_(path.c_str()), filename_(path), options_(std::move(options)) {
   PrepareDatabase();
 }
 
 DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
-  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir.ok()) {
+  options_.include_function_names = false;
+
+  auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
+  if (!tempdir_or.ok()) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error(std::string(temp_dir.status().message()));
+    throw std::runtime_error(std::string(tempdir_or.status().message()));
   }
-  filename_ = JoinPath(*temp_dir, Basename(path));
+  filename_ = JoinPath(tempdir_or.value(), Basename(path));
   if (recreate) {
     std::remove(filename_.c_str());
   }
@@ -245,7 +247,9 @@ void DatabaseWriter::PrepareDatabase() {
           "CREATE TABLE function ("
           "id INT,"
           "address1 BIGINT,"
+          "name1 TEXT,"
           "address2 BIGINT,"
+          "name2 TEXT,"
           "similarity DOUBLE PRECISION,"
           "confidence DOUBLE PRECISION,"
           "flags INTEGER,"
@@ -376,8 +380,8 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
   SqliteStatement function_match_statement(
       &database_,
       "INSERT INTO function VALUES ("
-      ":id,:primary,:secondary,:similarity,:confidence,:flags,:step,"
-      ":evaluate,:commentsported,:basicblocks,:edges,:instructions"
+      ":id,:primary,:name1,:secondary,:name2,:similarity,:confidence,:flags,"
+      ":step,:evaluate,:commentsported,:basicblocks,:edges,:instructions"
       ")");
   SqliteStatement basic_block_match_statement(
       &database_,
@@ -391,16 +395,28 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
       ")");
   for (auto i = fixed_points.cbegin(); i != fixed_points.cend();
        ++i, ++function_id) {
-    int basic_block_count;
-    int edge_count;
-    int instruction_count;
+    int basic_block_count = 0;
+    int edge_count = 0;
+    int instruction_count = 0;
     GetCounts(*i, basic_block_count, edge_count, instruction_count);
     const FlowGraph& primary = *i->GetPrimary();
     const FlowGraph& secondary = *i->GetSecondary();
-    function_match_statement
-        .BindInt(function_id)
+    std::string primary_name;
+    std::string secondary_name;
+    if (options_.include_function_names) {
+      if (primary_name = primary.GetDemangledName(); primary_name.empty()) {
+        primary_name = primary.GetName();
+      }
+      if (secondary_name = secondary.GetDemangledName();
+          secondary_name.empty()) {
+        secondary_name = secondary.GetName();
+      }
+    }
+    function_match_statement.BindInt(function_id)
         .BindInt64(primary.GetEntryPointAddress())
+        .BindText(primary_name)
         .BindInt64(secondary.GetEntryPointAddress())
+        .BindText(secondary_name)
         .BindDouble(i->GetSimilarity())
         .BindDouble(i->GetConfidence())
         .BindInt(i->GetFlags())

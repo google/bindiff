@@ -615,7 +615,9 @@ bool WriteResults(const std::string& path) {
   const std::string out_dir(Dirname(path));
 
   if (!results->IsIncomplete()) {
-    DatabaseWriter writer(path);
+    DatabaseWriter writer(
+        path, DatabaseWriter::Options{}.set_include_function_names(
+                  !config::Proto().binary_format().exclude_function_names()));
     results->Write(&writer);
   } else {
     // results are incomplete (have been loaded)

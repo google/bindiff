@@ -24,13 +24,25 @@
 
 namespace security::bindiff {
 
+struct DatabaseWriterOptions {
+  DatabaseWriterOptions& set_include_function_names(bool value) {
+    include_function_names = value;
+    return *this;
+  }
+
+  bool include_function_names = true;
+};
+
 class DatabaseWriter : public Writer {
  public:
+  using Options = DatabaseWriterOptions;
+
   // Regular constructor for creating result databases.
-  explicit DatabaseWriter(const std::string& path);
+  DatabaseWriter(const std::string& path, Options options = {});
 
   // Special constructor for creating the temporary database.
   explicit DatabaseWriter(const std::string& path, bool recreate);
+
   virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
                      const FlowGraphs& flow_graphs1,
                      const FlowGraphs& flow_graphs2,
@@ -61,6 +73,7 @@ class DatabaseWriter : public Writer {
   NameToId function_steps_;
   SqliteDatabase database_;
   std::string filename_;
+  Options options_;
 };
 
 class DatabaseTransmuter : public Writer {

@@ -288,9 +288,12 @@ void DifferThread::operator()() {
               call_graph2.GetFilename(), ".results")));
         }
         if (g_output_binary || writer.IsEmpty()) {
-          writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
-              out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
-              call_graph2.GetFilename(), ".BinDiff")));
+          writer.Add(std::make_shared<DatabaseWriter>(
+              GetTruncatedFilename(out_path_ + kPathSeparator,
+                                   call_graph1.GetFilename(), "_vs_",
+                                   call_graph2.GetFilename(), ".BinDiff"),
+              DatabaseWriter::Options{}.set_include_function_names(
+                  !config::Proto().binary_format().exclude_function_names())));
         }
 
         writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,

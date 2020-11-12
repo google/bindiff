@@ -15,6 +15,9 @@
   "to_stderr": false,
   "directory": ""
  },
+ "binary_format": {
+   "exclude_function_names": false
+ },
  "function_matching": {
   "function: name hash matching": {
    "confidence": 1

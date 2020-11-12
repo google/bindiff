@@ -20,6 +20,8 @@ option java_package = "com.google.security.zynamics.bindiff";
 option java_outer_classname = "BinDiffProtos";
 
 message Config {
+  // Next id: 11
+
   // Configuration version. Should be at least "7" for proto based configuration
   // files.
   int32 version = 1;
@@ -92,6 +94,13 @@ message Config {
     bool to_stderr = 4;
   }
   LogOptions log = 5;
+
+  message BinaryFormatOptions {
+    // Whether to include demangled function names in the binary database
+    // format. The default is to include them.
+    bool exclude_function_names = 1;
+  }
+  BinaryFormatOptions binary_format = 10;
 
   message MatchingStep {
     double confidence = 1;
