@@ -54,7 +54,7 @@ struct StartUiOptions {
 // Launches the BinDiff Java UI and immediately returns. Extra command-line
 // arguments for the UI can be specified in args, and configuration settings in
 // options.
-absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
+absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
                                 const StartUiOptions& options);
 
 }  // namespace security::bindiff

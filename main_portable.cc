@@ -33,24 +33,18 @@
 #include <utility>
 #include <vector>
 
-#ifdef GOOGLE
-#include "base/commandlineflags.h"
-#include "base/init_google.h"
-#include "base/logging_extensions.h"
-#else
+#include "base/logging.h"
+#include "third_party/absl/base/const_init.h"
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/flags/flag.h"
 #include "third_party/absl/flags/internal/usage.h"
 #include "third_party/absl/flags/parse.h"
 #include "third_party/absl/flags/usage.h"
 #include "third_party/absl/flags/usage_config.h"
-#include "third_party/absl/strings/match.h"
-#endif  // GOOGLE
-#include "base/logging.h"
-#include "third_party/absl/base/const_init.h"
-#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
@@ -113,20 +107,12 @@ void PrintMessage(absl::string_view message) {
   auto size = message.size();
   fwrite(message.data(), 1 /* Size */, size, stdout);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
-#ifdef GOOGLE
-  // If writing to logfiles is enabled, log the message.
-  LOG_IF(INFO, absl::GetFlag(FLAGS_logtostderr)) << message;
-#endif
 }
 
 void PrintErrorMessage(absl::string_view message) {
   auto size = message.size();
   fwrite(message.data(), 1 /* Size */, size, stderr);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
-#ifdef GOOGLE
-  // If writing to logfiles is enabled, log the message.
-  LOG_IF(ERROR, absl::GetFlag(FLAGS_logtostderr)) << message;
-#endif
 }
 
 #ifndef GOOGLE
@@ -499,7 +485,6 @@ void SignalHandler(int code) {
   }
 }
 
-#ifndef GOOGLE
 // Install Abseil Flags' library usage callbacks. This needs to be done before
 // any operation that may call one of the callbacks.
 void InstallFlagsUsageConfig() {
@@ -517,7 +502,6 @@ void InstallFlagsUsageConfig() {
   };
   absl::SetFlagsUsageConfig(usage_config);
 }
-#endif
 
 absl::Status BinDiffMain(int argc, char* argv[]) {
 #ifdef WIN32
@@ -542,22 +526,17 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
       "In the 2nd and 3rd form, diff two previously exported binaries.\n"
       "In the 4th form, launch the BinDiff UI.",
       binary_name);
-  std::vector<std::string> positional;
-  positional.reserve(argc - 1);
-#ifdef GOOGLE
-  InitGoogle(usage.c_str(), &argc, &argv, /*remove_flags=*/true);
-  for (int i = 1; i < argc; ++i) {
-    positional.push_back(argv[i]);
-  }
-#else
   absl::SetProgramUsageMessage(usage);
   InstallFlagsUsageConfig();
+  std::vector<std::string> positional;
   {
     const std::vector<char*> parsed_argv = absl::ParseCommandLine(argc, argv);
+    positional.reserve(parsed_argv.size() - 1);
     for (int i = 1; i < parsed_argv.size(); ++i) {
       positional.push_back(parsed_argv[i]);
     }
   }
+#ifndef GOOGLE
   SetLogHandler(&UnprefixedLogHandler);
 #endif
 

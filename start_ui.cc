@@ -130,7 +130,7 @@ uint64_t GetPhysicalMemSize() {
 #endif
 }
 
-absl::Status StartUiWithOptions(std::vector<std::string> extra_args,
+absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
                                 const StartUiOptions& options) {
   std::vector<std::string> argv;
 
