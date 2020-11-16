@@ -639,8 +639,8 @@ void DatabaseWriter::InsertExpressionSubstitutions(
             }
             if (expression->IsImmediate() && !expression->GetSymbol().empty()) {
               query_builder
-                  << "(" << static_cast<int64_t>(instruction.GetAddress()) << ","
-                  << operand_num << "," << expression->GetId() << ","
+                  << "(" << static_cast<int64_t>(instruction.GetAddress())
+                  << "," << operand_num << "," << expression->GetId() << ","
                   << database_.EscapeLiteral(expression->GetSymbol()) << "),"
                   << kFlushQuery;
             }

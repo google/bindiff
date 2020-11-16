@@ -18,13 +18,11 @@
 #ifndef READER_CALL_GRAPH_H_
 #define READER_CALL_GRAPH_H_
 
+#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
+#include <cstdint>
 #include <memory>
 #include <string>
 
-#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
-
-#include "base/integral_types.h"
-#include "base/macros.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/types.h"
 
@@ -41,7 +39,7 @@ class CallGraph {
     Address address;             // Function address.
     std::string name;            // Function name.
     std::string demangled_name;  // Demangled function name.
-    uint32_t flags;                // Function flags.
+    uint32_t flags;              // Function flags.
     std::string library_name;    // Library name.
     std::string module_name;     // Module name.
 
@@ -72,8 +70,8 @@ class CallGraph {
       VertexProperty,         // The information per vertex.
       boost::no_property,     // The information per edge.
       boost::no_property,     // Use no graph properties.
-      uint32_t,                 // Index type for vertices.
-      uint32_t>;                // Index type for edges.
+      uint32_t,               // Index type for vertices.
+      uint32_t>;              // Index type for edges.
 
   using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
   using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;

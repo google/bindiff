@@ -42,6 +42,7 @@ class Expression {
     TYPE_SIZEPREFIX = 6,
     TYPE_DEREFERENCE = 7,
 
+    // These are only used by the IDA plugin
     TYPE_NEWOPERAND = 8,
     TYPE_STACKVARIABLE = 9,
     TYPE_GLOBALVARIABLE = 10,
@@ -67,9 +68,10 @@ class Expression {
   const Expression* GetParent() const;
   std::string CreateSignature();
   static Expression* Create(const Expression* parent,
-                            const std::string& symbol = "", int64_t immediate = 0,
-                            Type type = TYPE_IMMEDIATE_INT, uint16_t position = 0,
-                            bool relocatable = false);
+                            const std::string& symbol = "",
+                            int64_t immediate = 0,
+                            Type type = TYPE_IMMEDIATE_INT,
+                            uint16_t position = 0, bool relocatable = false);
   static void EmptyCache();
   static const ExpressionCache& GetExpressions();
 
@@ -141,6 +143,8 @@ class Expression {
   };
 
  private:
+  static const std::string* CacheString(const std::string& value);
+
   // The constructor is private for two reasons:
   // - We want to make sure expressions can only be created on the heap.
   // - We want to avoid creating duplicate expressions so we just
@@ -148,7 +152,6 @@ class Expression {
   //   compression/de-duping)
   Expression(const Expression* parent, const std::string& symbol,
              int64_t immediate, Type type, uint16_t position, bool relocatable);
-  static const std::string* CacheString(const std::string& value);
 
   const std::string* symbol_;
   int64_t immediate_;

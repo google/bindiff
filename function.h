@@ -42,7 +42,10 @@ class Function {
     TYPE_INVALID = 4,
   };
 
-  enum Name { MANGLED = 0, DEMANGLED = 1 };
+  enum Name {
+    MANGLED = 0,
+    DEMANGLED = 1,
+  };
 
   static const char* GetTypeName(FunctionType type);
 
@@ -97,6 +100,9 @@ class Function {
 
   void SetLibraryIndex(int library_index) { library_index_ = library_index; }
 
+  double GetMdIndex() const { return md_index_; }
+  void SetMdIndex(double md_index) { md_index_ = md_index; }
+
  private:
   int GetBasicBlockIndexForAddress(Address address) const;
   BasicBlock* GetMutableBasicBlockForAddress(Address address);
@@ -113,6 +119,7 @@ class Function {
   const std::string* module_name_;
   FunctionType type_;
   int library_index_;
+  double md_index_;
 };
 
 #endif  // FUNCTION_H_

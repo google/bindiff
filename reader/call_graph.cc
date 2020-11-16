@@ -89,13 +89,13 @@ bool CallGraph::IsValidEntryPoint(Address address) const {
 }
 
 bool CallGraph::IsValidEntryPoint(Vertex vertex) const {
-  constexpr uint32_t is_valid_function_mask =
+  constexpr uint32_t kValidFunctionMask =
       kVertexLibrary | kVertexThunk | kVertexImported | kVertexInvalid;
   if (vertex == VertexTypeTraits<Vertex>::kInvalidVertex) {
     return false;
   }
   const uint32_t function_flags = graph()[vertex].flags;
-  return (function_flags & is_valid_function_mask) == 0;
+  return (function_flags & kValidFunctionMask) == 0;
 }
 
 std::unique_ptr<CallGraph> CallGraph::FromBinExport2Proto(

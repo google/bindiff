@@ -16,8 +16,8 @@
 #define EDGE_H_
 
 #include <cstddef>
+#include <cstdint>
 
-#include "base/integral_types.h"
 #include "third_party/zynamics/binexport/types.h"
 
 struct FlowGraphEdge {
@@ -38,11 +38,11 @@ struct FlowGraphEdge {
 };
 
 struct FlowGraphEdgeHash {
-  std::size_t operator()(const FlowGraphEdge& fge) const;
+  size_t operator()(const FlowGraphEdge& fge) const;
 };
 
-// For easy use with std::set. Sorts by source address first, target address
-// second.
+// For easy use with set containers. Sorts by source address first, target
+// address second.
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two);
 bool operator==(const FlowGraphEdge& lhs, const FlowGraphEdge& rhs);
 

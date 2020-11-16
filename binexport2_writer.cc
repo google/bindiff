@@ -33,7 +33,6 @@
 #include <string>
 #include <fstream>
 
-#include "base/integral_types.h"
 #include "base/logging.h"
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -51,8 +50,9 @@ namespace {
 
 // Sorts by descending occurrence count then by mnemonic string. Don't be
 // confused by operator > - this function is called as an operator less-than.
-bool SortMnemonicsByOccurrenceCount(const std::pair<std::string, int32_t>& one,
-                                    const std::pair<std::string, int32_t>& two) {
+bool SortMnemonicsByOccurrenceCount(
+    const std::pair<std::string, int32_t>& one,
+    const std::pair<std::string, int32_t>& two) {
   if (one.second != two.second) {
     return one.second > two.second;
   }
@@ -455,7 +455,8 @@ bool SortByAddress(const BinExport2::CallGraph::Vertex& one,
 // particular address.
 // It is a fatal error to look for an address that is not actually contained in
 // the graph.
-int32_t GetVertexIndex(const BinExport2::CallGraph& call_graph, uint64_t address) {
+int32_t GetVertexIndex(const BinExport2::CallGraph& call_graph,
+                       uint64_t address) {
   BinExport2::CallGraph::Vertex vertex;
   vertex.set_address(address);
   const auto& it =

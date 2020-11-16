@@ -44,15 +44,15 @@ class Operand {
   const Expression& GetLastExpression() const;
 
  private:
+  static Expressions expressions_;
+  static OperandCache operand_cache_;
+  static uint32_t global_id_;
+
   explicit Operand(const Expressions& expressions);
 
   uint32_t id_;
   uint32_t expression_index_;
   uint8_t expression_count_;
-
-  static Expressions expressions_;
-  static OperandCache operand_cache_;
-  static uint32_t global_id_;
 };
 #pragma pack(pop)
 

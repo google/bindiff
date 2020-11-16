@@ -120,13 +120,6 @@ class Instruction {
   bool HasFlag(uint8_t flag) const;
 
  private:
-  const std::string* mnemonic_;  // 4|8 + overhead in stringcache
-  Address address_;              // 8
-  uint32_t operand_index_;         // 4 + overhead in operand pointer vector
-  uint8_t operand_count_;          // 1
-  uint16_t in_degree_;             // 2 TODO(soerenme) in-degree count in edges.
-  uint8_t size_;                   // 1
-
   static int instance_count_;
   static StringCache string_cache_;
   static Operands operands_;
@@ -134,6 +127,13 @@ class Instruction {
   static GetBytesCallback get_bytes_callback_;
   static AddressSpace* flags_;
   static AddressSpace* virtual_memory_;
+
+  const std::string* mnemonic_;  // 4|8 + overhead in stringcache
+  Address address_;              // 8
+  uint32_t operand_index_;       // 4 + overhead in operand pointer vector
+  uint8_t operand_count_;        // 1
+  uint16_t in_degree_;  // 2 TODO(cblichmann): in-degree count in edges.
+  uint8_t size_;        // 1
 };
 #pragma pack(pop)
 

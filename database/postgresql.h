@@ -15,6 +15,7 @@
 #ifndef DATABASE_POSTGRESQL_H_
 #define DATABASE_POSTGRESQL_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -57,6 +58,10 @@ struct pg_result;
 class Database {
  public:
   explicit Database(const char* connection_string);
+
+  Database(const Database&) = delete;
+  Database& operator=(const Database&) = delete;
+
   ~Database();
 
   Database& Execute(const char* query,
@@ -70,16 +75,13 @@ class Database {
 
   operator bool() const;
   Database& operator>>(bool& value);         // NOLINT
-  Database& operator>>(int32_t& value);        // NOLINT
-  Database& operator>>(int64_t& value);        // NOLINT
+  Database& operator>>(int32_t& value);      // NOLINT
+  Database& operator>>(int64_t& value);      // NOLINT
   Database& operator>>(double& value);       // NOLINT
   Database& operator>>(std::string& value);  // NOLINT
   Database& operator>>(Blob& value);         // NOLINT
 
  private:
-  Database(const Database&) = delete;
-  Database& operator=(const Database&) = delete;
-
   pg_conn* connection_;
   pg_result* result_;
   int result_index_;
@@ -89,12 +91,13 @@ class Transaction {
  public:
   // Does not take ownership
   explicit Transaction(Database* database);
-  ~Transaction();
 
- private:
   Transaction(const Transaction&) = delete;
   Transaction& operator=(const Transaction&) = delete;
 
+  ~Transaction();
+
+ private:
   Database* database_;
 };
 

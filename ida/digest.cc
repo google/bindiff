@@ -20,7 +20,6 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "base/integral_types.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
@@ -28,23 +27,19 @@
 namespace security::binexport {
 
 absl::StatusOr<std::string> GetInputFileSha256() {
-  constexpr int kBinarySha256Length = 32;
-  unsigned char hash[kBinarySha256Length];
-  if (!retrieve_input_file_sha256(hash)) {
+  std::string hash(32, '\0');
+  if (!retrieve_input_file_sha256(reinterpret_cast<uchar*>(&hash[0]))) {
     return absl::InternalError("Failed to load SHA256 hash of input file");
   }
-  return absl::AsciiStrToLower(absl::BytesToHexString(absl::string_view(
-      reinterpret_cast<const char*>(hash), kBinarySha256Length)));
+  return absl::AsciiStrToLower(absl::BytesToHexString(hash));
 }
 
 absl::StatusOr<std::string> GetInputFileMd5() {
-  constexpr int kBinaryMd5Length = 16;
-  unsigned char hash[kBinaryMd5Length];
-  if (!retrieve_input_file_md5(hash)) {
+  std::string hash(32, '\0');
+  if (!retrieve_input_file_md5(reinterpret_cast<uchar*>(&hash[0]))) {
     return absl::InternalError("Failed to load MD5 hash of input file");
   }
-  return absl::AsciiStrToLower(absl::BytesToHexString(absl::string_view(
-      reinterpret_cast<const char*>(hash), kBinaryMd5Length)));
+  return absl::AsciiStrToLower(absl::BytesToHexString(hash));
 }
 
 }  // namespace security::binexport

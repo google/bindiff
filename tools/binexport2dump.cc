@@ -81,8 +81,9 @@ void RenderExpression(const BinExport2& proto,
                 (child_type == BinExport2::Expression::IMMEDIATE_INT ||
                  child_type == BinExport2::Expression::IMMEDIATE_FLOAT)) {
               const int64_t child_immediate =
-                  long_mode ? child_expression.immediate()
-                            : static_cast<int32_t>(child_expression.immediate());
+                  long_mode
+                      ? child_expression.immediate()
+                      : static_cast<int32_t>(child_expression.immediate());
               if (child_immediate < 0 && child_expression.symbol().empty()) {
                 continue;  // Don't render anything or we'll get: eax+-12
               }

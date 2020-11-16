@@ -159,8 +159,7 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
                                 CallGraph* /* call_graph */,
                                 FlowGraph* flow_graph) {
   Operands operands;
-  for (uint8_t i = 0; i < UA_MAXOP && instruction.ops[i].type != o_void;
-       ++i) {
+  for (uint8_t i = 0; i < UA_MAXOP && instruction.ops[i].type != o_void; ++i) {
     Expressions expressions;
     const op_t& operand(instruction.ops[i]);
 

@@ -19,6 +19,7 @@
 #ifndef BASE_TYPES_H_
 #define BASE_TYPES_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -43,8 +44,6 @@ class BaseType {
 
   BaseType()
       : id_(NextTypeId()),
-        size_(0),
-        is_signed_(false),
         pointer_(nullptr),
         category_(kAtomic) {}
 
@@ -77,13 +76,15 @@ class BaseType {
   static const MemberType* ResolveMember(const BaseType* base_type, int offset);
 
  private:
+  static uint32_t NextTypeId();
+
   uint32_t id_;
   // The name of  this type.
   std::string name_;
   // The size of this type in bits.
-  size_t size_;
+  size_t size_ = 0;
   // Is this type able to represent signed values?
-  bool is_signed_;
+  bool is_signed_ = false;
   // If this is a pointer type we also have a parent relation
   // (e.g. int** -> int* -> int).
   const BaseType* pointer_;
@@ -91,7 +92,6 @@ class BaseType {
   // own the MemberType instances. Instead, the types container owns them.
   MemberTypes members_;
   TypeCategory category_;
-  static uint32_t NextTypeId();
 };
 
 // Represents an element of a compound type.
@@ -100,13 +100,7 @@ struct MemberType {
   // Represents a null value in the database schema.
   enum { DB_NULL_VALUE = -1 };
 
-  MemberType()
-      : id(NextTypeId()),
-        type(nullptr),
-        parent_type(nullptr),
-        offset(DB_NULL_VALUE),
-        argument(DB_NULL_VALUE),
-        num_elements(DB_NULL_VALUE) {}
+  MemberType() : id(NextTypeId()), type(nullptr), parent_type(nullptr) {}
 
   // The corresponding id in the database.
   uint32_t id;
@@ -118,15 +112,15 @@ struct MemberType {
   const BaseType* parent_type;
   // The offset of this member within a structure type.
   // DB_NULL_VALUE if this should be NULL in the database (for arrays).
-  int offset;
+  int offset = DB_NULL_VALUE;
   // The ith argument if this is a function pointer.
   // DB_NULL_VALUE if this should be NULL in the database.
   // (anything but function pointers).
-  int argument;
+  int argument = DB_NULL_VALUE;
   // Number of elements if this is an array.
   // DB_NULL_VALUE if this should be NULL in the database
   // (anything but arrays).
-  int num_elements;
+  int num_elements = DB_NULL_VALUE;
 
  private:
   static uint32_t NextTypeId();

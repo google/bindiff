@@ -14,8 +14,9 @@
 
 #include "third_party/zynamics/binexport/base_types.h"
 
-#include <assert.h>
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
 
 namespace {
 
@@ -38,9 +39,7 @@ uint32_t BaseType::NextTypeId() {
   return type_id++;
 }
 
-uint32_t BaseType::GetId() const {
-  return id_;
-}
+uint32_t BaseType::GetId() const { return id_; }
 
 void BaseType::SetName(const std::string& name) { name_ = name; }
 
@@ -140,4 +139,3 @@ uint32_t MemberType::NextTypeId() {
   static uint32_t member_id = 1;
   return member_id++;
 }
-

@@ -286,8 +286,9 @@ Instruction::GetBytesCallback Instruction::get_bytes_callback_ = 0;
 AddressSpace* Instruction::flags_ = nullptr;
 AddressSpace* Instruction::virtual_memory_ = nullptr;
 
-Instruction::Instruction(Address address, Address next_instruction, uint16_t size,
-                         const std::string& mnemonic, const Operands& operands)
+Instruction::Instruction(Address address, Address next_instruction,
+                         uint16_t size, const std::string& mnemonic,
+                         const Operands& operands)
     : mnemonic_(CacheString(mnemonic)),
       address_(address),
       operand_index_(operands_.size()),

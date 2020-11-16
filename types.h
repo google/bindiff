@@ -15,9 +15,7 @@
 #ifndef TYPES_H_
 #define TYPES_H_
 
-#include <string>
-
-#include "base/integral_types.h"
+#include <cstdint>
 
 using Byte = uint8_t;
 using Address = uint64_t;

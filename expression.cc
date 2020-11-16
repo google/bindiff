@@ -44,12 +44,11 @@ Expression* Expression::Create(const Expression* parent,
   ExpressionCache::iterator i = expression_cache_.find(signature);
   if (i != expression_cache_.end()) {
     return &i->second;
-  } else {
-    // Id should simply be a count of how many objects are already in the cache.
-    expression.id_ = ++global_id_;
-    return &expression_cache_.insert(std::make_pair(signature, expression))
-                .first->second;
   }
+  // Id should simply be a count of how many objects are already in the cache.
+  expression.id_ = ++global_id_;
+  return &expression_cache_.insert(std::make_pair(signature, expression))
+              .first->second;
 }
 
 void Expression::EmptyCache() {
@@ -109,22 +108,24 @@ std::string Expression::CreateSignature() {
 }
 
 std::ostream& operator<<(std::ostream& stream, const Expression& expression) {
-  if (expression.IsDereferenceOperator())
+  if (expression.IsDereferenceOperator()) {
     stream << "[";
-  else if (!expression.GetSymbol().empty())
+  } else if (!expression.GetSymbol().empty()) {
     stream << expression.GetSymbol();
-  else if (expression.GetImmediate() >= 0)
+  } else if (expression.GetImmediate() >= 0) {
     stream << std::hex << expression.GetImmediate();
-  else
+  } else {
     stream << "-" << std::hex << -expression.GetImmediate();
+  }
 
-  // TODO(soerenme) Re-implement using renderExpression in instruction.cpp
-  // for (std::list< CExpression * >::const_iterator i =
-  //      expression.m_Children.begin(); i != expression.m_Children.end(); ++i )
-  //   stream << "(" << **i << ")";
+  // TODO(cblichmann): Reimplement using RenderExpression in instruction.cc
+  // for (auto it =
+  //      expression.children.begin(); it != expression.children.end(); ++it)
+  //   stream << "(" << **it << ")";
 
-  if (expression.IsDereferenceOperator()) stream << "]";
-
+  if (expression.IsDereferenceOperator()) {
+    stream << "]";
+  }
   return stream;
 }
 

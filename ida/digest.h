@@ -15,8 +15,9 @@
 #ifndef IDA_DIGEST_H_
 #define IDA_DIGEST_H_
 
+#include <string>
+
 #include "third_party/absl/status/statusor.h"
-#include "third_party/zynamics/binexport/types.h"
 
 namespace security::binexport {
 //

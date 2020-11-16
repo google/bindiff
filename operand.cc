@@ -94,9 +94,7 @@ Expressions::iterator Operand::end() const {
   return begin() + expression_count_;
 }
 
-uint8_t Operand::GetExpressionCount() const {
-  return expression_count_;
-}
+uint8_t Operand::GetExpressionCount() const { return expression_count_; }
 
 const Expression& Operand::GetExpression(int index) const {
   CHECK(index >= 0 && index < GetExpressionCount());

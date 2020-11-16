@@ -15,10 +15,10 @@
 #include "third_party/zynamics/binexport/reader/flow_graph.h"
 
 #include <algorithm>
+#include <boost/graph/graph_traits.hpp>  // NOLINT
+#include <cstdint>
 #include <string>
 #include <vector>
-
-#include <boost/graph/graph_traits.hpp>  // NOLINT
 
 #include "base/logging.h"
 #include "third_party/absl/memory/memory.h"

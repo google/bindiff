@@ -15,6 +15,8 @@
 #ifndef HASH_H_
 #define HASH_H_
 
+#include <string>
+
 #include "third_party/zynamics/binexport/types.h"
 
 // Calculates a general-purpose, non-cryptographic hash over the contents of a

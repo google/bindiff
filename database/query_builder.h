@@ -15,6 +15,7 @@
 #ifndef DATABASE_QUERY_BUILDER_H_
 #define DATABASE_QUERY_BUILDER_H_
 
+#include <cstddef>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -30,12 +31,13 @@ class QueryBuilder {
   // Does not take ownership.
   QueryBuilder(Database* database, const std::string& base_query,
                size_t query_size);
-  void Execute();
 
- private:
   QueryBuilder(const QueryBuilder&) = delete;
   QueryBuilder& operator=(const QueryBuilder&) = delete;
 
+  void Execute();
+
+ private:
   friend QueryBuilder& operator<<(QueryBuilder&, const std::string&);
   friend QueryBuilder& operator<<(QueryBuilder&, int64_t);
   friend QueryBuilder& operator<<(QueryBuilder&, const Terminator&);

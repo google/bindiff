@@ -18,8 +18,9 @@
 #define READER_GRAPH_UTILITY_H_
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
+#include <cstdint>
+#include <limits>
 
-#include "base/integral_types.h"
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security::binexport {
@@ -36,11 +37,11 @@ struct VertexTypeTraits {};
 
 // This is the specialization for the types FlowGraph::Vertex and
 // CallGraph::Vertex. Both of them are just a typedef and therefore no real type
-// in the type system. They are currently of type uint32_t. This is safe as when
+// in the type system. They are currently of type uint32. This is safe as when
 // underlying code changes there is no specialization for this type in place.
 template <>
 struct VertexTypeTraits<uint32_t> {
-  static constexpr uint32_t kInvalidVertex = kuint32max;
+  static constexpr auto kInvalidVertex = std::numeric_limits<uint32_t>::max();
 };
 
 template <typename Vertex>

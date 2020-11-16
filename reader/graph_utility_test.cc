@@ -55,7 +55,8 @@ class GraphUtilityTest : public testing::Test {
 
   typedef boost::compressed_sparse_row_graph<boost::bidirectionalS, VertexInfo,
                                              EdgeProperty, boost::no_property,
-                                             uint32_t, uint32_t> Graph;
+                                             uint32_t, uint32_t>
+      Graph;
 
   Graph graph_;
 

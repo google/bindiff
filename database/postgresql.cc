@@ -105,7 +105,7 @@ Parameters& Parameters::operator<<(const int64_t value) {
 
 Parameters& Parameters::operator<<(double value) {
   parameters_.push_back(static_cast<int>(data_.size()));
-  const uint8_t* p = (reinterpret_cast<const uint8_t*>(&value) + 7);
+  const auto* p = (reinterpret_cast<const uint8_t*>(&value) + 7);
   for (int i = 0; i < 8; ++i) {
     data_.push_back(*(p - i));
   }
@@ -156,7 +156,7 @@ Database::Database(const char* connection_string)
 
   // Set a custom handler for log messages coming from the server.
   PQsetNoticeProcessor(connection_, &PostgresNoticeProcessor,
-                       NULL /*user data*/);
+                       nullptr /*user data*/);
 }
 
 Database::~Database() {
@@ -248,7 +248,7 @@ Database& Database::operator>>(bool& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  const uint8_t* source = reinterpret_cast<const uint8_t*>(PQgetvalue(
+  const auto* source = reinterpret_cast<const uint8_t*>(PQgetvalue(
       result_, result_index_ / num_columns, result_index_ % num_columns));
   value = *source != 0;
   ++result_index_;
@@ -260,8 +260,8 @@ Database& Database::operator>>(int32_t& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
-  const uint8_t* source =
+  auto* dest = reinterpret_cast<uint8_t*>(&value);
+  const auto* source =
       reinterpret_cast<const uint8_t*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       3;
@@ -278,8 +278,8 @@ Database& Database::operator>>(int64_t& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
-  const uint8_t* source =
+  auto* dest = reinterpret_cast<uint8_t*>(&value);
+  const auto* source =
       reinterpret_cast<const uint8_t*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       7;
@@ -300,8 +300,8 @@ Database& Database::operator>>(double& value) {
   assert(!PQgetisnull(result_, result_index_ / num_columns,
                       result_index_ % num_columns) &&
          "null values not supported");
-  uint8_t* dest = reinterpret_cast<uint8_t*>(&value);
-  const uint8_t* source =
+  auto* dest = reinterpret_cast<uint8_t*>(&value);
+  const auto* source =
       reinterpret_cast<const uint8_t*>(PQgetvalue(
           result_, result_index_ / num_columns, result_index_ % num_columns)) +
       7;
