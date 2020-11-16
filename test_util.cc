@@ -25,6 +25,7 @@
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
+#include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
@@ -56,7 +57,9 @@ void BinDiffEnvironment::SetUp() {
            {"function: call sequence matching(topology)", 0.0},
            {"function: call sequence matching(sequence)", 0.0},
        }) {
-    (*config.mutable_function_matching())[name].set_confidence(confidence);
+    Config::MatchingStep* step = config.add_function_matching();
+    step->set_name(name);
+    step->set_confidence(confidence);
   }
   for (const auto& [name, confidence] :
        std::initializer_list<std::pair<std::string, double>>{
@@ -79,7 +82,9 @@ void BinDiffEnvironment::SetUp() {
            {"basicBlock: instruction count matching", 0.0},
            {"basicBlock: jump sequence matching", 0.0},
        }) {
-    (*config.mutable_basic_block_matching())[name].set_confidence(confidence);
+    Config::MatchingStep* step = config.add_basic_block_matching();
+    step->set_name(name);
+    step->set_confidence(confidence);
   }
 }
 

@@ -58,8 +58,12 @@ bool KeyLessThan(const EdgeFeature& one, const EdgeFeature& two) {
 
 double GetConfidenceFromConfig(const std::string& name) {
   const auto& algorithms = config::Proto().function_matching();
-  const auto found = algorithms.find(name);
-  return found != algorithms.end() ? found->second.confidence()
+  const auto found =
+      std::find_if(algorithms.begin(), algorithms.end(),
+                   [&name](const Config::MatchingStep& step) -> bool {
+                     return step.name() == name;
+                   });
+  return found != algorithms.end() ? found->confidence()
                                    : -1.0 /* Not found/commented out */;
 }
 
@@ -170,7 +174,7 @@ bool FindFixedPointsEdge(const FlowGraph* primary_parent,
 
 bool CheckExtraConditions(const FlowGraph* primary, const FlowGraph* secondary,
                           const MatchingStep* step) {
-  if (!step->NeedsStrictEquivalence()) {
+  if (!step->strict_equivalence()) {
     return true;
   }
 
@@ -383,8 +387,9 @@ MatchingSteps GetDefaultMatchingSteps() {
 
   static const auto* matching_steps = []() -> const MatchingSteps* {
     auto* matching_steps = new MatchingSteps();
-    for (const auto& [name, _] : config::Proto().function_matching()) {
-      if (auto found = algorithms->find(name); found != algorithms->end()) {
+    for (const auto& step : config::Proto().function_matching()) {
+      if (auto found = algorithms->find(step.name());
+          found != algorithms->end()) {
         matching_steps->push_back(found->second);
       }
     }

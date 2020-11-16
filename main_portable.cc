@@ -550,7 +550,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     NA_ASSIGN_OR_RETURN(auto loaded_config,
                         config::LoadFromFile(absl::GetFlag(FLAGS_config)));
     config = config::Defaults();
-    config.MergeFrom(loaded_config);
+    config::MergeInto(loaded_config, config);
   }
 
   // Print configuration to stdout if requested

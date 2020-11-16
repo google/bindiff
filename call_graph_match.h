@@ -65,20 +65,11 @@ class MatchingStep {
                                MatchingSteps& matching_steps,
                                const MatchingStepsFlowGraph& default_steps) = 0;
 
-  ABSL_DEPRECATED("Use name() instead")
-  const std::string& GetName() const { return name_; }
-
   const std::string& name() const { return name_; }
 
   const std::string& display_name() const { return display_name_; }
 
-  ABSL_DEPRECATED("Use confidence() instead")
-  double GetConfidence() const { return confidence_; }
-
   double confidence() const { return confidence_; }
-
-  ABSL_DEPRECATED("Use strict_equivalence() instead")
-  bool NeedsStrictEquivalence() const { return strict_equivalence_; }
 
   bool strict_equivalence() const { return strict_equivalence_; }
 
@@ -203,7 +194,7 @@ bool FindFixedPoints(const FlowGraph* primary_parent,
     }
 
     if (auto [fixed_point_it, inserted] =
-            context->AddFixedPoint(primary, secondary, step->GetName());
+            context->AddFixedPoint(primary, secondary, step->name());
         !inserted) {
       ++primary_feature;
       continue;

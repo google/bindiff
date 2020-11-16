@@ -20,11 +20,14 @@
 #include <google/protobuf/util/json_util.h>
 #endif
 
+#include <algorithm>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "base/logging.h"
 #include "third_party/absl/base/attributes.h"
+#include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/numbers.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -86,7 +89,7 @@ Config& Proto() {
       if (absl::StatusOr<Config> common_config =
               LoadFromFile(JoinPath(*common_path, kConfigName));
           common_config.ok()) {
-        config->MergeFrom(*common_config);
+        config::MergeInto(*common_config, *config);
       }
     }
 
@@ -96,7 +99,7 @@ Config& Proto() {
       if (absl::StatusOr<Config> user_config =
               LoadFromFile(JoinPath(*user_path, kConfigName));
           user_config.ok()) {
-        config->MergeFrom(*user_config);
+        config::MergeInto(*user_config, *config);
       }
     }
 
@@ -160,6 +163,31 @@ absl::Status SaveUserConfig(const Config& config) {
         absl::StrCat("I/O error writing file: ", filename));
   }
   return absl::OkStatus();
+}
+
+void MergeInto(const Config& from, Config& config) {
+  // Move away problematic fields
+  auto function_matching = std::move(*config.mutable_function_matching());
+  auto basic_block_matching = std::move(*config.mutable_basic_block_matching());
+
+  // Let Protobuf handle the actual merge
+  config.MergeFrom(from);
+
+  absl::flat_hash_set<absl::string_view> names;
+  for (const auto& step : config.function_matching()) {
+    names.insert(step.name());
+  }
+  if (names.empty() || names.size() != config.function_matching_size()) {
+    // Duplicate or no algorithms, restore original list
+    *config.mutable_function_matching() = std::move(function_matching);
+  }
+  names.clear();
+  for (const auto& step : config.basic_block_matching()) {
+    names.insert(step.name());
+  }
+  if (names.empty() || names.size() != config.basic_block_matching_size()) {
+    *config.mutable_basic_block_matching() = std::move(basic_block_matching);
+  }
 }
 
 }  // namespace security::bindiff::config

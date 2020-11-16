@@ -18,115 +18,150 @@
  "binary_format": {
    "exclude_function_names": false
  },
- "function_matching": {
-  "function: name hash matching": {
+ "function_matching": [
+  {
+   "name": "function: name hash matching",
    "confidence": 1
   },
-  "function: hash matching": {
+  {
+   "name": "function: hash matching",
    "confidence": 1
   },
-  "function: edges flowgraph MD index": {
+  {
+   "name": "function: edges flowgraph MD index",
    "confidence": 1
   },
-  "function: edges callgraph MD index": {
+  {
+   "name": "function: edges callgraph MD index",
    "confidence": 0.9
   },
-  "function: MD index matching (flowgraph MD index, top down)": {
+  {
+   "name": "function: MD index matching (flowgraph MD index, top down)",
    "confidence": 0.9
   },
-  "function: MD index matching (flowgraph MD index, bottom up)": {
+  {
+   "name": "function: MD index matching (flowgraph MD index, bottom up)",
    "confidence": 0.9
   },
-  "function: prime signature matching": {
+  {
+   "name": "function: prime signature matching",
    "confidence": 0.9
   },
-  "function: MD index matching (callGraph MD index, top down)": {
+  {
+   "name": "function: MD index matching (callGraph MD index, top down)",
    "confidence": 0.8
   },
-  "function: MD index matching (callGraph MD index, bottom up)": {
+  {
+   "name": "function: MD index matching (callGraph MD index, bottom up)",
    "confidence": 0.8
   },
-  "function: relaxed MD index matching": {
+  {
+   "name": "function: relaxed MD index matching",
    "confidence": 0.7
   },
-  "function: instruction count": {
+  {
+   "name": "function: instruction count",
    "confidence": 0.4
   },
-  "function: address sequence": {
+  {
+   "name": "function: address sequence",
    "confidence": 0.4
   },
-  "function: string references": {
+  {
+   "name": "function: string references",
    "confidence": 0.7
   },
-  "function: loop count matching": {
+  {
+   "name": "function: loop count matching",
    "confidence": 0.6
   },
-  "function: call sequence matching(exact)": {
+  {
+   "name": "function: call sequence matching(exact)",
    "confidence": 0.1
   },
-  "function: call sequence matching(topology)": {
+  {
+   "name": "function: call sequence matching(topology)",
    "confidence": 0
   },
-  "function: call sequence matching(sequence)": {
+  {
+   "name": "function: call sequence matching(sequence)",
    "confidence": 0
   }
- },
- "basic_block_matching": {
-  "basicBlock: edges prime product": {
+ ],
+ "basic_block_matching": [
+  {
+   "name": "basicBlock: edges prime product",
    "confidence": 1
   },
-  "basicBlock: hash matching (4 instructions minimum)": {
+  {
+   "name": "basicBlock: hash matching (4 instructions minimum)",
    "confidence": 1
   },
-  "basicBlock: prime matching (4 instructions minimum)": {
+  {
+   "name": "basicBlock: prime matching (4 instructions minimum)",
    "confidence": 0.9
   },
-  "basicBlock: call reference matching": {
+  {
+   "name": "basicBlock: call reference matching",
    "confidence": 0.8
   },
-  "basicBlock: string references matching": {
+  {
+   "name": "basicBlock: string references matching",
    "confidence": 0.8
   },
-  "basicBlock: edges MD index (top down)": {
+  {
+   "name": "basicBlock: edges MD index (top down)",
    "confidence": 0.7
   },
-  "basicBlock: MD index matching (top down)": {
+  {
+   "name": "basicBlock: MD index matching (top down)",
    "confidence": 0.7
   },
-  "basicBlock: edges MD index (bottom up)": {
+  {
+   "name": "basicBlock: edges MD index (bottom up)",
    "confidence": 0.7
   },
-  "basicBlock: MD index matching (bottom up)": {
+  {
+   "name": "basicBlock: MD index matching (bottom up)",
    "confidence": 0.7
   },
-  "basicBlock: relaxed MD index matching": {
+  {
+   "name": "basicBlock: relaxed MD index matching",
    "confidence": 0.6
   },
-  "basicBlock: prime matching (0 instructions minimum)": {
+  {
+   "name": "basicBlock: prime matching (0 instructions minimum)",
    "confidence": 0.5
   },
-  "basicBlock: edges Lengauer Tarjan dominated": {
+  {
+   "name": "basicBlock: edges Lengauer Tarjan dominated",
    "confidence": 0.4
   },
-  "basicBlock: loop entry matching": {
+  {
+   "name": "basicBlock: loop entry matching",
    "confidence": 0.4
   },
-  "basicBlock: self loop matching": {
+  {
+   "name": "basicBlock: self loop matching",
    "confidence": 0.3
   },
-  "basicBlock: entry point matching": {
+  {
+   "name": "basicBlock: entry point matching",
    "confidence": 0.2
   },
-  "basicBlock: exit point matching": {
+  {
+   "name": "basicBlock: exit point matching",
    "confidence": 0.1
   },
-  "basicBlock: instruction count matching": {
+  {
+   "name": "basicBlock: instruction count matching",
    "confidence": 0
   },
-  "basicBlock: jump sequence matching": {
+  {
+   "name": "basicBlock: jump sequence matching",
    "confidence": 0
   }
- },
+ ],
  "themes": {
   "Google Material": {
    "similarity_ramp": [

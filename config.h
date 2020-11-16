@@ -46,6 +46,11 @@ std::string AsJsonString(const Config& config);
 // Saves configuration to the per-user configuration directory.
 absl::Status SaveUserConfig(const Config& config);
 
+// Merges configuration settings. Similar to Protobuf's MergeFrom(), but
+// intelligently merges the matching algorithms, where order and uniqueness
+// matter.
+void MergeInto(const Config& from, Config& config);
+
 }  // namespace security::bindiff::config
 
 #endif  // CONFIG_H_

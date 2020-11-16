@@ -41,8 +41,9 @@ message Config {
     // The directory containing the BinDiff UI JAR file.
     string directory = 4;
 
-    // Local IP address where the UI should listen on to server visual diff
-    // requests.
+    // Local IP address and port where the UI should listen on to server visual
+    // diff requests. If empty (or zero in case of port), "localhost" and port
+    // 2000 will be used.
     string server = 5;
     int32 port = 6;
 
@@ -103,15 +104,17 @@ message Config {
   BinaryFormatOptions binary_format = 10;
 
   message MatchingStep {
-    double confidence = 1;
+    string name = 1;
+    double confidence = 2;
   }
   // For documentation on the various algorithms, see the BinDiff manual
   // at https://zynamics.com/bindiff/manual/index.html#N2038E.
-  // If empty, built-in settings will be used.
-  map<string, MatchingStep> function_matching = 6;
+  // If empty, built-in settings will be used. Note that order matters and
+  // duplicates will be ignored, keeping steps that were added first.
+  repeated MatchingStep function_matching = 6;
   // See https://zynamics.com/bindiff/manual/index.html#N20496.
-  // If empty, built-in settings will be used.
-  map<string, MatchingStep> basic_block_matching = 7;
+  // The comments for function_matching also apply here.
+  repeated MatchingStep basic_block_matching = 7;
 
   message UiTheme {
     message ThemeFont {

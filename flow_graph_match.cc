@@ -43,8 +43,12 @@ namespace {
 
 double GetConfidenceFromConfig(const std::string& name) {
   const auto& algorithms = config::Proto().basic_block_matching();
-  const auto found = algorithms.find(name);
-  return found != algorithms.end() ? found->second.confidence()
+  const auto found =
+      std::find_if(algorithms.begin(), algorithms.end(),
+                   [&name](const Config::MatchingStep& step) -> bool {
+                     return step.name() == name;
+                   });
+  return found != algorithms.end() ? found->confidence()
                                    : -1.0 /* Not found/commented out */;
 }
 
@@ -231,8 +235,9 @@ MatchingStepsFlowGraph GetDefaultMatchingStepsBasicBlock() {
 
   static const auto* matching_steps = []() -> const MatchingStepsFlowGraph* {
     auto* matching_steps = new MatchingStepsFlowGraph();
-    for (const auto& [name, _] : config::Proto().basic_block_matching()) {
-      if (auto found = algorithms->find(name); found != algorithms->end()) {
+    for (const auto& step : config::Proto().basic_block_matching()) {
+      if (auto found = algorithms->find(step.name());
+          found != algorithms->end()) {
         matching_steps->push_back(found->second);
       }
     }
