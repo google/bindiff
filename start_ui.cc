@@ -29,6 +29,7 @@
 #endif
 #endif
 
+#include <cstdint>
 #include <cstdlib>
 
 #include "third_party/absl/status/status.h"

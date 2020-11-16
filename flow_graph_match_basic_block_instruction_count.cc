@@ -14,6 +14,8 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_instruction_count.h"
 
+#include <cstdint>
+
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
 namespace security::bindiff {

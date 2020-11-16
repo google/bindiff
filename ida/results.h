@@ -23,7 +23,6 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "base/integral_types.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/types/span.h"
 #include "third_party/zynamics/bindiff/call_graph.h"

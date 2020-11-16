@@ -15,6 +15,7 @@
 #ifndef INSTRUCTION_H_
 #define INSTRUCTION_H_
 
+#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>

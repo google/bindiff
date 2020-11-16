@@ -15,9 +15,10 @@
 #ifndef FLOW_GRAPH_H_
 #define FLOW_GRAPH_H_
 
-#include <string>
-
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
+#include <cstdint>
+#include <limits>
+#include <string>
 
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
@@ -40,12 +41,14 @@ class FlowGraph {
     uint32_t string_hash_ = 0;       // String reference hash
     uint32_t basic_block_hash_ = 0;  // Basic block binary hash
     uint32_t instruction_start_ =
-        kuint32max;  // Start index of instructions in instruction vector
+        std::numeric_limits<uint32_t>::max();  // Start index of instructions in
+                                               // instruction vector
     uint32_t call_target_start_ =
-        kuint32max;  // Start index of calltargets in calltarget vector
+        std::numeric_limits<uint32_t>::max();  // Start index of calltargets in
+                                               // calltarget vector
     BasicBlockFixedPoint* fixed_point_ = nullptr;  // Basic block match (if any)
-    uint16_t bfs_top_down_ = 0;                      // BFS level top down
-    uint16_t bfs_bottom_up_ = 0;                     // BFS level bottom up
+    uint16_t bfs_top_down_ = 0;                    // BFS level top down
+    uint16_t bfs_bottom_up_ = 0;                   // BFS level bottom up
   };
 
   struct EdgeInfo {
@@ -59,8 +62,8 @@ class FlowGraph {
       VertexInfo,          // Vertex properties
       EdgeInfo,            // Edge properties
       boost::no_property,  // Graph properties
-      uint32_t,              // Index type for vertices (see b/35456354)
-      uint32_t               // Index type for edges
+      uint32_t,            // Index type for vertices (see b/35456354)
+      uint32_t             // Index type for edges
       >;
 
   using Vertex = boost::graph_traits<Graph>::vertex_descriptor;

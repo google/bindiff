@@ -16,6 +16,7 @@
 #define CALL_GRAPH_H_
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
+#include <cstdint>
 
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
@@ -32,8 +33,8 @@ class CallGraph {
     Address address_ = 0;         // Function address
     std::string name_;            // Function name
     std::string demangled_name_;  // Only set iff different from name_
-    uint32_t bfs_top_down_ = 0;     // Breadth-first-search level top down
-    uint32_t bfs_bottom_up_ = 0;    // Breadth-first-search level bottom up
+    uint32_t bfs_top_down_ = 0;   // Breadth-first-search level top down
+    uint32_t bfs_bottom_up_ = 0;  // Breadth-first-search level bottom up
     uint32_t flags_ = 0;
     FlowGraph* flow_graph_ = nullptr;  // Flow graph (if loaded and attached)
   };
@@ -50,8 +51,8 @@ class CallGraph {
       VertexInfo,             // vertex properties
       EdgeInfo,               // edge properties
       boost::no_property,     // graph properties
-      uint32_t,                 // index type for vertices
-      uint32_t>;                // index type for edges
+      uint32_t,               // index type for vertices
+      uint32_t>;              // index type for edges
 
   using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
   using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;

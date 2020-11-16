@@ -14,6 +14,8 @@
 
 #include "third_party/zynamics/bindiff/flow_graph_match_basic_block_jump_sequence.h"
 
+#include <cstdint>
+
 #include "third_party/zynamics/bindiff/flow_graph_match.h"
 
 namespace security::bindiff {

@@ -15,6 +15,7 @@
 #ifndef IDA_VISUAL_DIFF_H_
 #define IDA_VISUAL_DIFF_H_
 
+#include <cstdint>
 #include <functional>
 
 #include "third_party/absl/strings/string_view.h"

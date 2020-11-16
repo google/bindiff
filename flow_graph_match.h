@@ -15,6 +15,7 @@
 #ifndef FLOW_GRAPH_MATCH_H_
 #define FLOW_GRAPH_MATCH_H_
 
+#include <cstdint>
 #include <map>
 #include <set>
 #include <string>

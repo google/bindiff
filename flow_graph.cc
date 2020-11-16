@@ -16,7 +16,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cinttypes>
+#include <cstdint>
 #include <sstream>
 
 #include "base/logging.h"
@@ -651,19 +651,18 @@ FlowGraph::Vertex FlowGraph::GetVertex(Address address) const {
 }
 
 FlowGraph::Level FlowGraph::GetLevelForCallAddress(Address address) const {
-  Level min_level =
-      std::make_pair(std::numeric_limits<Level::first_type>::max(),
-                     std::numeric_limits<Level::second_type>::max());
+  Level min_level(std::numeric_limits<Level::first_type>::max(),
+                  std::numeric_limits<Level::second_type>::max());
 
   AddressToLevelMap::const_iterator it = std::lower_bound(
       level_for_call_.begin(), level_for_call_.end(),
-      std::make_pair(address, std::make_pair(uint16_t(0), uint16_t(0))),
-      &SortByAddressLevel);
-  // TODO(soerenme) Investigate this. The assert fails for the libssl fixture.
-  //     This implies that the call graph and flow graphs somehow disagree, i.e.
-  //     there is a child of this flow graph node in the call graph but we
-  //     cannot find the corresponding call in the flow graph's instructions.
-  //  assert(i != level_for_call_.end());
+      std::make_pair(address, Level(0, 0)), &SortByAddressLevel);
+  // TODO(cblichmann): Investigate this. The assert fails for the libssl
+  //                   fixture. This implies that the call graph and flow graphs
+  //                   somehow disagree, i.e. there is a child of this flow
+  //                   graph node in the call graph but we cannot find the
+  //                   corresponding call in the flow graph's instructions.
+  // assert(i != level_for_call_.end());
   for (; it != level_for_call_.end() && it->first == address; ++it) {
     if (it->second.first <= min_level.first ||
         (it->second.first == min_level.first &&

@@ -15,6 +15,8 @@
 #ifndef CALL_GRAPH_MATCH_H_
 #define CALL_GRAPH_MATCH_H_
 
+#include <cstdint>
+
 #include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/bindiff/flow_graph_match.h"

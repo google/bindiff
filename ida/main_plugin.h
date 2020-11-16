@@ -15,6 +15,7 @@
 #ifndef IDA_MAIN_PLUGIN_H_
 #define IDA_MAIN_PLUGIN_H_
 
+#include <cstdint>
 #include <memory>
 
 #include "third_party/zynamics/bindiff/ida/results.h"

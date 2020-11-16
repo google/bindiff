@@ -14,6 +14,7 @@
 
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+#include <cstdint>
 #include <fstream>
 
 // clang-format off

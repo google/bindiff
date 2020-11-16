@@ -15,6 +15,9 @@
 #ifndef PRIME_SIGNATURE_H_
 #define PRIME_SIGNATURE_H_
 
+#include <cstdint>
+#include <string>
+
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security::bindiff {

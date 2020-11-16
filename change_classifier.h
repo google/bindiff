@@ -15,6 +15,8 @@
 #ifndef CHANGE_CLASSIFIER_H_
 #define CHANGE_CLASSIFIER_H_
 
+#include <string>
+
 #include "third_party/zynamics/binexport/types.h"
 
 namespace security::bindiff {

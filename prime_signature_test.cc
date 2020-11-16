@@ -15,6 +15,7 @@
 #include "third_party/zynamics/bindiff/prime_signature.h"
 
 #include <cmath>
+#include <cstdint>
 
 #ifdef GOOGLE
 #include "testing/base/public/benchmark.h"

@@ -15,8 +15,6 @@
 #include "third_party/zynamics/bindiff/call_graph.h"
 
 #include <cassert>
-#include <cinttypes>
-#include <iomanip>
 
 #include "base/logging.h"
 #include "third_party/absl/strings/ascii.h"
