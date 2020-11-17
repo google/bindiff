@@ -44,7 +44,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.T
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ToggleProximityBrowsingAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ToggleProximityFreezeModeAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.actions.ZoomToSelectedAction;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -63,162 +63,163 @@ public class ViewToolbarPanel extends JPanel {
   private static final String ICONPATH = "data/toolbaricons/";
 
   private static final Icon DEFAULT_WINDOW_LAYOUT_UP =
-      ImageUtils.getImageIcon(ICONPATH + "default_window_layout_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "default_window_layout_up.png");
   private static final Icon DEFAULT_WINDOW_LAYOUT_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "default_window_layout_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "default_window_layout_hover.png");
   private static final Icon DEFAULT_WINDOW_LAYOUT_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "default_window_layout_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "default_window_layout_down.png");
 
   // Group B
   private static final Icon VIEW_MODE_NORMAL_UP =
-      ImageUtils.getImageIcon(ICONPATH + "view_mode_normal_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "view_mode_normal_up.png");
   private static final Icon VIEW_MODE_NORMAL_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "view_mode_normal_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "view_mode_normal_hover.png");
   private static final Icon VIEW_MODE_NORMAL_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "view_mode_normal_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "view_mode_normal_down.png");
 
   private static final Icon VIEW_MODE_COMBINED_UP =
-      ImageUtils.getImageIcon(ICONPATH + "view_mode_combined_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "view_mode_combined_up.png");
   private static final Icon VIEW_MODE_COMBINED_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "view_mode_combined_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "view_mode_combined_hover.png");
   private static final Icon VIEW_MODE_COMBINED_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "view_mode_combined_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "view_mode_combined_down.png");
 
   // Group C
   private static final Icon HIERARCHIC_LAYOUT_UP =
-      ImageUtils.getImageIcon(ICONPATH + "hierarchic_layout_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "hierarchic_layout_up.png");
   private static final Icon HIERARCHIC_LAYOUT_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "hierarchic_layout_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "hierarchic_layout_hover.png");
   private static final Icon HIERARCHIC_LAYOUT_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "hierarchic_layout_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "hierarchic_layout_down.png");
 
   private static final Icon ORTHOGONAL_LAYOUT_UP =
-      ImageUtils.getImageIcon(ICONPATH + "orthogonal_layout_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "orthogonal_layout_up.png");
   private static final Icon ORTHOGONAL_LAYOUT_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "orthogonal_layout_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "orthogonal_layout_hover.png");
   private static final Icon ORTHOGONAL_LAYOUT_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "orthogonal_layout_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "orthogonal_layout_down.png");
 
   private static final Icon CIRCULAR_LAYOUT_UP =
-      ImageUtils.getImageIcon(ICONPATH + "circular_layout_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "circular_layout_up.png");
   private static final Icon CIRCULAR_LAYOUT_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "circular_layout_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "circular_layout_hover.png");
   private static final Icon CIRCULAR_LAYOUT_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "circular_layout_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "circular_layout_down.png");
 
   // Group D;
   private static final Icon AUTOLAYOUT_ON_UP =
-      ImageUtils.getImageIcon(ICONPATH + "autolayout_on_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "autolayout_on_up.png");
   private static final Icon AUTOLAYOUT_ON_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "autolayout_on_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "autolayout_on_hover.png");
   private static final Icon AUTOLAYOUT_ON_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "autolayout_on_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "autolayout_on_down.png");
   private static final Icon AUTOLAYOUT_OFF_UP =
-      ImageUtils.getImageIcon(ICONPATH + "autolayout_off_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "autolayout_off_up.png");
   private static final Icon AUTOLAYOUT_OFF_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "autolayout_off_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "autolayout_off_hover.png");
   private static final Icon AUTOLAYOUT_OFF_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "autolayout_off_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "autolayout_off_down.png");
 
   private static final Icon PROXIMITY_BROWSING_ON_UP =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_on_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_on_up.png");
   private static final Icon PROXIMITY_BROWSING_ON_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_on_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_on_hover.png");
   private static final Icon PROXIMITY_BROWSING_ON_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_on_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_on_down.png");
   private static final Icon PROXIMITY_BROWSING_OFF_UP =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_off_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_off_up.png");
   private static final Icon PROXIMITY_BROWSING_OFF_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_off_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_off_hover.png");
   private static final Icon PROXIMITY_BROWSING_OFF_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_off_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_off_down.png");
 
   private static final Icon PROXIMITY_FREEZE_ON_UP =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_up.png");
   private static final Icon PROXIMITY_FREEZE_ON_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_hover.png");
   private static final Icon PROXIMITY_FREEZE_ON_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_down.png");
   private static final Icon PROXIMITY_FREEZE_OFF_UP =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_up.png");
   private static final Icon PROXIMITY_FREEZE_OFF_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_hover.png");
   private static final Icon PROXIMITY_FREEZE_OFF_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_down.png");
 
   private static final Icon PROXIMITY_FREEZE_ON_UP_GRAY =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_up_gray.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_up_gray.png");
   private static final Icon PROXIMITY_FREEZE_ON_HOVER_GRAY =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_hover_gray.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_hover_gray.png");
   private static final Icon PROXIMITY_FREEZE_ON_DOWN_GRAY =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_down_gray.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_on_down_gray.png");
   private static final Icon PROXIMITY_FREEZE_OFF_UP_GRAY =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_up_gray.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_up_gray.png");
   private static final Icon PROXIMITY_FREEZE_OFF_HOVER_GRAY =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_hover_gray.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_hover_gray.png");
   private static final Icon PROXIMITY_FREEZE_OFF_DOWN_GRAY =
-      ImageUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_down_gray.png");
+      ResourceUtils.getImageIcon(ICONPATH + "proximity_browsing_freeze_off_down_gray.png");
 
   // Group F
   private static final Icon SELECT_ANCESTORS_UP =
-      ImageUtils.getImageIcon(ICONPATH + "select_ancestors_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_ancestors_up.png");
   private static final Icon SELECT_ANCESTORS_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "select_ancestors_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_ancestors_hover.png");
   private static final Icon SELECT_ANCESTORS_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "select_ancestors_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_ancestors_down.png");
 
   private static final Icon SELECT_SUCCESSORS_UP =
-      ImageUtils.getImageIcon(ICONPATH + "select_successors_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_successors_up.png");
   private static final Icon SELECT_SUCCESSORS_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "select_successors_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_successors_hover.png");
   private static final Icon SELECT_SUCCESSORS_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "select_successors_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_successors_down.png");
 
   private static final Icon INVERT_SELECTION_UP =
-      ImageUtils.getImageIcon(ICONPATH + "invert_selection_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "invert_selection_up.png");
   private static final Icon INVERT_SELECTION_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "invert_selection_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "invert_selection_hover.png");
   private static final Icon INVERT_SELECTION_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "invert_selection_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "invert_selection_down.png");
 
   private static final Icon SELECT_BY_CRITERIA_UP =
-      ImageUtils.getImageIcon(ICONPATH + "select_by_criteria_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_by_criteria_up.png");
   private static final Icon SELECT_BY_CRITERIA_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "select_by_criteria_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_by_criteria_hover.png");
   private static final Icon SELECT_BY_CRITERIA_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "select_by_criteria_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "select_by_criteria_down.png");
 
   // Group G
   private static final Icon FIT_GRAPH_CONTENT_UP =
-      ImageUtils.getImageIcon(ICONPATH + "fit_graph_to_panel_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "fit_graph_to_panel_up.png");
   private static final Icon FIT_GRAPH_CONTENT_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "fit_graph_to_panel_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "fit_graph_to_panel_hover.png");
   private static final Icon FIT_GRAPH_CONTENT_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "fit_graph_to_panel_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "fit_graph_to_panel_down.png");
 
   private static final Icon ZOOM_TO_SELECTED_UP =
-      ImageUtils.getImageIcon(ICONPATH + "zoom_selected_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "zoom_selected_up.png");
   private static final Icon ZOOM_TO_SELECTED_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "zoom_selected_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "zoom_selected_hover.png");
   private static final Icon ZOOM_TO_SELECTED_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "zoom_selected_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "zoom_selected_down.png");
 
   // Sync
   private static final Icon SYNC_GRAPHS_ON_UP =
-      ImageUtils.getImageIcon(ICONPATH + "synchron_graphs_on_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "synchron_graphs_on_up.png");
   private static final Icon SYNC_GRAPHS_ON_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "synchron_graphs_on_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "synchron_graphs_on_hover.png");
   private static final Icon SYNC_GRAPHS_ON_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "synchron_graphs_on_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "synchron_graphs_on_down.png");
   private static final Icon SYNC_GRAPHS_OFF_UP =
-      ImageUtils.getImageIcon(ICONPATH + "synchron_graphs_off_up.png");
+      ResourceUtils.getImageIcon(ICONPATH + "synchron_graphs_off_up.png");
   private static final Icon SYNC_GRAPHS_OFF_HOVER =
-      ImageUtils.getImageIcon(ICONPATH + "synchron_graphs_off_hover.png");
+      ResourceUtils.getImageIcon(ICONPATH + "synchron_graphs_off_hover.png");
   private static final Icon SYNC_GRAPHS_OFF_DOWN =
-      ImageUtils.getImageIcon(ICONPATH + "synchron_graphs_off_down.png");
+      ResourceUtils.getImageIcon(ICONPATH + "synchron_graphs_off_down.png");
 
   // search icons
-  private static final Icon ICON_OPTIONS = ImageUtils.getImageIcon("data/buttonicons/options.png");
+  private static final Icon ICON_OPTIONS =
+      ResourceUtils.getImageIcon("data/buttonicons/options.png");
 
   private InternalSettingsListener settingsListener = new InternalSettingsListener();
 
@@ -298,7 +299,7 @@ public class ViewToolbarPanel extends JPanel {
 
     setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.GRAY));
 
-    JButton button = null;
+    JButton button;
 
     button = groupSave.add(new ResetDefaultViewLayoutAction(controller));
     button.setMargin(new Insets(0, 0, 0, 0));

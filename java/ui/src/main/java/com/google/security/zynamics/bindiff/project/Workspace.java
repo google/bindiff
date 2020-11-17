@@ -42,7 +42,7 @@ public final class Workspace {
 
   private boolean isLoaded = false;
 
-  private final ListenerProvider<IWorkspaceListener> listeners = new ListenerProvider<>();
+  private final ListenerProvider<WorkspaceListener> listeners = new ListenerProvider<>();
 
   private MainWindow parentWindow;
 
@@ -74,7 +74,7 @@ public final class Workspace {
     diffs.add(diff);
 
     if (isLoaded) {
-      for (final IWorkspaceListener listener : listeners) {
+      for (final WorkspaceListener listener : listeners) {
         listener.addedDiff(diff);
       }
 
@@ -122,7 +122,7 @@ public final class Workspace {
     return fileErrors.toString();
   }
 
-  public void addListener(final IWorkspaceListener listener) {
+  public void addListener(final WorkspaceListener listener) {
     listeners.addListener(listener);
   }
 
@@ -140,7 +140,7 @@ public final class Workspace {
 
     isLoaded = false;
 
-    for (final IWorkspaceListener listener : listeners) {
+    for (final WorkspaceListener listener : listeners) {
       listener.closedWorkspace();
     }
 
@@ -173,7 +173,7 @@ public final class Workspace {
     return list;
   }
 
-  public ListenerProvider<IWorkspaceListener> getListeners() {
+  public ListenerProvider<WorkspaceListener> getListeners() {
     return listeners;
   }
 
@@ -220,7 +220,7 @@ public final class Workspace {
 
     createCommentDatabase();
 
-    for (final IWorkspaceListener listener : listeners) {
+    for (final WorkspaceListener listener : listeners) {
       listener.loadedWorkspace(this);
     }
 
@@ -231,7 +231,7 @@ public final class Workspace {
     diffs.remove(diff);
   }
 
-  public void removeListener(final IWorkspaceListener listener) {
+  public void removeListener(final WorkspaceListener listener) {
     listeners.removeListener(listener);
   }
 

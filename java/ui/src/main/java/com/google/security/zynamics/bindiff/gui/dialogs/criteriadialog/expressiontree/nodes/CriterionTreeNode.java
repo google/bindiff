@@ -18,7 +18,7 @@ import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ExpressionTreeActionProvider;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.menus.NodeMenuBuilder;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.util.List;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -26,7 +26,7 @@ import javax.swing.JPopupMenu;
 
 public class CriterionTreeNode extends AbstractCriterionTreeNode {
   private static final ImageIcon DEFAULT_ICON =
-      ImageUtils.getImageIcon("data/selectbycriteriaicons/default-condition.png");
+      ResourceUtils.getImageIcon("data/selectbycriteriaicons/default-condition.png");
 
   private final NodeMenuBuilder menuBuilder;
 

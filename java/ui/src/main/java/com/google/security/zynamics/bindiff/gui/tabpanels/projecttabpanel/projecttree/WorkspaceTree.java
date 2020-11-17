@@ -63,7 +63,7 @@ public class WorkspaceTree extends JTree {
   private final InternalWorkspaceModelListener mainWindowModelListener =
       new InternalWorkspaceModelListener();
 
-  private final ListenerProvider<IWorkspaceTreeListener> listeners = new ListenerProvider<>();
+  private final ListenerProvider<WorkspaceTreeListener> listeners = new ListenerProvider<>();
 
   public WorkspaceTree(final WorkspaceTabPanelFunctions controller) {
     this.controller = checkNotNull(controller);
@@ -151,7 +151,7 @@ public class WorkspaceTree extends JTree {
     }
   }
 
-  public void addListener(final IWorkspaceTreeListener treeListener) {
+  public void addListener(final WorkspaceTreeListener treeListener) {
     listeners.addListener(treeListener);
   }
 
@@ -173,7 +173,7 @@ public class WorkspaceTree extends JTree {
     return workspaceTreeModel;
   }
 
-  public void removeListener(final IWorkspaceTreeListener treeListener) {
+  public void removeListener(final WorkspaceTreeListener treeListener) {
     listeners.removeListener(treeListener);
   }
 
@@ -215,7 +215,7 @@ public class WorkspaceTree extends JTree {
         nodeSelected(rootNode); // A node was deleted from the tree
       }
 
-      for (final IWorkspaceTreeListener listener : listeners) {
+      for (final WorkspaceTreeListener listener : listeners) {
         listener.changedSelection(node != null ? node : rootNode);
       }
     }

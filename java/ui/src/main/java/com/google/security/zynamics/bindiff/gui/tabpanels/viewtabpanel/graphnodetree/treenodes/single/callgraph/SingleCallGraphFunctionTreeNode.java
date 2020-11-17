@@ -27,7 +27,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnode
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.helper.MouseTreeNodeSelectionHandlerSingleFunction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.popupmenus.CallGraphPopupMenu;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.awt.event.MouseEvent;
@@ -37,39 +37,39 @@ import javax.swing.JPopupMenu;
 public class SingleCallGraphFunctionTreeNode extends AbstractTreeNode
     implements ISortableTreeNode, ISearchableTreeNode {
   private static final Icon PRIMARY_UNMATCHED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
   private static final Icon PRIMARY_UNMATCHED_FUNCTION_SELECTED_ICON =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-functions-selected.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-functions-selected.png");
   private static final Icon PRIMARY_UNMATCHED_FUNCTION_INVISIBLE_ICON =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-functions-invisible.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-functions-invisible.png");
 
   private static final Icon SECONDARY_UNMATCHED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-functions.png");
   private static final Icon SECONDARY_UNMATCHED_FUNCTION_SELECTED_ICON =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-functions-selected.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-functions-selected.png");
   private static final Icon SECONDARY_UNMATCHED_FUNCTION_INVISIBLE_ICON =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-functions-invisible.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-functions-invisible.png");
 
   private static final Icon MATCHED_IDENTICAL_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/matched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-functions.png");
   private static final Icon MATCHED_IDENTICAL_FUNCTION_SELECTED_ICON =
-      ImageUtils.getImageIcon("data/treeicons/matched-functions-selected.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-functions-selected.png");
   private static final Icon MATCHED_IDENTICAL_FUNCTION_INVISIBLE_ICON =
-      ImageUtils.getImageIcon("data/treeicons/matched-functions-invisible.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-functions-invisible.png");
 
   private static final Icon MATCHED_STRUCTURALCHANGED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/structural-changed-function.png");
+      ResourceUtils.getImageIcon("data/treeicons/structural-changed-function.png");
   private static final Icon MATCHED_STRUCTURALCHANGED_FUNCTION_SELECTED_ICON =
-      ImageUtils.getImageIcon("data/treeicons/structural-changed-function-selected.png");
+      ResourceUtils.getImageIcon("data/treeicons/structural-changed-function-selected.png");
   private static final Icon MATCHED_STRUCTURALCHANGED_FUNCTION_INVISIBLE_ICON =
-      ImageUtils.getImageIcon("data/treeicons/structural-changed-function-invisible.png");
+      ResourceUtils.getImageIcon("data/treeicons/structural-changed-function-invisible.png");
 
   private static final Icon MATCHED_INSTRUCTIONCHANGED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/instructions-changed-function.png");
+      ResourceUtils.getImageIcon("data/treeicons/instructions-changed-function.png");
   private static final Icon MATCHED_INSTRUCTIONCHANGED_FUNCTION_SELECTED_ICON =
-      ImageUtils.getImageIcon("data/treeicons/instructions-changed-function-selected.png");
+      ResourceUtils.getImageIcon("data/treeicons/instructions-changed-function-selected.png");
   private static final Icon MATCHED_INSTRUCTIONCHANGED_FUNCTION_INVISIBLE_ICON =
-      ImageUtils.getImageIcon("data/treeicons/instructions-changed-function-invisible.png");
+      ResourceUtils.getImageIcon("data/treeicons/instructions-changed-function-invisible.png");
 
   private SingleDiffNode singleDiffNode;
 

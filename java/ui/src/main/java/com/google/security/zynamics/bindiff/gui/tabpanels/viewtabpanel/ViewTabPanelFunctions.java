@@ -64,8 +64,8 @@ import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.io.CommentsWriter;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
 import com.google.security.zynamics.bindiff.project.diff.FunctionDiffViewSaver;
-import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
 import com.google.security.zynamics.bindiff.project.matches.BasicBlockMatchData;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
@@ -283,7 +283,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       diff.getCallGraph(ESide.SECONDARY).resetVisibilityAndSelection();
     }
 
-    for (final IDiffListener diffListener : diff.getListener()) {
+    for (final DiffListener diffListener : diff.getListener()) {
       diffListener.closedView(diff);
     }
 
@@ -743,8 +743,8 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           ProgressDialog.show(getMainWindow(), "Saving View...", saver);
 
           final TabPanelManager viewManager = viewTabPanel.getTabPanelManager();
-          viewManager.updateSelectedTabTitel(dlg.getFunctionDiffName());
-          viewManager.udpateSelectedTabIcon();
+          viewManager.updateSelectedTabTitle(dlg.getFunctionDiffName());
+          viewManager.updateSelectedTabIcon();
 
           getMainWindow().updateTitle(getWorkspace(), viewTabPanel);
         } else {

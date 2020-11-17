@@ -18,7 +18,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.Worksp
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu.NodePopupMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.MatchedFunctionsTreeNodeContextPanel;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -26,7 +26,7 @@ import javax.swing.JPopupMenu;
 
 public final class MatchedFunctionViewsNode extends AbstractTreeNode {
   private static final ImageIcon ICON =
-      ImageUtils.getImageIcon("data/treeicons/matched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-functions.png");
 
   private NodePopupMenu popupMenu;
 

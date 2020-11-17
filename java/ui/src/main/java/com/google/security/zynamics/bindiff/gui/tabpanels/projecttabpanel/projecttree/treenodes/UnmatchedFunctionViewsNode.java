@@ -20,7 +20,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projec
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.UnmatchedFunctionsTreeNodeContextPanel;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -28,9 +28,9 @@ import javax.swing.JPopupMenu;
 
 public final class UnmatchedFunctionViewsNode extends AbstractTreeNode {
   private static final ImageIcon PRIMARY_ICON =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
   private static final ImageIcon SECONDRAY_ICON =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-functions.png");
 
   private final NodePopupMenu popupMenu;
 

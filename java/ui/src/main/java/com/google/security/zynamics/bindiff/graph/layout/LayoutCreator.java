@@ -44,7 +44,7 @@ public final class LayoutCreator {
     final boolean orthogonalEdgeRouting = settings.getHierarchicalOrthogonalEdgeRouting();
     final long minLayerDist = settings.getMinimumHierarchicLayerDistance();
     final long minNodeDist = settings.getMinimumHierarchicNodeDistance();
-    final ELayoutOrientation orientation = settings.getHierarchicOrientation();
+    final ELayoutOrientation orientation = settings.getHierarchicalOrientation();
     final HierarchicOrientation zyOrientation =
         HierarchicOrientation.parseInt(ELayoutOrientation.getOrdinal(orientation));
 

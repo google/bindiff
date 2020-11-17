@@ -26,7 +26,7 @@ import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.helpers.GraphGetter;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.tables.CTableSorter;
@@ -52,10 +52,11 @@ import javax.swing.border.EmptyBorder;
 
 public class MatchedFunctionViewsFilterPanel extends JPanel {
   private static final ImageIcon ICON_OPTIONS =
-      ImageUtils.getImageIcon("data/buttonicons/options.png");
-  private static final ImageIcon ICON_CLEAR = ImageUtils.getImageIcon("data/buttonicons/clear.png");
+      ResourceUtils.getImageIcon("data/buttonicons/options.png");
+  private static final ImageIcon ICON_CLEAR =
+      ResourceUtils.getImageIcon("data/buttonicons/clear.png");
   private static final ImageIcon ICON_CLEAR_GRAY =
-      ImageUtils.getImageIcon("data/buttonicons/clear-gray.png");
+      ResourceUtils.getImageIcon("data/buttonicons/clear-gray.png");
 
   private final ListenerProvider<IViewsFilterCheckboxListener> checkBoxFilterListeners =
       new ListenerProvider<>();

@@ -166,6 +166,8 @@ absl::Status SaveUserConfig(const Config& config) {
 }
 
 void MergeInto(const Config& from, Config& config) {
+  // Keep this code in sync with the implementation in `Config.java`.
+
   // Move away problematic fields
   auto function_matching = std::move(*config.mutable_function_matching());
   auto basic_block_matching = std::move(*config.mutable_basic_block_matching());

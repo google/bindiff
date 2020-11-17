@@ -27,7 +27,7 @@ import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawCombinedBasicBlock;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawFlowGraph;
 import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import java.awt.event.ActionEvent;
@@ -43,16 +43,16 @@ import javax.swing.JPopupMenu;
 
 public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
   private static final Icon MATCHED_IDENTICAL_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/matched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-functions.png");
   private static final Icon MATCHED_INSTRUCTIONCHANGED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/instructions-changed-function.png");
+      ResourceUtils.getImageIcon("data/treeicons/instructions-changed-function.png");
   private static final Icon MATCHED_STRUCTURALCHANGED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/structural-changed-function.png");
+      ResourceUtils.getImageIcon("data/treeicons/structural-changed-function.png");
 
   private static final Icon PRIMARY_UNMATCHED_FUNCTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
   private static final Icon SECONDRAY_UNMATCHED_FUNCNTION_ICON =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-functions.png");
 
   private final IMatchesChangeListener matchesChangeListener = new InternalMatchesChangeListener();
 

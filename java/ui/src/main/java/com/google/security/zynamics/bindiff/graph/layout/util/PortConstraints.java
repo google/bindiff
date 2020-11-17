@@ -77,7 +77,7 @@ public class PortConstraints {
   public static void configureConstraints(final CombinedGraph combinedGraph) {
     final GraphLayoutSettings settings = combinedGraph.getSettings().getLayoutSettings();
     if (settings.getCurrentLayouter() instanceof IncrementalHierarchicLayouter
-        && settings.getHierarchicOrientation() == ELayoutOrientation.HORIZONTAL) {
+        && settings.getHierarchicalOrientation() == ELayoutOrientation.HORIZONTAL) {
       final Graph2D graph = combinedGraph.getGraph();
 
       final EdgeMap edge2SPC = Maps.createHashedEdgeMap();

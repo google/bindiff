@@ -26,13 +26,13 @@ import com.google.security.zynamics.bindiff.graph.edges.SingleDiffEdge;
 import com.google.security.zynamics.bindiff.graph.helpers.GraphZoomer;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphAddressSearcher;
-import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcherFunctions;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcher;
+import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcherFunctions;
 import com.google.security.zynamics.bindiff.gui.components.TextComponentUtils;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
@@ -71,23 +71,23 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 public class GraphSearchField extends JPanel {
   private static final int SEARCH_STRING_HISTORY_MAX = 50;
 
-  private static final Icon ICON_CLEAR = ImageUtils.getImageIcon("data/buttonicons/clear.png");
+  private static final Icon ICON_CLEAR = ResourceUtils.getImageIcon("data/buttonicons/clear.png");
   private static final Icon ICON_CLEAR_GRAY =
-      ImageUtils.getImageIcon("data/buttonicons/clear-gray.png");
+      ResourceUtils.getImageIcon("data/buttonicons/clear-gray.png");
 
   private static final Icon ICON_NORMAL_SEARCH =
-      ImageUtils.getImageIcon("data/buttonicons/normal-search.png");
+      ResourceUtils.getImageIcon("data/buttonicons/normal-search.png");
   private static final Icon ICON_JUMP_TO_PRIMARY_ADDRESS =
-      ImageUtils.getImageIcon("data/buttonicons/jump-primary-address.png");
+      ResourceUtils.getImageIcon("data/buttonicons/jump-primary-address.png");
   private static final Icon ICON_JUMP_TO_SECONDARY_ADDRESS =
-      ImageUtils.getImageIcon("data/buttonicons/jump-secondary-address.png");
+      ResourceUtils.getImageIcon("data/buttonicons/jump-secondary-address.png");
 
   private static final Icon ICON_NORMAL_SEARCH_FIELD =
-      ImageUtils.getImageIcon("data/buttonicons/normal-searchfield.png");
+      ResourceUtils.getImageIcon("data/buttonicons/normal-searchfield.png");
   private static final Icon ICON_JUMP_TO_PRIMARY_ADDRESS_FIELD =
-      ImageUtils.getImageIcon("data/buttonicons/jump-primary-addressfield.png");
+      ResourceUtils.getImageIcon("data/buttonicons/jump-primary-addressfield.png");
   private static final Icon ICON_JUMP_TO_SECONDARY_ADDRESS_FIELD =
-      ImageUtils.getImageIcon("data/buttonicons/jump-secondary-addressfield.png");
+      ResourceUtils.getImageIcon("data/buttonicons/jump-secondary-addressfield.png");
 
   private static final Color BACKGROUND_COLOR_FAIL = Colors.GRAY224;
   private static final Color BACKGROUND_COLOR_SUCCESS = Color.WHITE;

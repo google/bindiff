@@ -46,15 +46,15 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projec
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanel;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.io.matches.DiffRequestMessage;
-import com.google.security.zynamics.bindiff.project.IWorkspaceListener;
 import com.google.security.zynamics.bindiff.project.Workspace;
+import com.google.security.zynamics.bindiff.project.WorkspaceListener;
 import com.google.security.zynamics.bindiff.project.WorkspaceLoader;
 import com.google.security.zynamics.bindiff.project.diff.CallGraphViewLoader;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
 import com.google.security.zynamics.bindiff.project.diff.DiffLoader;
 import com.google.security.zynamics.bindiff.project.diff.FlowGraphViewLoader;
 import com.google.security.zynamics.bindiff.project.diff.FunctionDiffViewLoader;
-import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
 import com.google.security.zynamics.bindiff.project.matches.DiffMetadata;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCombinedFunction;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
@@ -333,7 +333,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     diff.removeDiff();
 
-    for (final IWorkspaceListener listener : getWorkspace().getListeners()) {
+    for (final WorkspaceListener listener : getWorkspace().getListeners()) {
       listener.removedDiff(diff);
     }
 
@@ -437,8 +437,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   public boolean closeWorkspace() {
-    final Set<Diff> diffsToClose = new HashSet<>();
-    diffsToClose.addAll(getWorkspace().getDiffList());
+    final Set<Diff> diffsToClose = new HashSet<>(getWorkspace().getDiffList());
 
     if (!closeDiffs(diffsToClose)) {
       return false;
@@ -822,7 +821,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         ProgressDialog.show(
             getMainWindow(), String.format("Loading call graph '%s'", diff.getDiffName()), loader);
 
-        for (final IDiffListener diffListener : diff.getListener()) {
+        for (final DiffListener diffListener : diff.getListener()) {
           diffListener.loadedView(diff);
         }
       }
@@ -861,7 +860,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       ProgressDialog.show(
           getMainWindow(), String.format("Loading flow graph '%s'", diff.getDiffName()), loader);
 
-      for (final IDiffListener diffListener : diff.getListener()) {
+      for (final DiffListener diffListener : diff.getListener()) {
         diffListener.loadedView(diff);
       }
     } catch (final Exception e) {
@@ -914,9 +913,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       final Set<Diff> diffSet = new HashSet<>();
       for (final Triple<Diff, IAddress, IAddress> entry : viewsAddresses) {
         final Diff diff = entry.first();
-        if (!diffSet.contains(diff)) {
-          diffSet.add(diff);
-          for (final IDiffListener diffListener : diff.getListener()) {
+        if (diffSet.add(diff)) {
+          for (final DiffListener diffListener : diff.getListener()) {
             diffListener.loadedView(diff);
           }
         }
@@ -939,7 +937,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       ProgressDialog.show(window, "Loading function diff", loader);
 
       if (data.getDiff() != null) {
-        for (final IDiffListener diffListener : data.getDiff().getListener()) {
+        for (final DiffListener diffListener : data.getDiff().getListener()) {
           diffListener.loadedView(data.getDiff());
         }
       }

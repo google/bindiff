@@ -14,36 +14,18 @@
 
 package com.google.security.zynamics.bindiff.config;
 
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.UiPreferences.GraphLayoutOptions;
+
 /** Settings class for flow graph views. */
 public class InitialFlowGraphViewSettingsConfigItem extends GraphViewSettingsConfigItem {
 
   @Override
-  protected int getProximityBrowsingChildDepthDefaultValue() {
-    return 2;
+  protected GraphLayoutOptions getGraphLayoutOptions() {
+    return Config.getInstance().getPreferences().getFlowGraphOptions();
   }
 
   @Override
-  protected int getProximityBrowsingParentDepthDefaultValue() {
-    return 2;
-  }
-
-  @Override
-  protected int getAutoProximityBrowsingActivationThresholdDefaultValue() {
-    return 200;
-  }
-
-  @Override
-  protected int getVisibilityWarningThresholdDefaultValue() {
-    return 300;
-  }
-
-  @Override
-  protected int getHierarchicalOrientationDefaultValue() {
-    return 1;
-  }
-
-  @Override
-  protected String getXPath(final String relative) {
-    return "/bindiff/preferences/flow-graph/" + relative;
+  protected GraphLayoutOptions.Builder getGraphLayoutOptionsBuilder() {
+    return Config.getInstance().getPreferencesBuilder().getFlowGraphOptionsBuilder();
   }
 }

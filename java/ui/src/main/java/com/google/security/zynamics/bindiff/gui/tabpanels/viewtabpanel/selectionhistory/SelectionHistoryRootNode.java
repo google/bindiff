@@ -18,13 +18,13 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.security.zynamics.bindiff.graph.BinDiffGraph;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import javax.swing.Icon;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
 
 public class SelectionHistoryRootNode extends AbstractSelectionHistoryTreeNode {
-  private static final Icon ICON_ROOT = ImageUtils.getImageIcon("data/selectionicons/root.png");
+  private static final Icon ICON_ROOT = ResourceUtils.getImageIcon("data/selectionicons/root.png");
 
   private final ViewTabPanelFunctions controller;
   private JTree tree;

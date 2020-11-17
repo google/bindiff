@@ -19,8 +19,8 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.Worksp
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu.NodePopupMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.DiffTreeNodeContextPanel;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffListenerAdapter;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.Component;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -29,10 +29,11 @@ import javax.swing.tree.TreePath;
 
 public final class DiffNode extends AbstractTreeNode {
   private static final ImageIcon ICON_UNLOADED =
-      ImageUtils.getImageIcon("data/treeicons/diff-unloaded.png");
-  private static final ImageIcon ICON_LOADED = ImageUtils.getImageIcon("data/treeicons/diff.png");
+      ResourceUtils.getImageIcon("data/treeicons/diff-unloaded.png");
+  private static final ImageIcon ICON_LOADED =
+      ResourceUtils.getImageIcon("data/treeicons/diff.png");
   private static final ImageIcon ICON_MISSING_DIFF_BINARAY =
-      ImageUtils.getImageIcon("data/treeicons/missing-diff-db.png");
+      ResourceUtils.getImageIcon("data/treeicons/missing-diff-db.png");
 
   private final InternalDiffModelListener diffModelListener = new InternalDiffModelListener();
 
@@ -100,7 +101,7 @@ public final class DiffNode extends AbstractTreeNode {
     return getDiff().getMatchesDatabase().getParentFile().getName();
   }
 
-  private class InternalDiffModelListener extends DiffListenerAdapter {
+  private class InternalDiffModelListener implements DiffListener {
     @Override
     public void loadedDiff(final Diff diff) {
       if (!diff.isFunctionDiff()) {

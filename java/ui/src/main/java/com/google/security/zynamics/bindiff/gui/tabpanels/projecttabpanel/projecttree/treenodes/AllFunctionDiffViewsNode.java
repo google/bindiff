@@ -21,7 +21,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.FunctionDiffViewsNodeContextPanel;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import javax.swing.JPopupMenu;
 
 public class AllFunctionDiffViewsNode extends AbstractTreeNode {
   private static final ImageIcon ICON =
-      ImageUtils.getImageIcon("data/treeicons/function-diffs-container.png");
+      ResourceUtils.getImageIcon("data/treeicons/function-diffs-container.png");
 
   private final FunctionDiffViewsContainerNodeContextPanel component;
 

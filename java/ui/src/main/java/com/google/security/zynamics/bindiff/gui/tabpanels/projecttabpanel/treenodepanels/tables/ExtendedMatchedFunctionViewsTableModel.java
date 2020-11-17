@@ -23,7 +23,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treeno
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.helpers.MatchesGetter;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.general.Triple;
 import com.google.security.zynamics.zylib.general.comparators.DoubleComparator;
@@ -35,9 +35,9 @@ import java.util.List;
 import javax.swing.Icon;
 
 public class ExtendedMatchedFunctionViewsTableModel extends AbstractTableModel {
-  public static final Icon ADDED_ICON = ImageUtils.getImageIcon("data/tablecellicons/added.png");
+  public static final Icon ADDED_ICON = ResourceUtils.getImageIcon("data/tablecellicons/added.png");
   public static final Icon REMOVED_ICON =
-      ImageUtils.getImageIcon("data/tablecellicons/removed.png");
+      ResourceUtils.getImageIcon("data/tablecellicons/removed.png");
 
   public static final int ICON = 0;
   public static final int SIMILARITY = 1;

@@ -20,7 +20,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.Worksp
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.popupmenu.FunctionDiffNodePopupMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.FunctionDiffViewsNodeContextPanel;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.io.File;
 import java.util.List;
 import javax.swing.Icon;
@@ -29,7 +29,7 @@ import javax.swing.JPopupMenu;
 
 public class FunctionDiffViewsNode extends AbstractTreeNode {
   private static final ImageIcon ICON =
-      ImageUtils.getImageIcon("data/treeicons/function-diff-views.png");
+      ResourceUtils.getImageIcon("data/treeicons/function-diff-views.png");
 
   private final FunctionDiffViewsNodeContextPanel component;
 

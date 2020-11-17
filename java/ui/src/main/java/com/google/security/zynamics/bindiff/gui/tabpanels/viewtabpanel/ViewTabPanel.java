@@ -34,7 +34,7 @@ import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.userview.FlowGraphViewData;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.BorderLayout;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -44,19 +44,19 @@ import y.view.Graph2DView;
 /** Tab sheet containing the graph views for flow and call graphs. */
 public class ViewTabPanel extends TabPanel {
   private static final ImageIcon CALLGRAPHS_ICON =
-      ImageUtils.getImageIcon("data/tabicons/callgraphs-tab.png");
+      ResourceUtils.getImageIcon("data/tabicons/callgraphs-tab.png");
 
   private static final ImageIcon FLOWGRAPHS_IDENTICAL_MATCHED_ICON =
-      ImageUtils.getImageIcon("data/tabicons/flowgraphs-identical-matched-tab.png");
+      ResourceUtils.getImageIcon("data/tabicons/flowgraphs-identical-matched-tab.png");
   private static final ImageIcon FLOWGRAPHS_INSTRUCTION_CHANGED_ONLY_ICON =
-      ImageUtils.getImageIcon("data/tabicons/flowgraphs-changed-instructions-only-tab.png");
+      ResourceUtils.getImageIcon("data/tabicons/flowgraphs-changed-instructions-only-tab.png");
   private static final ImageIcon FLOWGRAPHS_STRUTURAL_CHANGED_ICON =
-      ImageUtils.getImageIcon("data/tabicons/flowgraphs_structural-changed-tab.png");
+      ResourceUtils.getImageIcon("data/tabicons/flowgraphs_structural-changed-tab.png");
 
   private static final ImageIcon FLOWGRAPH_PRIMARY_UNMATCHED_ICON =
-      ImageUtils.getImageIcon("data/tabicons/flowgraph-primary-unmatched-tab.png");
+      ResourceUtils.getImageIcon("data/tabicons/flowgraph-primary-unmatched-tab.png");
   private static final ImageIcon FLOWGRAPH_SECONDARY_UNMATCHED_ICON =
-      ImageUtils.getImageIcon("data/tabicons/flowgraph-secondary-unmatched-tab.png");
+      ResourceUtils.getImageIcon("data/tabicons/flowgraph-secondary-unmatched-tab.png");
 
   private final ViewMenuBar viewMenuBar;
 

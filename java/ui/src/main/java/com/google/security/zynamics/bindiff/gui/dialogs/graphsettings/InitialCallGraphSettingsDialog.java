@@ -17,7 +17,6 @@ package com.google.security.zynamics.bindiff.gui.dialogs.graphsettings;
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
-import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.CircularLayoutPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphsettings.panels.ControlsPanel;
@@ -103,8 +102,7 @@ public class InitialCallGraphSettingsDialog extends BaseDialog {
 
     settings.setHierarchicalOrthogonalEdgeRouting(
         hierarchicalLayoutPanel.getOrthogonalEdgeRouting());
-    settings.setHierarchicalOrientation(
-        ELayoutOrientation.getOrdinal(hierarchicalLayoutPanel.getLayoutOrientation()));
+    settings.setHierarchicalOrientation(hierarchicalLayoutPanel.getLayoutOrientation());
     settings.setHierarchicalMinimumLayerDistance(hierarchicalLayoutPanel.getMinimumLayerDistance());
     settings.setHierarchicalMinimumNodeDistance(hierarchicalLayoutPanel.getMinimumNodeDistance());
 

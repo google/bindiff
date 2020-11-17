@@ -16,6 +16,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.proje
 
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.AbstractTreeNode;
 
-public interface IWorkspaceTreeListener {
+/** Listener that gets notified when the selection in the workspace tree changes. */
+public interface WorkspaceTreeListener {
   void changedSelection(final AbstractTreeNode diff);
 }

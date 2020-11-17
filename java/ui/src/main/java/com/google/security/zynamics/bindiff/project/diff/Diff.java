@@ -36,7 +36,7 @@ import java.util.logging.Level;
 public final class Diff {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private final ListenerProvider<IDiffListener> listenerProvider = new ListenerProvider<>();
+  private final ListenerProvider<DiffListener> listenerProvider = new ListenerProvider<>();
 
   private File matchesDatabaseFile;
   private File primaryExportFile;
@@ -109,7 +109,7 @@ public final class Diff {
     return cloneDiff;
   }
 
-  public void addListener(final IDiffListener listener) {
+  public void addListener(final DiffListener listener) {
     listenerProvider.addListener(listener);
   }
 
@@ -121,7 +121,7 @@ public final class Diff {
 
     close();
 
-    for (final IDiffListener listener : listenerProvider) {
+    for (final DiffListener listener : listenerProvider) {
       listener.unloadedDiff(this);
     }
   }
@@ -161,7 +161,7 @@ public final class Diff {
     return getCallGraph(side).getFunction(functionAddr);
   }
 
-  public ListenerProvider<IDiffListener> getListener() {
+  public ListenerProvider<DiffListener> getListener() {
     return listenerProvider;
   }
 
@@ -194,16 +194,16 @@ public final class Diff {
 
     close();
 
-    for (final IDiffListener listener : listenerProvider) {
+    for (final DiffListener listener : listenerProvider) {
       listener.unloadedDiff(this);
     }
 
-    for (final IDiffListener listener : listenerProvider) {
+    for (final DiffListener listener : listenerProvider) {
       listener.removedDiff(this);
     }
   }
 
-  public void removeListener(final IDiffListener listener) {
+  public void removeListener(final DiffListener listener) {
     listenerProvider.removeListener(listener);
   }
 
@@ -249,7 +249,7 @@ public final class Diff {
   }
 
   public void willOverwriteDiff(final String overwritePath) {
-    for (final IDiffListener listener : listenerProvider) {
+    for (final DiffListener listener : listenerProvider) {
       listener.willOverwriteDiff(overwritePath);
     }
   }

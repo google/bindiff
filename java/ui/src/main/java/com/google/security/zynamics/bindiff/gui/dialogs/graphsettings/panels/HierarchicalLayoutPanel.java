@@ -74,15 +74,13 @@ public class HierarchicalLayoutPanel extends JPanel {
   private ELayoutOrientation getLayoutOrientation(final BinDiffConfig config) {
     switch (dialogType) {
       case INITIAL_CALL_GRAPH_SETTING:
-        return ELayoutOrientation.getEnum(
-            config.getInitialCallGraphSettings().getHierarchicalOrientation());
+        return config.getInitialCallGraphSettings().getHierarchicalOrientation();
       case INITIAL_FLOW_GRAPH_SETTINGS:
-        return ELayoutOrientation.getEnum(
-            config.getInitialFlowGraphSettings().getHierarchicalOrientation());
+        return config.getInitialFlowGraphSettings().getHierarchicalOrientation();
       default:
     }
 
-    return settings.getLayoutSettings().getHierarchicOrientation();
+    return settings.getLayoutSettings().getHierarchicalOrientation();
   }
 
   private int getMinimumLayerDistance(final BinDiffConfig config) {

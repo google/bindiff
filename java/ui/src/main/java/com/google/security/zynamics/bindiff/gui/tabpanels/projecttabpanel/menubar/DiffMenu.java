@@ -23,12 +23,12 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.action
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.DirectoryDiffAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.LoadDiffAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.NewDiffAction;
-import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.IWorkspaceTreeListener;
+import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.WorkspaceTreeListener;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.AbstractTreeNode;
 import com.google.security.zynamics.bindiff.project.Workspace;
-import com.google.security.zynamics.bindiff.project.WorkspaceAdapter;
+import com.google.security.zynamics.bindiff.project.WorkspaceListener;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffListenerAdapter;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -107,7 +107,7 @@ public class DiffMenu extends JMenu {
     }
   }
 
-  private class InternalDiffListener extends DiffListenerAdapter {
+  private class InternalDiffListener implements DiffListener {
     @Override
     public void loadedDiff(final Diff diff) {
       openDiff.setEnabled(!diff.isLoaded());
@@ -126,7 +126,8 @@ public class DiffMenu extends JMenu {
     }
   }
 
-  private class InternalWorkspaceListener extends WorkspaceAdapter {
+  private class InternalWorkspaceListener implements WorkspaceListener {
+
     @Override
     public void closedWorkspace() {
       setEnabled(false);
@@ -144,7 +145,7 @@ public class DiffMenu extends JMenu {
     }
   }
 
-  private class InternalWorkspaceTreeListener implements IWorkspaceTreeListener {
+  private class InternalWorkspaceTreeListener implements WorkspaceTreeListener {
     @Override
     public void changedSelection(final AbstractTreeNode node) {
       final Diff diff = node.getDiff();

@@ -214,7 +214,7 @@ public class DiffLoader implements ICommand {
     // by invokeLater!
     SwingUtilities.invokeLater(
         () -> {
-          for (final IDiffListener listener : diff.getListener()) {
+          for (final DiffListener listener : diff.getListener()) {
             listener.loadedDiff(diff);
           }
         });

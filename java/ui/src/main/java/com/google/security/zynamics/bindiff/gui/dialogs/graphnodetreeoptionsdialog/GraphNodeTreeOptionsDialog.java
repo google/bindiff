@@ -27,7 +27,7 @@ import com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdial
 import com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabpanels.SearchingTabPanel;
 import com.google.security.zynamics.bindiff.gui.dialogs.graphnodetreeoptionsdialog.tabpanels.SortingTabPanel;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -74,9 +74,9 @@ public class GraphNodeTreeOptionsDialog extends BaseDialog {
     setLayout(new BorderLayout());
 
     final List<Image> imageList = new ArrayList<>();
-    imageList.add(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
-    imageList.add(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_32X32).getImage());
-    imageList.add(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_48X48).getImage());
+    imageList.add(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
+    imageList.add(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_32X32).getImage());
+    imageList.add(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_48X48).getImage());
 
     setIconImages(imageList);
 

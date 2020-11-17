@@ -40,7 +40,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnode
 import com.google.security.zynamics.bindiff.project.diff.Diff;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawFlowGraph;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.CAddress;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
@@ -59,10 +59,11 @@ import javax.swing.tree.TreeNode;
 
 public class GraphNodeTreePanel extends JPanel {
   private static final ImageIcon ICON_OPTIONS =
-      ImageUtils.getImageIcon("data/buttonicons/options.png");
-  private static final ImageIcon ICON_CLEAR = ImageUtils.getImageIcon("data/buttonicons/clear.png");
+      ResourceUtils.getImageIcon("data/buttonicons/options.png");
+  private static final ImageIcon ICON_CLEAR =
+      ResourceUtils.getImageIcon("data/buttonicons/clear.png");
   private static final ImageIcon ICON_CLEAR_GRAY =
-      ImageUtils.getImageIcon("data/buttonicons/clear-gray.png");
+      ResourceUtils.getImageIcon("data/buttonicons/clear-gray.png");
 
   private final TreeSearchFieldCombo filterCombo = new TreeSearchFieldCombo();
 

@@ -63,8 +63,8 @@ public final class Constants {
   public static final int WORKSPACE_DATABASE_FORMAT_VERSION = 2;
 
   // Config File
-  public static final String CONFIG_FILENAME = "bindiff.xml";
-  public static final int CONFIG_FILEVERSION = 6;
+  public static final String CONFIG_FILENAME = "bindiff.json";
+  public static final int CONFIG_FILEVERSION = 7;
 
   private static final int SOCKET_SERVER_PORT = 2000;
 

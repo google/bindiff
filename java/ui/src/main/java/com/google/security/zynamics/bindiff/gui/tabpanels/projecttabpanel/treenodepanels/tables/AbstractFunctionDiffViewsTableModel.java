@@ -17,12 +17,11 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treen
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffListenerAdapter;
-import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
 import java.util.List;
 
 public abstract class AbstractFunctionDiffViewsTableModel extends AbstractTableModel {
-  private final IDiffListener diffListener = new InternalDiffListener();
+  private final DiffListener diffListener = new InternalDiffListener();
 
   List<Diff> functionDiffViewList;
 
@@ -81,7 +80,7 @@ public abstract class AbstractFunctionDiffViewsTableModel extends AbstractTableM
     fireTableDataChanged();
   }
 
-  private class InternalDiffListener extends DiffListenerAdapter {
+  private class InternalDiffListener implements DiffListener {
     private Diff isExisting(final String diffPath) {
       for (final Diff rowDiff : functionDiffViewList) {
         if (rowDiff.getMatchesDatabase().getPath().equals(diffPath)) {

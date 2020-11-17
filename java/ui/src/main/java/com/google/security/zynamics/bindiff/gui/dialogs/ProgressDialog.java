@@ -15,7 +15,7 @@
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessProgressDialog;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CStandardHelperThread;
@@ -33,9 +33,9 @@ public class ProgressDialog {
 
   private static void initializeWindowIcons(final JDialog dlg) {
     final List<Image> imageList = new ArrayList<>();
-    imageList.add(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
-    imageList.add(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_32X32).getImage());
-    imageList.add(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_48X48).getImage());
+    imageList.add(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
+    imageList.add(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_32X32).getImage());
+    imageList.add(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_48X48).getImage());
 
     dlg.setIconImages(imageList);
   }

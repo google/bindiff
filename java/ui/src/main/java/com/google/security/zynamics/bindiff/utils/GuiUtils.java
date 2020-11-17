@@ -255,9 +255,9 @@ public class GuiUtils {
       final String iconPath32x32,
       final String iconPath48x48) {
     final ArrayList<Image> imageList = new ArrayList<>();
-    imageList.add(ImageUtils.getImage(iconPath16x16));
-    imageList.add(ImageUtils.getImage(iconPath32x32));
-    imageList.add(ImageUtils.getImage(iconPath48x48));
+    imageList.add(ResourceUtils.getImage(iconPath16x16));
+    imageList.add(ResourceUtils.getImage(iconPath32x32));
+    imageList.add(ResourceUtils.getImage(iconPath48x48));
 
     window.setIconImages(imageList);
   }

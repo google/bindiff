@@ -22,7 +22,7 @@ import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
@@ -36,23 +36,24 @@ import javax.swing.tree.DefaultTreeModel;
 
 public class SelectionHistoryTreeGroupNode extends AbstractSelectionHistoryTreeNode {
   private static final Icon ICON_ALL_UNSELECTED_GRAPHNODES =
-      ImageUtils.getImageIcon("data/selectionicons/graph-selection-folder-all-unselected.png");
+      ResourceUtils.getImageIcon("data/selectionicons/graph-selection-folder-all-unselected.png");
   private static final Icon ICON_ALL_SELECTED_GRAPHNODES =
-      ImageUtils.getImageIcon("data/selectionicons/graph-selection-folder-open.png");
+      ResourceUtils.getImageIcon("data/selectionicons/graph-selection-folder-open.png");
   private static final Icon ICON_ALL_UNVISIBLE_GRAPHNODES =
-      ImageUtils.getImageIcon("data/selectionicons/graph-selection-folder-all-unselected-gray.png");
+      ResourceUtils.getImageIcon(
+          "data/selectionicons/graph-selection-folder-all-unselected-gray.png");
   private static final Icon ICON_ALL_UNSELECTED_SOME_VISIBLE_SOME_INVISIBLE_GRAPHNODES =
-      ImageUtils.getImageIcon(
+      ResourceUtils.getImageIcon(
           "data/selectionicons/graph-selection-folder-all-unselected-halfgray.png");
   private static final Icon ICON_ALL_VISIBLE_SOME_SELECTED_SOME_UNSELECTED_GRAPHNODES =
-      ImageUtils.getImageIcon("data/selectionicons/graph-selection-folder-some-unselected.png");
+      ResourceUtils.getImageIcon("data/selectionicons/graph-selection-folder-some-unselected.png");
   private static final Icon ICON_SOME_SELECTED_SOME_VISIBLE_SOME_INVISIBLE_GRAPHNODES =
-      ImageUtils.getImageIcon(
+      ResourceUtils.getImageIcon(
           "data/selectionicons/graph-selection-folder-some-unselected-halfgray.png");
   private static final Icon ICON_EMPTY_FOLDER =
-      ImageUtils.getImageIcon("data/selectionicons/graph-selection-folder-empty.png");
+      ResourceUtils.getImageIcon("data/selectionicons/graph-selection-folder-empty.png");
   private static final Icon ICON_DUMMY =
-      ImageUtils.getImageIcon("data/selectionicons/graph-selection-folder-closed.png");
+      ResourceUtils.getImageIcon("data/selectionicons/graph-selection-folder-closed.png");
 
   private final ISnapshotListener snapshotListener = new InternalSnapshotListener();
 

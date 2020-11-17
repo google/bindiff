@@ -83,7 +83,7 @@ public class GeneralPanel extends JPanel {
     add(panel, BorderLayout.NORTH);
   }
 
-  public String getIDADirectory() {
+  public String getIdaDirectory() {
     return idaDirectoryPanel.getText();
   }
 

@@ -16,7 +16,7 @@ package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.operator
 
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.AbstractCriterion;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionType;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import javax.swing.Icon;
@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 
 public class NotCriterion extends AbstractCriterion {
   private static final ImageIcon NOT_ICON =
-      ImageUtils.getImageIcon("data/selectbycriteriaicons/not.png");
+      ResourceUtils.getImageIcon("data/selectbycriteriaicons/not.png");
 
   private final NotCriterionPanel panel = new NotCriterionPanel();
 

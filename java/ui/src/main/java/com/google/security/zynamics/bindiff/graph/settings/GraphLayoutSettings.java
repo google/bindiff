@@ -74,8 +74,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
     circularLayoutMinNodeDistance = initialSettings.getCircularMinimumNodeDistance();
 
     hierarchicOrthogonalEdgeRouting = initialSettings.getHierarchicalOrthogonalEdgeRouting();
-    hierarchicLayoutOrientation =
-        ELayoutOrientation.getEnum(initialSettings.getHierarchicalOrientation());
+    hierarchicLayoutOrientation = initialSettings.getHierarchicalOrientation();
     hierarchicLayoutMinLayerDistance = initialSettings.getHierarchicalMinimumNodeDistance();
     hierarchicLayoutMinNodeDistance = initialSettings.getHierarchicalMinimumLayerDistance();
 
@@ -110,6 +109,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
 
   @Override
   public boolean getAnimateLayout() {
+
     return animationSpeed > 0;
   }
 
@@ -145,7 +145,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
     return hierarchicOrthogonalEdgeRouting;
   }
 
-  public ELayoutOrientation getHierarchicOrientation() {
+  public ELayoutOrientation getHierarchicalOrientation() {
     return hierarchicLayoutOrientation;
   }
 
@@ -201,12 +201,12 @@ public class GraphLayoutSettings implements ILayoutSettings {
     }
   }
 
-  public void setCircularLayoutStyle(final ECircularLayoutStyle cirularLayout) {
-    if (cirularLayout == circularLayoutStyle) {
+  public void setCircularLayoutStyle(final ECircularLayoutStyle circularLayout) {
+    if (circularLayout == circularLayoutStyle) {
       return;
     }
 
-    circularLayoutStyle = cirularLayout;
+    circularLayoutStyle = circularLayout;
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.circularLayoutStyleChanged(this);

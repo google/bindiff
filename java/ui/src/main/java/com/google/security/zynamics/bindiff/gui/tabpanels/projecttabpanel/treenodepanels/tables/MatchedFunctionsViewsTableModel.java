@@ -24,7 +24,7 @@ import com.google.security.zynamics.bindiff.project.helpers.GraphGetter;
 import com.google.security.zynamics.bindiff.project.helpers.MatchesGetter;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawCallGraph;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.general.Pair;
@@ -39,11 +39,12 @@ import javax.swing.Icon;
 
 public class MatchedFunctionsViewsTableModel extends AbstractTableModel {
   public static final Icon IDENTICAL_MATCHED_ICON =
-      ImageUtils.getImageIcon("data/tablecellicons/flowgraphs-identical-matched-tab.png");
+      ResourceUtils.getImageIcon("data/tablecellicons/flowgraphs-identical-matched-tab.png");
   public static final Icon INSTRUCTIONS_CHANGED_ICON =
-      ImageUtils.getImageIcon("data/tablecellicons/flowgraphs-changed-instructions-only-tab.png");
+      ResourceUtils.getImageIcon(
+          "data/tablecellicons/flowgraphs-changed-instructions-only-tab.png");
   public static final Icon STRUCTURAL_CHANGED_ICON =
-      ImageUtils.getImageIcon("data/tablecellicons/flowgraphs_structural-changed-tab.png");
+      ResourceUtils.getImageIcon("data/tablecellicons/flowgraphs_structural-changed-tab.png");
 
   public static final int ICON = 0;
   public static final int SIMILARITY = 1;

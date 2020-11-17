@@ -32,7 +32,7 @@ import com.google.security.zynamics.bindiff.project.matches.FunctionMatchData;
 import com.google.security.zynamics.bindiff.project.matches.MatchData;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawCombinedBasicBlock;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.awt.event.MouseEvent;
@@ -42,29 +42,29 @@ import javax.swing.JPopupMenu;
 public class CombinedFlowGraphBasicBlockTreeNode extends AbstractTreeNode
     implements ISortableTreeNode, ISearchableTreeNode {
   private static final Icon MATCHED_BASICBLOCK =
-      ImageUtils.getImageIcon("data/treeicons/matched-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-basicblock.png");
   private static final Icon CHANGED_BASICBLOCK =
-      ImageUtils.getImageIcon("data/treeicons/changed-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/changed-basicblock.png");
   private static final Icon PRIMARY_UNMATCHED_BASICBLOCK =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-basicblock.png");
   private static final Icon SECONDARY_UNMATCHED_BASICBLOCK =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-basicblock.png");
   private static final Icon MATCHED_BASICBLOCK_SELECTED =
-      ImageUtils.getImageIcon("data/treeicons/matched-selected-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-selected-basicblock.png");
   private static final Icon CHANGED_BASICBLOCK_SELECTED =
-      ImageUtils.getImageIcon("data/treeicons/changed-selected-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/changed-selected-basicblock.png");
   private static final Icon PRIMARY_UNMATCHED_BASICBLOCK_SELECTED =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-selected-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-selected-basicblock.png");
   private static final Icon SECONDARY_UNMATCHED_BASICBLOCK_SELECTED =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-selected-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-selected-basicblock.png");
   private static final Icon MATCHED_BASICBLOCK_INVISIBLE =
-      ImageUtils.getImageIcon("data/treeicons/matched-invisible-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/matched-invisible-basicblock.png");
   private static final Icon CHANGED_BASICBLOCK_INVISIBLE =
-      ImageUtils.getImageIcon("data/treeicons/changed-invisible-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/changed-invisible-basicblock.png");
   private static final Icon PRIMARY_UNMATCHED_BASICBLOCK_INVISIBLE =
-      ImageUtils.getImageIcon("data/treeicons/primary-unmatched-invisible-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/primary-unmatched-invisible-basicblock.png");
   private static final Icon SECONDARY_UNMATCHED_BASICBLOCK_INVISIBLE =
-      ImageUtils.getImageIcon("data/treeicons/secondary-unmatched-invisible-basicblock.png");
+      ResourceUtils.getImageIcon("data/treeicons/secondary-unmatched-invisible-basicblock.png");
 
   private final CombinedDiffNode combinedDiffNode;
 

@@ -28,8 +28,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanels
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffListenerAdapter;
-import com.google.security.zynamics.bindiff.project.diff.IDiffListener;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
 import com.google.security.zynamics.bindiff.resources.Colors;
 import com.google.security.zynamics.zylib.disassembly.IAddress;
@@ -57,7 +56,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
   private final InternalCloseTabButtonListener closeTabListener =
       new InternalCloseTabButtonListener();
 
-  private final InternalTabListener tablistener = new InternalTabListener();
+  private final InternalTabListener tabListener = new InternalTabListener();
 
   private final MainWindow window;
 
@@ -79,7 +78,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
   }
 
   private void addListener() {
-    tabbedPane.addChangeListener(tablistener);
+    tabbedPane.addChangeListener(tabListener);
   }
 
   private Color getTabColor(final TabPanel tab) {
@@ -116,7 +115,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
 
       for (final ColorSlot slot : colorSlots) {
         if (slot.diff == null) {
-          final IDiffListener diffListener = new InternalDiffListener();
+          final DiffListener diffListener = new InternalDiffListener();
           diff.addListener(diffListener);
           slot.diff = diff;
           slot.diffListener = diffListener;
@@ -145,12 +144,12 @@ public final class TabPanelManager implements Iterable<TabPanel> {
   }
 
   public void addTab(final TabPanel tab) {
-    tabbedPane.addTab(tab.getTitle().toString(), tab);
+    tabbedPane.addTab(tab.getTitle(), tab);
 
     final int pos = tabbedPane.getTabCount() - 1;
 
     final TabButtonComponent tabButtonComponent;
-    Color tabColor = Color.WHITE;
+    final Color tabColor;
 
     if (tab instanceof WorkspaceTabPanel) {
       tabButtonComponent = new TabButtonComponent(tabbedPane, tab, tab.getIcon(), false);
@@ -250,7 +249,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
   }
 
   public void removeListener() {
-    tabbedPane.addChangeListener(tablistener);
+    tabbedPane.addChangeListener(tabListener);
   }
 
   public void removeTab(final TabPanel tab) {
@@ -273,7 +272,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
     }
   }
 
-  public void udpateSelectedTabIcon() {
+  public void updateSelectedTabIcon() {
     final int index = tabbedPane.getSelectedIndex();
     final TabButtonComponent component = (TabButtonComponent) tabbedPane.getTabComponentAt(index);
     if (component != null) {
@@ -282,7 +281,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
     }
   }
 
-  public void updateSelectedTabTitel(final String tabTitle) {
+  public void updateSelectedTabTitle(final String tabTitle) {
     final int index = tabbedPane.getSelectedIndex();
     final TabButtonComponent component = (TabButtonComponent) tabbedPane.getTabComponentAt(index);
     if (component != null) {
@@ -320,7 +319,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
     protected final Color color;
 
     protected Diff diff;
-    protected IDiffListener diffListener;
+    protected DiffListener diffListener;
 
     private ColorSlot(final Color color) {
       this.color = checkNotNull(color);
@@ -333,7 +332,7 @@ public final class TabPanelManager implements Iterable<TabPanel> {
     }
   }
 
-  private class InternalDiffListener extends DiffListenerAdapter {
+  private class InternalDiffListener implements DiffListener {
     @Override
     public void closedView(final Diff diff) {
       unregisterTabColor(diff);
@@ -351,13 +350,11 @@ public final class TabPanelManager implements Iterable<TabPanel> {
 
       for (final TabPanel tab : tabPanels) {
         if (tab instanceof ViewTabPanel) {
+          final ViewToolbarPanel toolbar = ((ViewTabPanel) tab).getToolbar();
+          final SearchResultsDialog dlg = toolbar.getSearchResultsDialog();
           if (tabPanel == tab) {
-            final ViewToolbarPanel toolbar = ((ViewTabPanel) tab).getToolbar();
-            final SearchResultsDialog dlg = toolbar.getSearchResultsDialog();
             dlg.setVisible(dlg.getReshowDialog());
           } else {
-            final ViewToolbarPanel toolbar = ((ViewTabPanel) tab).getToolbar();
-            final SearchResultsDialog dlg = toolbar.getSearchResultsDialog();
             final boolean reshow = dlg.isVisible() || dlg.getReshowDialog();
             dlg.setVisible(false);
             dlg.setReshowDialog(reshow);

@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.CDialogAboutEx;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
@@ -38,7 +38,7 @@ import javax.swing.JOptionPane;
 /** Controller class with functions applicable to all "tab panels". */
 public class TabPanelFunctions {
   private static final ImageIcon BINDIFF_ABOUT_IMAGE =
-      ImageUtils.getImageIcon(Constants.ABOUT_BINDIFF_IMAGE_PATH);
+      ResourceUtils.getImageIcon(Constants.ABOUT_BINDIFF_IMAGE_PATH);
 
   private final Workspace workspace;
 
@@ -106,7 +106,7 @@ public class TabPanelFunctions {
         new CDialogAboutEx(
             window, new ImageIcon(appImage), Constants.PRODUCT_NAME, message, description, urls);
 
-    dlg.setIconImage(ImageUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
+    dlg.setIconImage(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
 
     dlg.setSize(dlg.getWidth() - 8, dlg.getHeight());
 

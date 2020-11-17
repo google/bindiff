@@ -14,44 +14,33 @@
 
 package com.google.security.zynamics.bindiff.config;
 
-import javax.xml.xpath.XPathException;
-import org.w3c.dom.Document;
-
 /** Debug related settings like whether to display the super-graph, etc. */
-public class DebugConfigItem extends ConfigItem {
+public class DebugConfigItem {
 
-  private static final String SHOW_MENU = "/bindiff/preferences/debug/@show-menu";
-  private static final boolean SHOW_MENU_DEFAULT = false;
-  private boolean showMenu = SHOW_MENU_DEFAULT;
-
-  private static final String SHOW_SUPER_GRAPH = "/bindiff/preferences/debug/@show-super-graph";
-  private static final boolean SHOW_SUPER_GRAPH_DEFAULT = false;
-  private boolean showSuperGraph = SHOW_SUPER_GRAPH_DEFAULT;
-
-  @Override
-  public void load(final Document doc) throws XPathException {
-    showMenu = getBoolean(doc, SHOW_MENU, SHOW_MENU_DEFAULT);
-    showSuperGraph = getBoolean(doc, SHOW_SUPER_GRAPH, SHOW_SUPER_GRAPH_DEFAULT);
-  }
-
-  @Override
-  public void store(final Document doc) throws XPathException {
-    // Do not store debug settings. Instead, these can be selected in the debug menu.
-  }
+  private Boolean showMenu;
+  private Boolean showSuperGraph;
 
   public boolean getShowMenu() {
+    if (showMenu == null) {
+      showMenu = Config.getInstance().getPreferences().getDebug().getShowDebugMenu();
+    }
     return showMenu;
   }
 
   public void setShowMenu(final boolean showMenu) {
+    // Do not store debug settings in proto.
     this.showMenu = showMenu;
   }
 
   public boolean getShowSuperGraph() {
+    if (showSuperGraph == null) {
+      showSuperGraph = Config.getInstance().getPreferences().getDebug().getShowSuperGraph();
+    }
     return showSuperGraph;
   }
 
   public void setShowSuperGraph(boolean showSuperGraph) {
+    // Do not store debug settings in proto.
     this.showSuperGraph = showSuperGraph;
   }
 }

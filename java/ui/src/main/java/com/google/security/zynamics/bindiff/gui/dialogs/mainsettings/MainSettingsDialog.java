@@ -75,10 +75,10 @@ public class MainSettingsDialog extends BaseDialog {
   private void save() throws IOException {
     final BinDiffConfig config = BinDiffConfig.getInstance();
     final GeneralSettingsConfigItem mainSettings = config.getMainSettings();
-    final ThemeConfigItem colorSettings = config.getThemeSettings();
+    final ThemeConfigItem themeSettings = config.getThemeSettings();
 
     // General Panel
-    mainSettings.setIdaDirectory(generalPanel.getIDADirectory());
+    mainSettings.setIdaDirectory(generalPanel.getIdaDirectory());
     mainSettings.setWorkspaceDirectory(generalPanel.getWorkspaceDirectory());
 
     // Logging Panel
@@ -88,21 +88,22 @@ public class MainSettingsDialog extends BaseDialog {
     mainSettings.setLogLevel(loggingPanel.getLogLevel());
 
     // Syntax Highlighting Panel
-    colorSettings.setAddressColor(syntaxHighlightingPanel.getAddressColor());
-    colorSettings.setMnemonicColor(syntaxHighlightingPanel.getMnemonicColor());
-    colorSettings.setRegisterColor(syntaxHighlightingPanel.getRegisterColor());
-    colorSettings.setOperatorColor(syntaxHighlightingPanel.getOperatorColor());
-    colorSettings.setSizePrefixColor(syntaxHighlightingPanel.getSizePrefixColor());
-    colorSettings.setDereferenceColor(syntaxHighlightingPanel.getDereferenceColor());
-    colorSettings.setImmediateColor(syntaxHighlightingPanel.getImmediateColor());
-    colorSettings.setOperatorSeparatorColor(syntaxHighlightingPanel.getOperandSeparatorColor());
-    colorSettings.setCommentColor(syntaxHighlightingPanel.getCommentColor());
-    colorSettings.setDefaultColor(syntaxHighlightingPanel.getDefaultColor());
-    colorSettings.setSymbolColor(syntaxHighlightingPanel.getSymbolColor());
-    colorSettings.setStackVariableColor(syntaxHighlightingPanel.getStackVariableColor());
-    colorSettings.setGlobalVariableColor(syntaxHighlightingPanel.getGlobalVariableColor());
-    colorSettings.setJumpLabelColor(syntaxHighlightingPanel.getJumpLabelColor());
-    colorSettings.setFunctionColor(syntaxHighlightingPanel.getFunctionColor());
+    themeSettings.setAddressColor(syntaxHighlightingPanel.getAddressColor());
+    themeSettings.setMnemonicColor(syntaxHighlightingPanel.getMnemonicColor());
+    themeSettings.setRegisterColor(syntaxHighlightingPanel.getRegisterColor());
+    themeSettings.setOperatorColor(syntaxHighlightingPanel.getOperatorColor());
+    themeSettings.setSizePrefixColor(syntaxHighlightingPanel.getSizePrefixColor());
+    themeSettings.setDereferenceColor(syntaxHighlightingPanel.getDereferenceColor());
+    themeSettings.setImmediateColor(syntaxHighlightingPanel.getImmediateColor());
+    themeSettings.setOperatorSeparatorColor(syntaxHighlightingPanel.getOperandSeparatorColor());
+    themeSettings.setCommentColor(syntaxHighlightingPanel.getCommentColor());
+    themeSettings.setDefaultColor(syntaxHighlightingPanel.getDefaultColor());
+    themeSettings.setSymbolColor(syntaxHighlightingPanel.getSymbolColor());
+    themeSettings.setStackVariableColor(syntaxHighlightingPanel.getStackVariableColor());
+    themeSettings.setGlobalVariableColor(syntaxHighlightingPanel.getGlobalVariableColor());
+    themeSettings.setJumpLabelColor(syntaxHighlightingPanel.getJumpLabelColor());
+    themeSettings.setFunctionColor(syntaxHighlightingPanel.getFunctionColor());
+    themeSettings.apply();
 
     adoptChanges();
     config.write();

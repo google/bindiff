@@ -16,7 +16,7 @@ package com.google.security.zynamics.bindiff.graph.backgroundrendering;
 
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -33,9 +33,9 @@ import y.view.Graph2DView;
 public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
   private static final int OFFSET = 15;
 
-  private final Image primaryTextImage = ImageUtils.getImage("data/graphview/primary.png");
-  private final Image secondaryTextImage = ImageUtils.getImage("data/graphview/secondary.png");
-  private final Image combinedTextImage = ImageUtils.getImage("data/graphview/combined.png");
+  private final Image primaryTextImage = ResourceUtils.getImage("data/graphview/primary.png");
+  private final Image secondaryTextImage = ResourceUtils.getImage("data/graphview/secondary.png");
+  private final Image combinedTextImage = ResourceUtils.getImage("data/graphview/combined.png");
 
   private final Graph2DView graphView;
   private final EGraph type;

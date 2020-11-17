@@ -21,10 +21,10 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.action
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.CloseViewsAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.DeleteDiffAction;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.actions.LoadDiffAction;
-import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.IWorkspaceTreeListener;
+import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.WorkspaceTreeListener;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projecttree.treenodes.AbstractTreeNode;
 import com.google.security.zynamics.bindiff.project.diff.Diff;
-import com.google.security.zynamics.bindiff.project.diff.DiffListenerAdapter;
+import com.google.security.zynamics.bindiff.project.diff.DiffListener;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import java.util.HashSet;
 import java.util.Set;
@@ -99,7 +99,7 @@ public class NodePopupMenu extends JPopupMenu {
     controller.getWorkspaceTree().removeListener(workspaceTreeListener);
   }
 
-  private class InternalDiffListener extends DiffListenerAdapter {
+  private class InternalDiffListener implements DiffListener {
     @Override
     public void closedView(final Diff diff) {
       updateMenu(diff);
@@ -134,7 +134,7 @@ public class NodePopupMenu extends JPopupMenu {
     }
   }
 
-  private class InternalWorkspaceTreeListener implements IWorkspaceTreeListener {
+  private class InternalWorkspaceTreeListener implements WorkspaceTreeListener {
     @Override
     public void changedSelection(final AbstractTreeNode node) {
       final Diff diff = node.getDiff();

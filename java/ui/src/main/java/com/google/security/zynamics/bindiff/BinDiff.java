@@ -32,6 +32,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -91,31 +93,25 @@ public class BinDiff {
     }
   }
 
-  private static boolean initializeConfigFile() {
+  private static void initializeConfigFile() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
-    try {
-      config.read();
-      if (config.getMainSettings().getVersion() < Constants.CONFIG_FILEVERSION) {
-        final int answer =
-            CMessageBox.showYesNoWarning(
-                null,
-                "Your configuration file is obsolete. Do you want to overwrite it with a new "
-                    + "default configuration file?");
+    if (config.getMainSettings().getVersion() < Constants.CONFIG_FILEVERSION) {
+      final int answer =
+          CMessageBox.showYesNoWarning(
+              null,
+              "Your configuration file is obsolete. Do you want to overwrite it with a new "
+                  + "default configuration file?");
+      if (answer == JOptionPane.YES_OPTION) {
         try {
-          if (answer == JOptionPane.YES_OPTION) {
-            BinDiffConfig.delete();
-          }
-        } catch (final IOException e) {
-          // Logger isn't initialized, so no logging here
-          CMessageBox.showError(null, "Couldn't delete configuration file.");
-          return false;
+          Files.delete(FileSystems.getDefault().getPath(BinDiffConfig.getConfigFileName()));
+        } catch (final IOException | SecurityException e) {
+          // Logger isn't initialized yet, so no logging here
+          CMessageBox.showError(
+              null,
+              "Couldn't delete old configuration file. "
+                  + "BinDiff won't be able to save its configuration.");
         }
       }
-      return true;
-    } catch (final IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Error while parsing configuration file");
-      CMessageBox.showError(null, e.getMessage());
-      return false;
     }
   }
 
@@ -314,10 +310,8 @@ public class BinDiff {
           System.setProperty(
               CMessageBox.DEFAULT_WINDOW_TITLE_PROPERTY, Constants.DEFAULT_WINDOW_TITLE);
 
-          // The config file must be initialized before the logger is initialized
-          if (!initializeConfigFile()) {
-            return;
-          }
+          // The config file must be initialized before the logger
+          initializeConfigFile();
           initializeLogging();
 
           logger.at(Level.INFO).log(

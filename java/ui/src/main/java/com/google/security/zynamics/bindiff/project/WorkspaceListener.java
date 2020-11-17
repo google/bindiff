@@ -12,18 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.security.zynamics.bindiff.project.diff;
+package com.google.security.zynamics.bindiff.project;
 
-public interface IDiffListener {
-  void closedView(final Diff diff);
+import com.google.security.zynamics.bindiff.project.diff.Diff;
 
-  void loadedDiff(final Diff diff);
+/** Listener interface for workspace events. */
+public interface WorkspaceListener {
 
-  void loadedView(final Diff diff);
+  default void addedDiff(final Diff diff) {
+    // Do nothing by default
+  }
 
-  void removedDiff(final Diff diff);
+  default void closedWorkspace() {
+    // Do nothing by default
+  }
 
-  void unloadedDiff(final Diff diff);
+  default void loadedWorkspace(final Workspace workspace) {
+    // Do nothing by default
+  }
 
-  void willOverwriteDiff(String overridePath);
+  default void removedDiff(final Diff diff) {
+    // Do nothing by default
+  }
 }

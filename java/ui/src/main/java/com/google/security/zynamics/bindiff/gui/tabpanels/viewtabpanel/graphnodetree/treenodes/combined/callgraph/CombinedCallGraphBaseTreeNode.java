@@ -21,7 +21,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnode
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.searcher.TreeNodeSearcher;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter.ISortableTreeNode;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.treenodes.AbstractBaseTreeNode;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ import javax.swing.JSeparator;
 
 public class CombinedCallGraphBaseTreeNode extends AbstractBaseTreeNode {
   private static final Icon CALLGRAPH_ICON =
-      ImageUtils.getImageIcon("data/treeicons/callgraph.png");
+      ResourceUtils.getImageIcon("data/treeicons/callgraph.png");
 
   private List<CombinedCallGraphFunctionTreeNode> functionNodes = new ArrayList<>();
 

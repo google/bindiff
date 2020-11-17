@@ -18,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.security.zynamics.bindiff.graph.AbstractGraphsContainer;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.ConditionCriterion;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.awt.Color;
@@ -28,7 +28,7 @@ import javax.swing.JPanel;
 
 public class ColorCriterion extends ConditionCriterion {
   private static final ImageIcon COLOR_CONDITION_ICON =
-      ImageUtils.getImageIcon("data/selectbycriteriaicons/color-condition.png");
+      ResourceUtils.getImageIcon("data/selectbycriteriaicons/color-condition.png");
 
   private final ColorCriterionPanel panel;
 

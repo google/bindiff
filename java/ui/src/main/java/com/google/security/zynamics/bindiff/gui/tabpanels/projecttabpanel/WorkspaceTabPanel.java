@@ -24,7 +24,7 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.projec
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.DefaultTreeNodeContextPanel;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.Workspace;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.Icon;
@@ -35,7 +35,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
 public class WorkspaceTabPanel extends TabPanel {
-  private static final Icon ICON = ImageUtils.getImageIcon("data/tabicons/workspace-tab.png");
+  private static final Icon ICON = ResourceUtils.getImageIcon("data/tabicons/workspace-tab.png");
 
   private final WorkspaceMenuBar menuBar;
 

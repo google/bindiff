@@ -43,22 +43,47 @@ import javax.swing.SwingUtilities;
 
 /** This class represents the BinDiff main window. */
 public class MainWindow extends JFrame {
-  private final WindowFunctions controller;
 
-  private final InternalWindowListener windowListener = new InternalWindowListener();
+  private final WindowFunctions controller;
 
   private String titlePath;
 
   public MainWindow(final Workspace workspace) {
     checkNotNull(workspace);
 
-    workspace.addListener(new InternalWorkspaceListener());
+    workspace.addListener(
+        new WorkspaceAdapter() {
+          @Override
+          public void closedWorkspace() {
+            setTitle("");
+          }
+
+          @Override
+          public void loadedWorkspace(Workspace workspace) {
+            titlePath = workspace.getWorkspaceFilePath();
+            setTitle(titlePath);
+            updateEllipsis();
+          }
+        });
 
     controller = new WindowFunctions(this, workspace);
 
     initWindow();
 
-    addWindowListener(windowListener);
+    addWindowListener(
+        new WindowAdapter() {
+          @Override
+          public void windowClosing(WindowEvent e) {
+            // This grab focus ensures that the diff description is saved.
+            final WorkspaceTabPanelFunctions workspaceController =
+                controller.getTabPanelManager().getWorkspaceTabPanel().getController();
+            workspaceController.getWorkspaceTree().grabFocus();
+
+            // Do not remove invokeLater, otherwise BinDiff exits before grabFocus() has been
+            // executed.
+            SwingUtilities.invokeLater(controller::exitBinDiff);
+          }
+        });
 
     // Add a resize listener so we can add path ellipses to the window
     // title if necessary
@@ -71,17 +96,12 @@ public class MainWindow extends JFrame {
         });
   }
 
-  private boolean hasChangedScreenResolution() {
-    final BinDiffConfig config = BinDiffConfig.getInstance();
-    final GeneralSettingsConfigItem settings = config.getMainSettings();
-
-    final int width = Toolkit.getDefaultToolkit().getScreenSize().width;
-    final int height = Toolkit.getDefaultToolkit().getScreenSize().height;
-
-    settings.setScreenWidth(width);
-    settings.setScreenHeight(height);
-
-    return settings.getScreenWidth() != width || settings.getScreenHeight() != height;
+  private static boolean screenResolutionChanged() {
+    final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
+    final Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+    settings.setScreenWidth(screen.width);
+    settings.setScreenHeight(screen.height);
+    return settings.getScreenWidth() != screen.width || settings.getScreenHeight() != screen.height;
   }
 
   private void initWindow() {
@@ -93,10 +113,9 @@ public class MainWindow extends JFrame {
         Constants.APP_ICON_PATH_32X32,
         Constants.APP_ICON_PATH_48X48);
 
-    final boolean wasMaximized =
-        BinDiffConfig.getInstance().getMainSettings().getWindowStateWasMaximized();
-    if (!wasMaximized && !hasChangedScreenResolution()) {
-      final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
+    final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
+    final boolean wasMaximized = settings.getWindowStateWasMaximized();
+    if (!wasMaximized && !screenResolutionChanged()) {
       final int winX = settings.getWindowXPos();
       final int winY = settings.getWindowYPos();
       final int winWidth = settings.getWindowWidth();
@@ -168,38 +187,6 @@ public class MainWindow extends JFrame {
               ((ViewTabPanel) tabPanel).getView().getGraphs().getDiff().getDiffName());
 
       setTitle(title);
-    }
-  }
-
-  private class InternalWindowListener extends WindowAdapter {
-    @Override
-    public void windowClosed(final WindowEvent event) {
-      removeWindowListener(windowListener);
-    }
-
-    @Override
-    public void windowClosing(final WindowEvent event) {
-      // This grab focus ensures that the diff description is saved. (Case 4352)
-      final WorkspaceTabPanelFunctions workspaceController =
-          controller.getTabPanelManager().getWorkspaceTabPanel().getController();
-      workspaceController.getWorkspaceTree().grabFocus();
-
-      // Do not remove invokeLater, otherwise BinDiff exits before grabFocus() has been executed.
-      SwingUtilities.invokeLater(controller::exitBinDiff);
-    }
-  }
-
-  private class InternalWorkspaceListener extends WorkspaceAdapter {
-    @Override
-    public void closedWorkspace() {
-      setTitle("");
-    }
-
-    @Override
-    public void loadedWorkspace(final Workspace workspace) {
-      setTitle(workspace.getWorkspaceFilePath());
-      titlePath = workspace.getWorkspaceFilePath();
-      updateEllipsis();
     }
   }
 }

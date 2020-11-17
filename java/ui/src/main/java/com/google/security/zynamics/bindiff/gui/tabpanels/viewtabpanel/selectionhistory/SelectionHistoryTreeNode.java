@@ -25,18 +25,18 @@ import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.popupmenu
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.popupmenus.FlowGraphPopupMenu;
 import com.google.security.zynamics.bindiff.project.rawcallgraph.RawFunction;
 import com.google.security.zynamics.bindiff.project.rawflowgraph.RawBasicBlock;
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 
 public class SelectionHistoryTreeNode extends AbstractSelectionHistoryTreeNode {
   private static final ImageIcon ICON_SELECTED_GRAPHNODE =
-      ImageUtils.getImageIcon("data/selectionicons/graphnode-selection.png");
+      ResourceUtils.getImageIcon("data/selectionicons/graphnode-selection.png");
   private static final ImageIcon ICON_NO_SELECTED_GRAPHNODES =
-      ImageUtils.getImageIcon("data/selectionicons/no-selected-graphnodes.png");
+      ResourceUtils.getImageIcon("data/selectionicons/no-selected-graphnodes.png");
   private static final ImageIcon ICON_NO_SELECTED_GRAPHNODES_GRAY =
-      ImageUtils.getImageIcon("data/selectionicons/no-selected-graphnodes-gray.png");
+      ResourceUtils.getImageIcon("data/selectionicons/no-selected-graphnodes-gray.png");
 
   private final ZyGraphNode<?> node;
 

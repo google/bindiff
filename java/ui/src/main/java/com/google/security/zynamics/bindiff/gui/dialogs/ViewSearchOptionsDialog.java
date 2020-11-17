@@ -14,7 +14,7 @@
 
 package com.google.security.zynamics.bindiff.gui.dialogs;
 
-import com.google.security.zynamics.bindiff.utils.ImageUtils;
+import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -31,7 +31,7 @@ import javax.swing.border.TitledBorder;
 
 public class ViewSearchOptionsDialog extends BaseDialog {
   private static final ImageIcon APP_ICON =
-      ImageUtils.getImageIcon("data/appicons/bindiff-16x16-rgba.png");
+      ResourceUtils.getImageIcon("data/appicons/bindiff-16x16-rgba.png");
 
   private final InternalOkButtonListener okButtonListener = new InternalOkButtonListener();
   private final InternalCancelButtonListener cancelButtonListener =
