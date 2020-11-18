@@ -14,8 +14,10 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.menubar;
 
+import com.google.security.zynamics.bindiff.BinDiff;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelFunctions;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
+import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
@@ -23,6 +25,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
+/** The classic "Help" menu. Also allows to check for updates. */
 public class HelpMenu extends JMenu {
   public HelpMenu(final TabPanelFunctions controller) {
     super("Help");
@@ -64,21 +67,25 @@ public class HelpMenu extends JMenu {
             });
 
     final JMenuItem aboutMenuItem =
-        GuiUtils.buildMenuItem(
-            "About",
-            'A',
-            new AbstractAction() {
-              @Override
-              public void actionPerformed(ActionEvent e) {
-                controller.showAboutDialog();
-              }
-            });
+        !SystemHelpers.isRunningMacOSX() && BinDiff.isDesktopIntegrationDone()
+            ? GuiUtils.buildMenuItem(
+                "About",
+                'A',
+                new AbstractAction() {
+                  @Override
+                  public void actionPerformed(ActionEvent e) {
+                    controller.showAboutDialog();
+                  }
+                })
+            : null;
 
     add(helpMenuItem);
     add(new JSeparator());
     add(reportABugMenuItem);
     add(checkForUpdatesMenuItem);
-    add(new JSeparator());
-    add(aboutMenuItem);
+    if (aboutMenuItem != null) {
+      add(new JSeparator());
+      add(aboutMenuItem);
+    }
   }
 }

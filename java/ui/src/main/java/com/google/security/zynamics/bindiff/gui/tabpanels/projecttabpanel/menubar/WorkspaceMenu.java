@@ -16,36 +16,42 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menub
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.security.zynamics.bindiff.BinDiff;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.project.Workspace;
-import com.google.security.zynamics.bindiff.project.WorkspaceAdapter;
+import com.google.security.zynamics.bindiff.project.WorkspaceListener;
 import com.google.security.zynamics.bindiff.utils.GuiUtils;
+import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
-public final class WorkspaceMenu extends JMenu {
+/**
+ * The workspace menu that is visible under "File" initially and when managing workspaces in the
+ * main window.
+ */
+public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
+
   public static final int MAX_RECENT = 4;
 
   private final List<String> recentWorkspaces = new ArrayList<>(MAX_RECENT);
 
   private final WorkspaceTabPanelFunctions controller;
 
-  private final InternalWorkspaceListener workspaceModelListener = new InternalWorkspaceListener();
-
   private JMenuItem newWorkspace;
   private JMenuItem loadWorkspace;
   private JMenuItem closeWorkspace;
-  private JMenuItem exit;
+  private JMenuItem exit; // Note: macOS uses a QuitHandler instead
 
   public WorkspaceMenu(final WorkspaceTabPanelFunctions controller) {
     super("File");
@@ -57,7 +63,7 @@ public final class WorkspaceMenu extends JMenu {
 
     initItems();
 
-    controller.getWorkspace().addListener(workspaceModelListener);
+    controller.getWorkspace().addListener(this);
 
     enableSubmenus(false);
   }
@@ -94,9 +100,11 @@ public final class WorkspaceMenu extends JMenu {
     add(closeWorkspace);
 
     addRecentWorkspaces();
-    add(new JSeparator());
 
-    add(exit);
+    if (!SystemHelpers.isRunningMacOSX()) {
+      add(new JSeparator());
+      add(exit);
+    }
   }
 
   private void initItems() {
@@ -140,19 +148,20 @@ public final class WorkspaceMenu extends JMenu {
               }
             });
 
-    exit =
-        GuiUtils.buildMenuItem(
-            "Exit",
-            'Q',
-            KeyEvent.VK_Q,
-            CTRL_MASK,
-            new AbstractAction() {
-              @Override
-              public void actionPerformed(final ActionEvent e) {
-                controller.exitBinDiff();
-              }
-            });
-
+    if (!SystemHelpers.isRunningMacOSX() && BinDiff.isDesktopIntegrationDone()) {
+      exit =
+          GuiUtils.buildMenuItem(
+              "Exit",
+              'Q',
+              KeyEvent.VK_Q,
+              CTRL_MASK,
+              new AbstractAction() {
+                @Override
+                public void actionPerformed(final ActionEvent e) {
+                  controller.exitBinDiff();
+                }
+              });
+    }
     addSubmenuEntries();
   }
 
@@ -191,7 +200,7 @@ public final class WorkspaceMenu extends JMenu {
   }
 
   public void dispose() {
-    controller.getWorkspace().removeListener(workspaceModelListener);
+    controller.getWorkspace().removeListener(this);
   }
 
   public void enableSubmenus(final boolean enable) {
@@ -202,34 +211,30 @@ public final class WorkspaceMenu extends JMenu {
     return recentWorkspaces.toArray(new String[0]);
   }
 
-  private class InternalWorkspaceListener extends WorkspaceAdapter {
-    @Override
-    public void closedWorkspace() {
-      enableSubmenus(false);
+  @Override
+  public void closedWorkspace() {
+    enableSubmenus(false);
+  }
+
+  @Override
+  public void loadedWorkspace(final Workspace workspace) {
+    enableSubmenus(true);
+
+    final String path = workspace.getWorkspaceFilePath();
+    if (path.isEmpty()) {
+      return;
     }
 
-    @Override
-    public void loadedWorkspace(final Workspace workspace) {
-      enableSubmenus(true);
-
-      final String path = workspace.getWorkspaceFilePath();
-      if (path.isEmpty()) {
-        return;
+    final int idx = recentWorkspaces.indexOf(path);
+    if (idx >= 0) {
+      Collections.swap(recentWorkspaces, 0, idx);
+    } else {
+      if (!recentWorkspaces.isEmpty()) {
+        recentWorkspaces.remove(recentWorkspaces.size() - 1);
       }
-
-      final int idx = recentWorkspaces.indexOf(path);
-      if (idx >= 0) {
-        final String temp = recentWorkspaces.get(0);
-        recentWorkspaces.set(0, recentWorkspaces.get(idx));
-        recentWorkspaces.set(idx, temp);
-      } else {
-        if (!recentWorkspaces.isEmpty()) {
-          recentWorkspaces.remove(recentWorkspaces.size() - 1);
-        }
-        recentWorkspaces.add(0, path);
-      }
-
-      updateWorkspaceMenu();
+      recentWorkspaces.add(0, path);
     }
+
+    updateWorkspaceMenu();
   }
 }

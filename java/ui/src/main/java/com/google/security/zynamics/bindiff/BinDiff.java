@@ -20,6 +20,7 @@ import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
+import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.logging.Logger;
 import com.google.security.zynamics.bindiff.project.Workspace;
@@ -27,11 +28,14 @@ import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.socketserver.SocketServer;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
+import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Proxy;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -67,7 +71,7 @@ public class BinDiff {
   private static final Option DEBUG_MENU =
       Option.builder().longOpt("debug_menu").desc("Display the \"Debug\" menu").build();
 
-  private static String workspaceFileName = null;
+  private static boolean desktopIntegrationDone = false;
 
   private BinDiff() {}
 
@@ -91,6 +95,10 @@ public class BinDiff {
       // Do nothing. macOS integration will be sub-optimal but there's nothing we can meaningfully
       // do here.
     }
+  }
+
+  public static boolean isDesktopIntegrationDone() {
+    return desktopIntegrationDone;
   }
 
   private static void initializeConfigFile() {
@@ -207,7 +215,13 @@ public class BinDiff {
     }
   }
 
-  private static void parseCommandLine(final String[] args) {
+  /**
+   * Parses command line arguments.
+   *
+   * @param args the arguments, as passed into {@link #main(String[])}.
+   * @return a list of positional arguments without any options or {@code null} on error.
+   */
+  private static String[] parseCommandLine(final String[] args) {
     final Options flags =
         new Options()
             .addOption(HELP)
@@ -224,7 +238,7 @@ public class BinDiff {
       }
     } catch (final ParseException e) {
       logger.at(Level.WARNING).withCause(e).log("Invalid command line arguments");
-      return;
+      return null;
     }
 
     if (cmd.hasOption(HELP.getLongOpt())) {
@@ -247,9 +261,7 @@ public class BinDiff {
       BinDiffConfig.getInstance().getDebugSettings().setShowMenu(true);
     }
 
-    if (positional.length > 0) {
-      workspaceFileName = positional[0];
-    }
+    return positional;
   }
 
   public static void applyLoggingChanges() throws IOException {
@@ -272,7 +284,8 @@ public class BinDiff {
     Logger.setLogLevel(settings.getLogLevel());
   }
 
-  private static void initializeSocketServer(final MainWindow window) {
+  private static void initializeSocketServer(
+      final Component window, final WorkspaceTabPanelFunctions controller) {
     // Wrapped in invokeLater to make sure we start the thread after the
     // UI is ready. This is done because the SocketServer relies on
     // a valid parent window for the workspace tree.
@@ -280,21 +293,66 @@ public class BinDiff {
         () -> {
           final int port = Constants.getSocketPort();
           try {
-            new SocketServer(
-                    port,
-                    // TODO(cblichmann): Get rid of this madness and do proper MVC
-                    window
-                        .getController()
-                        .getTabPanelManager()
-                        .getWorkspaceTabPanel()
-                        .getController())
-                .startListening();
+            new SocketServer(port, controller).startListening();
           } catch (final IOException e) {
             CMessageBox.showError(
                 window, String.format("Could not listen on port %s. BinDiff exits.", port));
             System.exit(1);
           }
         });
+  }
+
+  private static void initializeDesktop(
+      final Desktop desktop, final WorkspaceTabPanelFunctions controller) {
+    // The API below needs at least JDK9. Since Google's language level is still at Java 8, fall
+    // back to using reflection.
+    // Note that any failures are silently ignored. Like with the menu bar integration in the
+    // static initializer of this class, the app won't feel native, but will be fully functional.
+    // TODO(cblichmann): Once Java 11 is the default, replace the reflective calls.
+    try {
+      final Class<?> aboutHandlerClass = Class.forName("java.awt.desktop.AboutHandler");
+      final Object aboutHandler =
+          Proxy.newProxyInstance(
+              aboutHandlerClass.getClassLoader(),
+              new java.lang.Class<?>[] {aboutHandlerClass},
+              (proxy, method, args) -> {
+                controller.showAboutDialog();
+                return null;
+              });
+      Desktop.class
+          .getDeclaredMethod("setAboutHandler", aboutHandlerClass)
+          .invoke(desktop, aboutHandler);
+
+      final Class<?> preferencesHandlerClass = Class.forName("java.awt.desktop.PreferencesHandler");
+      final Object preferencesHandler =
+          Proxy.newProxyInstance(
+              preferencesHandlerClass.getClassLoader(),
+              new java.lang.Class<?>[] {preferencesHandlerClass},
+              (proxy, method, args) -> {
+                controller.showMainSettingsDialog();
+                return null;
+              });
+      Desktop.class
+          .getDeclaredMethod("setPreferencesHandler", preferencesHandlerClass)
+          .invoke(desktop, preferencesHandler);
+
+      final Class<?> quitHandlerClass = Class.forName("java.awt.desktop.QuitHandler");
+      final Object quitHandler =
+          Proxy.newProxyInstance(
+              quitHandlerClass.getClassLoader(),
+              new java.lang.Class<?>[] {quitHandlerClass},
+              (proxy, method, args) -> {
+                controller.exitBinDiff();
+                return null;
+              });
+      Desktop.class
+          .getDeclaredMethod("setQuitHandler", quitHandlerClass)
+          .invoke(desktop, quitHandler);
+
+      desktopIntegrationDone = true;
+    } catch (final ReflectiveOperationException e) {
+      logger.at(Level.WARNING).withCause(e).log();
+    }
   }
 
   /**
@@ -318,27 +376,26 @@ public class BinDiff {
               "Starting %s (Java %s)", Constants.PRODUCT_NAME_VERSION, JAVA_VERSION.value());
 
           initializeTheme();
-          parseCommandLine(args);
+          final String[] positional = parseCommandLine(args);
           initializeGlobalTooltipDelays();
           initializeStandardHotKeys();
 
           final Workspace workspace = new Workspace();
           final MainWindow window = new MainWindow(workspace);
-
-          workspace.setParentWindow(window);
           window.setVisible(true);
           GuiHelper.applyWindowFix(window);
 
-          initializeSocketServer(window);
+          final WorkspaceTabPanelFunctions controller =
+              window.getController().getTabPanelManager().getWorkspaceTabPanel().getController();
 
-          if (workspaceFileName != null) {
-            // TODO(cblichmann): Either do proper MVC or use dependency injection instead.
-            window
-                .getController()
-                .getTabPanelManager()
-                .getWorkspaceTabPanel()
-                .getController()
-                .loadWorkspace(workspaceFileName);
+          initializeSocketServer(window, controller);
+
+          if (Desktop.isDesktopSupported()) {
+            initializeDesktop(Desktop.getDesktop(), controller);
+          }
+
+          if (positional != null && positional.length > 0) {
+            controller.loadWorkspace(positional[0]);
           }
         });
   }

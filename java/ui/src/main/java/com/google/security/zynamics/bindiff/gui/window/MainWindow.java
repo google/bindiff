@@ -94,6 +94,8 @@ public class MainWindow extends JFrame {
             updateEllipsis();
           }
         });
+
+    workspace.setParentWindow(this);
   }
 
   private static boolean screenResolutionChanged() {
