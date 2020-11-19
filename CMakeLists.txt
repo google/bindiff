@@ -42,7 +42,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
 include(${BinExport_DIR}/copts.cmake)
 include(${BinExport_DIR}/util.cmake)
 include(sqlite.cmake)
-include(tinyxpath.cmake)
 
 # Use a copy of a subset of Boost that ships with BinExport
 set(Boost_NO_SYSTEM_PATHS ON)
@@ -183,7 +182,6 @@ target_link_libraries(bindiff_config
   absl::flat_hash_map
   absl::hash
   absl::status
-  tinyxpath
 )
 set_target_properties(bindiff_config PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
