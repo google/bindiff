@@ -10,11 +10,13 @@ files/opt/bindiff/extra/binaryninja/binexport11_binaryninja.so opt/bindiff/extra
 files/opt/bindiff/extra/ghidra opt/bindiff/extra
 files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra
-files/opt/bindiff/plugins/bindiff7.so opt/bindiff/plugins
-files/opt/bindiff/plugins/bindiff764.so opt/bindiff/plugins
-files/opt/bindiff/plugins/binexport11.so opt/bindiff/plugins
-files/opt/bindiff/plugins/binexport1164.so opt/bindiff/plugins
+files/opt/bindiff/libexec/per-user-setup.sh opt/bindiff/libexec
+files/opt/bindiff/plugins/idapro/bindiff7.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/bindiff764.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/binexport11.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/binexport1164.so opt/bindiff/plugins/idapro
 files/opt/bindiff/roboto-mono-font-license.txt opt/bindiff
+files/usr/lib/systemd/user/bindiff-plugins.service usr/lib/systemd/user
 files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications
 files/usr/share/fonts/truetype/robotomono/RobotoMono-Bold.ttf usr/share/fonts/truetype/robotomono
 files/usr/share/fonts/truetype/robotomono/RobotoMono-BoldItalic.ttf usr/share/fonts/truetype/robotomono

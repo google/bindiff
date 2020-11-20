@@ -24,46 +24,47 @@ bindiff_release=7
 binexport_release=11
 
 case "$1" in
-    configure)
-        # Install .desktop file according to XDG spec.
-        xdg-desktop-menu forceupdate --mode system
+  configure)
+    # Install .desktop file according to XDG spec.
+    xdg-desktop-menu forceupdate --mode system
 
-        # Setup install location in config file.
-        sed -i "s,BINDIFF_DIR,${bindiff_root}," ${bindiff_etc}/bindiff.xml
+    # Setup install location in config file.
+    sed -i "s,BINDIFF_DIR,${bindiff_root}," ${bindiff_etc}/bindiff.xml
 
-        db_get zynamics/ida7_location && idadir=${RET}
-        if [ -x "${idadir}" ]; then
-            # Install symlink for BinDiff
-            ln -s ${bindiff_root}/plugins/bindiff${bindiff_release}.so \
-                "${idadir}/plugins/bindiff${bindiff_release}.so"
-            ln -s ${bindiff_root}/plugins/bindiff${bindiff_release}64.so \
-                "${idadir}/plugins/bindiff${bindiff_release}64.so"
-            ln -s ${bindiff_root}/plugins/binexport${binexport_release}.so \
-                "${idadir}/plugins/binexport${binexport_release}.so"
-            ln -s ${bindiff_root}/plugins/binexport${binexport_release}64.so \
-                "${idadir}/plugins/binexport${binexport_release}64.so"
+    if [ -x "$(which loginctl)" ]; then
+      # If the system is using systemd-logind, perform per-user setup for
+      # currently logged in users.
+      _uid_min=$(grep ^UID_MIN /etc/login.defs | awk '{print $2}')
+      _active_users=$(loginctl list-users -o json-pretty | \
+        sed -n 's,^.*"uid"\s*:\s*\([0-9]\+\).*$,\1,p' | \
+        awk "\$1 > ${UID_MIN:-1000} { print \$1 }")
+      for _uid in ${_active_users}; do
+        # Ignore failures, as these could be due to an unusual setup.
+        /opt/bindiff/libexec/per-user-setup.sh "${_uid}" || true
+      done
+    fi
 
-            escidadir=$(echo $idadir | sed 's/\//\\\//g')
-            sed -i "s/IDADIR/${escidadir}/" ${bindiff_etc}/bindiff.xml
-        else
-            echo "No stored path to the IDA Pro installation directory found, not"
-            echo "creating any symlinks to the BinDif IDA plugins."
-            echo "Use \`dpkg-reconfigure bindiff' to set your IDA Pro directory."
-            echo
-            echo "To be able to use BinDiff, you also need to set the path to your"
-            echo "IDA Pro installation directory in the following configuration"
-            echo "files:"
-            echo "    ${bindiff_etc}/bindiff.xml"
-        fi
-    ;;
+    if [ -d /run/systemd/system ]; then
+      deb-systemd-invoke --global enable bindiff-plugins.service
+    fi
+    echo "In order for the BinDiff plugins to be found by the installed"
+    echo "disassemblers, symlinks in your user directory need to exist"
+    echo "that point to them."
+    echo "If the plugins are not found automatically, try restarting"
+    echo "your user session or execute this command once as the user"
+    echo "that should run BinDiff:"
+    echo ""
+    echo "    /opt/bindiff/libexec/per-user-setup.sh"
+    echo ""
+  ;;
 
-    abort-upgrade|abort-remove|abort-deconfigure)
-    ;;
+  abort-upgrade|abort-remove|abort-deconfigure)
+  ;;
 
-    *)
-        echo "postinst called with unknown argument \`$1'" >&2
-        exit 1
-    ;;
+  *)
+      echo "postinst called with unknown argument \`$1'" >&2
+      exit 1
+  ;;
 esac
 
 # dh_installdeb will replace this with shell code automatically
