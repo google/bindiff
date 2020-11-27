@@ -18,6 +18,8 @@ cmake_minimum_required(VERSION 3.12)
 cmake_policy(VERSION 3.12)
 project(bindiff VERSION 7)
 
+set(bindiff_BINEXPORT_RELEASE 11)
+
 set(BinExport_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
     PATH "Path to a BinExport soure tree")
 set(Google3_DIR "${PROJECT_SOURCE_DIR}/../../.." CACHE
@@ -421,3 +423,7 @@ target_link_libraries(bindiff
 set_target_properties(bindiff PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
+
+# Utility programs. For now, only contains a tool to modify the BinDiff
+# config from the installer/package scripts.
+add_subdirectory(tools)

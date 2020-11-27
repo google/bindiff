@@ -20,7 +20,7 @@
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
 
-#undef ERROR  // Abseil headers include Windows.h, which defines this
+#undef ERROR  // Windows.h
 #include "third_party/zynamics/bindiff/bindiff_config.pb.h"
 
 namespace security::bindiff::config {

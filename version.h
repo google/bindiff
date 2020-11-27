@@ -23,6 +23,9 @@ extern const char* kBinDiffName;
 // The BinDiff version, a single stringified integer
 extern const char* kBinDiffRelease;
 
+// The matching BinExport version
+extern const char* kBinDiffBinExportRelease;
+
 // Detailed version and build information:
 // "N (Google internal, YYYYMMDD, debug build)"
 extern const char* kBinDiffDetailedVersion;

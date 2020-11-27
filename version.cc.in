@@ -22,6 +22,8 @@ ABSL_CONST_INIT const char* kBinDiffName = "BinDiff";
 
 ABSL_CONST_INIT const char* kBinDiffRelease = "@bindiff_VERSION_MAJOR@";
 
+ABSL_CONST_INIT const char* kBinDiffBinExportRelease = "@bindiff_BINEXPORT_RELEASE@";
+
 ABSL_CONST_INIT const char* kBinDiffDetailedVersion =
     "@bindiff_VERSION_MAJOR@ (@"
     "@REVISION@, "
