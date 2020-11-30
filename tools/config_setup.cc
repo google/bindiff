@@ -81,12 +81,10 @@ absl::Status CreateOrUpdateLinkWithFallback(const std::string& target,
     if (canonical_target == canonical_path.get()) {  // Same file already?
       return absl::OkStatus();
     }
-    // symlink() will not overwrite, so remove first
-    if (remove(canonical_path.get()) == -1) {
-      return absl::UnknownError(absl::StrCat("Cannot remove existing '",
-                                             canonical_target,
-                                             "': ", GetLastOsError()));
-    }
+    // symlink() will not overwrite, so remove first. Since remove can fail
+    // for many reasons, the error is ignored here and symlink() will fail
+    // below.
+    remove(canonical_path.get());
   }
   if (symlink(canonical_target.c_str(), link_path.c_str()) == -1) {
     return absl::UnknownError(absl::StrCat(
@@ -138,6 +136,31 @@ absl::Status CreateOrUpdateLinkWithFallback(const std::string& target,
 #endif
 }
 
+absl::StatusOr<std::string> GetOrCreateIdaProUserPluginsDirectory() {
+  std::string idapro_app_data;
+#if defined(_WIN32)
+  constexpr absl::string_view kIdaPro = R"(Hex-Rays\IDA Pro)";
+  NA_ASSIGN_OR_RETURN(idapro_app_data, GetOrCreateAppDataDirectory(kIdaPro));
+#elif defined(__APPLE__)
+  // On macOS, IDA Pro stores its settings directly in the user's home folder
+  // under ".idapro" instead of "Library/Application Support/idapro", which
+  // is what GetOrCreateAppDataDirectory() would produce.
+  constexpr absl::string_view kIdaPro = ".idapro";
+  const char* home_dir = getenv("HOME");
+  if (!home_dir) {
+    return absl::NotFoundError("Home directory not set");
+  }
+  idapro_app_data = JoinPath(home_dir, kIdaPro);
+#else
+  constexpr absl::string_view kIdaPro = "idapro";
+  NA_ASSIGN_OR_RETURN(idapro_app_data, GetOrCreateAppDataDirectory(kIdaPro));
+#endif
+  std::string idapro_app_data_plugin_path =
+      JoinPath(idapro_app_data, "plugins");
+  NA_RETURN_IF_ERROR(CreateDirectories(idapro_app_data_plugin_path));
+  return idapro_app_data_plugin_path;
+}
+
 // Sets up per-user configuration, creating links to the disassembler plugins.
 // On Linux and macOS, always creates symlinks. On Windows, tries to create
 // symlinks first, falling back to hardlinks and copying the files as a last
@@ -156,7 +179,6 @@ absl::Status PerUserSetup(const Config& config) {
   constexpr absl::string_view kBinDiffBinaryNinjaPluginsPrefix =
       R"(Plugins\Binary Ninja)";
 
-  constexpr absl::string_view kIdaPro = R"(Hex-Rays\IDA Pro)";
   constexpr absl::string_view kBinDiffIdaProPluginsPrefix =
       R"(Plugins\IDA Pro)";
 #elif defined(__APPLE__)
@@ -164,10 +186,10 @@ absl::Status PerUserSetup(const Config& config) {
 
   constexpr absl::string_view kBinaryNinja = "Binary Ninja";
   constexpr absl::string_view kBinDiffBinaryNinjaPluginsPrefix =
-      "Plugins/Binary Ninja";
+      "../../../Plugins/Binary Ninja";  // Relative to .app bundle
 
-  constexpr absl::string_view kIdaPro = "idapro";
-  constexpr absl::string_view kBinDiffIdaProPluginsPrefix = "Plugins/IDA Pro";
+  constexpr absl::string_view kBinDiffIdaProPluginsPrefix =
+      "../../../Plugins/IDA Pro";  // Relative to .app bundle
 #else
   constexpr absl::string_view kLibrarySuffix = ".so";
 
@@ -197,10 +219,8 @@ absl::Status PerUserSetup(const Config& config) {
   }
 
   // IDA Pro
-  NA_ASSIGN_OR_RETURN(const std::string idapro_app_data,
-                      GetOrCreateAppDataDirectory(kIdaPro));
-  const std::string idapro_app_data_plugin_path =
-      JoinPath(idapro_app_data, "plugins");
+  NA_ASSIGN_OR_RETURN(const std::string idapro_app_data_plugin_path,
+                      GetOrCreateIdaProUserPluginsDirectory());
   NA_RETURN_IF_ERROR(CreateDirectories(idapro_app_data_plugin_path));
 
   plugin_basename =
@@ -290,7 +310,7 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
   };
 
   if (absl::GetFlag(FLAGS_help_settings)) {
-    absl::PrintF("Available settings:");
+    absl::PrintF("Available settings:\n");
     return PrintSettingsNames(string_settings);
   }
 

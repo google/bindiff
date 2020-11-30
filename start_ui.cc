@@ -43,32 +43,7 @@ namespace security::bindiff {
 
 using ::security::binexport::SpawnProcess;
 
-#ifdef _WIN32
-// Minimum required version of the JRE
-constexpr double kMinJavaVersion = 11.0;
-
-bool RegQueryStringValue(HKEY key, const char* name, char* buffer,
-                         int bufsize) {
-  DWORD type;
-  DWORD size;
-
-  // Do we have a value of that name?
-  if (RegQueryValueEx(key, name, 0, &type, 0, &size) != ERROR_SUCCESS) {
-    return false;
-  }
-
-  // Is it the right type and not too large?
-  if (type != REG_SZ || (size >= static_cast<uint32_t>(bufsize))) {
-    return false;
-  }
-
-  return RegQueryValueEx(key, name, 0, 0, reinterpret_cast<uint8_t*>(buffer),
-                         &size) == ERROR_SUCCESS;
-}
-#endif
-
 std::string GetJavaHomeDir() {
-  std::string result;
 #ifdef _WIN32
   char buffer[MAX_PATH] = {0};
 
@@ -77,37 +52,13 @@ std::string GetJavaHomeDir() {
   if (size != 0 && size < MAX_PATH) {
     return buffer;
   }
-
-  HKEY key;
-  // Only try JDK key, as newer Java versions (> 9) do not ship the JRE
-  // separately anymore.
-  if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, R"(SOFTWARE\JavaSoft\JDK)", 0, KEY_READ,
-                   &key) != ERROR_SUCCESS) {
-    return "";
-  }
-
-  if (RegQueryStringValue(key, "CurrentVersion", &buffer[0], MAX_PATH)) {
-    // Parse the first part of the version (e.g. 11.0) and ignore everything
-    // else.
-    const double cur_var = strtod(buffer, nullptr);
-    HKEY subkey(0);
-    if (cur_var >= kMinJavaVersion &&
-        RegOpenKeyEx(key, buffer, 0, KEY_READ, &subkey) == ERROR_SUCCESS) {
-      if (RegQueryStringValue(subkey, "JavaHome", &buffer[0], MAX_PATH)) {
-        result = buffer;
-      }
-      RegCloseKey(subkey);
-    }
-  }
-  RegCloseKey(key);
 #else
   const char* java_home = getenv("JAVA_HOME");
   if (java_home) {
-    result = java_home;
+    return java_home;
   }
 #endif
-
-  return result;
+  return "";
 }
 
 uint64_t GetPhysicalMemSize() {
@@ -151,6 +102,8 @@ absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
   if (options.java_binary.empty()) {
     // Directory layout:
     //   <prefix>/BinDiff.app/Contents/app            (bindiff.jar)
+    //   <prefix>/BinDiff.app/Contents/MacOS          (gui_dir, ui.directory)
+    //   <prefix>/BinDiff.app/Contents/MacOS/bin      (BinDiff binaries)
     //   <prefix>/BinDiff.app/Contents/MacOS/BinDiff  (Launcher)
     argv = {"/usr/bin/open", JoinPath(options.gui_dir, "../..")};
 
@@ -196,16 +149,25 @@ absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
 #endif
 
   argv.push_back("-jar");
-  constexpr char kGuiJarName[] = "bindiff.jar";
-  std::string jar_file = JoinPath(options.gui_dir, "bin", kGuiJarName);
-  if (!FileExists(jar_file)) {
-    // Try again without the "bin" dir (b/63617055).
-    jar_file = JoinPath(options.gui_dir, kGuiJarName);
-    if (!FileExists(jar_file)) {
-      return absl::NotFoundError(absl::StrCat("Missing jar file: ", jar_file));
+  bool found_jar = false;
+  // Try to find the UI JAR file in several locations (b/63617055).
+  for (const auto& relative_path : {"bin",
+#ifdef __APPLE__
+                                    "../app",
+#endif
+                                    ""}) {
+    const std::string jar_file =
+        JoinPath(options.gui_dir, relative_path, "bindiff.jar");
+    found_jar = FileExists(jar_file);
+    if (found_jar) {
+      argv.push_back(jar_file);
+      break;
     }
   }
-  argv.push_back(jar_file);
+  if (!found_jar) {
+    return absl::NotFoundError(
+        absl::StrCat("Missing jar file in prefix: ", options.gui_dir));
+  }
   argv.insert(argv.end(), extra_args.begin(), extra_args.end());
 
   return SpawnProcess(argv);
