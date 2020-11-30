@@ -18,7 +18,7 @@ env | while read line; do log "  ${line}"; done
 # If the application directory does not exist, exit
 APP_DIR=/Applications/BinDiff
 cd "${APP_DIR}" || exit 2
-CONFIG_FILE="/Library/Application Support/BinDiff/bindiff.xml"
+CONFIG_FILE="/Library/Application Support/BinDiff/bindiff.json"
 
 LOGGED_IN_UID=$(id -u "${USER}")
 log "LOGGED_IN_UID: ${LOGGED_IN_UID}"
@@ -33,48 +33,35 @@ do
   ln -sf "${BUNDLE_DIR}/MacOS/bin/${exe}" /usr/local/bin/
 done
 
-# Setup install location in config file.
-log "Adjusting config file for BINDIFF_DIR: ${BUNDLE_DIR}/app"
-sed -i "" "s,BINDIFF_DIR,${BUNDLE_DIR}/app," "${CONFIG_FILE}"
+BINDIFF_CONFIG_SETUP="${BUNDLE_DIR}/MacOS/bin/bindiff_config_setup"
+
+# Setup install location in config file. Note that we leave "ui.java_binary"
+# unset, so that the native launcher stub is invoked.
+log "Adjusting config file for UI directory: ${BUNDLE_DIR}/MacOS"
+"${BINDIFF_CONFIG_SETUP}" --config "${CONFIG_FILE}" \
+  "ui.directory=${BUNDLE_DIR}/MacOS" \
+  "ui.java_binary="
 
 # Pre-populate the IDA Pro installation path, looking for the latest version.
 IDA_DIR=$(mdfind kMDItemCFBundleIdentifier==com.hexrays.ida64 | \
   sort -r | head -n 1)/Contents/MacOS
 if [ -d "${IDA_DIR}" ]; then
-  log "Adjusting config file for IDADIR: ${IDA_DIR}"
-  escidadir=$(echo ${IDA_DIR} | sed 's/\//\\\//g')
-  sed -i "" "s/IDADIR/${escidadir}/" "${CONFIG_FILE}"
+  log "Adjusting config file for IDA Pro found at: ${IDA_DIR}"
+  "${BINDIFF_CONFIG_SETUP}" --config "${CONFIG_FILE}" \
+    "ida.directory=${IDA_DIR}"
 else
-  log "No installation of IDA Pro found, skipping config change for IDADIR"
+  log "No installation of IDA Pro found, skipping config change"
 fi
 
 # Create symlinks for the IDA Pro plugins. These get recreated on each log in,
 # if they don't exist.
 # Note the double escape below, first bash, then sed.
-load_cmd="mkdir -p \"\${HOME}/.idapro/plugins\" \\&\\& "
-load_cmd+="cd \"\${HOME}/.idapro/plugins\""
-for plugin in \
-  "bindiff${bindiff_release}.dylib" \
-  "bindiff${bindiff_release}64.dylib" \
-  "binexport${binexport_release}.dylib" \
-  "binexport${binexport_release}64.dylib"
-do
-  load_cmd+=" \\&\\& ("
-  load_cmd+="[ ! -f "${plugin}" ] \\&\\& "
-  load_cmd+="ln -sf \"${APP_DIR}/Plugins/IDA Pro/${plugin}\" ${plugin}"
-  load_cmd+=")"
-done
-log "Adjusting launch agent file: ${load_cmd}"
-sed -i "" "s,LOAD_CMD,${load_cmd}," \
+LOAD_CMD="\"${BINDIFF_CONFIG_SETUP}\" --per_user"
+log "Adjusting launch agent file: ${LOAD_CMD}"
+sed -i "" "s,LOAD_CMD,${LOAD_CMD}," \
   /Library/LaunchAgents/com.google.security.zynamics.bindiff.plist
 
 if [ -z "${COMMAND_LINE_INSTALL+x}" ]; then
-  # Remove all previous plugins once. This allows users to
-  # customize/overwrite later. HOME is only valid for non-root,
-  # UI installs.
-  log "Interactive install, removing old plugins once"
-  rm -f "${HOME}/.idapro/plugins/"{bindiff,binexport}*.dylib
-
   log "Running launchctl as current user for final config"
   /bin/launchctl asuser "${LOGGED_IN_UID}" \
     /bin/launchctl unload \
