@@ -28,6 +28,7 @@ case "$1" in
 
     if [ -d /run/systemd/system ]; then
       deb-systemd-invoke --global disable bindiff-plugins.service
+      systemctl --system daemon-reload >/dev/null || true
     fi
   ;;
 

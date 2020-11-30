@@ -29,32 +29,38 @@ case "$1" in
     xdg-desktop-menu forceupdate --mode system
 
     # Setup install location in config file.
-    sed -i "s,BINDIFF_DIR,${bindiff_root}," ${bindiff_etc}/bindiff.xml
+    /opt/bindiff/libexec/bindiff_config_setup \
+      --config "${bindiff_etc}/bindiff.json" \
+      "ui.directory=${bindiff_root}" \
+      "ui.java_binary=${bindiff_root}/jre/bin/java"
 
     if [ -x "$(which loginctl)" ]; then
       # If the system is using systemd-logind, perform per-user setup for
       # currently logged in users.
-      _uid_min=$(grep ^UID_MIN /etc/login.defs | awk '{print $2}')
-      _active_users=$(loginctl list-users -o json-pretty | \
-        sed -n 's,^.*"uid"\s*:\s*\([0-9]\+\).*$,\1,p' | \
-        awk "\$1 > ${UID_MIN:-1000} { print \$1 }")
-      for _uid in ${_active_users}; do
+      _active_users=$(loginctl -o short-iso --no-legend | \
+        awk "\$2 > ${UID_MIN:-1000} { print \$3 }")
+      for _user in ${_active_users}; do
+        _group=$(getent group "$(id -g "${_user}")" | cut -d: -f1)
+
         # Ignore failures, as these could be due to an unusual setup.
-        /opt/bindiff/libexec/per-user-setup.sh "${_uid}" || true
+        su --login -g "${_group}" "${_user}" -c \
+          "${bindiff_root}/libexec/bindiff_config_setup --per_user" || true
       done
     fi
 
     if [ -d /run/systemd/system ]; then
       deb-systemd-invoke --global enable bindiff-plugins.service
     fi
+
+    echo ""
     echo "In order for the BinDiff plugins to be found by the installed"
-    echo "disassemblers, symlinks in your user directory need to exist"
+    echo "disassemblers, symlinks need to exist in your user directory"
     echo "that point to them."
     echo "If the plugins are not found automatically, try restarting"
     echo "your user session or execute this command once as the user"
     echo "that should run BinDiff:"
     echo ""
-    echo "    /opt/bindiff/libexec/per-user-setup.sh"
+    echo "    ${bindiff_root}/libexec/bindiff_config_setup --per_user"
     echo ""
   ;;
 

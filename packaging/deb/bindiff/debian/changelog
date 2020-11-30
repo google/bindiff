@@ -93,7 +93,7 @@ bindiff (3.2.1) unstable; urgency=low
 
   * Includes latest fixes
 
- -- Christian Blichmann <christian@christian.zynamics.local>  Mon, 29 Nov 2010 13:46:17 +0100
+ -- Christian Blichmann <christian.blichmann@zynamics.com>  Mon, 29 Nov 2010 13:46:17 +0100
 
 bindiff (3.2.0) unstable; urgency=low
 

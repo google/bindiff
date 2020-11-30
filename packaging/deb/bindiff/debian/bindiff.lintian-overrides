@@ -1,5 +1,6 @@
 # This is a commercial package, so it should use the /opt hierarchy.
 bindiff: dir-or-file-in-opt
+bindiff: dir-or-file-in-etc-opt
 bindiff: jar-not-in-usr-share
 
 # We need to link statically in order to run on multiple distributions.
@@ -11,6 +12,6 @@ bindiff: shlib-with-non-pic-code
 bindiff: too-long-extended-description-in-templates
 bindiff: extra-license-file
 
-# US English only, do not translate the license agreement
-bindiff: untranslatable-debconf-templates
-bindiff: not-using-po-debconf
+# Documentation is available at
+# https://www.zynamics.com/bindiff/manual/index.html, not in man pages.
+bindiff: no-manual-page
