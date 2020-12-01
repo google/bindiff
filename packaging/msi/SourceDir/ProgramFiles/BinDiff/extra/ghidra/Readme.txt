@@ -1,9 +1,0 @@
-Using BinDiff with Ghidra
-=========================
-
-This directory contains an experimental extension for the Ghidra disassembler.
-Like the IDA Pro plugin, the extension is open source.
-
-Source code and instructions for how to build and use it are available on
-GitHub:
-  https://github.com/google/binexport/tree/master/java/BinExport

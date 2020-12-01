@@ -35,27 +35,12 @@
 
     <!-- Enable Windows Installer major upgrade functionality so users can
          seamlessly install a new version of the product and have the old
-         version automatically uninstalled. See also: https://goo.gl/TfKVUa
+         version automatically uninstalled. This prevents users from
+         installing if a newer version of this product is already installed.
+         This is part of the Windows Installer major upgrade functionality.
+         See also: https://goo.gl/TfKVUa
       -->
-    <Upgrade Id="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726">
-      <UpgradeVersion Minimum="6.0.0" IncludeMinimum="no"
-                      OnlyDetect="yes"
-                      Property="NEWERVERSIONDETECTED" />
-      <UpgradeVersion Minimum="3.0.0" IncludeMinimum="yes"
-                      Maximum="7.0.0" IncludeMaximum="no"
-                      IgnoreRemoveFailure="yes"
-                      Property="OLDERVERSIONBEINGUPGRADED" />
-    </Upgrade>
-
-    <!-- Prevent users from installing if a newer version of this product
-         is already installed. This is part of the Windows Installer major
-         upgrade functionality.
-      -->
-    <CustomAction Id="CA_BlockOlderVersionInstall"
-                  Error="A later version of [ProductName] is already installed." />
-
-    <CustomAction Id="CA_SetDefaultIdaDirectory"
-                  Property="IDADIRECTORY" Value="[ProgramFiles64Folder]IDA\" />
+    <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
 
     <!-- Launch conditions -->
     <Condition Message="[ProductName] requires an x64 edition of Windows.">
@@ -69,7 +54,7 @@
     <Property Id="ARPPRODUCTICON" Value="Icons_BinDiff.ico" />
     <Property Id="ARPHELPLINK" Value="https://www.zynamics.com/bindiff.htm" />
     <Property Id="ARPURLINFOABOUT" Value="https://www.zynamics.com/" />
-    <PropertyRef Id="WIX_ACCOUNT_LOCALSYSTEM" />
+    <PropertyRef Id="WIX_ACCOUNT_ADMINISTRATORS" />
     <PropertyRef Id="WIX_ACCOUNT_USERS" />
 
     <!-- Need to look into the registry as VersionNT64 is influenced by the
@@ -87,36 +72,6 @@
                       Root="HKLM"
                       Key="SOFTWARE\Microsoft\Windows NT\CurrentVersion"
                       Name="CurrentBuildNumber" />
-    </Property>
-
-    <Property Id="IDADIRECTORY">
-      <RegistrySearch Id="HexRaysIdaRegistry750NewStylePath" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro 7.5 7.5"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry750" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.5_is1"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry740NewStylePath" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro 7.4 7.4"
-                      Name="InstallLocation" />
-      <RegistrySearch Id="HexRaysIdaRegistry740" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\IDA Pro_7.4_is1"
-                      Name="InstallLocation" />
-    </Property>
-
-    <Property Id="JDKVERSION">
-      <RegistrySearch Id="JavaSoftJDKRegistry" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\JavaSoft\JDK"
-                      Name="CurrentVersion" />
-      <RegistrySearch Id="JavaSoftJRERegistry" Type="raw" Win64="yes"
-                      Root="HKLM"
-                      Key="SOFTWARE\JavaSoft\Java Runtime Environment"
-                      Name="CurrentVersion" />
     </Property>
 
     <!-- Note (b/150918172): The property below controls the display of a warning
@@ -137,41 +92,62 @@
            - Is non-empty dir - does nothing
          The action will execute with elevated privileges.
       -->
+    <SetProperty Id="RemoveCommonAppData"
+                 Value='"[SystemFolder]cmd.exe" /c rmdir /q "[CommonAppDataFolder]BinDiff"'
+                 Before="RemoveCommonAppData"
+                 Sequence="execute" />
     <CustomAction Id="RemoveCommonAppData"
-                  Directory="CommonAppDataFolder"
-                  ExeCommand="[SystemFolder]cmd.exe /c rmdir /q &quot;[CommonAppDataFolder]BinDiff&quot;"
+                  BinaryKey="WixCA"
+                  DllEntry="WixQuietExec64"
                   Execute="deferred"
                   Impersonate="no"
                   Return="ignore" />
 
+    <!-- Set the correct paths in the per-machine config file. The extra '.'
+         in ui.directory is necessary because MSI INSTALLDIR always ends with
+         a backslash. Windows' command-line argument handling will then treat
+         the following quote (") as escaped, breaking argument passing.
+      -->
+    <SetProperty Id="SetupConfigFile"
+                 Value='"[#bindiff_config_setup.exe]" --config "[#bindiff.json]" ui.directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
+                 Before="SetupConfigFile"
+                 Sequence="execute" />
+    <CustomAction Id="SetupConfigFile"
+                  BinaryKey="WixCA"
+                  DllEntry="WixQuietExec64"
+                  Execute="deferred"
+                  Impersonate="no"
+                  Return="check" />
+
+    <!-- Install disassembler plugins for the user installing BinDiff -->
+    <SetProperty Id="SetupPerUser"
+                 Value='"[#bindiff_config_setup.exe]" --per_user'
+                 Before="SetupPerUser"
+                 Sequence="execute" />
+    <CustomAction Id="SetupPerUser"
+                  BinaryKey="WixCA"
+                  DllEntry="WixQuietExec64"
+                  Execute="deferred"
+                  Impersonate="yes"
+                  Return="ignore" />
+
     <!-- Installation sequence for administrative installations -->
     <InstallExecuteSequence>
-      <Custom Action="CA_BlockOlderVersionInstall" After="FindRelatedProducts">
-        NEWERVERSIONDETECTED
-      </Custom>
-      <Custom Action="CA_SetDefaultIdaDirectory" After="FindRelatedProducts">
-        IDADIRECTORY = ""
-      </Custom>
-
-      <!-- Remove existing product early to allow upgrade of old machine
-           config files.
-        -->
-      <RemoveExistingProducts After="InstallInitialize" />
-
-      <Custom Action="RemoveCommonAppData" After="RemoveExistingProducts"/>
+      <Custom Action="RemoveCommonAppData" After="InstallInitialize"/>
 
       <LaunchConditions After="AppSearch"/>
+
+      <Custom Action="SetupConfigFile" After="InstallFiles">
+        NOT Installed OR MaintenanceMode = "Modify"
+      </Custom>
+
+      <Custom Action="SetupPerUser" After="SetupConfigFile">
+        NOT Installed OR MaintenanceMode = "Modify"
+      </Custom>
     </InstallExecuteSequence>
 
     <!-- Default installation sequence -->
     <InstallUISequence>
-      <Custom Action="CA_BlockOlderVersionInstall" After="FindRelatedProducts">
-        NEWERVERSIONDETECTED
-      </Custom>
-      <Custom Action="CA_SetDefaultIdaDirectory" After="FindRelatedProducts">
-        IDADIRECTORY = ""
-      </Custom>
-
       <LaunchConditions After="AppSearch"/>
     </InstallUISequence>
 
@@ -218,6 +194,16 @@
                           Show="minimized" />
               </File>
             </Component>
+            <Component Id="BinDiff_Bin_Bindiff_config_setupEXE" Win64="yes"
+                       Guid="B07DC2EE-501C-4630-B73D-77C6F2132160">
+              <File Name="bindiff_config_setup.exe" />
+              <!-- Run the per-user setup once per user when they log in. -->
+              <RegistryValue Root="HKCU"
+                             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+                             Name="BinDiffPerUserSetup"
+                             Type="string" Value='"[#bindiff_config_setup.exe]" --per_user'
+                             KeyPath="yes" />
+            </Component>
             <Component Id="BinDiff_Bin_Bindiff_uiCMD" Win64="yes"
                        Guid="F447E462-235B-46C9-8BF2-36F54A6DECDC">
               <File Name="bindiff_ui.cmd" KeyPath="yes" />
@@ -243,28 +229,45 @@
             </Component>
           </Directory>
 
-          <Directory Id="BinDiff_Extra" Name="extra">
+          <Directory Id="BinDiff_Extra" Name="Extra">
+            <!-- Proto definition for config file -->
+            <Directory Id="BinDiff_Extra_Config" Name="Config">
+              <Component Id="BinDiff_Extra_Config_Bindiff_configPROTO"
+                         Guid="20ADCF4C-5977-4DC1-BECA-3C7897F3D522">
+                <File Name="bindiff_config.proto" KeyPath="yes" />
+              </Component>
+            </Directory>
+
             <!-- Ghidra BinExport extension -->
-            <Directory Id="BinDiff_Extra_Ghidra" Name="ghidra">
-              <Component Id="BinDiff_Extra_Ghidra"
+            <Directory Id="BinDiff_Extra_Ghidra" Name="Ghidra">
+              <Component Id="Ghidra_Extensions"
                          Guid="30561A75-8C83-414B-B3F8-9389EA7F27C0">
                 <File Name="ghidra_BinExport.zip" KeyPath="yes" />
-                <File Name="Readme.txt" />
+                <File Id="Ghidra_Extensions_ReadmeTXT" Name="Readme.txt" />
               </Component>
             </Directory>
           </Directory>
-        </Directory>
 
-        <!-- IDA Pro plugins -->
-        <Directory Id="IDADIRECTORY" Name="IDA">
-          <Directory Id="Ida_Plugins" Name="plugins">
-            <Component Id="Ida_Plugins" Win64="yes"
-                       Guid="E2F631C8-DF7A-48AC-BAAB-578D9FB107F3">
-              <File Name="bindiff7.dll" KeyPath="no" />
-              <File Name="bindiff764.dll" KeyPath="yes" />
-              <File Name="binexport11.dll" KeyPath="no" />
-              <File Name="binexport1164.dll" KeyPath="no" />
-            </Component>
+          <Directory Id="BinDiff_Plugins" Name="Plugins">
+            <!-- Binary Ninja plugins -->
+            <Directory Id="BinDiff_Plugins_Binary_Ninja" Name="Binary Ninja">
+              <Component Id="BinaryNinja_Plugins" Win64="yes"
+                         Guid="34E0F912-2193-4EDC-B417-A5C92A1151F8">
+                <File Name="binexport11_binaryninja.dll" KeyPath="yes" />
+                <File Id="BinaryNinja_Plugins_ReadmeTXT" Name="Readme.txt" />
+              </Component>
+            </Directory>
+
+            <!-- IDA Pro plugins -->
+            <Directory Id="BinDiff_Plugins_IDA_Pro" Name="IDA Pro">
+              <Component Id="Ida_Plugins" Win64="yes"
+                         Guid="E2F631C8-DF7A-48AC-BAAB-578D9FB107F3">
+                <File Name="bindiff7.dll" />
+                <File Name="bindiff764.dll" KeyPath="yes" />
+                <File Name="binexport11.dll" />
+                <File Name="binexport1164.dll" />
+              </Component>
+            </Directory>
           </Directory>
         </Directory>
       </Directory>
@@ -337,7 +340,7 @@
                      Guid="4A28A4D1-BA02-4729-B2F6-16D67134B388">
             <CreateFolder>
               <Permission GenericAll="yes"
-                          User="[WIX_ACCOUNT_LOCALSYSTEM]" />
+                          User="[WIX_ACCOUNT_ADMINISTRATORS]" />
               <Permission GenericRead="yes"
                           GenericExecute="yes"
                           GenericWrite="no"
@@ -346,26 +349,10 @@
             <RemoveFolder Id="CommonAppData_BinDiff"
                           On="both" />
 
-            <File Name="bindiff.xml" KeyPath="yes" />
-            <RemoveFile Id="Remove_bindiff.xml" Name="bindiff.xml" On="both"/>
-            <util:XmlFile Id="BinDiffCoreConfigModifyGuiDir"
-                          Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff.xml"
-                          ElementPath="/bindiff/ui"
-                          Name="directory" Value="[INSTALLDIR]bin"
-                          Sequence="1" />
-            <util:XmlFile Id="BinDiffConfigModifyJavaBinary"
-                          Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff.xml"
-                          ElementPath="/bindiff/ui"
-                          Name="java-binary" Value="[INSTALLDIR]jre\bin\javaw.exe"
-                          Sequence="2" />
-            <util:XmlFile Id="BinDiffConfigModifyIdaDir"
-                          Action="setValue"
-                          File="[CommonAppDataFolder]BinDiff\bindiff.xml"
-                          ElementPath="/bindiff/ida"
-                          Name="directory" Value="[IDADIRECTORY]"
-                          Sequence="3" />
+            <File Name="bindiff.json" KeyPath="yes" />
+            <RemoveFile Id="Remove_BindiffJSON"
+                        Name="bindiff.json"
+                        On="both" />
           </Component>
         </Directory>
       </Directory>
@@ -435,8 +422,11 @@
 
       <ComponentRef Id="ProgramMenu_BinDiff" />
       <ComponentRef Id="BinDiff_License" />
+      <ComponentRef Id="BinDiff_Bin_Bindiff_config_setupEXE" />
       <ComponentRef Id="BinDiff_Bin_Bindiff_uiCMD" />
       <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
+      <ComponentRef Id="BinDiff_Extra_Config_Bindiff_configPROTO" />
+      <ComponentRef Id="BinaryNinja_Plugins" />
       <ComponentRef Id="Ida_Plugins" />
       <ComponentRef Id="ProgramMenu_BinDiff_GoogleSecurityBlog" />
       <ComponentRef Id="ProgramMenu_BinDiff_Open_Source_BinExport" />
@@ -467,7 +457,7 @@
                 Description="A version of the BinExport exporter to be used with the Ghidra disassembler."
                 Absent="allow"
                 AllowAdvertise="no">
-        <ComponentRef Id="BinDiff_Extra_Ghidra" />
+        <ComponentRef Id="Ghidra_Extensions" />
       </Feature>
 
       <Feature Id="AddToSystemPath"
@@ -511,14 +501,12 @@
           - WixUI_CustomizeDlg
           - WixUI_VerifyReadyDlg
           - WixUI_DiskCostDlg
-          - WixUI_BrowseIdaDirectoryDlg
 
          Maintenance dialog sequence:
           - WixUI_MaintenanceWelcomeDlg
           - WixUI_MaintenanceTypeDlg
           - WixUI_CustomizeDlg
           - WixUI_VerifyReadyDlg
-          - WixUI_BrowseIdaDirectoryDlg
       -->
     <UI Id="WixUI_FeatureTree">
       <TextStyle Id="WixUI_Font_Normal" FaceName="Segoe UI" Size="9" />
@@ -527,8 +515,6 @@
 
       <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
       <Property Id="WixUI_Mode" Value="FeatureTree" />
-
-      <Property Id="WIXUI_INSTALLDIR" Value="IDADIRECTORY" />
 
       <DialogRef Id="ErrorDlg" />
       <DialogRef Id="FatalError" />
@@ -553,18 +539,10 @@
 
       <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="1">Installed</Publish>
       <Publish Dialog="CustomizeDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" Order="2">NOT Installed</Publish>
-      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="BrowseIdaDirectoryDlg">1</Publish>
+      <Publish Dialog="CustomizeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
 
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg">1</Publish>
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath" Order="2">1</Publish>
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3"><![CDATA[WIXUI_INSTALLDIR_VALID <> "1"]]></Publish>
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="4"><![CDATA[WIXUI_INSTALLDIR_VALID = "1"]]></Publish>
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
-      <Publish Dialog="BrowseIdaDirectoryDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
-
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="BrowseIdaDirectoryDlg" Order="1">NOT Installed OR WixUI_InstallMode = "Change"</Publish>
-      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="BrowseIdaDirectoryDlg" Order="2">Installed</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg" Order="1">NOT Installed OR WixUI_InstallMode = "Change"</Publish>
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="CustomizeDlg" Order="2">Installed</Publish>
 
       <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg">1</Publish>
 
@@ -587,25 +565,6 @@
         <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
 
         <Control Id="NoticeLabel" Type="Text" X="20" Y="60" Width="290" Height="60" NoPrefix="yes" Text="You are installing BinDiff on an unsupported version of Windows. The recommended minimum version is Windows 10 x64 (May 2019 Update). You can continue with the installation, however BinDiff may not function as expected." />
-      </Dialog>
-
-      <Dialog Id="BrowseIdaDirectoryDlg" Width="370" Height="270" Title="[ProductName] Setup">
-        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
-        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
-        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
-          <Publish Event="SpawnDialog" Value="CancelDlg">1</Publish>
-        </Control>
-
-        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}BinDiff Plugin for IDA Pro" />
-        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Select your Hex-Rays IDA Pro installation directory." />
-        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
-        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
-        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
-
-        <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30" NoPrefix="yes" Text="Please provide the full path to your IDA Pro installation directory:" />
-        <Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
-        <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.CustomizeDlgBrowse)" />
-        <Control Id="NoticeLabel" Type="Text" X="20" Y="140" Width="290" Height="30" NoPrefix="yes" Text="If you do not have IDA Pro, you can click &quot;Next&quot; and try the experimental Ghidra exporter extension instead." />
       </Dialog>
     </UI>
 

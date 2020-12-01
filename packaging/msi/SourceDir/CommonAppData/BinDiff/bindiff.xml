@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-<bindiff config-version="6">
-  <!-- Minimal settings to debug/test the Windows Installer package -->
-  <ui directory="BINDIFF_DIR" />
-  <ida directory="IDADIR" />
-</bindiff>
