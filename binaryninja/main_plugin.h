@@ -19,6 +19,11 @@
 #include "binaryninjaapi.h"  // NOLINT
 // clang-format on
 
+#ifdef _WIN32
+// binaryninja.h includes Windows.h, so undefine
+#undef ERROR
+#endif
+
 namespace security::binexport {
 
 class Plugin {
