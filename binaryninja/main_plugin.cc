@@ -18,7 +18,6 @@
 #include <string>
 
 #include "base/logging.h"
-#include "openssl/sha.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/escaping.h"
@@ -42,6 +41,11 @@
 namespace security::binexport {
 
 absl::StatusOr<std::string> GetInputFileSha256(BinaryNinja::BinaryView* view) {
+  auto transform = BinaryNinja::Transform::GetByName("SHA256");
+  if (!transform) {
+    return absl::FailedPreconditionError("SHA256 not available");
+  }
+
   auto raw_view = view->GetParentView();
   if (!raw_view) {
     return absl::InternalError("Failed to load SHA256 hash of input file");
@@ -49,20 +53,14 @@ absl::StatusOr<std::string> GetInputFileSha256(BinaryNinja::BinaryView* view) {
   BinaryNinja::DataBuffer buffer =
       raw_view->ReadBuffer(0, raw_view->GetLength());
 
-  std::string sha256_hash(32, '\0');
-  SHA256_CTX sha256_ctx;
-  SHA256_Init(&sha256_ctx);
-
-  constexpr size_t kBufSize = 4096;
-  const size_t buf_len = buffer.GetLength();
-  for (size_t off = 0; off < buf_len; off += kBufSize) {
-    SHA256_Update(&sha256_ctx,
-                  reinterpret_cast<const char*>(buffer.GetDataAt(off)),
-                  std::min(buf_len - off, kBufSize));
+  BinaryNinja::DataBuffer sha256_hash(32);
+  if (!transform->Encode(buffer, sha256_hash)) {
+    return absl::UnknownError("SHA256 transform failed");
   }
 
-  SHA256_Final(reinterpret_cast<unsigned char*>(&sha256_hash[0]), &sha256_ctx);
-  return absl::BytesToHexString(sha256_hash);
+  return absl::BytesToHexString(
+      absl::string_view(static_cast<const char*>(sha256_hash.GetData()),
+                        sha256_hash.GetLength()));
 }
 
 std::string GetArchitectureName(BinaryNinja::BinaryView* view) {
