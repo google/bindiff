@@ -14,20 +14,29 @@
 
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
-cmake_minimum_required(VERSION 3.12)
-cmake_policy(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
+cmake_policy(VERSION 3.14)
 project(bindiff VERSION 7)
 
-set(bindiff_BINEXPORT_RELEASE 11)
+# BinDiff settings
+set(BINDIFF_BINARY_DIR "${PROJECT_BINARY_DIR}" CACHE INTERNAL "" FORCE)
+set(BINDIFF_SOURCE_DIR "${PROJECT_SOURCE_DIR}" CACHE INTERNAL "" FORCE)
+set(BINDIFF_BINEXPORT_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
+    PATH "Path to a BinExport source tree")
 
-set(BinExport_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
-    PATH "Path to a BinExport soure tree")
-set(Google3_DIR "${PROJECT_SOURCE_DIR}/../../.." CACHE
-    PATH "Path to a Google3 root dir (deprecated)")
-set(ThirdParty_DIR "${PROJECT_SOURCE_DIR}/../../../third_party" CACHE
-    PATH "Path to a third party root directory")
+# Import BinExport targets
+add_subdirectory("${BINDIFF_BINEXPORT_DIR}" "_deps/binexport-build" EXCLUDE_FROM_ALL)
 
+# CMake settings
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+list(APPEND CMAKE_MODULE_PATH "${BINDIFF_SOURCE_DIR}/cmake"
+                              "${BINDIFF_BINEXPORT_DIR}/cmake")
+
+# BinDiff CMake modules, order matters
+include(CompileOptions)
+include(BinDiffDeps)
+
+set(bindiff_BINEXPORT_RELEASE 11)
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" _bindiff_build_type)
 if(NOT _bindiff_build_type STREQUAL "debug")
@@ -39,36 +48,16 @@ endif()
 option(BINDIFF_ENABLE_IPO "Enable interprocedural optimization"
                           ${_bindiff_ipo_supported})
 
-include(GoogleTest) # Needs to come before changing module path
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR} ${BinExport_DIR})
-include(${BinExport_DIR}/copts.cmake)
-include(${BinExport_DIR}/util.cmake)
-include(sqlite.cmake)
-
-# Use a copy of a subset of Boost that ships with BinExport
-set(Boost_NO_SYSTEM_PATHS ON)
-set(BOOST_ROOT ${BinExport_DIR}/third_party/boost_parts)
-
-set(OPENSSL_USE_STATIC_LIBS TRUE)
-set(Protobuf_USE_STATIC_LIBS TRUE)
-
-find_package(Boost 1.55 REQUIRED)
-find_package(IdaSdk REQUIRED)
-find_package(OpenSSL 1.0.2 REQUIRED)
-find_package(Protobuf 3.0.0 REQUIRED)
-include(${BinExport_DIR}/googletest.cmake)
-include(${BinExport_DIR}/absl.cmake)
-
+include(GoogleTest)
 enable_testing()
 
 # Make Google-style includes work
-set(_bindiff_src ${PROJECT_BINARY_DIR}/src_include/third_party/zynamics)
-set(_bindiff_gen ${PROJECT_BINARY_DIR}/gen_include/third_party/zynamics)
-create_directory_symlink(${PROJECT_SOURCE_DIR} ${_bindiff_src}/bindiff)
-create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/bindiff)
-create_directory_symlink(${PROJECT_BINARY_DIR} ${_bindiff_gen}/binexport)
-create_directory_symlink(${absl_src_dir}/absl ${_bindiff_src}/../absl)
-create_directory_symlink(${BinExport_DIR} ${_bindiff_src}/binexport)
+set(_bindiff_src "${BINDIFF_BINARY_DIR}/src_include/third_party/zynamics")
+set(_bindiff_gen "${BINDIFF_BINARY_DIR}/gen_include/third_party/zynamics")
+create_directory_symlink("${BINDIFF_SOURCE_DIR}" "${_bindiff_src}/bindiff")
+create_directory_symlink("${absl_SOURCE_DIR}/absl" "${_bindiff_src}/../absl")
+create_directory_symlink("${sqlite_SOURCE_DIR}" "${_bindiff_src}/../sqlite/src")
+create_directory_symlink("${BINDIFF_BINARY_DIR}" "${_bindiff_gen}/bindiff")
 
 # Set revision number, if applicable
 if(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
@@ -80,16 +69,13 @@ endif()
 # Interface library with include paths used by BinDiff
 add_library(bindiff_base INTERFACE)
 target_include_directories(bindiff_base INTERFACE
-  ${BinExport_DIR}/stubs  # Use BinExport infrastructure
-  ${PROJECT_BINARY_DIR}/src_include
-  ${PROJECT_BINARY_DIR}/gen_include
-  ${absl_src_dir}
+  ${BINEXPORT_SOURCE_DIR}/stubs  # Use BinExport infrastructure
+  ${BINDIFF_BINARY_DIR}/src_include
+  ${BINDIFF_BINARY_DIR}/gen_include
   ${Boost_INCLUDE_DIR}
-  ${Protobuf_INCLUDE_DIRS}
-  ${Google3_DIR}
 )
 target_link_libraries(bindiff_base INTERFACE
-  ${Protobuf_LIBRARIES}  # Same as protobuf::libprotobuf
+  protobuf::libprotobuf
 )
 
 # Interface library for tests
@@ -99,54 +85,6 @@ target_link_libraries(bindiff_test_base INTERFACE
   gtest_main
   gmock
 )
-
-protobuf_generate_cpp(binexport2_proto binexport2_proto_h
-  ${BinExport_DIR}/binexport2.proto
-)
-add_library(binexport_shared STATIC
-  ${binexport2_proto_h}
-  ${binexport2_proto}
-  ${BinExport_DIR}/binexport.cc
-  ${BinExport_DIR}/binexport.h
-  ${BinExport_DIR}/hash.cc
-  ${BinExport_DIR}/hash.h
-  ${BinExport_DIR}/util/filesystem.cc
-  ${BinExport_DIR}/util/filesystem.h
-  ${BinExport_DIR}/util/format.cc
-  ${BinExport_DIR}/util/format.h
-  ${BinExport_DIR}/util/idb_export.cc
-  ${BinExport_DIR}/util/idb_export.h
-  ${BinExport_DIR}/util/logging.cc
-  ${BinExport_DIR}/util/logging.h
-  ${BinExport_DIR}/util/process.cc
-  ${BinExport_DIR}/util/process.h
-  ${BinExport_DIR}/util/status_macros.h
-  ${BinExport_DIR}/util/timer.h
-)
-target_link_libraries(binexport_shared PUBLIC
-  absl::bad_optional_access
-  absl::optional
-  absl::str_format
-  absl::status
-  absl::statusor
-  absl::strings
-  absl::time
-  absl::variant
-  bindiff_base
-)
-if(WIN32)
-  target_link_libraries(binexport_shared PUBLIC
-    shlwapi.lib
-  )
-else()
-  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-    target_link_libraries(binexport_shared PUBLIC
-      stdc++fs
-    )
-  endif()
-endif()
-set_target_properties(binexport_shared PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
 
 # Version information
 configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
@@ -295,12 +233,11 @@ set_target_properties(bindiff_shared PROPERTIES
 
 # Library that helps with testing BinDiff's core engine.
 add_library(bindiff_test_util STATIC
-  ${BinExport_DIR}/testing.cc
-  ${BinExport_DIR}/testing.h
   test_util.cc
   test_util.h
 )
 target_link_libraries(bindiff_test_util
+  binexport_testing
   bindiff_test_base
   bindiff_shared
 )
@@ -344,37 +281,6 @@ gtest_discover_tests(writer_test)
 # where X is the release number.
 set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
 add_ida_plugin(${bindiff_plugin_name}
-  ${BinExport_DIR}/basic_block.cc
-  ${BinExport_DIR}/basic_block.h
-  ${BinExport_DIR}/call_graph.cc
-  ${BinExport_DIR}/call_graph.h
-  ${BinExport_DIR}/comment.cc
-  ${BinExport_DIR}/comment.h
-  ${BinExport_DIR}/edge.cc
-  ${BinExport_DIR}/edge.h
-  ${BinExport_DIR}/expression.cc
-  ${BinExport_DIR}/expression.h
-  ${BinExport_DIR}/flow_graph.cc
-  ${BinExport_DIR}/flow_graph.h
-  ${BinExport_DIR}/function.cc
-  ${BinExport_DIR}/function.h
-  ${BinExport_DIR}/ida/digest.cc
-  ${BinExport_DIR}/ida/digest.h
-  ${BinExport_DIR}/ida/log_sink.cc
-  ${BinExport_DIR}/ida/log_sink.h
-  ${BinExport_DIR}/ida/names.cc
-  ${BinExport_DIR}/ida/names.h
-  ${BinExport_DIR}/ida/plugin.h
-  ${BinExport_DIR}/ida/ui.cc
-  ${BinExport_DIR}/ida/ui.h
-  ${BinExport_DIR}/ida/util.cc
-  ${BinExport_DIR}/ida/util.h
-  ${BinExport_DIR}/instruction.cc
-  ${BinExport_DIR}/instruction.h
-  ${BinExport_DIR}/operand.cc
-  ${BinExport_DIR}/operand.h
-  ${BinExport_DIR}/virtual_memory.cc
-  ${BinExport_DIR}/virtual_memory.h
   ida/bindiff_icon.cc
   ida/bindiff_icon.h
   ida/main_plugin.cc
@@ -398,6 +304,7 @@ if(WIN32)
   list(APPEND bindiff_plugin_libraries ws2_32.lib)
 endif()
 ida_target_link_libraries(${bindiff_plugin_name}
+  binexport_core
   bindiff_base
   bindiff_shared
   absl::str_format
@@ -407,6 +314,7 @@ ida_target_link_libraries(${bindiff_plugin_name}
 set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
+  OSX_ARCHITECTURES x86_64
 )
 ida_install(TARGETS ${bindiff_plugin_name}
             ARCHIVE DESTINATION bindiff-prefix

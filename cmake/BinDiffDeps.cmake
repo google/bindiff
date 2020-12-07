@@ -13,7 +13,22 @@
 # limitations under the License.
 
 # SQLite embedded database, underlies the .BinDiff file format
-add_library(sqlite STATIC ${ThirdParty_DIR}/sqlite/src/sqlite3.c)
-if(UNIX AND (NOT APPLE))
-  target_link_libraries(sqlite dl)
+FetchContent_Declare(sqlite
+  URL      https://www.sqlite.org/2020/sqlite-amalgamation-3340000.zip
+  URL_HASH SHA3_256=4ccbeb3abc7a338a7e7e40f94e0e41d5ceb7c0832fa30ffc861094142f5726af # 3.34
+)
+FetchContent_GetProperties(sqlite)
+if(NOT sqlite_POPULATED)
+  FetchContent_Populate(sqlite)
+  add_library(sqlite STATIC
+    ${sqlite_SOURCE_DIR}/sqlite3.c
+  )
+  if(UNIX AND (NOT APPLE))
+    target_link_libraries(sqlite ${CMAKE_DL_LIBS})
+  endif()
 endif()
+
+# Setup IDA SDK. Uses FindIdaSdk.cmake from BinExport
+find_package(IdaSdk REQUIRED)
+
+find_package(Protobuf 3.14 REQUIRED) # Make protobuf_generate_cpp available

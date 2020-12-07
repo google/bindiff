@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
-cmake_policy(VERSION 3.12)
-project(tools CXX)
-
 add_executable(bindiff_config_setup config_setup.cc)
 target_link_libraries(bindiff_config_setup
   absl::flags_parse
