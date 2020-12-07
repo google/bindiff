@@ -12,12 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ExternalProject_Add(googletest
-  GIT_REPOSITORY    https://github.com/google/googletest.git
-  GIT_TAG           e6e2d3b7614ff4e6017d8968bd4c3f579133666e # 2020-07-31
-  SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/googletest"
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND     ""
-  INSTALL_COMMAND   ""
-  TEST_COMMAND      ""
-)
+option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
+option(BINEXPORT_ENABLE_TESTS "Build test targets" ON)

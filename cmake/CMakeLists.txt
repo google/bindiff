@@ -20,11 +20,9 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}
                               ${PROJECT_SOURCE_DIR}/..)
 include(ExternalProject)
 
-include(absl.cmake)
-include(googletest.cmake)
+include(BinExportDeps.cmake)
 include(openssl.cmake)
-include(postgresql.cmake)  # Depends on openssl
-include(protobuf.cmake)
+include(postgresql.cmake)  # Depends on OpenSSL
 
 find_package(IdaSdk REQUIRED)
 
@@ -32,19 +30,12 @@ option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
 
 string(REPLACE ";" "^^" CMAKE_PREFIX_PATH_ALT_SEP "${CMAKE_PREFIX_PATH}")
 ExternalProject_Add(binexport
-  DEPENDS
-    absl
-    googletest
-    openssl
-    postgresql
-    protobuf
+  DEPENDS postgresql
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}
   SOURCE_DIR ${PROJECT_SOURCE_DIR}/..
   LIST_SEPARATOR ^^
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
              "-DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH_ALT_SEP}"
-             "-DABSL_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/absl"
-             "-DGOOGLETEST_ROOT_DIR=${CMAKE_CURRENT_BINARY_DIR}/googletest"
              "-DIdaSdk_DIR=${IdaSdk_DIR}"
              "-DBINEXPORT_ENABLE_POSTGRESQL=${BINEXPORT_ENABLE_POSTGRESQL}"
              "-DBUILD_TESTING=OFF"

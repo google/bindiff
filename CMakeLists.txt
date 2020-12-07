@@ -12,37 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
-cmake_policy(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
+cmake_policy(VERSION 3.14)
 project(binexport VERSION 11)  # Only major version is used
 
-option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
+# BinExport settings
+set(BINEXPORT_BINARY_DIR "${PROJECT_BINARY_DIR}" CACHE INTERNAL "" FORCE)
+set(BINEXPORT_SOURCE_DIR "${PROJECT_SOURCE_DIR}" CACHE INTERNAL "" FORCE)
 
-include(GoogleTest) # Needs to come before changing module path
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
-include(copts.cmake)
-include(util.cmake)
+# CMake settings
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+list(APPEND CMAKE_MODULE_PATH "${BINEXPORT_SOURCE_DIR}/cmake")
 
-# Use a copy of a subset of Boost that we ship
-set(Boost_NO_SYSTEM_PATHS TRUE)
-set(BOOST_ROOT ${PROJECT_SOURCE_DIR}/third_party/boost_parts)
+# BinExport CMake modules, order matters
+include(CompileOptions)
+include(Util)
+include(BinExportOptions)
+include(BinExportDeps)
 
-set(OPENSSL_USE_STATIC_LIBS TRUE)
-set(Protobuf_USE_STATIC_LIBS TRUE)
-
-find_package(Boost 1.55 REQUIRED)
-find_package(Git)
-find_package(IdaSdk REQUIRED)
-find_package(BinaryNinjaApi)
-find_package(OpenSSL 1.0.2 REQUIRED)
-if(BINEXPORT_ENABLE_POSTGRESQL)
-  find_package(PostgreSQL 9.5 REQUIRED)
-endif()
-find_package(Protobuf 3.0.0 REQUIRED)
-include(googletest.cmake)
-include(absl.cmake)
-
+include(GoogleTest)
 enable_testing()
 
 if(BINEXPORT_ENABLE_POSTGRESQL AND WIN32)
@@ -52,13 +40,14 @@ if(BINEXPORT_ENABLE_POSTGRESQL AND WIN32)
 endif()
 
 # Make Google-style includes work
-set(_binexport_src ${PROJECT_BINARY_DIR}/src_include/third_party/zynamics)
-set(_binexport_gen ${PROJECT_BINARY_DIR}/gen_include/third_party/zynamics)
-create_directory_symlink(${PROJECT_SOURCE_DIR} ${_binexport_src}/binexport)
-create_directory_symlink(${absl_src_dir}/absl ${_binexport_src}/../absl)
-create_directory_symlink(${PROJECT_BINARY_DIR} ${_binexport_gen}/binexport)
+set(_binexport_src "${BINEXPORT_BINARY_DIR}/src_include/third_party/zynamics")
+set(_binexport_gen "${BINEXPORT_BINARY_DIR}/gen_include/third_party/zynamics")
+create_directory_symlink("${BINEXPORT_SOURCE_DIR}" "${_binexport_src}/binexport")
+create_directory_symlink("${absl_SOURCE_DIR}/absl" "${_binexport_src}/../absl")
+create_directory_symlink("${BINEXPORT_BINARY_DIR}" "${_binexport_gen}/binexport")
 
 # Find the Git revision number, if applicable
+# TODO(cblichmann): Move this to Util.cmake
 set(REVISION unknown)
 if(NOT "$ENV{KOKORO_PIPER_CHANGELIST}" STREQUAL "")
   set(REVISION $ENV{KOKORO_PIPER_CHANGELIST})
@@ -342,34 +331,19 @@ ida_target_link_libraries(${binexport_ida_plugin_name}
 )
 set_ida_target_properties(${binexport_ida_plugin_name}
   PROPERTIES POSITION_INDEPENDENT_CODE ON
+  OSX_ARCHITECTURES x86_64
 )
 ida_install(TARGETS ${binexport_ida_plugin_name}
             ARCHIVE DESTINATION binexport-prefix
             RUNTIME DESTINATION binexport-prefix
             LIBRARY DESTINATION binexport-prefix)
 
-# Binary Ninja plugin (beta)
-if(BinaryNinjaApi_FOUND OR BinaryNinjaApi_ROOT_DIR)
-  if(BinaryNinjaApi_ROOT_DIR)
-    add_library(binaryninjacore SHARED
-      third_party/binaryninja_api/binaryninjacore.cc
-    )
-    target_include_directories(binaryninjacore PRIVATE
-      ${BinaryNinjaApi_INCLUDE_DIRS}
-    )
-    set(BN_CORE_LIBRARY binaryninjacore)
-
-    add_subdirectory("${BinaryNinjaApi_ROOT_DIR}"
-                     "${CMAKE_BINARY_DIR}/binaryninja-api-build"
-                     EXCLUDE_FROM_ALL)
-    add_library(BinaryNinja::API ALIAS binaryninjaapi)
-  endif()
-  add_subdirectory(binaryninja)
-  install(TARGETS ${binexport_bn_plugin_name}
-          ARCHIVE DESTINATION binexport-prefix
-          RUNTIME DESTINATION binexport-prefix
-          LIBRARY DESTINATION binexport-prefix)
-endif()
+# Binary Ninja plugin
+add_subdirectory(binaryninja)
+install(TARGETS ${binexport_bn_plugin_name}
+        ARCHIVE DESTINATION binexport-prefix
+        RUNTIME DESTINATION binexport-prefix
+        LIBRARY DESTINATION binexport-prefix)
 
 # BinExport reader library
 add_library(binexport_reader STATIC

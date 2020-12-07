@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.7)
-project(tools CXX)
-
 add_executable(binexport2dump binexport2dump.cc)
 target_link_libraries(binexport2dump
   absl::flat_hash_map

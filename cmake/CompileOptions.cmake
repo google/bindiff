@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# These affect ABI and linking, so set them globally, even for dependencies
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS FALSE)
@@ -47,6 +48,16 @@ endif()
 
 if(UNIX)
   add_compile_options(-Wno-deprecated)
+  if(APPLE)
+    add_compile_options(-gfull)
+    add_link_options(-dead_strip)
+  else()
+   add_compile_options(
+     -ffunction-sections
+     -fdata-sections
+   )
+   add_link_options(--gc-sections)
+  endif()
 elseif(WIN32)
   add_definitions(
     # Protobuf iterators trigger deprecation warnings
