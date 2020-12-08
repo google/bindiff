@@ -306,6 +306,7 @@ if(WIN32)
 endif()
 ida_target_link_libraries(${bindiff_plugin_name}
   binexport_core
+  binexport_plugin_shared
   bindiff_base
   bindiff_shared
   absl::str_format
