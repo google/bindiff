@@ -25,6 +25,7 @@ set(BINDIFF_BINEXPORT_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
     PATH "Path to a BinExport source tree")
 
 # Import BinExport targets
+set(BINEXPORT_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory("${BINDIFF_BINEXPORT_DIR}" "_deps/binexport-build" EXCLUDE_FROM_ALL)
 
 # CMake settings
