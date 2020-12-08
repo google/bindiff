@@ -260,8 +260,14 @@ add_ida_library(binexport_plugin_shared STATIC
   hash.h
   ida/digest.cc
   ida/digest.h
+  ida/flow_analysis.cc
+  ida/flow_analysis.h
   ida/log_sink.cc
   ida/log_sink.h
+  ida/names.cc
+  ida/names.h
+  ida/ui.cc
+  ida/ui.h
   ida/util.cc
   ida/util.h
 )
@@ -291,8 +297,6 @@ add_ida_plugin(${binexport_ida_plugin_name}
   ida/arm.h
   ida/dalvik.cc
   ida/dalvik.h
-  ida/flow_analysis.cc
-  ida/flow_analysis.h
   ida/generic.cc
   ida/generic.h
   ida/main_plugin.cc
@@ -301,15 +305,11 @@ add_ida_plugin(${binexport_ida_plugin_name}
   ida/metapc.h
   ida/mips.cc
   ida/mips.h
-  ida/names.cc
-  ida/names.h
   ida/plugin.h
   ida/ppc.cc
   ida/ppc.h
   ida/types_container.cc
   ida/types_container.h
-  ida/ui.cc
-  ida/ui.h
 )
 if(BINEXPORT_ENABLE_POSTGRESQL)
   list(APPEND binexport_libraries
