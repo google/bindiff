@@ -56,7 +56,7 @@ if(UNIX)
      -ffunction-sections
      -fdata-sections
    )
-   add_link_options(--gc-sections)
+   add_link_options(LINKER:-gc-sections)
   endif()
 elseif(WIN32)
   add_definitions(

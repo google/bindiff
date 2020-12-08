@@ -31,7 +31,9 @@ include(BinExportOptions)
 include(BinExportDeps)
 
 include(GoogleTest)
-enable_testing()
+if(BINEXPORT_ENABLE_TESTS)
+  enable_testing()
+endif()
 
 if(BINEXPORT_ENABLE_POSTGRESQL AND WIN32)
   list(GET PostgreSQL_LIBRARIES 0 postgresql_lib)
@@ -140,20 +142,23 @@ if(WIN32)
     shlwapi.lib
   )
 endif()
-add_executable(binexport_shared_test
-  util/filesystem_test.cc
-  util/format_test.cc
-  util/process_test.cc
-  util/status_macros_test.cc
-  util/status_matchers.h
-  util/timer_test.cc
-)
-target_link_libraries(binexport_shared_test PUBLIC
-  binexport_test_base
-  binexport_shared
-)
-gtest_discover_tests(binexport_shared_test)
+if(BINEXPORT_ENABLE_TESTS)
+  add_executable(binexport_shared_test
+    util/filesystem_test.cc
+    util/format_test.cc
+    util/process_test.cc
+    util/status_macros_test.cc
+    util/status_matchers.h
+    util/timer_test.cc
+  )
+  target_link_libraries(binexport_shared_test PUBLIC
+    binexport_test_base
+    binexport_shared
+  )
+  gtest_discover_tests(binexport_shared_test)
+endif()
 
+# Test helper library
 add_library(binexport_testing
   testing.cc
   testing.h
@@ -163,25 +168,30 @@ target_link_libraries(binexport_testing PUBLIC
   binexport_shared
 )
 
-add_executable(idb_export_test util/idb_export_test.cc)
-target_link_libraries(idb_export_test
-  binexport_test_base
-  binexport_shared
-)
-gtest_discover_tests(idb_export_test PROPERTIES
-  ENVIRONMENT "TEST_TMPDIR=${PROJECT_BINARY_DIR}/idb_export_test_tmp"
-)
+# IDB export test
+if(BINEXPORT_ENABLE_TESTS)
+  add_executable(idb_export_test util/idb_export_test.cc)
+  target_link_libraries(idb_export_test
+    binexport_test_base
+    binexport_shared
+  )
+  gtest_discover_tests(idb_export_test PROPERTIES
+    ENVIRONMENT "TEST_TMPDIR=${PROJECT_BINARY_DIR}/idb_export_test_tmp"
+  )
+endif()
 
 # General BinExport tests
-add_executable(binexport_test
-  binexport_test.cc
-)
-target_link_libraries(binexport_test PUBLIC
-  binexport_test_base
-  binexport_shared
-  absl::memory
-)
-gtest_discover_tests(binexport_test)
+if(BINEXPORT_ENABLE_TESTS)
+  add_executable(binexport_test
+    binexport_test.cc
+  )
+  target_link_libraries(binexport_test PUBLIC
+    binexport_test_base
+    binexport_shared
+    absl::memory
+  )
+  gtest_discover_tests(binexport_test)
+endif()
 
 # binexport2dump tool
 add_subdirectory(tools)
@@ -360,18 +370,20 @@ target_link_libraries(binexport_reader PUBLIC
   absl::strings
   binexport_shared
 )
-add_executable(binexport_reader_test
-  reader/call_graph_test.cc
-  reader/flow_graph_test.cc
-  reader/graph_utility_test.cc
-  reader/instruction_test.cc
-)
-target_link_libraries(binexport_reader_test PUBLIC
-  gtest_main
-  gmock
-  binexport_reader
-  binexport_testing
-)
-gtest_discover_tests(binexport_reader_test PROPERTIES
-  ENVIRONMENT "TEST_SRCDIR=${_binexport_src}"
-)
+if(BINEXPORT_ENABLE_TESTS)
+  add_executable(binexport_reader_test
+    reader/call_graph_test.cc
+    reader/flow_graph_test.cc
+    reader/graph_utility_test.cc
+    reader/instruction_test.cc
+  )
+  target_link_libraries(binexport_reader_test PUBLIC
+    gtest_main
+    gmock
+    binexport_reader
+    binexport_testing
+  )
+  gtest_discover_tests(binexport_reader_test PROPERTIES
+    ENVIRONMENT "TEST_SRCDIR=${_binexport_src}"
+  )
+endif()
