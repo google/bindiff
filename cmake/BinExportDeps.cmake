@@ -65,7 +65,10 @@ FetchContent_Declare(binaryninjaapi
   GIT_TAG        f36ae0b490e1a975af86bd7b1ad6e729b7430929 # 2020-10-06
   GIT_SUBMODULES "docs" # Workaround for CMake #20579
 )
-FetchContent_GetProperties(binaryninjaapi)  # For binaryninjaapi_SOURCE_DIR
+FetchContent_GetProperties(binaryninjaapi)
+if(NOT binaryninjaapi_POPULATED)
+  FetchContent_Populate(binaryninjaapi)  # For binaryninjaapi_SOURCE_DIR
+endif()
 add_library(binaryninjacore SHARED
   third_party/binaryninja_api/binaryninjacore.cc
 )
@@ -73,7 +76,9 @@ target_include_directories(binaryninjacore PRIVATE
   "${binaryninjaapi_SOURCE_DIR}"
 )
 set(BN_CORE_LIBRARY binaryninjacore)
-FetchContent_MakeAvailable(binaryninjaapi)
+if(binaryninjaapi_POPULATED)
+  add_subdirectory("${binaryninjaapi_SOURCE_DIR}" "${binaryninjaapi_BINARY_DIR}")
+endif()
 binexport_check_target(binaryninjaapi)
 add_library(BinaryNinja::API ALIAS binaryninjaapi)
 
