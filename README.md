@@ -58,9 +58,9 @@ plugins directory. These are the default paths:
 
 | OS      | Plugin path                                 |
 | ------- | ------------------------------------------- |
-| Linux   | `/opt/idapro-7.4/plugins`                   |
-| macOS   | `/Applications/IDA Pro 7.4/idabin/plugins`  |
-| Windows | `%ProgramFiles(x86)%\IDA 7.4\plugins`       |
+| Linux   | `/opt/idapro-7.5/plugins`                   |
+| macOS   | `/Applications/IDA Pro 7.5/idabin/plugins`  |
+| Windows | `%ProgramFiles%\IDA 7.5\plugins`            |
 
 To install just for the current user, copy the files into one of these
 directories instead:
@@ -73,7 +73,7 @@ directories instead:
 
 ## Usage
 
-The main use case is via [BinNavi](https://github.com/google/binnavi). However,
+The main use case is via [BinDiff](https://zynamics.com/bindiff.html). However,
 BinExport can also be used to export IDA Pro disassembly to files of various
 formats:
 
@@ -116,7 +116,7 @@ The BinExport plugin registers the IDC functions below.
 | BinExportStatistics | Statistics text file | filename                                     |
 
 ¹Note: Exporting into PostgreSQL databases is deprecated and requires the
-`ENABLE_POSTGRESQL` define to be set.
+`ENABLE_POSTGRESQL` define to be set during the build.
 
 *Deprecated*: BinExport also supports exporting to a database via the
 `RunPlugin()` IDC function:
@@ -131,7 +131,7 @@ static main() {
 ```
 
 Use the plugin options listed below to setup the database connection in that
-case. See also the `CBinExportImporter` class in BinNavi.
+case. See also the `CBinExportImporter` class in [BinNavi](https://github.com/google/binnavi/blob/master/src/main/java/com/google/security/zynamics/binnavi/Importers/CBinExportImporter.java#L34).
 
 #### IDAPython
 
@@ -176,18 +176,21 @@ Note: These options must come before any files.
 As we support exporting into PostgreSQL databases as well as a Protocol Buffer
 based format, there are quite a few dependencies to satisfy:
 
-*   Boost 1.67.0 or higher (a partial copy of 1.71.0 ships in
+*   Boost 1.71.0 or higher (a partial copy of 1.71.0 ships in
     `third_party/boost_parts`)
-*   [CMake](https://cmake.org/download/) 3.12 or higher
-*   GCC 7 or a recent version of Clang on Linux/macOS. On Windows, use the
-    Visual Studio 2017 compiler (Update 9 or later) and the Windows SDK
-    for Windows 10.
+*   [CMake](https://cmake.org/download/) 3.14 or higher
+*   Suggested: [Ninja](https://ninja-build.org/) for speedy builds
+*   GCC 9 or a recent version of Clang on Linux/macOS. On Windows, use the
+    Visual Studio 2019 compiler and the Windows SDK for Windows 10.
 *   Git 1.8 or higher
-*   IDA SDK 7.4 (unpack into `third_party/idasdk`)
-*   OpenSSL 1.0.2 or higher
-*   Perl 5.6 or higher (needed for OpenSSL and PostgreSQL)
-*   Optional: PostgreSQL client libraries 9.3 or higher
-*   Protocol Buffers 3.6.1 or higher
+*   IDA SDK 7.5 (unpack into `third_party/idasdk`)
+*   Dependencies that will be downloaded:
+    *   Abseil, GoogleTest and Protocol Buffers (3.14)
+    *   Binary Ninja SDK
+*   Optional when building with PostgreSQL support:
+    *   Perl 5.6 or higher (needed for OpenSSL and PostgreSQL)
+    *   OpenSSL 1.0.2 or higher (needs to be 1.0.x series)
+    *   PostgreSQL client libraries 9.5 or higher
 
 ### Linux
 
@@ -199,7 +202,16 @@ This should install all the necessary packages:
 
 ```bash
 sudo apt update -qq
-sudo apt install -qq --no-install-recommends build-essential cmake
+sudo apt install -qq --no-install-recommends build-essential
+```
+
+Install the latest stable version of CMake:
+
+```bash
+wget https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1-Linux-x86_64.sh
+mkdir ${HOME}/cmake
+sh cmake-3.19.1-Linux-x86_64.sh --prefix=${HOME}/cmake --exclude-subdir
+export PATH=${HOME}/cmake/bin:${PATH}
 ```
 
 The following sections assume that your current working directory is at the root
@@ -208,40 +220,51 @@ of the cloned repository.
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.4:
+for IDA 7.5:
 
 ```bash
-unzip PATH/TO/idasdk74.zip -d third_party/idasdk
-mv third_party/idasdk/idasdk74/* third_party/idasdk
-rmdir third_party/idasdk/idasdk74
+unzip PATH/TO/idasdk75.zip -d third_party/idasdk
+mv third_party/idasdk/idasdk75/* third_party/idasdk
+rmdir third_party/idasdk/idasdk75
 ```
 
 #### Build BinExport
 
-With all prerequisites in place, configure and build BinExport:
+With all prerequisites in place, configure and build BinExport and run
+its tests:
 
 ```bash
 mkdir -p build_linux && cd build_linux
-cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF \
-    -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk
-cmake --build .
+cmake .. \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    "-DCMAKE_INSTALL_PREFIX=${PWD}" \
+    "-DIdaSdk_ROOT_DIR=${PWD}/../third_party/idasdk"
+cmake --build . --config Release
+ctest --build-config Release --output-on-failure
+cmake --install . --config Release --strip
 ```
 
-This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
-libraries. If all went well, the `build_linux/binexport-prefix` directory should
-contain two IDA plugin binaries `binexport11.so` and `binexport1164.so` for use
-with `ida` and `ida64`, respectively.
+Note: If you don't want to use Ninja to perform the actual build, omit
+the `-G Ninja` part.
+
+This will download and build Abseil, GoogleTest, Protocol Buffers and the
+Binary Ninja API. If all went well, the `build_linux/binexport-prefix`
+directory should contain two the files `binexport11.so` and
+`binexport1164.so` (for use with `ida` and `ida64`, respectively) as well
+as `binexport11_binaryninja.so` (for Binary Ninja).
 
 To enable support for exporting into PostgreSQL databases, add
-`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command.
+`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command. Note that
+this feature is deprecated.
 
 
 ### macOS
 
 #### Prerequisites
 
-The preferred build environment is Mac OS X 10.14 "Mojave" using Xcode 9.
-Using macOS 10.15 "Catalina" should also work.
+The preferred build environment is Mac OS X 10.15 "Catalina" using Xcode
+11.3. Using macOS 11 "Big Sur" and/or Xcode 12 should also work.
 
 After installing the Developer Tools, make sure to install the command-line
 tools:
@@ -250,22 +273,13 @@ tools:
 sudo xcode-select --install
 ```
 
-Recent versions of the Developer Tools no longer include GNU Autotools, which is
-required by the PostgreSQL dependency. You can install Autotools via
-[Homebrew](http://brew.sh/) (recommended) or via
-[MacPorts](https://www.macports.org/install.php). Follow the installation
-instructions on the respective websites.
-
-For Homebrew:
+Optional, only necessary for the deprecated PostgreSQL support: Current
+versions of the Developer Tools no longer include GNU Autotools, which is
+required by PostgreSQL. You can install Autotools via
+[Homebrew](http://brew.sh/):
 
 ```bash
 brew install autoconf automake libtool
-```
-
-For MacPorts:
-
-```bash
-sudo /opt/local/bin/port install autoconf automake libtool
 ```
 
 The following sections assume that your current working directory is at the root
@@ -277,7 +291,7 @@ Download the latest stable version of CMake from the official site and mount its
 disk image:
 
 ```bash
-curl -L https://cmake.org/files/v3.12/cmake-3.12.4-Darwin-x86_64.dmg \
+curl -fsSL https://github.com/Kitware/CMake/releases/download/v3.19.1/cmake-3.19.1-Darwin-x86_64.dmg \
     -o $HOME/Downloads/cmake-osx.dmg
 hdiutil attach $HOME/Downloads/cmake-osx.dmg
 ```
@@ -286,8 +300,8 @@ At this point you will need to review and accept CMake's license agreement. Now
 install CMake:
 
 ```bash
-sudo cp -Rf /Volumes/cmake-3.12.4-Darwin-x86_64/CMake.app /Applications/
-hdiutil detach /Volumes/cmake-3.12.4-Darwin-x86_64
+sudo cp -Rf /Volumes/cmake-3.19.1-Darwin-x86_64/CMake.app /Applications/
+hdiutil detach /Volumes/cmake-3.19.1-Darwin-x86_64
 sudo /Applications/CMake.app/Contents/bin/cmake-gui --install
 ```
 
@@ -296,32 +310,42 @@ The last command makes CMake available in the system path.
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.4:
+for IDA 7.5:
 
 ```bash
-unzip PATH/TO/idasdk74.zip -d third_party/idasdk
-mv third_party/idasdk/idasdk74/* third_party/idasdk
-rmdir third_party/idasdk/idasdk74
+unzip PATH/TO/idasdk75.zip -d third_party/idasdk
+mv third_party/idasdk/idasdk75/* third_party/idasdk
+rmdir third_party/idasdk/idasdk75
 ```
 
 #### Build BinExport
 
-With all prerequisites in place, configure and build BinExport:
+With all prerequisites in place, configure and build BinExport and run
+its tests:
 
 ```bash
 mkdir -p build_mac && cd build_mac
-cmake ../cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_RULE_MESSAGES=OFF \
-    -DIdaSdk_ROOT_DIR=$PWD/../third_party/idasdk
-cmake --build .
+cmake .. \
+    -DCMAKE_BUILD_TYPE=Release \
+    "-DCMAKE_INSTALL_PREFIX=${PWD}" \
+    "-DIdaSdk_ROOT_DIR=${PWD}/../third_party/idasdk"
+cmake --build . --config Release -- "-j$(sysctl -n hw.logicalcpu)"
+ctest --build-config Release --output-on-failure
+cmake --install . --config Release --strip
 ```
 
-This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
-libraries. If all went well, the `build_mac/binexport-prefix` directory should
-contain two IDA plugin binaries `binexport11.dylib` and `binexport1164.dylib`
-for use with `ida` and `ida64`, respectively.
+Note: This will use the standard CMake "Makefile Generator". You can use XCode
+or Ninja as generators as well.
+
+This will download and build Abseil, GoogleTest, Protocol Buffers and the
+Binary Ninja API. If all went well, the `build_mac/binexport-prefix`
+directory should contain two the files `binexport11.dylib` and
+`binexport1164.dylib` (for use with `ida` and `ida64`, respectively) as well
+as `binexport11_binaryninja.dylib` (for Binary Ninja).
 
 To enable support for exporting into PostgreSQL databases, add
-`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command.
+`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command. Note that
+this feature is deprecated.
 
 
 ### Windows
@@ -332,9 +356,9 @@ Studio 2017 compiler and the [Windows SDK for Windows
 
 #### CMake
 
-Download and install CMake from its [download
-page](https://cmake.org/download/). Make sure to select "Add CMake to the system
-PATH for all users".
+Download and install the lastest stable CMake (3.19.1 at the time of writing)
+from its [download page](https://cmake.org/download/). Make sure to select
+"Add CMake to the system PATH for all users".
 
 #### Git
 
@@ -346,6 +370,9 @@ have the setup utility add Git to your system path. * "Use Windows' default
 console window" - to be able to use Git from the regular command prompt.
 
 ### Perl
+
+Note: This is only needed for the deprecated PostgreSQL support and can be
+skipped safely.
 
 Download and install ActiveState Perl from its [download
 page](http://www.activestate.com/activeperl/downloads). This should add Perl to
@@ -364,10 +391,10 @@ cd binexport
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.4, assuming that Git was installed into the default directory first:
+for IDA 7.5, assuming that Git was installed into the default directory first:
 
 ```bat
-"%ProgramFiles%\Git\usr\bin\unzip" PATH\TO\idasdk74.zip -d third_party
+"%ProgramFiles%\Git\usr\bin\unzip" PATH\TO\idasdk75.zip -d third_party
 rename third_party\idasdk74 idasdk
 ```
 
@@ -378,15 +405,25 @@ With all prerequisites in place, configure and build BinExport:
 ```bat
 if not exist build_msvc mkdir build_msvc
 cd build_msvc
-cmake ../cmake -DIdaSdk_ROOT_DIR=%cd%\..\third_party\idasdk ^
-    -G "Visual Studio 15 2017 Win64"
-cmake --build . --config Release --install -- /m /clp:NoSummary;ForceNoAlign /v:minimal
+cmake .. ^
+    -G "Visual Studio 16 2019 Win64" ^
+    -DCMAKE_BUILD_TYPE=Release ^
+    "-DCMAKE_INSTALL_PREFIX=%cd%" ^
+    -DIdaSdk_ROOT_DIR=%cd%\..\third_party\idasdk
+cmake --build . --config Release -- /m /clp:NoSummary;ForceNoAlign /v:minimal
+ctest --build-config Release --output-on-failure
+cmake --install . --config Release --strip
 ```
 
-This will download and build OpenSSL, Protocol Buffers and the PostgreSQL client
-libraries. If all went well, the `build_msvc\binexport-prefix` directory should
-contain two IDA plugin binaries `binexport11.dll` and `binexport1164.dll` for use
-with `ida.exe` and `ida64.exe`, respectively.
+Note: This will use the CMake "Visual Studio" generator. You can use the Ninja
+generator as well.
+
+This will download and build Abseil, GoogleTest, Protocol Buffers and the
+Binary Ninja API. If all went well, the `build_msvc/binexport-prefix`
+directory should contain two the files `binexport11.dll` and
+`binexport1164.dll` (for use with `ida.exe` and `ida64.exe`, respectively) as well
+as `binexport11_binaryninja.dll` (for Binary Ninja).
 
 To enable support for exporting into PostgreSQL databases, add
-`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command.
+`-DBINEXPORT_ENABLE_POSTGRESQL=ON` to the first CMake command. Note that
+this feature is deprecated.
