@@ -17,6 +17,7 @@ package com.google.security.zynamics.bindiff.config;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toCollection;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.common.io.Files;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
@@ -35,6 +36,9 @@ import java.util.logging.Level;
 
 /** JSON configuration parser */
 public class Config {
+
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+
   public static final BinDiffProtos.Config DEFAULTS;
 
   private static BinDiffProtos.Config.Builder instance;
@@ -63,7 +67,8 @@ public class Config {
                   + Constants.CONFIG_FILENAME);
       mergeInto(loadFromFile(commonConfig).build(), instance);
     } catch (final IOException e) {
-      /* Ignore */
+      // Just log at a debug level
+      logger.at(Level.FINE).withCause(e).log("Cannot load per-machine config");
     }
 
     try {
@@ -73,7 +78,8 @@ public class Config {
                   + Constants.CONFIG_FILENAME);
       mergeInto(loadFromFile(userConfig).build(), instance);
     } catch (final IOException e) {
-      /* Ignore */
+      // Just log at a debug level
+      logger.at(Level.FINE).withCause(e).log("Cannot load per-user config");
     }
 
     return instance;

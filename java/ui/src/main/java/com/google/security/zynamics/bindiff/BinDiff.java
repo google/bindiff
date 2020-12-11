@@ -28,6 +28,7 @@ import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.socketserver.SocketServer;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
+import com.google.security.zynamics.zylib.io.FileUtils;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Font;
@@ -269,15 +270,9 @@ public class BinDiff {
     final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
     Logger.setConsoleLogging(settings.getConsoleLogging());
 
-    String path = settings.getLogFileLocation();
-    if (path != null && path.length() > 1) {
-      final char chr = path.charAt(path.length() - 1);
-      if (!File.separator.equals(String.valueOf(chr))) {
-        path += File.separator;
-      }
-    }
-    if (path == null || !new File(path).exists()) {
-      throw new IOException();
+    final String path = FileUtils.ensureTrailingSlash(settings.getLogFileLocation());
+    if (!new File(path).isDirectory()) {
+      throw new IOException("Not a directory: " + path);
     }
 
     Logger.setFileHandler(new FileHandler(path + Constants.LOG_FILE_NAME));

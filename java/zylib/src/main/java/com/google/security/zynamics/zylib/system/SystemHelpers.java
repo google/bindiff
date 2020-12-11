@@ -14,6 +14,7 @@
 
 package com.google.security.zynamics.zylib.system;
 
+import com.google.common.base.Ascii;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
 
@@ -58,7 +59,7 @@ public final class SystemHelpers {
    */
   public static String getAllUsersApplicationDataDirectory(final String product) {
     return getAllUsersApplicationDataDirectory()
-        + (isRunningWindows() ? product : "." + product.toLowerCase())
+        + (isRunningWindows() || isRunningMacOSX() ? product : Ascii.toLowerCase(product))
         + File.separator;
   }
 
