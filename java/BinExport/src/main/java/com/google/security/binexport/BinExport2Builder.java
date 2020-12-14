@@ -356,12 +356,7 @@ public class BinExport2Builder {
       }
       // TODO(cblichmann): Check for artificial names
       // Mangled name always needs to be set.
-      if (parentNamespace != null && !"Global".equals(parentNamespace.getName())
-          && this.prependNamespace) {
-        vertex.setMangledName(parentNamespace.getName() + "::" + func.getName());
-      } else {
-        vertex.setMangledName(func.getName());
-      }
+      vertex.setMangledName(getFunctionName(func));
       vertexIndices.put(funcAddress, id++);
       monitor.setProgress(i++);
     }
@@ -483,6 +478,22 @@ public class BinExport2Builder {
     }
     System.out.printf("}\n");
     throw new RuntimeException();
+  }
+
+  private String getFunctionName(Function function) {
+    if (!prependNamespace) {
+      return function.getName();
+    }
+    // Push all parent namespace names on top of the Vector.
+    final var functionNameComponents = new Vector<String>();
+    var parentNamespace = function.getParentNamespace();
+    while (parentNamespace != null && !"Global".equals(parentNamespace.getName())) {
+      functionNameComponents.add(0, parentNamespace.getName());
+      parentNamespace = parentNamespace.getParentNamespace();
+    }
+    // Add the name of the function as the last component.
+    functionNameComponents.add(function.getName());
+    return String.join("::", functionNameComponents);
   }
 
   public BinExport2 build(TaskMonitor monitor) throws CancelledException {
