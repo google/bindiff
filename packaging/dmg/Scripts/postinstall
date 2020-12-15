@@ -39,7 +39,7 @@ BINDIFF_CONFIG_SETUP="${BUNDLE_DIR}/MacOS/bin/bindiff_config_setup"
 # unset, so that the native launcher stub is invoked.
 log "Adjusting config file for UI directory: ${BUNDLE_DIR}/MacOS"
 "${BINDIFF_CONFIG_SETUP}" --config "${CONFIG_FILE}" \
-  "ui.directory=${BUNDLE_DIR}/MacOS" \
+  "directory=${BUNDLE_DIR}/MacOS" \
   "ui.java_binary="
 
 # Pre-populate the IDA Pro installation path, looking for the latest version.

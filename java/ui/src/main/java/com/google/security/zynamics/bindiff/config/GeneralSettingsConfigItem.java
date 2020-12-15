@@ -36,12 +36,12 @@ public class GeneralSettingsConfigItem {
     Config.getInstance().getPreferencesBuilder().setDefaultWorkspace(defaultWorkspace);
   }
 
-  public String getDiffEnginePath() {
-    return Config.getInstance().getUi().getDirectory();
+  public String getBinDiffDirectory() {
+    return Config.getInstance().getDirectory();
   }
 
-  public void setDiffEnginePath(final String diffEnginePath) {
-    Config.getInstance().getUiBuilder().setDirectory(diffEnginePath);
+  public void setBinDiffDirectory(final String diffEnginePath) {
+    Config.getInstance().setDirectory(diffEnginePath);
   }
 
   public String getIdaDirectory() {

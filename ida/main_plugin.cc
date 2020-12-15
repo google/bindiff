@@ -255,19 +255,20 @@ void Plugin::VisualDiff(uint32_t index, bool call_graph_diff) {
     }
 
     LOG(INFO) << "Sending result to BinDiff GUI...";
-    const auto& ui_config = config::Proto().ui();
+    const auto& config = config::Proto();
+    const auto& ui_config = config.ui();
 
-    const std::string default_ui_dir =
+    const std::string default_bindiff_dir =
 #if defined(_WIN32)
-        absl::StrCat("C:\\Program Files\\BinDiff ", kBinDiffRelease, "\\bin");
+        absl::StrCat("C:\\Program Files\\BinDiff ", kBinDiffRelease);
 #elif defined(__APPLE__)
-        "/Applications/BinDiff/BinDiff.app/Contents/app";
+        "/Applications/BinDiff/BinDiff.app/Contents/MacOS";
 #else
-        "/opt/bindiff/bin";
+        "/opt/bindiff";
 #endif
     SendGuiMessage(
         ui_config.retries() != 0 ? ui_config.retries() : 20,
-        !ui_config.directory().empty() ? ui_config.directory() : default_ui_dir,
+        !config.directory().empty() ? config.directory() : default_bindiff_dir,
         !ui_config.server().empty() ? ui_config.server() : "127.0.0.1",
         ui_config.port() != 0 ? ui_config.port() : 2000, message,
         /*callback=*/nullptr);

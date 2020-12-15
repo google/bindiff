@@ -70,6 +70,7 @@ shadowJar {
     exclude('META-INF/LICENSE*',
             'META-INF/NOTICE*',
             'META-INF/maven/',
+            'bindiff_config.proto',
             'binexport2.proto',
             'google/protobuf/**/*.proto',
             'license/**',

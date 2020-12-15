@@ -40,15 +40,15 @@ struct StartUiOptions {
     return *this;
   }
 
-  StartUiOptions& set_gui_dir(std::string value) {
-    gui_dir = std::move(value);
+  StartUiOptions& set_bindiff_dir(std::string value) {
+    bindiff_dir = std::move(value);
     return *this;
   }
 
   std::string java_binary;
   std::vector<std::string> java_vm_options;
   int max_heap_size_mb = -1;  // Default means 75% of physical memory
-  std::string gui_dir;
+  std::string bindiff_dir;
 };
 
 // Launches the BinDiff Java UI and immediately returns. Extra command-line

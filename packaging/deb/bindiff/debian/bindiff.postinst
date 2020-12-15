@@ -31,7 +31,7 @@ case "$1" in
     # Setup install location in config file.
     /opt/bindiff/libexec/bindiff_config_setup \
       --config "${bindiff_etc}/bindiff.json" \
-      "ui.directory=${bindiff_root}" \
+      "directory=${bindiff_root}" \
       "ui.java_binary=${bindiff_root}/jre/bin/java"
 
     if [ -x "$(which loginctl)" ]; then

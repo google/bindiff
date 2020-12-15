@@ -23,7 +23,7 @@
 
 namespace security::bindiff {
 
-bool SendGuiMessage(int retries, absl::string_view gui_dir,
+bool SendGuiMessage(int retries, absl::string_view bindiff_dir,
                     absl::string_view server, uint16_t port,
                     absl::string_view arguments,
                     std::function<void()> callback);

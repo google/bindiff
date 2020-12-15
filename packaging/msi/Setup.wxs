@@ -104,12 +104,12 @@
                   Return="ignore" />
 
     <!-- Set the correct paths in the per-machine config file. The extra '.'
-         in ui.directory is necessary because MSI INSTALLDIR always ends with
-         a backslash. Windows' command-line argument handling will then treat
+         in directory is necessary because MSI INSTALLDIR always ends with a
+         backslash. Windows' command-line argument handling will then treat
          the following quote (") as escaped, breaking argument passing.
       -->
     <SetProperty Id="SetupConfigFile"
-                 Value='"[#bindiff_config_setup.exe]" --config "[#bindiff.json]" ui.directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
+                 Value='"[#bindiff_config_setup.exe]" --config "[#bindiff.json]" directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
                  Before="SetupConfigFile"
                  Sequence="execute" />
     <CustomAction Id="SetupConfigFile"

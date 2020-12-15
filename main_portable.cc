@@ -571,7 +571,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
                         .set_java_binary(config.ui().java_binary())
                         .set_java_vm_options(config.ui().java_vm_option())
                         .set_max_heap_size_mb(config.ui().max_heap_size_mb())
-                        .set_gui_dir(config.ui().directory())));
+                        .set_bindiff_dir(config.directory())));
     return absl::OkStatus();
   }
 

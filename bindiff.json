@@ -1,13 +1,18 @@
 {
  "version": 7,
+ "directory": "",
  "ui": {
   "java_binary": "",
   "java_vm_option": [],
   "max_heap_size_mb": 0,
-  "directory": "",
   "server": "127.0.0.1",
   "port": 2000,
   "retries": 20
+ },
+ "ida": {
+  "directory": "",
+  "executable": "",
+  "executable64": ""
  },
  "num_threads": 0,
  "log": {

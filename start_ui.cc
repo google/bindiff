@@ -102,10 +102,10 @@ absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
   if (options.java_binary.empty()) {
     // Directory layout:
     //   <prefix>/BinDiff.app/Contents/app            (bindiff.jar)
-    //   <prefix>/BinDiff.app/Contents/MacOS          (gui_dir, ui.directory)
+    //   <prefix>/BinDiff.app/Contents/MacOS          ("bindiff_dir")
     //   <prefix>/BinDiff.app/Contents/MacOS/bin      (BinDiff binaries)
     //   <prefix>/BinDiff.app/Contents/MacOS/BinDiff  (Launcher)
-    argv = {"/usr/bin/open", JoinPath(options.gui_dir, "../..")};
+    argv = {"/usr/bin/open", JoinPath(options.bindiff_dir, "../..")};
 
     // The launcher does not take any JVM arguments, so they have to be set via
     // environment variable.
@@ -157,7 +157,7 @@ absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
 #endif
                                     ""}) {
     const std::string jar_file =
-        JoinPath(options.gui_dir, relative_path, "bindiff.jar");
+        JoinPath(options.bindiff_dir, relative_path, "bindiff.jar");
     found_jar = FileExists(jar_file);
     if (found_jar) {
       argv.push_back(jar_file);
@@ -166,7 +166,7 @@ absl::Status StartUiWithOptions(const std::vector<std::string>& extra_args,
   }
   if (!found_jar) {
     return absl::NotFoundError(
-        absl::StrCat("Missing jar file in prefix: ", options.gui_dir));
+        absl::StrCat("Missing jar file in prefix: ", options.bindiff_dir));
   }
   argv.insert(argv.end(), extra_args.begin(), extra_args.end());
 

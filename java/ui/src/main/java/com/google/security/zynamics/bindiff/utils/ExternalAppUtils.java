@@ -23,7 +23,7 @@ import java.io.File;
 
 public class ExternalAppUtils {
   public static String getCommandLineDiffer() {
-    String enginePath = BinDiffConfig.getInstance().getMainSettings().getDiffEnginePath();
+    String enginePath = BinDiffConfig.getInstance().getMainSettings().getBinDiffDirectory();
     if (enginePath == null || enginePath.isEmpty()) {
       enginePath = FileUtils.findLocalRootPath(ExternalAppUtils.class);
     }

@@ -112,7 +112,7 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   return success;
 }
 
-bool SendGuiMessage(int retries, absl::string_view gui_dir,
+bool SendGuiMessage(int retries, absl::string_view bindiff_dir,
                     absl::string_view server, uint16_t port,
                     absl::string_view arguments,
                     std::function<void()> callback) {
@@ -125,7 +125,7 @@ bool SendGuiMessage(int retries, absl::string_view gui_dir,
                              .set_java_binary(ui_config.java_binary())
                              .set_java_vm_options(ui_config.java_vm_option())
                              .set_max_heap_size_mb(ui_config.max_heap_size_mb())
-                             .set_gui_dir(std::string(gui_dir)));
+                             .set_bindiff_dir(std::string(bindiff_dir)));
   if (!status.ok()) {
     throw std::runtime_error{absl::StrCat(
         "Cannot launch BinDiff user interface. Process creation failed: ",

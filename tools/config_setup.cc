@@ -166,8 +166,8 @@ absl::StatusOr<std::string> GetOrCreateIdaProUserPluginsDirectory() {
 // symlinks first, falling back to hardlinks and copying the files as a last
 // resort.
 absl::Status PerUserSetup(const Config& config) {
-  const std::string& ui_dir = config.ui().directory();
-  if (ui_dir.empty()) {
+  const std::string& bindiff_dir = config.directory();
+  if (bindiff_dir.empty()) {
     return absl::FailedPreconditionError(
         "Path to BinDiff missing from config file");
   }
@@ -211,9 +211,11 @@ absl::Status PerUserSetup(const Config& config) {
   std::string plugin_basename = absl::StrFormat(
       "binexport%s_binaryninja%s", kBinDiffBinExportRelease, kLibrarySuffix);
   if (auto status = CreateOrUpdateLinkWithFallback(
-          JoinPath(ui_dir, kBinDiffBinaryNinjaPluginsPrefix, plugin_basename),
+          JoinPath(bindiff_dir, kBinDiffBinaryNinjaPluginsPrefix,
+                   plugin_basename),
           JoinPath(binaryninja_app_data_plugin_path, plugin_basename));
-      // Binary Ninja is optional, so skip if not found
+      // Binary Ninja may not have been selected during install, so skip if not
+      // found
       !status.ok() && !absl::IsNotFound(status)) {
     return status;
   }
@@ -226,23 +228,23 @@ absl::Status PerUserSetup(const Config& config) {
   plugin_basename =
       absl::StrFormat("bindiff%s%s", kBinDiffRelease, kLibrarySuffix);
   NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
-      JoinPath(ui_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
+      JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
   plugin_basename =
       absl::StrFormat("bindiff%s64%s", kBinDiffRelease, kLibrarySuffix);
   NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
-      JoinPath(ui_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
+      JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
 
   plugin_basename = absl::StrFormat("binexport%s%s", kBinDiffBinExportRelease,
                                     kLibrarySuffix);
   NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
-      JoinPath(ui_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
+      JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
   plugin_basename = absl::StrFormat("binexport%s64%s", kBinDiffBinExportRelease,
                                     kLibrarySuffix);
   NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
-      JoinPath(ui_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
+      JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
 
   return absl::OkStatus();
@@ -298,13 +300,13 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
   auto config = config::Defaults();
 
   const StringSettingsMap string_settings = {
+      {"directory", config.mutable_directory()},
       {"ida.directory", config.mutable_ida()->mutable_directory()},
       {"ida.executable", config.mutable_ida()->mutable_executable()},
       {"ida.executable64", config.mutable_ida()->mutable_executable64()},
       {"log.directory", config.mutable_log()->mutable_directory()},
       {"preferences.default_workspace",
        config.mutable_preferences()->mutable_default_workspace()},
-      {"ui.directory", config.mutable_ui()->mutable_directory()},
       {"ui.java_binary", config.mutable_ui()->mutable_java_binary()},
       {"ui.server", config.mutable_ui()->mutable_server()},
   };

@@ -20,11 +20,26 @@ option java_package = "com.google.security.zynamics.bindiff";
 option java_outer_classname = "BinDiffProtos";
 
 message Config {
-  // Next id: 11
+  // Next id: 14
 
   // Configuration version. Should be at least "7" for proto based configuration
   // files.
   int32 version = 1;
+
+  // The BinDiff installation directory.
+  // Directory layout on Linux and Windows:
+  //   <directory>/bin      (BinDiff binaries, bindiff.jar)
+  //   <directory>/jre      (Bundled JRE)
+  //   <directory>/libexec  (Linux: location of bindiff_config_setup)
+  //
+  // On macOS, BinDiff uses an application bundle with a different directory
+  // layout rooted in "bundle_dir", with "directory" below it:
+  //   <bundle_dir>/Contents/app                    (bindiff.jar)
+  //   <bundle_dir>/Contents/MacOS                  <directory>
+  //   <bundle_dir>/Contents/MacOS/bin              (BinDiff binaries)
+  //   <bundle_dir>/Contents/MacOS/BinDiff          (Launcher)
+  //   <bundle_dir>/Contents/runtime/Contents/Home  (Bundled JRE)
+  string directory = 2;
 
   message UiLaunchOptions {
     // The java executable used to start the UI. If empty, BinDiff will try to
@@ -38,19 +53,16 @@ message Config {
     // will be set.
     int32 max_heap_size_mb = 3;
 
-    // The directory containing the BinDiff UI JAR file.
-    string directory = 4;
-
-    // Local IP address and port where the UI should listen on to server visual
+    // Local IP address and port where the UI should listen on to serve visual
     // diff requests. If empty (or zero in case of port), "localhost" and port
     // 2000 will be used.
-    string server = 5;
-    int32 port = 6;
+    string server = 4;
+    int32 port = 5;
 
     // Number of times BinDiff should try to launch the UI.
-    int32 retries = 7;
+    int32 retries = 6;
   }
-  UiLaunchOptions ui = 2;
+  UiLaunchOptions ui = 3;
 
   message IdaProOptions {
     // The IDA Pro installation directory. If empty, the BinDiff plugin will
@@ -65,11 +77,13 @@ message Config {
     // Like executable, but for 64-bit addresses. If unset, defaults to "ida64".
     string executable64 = 3;
   }
-  IdaProOptions ida = 3;
+  IdaProOptions ida = 4;
+
+  reserved 5, 6;  // Binary Ninja, Ghidra
 
   // How many BinDiff threads to use when batch-diffing. Use 0 or -1 for the
   // number of hardware threads present in the system.
-  int32 num_threads = 4;
+  int32 num_threads = 7;
 
   message LogOptions {
     enum LogLevel {
@@ -94,14 +108,14 @@ message Config {
     // Whether to also log to standard error
     bool to_stderr = 4;
   }
-  LogOptions log = 5;
+  LogOptions log = 8;
 
   message BinaryFormatOptions {
     // Whether to include demangled function names in the binary database
     // format. The default is to include them.
     bool exclude_function_names = 1;
   }
-  BinaryFormatOptions binary_format = 10;
+  BinaryFormatOptions binary_format = 9;
 
   message MatchingStep {
     string name = 1;
@@ -111,10 +125,10 @@ message Config {
   // at https://zynamics.com/bindiff/manual/index.html#N2038E.
   // If empty, built-in settings will be used. Note that order matters and
   // duplicates will be ignored, keeping steps that were added first.
-  repeated MatchingStep function_matching = 6;
+  repeated MatchingStep function_matching = 10;
   // See https://zynamics.com/bindiff/manual/index.html#N20496.
   // The comments for function_matching also apply here.
-  repeated MatchingStep basic_block_matching = 7;
+  repeated MatchingStep basic_block_matching = 11;
 
   message UiTheme {
     message ThemeFont {
@@ -160,7 +174,7 @@ message Config {
   }
 
   // Maps names to themes
-  map<string, UiTheme> themes = 8;
+  map<string, UiTheme> themes = 12;
 
   message UiPreferences {
     // Filename of the default workspace that BinDiff loads automatically.
@@ -290,5 +304,5 @@ message Config {
     // written back.
     DebugOptions debug = 7;
   }
-  UiPreferences preferences = 9;
+  UiPreferences preferences = 13;
 }

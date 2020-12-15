@@ -92,7 +92,7 @@ public class ResourceUtils {
   }
 
   public static InputStream getResource(final String resourcePath) {
-    for (String path : SEARCH_PATHS) {
+    for (final String path : SEARCH_PATHS) {
       final InputStream stream = BinDiff.class.getResourceAsStream(path + resourcePath);
       if (stream != null) {
         return stream;
