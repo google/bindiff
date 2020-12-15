@@ -34,6 +34,7 @@ import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -296,7 +297,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
       // diff
       try {
-        final String engineExe = ExternalAppUtils.getCommandLineDiffer();
+        final File engineExe = ExternalAppUtils.getBinDiffEngine();
 
         String primaryDifferArgument = "";
         if (primaryIdbFile != null) {
@@ -327,14 +328,14 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         logger.at(Level.INFO).log("- Diffing done successfully");
 
         return diffBinaryPath;
-      } catch (final DifferException e) {
+      } catch (final DifferException | FileNotFoundException e) {
         logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
         CMessageBox.showError(parentWindow, e.getMessage());
       }
 
       return null;
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log("New Diff failed..");
+      logger.at(Level.SEVERE).withCause(e).log("New Diff failed.");
       CMessageBox.showError(parentWindow, "New Diff failed.");
     }
 
@@ -343,13 +344,12 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
   public void newDiff() {
     try {
-      String matchedPath = createNewDiff();
+      final String matchedPath = createNewDiff();
       if (matchedPath == null) {
         return;
       }
 
       final File newMatchesDatabase = new File(matchedPath);
-
       if (newMatchesDatabase.exists()) {
         setDescription("Preloading Diff...");
 

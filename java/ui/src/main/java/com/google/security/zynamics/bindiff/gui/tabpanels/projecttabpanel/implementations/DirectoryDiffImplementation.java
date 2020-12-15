@@ -34,6 +34,7 @@ import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.gui.ProgressDialogs.CEndlessHelperThread;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,19 +105,18 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     // TODO(cblichmann): Rewrite error-handling to not return a list of plain error messages
     final List<String> matchesPaths = new ArrayList<>();
 
-    final String engineExe = ExternalAppUtils.getCommandLineDiffer();
-
-    if (!new File(engineExe).exists()) {
-      final String msg =
-          String.format("Can't start directory diff. Couldn't find engine at '%s'", engineExe);
-      logger.at(Level.SEVERE).log(msg);
-      CMessageBox.showError(parentWindow, msg);
+    final File engineExe;
+    try {
+      engineExe = ExternalAppUtils.getBinDiffEngine();
+    } catch (final DifferException | FileNotFoundException e) {
+      logger.at(Level.SEVERE).withCause(e).log();
+      CMessageBox.showError(parentWindow, e.getMessage());
 
       return matchesPaths;
     }
 
     logger.at(Level.INFO).log(
-        "Start Directory Diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
+        "Start directory diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
 
     final String workspacePath = workspace.getWorkspaceDir().getPath();
     for (final DiffPairTableData data : idbPairs) {
@@ -260,8 +260,6 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
             String.format(
                 "Diffing '%s' failed. Reason: %s", data.getDestinationDirectory(), e.getMessage());
         diffingErrorMessages.add(msg);
-
-        continue;
       }
     }
 

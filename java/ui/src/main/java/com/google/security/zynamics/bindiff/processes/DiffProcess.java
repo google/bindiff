@@ -64,22 +64,15 @@ public class DiffProcess {
   }
 
   public static void startDiffProcess(
-      final String differExe,
+      final File differExe,
       final String primaryExportedName,
       final String secondaryExportedName,
       final File outputDir)
       throws DifferException {
-    final File differExeFile = new File(differExe);
-    if (!differExeFile.exists()) {
-      throw new DifferException("Can't find BinDiff engine at '" + differExe + "'.");
-    }
-    if (!differExeFile.canExecute()) {
-      throw new DifferException("BinDiff engine is not an executable '" + differExe + "'.");
-    }
-
     final ProcessBuilder diffProcess =
         new ProcessBuilder(
-            differExe,
+            differExe.getPath(),
+            "--nologo",
             "--primary",
             primaryExportedName,
             "--secondary",

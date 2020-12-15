@@ -14,34 +14,60 @@
 
 package com.google.security.zynamics.bindiff.utils;
 
-import com.google.security.zynamics.bindiff.config.BinDiffConfig;
-import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
+import com.google.common.base.Ascii;
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.IdaProOptions;
+import com.google.security.zynamics.bindiff.config.Config;
+import com.google.security.zynamics.bindiff.exceptions.DifferException;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import com.google.security.zynamics.zylib.system.IdaHelpers;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Paths;
 
 public class ExternalAppUtils {
-  public static String getCommandLineDiffer() {
-    String enginePath = BinDiffConfig.getInstance().getMainSettings().getBinDiffDirectory();
-    if (enginePath == null || enginePath.isEmpty()) {
-      enginePath = FileUtils.findLocalRootPath(ExternalAppUtils.class);
+
+  private ExternalAppUtils() {}
+
+  public static File getBinDiffEngine() throws DifferException, FileNotFoundException {
+    String rootPath = Config.getInstance().getDirectory();
+    if ("".equals(rootPath)) {
+      rootPath = FileUtils.findLocalRootPath(ExternalAppUtils.class);
     }
-    return FileUtils.ensureTrailingSlash(enginePath) + Constants.BINDIFF_ENGINE_EXECUTABLE;
+    for (final String path :
+        new String[] {
+          "bin", // Binary directory under ui.directory, default case
+          "", // Engine exists next to UI JAR file or "bin" is set as ui.directory
+          Paths.get("..", "MacOS", "bin").toString() // macOS, relative to "app" bundle dir
+        }) {
+      final File bindiffEngine =
+          Paths.get(rootPath, path, Constants.BINDIFF_ENGINE_EXECUTABLE).toFile();
+      if (!bindiffEngine.exists()) {
+        continue;
+      }
+      if (!bindiffEngine.canExecute()) {
+        throw new DifferException(
+            "BinDiff engine is not marked executable: " + bindiffEngine.getPath());
+      }
+      return bindiffEngine;
+    }
+    throw new FileNotFoundException(
+        "BinDiff engine not found in configured path: " + getBinDiffEngine().getPath());
   }
 
   public static File getIdaExe(final File inFile) {
     final String extension = FileUtils.getFileExtension(inFile);
-    final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
+    final IdaProOptions ida = Config.getInstance().getIda();
 
-    if (extension.equalsIgnoreCase(Constants.IDB32_EXTENSION)) {
-      return new File(
-          settings.getIdaDirectory() + File.separatorChar + IdaHelpers.IDA32_EXECUTABLE);
+    String idaExe;
+    if (Ascii.equalsIgnoreCase(extension, Constants.IDB64_EXTENSION)) {
+      idaExe =
+          ida.getExecutable64().isEmpty() ? IdaHelpers.IDA64_EXECUTABLE : ida.getExecutable64();
+    } else if (Ascii.equalsIgnoreCase(extension, Constants.IDB32_EXTENSION)) {
+      idaExe = ida.getExecutable().isEmpty() ? IdaHelpers.IDA64_EXECUTABLE : ida.getExecutable();
+    } else {
+      return null;
     }
-    if (extension.equalsIgnoreCase(Constants.IDB64_EXTENSION)) {
-      return new File(
-          settings.getIdaDirectory() + File.separatorChar + IdaHelpers.IDA64_EXECUTABLE);
-    }
-    return null;
+    return Paths.get(ida.getDirectory(), idaExe).toFile();
   }
 }
