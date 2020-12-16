@@ -22,6 +22,7 @@ jobs:
       env:
         RUNNER_WORKSPACE: ${{ runner.workspace }}
         IDASDK_SECRET: ${{ secrets.IDASDK_SECRET }}
+      working-directory: ${{ github.workspace }}
       run: |
         cmake -E make_directory "${RUNNER_WORKSPACE}/build"
         ./.github/scripts/decrypt_secret.sh
@@ -29,16 +30,16 @@ jobs:
           -d "${RUNNER_WORKSPACE}/build/"
 
     - name: Configure CMake
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{ runner.workspace }}/build
       run: |
         cmake "${GITHUB_WORKSPACE}" -G Ninja \
           "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
-          "-DIdaSdk_ROOT_DIR=${{runner.workspace}}/build/idasdk75"
+          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk75"
 
     - name: Build
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{ runner.workspace }}/build
       run: cmake --build . --config "${BUILD_TYPE}"
 
     - name: Test
-      working-directory: ${{runner.workspace}}/build
+      working-directory: ${{ runner.workspace }}/build
       run: ctest --build-config "${BUILD_TYPE}" --output-on-failure
