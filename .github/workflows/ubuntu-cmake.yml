@@ -19,13 +19,14 @@ jobs:
       uses: seanmiddleditch/gha-setup-ninja@v3
 
     - name: Create Build Environment
+      env:
+        RUNNER_WORKSPACE: ${{ runner.workspace }}
+        IDASDK_SECRET: ${{ secrets.IDASDK_SECRET }}
       run: |
-        cmake -E make_directory "${{runner.workspace}}/build"
-        gpg --quiet --batch --yes --decrypt "--passphrase=${IDASDK_SECRET}" \
-          --output "${{runner.workspace}}/build/idasdk75.zip" \
-          "${GITHUB_WORKSPACE}/third_party/idasdk75.zip.gpg"
-        unzip -q "${{runner.workspace}}/build/idasdk75.zip" \
-          -d "${{runner.workspace}}/build/"
+        cmake -E make_directory "${RUNNER_WORKSPACE}/build"
+        ./.github/scripts/decrypt_secret.sh
+        unzip -q "${RUNNER_WORKSPACE}/build/idasdk75.zip" \
+          -d "${RUNNER_WORKSPACE}/build/"
 
     - name: Configure CMake
       working-directory: ${{runner.workspace}}/build
