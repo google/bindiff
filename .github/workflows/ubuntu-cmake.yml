@@ -1,0 +1,43 @@
+name: linux-build
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Create Build Environment
+      run: |
+        cmake -E make_directory "${{runner.workspace}}/build"
+        gpg --quiet --batch --yes --decrypt "--passphrase=${IDASDK_SECRET}" \
+          --output "${{runner.workspace}}/build/idasdk75.zip" \
+          "${GITHUB_WORKSPACE}/third_party/idasdk75.zip.gpg"
+        unzip -q "${{runner.workspace}}/build/idasdk75.zip" \
+          -d "${{runner.workspace}}/build/"
+
+    - name: Configure CMake
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        cmake "${GITHUB_WORKSPACE}" -G Ninja \
+          "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
+          "-DIdaSdk_ROOT_DIR=${{runner.workspace}}/build/idasdk75"
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config "${BUILD_TYPE}"
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      run: ctest --build-config "${BUILD_TYPE}" --output-on-failure
