@@ -58,8 +58,8 @@ class IdaTypesContainer : public TypesContainer {
   virtual const BaseType* GetFunctionPrototype(const Function& function) const;
 
  private:
-  using TypeIdMap = std::map<uint64_t, BaseType*>;
-  using PrototypesMap = std::map<Address, const BaseType*>;
+  using TypeIdMap = absl::flat_hash_map<uint64_t, BaseType*>;
+  using PrototypesMap = absl::flat_hash_map<Address, const BaseType*>;
 
   template<class T> void CollectCompoundTypes(T start_it, T end_it);
   template<class T> void CollectMemberTypes(T start_it, T end_it);

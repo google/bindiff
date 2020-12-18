@@ -247,6 +247,7 @@ add_library(binexport_core
 )
 target_link_libraries(binexport_core PUBLIC
   absl::bad_optional_access
+  absl::btree
   absl::flat_hash_map
   absl::flat_hash_set
   absl::hash

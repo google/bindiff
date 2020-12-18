@@ -39,6 +39,7 @@ class Operand {
   static Operand* CreateOperand(const Expressions& expressions);
   static void EmptyCache();
   static const OperandCache& GetOperands();
+  // TODO(cblichmann): Unused?
   static void PurgeCache(const std::set<int>& ids_to_keep);
   const Expression& GetExpression(int index) const;
   const Expression& GetLastExpression() const;

@@ -22,6 +22,7 @@
 #include <vector>
 #undef max
 
+#include "absl/container/btree_map.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/nested_iterator.h"
 #include "third_party/zynamics/binexport/range.h"
@@ -55,7 +56,7 @@ using BasicBlocks = std::vector<BasicBlock*>;
 class BasicBlock {
  private:
   // Important: This must be a sorted container.
-  using Cache = std::map<Address, std::unique_ptr<BasicBlock>>;
+  using Cache = absl::btree_map<Address, std::unique_ptr<BasicBlock>>;
 
   // In most cases there is only one InstructionRange per BasicBlock. Exceptions
   // are overlapping instructions and appended BasicBlocks. A linked list is

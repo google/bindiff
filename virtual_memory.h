@@ -19,6 +19,8 @@
 #include <map>
 #include <vector>
 
+#include "absl/container/btree_map.h"
+#include "absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/types.h"
 
 class AddressSpace {
@@ -30,9 +32,9 @@ class AddressSpace {
   };
 
   using MemoryBlock = std::vector<Byte>;
-  using Data = std::map<Address, MemoryBlock>;
-  using Flags = std::map<Address, int>;
-  using Ids = std::map<Address, int>;
+  using Data = absl::btree_map<Address, MemoryBlock>;
+  using Flags = absl::flat_hash_map<Address, int>;
+  //using Ids = absl::btree_map<Address, int>;
 
   // Copies the block. Returns true iff the block was added successfully, false
   // if the block overlaps with existing memory.

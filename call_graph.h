@@ -18,6 +18,7 @@
 #include <iosfwd>
 #include <set>
 
+#include "third_party/absl/container/btree_set.h"
 #include "third_party/absl/container/node_hash_map.h"
 #include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/comment.h"
@@ -40,7 +41,7 @@ struct EdgeInfo {
 class CallGraph {
  public:
   // This set should be sorted.
-  using FunctionEntryPoints = std::set<Address>;
+  using FunctionEntryPoints = absl::btree_set<Address>;
 
   using Edges = std::vector<EdgeInfo>;
   using StringReferences = absl::node_hash_map<Address, size_t>;
