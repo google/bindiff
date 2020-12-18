@@ -68,8 +68,12 @@ configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
 # Plugin names for IDA Pro and Binary Ninja
 # TODO(cblichmann): Change IDA name when releasing BinExport 12
-set(binexport_ida_plugin_name binexport${binexport_VERSION_MAJOR})
-set(binexport_bn_plugin_name binexport${binexport_VERSION_MAJOR}_binaryninja)
+if(BINEXPORT_ENABLE_IDAPRO)
+  set(binexport_ida_plugin_name binexport${binexport_VERSION_MAJOR})
+endif()
+if(BINEXPORT_ENABLE_BINARYNINJA)
+  set(binexport_bn_plugin_name binexport${binexport_VERSION_MAJOR}_binaryninja)
+endif()
 
 # Interface library with include paths used by BinExport
 add_library(binexport_base INTERFACE)
@@ -254,106 +258,112 @@ target_link_libraries(binexport_core PUBLIC
   binexport_shared
 )
 
-# Code shared with the BinDiff plugin
-add_ida_library(binexport_plugin_shared STATIC
-  hash.cc
-  hash.h
-  ida/digest.cc
-  ida/digest.h
-  ida/flow_analysis.cc
-  ida/flow_analysis.h
-  ida/log_sink.cc
-  ida/log_sink.h
-  ida/names.cc
-  ida/names.h
-  ida/ui.cc
-  ida/ui.h
-  ida/util.cc
-  ida/util.h
-)
-ida_target_link_libraries(binexport_plugin_shared PUBLIC
-  absl::time
-  binexport_base
-)
+# IDA Pro plugins
+# TODO(cblichmann): Move most of this to a new ida/CMakeLists.txt
+if(BINEXPORT_ENABLE_IDAPRO)
+  # Code shared with the BinDiff plugin
+  add_ida_library(binexport_plugin_shared STATIC
+    hash.cc
+    hash.h
+    ida/digest.cc
+    ida/digest.h
+    ida/flow_analysis.cc
+    ida/flow_analysis.h
+    ida/log_sink.cc
+    ida/log_sink.h
+    ida/names.cc
+    ida/names.h
+    ida/ui.cc
+    ida/ui.h
+    ida/util.cc
+    ida/util.h
+  )
+  ida_target_link_libraries(binexport_plugin_shared PUBLIC
+    absl::time
+    binexport_base
+  )
 
-set(binexport_POSTGRESQL_SRCS)
-if(BINEXPORT_ENABLE_POSTGRESQL)
-  set(binexport_plugin_POSTGRESQL_SRCS
-    database/initialize_constraints_postgresql_sql.h
-    database/initialize_indices_postgresql_sql.h
-    database/initialize_tables_postgresql_sql.h
-    database/maintenance_postgresql_sql.h
-    database/postgresql.cc
-    database/postgresql.h
-    database/postgresql_writer.cc
-    database/postgresql_writer.h
-    database/query_builder.cc
-    database/query_builder.h
+  set(binexport_POSTGRESQL_SRCS)
+  if(BINEXPORT_ENABLE_POSTGRESQL)
+    set(binexport_plugin_POSTGRESQL_SRCS
+      database/initialize_constraints_postgresql_sql.h
+      database/initialize_indices_postgresql_sql.h
+      database/initialize_tables_postgresql_sql.h
+      database/maintenance_postgresql_sql.h
+      database/postgresql.cc
+      database/postgresql.h
+      database/postgresql_writer.cc
+      database/postgresql_writer.h
+      database/query_builder.cc
+      database/query_builder.h
+    )
+  endif()
+  add_ida_plugin(${binexport_ida_plugin_name}
+    ${binexport_plugin_POSTGRESQL_SRCS}
+    ida/arm.cc
+    ida/arm.h
+    ida/dalvik.cc
+    ida/dalvik.h
+    ida/generic.cc
+    ida/generic.h
+    ida/main_plugin.cc
+    ida/main_plugin.h
+    ida/metapc.cc
+    ida/metapc.h
+    ida/mips.cc
+    ida/mips.h
+    ida/plugin.h
+    ida/ppc.cc
+    ida/ppc.h
+    ida/types_container.cc
+    ida/types_container.h
   )
-endif()
-add_ida_plugin(${binexport_ida_plugin_name}
-  ${binexport_plugin_POSTGRESQL_SRCS}
-  ida/arm.cc
-  ida/arm.h
-  ida/dalvik.cc
-  ida/dalvik.h
-  ida/generic.cc
-  ida/generic.h
-  ida/main_plugin.cc
-  ida/main_plugin.h
-  ida/metapc.cc
-  ida/metapc.h
-  ida/mips.cc
-  ida/mips.h
-  ida/plugin.h
-  ida/ppc.cc
-  ida/ppc.h
-  ida/types_container.cc
-  ida/types_container.h
-)
-if(BINEXPORT_ENABLE_POSTGRESQL)
-  list(APPEND binexport_libraries
-    ${PostgreSQL_LIBRARIES}
-    # OpenSSL must come after PostgreSQL
-    OpenSSL::SSL
+  if(BINEXPORT_ENABLE_POSTGRESQL)
+    list(APPEND binexport_libraries
+      ${PostgreSQL_LIBRARIES}
+      # OpenSSL must come after PostgreSQL
+      OpenSSL::SSL
+    )
+  endif()
+  if(WIN32)
+    list(APPEND binexport_libraries crypt32.lib
+                                    secur32.lib
+                                    shlwapi.lib
+                                    ws2_32.lib
+                                    wldap32.lib)
+  endif()
+  ida_target_link_libraries(${binexport_ida_plugin_name}
+    absl::bad_optional_access
+    absl::flat_hash_map
+    absl::flat_hash_set
+    absl::hash
+    absl::node_hash_map
+    absl::node_hash_set
+    absl::optional
+    absl::strings
+    absl::time
+    binexport_core
+    binexport_plugin_shared
+    ${binexport_libraries}
   )
+  set_ida_target_properties(${binexport_ida_plugin_name}
+    PROPERTIES POSITION_INDEPENDENT_CODE ON
+    OSX_ARCHITECTURES x86_64
+  )
+  ida_install(TARGETS ${binexport_ida_plugin_name}
+              ARCHIVE DESTINATION binexport-prefix
+              RUNTIME DESTINATION binexport-prefix
+              LIBRARY DESTINATION binexport-prefix)
 endif()
-if(WIN32)
-  list(APPEND binexport_libraries crypt32.lib
-                                  secur32.lib
-                                  shlwapi.lib
-                                  ws2_32.lib
-                                  wldap32.lib)
-endif()
-ida_target_link_libraries(${binexport_ida_plugin_name}
-  absl::bad_optional_access
-  absl::flat_hash_map
-  absl::flat_hash_set
-  absl::hash
-  absl::node_hash_map
-  absl::node_hash_set
-  absl::optional
-  absl::strings
-  absl::time
-  binexport_core
-  binexport_plugin_shared
-  ${binexport_libraries}
-)
-set_ida_target_properties(${binexport_ida_plugin_name}
-  PROPERTIES POSITION_INDEPENDENT_CODE ON
-  OSX_ARCHITECTURES x86_64
-)
-ida_install(TARGETS ${binexport_ida_plugin_name}
-            ARCHIVE DESTINATION binexport-prefix
-            RUNTIME DESTINATION binexport-prefix
-            LIBRARY DESTINATION binexport-prefix)
 
 # Binary Ninja plugin
-add_subdirectory(binaryninja)
-install(TARGETS ${binexport_bn_plugin_name}
-        ARCHIVE DESTINATION binexport-prefix
-        RUNTIME DESTINATION binexport-prefix
-        LIBRARY DESTINATION binexport-prefix)
+if(BINEXPORT_ENABLE_BINARYNINJA)
+  add_subdirectory(binaryninja)
+  install(TARGETS ${binexport_bn_plugin_name}
+          ARCHIVE DESTINATION binexport-prefix
+          RUNTIME DESTINATION binexport-prefix
+          LIBRARY DESTINATION binexport-prefix)
+endif()
 
 # BinExport reader library
 add_library(binexport_reader STATIC
