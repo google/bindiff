@@ -167,7 +167,7 @@ class Expression {
 };
 #pragma pack(pop)
 
-typedef std::vector<Expression*> Expressions;
+using Expressions = std::vector<Expression*>;
 std::ostream& operator<<(std::ostream& stream, const Expression& expression);
 
 class Instruction;

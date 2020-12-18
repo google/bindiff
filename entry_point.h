@@ -73,7 +73,7 @@ class EntryPoint {
 bool operator<(const EntryPoint& lhs, const EntryPoint& rhs);
 bool operator==(const EntryPoint& lhs, const EntryPoint& rhs);
 
-typedef std::vector<EntryPoint> EntryPoints;
+using EntryPoints = std::vector<EntryPoint>;
 
 class EntryPointManager {
  public:

@@ -29,10 +29,10 @@ class AddressSpace {
     kExecute = 1 << 2  // Address space is executable.
   };
 
-  typedef std::vector<Byte> MemoryBlock;
-  typedef std::map<Address, MemoryBlock> Data;
-  typedef std::map<Address, int> Flags;
-  typedef std::map<Address, int> Ids;
+  using MemoryBlock = std::vector<Byte>;
+  using Data = std::map<Address, MemoryBlock>;
+  using Flags = std::map<Address, int>;
+  using Ids = std::map<Address, int>;
 
   // Copies the block. Returns true iff the block was added successfully, false
   // if the block overlaps with existing memory.

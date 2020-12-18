@@ -32,24 +32,23 @@ void BasicBlockInstructions::AddInstruction(
 }
 
 BasicBlock* BasicBlock::Create(BasicBlockInstructions* instructions) {
-  typedef NestedIterator<
-      typename BasicBlockInstructions::InstructionRanges::const_iterator>
-      Iterator;
+  using Iterator = NestedIterator<
+      typename BasicBlockInstructions::InstructionRanges::const_iterator>;
 
-  auto ranges_end(instructions->ranges_.end());
+  auto ranges_end = instructions->ranges_.end();
   Iterator instruction_first(instructions->ranges_.begin(), ranges_end);
   if (instruction_first == Iterator(ranges_end)) {
     return nullptr;
   }
 
   // Create the BasicBlock later if one does not exist here already.
-  auto emplace_result(cache_.emplace(instruction_first->GetAddress(),
-                                     nullptr /* no BasicBlock */));
-  if (!emplace_result.second) {
+  auto [entry, found] = cache_.emplace(instruction_first->GetAddress(),
+                                       nullptr /* no BasicBlock */);
+  if (!found) {
     return nullptr;
   }
 
-  auto& ptr(emplace_result.first->second);
+  auto& ptr = entry->second;
   ptr.reset(new BasicBlock(instructions));
   instructions->Clear();
   return ptr.get();
@@ -99,7 +98,7 @@ BasicBlock::InstructionConstIterator BasicBlock::GetInstruction(
 }
 
 BasicBlock::RangeConstIterator BasicBlock::BeforeEndRange() const {
-  auto last(ranges_.before_begin());
+  auto last = ranges_.before_begin();
   // This is O(n) on ranges, however there should be only one range usually.
   for (auto range(ranges_.begin()), ranges_end(ranges_.end());
        range != ranges_end; ++range) {

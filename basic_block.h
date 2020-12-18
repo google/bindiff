@@ -45,28 +45,32 @@ class BasicBlockInstructions {
   void Clear() { ranges_.clear(); }
 
  private:
-  typedef std::vector<InstructionRange> InstructionRanges;
+  using InstructionRanges = std::vector<InstructionRange>;
   InstructionRanges ranges_;
 };
 
-typedef std::vector<BasicBlock*> BasicBlocks;
+using BasicBlocks = std::vector<BasicBlock*>;
 
 #pragma pack(push, 1)
 class BasicBlock {
  private:
   // Important: This must be a sorted container.
-  typedef std::map<Address, std::unique_ptr<BasicBlock>> Cache;
+  using Cache = std::map<Address, std::unique_ptr<BasicBlock>>;
 
   // In most cases there is only one InstructionRange per BasicBlock. Exceptions
   // are overlapping instructions and appended BasicBlocks. A linked list is
   // used because it has the lowest memory overhead with only one element.
-  typedef std::forward_list<InstructionRange> InstructionRanges;
-  typedef InstructionRanges::iterator RangeIterator;
-  typedef InstructionRanges::const_iterator RangeConstIterator;
+  using InstructionRanges = std::forward_list<InstructionRange>;
+  using RangeIterator = InstructionRanges::iterator;
+  using RangeConstIterator = InstructionRanges::const_iterator;
 
  public:
-  typedef NestedIterator<RangeIterator> InstructionIterator;
-  typedef NestedIterator<RangeConstIterator> InstructionConstIterator;
+  using InstructionIterator = NestedIterator<RangeIterator>;
+  using InstructionConstIterator = NestedIterator<RangeConstIterator>;
+
+  // Copying disallowed to avoid deep-copies of ranges_ container.
+  BasicBlock(const BasicBlock&) = delete;
+  const BasicBlock& operator=(const BasicBlock&) = delete;
 
   // Returns the basic block at entry_point_address.
   static BasicBlock* Find(Address entry_point_address) {
@@ -159,10 +163,6 @@ class BasicBlock {
               const FlowGraph& flow_graph) const;
 
  private:
-  // Copying disallowed to avoid deep-copies of ranges_ container.
-  BasicBlock(const BasicBlock&) = delete;
-  const BasicBlock& operator=(const BasicBlock&) = delete;
-
   explicit BasicBlock(BasicBlockInstructions* instructions) : id_(-1) {
     Append(&instructions->ranges_);
   }
@@ -180,10 +180,10 @@ class BasicBlock {
 
   RangeConstIterator BeforeEndRange() const;
 
+  static Cache cache_;
+
   int id_;  // Careful: This might not stay constant for shared basic blocks.
   InstructionRanges ranges_;
-
-  static Cache cache_;
 };
 #pragma pack(pop)
 

@@ -36,7 +36,7 @@ struct TreeNode {
   Children children;  // Should be stored sorted by position.
 };
 
-typedef std::vector<std::shared_ptr<TreeNode>> Tree;
+using Tree = std::vector<std::shared_ptr<TreeNode>>;
 
 // TODO(cblichmann): Immediate floats are rendered as hex and aren't properly
 //                   checked for their sign.

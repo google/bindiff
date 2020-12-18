@@ -68,7 +68,7 @@ struct AddressReference {
   uint8_t kind_;
 };
 
-typedef std::vector<AddressReference> AddressReferences;
+using AddressReferences = std::vector<AddressReference>;
 
 bool operator<(const AddressReference& one, const AddressReference& two);
 bool operator==(const AddressReference& one, const AddressReference& two);
