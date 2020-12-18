@@ -14,3 +14,6 @@
 
 option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
 option(BINEXPORT_ENABLE_TESTS "Build test targets" ON)
+
+set(BINEXPORT_BINARYNINJA_CHANNEL "stable" CACHE
+    STRING "Binary Ninja channel, either 'stable' or 'dev'")

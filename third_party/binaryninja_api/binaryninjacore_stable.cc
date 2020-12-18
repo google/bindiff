@@ -88,7 +88,6 @@ BINARYNINJACOREAPI void BNLogInfo(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogWarn(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogError(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogAlert(const char* fmt, ...) {}
-BINARYNINJACOREAPI void BNLogString(BNLogLevel level, const char* str) {}
 BINARYNINJACOREAPI void BNRegisterLogListener(BNLogListener* listener) {}
 BINARYNINJACOREAPI void BNUnregisterLogListener(BNLogListener* listener) {}
 BINARYNINJACOREAPI void BNUpdateLogListeners(void) {}
@@ -270,9 +269,6 @@ BINARYNINJACOREAPI void BNFreeUserList(BNUser** users, size_t count) {}
 BINARYNINJACOREAPI char* BNGetUserName(BNUser* user) { return {}; }
 BINARYNINJACOREAPI char* BNGetUserEmail(BNUser* user) { return {}; }
 BINARYNINJACOREAPI char* BNGetUserId(BNUser* user) { return {}; }
-BINARYNINJACOREAPI bool BNOpenProject(BNFileMetadata* file) { return {}; }
-BINARYNINJACOREAPI void BNCloseProject(BNFileMetadata* file) {}
-BINARYNINJACOREAPI bool BNIsProjectOpen(BNFileMetadata* file) { return {}; }
 BINARYNINJACOREAPI char* BNGetCurrentView(BNFileMetadata* file) { return {}; }
 BINARYNINJACOREAPI uint64_t BNGetCurrentOffset(BNFileMetadata* file) {
   return {};
@@ -287,10 +283,6 @@ BINARYNINJACOREAPI BNBinaryView* BNGetFileViewOfType(BNFileMetadata* file,
 }
 BINARYNINJACOREAPI char** BNGetExistingViews(BNFileMetadata* file,
                                              size_t* count) {
-  return {};
-}
-BINARYNINJACOREAPI bool BNIsSnapshotDataAppliedWithoutError(
-    BNFileMetadata* view) {
   return {};
 }
 BINARYNINJACOREAPI BNBinaryView* BNNewViewReference(BNBinaryView* view) {
@@ -685,9 +677,6 @@ BINARYNINJACOREAPI BNPlatform* BNGetPlatformForViewType(BNBinaryViewType* type,
                                                         BNArchitecture* arch) {
   return {};
 }
-BINARYNINJACOREAPI void BNRegisterBinaryViewEvent(
-    BNBinaryViewEventType type, void (*callback)(void* ctx, BNBinaryView* view),
-    void* ctx) {}
 BINARYNINJACOREAPI BNBinaryReader* BNCreateBinaryReader(BNBinaryView* view) {
   return {};
 }
@@ -1861,13 +1850,6 @@ BINARYNINJACOREAPI uint64_t BNToVariableIdentifier(const BNVariable* var) {
 BINARYNINJACOREAPI BNVariable BNFromVariableIdentifier(uint64_t id) {
   return {};
 }
-BINARYNINJACOREAPI BNDeadStoreElimination
-BNGetFunctionVariableDeadStoreElimination(BNFunction* func,
-                                          const BNVariable* var) {
-  return {};
-}
-BINARYNINJACOREAPI void BNSetFunctionVariableDeadStoreElimination(
-    BNFunction* func, const BNVariable* var, BNDeadStoreElimination mode) {}
 BINARYNINJACOREAPI BNReferenceSource* BNGetFunctionCallSites(BNFunction* func,
                                                              size_t* count) {
   return {};
@@ -3165,10 +3147,6 @@ BINARYNINJACOREAPI size_t
 BNGetMediumLevelILExprIndex(BNLowLevelILFunction* func, size_t expr) {
   return {};
 }
-BINARYNINJACOREAPI size_t* BNGetMediumLevelILExprIndexes(
-    BNLowLevelILFunction* func, size_t expr, size_t* count) {
-  return {};
-}
 BINARYNINJACOREAPI size_t BNGetMappedMediumLevelILInstructionIndex(
     BNLowLevelILFunction* func, size_t instr) {
   return {};
@@ -3494,10 +3472,6 @@ BINARYNINJACOREAPI size_t
 BNGetLowLevelILExprIndex(BNMediumLevelILFunction* func, size_t expr) {
   return {};
 }
-BINARYNINJACOREAPI size_t* BNGetLowLevelILExprIndexes(
-    BNMediumLevelILFunction* func, size_t expr, size_t* count) {
-  return {};
-}
 BINARYNINJACOREAPI BNHighLevelILFunction* BNGetHighLevelILForMediumLevelIL(
     BNMediumLevelILFunction* func) {
   return {};
@@ -3590,10 +3564,6 @@ BNGetMediumLevelILForHighLevelILFunction(BNHighLevelILFunction* func) {
 }
 BINARYNINJACOREAPI size_t BNGetMediumLevelILExprIndexFromHighLevelIL(
     BNHighLevelILFunction* func, size_t expr) {
-  return {};
-}
-BINARYNINJACOREAPI size_t* BNGetMediumLevelILExprIndexesFromHighLevelIL(
-    BNHighLevelILFunction* func, size_t expr, size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI void BNUpdateHighLevelILOperand(BNHighLevelILFunction* func,
@@ -5706,10 +5676,11 @@ BINARYNINJACOREAPI uint32_t BNGetAddressRenderedWidth(uint64_t addr) {
 }
 BINARYNINJACOREAPI void BNRustFreeString(const char* const) {}
 BINARYNINJACOREAPI void BNRustFreeStringArray(const char** const, uint64_t) {}
-BINARYNINJACOREAPI char** BNRustSimplifyStrToFQN(const char* const, bool) {
+BINARYNINJACOREAPI const char** const BNRustSimplifyStrToFQN(const char* const,
+                                                             bool) {
   return {};
 }
-BINARYNINJACOREAPI char* BNRustSimplifyStrToStr(const char* const) {
+BINARYNINJACOREAPI const char* const BNRustSimplifyStrToStr(const char* const) {
   return {};
 }
 }  // extern "C"
