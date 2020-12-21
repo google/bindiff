@@ -42,10 +42,10 @@ CallGraph::Vertex CallGraph::kInvalidVertex =
 CallGraph::CallGraph() : md_index_(0.0) {}
 
 std::string CallGraph::GetFilename() const {
-  const std::string::size_type filename_pos = filename_.rfind("/");
+  const std::string::size_type filename_pos = filename_.rfind('/');
   const std::string filename(filename_.substr(
       filename_pos != std::string::npos ? filename_pos + 1 : 0));
-  const std::string::size_type extension_pos = filename.rfind(".");
+  const std::string::size_type extension_pos = filename.rfind('.');
   return filename.substr(
       0, extension_pos != std::string::npos ? extension_pos : filename.size());
 }
