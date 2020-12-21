@@ -218,7 +218,7 @@ void DatabaseWriter::PrepareDatabase(const std::string& md5,
   }
 
   absl::StrReplaceAll({{"\\", "/"}}, &module_name_);
-  const auto pos = module_name_.rfind("/");
+  const auto pos = module_name_.rfind('/');
   const std::string module_name =
       pos != std::string::npos ? module_name_.substr(pos + 1) : module_name_;
 

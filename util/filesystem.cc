@@ -193,7 +193,7 @@ std::string Dirname(absl::string_view path) {
 
 std::string GetFileExtension(absl::string_view path) {
   std::string extension = Basename(path);
-  auto pos = extension.rfind(".");
+  auto pos = extension.rfind('.');
   return pos != absl::string_view::npos ? extension.substr(pos) : "";
 }
 
@@ -203,7 +203,7 @@ std::string ReplaceFileExtension(absl::string_view path,
   if (last_slash == absl::string_view::npos) {
     last_slash = 0;
   }
-  auto pos = path.substr(last_slash).find_last_of(".");
+  auto pos = path.substr(last_slash).find_last_of('.');
   if (pos != absl::string_view::npos) {
     pos += last_slash;
   }
