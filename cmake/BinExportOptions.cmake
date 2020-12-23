@@ -15,5 +15,8 @@
 option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
 option(BINEXPORT_ENABLE_TESTS "Build test targets" ON)
 
+option(BINEXPORT_ENABLE_IDAPRO "Enable building the IDA Pro plugins" ON)
+option(BINEXPORT_ENABLE_BINARYNINJA "Enable building the Binary Ninja plugin" ON)
+
 set(BINEXPORT_BINARYNINJA_CHANNEL "stable" CACHE
     STRING "Binary Ninja channel, either 'stable' or 'dev'")
