@@ -54,7 +54,7 @@ constexpr int kExitCode = 42;
 std::vector<std::string> GetSpawnProcessArgs() {
   return {
 #ifndef WIN32
-      "bash", "-c", absl::StrCat("exit ", kExitCode)
+      "sh", "-c", absl::StrCat("exit ", kExitCode)
 #else
       "cmd.exe", absl::StrCat("/C exit ", kExitCode)
 #endif

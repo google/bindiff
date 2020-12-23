@@ -101,27 +101,27 @@ absl::StatusOr<int> DoSpawnProcess(const std::vector<std::string>& argv,
 
   // Spawn the child process.
   pid_t childpid;
-  if (posix_spawnp(&childpid, spawned_args[0], /*file_actions=*/nullptr,
-                   /*attrp=*/nullptr, &spawned_args[0], environ) != 0) {
-    return absl::UnknownError(absl::StrCat("Error executing: '", argv[0], "'"));
+  if (int error =
+          posix_spawnp(&childpid, spawned_args[0], /*file_actions=*/nullptr,
+                       /*attrp=*/nullptr, &spawned_args[0], environ);
+      error != 0) {
+    return absl::UnknownError(
+        absl::StrCat("Error executing '", argv[0], "': ", strerror(error)));
   }
 
-  int options = wait ? 0 : WNOHANG;
   // Wait for the child process to exit or for error information to be
   // available.
-  pid_t wpid;
-  int status;
+  int status = 0;
+  int options = WUNTRACED | WCONTINUED | (wait ? 0 : WNOHANG);
   do {
-    wpid = waitpid(childpid, &status, options);
-    if (wpid == -1) {
-      // We may get ECHILD before SIGCHILD sometimes.
-      if (errno != ECHILD) {
-        return absl::UnknownError(
-            absl::StrCat("Error waiting for: '", argv[0], "'"));
+    if (waitpid(childpid, &status, options) == -1) {
+      if (errno == ECHILD) {  // No child to wait on
+        break;
       }
-      break;
+      return absl::UnknownError(absl::StrCat("Error waiting for '", argv[0],
+                                             "': ", GetLastOsError()));
     }
-  } while (wait && !WIFEXITED(status));
+  } while (wait && !WIFEXITED(status) && !WIFSIGNALED(status));
 
   exit_code = WEXITSTATUS(status);
   // Need to check for exit code 127 if an error occurred after posix_spawnp()
