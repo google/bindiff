@@ -16,8 +16,8 @@
 #define FUNCTION_H_
 
 #include <cstdint>
-#include <map>
 
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/basic_block.h"
 #include "third_party/zynamics/binexport/edge.h"
@@ -27,7 +27,7 @@ class CallGraph;
 class Function;
 class FlowGraph;
 
-using Functions = std::map<Address, Function*>;
+using Functions = absl::btree_map<Address, Function*>;
 
 class Function {
  public:

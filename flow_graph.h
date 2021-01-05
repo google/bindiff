@@ -19,6 +19,7 @@
 #include <map>
 #include <tuple>
 
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/edge.h"
 #include "third_party/zynamics/binexport/function.h"
@@ -43,7 +44,7 @@ class FlowGraph {
 
   // Instruction address, operand number, expression id
   using Ref = std::tuple<Address, uint8_t, int>;
-  using Substitutions = std::map<Ref, const std::string*>;  // Ordered
+  using Substitutions = absl::btree_map<Ref, const std::string*>;  // Ordered
   using Edges = std::vector<FlowGraphEdge>;
 
   FlowGraph() = default;

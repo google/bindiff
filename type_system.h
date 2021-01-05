@@ -99,7 +99,7 @@ class TypeSystem {
     int base_type_id;
     BaseType::MemberIds member_path;
   };
-  typedef std::vector<TypeSubstitution> TypeSubstitutions;
+  using TypeSubstitutions = std::vector<TypeSubstitution>;
 
   // Represents a data cross reference (to a type instance).
   struct DataXRef {
@@ -115,7 +115,7 @@ class TypeSystem {
     int expression_id;
     const TypeInstance* type_instance;
   };
-  typedef std::set<DataXRef> DataXRefs;
+  using DataXRefs = std::set<DataXRef>;
 
   const TypeSubstitutions& GetTypeSubstitutions() const {
     return type_substitutions_;

@@ -29,13 +29,13 @@
 template <typename Container, typename Iterator = typename Container::iterator>
 class Range {
  public:
-  typedef Iterator iterator;
-  typedef typename Container::const_iterator const_iterator;
-  typedef typename Container::reference reference;
-  typedef typename Container::const_reference const_reference;
-  typedef typename Container::pointer pointer;
-  typedef typename Container::const_pointer const_pointer;
-  typedef typename Container::size_type size_type;
+  using iterator = Iterator;
+  using const_iterator = typename Container::const_iterator;
+  using reference = typename Container::reference;
+  using const_reference = typename Container::const_reference;
+  using pointer = typename Container::pointer;
+  using const_pointer = typename Container::const_pointer;
+  using size_type = typename Container::size_type;
 
   explicit Range(const Container& c) : Range(c.begin(), c.end()) {}
 
@@ -47,11 +47,9 @@ class Range {
   Range(iterator begin, iterator end) : begin_(begin), end_(end) {}
 
   iterator begin() { return begin_; }
-
   const_iterator begin() const { return begin_; }
 
   iterator end() { return end_; }
-
   const_iterator end() const { return end_; }
 
   size_type size() const { return end_ - begin_; }

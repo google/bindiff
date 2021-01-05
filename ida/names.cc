@@ -37,6 +37,7 @@
 // clang-format on
 
 #include "base/logging.h"
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
@@ -548,8 +549,7 @@ void GetGlobalReferences(Address address, Comments* comments) {
   }
 }
 
-class FunctionCache {
- public:
+struct FunctionCache {
   explicit FunctionCache(func_t* function) : function(function) {
     if (!function) {
       return;
@@ -587,7 +587,7 @@ class FunctionCache {
   }
 
   func_t* function;
-  std::map<ea_t, std::string> local_vars;
+  absl::btree_map<ea_t, std::string> local_vars;
 };
 
 void GetLocalReferences(const insn_t& instruction, Comments* comments) {

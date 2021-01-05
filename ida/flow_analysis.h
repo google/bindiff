@@ -15,8 +15,7 @@
 #ifndef IDA_FLOW_ANALYSIS_H_
 #define IDA_FLOW_ANALYSIS_H_
 
-#include <map>
-
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/entry_point.h"
 #include "third_party/zynamics/binexport/expression.h"
@@ -27,8 +26,8 @@
 
 namespace security::binexport {
 
-// TODO(cblichmann): Use absl::btree_map and CacheString
-using ModuleMap = std::map<Address, std::string>;
+// TODO(cblichmann): Use CacheString
+using ModuleMap = absl::btree_map<Address, std::string>;
 
 // Creates a map "function address" -> "module name"
 ModuleMap InitModuleMap();

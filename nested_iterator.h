@@ -16,13 +16,13 @@
 // containers, iterating on elements of the inner containers. NestedIterator
 // is a forward iterator, reverse iteration and random access are not supported.
 //
-// Examples:
+// Example:
 //
-// typedef vector<vector<int> > Vec;
+// using Vec = vector<vector<int>>;
 // Vec v;
 // ...
-// NestedIterator<Vec> it(v.begin(), v.end())
-// NestedIterator<Vec> end(v.end())
+// NestedIterator<Vec> it(v.begin(), v.end());
+// NestedIterator<Vec> end(v.end());
 // while (it != end) {
 //   int i = *it;
 //   ...
@@ -38,20 +38,20 @@ template<typename OuterIterator> class NestedIterator {
  private:
   template<typename Pointer>
   struct Traits {
-    typedef typename OuterIterator::value_type::iterator iterator;
+    using iterator = typename OuterIterator::value_type::iterator;
   };
 
   template<typename Pointer> struct Traits<const Pointer*> {
-    typedef typename OuterIterator::value_type::const_iterator iterator;
+    using iterator = typename OuterIterator::value_type::const_iterator;
   };
 
  public:
-  typedef NestedIterator<OuterIterator> iterator_type;
+  using iterator_type = NestedIterator<OuterIterator>;
 
-  typedef typename Traits<typename OuterIterator::pointer>::iterator
-      InnerIterator;
-  typedef typename InnerIterator::reference reference;
-  typedef typename InnerIterator::pointer pointer;
+  using InnerIterator =
+      typename Traits<typename OuterIterator::pointer>::iterator;
+  using reference = typename InnerIterator::reference;
+  using pointer = typename InnerIterator::pointer;
 
   NestedIterator(const OuterIterator& oi, const OuterIterator& oend,
       const InnerIterator& ii)

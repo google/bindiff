@@ -154,10 +154,10 @@ int CallGraph::DeleteInvalidFunctions(FlowGraph* flow_graph) {
   for (auto function = flow_graph->GetFunctions().begin();
        function != flow_graph->GetFunctions().end();) {
     if (function->second->GetType(false) == Function::TYPE_INVALID) {
-      auto zombie = function++;
-      functions_.erase(zombie->first);
-      delete zombie->second;
-      flow_graph->GetFunctions().erase(zombie);
+      functions_.erase(function->first);
+      delete function->second;
+      // Note: btree_map<>::erase() invalidates iterators
+      function = flow_graph->GetFunctions().erase(function);
       ++num_invalid_functions;
     } else {
       function++;

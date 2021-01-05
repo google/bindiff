@@ -53,7 +53,7 @@ class Instruction {
   CallTargets call_targets_;
 };
 
-typedef std::vector<Instruction> Instructions;
+using Instructions = std::vector<Instruction>;
 
 const Instruction* GetInstruction(const Instructions& instructions,
                                   const Address instruction_address);

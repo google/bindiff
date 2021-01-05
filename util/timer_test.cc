@@ -23,10 +23,10 @@ namespace {
 // increases in units of 5 seconds (until the underlying time_point
 // representation wraps around).
 struct MockSteadyClock {
-  typedef std::chrono::seconds duration;
-  typedef duration::rep rep;
-  typedef duration::period period;
-  typedef std::chrono::time_point<MockSteadyClock, duration> time_point;
+  using duration = std::chrono::seconds;
+  using rep = duration::rep;
+  using period = duration::period;
+  using time_point = std::chrono::time_point<MockSteadyClock, duration>;
 
   static constexpr bool is_steady = true;
 

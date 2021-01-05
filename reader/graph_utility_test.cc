@@ -29,7 +29,7 @@ class GraphUtilityTest : public testing::Test {
   const std::vector<Address> addresses_{0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
                                         10, 11, 12, 13, 14, 15, 16, 16, 18, 19};
 
-  typedef std::pair<uint32_t, uint32_t> edge;
+  using edge = std::pair<uint32_t, uint32_t>;
   const std::vector<edge> edges_{
       {0, 1},   {1, 2},   {2, 3},   {3, 4},   {4, 5},   {5, 6},   {5, 7},
       {5, 8},   {5, 9},   {6, 10},  {7, 10},  {8, 10},  {9, 10},  {10, 11},
@@ -53,31 +53,32 @@ class GraphUtilityTest : public testing::Test {
  public:
   struct EdgeProperty {};
 
-  typedef boost::compressed_sparse_row_graph<boost::bidirectionalS, VertexInfo,
-                                             EdgeProperty, boost::no_property,
-                                             uint32_t, uint32_t>
-      Graph;
+  using Graph =
+      boost::compressed_sparse_row_graph<boost::bidirectionalS, VertexInfo,
+                                         EdgeProperty, boost::no_property,
+                                         uint32_t, uint32_t>;
 
   Graph graph_;
 
-  typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef boost::graph_traits<Graph>::edge_descriptor Edge;
-  typedef boost::graph_traits<Graph>::edge_iterator EdgeIterator;
-  typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIterator;
-  typedef boost::graph_traits<Graph>::in_edge_iterator InEdgeIterator;
-  typedef boost::graph_traits<Graph>::adjacency_iterator AdjacencyIterator;
+  using Vertex = boost::graph_traits<Graph>::vertex_descriptor;
+  using Edge = boost::graph_traits<Graph>::edge_descriptor;
+  using EdgeIterator = boost::graph_traits<Graph>::edge_iterator;
+  using OutEdgeIterator = boost::graph_traits<Graph>::out_edge_iterator;
+  using InEdgeIterator = boost::graph_traits<Graph>::in_edge_iterator;
+  using AdjacencyIterator = boost::graph_traits<Graph>::adjacency_iterator;
 
-  typedef boost::property_map<Graph, boost::vertex_index_t>::type
-      VertexIndexMap;
+  using VertexIndexMap =
+      boost::property_map<Graph, boost::vertex_index_t>::type;
 
-  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
-                                VertexInfo, EdgeProperty> UndirectedGraph;
+  using UndirectedGraph =
+      boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
+                            VertexInfo, EdgeProperty>;
 
  protected:
   void SetUp() override {
     graph_ = Graph(boost::edges_are_unsorted_multi_pass, edges_.begin(),
                    edges_.end(), addresses_.size());
-    typedef boost::graph_traits<Graph>::vertex_iterator VertexIterator;
+    using VertexIterator = boost::graph_traits<Graph>::vertex_iterator;
     VertexIterator vertices_it, vertices_end;
     int j = 0;
     for (boost::tie(vertices_it, vertices_end) = boost::vertices(graph_);

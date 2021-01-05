@@ -14,6 +14,7 @@
 
 #include "third_party/zynamics/binexport/ida/metapc.h"
 
+#include <array>
 #include <cinttypes>
 #include <limits>
 #include <string>
@@ -37,10 +38,13 @@
 namespace security::binexport {
 namespace {
 
-bool IsStringInstruction(const std::string& mnemonic) {
-  static auto* instructions = new std::set<std::string>{
-      "ins", "outs", "movs", "cmps", "stos", "lods", "scas"};
-  return instructions->find(mnemonic.substr(0, 4)) != instructions->end();
+bool IsStringInstruction(absl::string_view mnemonic) {
+  constexpr std::array<absl::string_view, 7> kStringInstructions = {
+      // Keep sorted
+      "cmps", "ins", "lods", "movs", "outs", "scas", "stos",
+  };
+  return std::binary_search(kStringInstructions.begin(),
+                            kStringInstructions.end(), mnemonic.substr(0, 4));
 }
 
 std::string GetSegmentSelector(const op_t& operand) {
