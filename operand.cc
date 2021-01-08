@@ -25,11 +25,11 @@ uint32_t Operand::global_id_ = 0;
 
 // Delete unreferenced operands from cache and relabel surviving ones so we'll
 // have continuous ids again.
-void Operand::PurgeCache(const std::set<int>& ids_to_keep) {
+void Operand::PurgeCache(const absl::flat_hash_set<int>& ids_to_keep) {
   int new_id = 0;
   for (auto it = operand_cache_.begin(), end = operand_cache_.end();
        it != end;) {
-    if (ids_to_keep.find(it->second.id_) == ids_to_keep.end()) {
+    if (!ids_to_keep.contains(it->second.id_)) {
       operand_cache_.erase(it++);
     } else {
       it->second.id_ = ++new_id;

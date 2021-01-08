@@ -20,6 +20,7 @@
 #include <set>
 #include <string>
 
+#include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/container/node_hash_map.h"
 #include "third_party/zynamics/binexport/expression.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -39,8 +40,7 @@ class Operand {
   static Operand* CreateOperand(const Expressions& expressions);
   static void EmptyCache();
   static const OperandCache& GetOperands();
-  // TODO(cblichmann): Unused?
-  static void PurgeCache(const std::set<int>& ids_to_keep);
+  static void PurgeCache(const absl::flat_hash_set<int>& ids_to_keep);
   const Expression& GetExpression(int index) const;
   const Expression& GetLastExpression() const;
 
