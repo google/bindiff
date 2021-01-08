@@ -17,7 +17,6 @@
 
 #include <cstdint>
 #include <functional>
-#include <set>
 #include <string>
 
 #include "third_party/absl/container/flat_hash_set.h"
