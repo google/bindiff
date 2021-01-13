@@ -36,7 +36,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Proxy;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -299,55 +298,13 @@ public class BinDiff {
 
   private static void initializeDesktop(
       final Desktop desktop, final WorkspaceTabPanelFunctions controller) {
-    // The API below needs at least JDK9. Since Google's language level is still at Java 8, fall
-    // back to using reflection.
-    // Note that any failures are silently ignored. Like with the menu bar integration in the
-    // static initializer of this class, the app won't feel native, but will be fully functional.
-    // TODO(cblichmann): Once Java 11 is the default, replace the reflective calls.
-    try {
-      final Class<?> aboutHandlerClass = Class.forName("java.awt.desktop.AboutHandler");
-      final Object aboutHandler =
-          Proxy.newProxyInstance(
-              aboutHandlerClass.getClassLoader(),
-              new java.lang.Class<?>[] {aboutHandlerClass},
-              (proxy, method, args) -> {
-                controller.showAboutDialog();
-                return null;
-              });
-      Desktop.class
-          .getDeclaredMethod("setAboutHandler", aboutHandlerClass)
-          .invoke(desktop, aboutHandler);
+    // This enables deeper integration with the macOS system menu bar as well as GNOME's application
+    // menu.
+    desktop.setAboutHandler(e -> controller.showAboutDialog());
+    desktop.setPreferencesHandler(e -> controller.showMainSettingsDialog());
+    desktop.setQuitHandler((e, response) -> controller.exitBinDiff());
 
-      final Class<?> preferencesHandlerClass = Class.forName("java.awt.desktop.PreferencesHandler");
-      final Object preferencesHandler =
-          Proxy.newProxyInstance(
-              preferencesHandlerClass.getClassLoader(),
-              new java.lang.Class<?>[] {preferencesHandlerClass},
-              (proxy, method, args) -> {
-                controller.showMainSettingsDialog();
-                return null;
-              });
-      Desktop.class
-          .getDeclaredMethod("setPreferencesHandler", preferencesHandlerClass)
-          .invoke(desktop, preferencesHandler);
-
-      final Class<?> quitHandlerClass = Class.forName("java.awt.desktop.QuitHandler");
-      final Object quitHandler =
-          Proxy.newProxyInstance(
-              quitHandlerClass.getClassLoader(),
-              new java.lang.Class<?>[] {quitHandlerClass},
-              (proxy, method, args) -> {
-                controller.exitBinDiff();
-                return null;
-              });
-      Desktop.class
-          .getDeclaredMethod("setQuitHandler", quitHandlerClass)
-          .invoke(desktop, quitHandler);
-
-      desktopIntegrationDone = true;
-    } catch (final ReflectiveOperationException e) {
-      logger.at(Level.WARNING).withCause(e).log();
-    }
+    desktopIntegrationDone = true;
   }
 
   /**
