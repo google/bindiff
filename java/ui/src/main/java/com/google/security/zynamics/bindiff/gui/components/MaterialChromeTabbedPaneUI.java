@@ -25,8 +25,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.GeneralPath;
 import javax.swing.Icon;
+import javax.swing.plaf.basic.BasicGraphicsUtils;
 import javax.swing.plaf.basic.BasicTabbedPaneUI;
-import sun.swing.SwingUtilities2;
 
 /**
  * A custom UI class for tabbed panes that provides a look and feel roughly similar to the Google
@@ -184,13 +184,13 @@ public class MaterialChromeTabbedPaneUI extends BasicTabbedPaneUI {
 
     final String title = tabPane.getTitleAt(tabIndex);
     final Font font = tabPane.getFont();
-    final FontMetrics metrics = SwingUtilities2.getFontMetrics(tabPane, g, font);
+    final FontMetrics metrics = g.getFontMetrics(font);
     final Icon icon = getIconForTab(tabIndex);
 
     if (tabPane.getTabComponentAt(tabIndex) == null) {
       layoutLabel(TOP, metrics, tabIndex, title, icon, tabRect, iconRect, textRect, isSelected);
       final String clippedTitle =
-          SwingUtilities2.clipStringIfNecessary(null, metrics, title, textRect.width);
+          BasicGraphicsUtils.getClippedString(null, metrics, title, textRect.width);
       paintText(g, TOP, font, metrics, tabIndex, clippedTitle, textRect, isSelected);
       paintIcon(g, TOP, tabIndex, icon, iconRect, isSelected);
     }
