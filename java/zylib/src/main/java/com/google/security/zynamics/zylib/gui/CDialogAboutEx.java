@@ -17,7 +17,6 @@ package com.google.security.zynamics.zylib.gui;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.gui.UrlLabel.UrlLabel;
 import com.google.security.zynamics.zylib.resources.Constants;
-
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -27,7 +26,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 import java.util.List;
-
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -36,7 +34,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
-
 
 public class CDialogAboutEx extends JDialog {
   private static final long serialVersionUID = -3626217728291899345L;
@@ -60,12 +57,8 @@ public class CDialogAboutEx extends JDialog {
     c.insets = new Insets(3, 3, 3, 3);
 
     final JPanel imagePanel = new JPanel();
-
-    final JLabel piclabel = new JLabel();
-
-    piclabel.setIcon(logo);
-
-    imagePanel.add(piclabel);
+    final JLabel picLabel = new JLabel(logo);
+    imagePanel.add(picLabel);
 
     c.gridy = 0;
 

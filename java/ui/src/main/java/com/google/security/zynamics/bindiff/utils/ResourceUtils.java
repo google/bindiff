@@ -21,10 +21,11 @@ import com.google.common.flogger.FluentLogger;
 import com.google.common.io.ByteSource;
 import com.google.security.zynamics.bindiff.BinDiff;
 import com.google.security.zynamics.zylib.io.FileUtils;
-import java.awt.GraphicsConfiguration;
-import java.awt.GraphicsEnvironment;
+import java.awt.Component;
 import java.awt.Image;
+import java.awt.MediaTracker;
 import java.awt.Toolkit;
+import java.awt.image.BaseMultiResolutionImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +41,7 @@ public class ResourceUtils {
   private static final String BINDIFF_PACKAGE =
       BinDiff.class.getPackage().getName().replace('.', '/');
 
-  // Blaze packages up resource files differently than Maven. Search "ui" and "zylib" as well.
+  // Blaze/Bazel packages up resource files differently than Maven. Search "ui" and "zylib" as well.
   private static final ImmutableList<String> SEARCH_PATHS =
       ImmutableList.of(
           "",
@@ -49,46 +50,66 @@ public class ResourceUtils {
 
   private ResourceUtils() {}
 
-  public static boolean isScaledDisplay() {
-    final GraphicsConfiguration config =
-        GraphicsEnvironment.getLocalGraphicsEnvironment()
-            .getDefaultScreenDevice()
-            .getDefaultConfiguration();
-    return !config.getDefaultTransform().isIdentity();
+  public static Image getImage(final String imagePath) {
+    return getImage(imagePath, null);
   }
 
-  public static Image getImage(final String imagePath) {
-    final boolean scaledDisplay = isScaledDisplay();
+  public static Image getImage(final String imagePath, final Component component) {
     URL imageUrl = null;
+    URL imageUrl2x = null;
     for (String path : SEARCH_PATHS) {
-      if (scaledDisplay) {
-        // On scaled displays, try to find a 2x scaled version of the image first.
-        final File imageFilePath = new File(imagePath);
-        imageUrl =
-            BinDiff.class.getResource(
-                path
-                    + FileUtils.getFileBasename(imageFilePath)
-                    + "@2."
-                    + FileUtils.getFileExtension(imageFilePath));
-      }
-      if (imageUrl == null) {
-        imageUrl = BinDiff.class.getResource(path + imagePath);
-      }
+      // Try to find a 2x scaled version of the image.
+      final File imageFilePath = new File(imagePath);
+      imageUrl = BinDiff.class.getResource(path + imagePath);
+      imageUrl2x =
+          BinDiff.class.getResource(
+              path
+                  + BinDiffFileUtils.removeFileExtension(imageFilePath.getPath())
+                  + "@2."
+                  + FileUtils.getFileExtension(imageFilePath));
       if (imageUrl != null) {
         break;
       }
     }
-
     if (imageUrl == null) {
       logger.at(Level.WARNING).log("Image resource not found: \"%s\"", imagePath);
       return null;
     }
 
-    return Toolkit.getDefaultToolkit().getImage(imageUrl);
+    final Toolkit toolkit =
+        component != null ? component.getToolkit() : Toolkit.getDefaultToolkit();
+    final Image image = toolkit.getImage(imageUrl);
+    final Image image2x = imageUrl2x != null ? toolkit.getImage(imageUrl2x) : null;
+
+    if (component != null) {
+      // Ensure all resolution variants are loaded. While Swing also uses a MediaTracker to track
+      // image load state, it does so inconsistently, sometimes leading to "Invalid Image variant"
+      // errors during paint. Waiting for these images should be fast, as they are part of the JAR.
+      final MediaTracker mt = new MediaTracker(component);
+      mt.addImage(image, 0);
+      if (image2x != null) {
+        mt.addImage(image2x, 1);
+      }
+      try {
+        mt.waitForAll();
+      } catch (final InterruptedException e) {
+        logger.at(Level.WARNING).withCause(e).log(
+            "Interrupted while loading image resource: \"%s\"", imagePath);
+      }
+    }
+
+    if (image2x == null) {
+      return image;
+    }
+    return new BaseMultiResolutionImage(image, image2x);
   }
 
   public static ImageIcon getImageIcon(final String imagePath) {
-    return new ImageIcon(getImage(imagePath));
+    return getImageIcon(imagePath, null);
+  }
+
+  public static ImageIcon getImageIcon(final String imagePath, final Component component) {
+    return new ImageIcon(getImage(imagePath, component));
   }
 
   public static InputStream getResource(final String resourcePath) {

@@ -25,20 +25,16 @@ import com.google.security.zynamics.zylib.gui.CDialogAboutEx;
 import com.google.security.zynamics.zylib.gui.GuiHelper;
 import com.google.security.zynamics.zylib.gui.license.UpdateCheckHelper;
 import java.awt.Desktop;
-import java.awt.Image;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 /** Controller class with functions applicable to all "tab panels". */
 public class TabPanelFunctions {
-  private static final ImageIcon BINDIFF_ABOUT_IMAGE =
-      ResourceUtils.getImageIcon(Constants.ABOUT_BINDIFF_IMAGE_PATH);
 
   private final Workspace workspace;
 
@@ -101,17 +97,21 @@ public class TabPanelFunctions {
             + "different licensing requirements.\n"
             + "Please see the manual for a complete list.\n";
 
-    final Image appImage = BINDIFF_ABOUT_IMAGE.getImage();
-    final CDialogAboutEx dlg =
+    final CDialogAboutEx aboutDialog =
         new CDialogAboutEx(
-            window, new ImageIcon(appImage), Constants.PRODUCT_NAME, message, description, urls);
+            window,
+            ResourceUtils.getImageIcon(Constants.ABOUT_BINDIFF_IMAGE_PATH, getMainWindow()),
+            Constants.PRODUCT_NAME,
+            message,
+            description,
+            urls);
 
-    dlg.setIconImage(ResourceUtils.getImageIcon(Constants.APP_ICON_PATH_16X16).getImage());
+    aboutDialog.setIconImage(ResourceUtils.getImage(Constants.APP_ICON_PATH_16X16));
 
-    dlg.setSize(dlg.getWidth() - 8, dlg.getHeight());
+    aboutDialog.setSize(aboutDialog.getWidth() - 8, aboutDialog.getHeight());
 
-    GuiHelper.centerChildToParent(window, dlg, true);
-    dlg.setVisible(true);
+    GuiHelper.centerChildToParent(window, aboutDialog, true);
+    aboutDialog.setVisible(true);
   }
 
   public void showHelp() {
