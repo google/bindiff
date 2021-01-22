@@ -18,6 +18,8 @@
 #include <fstream>
 #include <memory>
 
+#include "third_party/absl/container/btree_set.h"
+#include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph_match.h"
@@ -27,9 +29,12 @@
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
+
+using ::security::binexport::FormatAddress;
 
 void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
                int& instructions) {
@@ -742,7 +747,7 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
       " ON basicblockalgorithm.id = basicblock.algorithm "
       "ORDER BY function.address1, basicblock.address1");
   for (statement.Execute(); statement.GotData(); statement.Execute()) {
-    FixedPoint* fixed_point = 0;
+    FixedPoint* fixed_point = nullptr;
     Address function1 = 0;
     Address function2 = 0;
     Address basic_block1 = 0;
@@ -790,26 +795,29 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
                           FlowGraphInfos& flow_graphs1,
                           FlowGraphInfos& flow_graphs2,
                           FixedPointInfos& fixed_points) {
-  database_.Statement(
-      "SELECT file1.filename AS filename1, file2.filename AS filename2, "
-      "similarity, confidence from metadata "
-      "INNER JOIN file AS file1 ON file1.id = file1 "
-      "INNER JOIN file AS file2 ON file2.id = file2;")
+  absl::flat_hash_set<FixedPointInfo> database_fixed_points;
+  database_
+      .Statement(
+          "SELECT "
+          " file1.filename AS filename1, file2.filename AS filename2, "
+          " similarity, confidence "
+          "FROM metadata "
+          "INNER JOIN file AS file1 ON file1.id = file1 "
+          "INNER JOIN file AS file2 ON file2.id = file2")
       ->Execute()
       .Into(&primary_filename_)
       .Into(&secondary_filename_)
       .Into(&similarity_)
       .Into(&confidence_);
 
-  {  // function matches
+  {  // Function matches
     SqliteStatement statement(
         &database_,
         "SELECT address1, address2, similarity, confidence, flags, a.name, "
         "evaluate, commentsported, basicblocks, edges, instructions "
         "FROM function AS f "
-        "INNER JOIN Functionalgorithm AS a ON a.id = f.algorithm");
-    statement.Execute();
-    for (; statement.GotData(); statement.Execute()) {
+        "INNER JOIN functionalgorithm AS a ON a.id = f.algorithm");
+    for (statement.Execute(); statement.GotData(); statement.Execute()) {
       std::string algorithm;
       FixedPointInfo fixed_point;
       int evaluate = 0;
@@ -829,16 +837,15 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
       fixed_point.algorithm = FindString(algorithm);
       fixed_point.evaluate = evaluate != 0;
       fixed_point.comments_ported = comments_ported != 0;
-      fixed_points.insert(fixed_point);
+      database_fixed_points.insert(fixed_point);
     }
   }
 
-  {  // basic block matches
+  {  // Basic block matches
     SqliteStatement statement(&database_,
         "SELECT a.name, COUNT(*) FROM basicblock AS b INNER JOIN "
         "basicblockalgorithm AS a ON a.id = b.algorithm GROUP BY b.algorithm");
-    statement.Execute();
-    for (; statement.GotData(); statement.Execute()) {
+    for (statement.Execute(); statement.GotData(); statement.Execute()) {
       std::string algorithm_name;
       int count = 0;
       statement.Into(&algorithm_name).Into(&count);
@@ -849,6 +856,26 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
             call_graph1, flow_graphs1);
   ReadInfos((path_ + (secondary_filename_ + ".BinExport")),
             call_graph2, flow_graphs2);
+
+  // Check consistency between BinExport data and results
+  bool inconsistent = false;
+  for (const auto& fixed_point : database_fixed_points) {
+    if (call_graph1.GetVertex(fixed_point.primary) ==
+        CallGraph::kInvalidVertex) {
+      LOG(ERROR) << "Address " << FormatAddress(fixed_point.primary)
+                 << " not in primary call graph";
+      inconsistent = true;
+    } else if (call_graph2.GetVertex(fixed_point.secondary) ==
+               CallGraph::kInvalidVertex) {
+      LOG(ERROR) << "Address " << FormatAddress(fixed_point.secondary)
+                 << " not in secondary call graph";
+      inconsistent = true;
+    } else {
+      fixed_points.insert(fixed_point);
+    }
+  }
+  LOG_IF(ERROR, inconsistent)
+      << "Call graph data is inconsistent, results may not be accurate";
 }
 
 }  // namespace security::bindiff

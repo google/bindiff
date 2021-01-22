@@ -44,6 +44,25 @@ struct FixedPointInfo {
   bool evaluate;
   bool comments_ported;
 
+  friend bool operator==(const FixedPointInfo& lhs, const FixedPointInfo& rhs) {
+    return lhs.primary == rhs.primary && lhs.secondary == rhs.secondary &&
+           lhs.basic_block_count == rhs.basic_block_count &&
+           lhs.edge_count == rhs.edge_count &&
+           lhs.instruction_count == rhs.instruction_count &&
+           lhs.similarity == rhs.similarity &&
+           lhs.confidence == rhs.confidence && lhs.flags == rhs.flags &&
+           lhs.algorithm == rhs.algorithm && lhs.evaluate == rhs.evaluate &&
+           lhs.comments_ported == rhs.comments_ported;
+  }
+
+  template <typename H>
+  friend H AbslHashValue(H h, const FixedPointInfo& info) {
+    return H::combine(std::move(h), info.primary, info.secondary,
+                      info.basic_block_count, info.edge_count,
+                      info.instruction_count, info.confidence, info.flags,
+                      info.algorithm, info.evaluate, info.comments_ported);
+  }
+
   bool IsManual() const;
 };
 using FixedPointInfos = std::set<FixedPointInfo>;
