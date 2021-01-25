@@ -589,7 +589,9 @@ error_t idaapi IdcBinDiffDatabase(idc_value_t* argument, idc_value_t*) {
   }
   return DoDiffDatabase(/*filtered=*/false) ? eOk : -1;
 }
-constexpr char kBinDiffDatabaseArgs[] = {VT_STR, VT_STR};
+constexpr char kBinDiffDatabaseArgs[] = {VT_STR,  // Secondary database
+                                         VT_STR,  // Results file
+                                         0};
 constexpr ext_idcfunc_t kBinDiffDatabaseIdcFunc = {
     "BinDiffDatabase", IdcBinDiffDatabase, kBinDiffDatabaseArgs, nullptr, 0,
     EXTFUN_BASE};
@@ -810,26 +812,43 @@ bool Plugin::LoadResults() {
 
     auto sha256_or = GetInputFileSha256();
     auto status = sha256_or.status();
-    std::string hash;
+    std::string this_hash;
     if (status.ok()) {
-      hash = std::move(sha256_or).value();
+      this_hash = std::move(sha256_or).value();
     } else {
       auto md5_or = GetInputFileMd5();
       status = md5_or.status();
       if (status.ok()) {
-        hash = std::move(md5_or).value();
+        this_hash = std::move(md5_or).value();
       }
     }
-    if (hash.empty()) {
+    if (this_hash.empty()) {
       throw std::runtime_error(std::string(status.message()));
     }
-    if (hash != absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
-      const std::string message = absl::StrCat(
-          "Error: currently loaded IDBs input file hash differs from "
-          "result file primary graph. Please load IDB for: ",
-          results_->call_graph1_.GetExeFilename());
-      LOG(INFO) << message;
-      throw std::runtime_error(message);
+    if (this_hash !=
+        absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
+      const std::string result_primary_hash =
+          results_->call_graph1_.GetExeHash();
+      const std::string result_primary_filename =
+          results_->call_graph1_.GetExeFilename();
+      LOG(INFO) << "The original file hash from the database that is currently "
+                   "loaded is different";
+      LOG(INFO) << "from the primary one in the result file:";
+      LOG(INFO) << "  " << this_hash << " (this IDB)";
+      LOG(INFO) << "  " << result_primary_hash << " ("
+                << result_primary_filename << ", to be loaded)";
+      if (ask_buttons("Continue", "Cancel", "", ASKBTN_BTN1,
+                      "HIDECANCEL\n"
+                      "The original file hash from the database that is "
+                      "currently loaded is different\n"
+                      "from the primary one in the result file:\n"
+                      "  %s (this IDB)\n"
+                      "  %s (%s, to be loaded)\n\n"
+                      "If you continue, the results will likely be inaccurate.",
+                      this_hash.c_str(), result_primary_hash.c_str(),
+                      result_primary_filename.c_str()) != ASKBTN_BTN1) {
+        return false;
+      }
     }
 
     ShowResults(kResultsShowAll);
