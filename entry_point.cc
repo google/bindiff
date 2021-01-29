@@ -70,15 +70,15 @@ std::string EntryPoint::SourceToString() {
 }
 
 EntryPointManager::~EntryPointManager() {
-  if (parent_) {
-    parent_->count_ += count_;
-  }
   LOG(INFO) << "Added " << count_ << " entry points from " << name_;
 }
 
 void EntryPointManager::Add(Address address, EntryPoint::Source source) {
   entry_points_->emplace_back(address, source);
   ++count_;
+  if (parent_) {
+    ++parent_->count_;
+  }
 #ifdef GOOGLE
   VLOG(1) << "Entry point added at: " << std::hex << address
           << " source: " << entry_points_->back().SourceToString()

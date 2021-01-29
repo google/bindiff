@@ -75,6 +75,7 @@ bool operator==(const EntryPoint& lhs, const EntryPoint& rhs);
 
 using EntryPoints = std::vector<EntryPoint>;
 
+// EntryPointManager is not thread safe.
 class EntryPointManager {
  public:
   EntryPointManager(EntryPointManager* parent, std::string name)
@@ -118,8 +119,8 @@ class EntryPointManager {
   EntryPointManager* parent_;
   EntryPoints* entry_points_;
   size_t count_;
-  std::string name_;
-  AddressSpace* memory_flags_;  // Not owned.
+  const std::string name_;
+  const AddressSpace* memory_flags_;  // Not owned.
 };
 
 #endif  // ENTRY_POINT_H_
