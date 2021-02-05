@@ -77,7 +77,7 @@ class IdbExporter {
     std::string ida_exe64;   // IDA executable, 64-bit addresses
     int num_threads = 1;
     bool alsologtostderr = false;
-    bool x86_noreturn_heuristic = true;
+    bool x86_noreturn_heuristic = false;
   };
 
   explicit IdbExporter(Options options) : options_(std::move(options)) {}

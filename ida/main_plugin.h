@@ -38,7 +38,7 @@ class Plugin : public IdaPlugin<Plugin> {
 
   // Whether to use an X86-specific heuristic to identify functions that do not
   // return. See FlowGraph::FindBasicBlockBreaks() for details.
-  bool x86_noreturn_heuristic_ = true;
+  bool x86_noreturn_heuristic_ = false;
 };
 
 }  // namespace security::binexport

@@ -459,10 +459,11 @@ Plugin::LoadStatus Plugin::Init() {
     return PLUGIN_SKIP;
   }
 
-  const auto heuristic = GetArgument("X86NoReturnHeuristic");
-  if (!heuristic.empty()) {
+  if (const auto heuristic =
+          absl::AsciiStrToUpper(GetArgument("X86NoReturnHeuristic"));
+      !heuristic.empty()) {
     // If unset, this leaves the default value
-    x86_noreturn_heuristic_ = absl::AsciiStrToUpper(heuristic) == "TRUE";
+    x86_noreturn_heuristic_ = heuristic == "TRUE";
   }
 
   LOG(INFO) << kBinExportName << " " << kBinExportDetailedVersion << ", "
