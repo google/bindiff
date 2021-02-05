@@ -28,14 +28,14 @@ In order to build, the following software needs to be installed on the
 development machine:
 
 *   OpenJDK 11 or later
-*   Ghidra 9.1.2 (https://ghidra-sre.org/releaseNotes_9.1.2.html)
+*   Ghidra 9.2.2 (https://ghidra-sre.org/releaseNotes_9.2.2.html)
 *   Gradle 5.6 or later
     (https://services.gradle.org/distributions/gradle-5.6.3-all.zip)
 
 The Gradle build tool will addtionally download these dependencies:
 
 *   Gradle plugin for protobuf
-*   Protobuf 3.10.0 for Java
+*   Protobuf 3.13.0 for Java
 
 For development, a recent version of Eclipse and the Ghidra development plugin
 are recommended (see [below](#development-using-eclipse))
@@ -50,19 +50,19 @@ gradle
 
 After downloading the addtional dependencies and compiling the Java sources, the
 extension is available as a .zip file under
-`dist/ghidra_9.1.2_PUBLIC_YYYYMMDD_BinExport.zip`, where `YYYYMMDD` stands for
+`dist/ghidra_9.2.2_PUBLIC_YYYYMMDD_BinExport.zip`, where `YYYYMMDD` stands for
 the current date.
 
 ### Development using Eclipse
 
-For development Eclipse 4.12 (2019-06) or higher is recommended
-(https://www.eclipse.org/downloads/packages/release/2019-12/r/eclipse-ide-java-developers).
+For development Eclipse 2020-12 or higher is recommended
+(https://www.eclipse.org/downloads/packages/release/2020-12/r/eclipse-ide-java-developers).
 
 The Gradle build tool can automatically create an Eclipse project. From the
 command-line, run
 
 ```bash
-grade clean eclipse
+gradle build eclipse
 ```
 
 Then import the project in Eclipse using `File`|`Open Projects from File
