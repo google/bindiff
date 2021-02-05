@@ -43,16 +43,22 @@ public final class IdaHelpers {
    * @param idbFileName the database file to export
    * @param outputDirectory where to store the resulting file. The final filename will be
    *     idbFilename with its file extension replaced by ".BinExport".
+   * @param x86NoReturnHeuristic whether to apply an x86/x86-64 specific heuristic to find functions
+   *     that do not return.
    * @return the started process.
    */
   public static Process createIdaProcess(
-      final String idaExe, final String idbFileName, final String outputDirectory)
+      final String idaExe,
+      final String idbFileName,
+      final String outputDirectory,
+      final boolean x86NoReturnHeuristic)
       throws IdaException {
     final ProcessBuilder processBuilder =
         new ProcessBuilder(
             idaExe,
             "-A",
             "-OBinExportModule:" + outputDirectory,
+            "-OBinExportX86NoReturnHeuristic:" + (x86NoReturnHeuristic ? "TRUE" : "FALSE"),
             "-OBinExportAutoAction:BinExportBinary",
             idbFileName);
     processBuilder.environment().put("TVHEADLESS", "1");

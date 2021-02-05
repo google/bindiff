@@ -76,6 +76,11 @@ message Config {
 
     // Like executable, but for 64-bit addresses. If unset, defaults to "ida64".
     string executable64 = 3;
+
+    // Whether to export IDA Pro databases using an x86/x86-64 specific
+    // heuristic to determine whether a function returns. If unset, defaults
+    // to "false".
+    bool binexport_x86_noreturn_heuristic = 4;
   }
   IdaProOptions ida = 4;
 

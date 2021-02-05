@@ -359,12 +359,15 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
   const int num_threads = config.num_threads() > 0
                               ? config.num_threads()
                               : std::thread::hardware_concurrency();
-  IdbExporter exporter(IdbExporter::Options()
-                           .set_export_dir(full_out_path)
-                           .set_num_threads(num_threads)
-                           .set_ida_dir(config.ida().directory())
-                           .set_ida_exe(config.ida().executable())
-                           .set_ida_exe64(config.ida().executable64()));
+  IdbExporter exporter(
+      IdbExporter::Options()
+          .set_export_dir(full_out_path)
+          .set_num_threads(num_threads)
+          .set_ida_dir(config.ida().directory())
+          .set_ida_exe(config.ida().executable())
+          .set_ida_exe64(config.ida().executable64())
+          .set_x86_noreturn_heuristic(
+              config.ida().binexport_x86_noreturn_heuristic()));
   for (const std::string& idb : idbs) {
     const std::string full_idb_path = JoinPath(full_path, idb);
     if (GetFileSize(full_idb_path).value_or(0) > 0) {
