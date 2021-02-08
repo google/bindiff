@@ -48,15 +48,14 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
 
   private final WorkspaceTabPanelFunctions controller;
 
-  private JMenuItem newWorkspace;
-  private JMenuItem loadWorkspace;
-  private JMenuItem closeWorkspace;
-  private JMenuItem exit; // Note: macOS uses a QuitHandler instead
+  private JMenuItem newWorkspaceMenuItem;
+  private JMenuItem loadWorkspaceMenuItem;
+  private JMenuItem closeWorkspaceMenuItem;
+  private JMenuItem exitMenuItem; // Note: macOS uses a QuitHandler instead
 
   public WorkspaceMenu(final WorkspaceTabPanelFunctions controller) {
     super("File");
     this.controller = checkNotNull(controller);
-
     setMnemonic('F');
 
     loadRecentWorkspacesFromConfig();
@@ -95,21 +94,21 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
   }
 
   private void addSubmenuEntries() {
-    add(newWorkspace);
-    add(loadWorkspace);
-    add(closeWorkspace);
+    add(newWorkspaceMenuItem);
+    add(loadWorkspaceMenuItem);
+    add(closeWorkspaceMenuItem);
 
     addRecentWorkspaces();
 
-    if (!SystemHelpers.isRunningMacOSX()) {
+    if (exitMenuItem != null) {
       add(new JSeparator());
-      add(exit);
+      add(exitMenuItem);
     }
   }
 
   private void initItems() {
     final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-    newWorkspace =
+    newWorkspaceMenuItem =
         GuiUtils.buildMenuItem(
             "New Workspace...",
             'N',
@@ -122,7 +121,7 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
               }
             });
 
-    loadWorkspace =
+    loadWorkspaceMenuItem =
         GuiUtils.buildMenuItem(
             "Open Workspace...",
             'O',
@@ -135,7 +134,7 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
               }
             });
 
-    closeWorkspace =
+    closeWorkspaceMenuItem =
         GuiUtils.buildMenuItem(
             "Close Workspace",
             'W',
@@ -149,7 +148,7 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
             });
 
     if (!SystemHelpers.isRunningMacOSX() && BinDiff.isDesktopIntegrationDone()) {
-      exit =
+      exitMenuItem =
           GuiUtils.buildMenuItem(
               "Exit",
               'Q',
@@ -204,7 +203,7 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
   }
 
   public void enableSubmenus(final boolean enable) {
-    closeWorkspace.setEnabled(enable);
+    closeWorkspaceMenuItem.setEnabled(enable);
   }
 
   public String[] getRecentWorkspaces() {

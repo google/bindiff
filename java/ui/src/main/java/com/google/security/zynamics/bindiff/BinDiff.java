@@ -300,9 +300,17 @@ public class BinDiff {
       final Desktop desktop, final WorkspaceTabPanelFunctions controller) {
     // This enables deeper integration with the macOS system menu bar as well as GNOME's application
     // menu.
-    desktop.setAboutHandler(e -> controller.showAboutDialog());
-    desktop.setPreferencesHandler(e -> controller.showMainSettingsDialog());
-    desktop.setQuitHandler((e, response) -> controller.exitBinDiff());
+    // Note that any of these might independently fail, and we simply ignore the error; different
+    // platforms implement different subsets of the desktop API.
+    try {
+      desktop.setAboutHandler(e -> controller.showAboutDialog());
+    } catch (final UnsupportedOperationException e) { /* Ignore */ }
+    try {
+      desktop.setPreferencesHandler(e -> controller.showMainSettingsDialog());
+    } catch (final UnsupportedOperationException e) { /* Ignore */ }
+    try {
+      desktop.setQuitHandler((e, response) -> controller.exitBinDiff());
+    } catch (final UnsupportedOperationException e) { /* Ignore */ }
 
     desktopIntegrationDone = true;
   }
