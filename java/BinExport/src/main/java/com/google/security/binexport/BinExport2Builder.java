@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Google LLC
+// Copyright 2019-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,10 +36,10 @@ import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.scalar.Scalar;
 import ghidra.program.model.symbol.FlowType;
-import ghidra.program.model.symbol.Namespace;
 import ghidra.program.model.symbol.RefType;
 import ghidra.program.model.symbol.Reference;
 import ghidra.program.model.symbol.Symbol;
+import ghidra.program.model.symbol.SymbolUtilities;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import java.io.File;
@@ -334,7 +334,7 @@ public class BinExport2Builder {
       assert flowGraph.getEntryBasicBlockIndex() > 0;
     }
   }
-
+  
   private void buildCallGraph() throws CancelledException {
     final var callGraph = builder.getCallGraphBuilder();
     final FunctionManager funcManager = program.getFunctionManager();
@@ -342,22 +342,31 @@ public class BinExport2Builder {
     monitor.setMaximum(funcManager.getFunctionCount() * 2);
     int i = 0;
     int id = 0;
-    Map<Long, Integer> vertexIndices = new HashMap<>();
+    final Map<Long, Integer> vertexIndices = new HashMap<>();
+
+    // TODO(cblichmann): Handle imports using getExternalFunctions()
     for (final Function func : funcManager.getFunctions(true)) {
-      final long funcAddress = getMappedAddress(func.getEntryPoint());
-      final var vertex = callGraph.addVertexBuilder().setAddress(funcAddress);
-      final Namespace parentNamespace = func.getParentNamespace();
-      // TODO(cblichmann): Imported/library
-      if (func.isExternal()) {
-        vertex.setType(BinExport2.CallGraph.Vertex.Type.IMPORTED);
-      } else if (func.isThunk()) {
-        // Only store if different from default value (NORMAL)
+      final Address entryPoint = func.getEntryPoint();
+      final long mappedEntryPoint = getMappedAddress(entryPoint);
+
+      final var vertex = callGraph.addVertexBuilder().setAddress(mappedEntryPoint);
+      if (func.isThunk()) {
+        // Only store type if different from default value (NORMAL)
         vertex.setType(BinExport2.CallGraph.Vertex.Type.THUNK);
       }
-      // TODO(cblichmann): Check for artificial names
-      // Mangled name always needs to be set.
-      vertex.setMangledName(getFunctionName(func));
-      vertexIndices.put(funcAddress, id++);
+
+      if (!func.getName().equals(SymbolUtilities.getDefaultFunctionName(entryPoint))) {
+        // Ghidra does not seem to provide both mangled and demangled names
+        // (like IDA). Once the Demangle analyzer or DemangleAllScript has run,
+        // function names will always appear demangled. Short of running the
+        // demangler ourselves and comparing before/after names, there is no way
+        // to distinguish mangled from demangled names.
+        // Hence, the BinExport will have the names in the mangle_name field.
+
+        // Mangled name is the default, optionally prefixed with namespace.
+        vertex.setMangledName(getFunctionName(func));
+      }
+      vertexIndices.put(mappedEntryPoint, id++);
       monitor.setProgress(i++);
     }
 
@@ -366,10 +375,8 @@ public class BinExport2Builder {
       if (!bbIter.hasNext()) {
         continue; // Skip empty flow graphs, they only exist as call graph nodes
       }
-      final long funcAddress = getMappedAddress(func.getEntryPoint());
-      id = vertexIndices.get(funcAddress);
+      id = vertexIndices.get(getMappedAddress(func.getEntryPoint()));
 
-      final var edges = new Vector<BinExport2.CallGraph.Edge>();
       while (bbIter.hasNext()) {
         final CodeBlock bb = bbIter.next();
 
@@ -384,14 +391,10 @@ public class BinExport2Builder {
           final var targetId = vertexIndices
               .get(getMappedAddress(bbRef.getDestinationAddress()));
           if (targetId != null) {
-            final var edge = BinExport2.CallGraph.Edge.newBuilder();
-            edge.setSourceVertexIndex(id);
-            edge.setTargetVertexIndex(targetId);
-            edges.add(edge.build());
+            callGraph.addEdgeBuilder().setSourceVertexIndex(id).setTargetVertexIndex(targetId);
           }
         }
       }
-      callGraph.addAllEdge(edges);
     }
     monitor.setProgress(i++);
   }
@@ -501,9 +504,10 @@ public class BinExport2Builder {
 
     buildMetaInformation();
 
-    // TODO(cblichmann): Implement proper expressions. For now, each expression
-    // corresponds to exactly one operand. Those consist of Ghidra's string
-    // representation and are of type SYMBOL.
+    // TODO(cblichmann): Implement full expression trees. For now, each
+    //                   expression corresponds to exactly one operand. Those
+    //                   consist of Ghidra's string representation and are of
+    //                   type SYMBOL.
     final var expressionIndices = new HashMap<String, Integer>();
     buildExpressions(expressionIndices);
     buildOperands(expressionIndices);
