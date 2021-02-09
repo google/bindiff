@@ -780,13 +780,10 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
       flow_graph2->SetFixedPoint(fixed_point);
     }
     if (!basic_block_is_null) {
-      // TODO(cblichmann): b/35456354: This truncates all 64-bit addresses.
-      //                   FlowGraph::Graph should really use 64-bit
-      //                   vertices/edges. We cannot just fix it without proper
-      //                   testing in place, though. Also, almost all "normal"
-      //                   64-bit binaries will still work fine, as long as
-      //                   there is less than 4G of code/address space used.
-      fixed_point->Add(basic_block1, basic_block2, basic_block_algorithm);
+      auto* flow_graph2 = call_graph2->GetFlowGraph(function2);
+      const auto primary_vertex = flow_graph1->GetVertex(basic_block1);
+      const auto secondary_vertex = flow_graph2->GetVertex(basic_block2);
+      fixed_point->Add(primary_vertex, secondary_vertex, basic_block_algorithm);
     }
   }
 }

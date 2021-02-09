@@ -15,6 +15,8 @@
 #ifndef READER_H_
 #define READER_H_
 
+#include "third_party/absl/container/btree_map.h"
+#include "third_party/absl/container/btree_set.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/binexport/types.h"
@@ -29,7 +31,7 @@ struct FlowGraphInfo {
   int edge_count;
   int instruction_count;
 };
-using FlowGraphInfos = std::map<Address, FlowGraphInfo>;
+using FlowGraphInfos = absl::btree_map<Address, FlowGraphInfo>;
 
 struct FixedPointInfo {
   Address primary;
@@ -65,7 +67,7 @@ struct FixedPointInfo {
 
   bool IsManual() const;
 };
-using FixedPointInfos = std::set<FixedPointInfo>;
+using FixedPointInfos = absl::btree_set<FixedPointInfo>;
 
 bool operator<(const FixedPointInfo& one, const FixedPointInfo& two);
 

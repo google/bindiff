@@ -17,6 +17,7 @@
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 #include <cstdint>
+#include <limits>
 
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
@@ -74,10 +75,10 @@ class CallGraph {
   };
 
   // A constant denoting a non-existent vertex.
-  static Vertex kInvalidVertex;
+  static constexpr Vertex kInvalidVertex = std::numeric_limits<Vertex>::max();
 
   // Constructs an empty call graph.
-  CallGraph();
+  CallGraph() = default;
 
   virtual ~CallGraph() = default;
 
@@ -208,7 +209,7 @@ class CallGraph {
   double CalculateProximityMdIndex(Edge edge);
 
   Graph graph_;
-  double md_index_;
+  double md_index_ = 0.0;
   std::string exe_filename_;
   std::string exe_hash_;
   CommentsByOperatorId comments_;

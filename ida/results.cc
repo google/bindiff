@@ -28,6 +28,8 @@
 // clang-format on
 
 #include "base/logging.h"
+#include "third_party/absl/container/flat_hash_map.h"
+#include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
@@ -38,6 +40,7 @@
 #include "third_party/zynamics/bindiff/ida/names.h"
 #include "third_party/zynamics/bindiff/match_colors.h"
 #include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/sqlite.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
@@ -966,7 +969,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
     database.reset(new SqliteDatabase(input_filename_.c_str()));
   }
 
-  std::map<int, std::string> algorithms;
+  absl::flat_hash_map<int, std::string> algorithms;
   {
     SqliteStatement statement(database.get(),
                               "SELECT id, name FROM basicblockalgorithm");
@@ -980,36 +983,50 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
 
   SqliteStatement statement(
       database.get(),
-      "SELECT basicblock.address1, basicblock.address2, basicblock.algorithm "
+      "SELECT basicblock.address1, basicblock.address2, "
+      "basicblock.algorithm "
       "FROM function "
       "INNER JOIN basicblock ON functionid = function.id "
       "INNER JOIN instruction ON basicblockid = basicblock.id "
-      "WHERE function.address1 = :address1 AND function.address2 = :address2 "
+      "WHERE function.address1 = :address1 AND "
+      "function.address2 = :address2 "
       "ORDER BY basicblock.id");
-  statement.BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress());
-  statement.BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress());
+  statement.BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress())
+      .BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress());
 
-  std::pair<Address, Address> last_basicblock(
-      std::make_pair(std::numeric_limits<Address>::max(),
-                     std::numeric_limits<Address>::max()));
+  std::pair<Address, Address> last_basic_block(
+      std::numeric_limits<Address>::max(), std::numeric_limits<Address>::max());
   int last_algorithm = -1;
   for (statement.Execute(); statement.GotData(); statement.Execute()) {
-    std::pair<Address, Address> basicblock;
+    std::pair<Address, Address> basic_block;
     int algorithm;
-    statement.Into(&basicblock.first).Into(&basicblock.second).Into(&algorithm);
+    statement.Into(&basic_block.first)
+        .Into(&basic_block.second)
+        .Into(&algorithm);
     if (last_algorithm < 0) {
       last_algorithm = algorithm;
-      last_basicblock = basicblock;
+      last_basic_block = basic_block;
     }
-    if (basicblock != last_basicblock) {
-      fixed_point->Add(last_basicblock.first, last_basicblock.second,
-                       algorithms[last_algorithm]);
-      last_basicblock = basicblock;
-      last_algorithm = algorithm;
+    if (basic_block == last_basic_block) {
+      continue;
     }
+
+    const auto primary_vertex =
+        fixed_point->GetPrimary()->GetVertex(last_basic_block.first);
+    const auto secondary_vertex =
+        fixed_point->GetSecondary()->GetVertex(last_basic_block.second);
+    fixed_point->Add(primary_vertex, secondary_vertex,
+                     algorithms[last_algorithm]);
+
+    last_basic_block = basic_block;
+    last_algorithm = algorithm;
   }
   if (last_algorithm != -1) {
-    fixed_point->Add(last_basicblock.first, last_basicblock.second,
+    const auto primary_vertex =
+        fixed_point->GetPrimary()->GetVertex(last_basic_block.first);
+    const auto secondary_vertex =
+        fixed_point->GetSecondary()->GetVertex(last_basic_block.second);
+    fixed_point->Add(primary_vertex, secondary_vertex,
                      algorithms[last_algorithm]);
   }
 }
@@ -1211,42 +1228,41 @@ void Results::Write(Writer* writer) {
 }
 
 void Results::CreateIndexedViews() {
-  if (indexed_flow_graphs1_.empty() && indexed_flow_graphs2_.empty() &&
-      indexed_fixed_points_.empty()) {
-    // Only initialize indices the first time around.
-    for (const auto& fixed_point : fixed_points_) {
-      FixedPointInfo fixed_point_info;
-      fixed_point_info.algorithm = FindString(fixed_point.GetMatchingStep());
-      fixed_point_info.confidence = fixed_point.GetConfidence();
-      fixed_point_info.similarity = fixed_point.GetSimilarity();
-      fixed_point_info.flags = fixed_point.GetFlags();
-      fixed_point_info.primary =
-          fixed_point.GetPrimary()->GetEntryPointAddress();
-      fixed_point_info.secondary =
-          fixed_point.GetSecondary()->GetEntryPointAddress();
-      fixed_point_info.comments_ported = fixed_point.GetCommentsPorted();
-      Counts counts;
-      Histogram histogram;
-      ::security::bindiff::Count(fixed_point, &counts, &histogram);
-      fixed_point_info.basic_block_count =
-          counts[Counts::kBasicBlockMatchesLibrary] +
-          counts[Counts::kBasicBlockMatchesNonLibrary];
-      fixed_point_info.instruction_count =
-          counts[Counts::kInstructionMatchesLibrary] +
-          counts[Counts::kInstructionMatchesNonLibrary];
-      fixed_point_info.edge_count =
-          counts[Counts::kFlowGraphEdgeMatchesLibrary] +
-          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
-      fixed_point_infos_.insert(fixed_point_info);
-    }
-    InitializeIndexedVectors();
-    GetCountsAndHistogram(flow_graphs1_, flow_graphs2_, fixed_points_,
-                          &histogram_, &counts_);
-    Confidences confidences;
-    confidence_ = GetConfidence(histogram_, &confidences);
-    similarity_ =
-        GetSimilarityScore(call_graph1_, call_graph2_, histogram_, counts_);
+  if (!indexed_flow_graphs1_.empty() || !indexed_flow_graphs2_.empty() ||
+      !indexed_fixed_points_.empty()) {
+    return;  // Only initialize indices the first time around.
   }
+  for (const auto& fixed_point : fixed_points_) {
+    FixedPointInfo fixed_point_info;
+    fixed_point_info.algorithm = FindString(fixed_point.GetMatchingStep());
+    fixed_point_info.confidence = fixed_point.GetConfidence();
+    fixed_point_info.similarity = fixed_point.GetSimilarity();
+    fixed_point_info.flags = fixed_point.GetFlags();
+    fixed_point_info.primary = fixed_point.GetPrimary()->GetEntryPointAddress();
+    fixed_point_info.secondary =
+        fixed_point.GetSecondary()->GetEntryPointAddress();
+    fixed_point_info.comments_ported = fixed_point.GetCommentsPorted();
+    Counts counts;
+    Histogram histogram;
+    ::security::bindiff::Count(fixed_point, &counts, &histogram);
+    fixed_point_info.basic_block_count =
+        counts[Counts::kBasicBlockMatchesLibrary] +
+        counts[Counts::kBasicBlockMatchesNonLibrary];
+    fixed_point_info.instruction_count =
+        counts[Counts::kInstructionMatchesLibrary] +
+        counts[Counts::kInstructionMatchesNonLibrary];
+    fixed_point_info.edge_count =
+        counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+        counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
+    fixed_point_infos_.insert(fixed_point_info);
+  }
+  InitializeIndexedVectors();
+  GetCountsAndHistogram(flow_graphs1_, flow_graphs2_, fixed_points_,
+                        &histogram_, &counts_);
+  Confidences confidences;
+  confidence_ = GetConfidence(histogram_, &confidences);
+  similarity_ =
+      GetSimilarityScore(call_graph1_, call_graph2_, histogram_, counts_);
 }
 
 void Results::MarkPortedCommentsInTempDatabase() {
@@ -1262,7 +1278,7 @@ void Results::MarkPortedCommentsInDatabase() {
           &database, temp_database_.GetFilename().c_str(), fixed_point_infos_);
     }
   } catch (...) {
-    // we swallow any errors here. The database may be read only or
+    // Swallow any errors here. The database may be read only or
     // the commentsported table doesn't exist. We don't care...
   }
 }
@@ -1393,8 +1409,8 @@ absl::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
 bool Results::IsIncomplete() const { return incomplete_results_; }
 
 void Results::InitializeIndexedVectors() {
-  std::set<Address> matched_primaries;
-  std::set<Address> matched_secondaries;
+  absl::flat_hash_set<Address> matched_primaries;
+  absl::flat_hash_set<Address> matched_secondaries;
   for (const auto& fixed_point : fixed_point_infos_) {
     matched_primaries.insert(fixed_point.primary);
     matched_secondaries.insert(fixed_point.secondary);
@@ -1404,14 +1420,14 @@ void Results::InitializeIndexedVectors() {
   std::sort(indexed_fixed_points_.begin(), indexed_fixed_points_.end(),
             &SortBySimilarity);
 
-  for (auto& info : flow_graph_infos1_) {
-    if (matched_primaries.find(info.first) == matched_primaries.end()) {
-      indexed_flow_graphs1_.push_back(&info.second);
+  for (auto& [address, info] : flow_graph_infos1_) {
+    if (matched_primaries.find(address) == matched_primaries.end()) {
+      indexed_flow_graphs1_.push_back(&info);
     }
   }
-  for (auto& info : flow_graph_infos2_) {
-    if (matched_secondaries.find(info.first) == matched_secondaries.end()) {
-      indexed_flow_graphs2_.push_back(&info.second);
+  for (auto& [address, info] : flow_graph_infos2_) {
+    if (matched_secondaries.find(address) == matched_secondaries.end()) {
+      indexed_flow_graphs2_.push_back(&info);
     }
   }
 
@@ -1446,8 +1462,8 @@ void Results::InitializeIndexedVectors() {
 
 void Results::Count() {
   counts_.clear();
-  for (const auto& entry : flow_graph_infos1_) {
-    const FlowGraphInfo& info = entry.second;
+  // TODO(cblichmann): Run the loops for primary and secondary in parallel.
+  for (const auto& [address, info] : flow_graph_infos1_) {
     const int is_lib =
         call_graph1_.IsLibrary(call_graph1_.GetVertex(info.address)) ||
         call_graph1_.IsStub(call_graph1_.GetVertex(info.address)) ||
@@ -1475,8 +1491,7 @@ void Results::Count() {
     }
   }
 
-  for (const auto& entry : flow_graph_infos2_) {
-    const FlowGraphInfo& info = entry.second;
+  for (const auto& [address, info] : flow_graph_infos2_) {
     const int is_lib =
         call_graph2_.IsLibrary(call_graph2_.GetVertex(info.address)) ||
         call_graph2_.IsStub(call_graph2_.GetVertex(info.address)) ||

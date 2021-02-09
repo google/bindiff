@@ -36,11 +36,6 @@ bool SortEdgeByMdIndex(const std::pair<CallGraph::Edge, double>& one,
 
 }  // namespace
 
-CallGraph::Vertex CallGraph::kInvalidVertex =
-    CallGraph::Vertex(std::numeric_limits<int>::max());
-
-CallGraph::CallGraph() : md_index_(0.0) {}
-
 std::string CallGraph::GetFilename() const {
   const std::string::size_type filename_pos = filename_.rfind('/');
   const std::string filename(filename_.substr(
@@ -278,7 +273,7 @@ bool CallGraph::HasRealName(Vertex vertex) const {
 }
 
 bool CallGraph::IsStub(Vertex vertex) const {
-  return (graph_[vertex].flags_ & VERTEX_STUB) == VERTEX_STUB;
+  return graph_[vertex].flags_ & VERTEX_STUB;
 }
 
 void CallGraph::SetStub(Vertex vertex, bool stub) {

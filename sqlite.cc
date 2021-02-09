@@ -126,24 +126,27 @@ SqliteStatement& SqliteStatement::BindNull() {
 }
 
 SqliteStatement& SqliteStatement::Into(int* value, bool* is_null) {
-  if (is_null)
+  if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
+  }
   *value = sqlite3_column_int(statement_, column_);
   ++column_;
   return *this;
 }
 
 SqliteStatement& SqliteStatement::Into(int64_t * value, bool* is_null) {
-  if (is_null)
+  if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
+  }
   *value = sqlite3_column_int64(statement_, column_);
   ++column_;
   return *this;
 }
 
 SqliteStatement& SqliteStatement::Into(Address* value, bool* is_null) {
-  if (is_null)
+  if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
+  }
   *value = static_cast<Address>(
       sqlite3_column_int64(statement_, column_));
   ++column_;
@@ -151,18 +154,20 @@ SqliteStatement& SqliteStatement::Into(Address* value, bool* is_null) {
 }
 
 SqliteStatement& SqliteStatement::Into(double* value, bool* is_null) {
-  if (is_null)
+  if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
+  }
   *value = sqlite3_column_double(statement_, column_);
   ++column_;
   return *this;
 }
 
 SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
-  if (is_null)
+  if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
-  if (const char* data = reinterpret_cast<const char*>(
-      sqlite3_column_text(statement_, column_)))
+  }
+  if (auto* data = reinterpret_cast<const char*>(
+          sqlite3_column_text(statement_, column_)))
     value->assign(data);
   ++column_;
   return *this;
