@@ -3,6 +3,9 @@
 %:
 	dh $@
 
+override_dh_shlibdeps:
+	dh_shlibdeps --exclude=_binaryninja.so
+
 override_dh_strip:
 	strip \
 	    debian/bindiff/opt/bindiff/bin/bindiff \
