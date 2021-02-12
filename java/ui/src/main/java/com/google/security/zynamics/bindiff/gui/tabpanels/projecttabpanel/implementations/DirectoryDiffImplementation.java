@@ -41,6 +41,9 @@ import java.util.List;
 import java.util.logging.Level;
 
 /** Directory diffing thread implementation that displays visual progress. */
+// TODO(cblichmann): This class should just call the BinDiff engine for "batch diffing". The way
+//                   this is currently implemented in the UI is confusing: Only files that exist in
+//                   the primary and secondary directories with the same basename are considered.
 public class DirectoryDiffImplementation extends CEndlessHelperThread {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
@@ -102,7 +105,6 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
   }
 
   private List<String> directoryDiff() {
-    // TODO(cblichmann): Rewrite error-handling to not return a list of plain error messages
     final List<String> matchesPaths = new ArrayList<>();
 
     final File engineExe;

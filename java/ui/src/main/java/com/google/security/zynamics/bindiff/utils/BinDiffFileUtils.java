@@ -52,8 +52,8 @@ public class BinDiffFileUtils {
         });
   }
 
-  public static List<String> findFiles(final File directory, final List<String> extensionFilter) {
-    final List<String> foundFiles = new ArrayList<>();
+  public static List<File> findFiles(final File directory, final List<String> extensionFilter) {
+    final List<File> foundFiles = new ArrayList<>();
     if (directory == null || !directory.isDirectory() || !directory.exists()) {
       return foundFiles;
     }
@@ -70,9 +70,8 @@ public class BinDiffFileUtils {
 
       for (final String extension : extensionFilter) {
         final String filter = "." + extension;
-
-        if (file.getPath().endsWith(filter)) {
-          foundFiles.add(file.getPath());
+        if (file.getName().endsWith(filter)) {
+          foundFiles.add(file);
         }
       }
     }

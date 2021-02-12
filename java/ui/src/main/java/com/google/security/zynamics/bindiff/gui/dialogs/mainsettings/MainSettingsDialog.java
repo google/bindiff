@@ -38,7 +38,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
 /** General application settings dialog. */
-public class MainSettingsDialog extends BaseDialog {
+public class MainSettingsDialog extends BaseDialog implements ActionListener {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final int DIALOG_WIDTH = 600;
@@ -48,8 +48,9 @@ public class MainSettingsDialog extends BaseDialog {
   private final LoggingPanel loggingPanel = new LoggingPanel();
   private final SyntaxHighlightingPanel syntaxHighlightingPanel = new SyntaxHighlightingPanel();
 
-  private final CPanelTwoButtons buttons =
-      new CPanelTwoButtons(new InternalButtonListener(), "Ok", "Cancel");
+  private final CPanelTwoButtons buttons = new CPanelTwoButtons(this, "Ok", "Cancel");
+
+  private boolean cancelled = true;
 
   public MainSettingsDialog(final Window parent) {
     super(parent, "Main Settings");
@@ -67,8 +68,9 @@ public class MainSettingsDialog extends BaseDialog {
     try {
       BinDiff.applyLoggingChanges();
     } catch (final SecurityException | IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't create file logger");
-      CMessageBox.showError(this, "Couldn't create file logger.");
+      final String message = "Couldn't create file logger";
+      logger.at(Level.SEVERE).withCause(e).log(message);
+      CMessageBox.showError(this, message);
     }
   }
 
@@ -134,19 +136,22 @@ public class MainSettingsDialog extends BaseDialog {
     super.setVisible(visible);
   }
 
-  private class InternalButtonListener implements ActionListener {
-    @Override
-    public void actionPerformed(final ActionEvent event) {
-      if (event.getSource() == buttons.getFirstButton()) {
-        try {
-          save();
-        } catch (final IOException e) {
-          logger.at(Level.SEVERE).withCause(e).log("Couldn't save main settings");
-          CMessageBox.showError(MainSettingsDialog.this, "Couldn't save main settings.");
-        }
-      }
+  public boolean isCancelled() {
+    return cancelled;
+  }
 
-      dispose();
+  @Override
+  public void actionPerformed(final ActionEvent event) {
+    if (event.getSource() == buttons.getFirstButton()) {
+      try {
+        save();
+        cancelled = false;
+      } catch (final IOException e) {
+        final String message = "Couldn't save main settings";
+        logger.at(Level.SEVERE).withCause(e).log(message);
+        CMessageBox.showError(this, message);
+      }
     }
+    dispose();
   }
 }

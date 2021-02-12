@@ -26,6 +26,7 @@ import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -113,7 +114,7 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
             "New Workspace...",
             'N',
             KeyEvent.VK_N,
-            CTRL_MASK | KeyEvent.SHIFT_MASK,
+            CTRL_MASK | InputEvent.SHIFT_DOWN_MASK,
             new AbstractAction() {
               @Override
               public void actionPerformed(final ActionEvent e) {
@@ -147,7 +148,7 @@ public final class WorkspaceMenu extends JMenu implements WorkspaceListener {
               }
             });
 
-    if (!SystemHelpers.isRunningMacOSX() && BinDiff.isDesktopIntegrationDone()) {
+    if (!SystemHelpers.isRunningMacOSX() || !BinDiff.isDesktopIntegrationDone()) {
       exitMenuItem =
           GuiUtils.buildMenuItem(
               "Exit",

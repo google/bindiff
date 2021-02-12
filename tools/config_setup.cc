@@ -1,4 +1,4 @@
-// Copyright 2011-2020 Google LLC
+// Copyright 2011-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -319,7 +319,7 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
   const std::string config_filename = absl::GetFlag(FLAGS_config);
   if (config_filename.empty()) {
     return absl::InvalidArgumentError(
-        "Missing config file, specify `--config`");
+        "Missing config file argument, specify `--config`");
   }
   NA_ASSIGN_OR_RETURN(auto loaded_config,
                       config::LoadFromFile(config_filename));

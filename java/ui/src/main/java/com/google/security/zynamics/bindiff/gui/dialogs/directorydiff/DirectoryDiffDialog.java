@@ -16,10 +16,14 @@ package com.google.security.zynamics.bindiff.gui.dialogs.directorydiff;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.joining;
 
-import com.google.security.zynamics.bindiff.config.BinDiffConfig;
+import com.google.common.collect.ImmutableList;
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.UiPreferences.HistoryOptions;
+import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.gui.dialogs.BaseDialog;
+import com.google.security.zynamics.bindiff.gui.window.MainWindow;
 import com.google.security.zynamics.bindiff.project.diff.DiffDirectories;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
@@ -35,15 +39,17 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 
@@ -53,24 +59,16 @@ public class DirectoryDiffDialog extends BaseDialog {
 
   private static final int MAX_LISTED_FILES = 16;
 
-  private final InternalDirectoryChooserListener dirChooserListener =
-      new InternalDirectoryChooserListener();
+  private FileChooserPanel primaryDirChooser;
+  private FileChooserPanel secondaryDirChooser;
 
-  private final InternalButtonListener buttonListener = new InternalButtonListener();
-
-  private final FileChooserPanel primaryDirChooser = new FileChooserPanel("", dirChooserListener);
-  private final FileChooserPanel secondaryDirChooser = new FileChooserPanel("", dirChooserListener);
-
-  private final JButton selectAllButton = new JButton(buttonListener);
-  private final JButton deselectAllButton = new JButton(buttonListener);
-  private final JButton diffButton = new JButton(buttonListener);
-  private final JButton cancelButton = new JButton(buttonListener);
+  private JButton diffButton;
 
   private final IdbPairTable diffsTable;
 
   private final String workspacePath;
 
-  private boolean diffButtonPressed = true;
+  private boolean diffButtonPressed = false;
 
   public DirectoryDiffDialog(final Window window, final File workspaceDir) {
     super(window, "Directory Diff");
@@ -88,56 +86,50 @@ public class DirectoryDiffDialog extends BaseDialog {
     setSize(new Dimension(DLG_WIDTH, DLG_HEIGHT));
 
     GuiHelper.centerChildToParent(window, this, true);
+    SwingUtilities.invokeLater(
+        () -> {
+          updateTable();
 
+          if (window instanceof MainWindow
+              && ((MainWindow) window).getController().askDisassemblerDirectoryIfUnset()) {
+            dispose();
+          }
+        });
     setVisible(true);
   }
 
   private File chooseFile(final Component component, final ESide side) {
-    final CFileChooser openFileDlg = new CFileChooser();
+    final CFileChooser fileChooser = new CFileChooser();
 
     final String title;
     final File startFolder;
-    if (side == ESide.PRIMARY) {
-      title = "Choose Primary Directory";
-      startFolder = new File(secondaryDirChooser.getText()).getParentFile();
-      if (startFolder != null) {
-        BinDiffConfig.getInstance()
-            .getMainSettings()
-            .setDirectoryDiffLastPrimaryDir(startFolder.getPath());
-      }
-    } else if (side == ESide.SECONDARY) {
-      title = "Choose Secondary Directory";
-      startFolder = new File(primaryDirChooser.getText()).getParentFile();
-      if (startFolder != null) {
-        BinDiffConfig.getInstance()
-            .getMainSettings()
-            .setDirectoryDiffLastSecondaryDir(startFolder.getPath());
-      }
-    } else {
-      assert false;
-      throw new RuntimeException();
+    switch (side) {
+      case PRIMARY:
+        title = "Choose Primary Directory";
+        startFolder = new File(secondaryDirChooser.getText()).getParentFile();
+        break;
+      case SECONDARY:
+        title = "Choose Secondary Directory";
+        startFolder = new File(primaryDirChooser.getText()).getParentFile();
+        break;
+      default:
+        throw new AssertionError();
     }
 
-    openFileDlg.setCurrentDirectory(startFolder);
-    openFileDlg.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    openFileDlg.setApproveButtonText("Ok");
-    openFileDlg.setDialogTitle(title);
+    fileChooser.setCurrentDirectory(startFolder);
+    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    fileChooser.setApproveButtonText("Ok");
+    fileChooser.setDialogTitle(title);
 
     boolean done = false;
-
     while (!done) {
-      if (JFileChooser.APPROVE_OPTION == openFileDlg.showOpenDialog(component)) {
-        final File selectedFile = openFileDlg.getSelectedFile();
-
-        if (!selectedFile.exists()) {
-          CMessageBox.showInformation(component, "The selected file does not exist.");
-
-          continue;
-        } else if (!selectedFile.isDirectory()) {
+      if (fileChooser.showOpenDialog(component) == JFileChooser.APPROVE_OPTION) {
+        final File selectedFile = fileChooser.getSelectedFile();
+        if (!selectedFile.isDirectory()) {
           CMessageBox.showInformation(component, "The selected file must be a directory.");
-
           continue;
-        } else if (selectedFile
+        }
+        if (selectedFile
             .getPath()
             .equals(
                 ESide.PRIMARY == side
@@ -145,43 +137,85 @@ public class DirectoryDiffDialog extends BaseDialog {
                     : primaryDirChooser.getText())) {
           CMessageBox.showInformation(
               component, "Primary and secondary directory cannot be identical.");
-
           continue;
         }
 
         return selectedFile;
-      } else {
-        done = true;
       }
+      done = true;
     }
-
     return null;
   }
 
   private Component createButtonsPanel() {
+    final JButton refreshButton =
+        new JButton(
+            new AbstractAction() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                updateTable();
+              }
+            });
+    refreshButton.setText("Refresh");
+
+    final JButton selectAllButton =
+        new JButton(
+            new AbstractAction() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                selectAll(true);
+              }
+            });
     selectAllButton.setText("Select All");
-    deselectAllButton.setText("Deselect All");
+
+    final JButton selectNoneButton =
+        new JButton(
+            new AbstractAction() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                selectAll(false);
+              }
+            });
+    selectNoneButton.setText("Select None");
+
+    diffButton = new JButton(new DiffButtonListener());
     diffButton.setText("Diff");
+
+    final JButton cancelButton =
+        new JButton(
+            new AbstractAction() {
+              @Override
+              public void actionPerformed(ActionEvent e) {
+                dispose();
+              }
+            });
     cancelButton.setText("Cancel");
 
     final JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-    final JPanel buttonPanel_a = new JPanel(new GridLayout(1, 2, 5, 5));
-    buttonPanel_a.add(selectAllButton);
-    buttonPanel_a.add(deselectAllButton);
+    final JPanel selectionButtonsPanel = new JPanel(new GridLayout(1, 3, 5, 5));
+    selectionButtonsPanel.add(refreshButton);
+    selectionButtonsPanel.add(selectAllButton);
+    selectionButtonsPanel.add(selectNoneButton);
 
-    final JPanel buttonPanel_b = new JPanel(new GridLayout(1, 2, 5, 5));
-    buttonPanel_b.add(diffButton);
-    buttonPanel_b.add(cancelButton);
+    final JPanel actionButtonsPanel = new JPanel(new GridLayout(1, 2, 5, 5));
+    actionButtonsPanel.add(diffButton);
+    actionButtonsPanel.add(cancelButton);
 
-    panel.add(buttonPanel_a, BorderLayout.WEST);
-    panel.add(buttonPanel_b, BorderLayout.EAST);
+    panel.add(selectionButtonsPanel, BorderLayout.WEST);
+    panel.add(actionButtonsPanel, BorderLayout.EAST);
 
     return panel;
   }
 
   private Component createFileChooserPanel() {
+    final HistoryOptions.Builder history =
+        Config.getInstance().getPreferencesBuilder().getHistoryBuilder();
+    final InternalDirectoryChooserListener listener = new InternalDirectoryChooserListener();
+    primaryDirChooser = new FileChooserPanel(history.getDirectoryDiffPrimaryDir(), listener);
+    secondaryDirChooser = new FileChooserPanel(history.getDirectoryDiffSecondaryDir(), listener);
+
     final JPanel panel = new JPanel(new GridLayout(1, 2, 5, 5));
 
     final JPanel priPanel = new JPanel(new BorderLayout());
@@ -209,38 +243,10 @@ public class DirectoryDiffDialog extends BaseDialog {
     return panel;
   }
 
-  private String cutErrorMessage(final String msg) {
-    String val = "";
-
-    int foundIndex = 0;
-    int fromIndex = 0;
-    int counter = 0;
-
-    while (foundIndex != -1) {
-      foundIndex = msg.indexOf("\n", fromIndex);
-
-      if (fromIndex != -1) {
-        counter++;
-
-        fromIndex = foundIndex + 1;
-
-        if (counter >= MAX_LISTED_FILES) {
-          val = msg.substring(0, fromIndex);
-          val += "...";
-
-          return val;
-        }
-      }
-    }
-
-    return msg;
-  }
-
   private void selectAll(final boolean select) {
     final IdbPairTableModel model = diffsTable.getTableModel();
 
     final List<DiffPairTableData> tableData = model.getTableData();
-
     for (final DiffPairTableData data : tableData) {
       data.getSelectionCheckBox().setSelected(select);
     }
@@ -249,96 +255,80 @@ public class DirectoryDiffDialog extends BaseDialog {
   }
 
   private boolean validateSelectedDiffs() {
-    String errorMsg_A = "";
-    String errorMsg_B = "";
-    String errorMsg_C = "";
+    final List<String> destCreationErrors = new ArrayList<>(MAX_LISTED_FILES);
+    final List<String> sourceFileErrors = new ArrayList<>(MAX_LISTED_FILES);
+    final List<String> destExistsErrors = new ArrayList<>(MAX_LISTED_FILES);
 
     final List<DiffPairTableData> idbPairs = getSelectedIdbPairs();
-
     if (idbPairs.size() == 0) {
-      CMessageBox.showInformation(this, "Can't start diff process. There is no diff selected.");
-
+      CMessageBox.showInformation(this, "Can't start diff process: No diff selected.");
       return false;
     }
 
     for (final DiffPairTableData data : idbPairs) {
-      final String destination =
-          String.format("%s%s%s", workspacePath, File.separator, data.getDestinationDirectory());
-
-      final File destinationFile = new File(destination);
-
+      final File destinationDir = Path.of(workspacePath, data.getDestinationDirectory()).toFile();
       try {
-        if (!destinationFile.mkdir()) {
-          errorMsg_A += String.format(" - %s", destination + "\n");
+        if (!destinationDir.mkdir()) {
+          destCreationErrors.add(" - " + destinationDir);
         }
       } catch (final Exception e) {
-        errorMsg_A += String.format(" - %s", destination + "\n");
+        destCreationErrors.add(" - " + destinationDir);
       } finally {
-        // TODO: This can fail
-        destinationFile.delete();
+        destinationDir.delete();
       }
 
-      String location = data.getIDBLocation();
-      if (!location.endsWith(File.separator)) {
-        location += File.separator;
+      final String location = data.getIDBLocation();
+      final Path primarySource =
+          Path.of(getSourceBasePath(ESide.PRIMARY), location, data.getIDBName());
+      final Path secondarySource =
+          Path.of(getSourceBasePath(ESide.SECONDARY), location, data.getIDBName());
+      if (!primarySource.toFile().exists()) {
+        sourceFileErrors.add(" - " + primarySource);
       }
-
-      final String primarySource =
-          String.format("%s%s%s", getSourceBasePath(ESide.PRIMARY), location, data.getIDBName());
-
-      final String secondarySource =
-          String.format("%s%s%s", getSourceBasePath(ESide.SECONDARY), location, data.getIDBName());
-
-      final File primarySourceFile = new File(primarySource);
-      final File secondarySourceFile = new File(secondarySource);
-
-      if (!primarySourceFile.exists()) {
-        errorMsg_B += String.format(" - %s", primarySource + "\n");
+      if (!secondarySource.toFile().exists()) {
+        sourceFileErrors.add(" - " + secondarySource);
       }
-      if (!secondarySourceFile.exists()) {
-        errorMsg_B += String.format(" - %s", secondarySource + "\n");
-      }
-
-      if (destinationFile.exists()) {
-        errorMsg_C += String.format(" - %s", destination + "\n");
+      if (destinationDir.exists()) {
+        destExistsErrors.add(" - " + destinationDir);
       }
     }
 
-    errorMsg_A = cutErrorMessage(errorMsg_A);
-    errorMsg_B = cutErrorMessage(errorMsg_B);
-    errorMsg_C = cutErrorMessage(errorMsg_C);
-
-    if (!errorMsg_C.equals("")) {
-      errorMsg_C =
-          String.format(
-              "%s\n\n%s",
-              "Can't start diff process. Some diff destination folders already exist.\n"
-                  + "Please rename affected destination folders.",
-              errorMsg_C);
-
-      CMessageBox.showInformation(this, errorMsg_C);
-
+    if (!destExistsErrors.isEmpty()) {
+      final StringBuilder message =
+          new StringBuilder()
+              .append(
+                  "Can't start diff process: "
+                      + "Some or all of the destination folders already exist\n"
+                      + "Please rename affected folders:\n")
+              .append(destExistsErrors.stream().limit(MAX_LISTED_FILES).collect(joining("\n")));
+      if (destExistsErrors.size() > MAX_LISTED_FILES) {
+        message.append(" - ...\n");
+      }
+      CMessageBox.showInformation(this, message.toString());
       return false;
     }
 
-    if (!errorMsg_A.equals("")) {
-      errorMsg_A =
-          String.format(
-              "%s\n\n%s",
-              "Can't start diff process. Some destination folders cannot be created.", errorMsg_A);
-
-      CMessageBox.showInformation(this, errorMsg_A);
-
+    if (!destCreationErrors.isEmpty()) {
+      final StringBuilder message =
+          new StringBuilder()
+              .append("Can't start diff process: Some destination folders could not be created:\n")
+              .append(destCreationErrors.stream().limit(MAX_LISTED_FILES).collect(joining("\n")));
+      if (destCreationErrors.size() > MAX_LISTED_FILES) {
+        message.append(" - ...\n");
+      }
+      CMessageBox.showInformation(this, message.toString());
       return false;
     }
 
-    if (!errorMsg_B.equals("")) {
-      errorMsg_B =
-          String.format(
-              "%s\n\n%s", "Can't start diff process. Can't find some source files.", errorMsg_B);
-
-      CMessageBox.showInformation(this, errorMsg_B);
-
+    if (!sourceFileErrors.isEmpty()) {
+      final StringBuilder message =
+          new StringBuilder()
+              .append("Can't start diff process: Can't find one or more source files:\n")
+              .append(sourceFileErrors.stream().limit(MAX_LISTED_FILES).collect(joining("\n")));
+      if (sourceFileErrors.size() > MAX_LISTED_FILES) {
+        message.append(" - ...\n");
+      }
+      CMessageBox.showInformation(this, message.toString());
       return false;
     }
 
@@ -378,118 +368,84 @@ public class DirectoryDiffDialog extends BaseDialog {
     return side == ESide.PRIMARY ? primaryDirChooser.getText() : secondaryDirChooser.getText();
   }
 
-  private class InternalButtonListener extends AbstractAction {
+  private class DiffButtonListener extends AbstractAction {
     @Override
     public void actionPerformed(final ActionEvent event) {
-      if (event.getSource().equals(selectAllButton)) {
-        selectAll(true);
-      } else if (event.getSource().equals(deselectAllButton)) {
-        selectAll(false);
-      } else if (event.getSource().equals(diffButton)) {
+      diffButtonPressed = true;
         if (diffsTable.isEditing()) {
           diffsTable.getCellEditor().stopCellEditing();
         }
-
-        if (validateSelectedDiffs()) {
-          diffButtonPressed = true;
-        } else {
+      if (!validateSelectedDiffs()) {
           return;
         }
 
-        dispose();
-      } else {
-        diffButtonPressed = false;
-
-        dispose();
-      }
+      Config.getInstance()
+          .getPreferencesBuilder()
+          .getHistoryBuilder()
+          .setDirectoryDiffPrimaryDir(primaryDirChooser.getText())
+          .setDirectoryDiffSecondaryDir(secondaryDirChooser.getText());
+      dispose();
     }
   }
 
-  private class InternalDirectoryChooserListener implements ActionListener {
-    private List<DiffPairTableData> findDiffPairs() {
-      final List<DiffPairTableData> tableData = new ArrayList<>();
-
-      final File primaryFile = new File(primaryDirChooser.getText());
-      final File secondaryFile = new File(secondaryDirChooser.getText());
-
-      final List<String> extensionFilter = new ArrayList<>();
-      extensionFilter.add(Constants.IDB32_EXTENSION);
-      extensionFilter.add(Constants.IDB64_EXTENSION);
-
-      if (primaryFile.exists() && secondaryFile.exists()) {
-        final List<String> primaryFiles = BinDiffFileUtils.findFiles(primaryFile, extensionFilter);
-        final List<String> primaryCuttedPaths = new ArrayList<>();
-
-        for (final String path : primaryFiles) {
-          final String cuttedPath = path.substring(primaryFile.getPath().length());
-
-          primaryCuttedPaths.add(cuttedPath);
-        }
-
-        final List<String> secondaryFiles =
-            BinDiffFileUtils.findFiles(secondaryFile, extensionFilter);
-        final Set<String> secondaryCuttedPaths = new HashSet<>();
-
-        for (final String path : secondaryFiles) {
-          final String cuttedPath = path.substring(secondaryFile.getPath().length());
-
-          secondaryCuttedPaths.add(cuttedPath);
-        }
-
-        for (final String primaryCuttedPath : primaryCuttedPaths) {
-          if (secondaryCuttedPaths.contains(primaryCuttedPath)) {
-            final File cuttedFile = new File(primaryCuttedPath);
-
-            final String fileName = cuttedFile.getName();
-            final String location = cuttedFile.getParent();
-
-            final String primaryFilePath =
-                String.format("%s%s%s", primaryFile, File.separator, fileName);
-            final String secondaryFilePath =
-                String.format("%s%s%s", secondaryFile, File.separator, fileName);
-
-            final String destination =
-                DiffDirectories.getDiffDestinationDirectoryName(primaryFilePath, secondaryFilePath);
-
-            final DiffPairTableData entry = new DiffPairTableData(fileName, location, destination);
-
-            tableData.add(entry);
-          }
-        }
-      }
-
-      return tableData;
+  private List<DiffPairTableData> findDiffPairs(
+      final String primaryDirPath, final String secondaryDirPath) {
+    final File primaryDir = new File(primaryDirPath);
+    final File secondaryDir = new File(secondaryDirPath);
+    if (!primaryDir.isDirectory() || !secondaryDir.isDirectory()) {
+      return new ArrayList<>();
     }
 
+    final List<DiffPairTableData> tableData = new ArrayList<>();
+    final List<String> filter =
+        ImmutableList.of(Constants.IDB32_EXTENSION, Constants.IDB64_EXTENSION);
+
+    final List<String> primaryRelative =
+        BinDiffFileUtils.findFiles(primaryDir, filter).stream()
+            .map(f -> f.getPath().substring(primaryDir.getPath().length()))
+            .collect(Collectors.toUnmodifiableList());
+    final Set<String> secondaryRelative =
+        BinDiffFileUtils.findFiles(secondaryDir, filter).stream()
+            .map(f -> f.getPath().substring(secondaryDir.getPath().length()))
+            .collect(Collectors.toUnmodifiableSet());
+
+    for (final String fileName : primaryRelative) {
+      if (secondaryRelative.contains(fileName)) {
+        final File relativeFile = new File(fileName);
+        final String destination =
+            DiffDirectories.getDiffDestinationDirectoryName(
+                Path.of(primaryDir.getPath(), fileName).toString(),
+                Path.of(secondaryDir.getPath(), fileName).toString());
+        tableData.add(
+            new DiffPairTableData(relativeFile.getName(), relativeFile.getParent(), destination));
+      }
+    }
+
+    return tableData;
+  }
+
+  private void updateTable() {
+    final List<DiffPairTableData> tableData =
+        findDiffPairs(primaryDirChooser.getText(), secondaryDirChooser.getText());
+    diffsTable.setTableData(tableData);
+    diffButton.setEnabled(!tableData.isEmpty());
+  }
+
+  private class InternalDirectoryChooserListener implements ActionListener {
     @Override
     public void actionPerformed(final ActionEvent event) {
-      List<DiffPairTableData> tableData = new ArrayList<>();
-
       if (event.getSource().equals(primaryDirChooser.getButton())) {
-        final File choosenFile =
-            DirectoryDiffDialog.this.chooseFile(DirectoryDiffDialog.this, ESide.PRIMARY);
-
-        if (choosenFile != null && choosenFile.exists()) {
-          primaryDirChooser.setText(choosenFile.getPath());
-        }
-
-        if (!secondaryDirChooser.getText().equals("")) {
-          tableData = findDiffPairs();
+        final File file = chooseFile(DirectoryDiffDialog.this, ESide.PRIMARY);
+        if (file != null && file.isDirectory()) {
+          primaryDirChooser.setText(file.getPath());
         }
       } else if (event.getSource().equals(secondaryDirChooser.getButton())) {
-        final File choosenFile =
-            DirectoryDiffDialog.this.chooseFile(DirectoryDiffDialog.this, ESide.SECONDARY);
-
-        if (choosenFile != null && choosenFile.exists()) {
-          secondaryDirChooser.setText(choosenFile.getPath());
-        }
-
-        if (!primaryDirChooser.getText().equals("")) {
-          tableData = findDiffPairs();
+        final File file = chooseFile(DirectoryDiffDialog.this, ESide.SECONDARY);
+        if (file != null && file.isDirectory()) {
+          secondaryDirChooser.setText(file.getPath());
         }
       }
-
-      diffsTable.setTableData(tableData);
+      updateTable();
     }
   }
 }

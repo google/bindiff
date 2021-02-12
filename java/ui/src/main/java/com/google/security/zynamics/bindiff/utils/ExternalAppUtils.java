@@ -23,6 +23,7 @@ import com.google.security.zynamics.zylib.io.FileUtils;
 import com.google.security.zynamics.zylib.system.IdaHelpers;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class ExternalAppUtils {
@@ -36,12 +37,12 @@ public class ExternalAppUtils {
     }
     for (final String path :
         new String[] {
-          "bin", // Binary directory under ui.directory, default case
-          "", // Engine exists next to UI JAR file or "bin" is set as ui.directory
+          "bin", // Binary directory under "directory" setting, default case
+          "", // Engine exists next to UI JAR file or "bin" is set as "directory"
           Paths.get("..", "MacOS", "bin").toString() // macOS, relative to "app" bundle dir
         }) {
       final File bindiffEngine =
-          Paths.get(rootPath, path, Constants.BINDIFF_ENGINE_EXECUTABLE).toFile();
+          Path.of(rootPath, path, Constants.BINDIFF_ENGINE_EXECUTABLE).toFile();
       if (!bindiffEngine.exists()) {
         continue;
       }
@@ -51,8 +52,7 @@ public class ExternalAppUtils {
       }
       return bindiffEngine;
     }
-    throw new FileNotFoundException(
-        "BinDiff engine not found in configured path: " + getBinDiffEngine().getPath());
+    throw new FileNotFoundException("BinDiff engine not found in configured path: " + rootPath);
   }
 
   public static File getIdaExe(final File inFile) {

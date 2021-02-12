@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
+import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanel;
@@ -87,6 +88,17 @@ public class WindowFunctions {
       logger.at(Level.SEVERE).withCause(e).log("Couldn't save configuration file");
       CMessageBox.showError(window, "Couldn't save configuration file.");
     }
+  }
+
+  public boolean askDisassemblerDirectoryIfUnset() {
+    if (!Config.getInstance().getIda().getDirectory().isEmpty()) {
+      return true;
+    }
+    CMessageBox.showWarning(
+        window, "Please set the path to your IDA Pro installation in the main settings.");
+    final WorkspaceTabPanelFunctions controller =
+        window.getController().getTabPanelManager().getWorkspaceTabPanel().getController();
+    return controller.showMainSettingsDialog();
   }
 
   public void exitBinDiff() {

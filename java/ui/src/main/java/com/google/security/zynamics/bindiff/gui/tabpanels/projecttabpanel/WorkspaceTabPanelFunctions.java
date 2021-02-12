@@ -347,30 +347,31 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
   public void addDiff() {
     try {
-      final AddDiffDialog dlg = new AddDiffDialog(getParentWindow(), getWorkspace());
+      final AddDiffDialog addDiffDialog = new AddDiffDialog(getParentWindow(), getWorkspace());
 
-      if (dlg.getAddButtonPressed()) {
-        final File matchesDatabase = dlg.getMatchesBinary();
-
-        final File priBinExportFile = dlg.getBinExportBinary(ESide.PRIMARY);
-        final File secBinExportFile = dlg.getBinExportBinary(ESide.SECONDARY);
-
-        final File diffDir = dlg.getDestinationDirectory();
-
-        File newMatchesDatabase = matchesDatabase;
-        if (!diffDir.equals(matchesDatabase.getParentFile())) {
-          diffDir.mkdir();
-
-          newMatchesDatabase = copyFileIntoNewDiffDir(diffDir, matchesDatabase);
-
-          copyFileIntoNewDiffDir(diffDir, priBinExportFile);
-          copyFileIntoNewDiffDir(diffDir, secBinExportFile);
-        }
-
-        final DiffMetadata matchesMetadata = DiffLoader.preloadDiffMatches(newMatchesDatabase);
-
-        getWorkspace().addDiff(newMatchesDatabase, matchesMetadata, false);
+      if (!addDiffDialog.getAddButtonPressed()) {
+        return;
       }
+      final File matchesDatabase = addDiffDialog.getMatchesBinary();
+
+      final File priBinExportFile = addDiffDialog.getBinExportBinary(ESide.PRIMARY);
+      final File secBinExportFile = addDiffDialog.getBinExportBinary(ESide.SECONDARY);
+
+      final File diffDir = addDiffDialog.getDestinationDirectory();
+
+      File newMatchesDatabase = matchesDatabase;
+      if (!diffDir.equals(matchesDatabase.getParentFile())) {
+        diffDir.mkdir();
+
+        newMatchesDatabase = copyFileIntoNewDiffDir(diffDir, matchesDatabase);
+
+        copyFileIntoNewDiffDir(diffDir, priBinExportFile);
+        copyFileIntoNewDiffDir(diffDir, secBinExportFile);
+      }
+
+      final DiffMetadata matchesMetadata = DiffLoader.preloadDiffMatches(newMatchesDatabase);
+
+      getWorkspace().addDiff(newMatchesDatabase, matchesMetadata, false);
     } catch (final IOException | SQLException e) {
       logger.at(Level.SEVERE).withCause(e).log("Add diff failed. Couldn't add diff to workspace");
       CMessageBox.showError(
@@ -502,45 +503,47 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void directoryDiff() {
-    // create a new view
+    // Create a new view
     final MainWindow window = getMainWindow();
     final Workspace workspace = getWorkspace();
 
     final String workspacePath = workspace.getWorkspaceDir().getPath();
-    final DirectoryDiffDialog dlg = new DirectoryDiffDialog(window, new File(workspacePath));
+    final DirectoryDiffDialog diffDialog = new DirectoryDiffDialog(window, new File(workspacePath));
+    if (!diffDialog.getDiffButtonPressed()) {
+      return;
+    }
 
-    if (dlg.getDiffButtonPressed()) {
-      final String priSourceBasePath = dlg.getSourceBasePath(ESide.PRIMARY);
-      final String secSourceBasePath = dlg.getSourceBasePath(ESide.SECONDARY);
-      final List<DiffPairTableData> selectedIdbPairs = dlg.getSelectedIdbPairs();
+    final String priSourceBasePath = diffDialog.getSourceBasePath(ESide.PRIMARY);
+    final String secSourceBasePath = diffDialog.getSourceBasePath(ESide.SECONDARY);
+    final List<DiffPairTableData> selectedIdbPairs = diffDialog.getSelectedIdbPairs();
 
-      final DirectoryDiffImplementation directoryDiffer =
-          new DirectoryDiffImplementation(
-              window, workspace, priSourceBasePath, secSourceBasePath, selectedIdbPairs);
-      try {
-        ProgressDialog.show(window, "Directory Diffing...", directoryDiffer);
-      } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log(
-            "Directory diffing was canceled because of an unexpected exception");
-        CMessageBox.showError(
-            window, "Directory diffing was canceled because of an unexpected exception!");
-      }
+    final DirectoryDiffImplementation directoryDiffer =
+        new DirectoryDiffImplementation(
+            window, workspace, priSourceBasePath, secSourceBasePath, selectedIdbPairs);
+    try {
+      ProgressDialog.show(window, "Directory Diffing...", directoryDiffer);
+    } catch (final Exception e) {
+      logger.at(Level.SEVERE).withCause(e).log(
+          "Directory diffing aborted because of an unexpected exception");
+      CMessageBox.showError(
+          window, "Directory diffing aborted because of an unexpected exception.");
+    }
 
-      if (directoryDiffer.getDiffingErrorMessages().size() != 0) {
-        int counter = 0;
-        final StringBuilder errorText = new StringBuilder();
-        for (final String msg : directoryDiffer.getDiffingErrorMessages()) {
-          if (++counter == 10) {
-            errorText.append("...");
-            break;
-          }
+    if (!directoryDiffer.getDiffingErrorMessages().isEmpty()) {
+      int counter = 0;
+      final StringBuilder errorText = new StringBuilder();
+      for (final String msg : directoryDiffer.getDiffingErrorMessages()) {
+        if (++counter == 10) {
+          errorText.append("...");
+          break;
+        }
           errorText.append(msg).append("\n");
         }
 
         CMessageBox.showError(window, errorText.toString());
       }
 
-      if (directoryDiffer.getOpeningDiffErrorMessages().size() != 0) {
+    if (!directoryDiffer.getOpeningDiffErrorMessages().isEmpty()) {
         int counter = 0;
         final StringBuilder errorText = new StringBuilder();
         for (final String msg : directoryDiffer.getOpeningDiffErrorMessages()) {
@@ -553,7 +556,6 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
         CMessageBox.showError(window, errorText.toString());
       }
-    }
   }
 
   public LinkedHashSet<ViewTabPanel> getOpenViews(final Set<Diff> diffs) {
@@ -1056,10 +1058,11 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     flowGraphSettingsDialog.setVisible(true);
   }
 
-  public void showMainSettingsDialog() {
+  public boolean showMainSettingsDialog() {
     if (mainSettingsDialog == null) {
       mainSettingsDialog = new MainSettingsDialog(getMainWindow());
     }
     mainSettingsDialog.setVisible(true);
+    return mainSettingsDialog.isCancelled();
   }
 }

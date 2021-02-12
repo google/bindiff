@@ -36,9 +36,9 @@ import javax.swing.border.TitledBorder;
 public class GeneralPanel extends JPanel {
   private static final int LABEL_WIDTH = 275;
   private static final int ROW_HEIGHT = 25;
-  private static final int NUMBER_OF_ROWS = 2;
 
   private FileChooserPanel idaDirectoryPanel;
+
   private FileChooserPanel workspaceDirectoryPanel;
 
   public GeneralPanel() {
@@ -54,6 +54,7 @@ public class GeneralPanel extends JPanel {
 
     final InternalDirectoryListener idaDirectoryListener =
         new InternalDirectoryListener("Choose IDA Installation Directory");
+    // TODO(cblichmann): macOS: Browse for package
     idaDirectoryPanel =
         new FileChooserPanel(
             settings.getIdaDirectory(), idaDirectoryListener, "...", 0, ROW_HEIGHT, 0);
@@ -70,16 +71,20 @@ public class GeneralPanel extends JPanel {
         new FileChooserPanel(workspaceDir, workspaceDirectoryListener, "...", 0, ROW_HEIGHT, 0);
     workspaceDirectoryListener.setPanel(workspaceDirectoryPanel);
 
-    final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
+    final JPanel panel = new JPanel();
     panel.setBorder(new TitledBorder("General settings"));
 
+    int numRows = 0;
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "IDA directory:", LABEL_WIDTH, idaDirectoryPanel, ROW_HEIGHT));
+    numRows++;
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "Workspaces directory:", LABEL_WIDTH, workspaceDirectoryPanel, ROW_HEIGHT));
+    numRows++;
 
+    panel.setLayout(new GridLayout(numRows, 1, 5, 5));
     add(panel, BorderLayout.NORTH);
   }
 

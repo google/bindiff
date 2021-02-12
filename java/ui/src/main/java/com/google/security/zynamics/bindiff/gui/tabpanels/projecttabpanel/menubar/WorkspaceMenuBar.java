@@ -14,6 +14,7 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menubar;
 
+import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.gui.tabpanels.menubar.DebugMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.menubar.HelpMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
@@ -27,7 +28,9 @@ public class WorkspaceMenuBar extends JMenuBar {
     workspaceMenu = add(new WorkspaceMenu(controller));
     add(new DiffMenu(controller));
     add(new SettingsMenu(controller));
-    add(new DebugMenu(controller));
+    if (Config.getInstance().getPreferencesOrBuilder().getDebugOrBuilder().getShowDebugMenu()) {
+      add(new DebugMenu(controller));
+    }
     add(new HelpMenu(controller));
   }
 

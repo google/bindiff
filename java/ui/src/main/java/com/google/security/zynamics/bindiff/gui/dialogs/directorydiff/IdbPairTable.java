@@ -56,7 +56,7 @@ public class IdbPairTable extends JTable // AbstractTable
     final TableColumn idbName = getColumnModel().getColumn(IdbPairTableModel.IDB_NAME);
     final TableColumn idbLocation = getColumnModel().getColumn(IdbPairTableModel.IDB_LOCATION);
     final TableColumn diffDestination =
-        getColumnModel().getColumn(IdbPairTableModel.DIFF_DESTINATION_DIR);
+        getColumnModel().getColumn(IdbPairTableModel.WORKSPACE_DESTINATION_DIR);
 
     selectionBox.setMaxWidth(30);
     selectionBox.setWidth(30);

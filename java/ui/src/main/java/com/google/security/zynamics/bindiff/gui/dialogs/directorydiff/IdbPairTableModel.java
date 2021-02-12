@@ -27,10 +27,10 @@ public class IdbPairTableModel extends AbstractTableModel {
   public static final int SELECTION = 0;
   public static final int IDB_NAME = 1;
   public static final int IDB_LOCATION = 2;
-  public static final int DIFF_DESTINATION_DIR = 3;
+  public static final int WORKSPACE_DESTINATION_DIR = 3;
 
   private static final String[] COLUMNS = {
-    "", "IDB Name", "IDB Location", "Diff Destination (Editable)"
+    "", "IDB Name", "IDB Location", "Workspace-relative Destination (Editable)"
   };
 
   private final List<Pair<Integer, Comparator<?>>> sorters = new ArrayList<>();
@@ -47,7 +47,7 @@ public class IdbPairTableModel extends AbstractTableModel {
     sorters.add(new Pair<>(SELECTION, new JCheckBoxComparator()));
     sorters.add(new Pair<>(IDB_NAME, new LexicalComparator()));
     sorters.add(new Pair<>(IDB_LOCATION, new LexicalComparator()));
-    sorters.add(new Pair<>(DIFF_DESTINATION_DIR, new LexicalComparator()));
+    sorters.add(new Pair<>(WORKSPACE_DESTINATION_DIR, new LexicalComparator()));
   }
 
   @Override
@@ -84,7 +84,7 @@ public class IdbPairTableModel extends AbstractTableModel {
         return data.getIDBName();
       case IDB_LOCATION:
         return "." + data.getIDBLocation();
-      case DIFF_DESTINATION_DIR:
+      case WORKSPACE_DESTINATION_DIR:
         return data.getDestinationDirectory();
       default: // fall out
     }
@@ -94,7 +94,7 @@ public class IdbPairTableModel extends AbstractTableModel {
 
   @Override
   public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-    return columnIndex == SELECTION || columnIndex == DIFF_DESTINATION_DIR;
+    return columnIndex == SELECTION || columnIndex == WORKSPACE_DESTINATION_DIR;
   }
 
   public void setTableData(final List<DiffPairTableData> tableData) {
@@ -109,7 +109,7 @@ public class IdbPairTableModel extends AbstractTableModel {
       final boolean selected = ((JCheckBox) value).isSelected();
 
       tableData.get(row).getSelectionCheckBox().setSelected(selected);
-    } else if (column == DIFF_DESTINATION_DIR) {
+    } else if (column == WORKSPACE_DESTINATION_DIR) {
       tableData.get(row).setDestinationDirectory((String) value);
     }
   }

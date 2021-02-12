@@ -25,9 +25,9 @@ import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.HeadlessException;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -40,8 +40,7 @@ import javax.swing.filechooser.FileFilter;
 
 public class CFileChooser extends JFileChooser {
 
-  private final List<FileNameExtensionFilter> fileFilters =
-      new ArrayList<FileNameExtensionFilter>();
+  private final List<FileNameExtensionFilter> fileFilters = new ArrayList<>();
 
   private final JCheckBox checkBox = new JCheckBox();
 
@@ -75,11 +74,9 @@ public class CFileChooser extends JFileChooser {
 
   public CFileChooser(final List<String> fileExtensions, final String fileDescription) {
     this(
-        new FileExtension[] {
-          new FileExtension(
-              Preconditions.checkNotNull(fileDescription),
-              Preconditions.checkNotNull(fileExtensions).toArray(new String[0]))
-        });
+        new FileExtension(
+            Preconditions.checkNotNull(fileDescription),
+            Preconditions.checkNotNull(fileExtensions).toArray(new String[0])));
   }
 
   public CFileChooser(final String extension) {
@@ -87,7 +84,7 @@ public class CFileChooser extends JFileChooser {
   }
 
   public CFileChooser(final String fileExtension, final String fileDescription) {
-    this(Arrays.asList(new String[]{fileExtension}), fileDescription);
+    this(Collections.singletonList(fileExtension), fileDescription);
   }
 
   private static int showNativeFileDialog(final JFileChooser chooser) {
@@ -97,12 +94,9 @@ public class CFileChooser extends JFileChooser {
 
     final File selected = chooser.getSelectedFile();
     result.setFile(selected == null ? "" : selected.getPath());
-    result.setFilenameFilter(new FilenameFilter() {
-      @Override
-      public boolean accept(final File dir, final String name) {
-        return chooser.getFileFilter().accept(new File(dir.getPath() + File.pathSeparator + name));
-      }
-    });
+    result.setFilenameFilter(
+        (dir, name) ->
+            chooser.getFileFilter().accept(new File(dir.getPath() + File.pathSeparator + name)));
 
     if (chooser.getDialogType() == SAVE_DIALOG) {
       result.setMode(FileDialog.SAVE);
@@ -157,23 +151,23 @@ public class CFileChooser extends JFileChooser {
 
     final String approve = getApproveButtonText();
     final JButton approveButton =
-        (JButton) GuiHelper.findComponentByPredicate(this, new GuiHelper.ComponentFilter() {
-          @Override
-          public boolean accept(final JComponent c) {
-            if (!(c instanceof JButton)) {
-              return false;
-            }
+        (JButton)
+            GuiHelper.findComponentByPredicate(
+                this,
+                c -> {
+                  if (!(c instanceof JButton)) {
+                    return false;
+                  }
 
-            final String text = ((JButton) c).getText();
-            if (text == null) {
-              return approve == null;
-            }
-            if (approve == null) {
-              return text == null;
-            }
-            return ((JButton) c).getText().equals(approve);
-          }
-        });
+                  final String text = ((JButton) c).getText();
+                  if (text == null) {
+                    return approve == null;
+                  }
+                  if (approve == null) {
+                    return false;
+                  }
+                  return ((JButton) c).getText().equals(approve);
+                });
 
     JComponent parent = null;
     if (approveButton != null) {

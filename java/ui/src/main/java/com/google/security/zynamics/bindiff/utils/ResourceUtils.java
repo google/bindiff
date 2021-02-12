@@ -59,14 +59,13 @@ public class ResourceUtils {
     URL imageUrl2x = null;
     for (String path : SEARCH_PATHS) {
       // Try to find a 2x scaled version of the image.
-      final File imageFilePath = new File(imagePath);
       imageUrl = BinDiff.class.getResource(path + imagePath);
       imageUrl2x =
           BinDiff.class.getResource(
               path
-                  + BinDiffFileUtils.removeFileExtension(imageFilePath.getPath())
+                  + BinDiffFileUtils.removeFileExtension(imagePath)
                   + "@2."
-                  + FileUtils.getFileExtension(imageFilePath));
+                  + FileUtils.getFileExtension(new File(imagePath)));
       if (imageUrl != null) {
         break;
       }

@@ -47,7 +47,7 @@ public class DestinationCellRenderer extends DefaultTableCellRenderer {
 
     final String path = String.format("%s%s%s", workspacePath, File.separator, value);
 
-    if (column == IdbPairTableModel.DIFF_DESTINATION_DIR) {
+    if (column == IdbPairTableModel.WORKSPACE_DESTINATION_DIR) {
       component.setBackground(Color.WHITE);
 
       final File file = new File(path);

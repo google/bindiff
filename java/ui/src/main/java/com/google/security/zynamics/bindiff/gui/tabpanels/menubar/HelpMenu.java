@@ -67,7 +67,7 @@ public class HelpMenu extends JMenu {
             });
 
     final JMenuItem aboutMenuItem =
-        !SystemHelpers.isRunningMacOSX() && BinDiff.isDesktopIntegrationDone()
+        !SystemHelpers.isRunningMacOSX() || !BinDiff.isDesktopIntegrationDone()
             ? GuiUtils.buildMenuItem(
                 "About",
                 'A',

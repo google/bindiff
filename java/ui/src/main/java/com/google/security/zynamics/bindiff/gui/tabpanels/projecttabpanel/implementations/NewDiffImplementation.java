@@ -37,6 +37,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.logging.Level;
 
@@ -171,10 +172,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       } else if (primaryBinExportFile != null) {
         try {
           final File copiedBinExportFile =
-              new File(
-                  String.format(
-                      "%s%s%s", destinationDirectory.getPath(), File.separator, priTargetName));
-
+              Path.of(destinationDirectory.getPath(), priTargetName).toFile();
           if (!copiedBinExportFile.exists()) {
             setDescription("Copying primary BinExport binary...");
 
@@ -185,13 +183,10 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           primaryBinExportFile = copiedBinExportFile;
         } catch (final IOException e) {
-          logger.at(Level.SEVERE).withCause(e).log(
-              "New Diff failed. Couldn't copy already exported primary binaries "
-                  + "into the new diff directory.");
-          CMessageBox.showError(
-              parentWindow,
-              "New Diff failed. Couldn't copy already exported primary binaries into the new diff "
-                  + "directory.");
+          final String message =
+              "Couldn't copy primary BinExport binaries into the new diff directory.";
+          logger.at(Level.SEVERE).withCause(e).log(message);
+          CMessageBox.showError(parentWindow, message);
 
           try {
             BinDiffFileUtils.deleteDirectory(destinationDirectory);
@@ -256,10 +251,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
       } else if (secondaryBinExportFile != null) {
         try {
           final File copiedSecBinExportFile =
-              new File(
-                  String.format(
-                      "%s%s%s", destinationDirectory.getPath(), File.separator, secTargetName));
-
+              Path.of(destinationDirectory.getPath(), secTargetName).toFile();
           if (!copiedSecBinExportFile.exists()) {
             setDescription("Copying primary BinExport binary...");
             ByteStreams.copy(
@@ -269,13 +261,10 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
 
           secondaryBinExportFile = copiedSecBinExportFile;
         } catch (final IOException e) {
-          logger.at(Level.SEVERE).withCause(e).log(
-              "New Diff failed. Couldn't copy secondary BinExport binaries into "
-                  + "the new diff directory.");
-          CMessageBox.showError(
-              parentWindow,
-              "New Diff failed. Couldn't copy secondary "
-                  + "BinExport binaries into the new diff directory.");
+          final String message =
+              "Couldn't copy secondary BinExport binaries into the new diff directory.";
+          logger.at(Level.SEVERE).withCause(e).log(message);
+          CMessageBox.showError(parentWindow, message);
 
           try {
             BinDiffFileUtils.deleteDirectory(destinationDirectory);
