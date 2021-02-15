@@ -43,7 +43,7 @@ import javax.swing.border.EmptyBorder;
 public class InitialFlowGraphSettingsDialog extends BaseDialog {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  private static final int DIALOG_WIDTH = 630;
+  private static final int DIALOG_WIDTH = 680;
   private static final int DIALOG_HEIGHT = 282;
 
   private final LayoutingPanel layoutingPanel =

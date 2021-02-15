@@ -34,8 +34,8 @@ dependencies {
     implementation 'com.google.flogger:flogger-system-backend:0.4'
     implementation 'com.google.flogger:flogger:0.4'
     implementation 'com.google.guava:guava:28.1-jre'
-    implementation 'com.google.protobuf:protobuf-java:3.13.0'
     implementation 'com.google.protobuf:protobuf-java-util:3.13.0'
+    implementation 'com.google.protobuf:protobuf-java:3.13.0'
     implementation 'commons-cli:commons-cli:1.4'
     implementation 'io.grpc:grpc-netty-shaded:1.32.1'
     implementation 'io.grpc:grpc-protobuf:1.32.1'
@@ -121,6 +121,7 @@ task obfuscatedJar(type: ProGuardTask) {
 
     // Class unexpectedly contains class
     dontwarn 'javax.xml.bind.ModuleUtil'
+    dontwarn 'module-info'  // Java 9 or higher
 
     // Library class depends on program class
     dontwarn 'org.w3c.dom.**'

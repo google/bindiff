@@ -18,6 +18,7 @@ import static com.google.common.base.StandardSystemProperty.JAVA_VERSION;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
+import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
@@ -72,6 +73,7 @@ public class BinDiff {
       Option.builder().longOpt("debug_menu").desc("Display the \"Debug\" menu").build();
 
   private static boolean desktopIntegrationDone = false;
+  private static WorkspaceTabPanelFunctions controller = null;
 
   private BinDiff() {}
 
@@ -258,7 +260,7 @@ public class BinDiff {
     }
 
     if (cmd.hasOption(DEBUG_MENU.getLongOpt())) {
-      BinDiffConfig.getInstance().getDebugSettings().setShowMenu(true);
+      Config.getInstance().getPreferencesBuilder().getDebugBuilder().setShowDebugMenu(true);
     }
 
     return positional;
@@ -296,20 +298,31 @@ public class BinDiff {
         });
   }
 
-  private static void initializeDesktop(
-      final Desktop desktop, final WorkspaceTabPanelFunctions controller) {
+  private static void initializeDesktop(final Desktop desktop) {
     // This enables deeper integration with the macOS system menu bar as well as GNOME's application
     // menu.
     // Note that any of these might independently fail, and we simply ignore the error; different
     // platforms implement different subsets of the desktop API.
     try {
-      desktop.setAboutHandler(e -> controller.showAboutDialog());
+      desktop.setAboutHandler(e -> {
+        if (controller != null) {
+          controller.showAboutDialog();
+        }
+      });
     } catch (final UnsupportedOperationException e) { /* Ignore */ }
     try {
-      desktop.setPreferencesHandler(e -> controller.showMainSettingsDialog());
+      desktop.setPreferencesHandler(e -> {
+        if (controller != null) {
+          controller.showMainSettingsDialog();
+        }
+      });
     } catch (final UnsupportedOperationException e) { /* Ignore */ }
     try {
-      desktop.setQuitHandler((e, response) -> controller.exitBinDiff());
+      desktop.setQuitHandler((e, response) -> {
+        if (controller != null) {
+          controller.exitBinDiff();
+        }
+      });
     } catch (final UnsupportedOperationException e) { /* Ignore */ }
 
     desktopIntegrationDone = true;
@@ -336,6 +349,11 @@ public class BinDiff {
               "Starting %s (Java %s)", Constants.PRODUCT_NAME_VERSION, JAVA_VERSION.value());
 
           initializeTheme();
+
+          if (Desktop.isDesktopSupported()) {
+            initializeDesktop(Desktop.getDesktop());
+          }
+
           final String[] positional = parseCommandLine(args);
           initializeGlobalTooltipDelays();
           initializeStandardHotKeys();
@@ -343,16 +361,11 @@ public class BinDiff {
           final Workspace workspace = new Workspace();
           final MainWindow window = new MainWindow(workspace);
           window.setVisible(true);
-          GuiHelper.applyWindowFix(window);
 
-          final WorkspaceTabPanelFunctions controller =
+          controller =
               window.getController().getTabPanelManager().getWorkspaceTabPanel().getController();
 
           initializeSocketServer(window, controller);
-
-          if (Desktop.isDesktopSupported()) {
-            initializeDesktop(Desktop.getDesktop(), controller);
-          }
 
           if (positional != null && positional.length > 0) {
             controller.loadWorkspace(positional[0]);
