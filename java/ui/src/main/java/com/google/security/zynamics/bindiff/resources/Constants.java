@@ -1,4 +1,4 @@
-// Copyright 2011-2020 Google LLC
+// Copyright 2011-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public final class Constants {
   // About, License Help and Support Dialog
   public static final String MANUAL_URL = "https://www.zynamics.com/bindiff/manual/index.html";
   public static final String COPYRIGHT_TEXT =
-      "\nCopyright \u00a92004-2011 zynamics GmbH\nCopyright \u00a92011-2020 Google LLC.\n";
+      "\nCopyright \u00a92004-2011 zynamics GmbH\nCopyright \u00a92011-2021 Google LLC.\n";
   public static final String ZYNAMICS_HOME_URL = "https://www.zynamics.com";
   public static final String ZYNAMICS_BINDIFF_PRODUCT_SITE_URL =
       "http://www.zynamics.com/bindiff.html";
