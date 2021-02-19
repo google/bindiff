@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011-2020 Google LLC
+# Copyright 2011-2021 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ cd "${THIS_DIR}"
 
 (
   cat <<EOF
-// Copyright 2011-2020 Google LLC
+// Copyright 2011-2021 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.

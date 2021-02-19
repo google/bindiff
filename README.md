@@ -1,6 +1,6 @@
 # BinExport
 
-Copyright 2011-2020 Google LLC.
+Copyright 2011-2021 Google LLC.
 
 [![Linux Build Status](https://github.com/google/binexport/workflows/linux-build/badge.svg)](https://github.com/google/binexport/actions?query=workflow%3Alinux-build)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/8977/badge.svg)](https://scan.coverity.com/projects/google-binexport)
