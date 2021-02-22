@@ -26,23 +26,16 @@ import javax.swing.JMenuItem;
 import javax.swing.JSeparator;
 
 public class SettingsMenu extends JMenu {
-  private final JMenuItem mainSettings;
-
-  private final JMenuItem initialCallgraphSettings;
-
-  private final JMenuItem initialFlowgraphSettings;
 
   public SettingsMenu(final WorkspaceTabPanelFunctions controller) {
     super("Settings");
     setMnemonic('S');
 
-    // TODO(cblichmann): Remove shortcuts for settings, it should not be
-    // necessary to access settings often.
-    mainSettings =
+    JMenuItem mainSettings =
         GuiUtils.buildMenuItem(
             "Main Settings...", 'M', KeyEvent.VK_F2, new MainSettingsAction(controller));
 
-    initialCallgraphSettings =
+    JMenuItem initialCallGraphSettings =
         GuiUtils.buildMenuItem(
             "Initial Call Graph Settings...",
             'C',
@@ -50,7 +43,7 @@ public class SettingsMenu extends JMenu {
             InputEvent.SHIFT_DOWN_MASK,
             new InitialCallGraphSettingsAction(controller));
 
-    initialFlowgraphSettings =
+    JMenuItem initialFlowGraphSettings =
         GuiUtils.buildMenuItem(
             "Initial Flow Graph Settings...",
             'F',
@@ -62,7 +55,7 @@ public class SettingsMenu extends JMenu {
 
     add(new JSeparator());
 
-    add(initialCallgraphSettings);
-    add(initialFlowgraphSettings);
+    add(initialCallGraphSettings);
+    add(initialFlowGraphSettings);
   }
 }

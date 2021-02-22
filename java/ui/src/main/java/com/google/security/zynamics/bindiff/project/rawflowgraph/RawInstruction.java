@@ -43,7 +43,7 @@ public class RawInstruction {
     this.maxMnemonicLen = maxMnemonicLen;
     this.taggedOperandDisassembly = checkNotNull(taggedOperandDisassembly);
     this.callTargetAddresses = checkNotNull(callTargetAddr);
-    this.comments = comments;
+    this.comments = checkNotNull(comments);
   }
 
   public IAddress getAddress() {
@@ -68,12 +68,11 @@ public class RawInstruction {
 
   public int getOperandLength() {
     int counter = 0;
-    for (final byte value : taggedOperandDisassembly) {
-      if (value > EInstructionHighlighting.values().length) {
+    for (final byte b : taggedOperandDisassembly) {
+      if (!EInstructionHighlighting.validOrdinal(b)) {
         ++counter;
       }
     }
-
     return counter;
   }
 
@@ -82,7 +81,7 @@ public class RawInstruction {
   }
 
   public boolean hasComments() {
-    return comments != null && comments.size() > 0;
+    return !comments.isEmpty();
   }
 
   public boolean isCall() {
@@ -102,8 +101,7 @@ public class RawInstruction {
         }
       }
     } else if (!"".equals(text)) {
-      final RawInstructionComment comment = new RawInstructionComment(text, commentPlacement);
-      comments.add(comment);
+      comments.add(new RawInstructionComment(text, commentPlacement));
     }
   }
 }

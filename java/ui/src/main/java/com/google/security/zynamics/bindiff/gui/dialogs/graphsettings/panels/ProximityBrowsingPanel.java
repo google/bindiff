@@ -27,7 +27,7 @@ import com.google.security.zynamics.zylib.gui.CDecFormatter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
@@ -43,7 +43,7 @@ public class ProximityBrowsingPanel extends JPanel {
   private static final int SLIDER_MAX = 10;
   private static final int SLIDER_LABEL_WIDTH = 25;
 
-  private final JComboBox<String> proximityBrowsing = new JComboBox<>();
+  private final JCheckBox proximityBrowsing = new JCheckBox();
   private final SliderPanel proximityBrowsingParentDepth =
       new SliderPanel(
           0, SLIDER_MIN, SLIDER_MAX, true, true, false, true, SLIDER_LABEL_WIDTH, ROW_HEIGHT);
@@ -141,9 +141,6 @@ public class ProximityBrowsingPanel extends JPanel {
   private void init(final String borderTitle) {
     setBorder(new LineBorder(Color.GRAY));
 
-    proximityBrowsing.addItem("On");
-    proximityBrowsing.addItem("Off");
-
     setCurrentValues();
 
     final int rows =
@@ -196,7 +193,7 @@ public class ProximityBrowsingPanel extends JPanel {
   }
 
   public boolean getProximityBrowsing() {
-    return proximityBrowsing.getSelectedIndex() == 0;
+    return proximityBrowsing.isSelected();
   }
 
   public int getProximityBrowsingChildDepth() {
@@ -214,7 +211,7 @@ public class ProximityBrowsingPanel extends JPanel {
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    proximityBrowsing.setSelectedIndex(getProximityBrowsing(config) ? 0 : 1);
+    proximityBrowsing.setSelected(getProximityBrowsing(config));
     proximityBrowsingParentDepth.setValue(getProximityBrowsingParentDepth(config));
     proximityBrowsingChildDepth.setValue(getProximityBrowsingChildDepth(config));
     autoProximityBrowsingActivionThreshold.setText(

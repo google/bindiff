@@ -40,7 +40,8 @@ public class CircularLayoutPanel extends JPanel {
   private static final int ROW_HEIGHT = 25;
   private static final int NUMBER_OF_ROWS = 2;
 
-  private final JComboBox<String> layoutStyle = new JComboBox<>();
+  private final JComboBox<ECircularLayoutStyle> layoutStyle =
+      new JComboBox<>(ECircularLayoutStyle.values());
   private final JFormattedTextField minimumNodeDistance =
       TextComponentUtils.addDefaultEditorActions(
           new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3))));
@@ -93,9 +94,6 @@ public class CircularLayoutPanel extends JPanel {
   private void init(final String borderTitle) {
     setBorder(new LineBorder(Color.GRAY));
 
-    layoutStyle.addItem("Compact");
-    layoutStyle.addItem("Isolated");
-    layoutStyle.addItem("Single Cycle");
     setCurrentValues();
 
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
@@ -113,7 +111,7 @@ public class CircularLayoutPanel extends JPanel {
   }
 
   public ECircularLayoutStyle getCircularLayoutStyle() {
-    return ECircularLayoutStyle.values()[layoutStyle.getSelectedIndex()];
+    return (ECircularLayoutStyle) layoutStyle.getSelectedItem();
   }
 
   public int getMinimumNodeDistance() {
@@ -123,7 +121,7 @@ public class CircularLayoutPanel extends JPanel {
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    layoutStyle.setSelectedIndex(getCircularLayoutStyle(config).ordinal());
+    layoutStyle.setSelectedItem(getCircularLayoutStyle(config));
 
     minimumNodeDistance.setText(Integer.toString(getMinimumNodeDistance(config)));
   }

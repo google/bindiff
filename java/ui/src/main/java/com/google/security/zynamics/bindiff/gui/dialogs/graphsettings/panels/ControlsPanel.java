@@ -40,11 +40,9 @@ public class ControlsPanel extends JPanel {
   private final JComboBox<String> showScrollbars = new JComboBox<>();
   private final JComboBox<String> mouseWheelBehavior = new JComboBox<>();
   private final DoubleLabeledSlider zoomSensitivity =
-      new DoubleLabeledSlider(
-          "  " + "Low" + "  ", "  " + "High" + "  ", 1, 10, false, new LineBorder(Color.GRAY));
+      new DoubleLabeledSlider("  Low  ", "  High  ", 1, 10, false, new LineBorder(Color.GRAY));
   private final DoubleLabeledSlider scrollSensitivity =
-      new DoubleLabeledSlider(
-          "  " + "Low" + "  ", "  " + "High" + "  ", 1, 10, false, new LineBorder(Color.GRAY));
+      new DoubleLabeledSlider("  Low  ", "  High  ", 1, 10, false, new LineBorder(Color.GRAY));
 
   private final ESettingsDialogType dialogType;
 
@@ -138,7 +136,7 @@ public class ControlsPanel extends JPanel {
             "Show scrollbars", LABEL_WIDTH, showScrollbars, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Mousewheel action", LABEL_WIDTH, mouseWheelBehavior, ROW_HEIGHT));
+            "Mouse wheel action", LABEL_WIDTH, mouseWheelBehavior, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "Zoom sensitivity", LABEL_WIDTH, zoomSensitivity, ROW_HEIGHT));

@@ -43,6 +43,7 @@ import com.google.security.zynamics.bindiff.graph.nodes.CombinedDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleDiffNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SingleViewNode;
 import com.google.security.zynamics.bindiff.graph.nodes.SuperDiffNode;
+import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphProximityBrowsingSettings;
 import com.google.security.zynamics.bindiff.graph.settings.GraphSettings;
 import com.google.security.zynamics.bindiff.gui.dialogs.ExportViewDialog;
@@ -443,27 +444,30 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void doLayout(final EGraphLayout layoutStyle) {
-    BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> graph =
-        graphs.getCombinedGraph();
-
+    final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> graph;
     if (settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
       if (settings.getFocus() == ESide.PRIMARY) {
         graph = graphs.getPrimaryGraph();
       } else {
         graph = graphs.getSecondaryGraph();
       }
+    } else {
+      graph = graphs.getCombinedGraph();
     }
 
-    if (graph != null) {
+    if (graph == null) {
+      return;
+    }
+    final GraphLayoutSettings layoutSettings = graph.getSettings().getLayoutSettings();
       switch (layoutStyle) {
         case CIRCULAR:
-          graph.getSettings().getLayoutSettings().setDefaultGraphLayout(EGraphLayout.CIRCULAR);
+        layoutSettings.setDefaultGraphLayout(EGraphLayout.CIRCULAR);
           break;
         case HIERARCHICAL:
-          graph.getSettings().getLayoutSettings().setDefaultGraphLayout(EGraphLayout.HIERARCHICAL);
+        layoutSettings.setDefaultGraphLayout(EGraphLayout.HIERARCHICAL);
           break;
         case ORTHOGONAL:
-          graph.getSettings().getLayoutSettings().setDefaultGraphLayout(EGraphLayout.ORTHOGONAL);
+        layoutSettings.setDefaultGraphLayout(EGraphLayout.ORTHOGONAL);
           break;
       }
 
@@ -472,7 +476,6 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       GraphLayoutEventHandler.handleDoLayoutButtonEvent(graph, true);
 
       graphListenerManager.suppressUpdating(false);
-    }
   }
 
   public void exportViewAsImage() {

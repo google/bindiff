@@ -64,7 +64,7 @@ public class SortingTabPanel extends JPanel {
     setDefaults();
   }
 
-  private JPanel createPanel(final boolean isCombinedView, final boolean isCallgraphView) {
+  private JPanel createPanel(final boolean isCombinedView, final boolean isCallGraphView) {
     final JPanel panel = new JPanel(new BorderLayout());
     panel.setBorder(new LineBorder(Color.GRAY));
 
@@ -83,7 +83,7 @@ public class SortingTabPanel extends JPanel {
       sortingItems.add(ESortByCriterion.SIDE.toString());
     }
 
-    if (isCallgraphView) {
+    if (isCallGraphView) {
       sortingItems.add(2, ESortByCriterion.FUNCTION_TYPE.toString());
       if (!isCombinedView) {
         sortingItems.add(3, ESortByCriterion.FUNCTION_NAME.toString());

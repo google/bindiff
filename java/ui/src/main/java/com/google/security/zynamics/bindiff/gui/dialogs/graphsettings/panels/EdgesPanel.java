@@ -24,7 +24,7 @@ import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
-import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
@@ -34,7 +34,7 @@ public class EdgesPanel extends JPanel {
   private static final int ROW_HEIGHT = 25;
   private static final int NUMBER_OF_ROWS = 1;
 
-  private final JComboBox<String> drawBends = new JComboBox<>();
+  private final JCheckBox drawBends = new JCheckBox();
 
   private final ESettingsDialogType dialogType;
 
@@ -72,9 +72,6 @@ public class EdgesPanel extends JPanel {
   private void init(final String borderTitle) {
     setBorder(new LineBorder(Color.GRAY));
 
-    drawBends.addItem("On");
-    drawBends.addItem("Off");
-
     setCurrentValues();
 
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
@@ -88,12 +85,12 @@ public class EdgesPanel extends JPanel {
   }
 
   public boolean getDrawBends() {
-    return drawBends.getSelectedIndex() == 0;
+    return drawBends.isSelected();
   }
 
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    drawBends.setSelectedIndex(getDrawBends(config) ? 0 : 1);
+    drawBends.setSelected(getDrawBends(config));
   }
 }

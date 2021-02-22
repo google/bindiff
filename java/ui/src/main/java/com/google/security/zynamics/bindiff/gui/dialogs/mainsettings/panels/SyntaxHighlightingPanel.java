@@ -30,10 +30,10 @@ import javax.swing.JScrollPane;
 import javax.swing.border.TitledBorder;
 
 public class SyntaxHighlightingPanel extends JPanel {
-  private static final int COLORPANEL_WIDTH = 200;
-  private static final int COLORPANEL_HEIGHT = 25;
+  private static final int COLOR_PANEL_WIDTH = 200;
+  private static final int COLOR_PANEL_HEIGHT = 25;
 
-  private static final int NUMMBER_OF_ROWS = 15;
+  private static final int NUMBER_OF_ROWS = 15;
 
   private ColorPanel defaultColor;
   private ColorPanel addressColor;
@@ -62,7 +62,7 @@ public class SyntaxHighlightingPanel extends JPanel {
   private JPanel createInstructionColorsPanel() {
     final ThemeConfigItem settings = BinDiffConfig.getInstance().getThemeSettings();
 
-    final JPanel panel = new JPanel(new GridLayout(NUMMBER_OF_ROWS, 1, 5, 5));
+    final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
     panel.setBorder(new TitledBorder("Syntax Highlighting"));
 
     defaultColors.add(settings.getDefaultColor());
@@ -87,120 +87,120 @@ public class SyntaxHighlightingPanel extends JPanel {
             panel,
             "Default color:",
             new ColorPanel(settings.getDefaultColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     addressColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Address color:",
             new ColorPanel(settings.getAddressColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     mnemonicColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Mnemonic color:",
             new ColorPanel(settings.getMnemonicColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     registerColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Register color:",
             new ColorPanel(settings.getRegisterColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     functionColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Function color:",
             new ColorPanel(settings.getFunctionColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     immediateColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Integer immediate color:",
             new ColorPanel(settings.getImmediateColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     globalVariableColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Global variable color:",
             new ColorPanel(settings.getGlobalVariableColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     stackVariableColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Stack variable color:",
             new ColorPanel(settings.getStackVariableColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     jumpLabelColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Jump label color:",
             new ColorPanel(settings.getJumpLabelColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     operatorColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Operator color:",
             new ColorPanel(settings.getOperatorColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     dereferenceColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Dereference color:",
             new ColorPanel(settings.getDereferenceColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     operandSeparatorColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Operand separator color:",
             new ColorPanel(settings.getOperatorSeparatorColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     symbolColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Symbol color:",
             new ColorPanel(settings.getSymbolColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     sizePrefixColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Size prefix color:",
             new ColorPanel(settings.getSizePrefixColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
     commentColor =
         GuiUtils.createHorizontalNamedComponent(
             panel,
             "Comment color:",
             new ColorPanel(settings.getCommentColor(), true, true, defaultColors),
-            COLORPANEL_WIDTH,
-            COLORPANEL_HEIGHT,
+            COLOR_PANEL_WIDTH,
+            COLOR_PANEL_HEIGHT,
             false);
 
     return panel;

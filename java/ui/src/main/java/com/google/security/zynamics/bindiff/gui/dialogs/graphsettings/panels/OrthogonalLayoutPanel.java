@@ -41,8 +41,10 @@ public class OrthogonalLayoutPanel extends JPanel {
   private static final int ROW_HEIGHT = 25;
   private static final int NUMBER_OF_ROWS = 3;
 
-  private final JComboBox<String> orientation = new JComboBox<>();
-  private final JComboBox<String> layoutStyle = new JComboBox<>();
+  private final JComboBox<ELayoutOrientation> orientation =
+      new JComboBox<>(ELayoutOrientation.values());
+  private final JComboBox<EOrthogonalLayoutStyle> layoutStyle =
+      new JComboBox<>(EOrthogonalLayoutStyle.values());
   private final JFormattedTextField minimumNodeDistance =
       TextComponentUtils.addDefaultEditorActions(
           new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3))));
@@ -107,11 +109,6 @@ public class OrthogonalLayoutPanel extends JPanel {
   private void init(final String borderTitle) {
     setBorder(new LineBorder(Color.GRAY));
 
-    layoutStyle.addItem("Normal");
-    layoutStyle.addItem("Tree");
-    orientation.addItem("Horizontal");
-    orientation.addItem("Vertical");
-
     setCurrentValues();
 
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
@@ -135,18 +132,18 @@ public class OrthogonalLayoutPanel extends JPanel {
   }
 
   public EOrthogonalLayoutStyle getOrthogonalLayoutStyle() {
-    return EOrthogonalLayoutStyle.values()[layoutStyle.getSelectedIndex()];
+    return (EOrthogonalLayoutStyle) layoutStyle.getSelectedItem();
   }
 
   public ELayoutOrientation getOrthogonalOrientation() {
-    return ELayoutOrientation.values()[orientation.getSelectedIndex()];
+    return (ELayoutOrientation) orientation.getSelectedItem();
   }
 
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    layoutStyle.setSelectedIndex(getOrthogonalLayoutStyle(config).ordinal());
-    orientation.setSelectedIndex(getOrthogonalOrientation(config).ordinal());
+    layoutStyle.setSelectedItem(getOrthogonalLayoutStyle(config));
+    orientation.setSelectedItem(getOrthogonalOrientation(config));
     minimumNodeDistance.setText(Integer.toString(getMinimumNodeDistance(config)));
   }
 }

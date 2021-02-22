@@ -27,6 +27,7 @@ import com.google.security.zynamics.zylib.gui.CDecFormatter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFormattedTextField;
 import javax.swing.JPanel;
@@ -40,8 +41,9 @@ public class HierarchicalLayoutPanel extends JPanel {
   private static final int ROW_HEIGHT = 25;
   private static final int NUMBER_OF_ROWS = 4;
 
-  private final JComboBox<String> orientation = new JComboBox<>();
-  private final JComboBox<String> layoutStyle = new JComboBox<>();
+  private final JComboBox<ELayoutOrientation> orientation =
+      new JComboBox<>(ELayoutOrientation.values());
+  private final JCheckBox orthogonalEdgeRouting = new JCheckBox();
   private final JFormattedTextField minimumLayerDistance =
       TextComponentUtils.addDefaultEditorActions(
           new JFormattedTextField(new DefaultFormatterFactory(new CDecFormatter(3))));
@@ -86,9 +88,9 @@ public class HierarchicalLayoutPanel extends JPanel {
   private int getMinimumLayerDistance(final BinDiffConfig config) {
     switch (dialogType) {
       case INITIAL_CALL_GRAPH_SETTING:
-        return config.getInitialCallGraphSettings().getHierarchicalMinimumNodeDistance();
+        return config.getInitialCallGraphSettings().getHierarchicalMinimumLayerDistance();
       case INITIAL_FLOW_GRAPH_SETTINGS:
-        return config.getInitialFlowGraphSettings().getHierarchicalMinimumNodeDistance();
+        return config.getInitialFlowGraphSettings().getHierarchicalMinimumLayerDistance();
       default:
     }
 
@@ -98,9 +100,9 @@ public class HierarchicalLayoutPanel extends JPanel {
   private int getMinimumNodeDistance(final BinDiffConfig config) {
     switch (dialogType) {
       case INITIAL_CALL_GRAPH_SETTING:
-        return config.getInitialCallGraphSettings().getHierarchicalMinimumLayerDistance();
+        return config.getInitialCallGraphSettings().getHierarchicalMinimumNodeDistance();
       case INITIAL_FLOW_GRAPH_SETTINGS:
-        return config.getInitialFlowGraphSettings().getHierarchicalMinimumLayerDistance();
+        return config.getInitialFlowGraphSettings().getHierarchicalMinimumNodeDistance();
       default:
     }
 
@@ -122,11 +124,6 @@ public class HierarchicalLayoutPanel extends JPanel {
   private void init(final String borderTitle) {
     setBorder(new LineBorder(Color.GRAY));
 
-    layoutStyle.addItem("On");
-    layoutStyle.addItem("Off");
-    orientation.addItem("Vertical");
-    orientation.addItem("Horizontal");
-
     setCurrentValues();
 
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
@@ -134,7 +131,7 @@ public class HierarchicalLayoutPanel extends JPanel {
 
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Orthogonal Edge Routing", LABEL_WIDTH, layoutStyle, ROW_HEIGHT));
+            "Orthogonal Edge Routing", LABEL_WIDTH, orthogonalEdgeRouting, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "Layout orientation", LABEL_WIDTH, orientation, ROW_HEIGHT));
@@ -149,7 +146,7 @@ public class HierarchicalLayoutPanel extends JPanel {
   }
 
   public ELayoutOrientation getLayoutOrientation() {
-    return ELayoutOrientation.values()[orientation.getSelectedIndex()];
+    return (ELayoutOrientation) orientation.getSelectedItem();
   }
 
   public int getMinimumLayerDistance() {
@@ -161,14 +158,14 @@ public class HierarchicalLayoutPanel extends JPanel {
   }
 
   public boolean getOrthogonalEdgeRouting() {
-    return layoutStyle.getSelectedIndex() == 0;
+    return orthogonalEdgeRouting.isSelected();
   }
 
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    layoutStyle.setSelectedIndex(getOrthogonalEdgeRouting(config) ? 0 : 1);
-    orientation.setSelectedIndex(getLayoutOrientation(config).ordinal());
+    orthogonalEdgeRouting.setSelected(getOrthogonalEdgeRouting(config));
+    orientation.setSelectedItem(getLayoutOrientation(config));
     minimumLayerDistance.setText(Integer.toString(getMinimumLayerDistance(config)));
     minimumNodeDistance.setText(Integer.toString(getMinimumNodeDistance(config)));
   }

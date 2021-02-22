@@ -25,6 +25,7 @@ import com.google.security.zynamics.bindiff.utils.GuiUtils;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
@@ -35,8 +36,8 @@ public final class LayoutingPanel extends JPanel {
   private static final int ROW_HEIGHT = 25;
   private static final int NUMBER_OF_ROWS = 2;
 
-  private final JComboBox<String> initalLayout = new JComboBox<>();
-  private final JComboBox<String> autoLayouting = new JComboBox<>();
+  private final JComboBox<EGraphLayout> initialLayout = new JComboBox<>(EGraphLayout.values());
+  private final JCheckBox autoLayouting = new JCheckBox();
 
   private final ESettingsDialogType dialogType;
 
@@ -86,12 +87,6 @@ public final class LayoutingPanel extends JPanel {
   private void init(final String borderTitle) {
     setBorder(new LineBorder(Color.GRAY));
 
-    initalLayout.addItem("Hierarchical");
-    initalLayout.addItem("Orthogonal");
-    initalLayout.addItem("Circular");
-    autoLayouting.addItem("On");
-    autoLayouting.addItem("Off");
-
     setCurrentValues();
 
     final JPanel panel = new JPanel(new GridLayout(NUMBER_OF_ROWS, 1, 5, 5));
@@ -100,7 +95,7 @@ public final class LayoutingPanel extends JPanel {
 
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
-            "Default layout", LABEL_WIDTH, initalLayout, ROW_HEIGHT));
+            "Default layout", LABEL_WIDTH, initialLayout, ROW_HEIGHT));
     panel.add(
         GuiUtils.createHorizontalNamedComponentPanel(
             "Automatic layouting", LABEL_WIDTH, autoLayouting, ROW_HEIGHT));
@@ -109,25 +104,17 @@ public final class LayoutingPanel extends JPanel {
   }
 
   public boolean getAutoLayouting() {
-    return autoLayouting.getSelectedIndex() == 0;
+    return autoLayouting.isSelected();
   }
 
   public EGraphLayout getDefaultLayout() {
-    return EGraphLayout.values()[initalLayout.getSelectedIndex()];
-  }
-
-  public void getDefaultLayout(final EGraphLayout layout) {
-    initalLayout.setSelectedIndex(layout.ordinal());
-  }
-
-  public void setAutoLayouting(final boolean autoLayout) {
-    autoLayouting.setSelectedIndex(autoLayout ? 0 : 1);
+    return (EGraphLayout) initialLayout.getSelectedItem();
   }
 
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    initalLayout.setSelectedIndex(getDefaultGraphLayout(config).ordinal());
-    autoLayouting.setSelectedIndex(getAutoLayouting(config) ? 0 : 1);
+    initialLayout.setSelectedItem(getDefaultGraphLayout(config));
+    autoLayouting.setSelected(getAutoLayouting(config));
   }
 }
