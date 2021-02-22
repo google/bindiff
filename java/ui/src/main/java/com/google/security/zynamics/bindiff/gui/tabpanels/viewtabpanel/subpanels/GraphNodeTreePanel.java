@@ -120,10 +120,10 @@ public class GraphNodeTreePanel extends JPanel {
     final GraphNodeMultiFilter filter = createDefaultMultiFilter(diff, view);
     final TreeNodeMultiSorter sorter = createDefaultMultiSorter();
 
-    if (combinedGraph.getGraphType() == EGraphType.CALLGRAPH) {
+    if (combinedGraph.getGraphType() == EGraphType.CALL_GRAPH) {
       return new CombinedCallGraphTree(
           controller, diff, view, combinedGraph, searcher, filter, sorter);
-    } else if (combinedGraph.getGraphType() == EGraphType.FLOWGRAPH) {
+    } else if (combinedGraph.getGraphType() == EGraphType.FLOW_GRAPH) {
       return new CombinedFlowGraphTree(
           controller, diff, view, combinedGraph, searcher, filter, sorter);
     }
@@ -131,20 +131,19 @@ public class GraphNodeTreePanel extends JPanel {
     throw new IllegalStateException("Combined graph node tree cannot be null.");
   }
 
-  @SuppressWarnings("unchecked")
   private GraphNodeMultiFilter createDefaultMultiFilter(final Diff diff, final ViewData view) {
-    RawFlowGraph priFlowgraph = null;
-    RawFlowGraph secFlowgraph = null;
+    RawFlowGraph primaryFlowGraph = null;
+    RawFlowGraph secondaryFlowGraph = null;
 
     if (view.isFlowGraphView()) {
-      priFlowgraph = (RawFlowGraph) view.getRawGraph(ESide.PRIMARY);
-      secFlowgraph = (RawFlowGraph) view.getRawGraph(ESide.SECONDARY);
+      primaryFlowGraph = (RawFlowGraph) view.getRawGraph(ESide.PRIMARY);
+      secondaryFlowGraph = (RawFlowGraph) view.getRawGraph(ESide.SECONDARY);
     }
 
     return new GraphNodeMultiFilter(
         diff,
-        priFlowgraph,
-        secFlowgraph,
+        primaryFlowGraph,
+        secondaryFlowGraph,
         new CAddress(0),
         new CAddress(0xFFFFFFFF),
         EMatchStateFilter.NONE,
@@ -172,10 +171,10 @@ public class GraphNodeTreePanel extends JPanel {
 
   private GraphNodeTreeOptionsDialog createOptionsDialog(
       final Window parent, final CombinedGraph combinedGraph) {
-    final boolean isCallgraph = combinedGraph.getGraphType() == EGraphType.CALLGRAPH;
+    final boolean isCallGraph = combinedGraph.getGraphType() == EGraphType.CALL_GRAPH;
 
     final GraphNodeTreeOptionsDialog dlg =
-        new GraphNodeTreeOptionsDialog(parent, "Combined Tree Options", isCallgraph, true);
+        new GraphNodeTreeOptionsDialog(parent, "Combined Tree Options", isCallGraph, true);
     GuiHelper.centerChildToParent(parent, dlg, true);
 
     return dlg;
@@ -183,16 +182,16 @@ public class GraphNodeTreePanel extends JPanel {
 
   private GraphNodeTreeOptionsDialog createOptionsDialog(
       final Window parent, final SingleGraph singleGraph) {
-    final boolean isCallgraph = singleGraph.getGraphType() == EGraphType.CALLGRAPH;
+    final boolean isCallGraph = singleGraph.getGraphType() == EGraphType.CALL_GRAPH;
 
-    final String priTitel = "Primary Tree Options";
-    final String secTitel = "Secondary Tree Options";
+    final String primaryTitle = "Primary Tree Options";
+    final String secondaryTitle = "Secondary Tree Options";
 
     final ESide side = singleGraph.getSide();
 
     final GraphNodeTreeOptionsDialog dlg =
         new GraphNodeTreeOptionsDialog(
-            parent, side == ESide.PRIMARY ? priTitel : secTitel, isCallgraph, false);
+            parent, side == ESide.PRIMARY ? primaryTitle : secondaryTitle, isCallGraph, false);
     GuiHelper.centerChildToParent(parent, dlg, true);
 
     return dlg;
@@ -207,9 +206,9 @@ public class GraphNodeTreePanel extends JPanel {
     final GraphNodeMultiFilter filter = createDefaultMultiFilter(diff, view);
     final TreeNodeMultiSorter sorter = createDefaultMultiSorter();
 
-    if (singleGraph.getGraphType() == EGraphType.CALLGRAPH) {
+    if (singleGraph.getGraphType() == EGraphType.CALL_GRAPH) {
       return new SingleCallGraphTree(controller, diff, view, singleGraph, searcher, filter, sorter);
-    } else if (singleGraph.getGraphType() == EGraphType.FLOWGRAPH) {
+    } else if (singleGraph.getGraphType() == EGraphType.FLOW_GRAPH) {
       return new SingleFlowGraphTree(controller, diff, view, singleGraph, searcher, filter, sorter);
     }
 
@@ -268,15 +267,7 @@ public class GraphNodeTreePanel extends JPanel {
   }
 
   public void dispose() {
-    if (tree instanceof SingleCallGraphTree) {
-      ((SingleCallGraphTree) tree).dispose();
-    } else if (tree instanceof SingleFlowGraphTree) {
-      ((SingleFlowGraphTree) tree).dispose();
-    } else if (tree instanceof CombinedCallGraphTree) {
-      ((CombinedCallGraphTree) tree).dispose();
-    } else if (tree instanceof CombinedFlowGraphTree) {
-      ((CombinedFlowGraphTree) tree).dispose();
-    }
+    tree.dispose();
 
     optionsDialog.dispose();
 
@@ -343,18 +334,13 @@ public class GraphNodeTreePanel extends JPanel {
     private void setSearcher(final boolean notify) {
       final TreeNodeSearcher searcher =
           ((AbstractRootTreeNode) tree.getModel().getRoot()).getSearcher();
-
-      final boolean regEx = optionsDialog.getRegEx();
-      final boolean caseSensitive = optionsDialog.getCaseSensitive();
-
-      final boolean priSide = optionsDialog.getPrimarySide();
-      final boolean secSide = optionsDialog.getSecondarySide();
-
-      final boolean highlighting = optionsDialog.getHighlightGraphNodes();
-      final boolean useTemporaryResults = optionsDialog.getUseTemporaryResult();
-
       searcher.setSearchSettings(
-          regEx, caseSensitive, priSide, secSide, useTemporaryResults, highlighting);
+          optionsDialog.getRegEx(),
+          optionsDialog.getCaseSensitive(),
+          optionsDialog.getPrimarySide(),
+          optionsDialog.getSecondarySide(),
+          optionsDialog.getUseTemporaryResult(),
+          optionsDialog.getHighlightGraphNodes());
 
       if (notify) {
         searcher.notifyListeners();
@@ -365,7 +351,7 @@ public class GraphNodeTreePanel extends JPanel {
       final TreeNodeMultiSorter sorter =
           ((AbstractRootTreeNode) tree.getModel().getRoot()).getSorter();
 
-      for (int depth = 0; depth < TreeNodeMultiSorter.MAX_DEPTH; ++depth) {
+      for (int depth = 0; depth < TreeNodeMultiSorter.MAX_DEPTH; depth++) {
         final ESortByCriterion sortBy = optionsDialog.getSortByCriterion(depth);
         final ESortOrder sortOrder = optionsDialog.getSortOrder(depth);
 

@@ -325,7 +325,7 @@ public class SelectionHistory {
         final IAddress priBasicblockAddr,
         final IAddress secBasicblockAddr) {
       final BinDiffGraph<? extends ZyGraphNode<?>, ?> graph = getGraph();
-      if (graph.getGraphType() == EGraphType.CALLGRAPH) {
+      if (graph.getGraphType() == EGraphType.CALL_GRAPH) {
         return;
       }
 

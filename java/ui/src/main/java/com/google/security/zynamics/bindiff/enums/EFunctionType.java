@@ -14,89 +14,63 @@
 
 package com.google.security.zynamics.bindiff.enums;
 
+import com.google.security.zynamics.bindiff.resources.Colors;
+import java.awt.Color;
+
 public enum EFunctionType {
-  NORMAL,
-  LIBRARY,
-  THUNK,
-  IMPORTED,
-  UNKNOWN,
-  MIXED;
-
-  public static int getOrdinal(final EFunctionType functionType) {
-    switch (functionType) {
-      case NORMAL:
-        return 0;
-      case LIBRARY:
-        return 1;
-      case THUNK:
-        return 2;
-      case IMPORTED:
-        return 3;
-      case UNKNOWN:
-        return 4;
-      case MIXED:
-        return 5;
+  NORMAL("Normal") {
+    @Override
+    public Color getColor() {
+      return Color.BLACK;
     }
+  },
+  LIBRARY("Library") {
+    @Override
+    public Color getColor() {
+      return Colors.FUNCTION_TYPE_LIBRARY.darker();
+    }
+  },
+  THUNK("Thunk") {
+    @Override
+    public Color getColor() {
+      return Colors.FUNCTION_TYPE_THUNK.darker();
+    }
+  },
+  IMPORTED("Imported") {
+    @Override
+    public Color getColor() {
+      return Colors.FUNCTION_TYPE_IMPORTED.darker();
+    }
+  },
+  UNKNOWN("Unknown") {
+    @Override
+    public Color getColor() {
+      return Colors.FUNCTION_TYPE_UNKNOWN;
+    }
+  },
+  MIXED("Mixed Function Match") {
+    @Override
+    public Color getColor() {
+      return Colors.MIXED_BASE_COLOR;
+    }
+  };
 
-    throw new IllegalArgumentException("Unknown raw function type.");
+  private static final EFunctionType[] values = values();
+
+  private final String displayName;
+
+  EFunctionType(final String displayName) {
+    this.displayName = displayName;
   }
 
-  public static EFunctionType getType(final int ordinal) {
-    switch (ordinal) {
-      case 0:
-        return NORMAL;
-      case 1:
-        return LIBRARY;
-      case 2:
-        return THUNK;
-      case 3:
-        return IMPORTED;
-      case 4:
-        return UNKNOWN;
-      case 5:
-        return MIXED;
-      default: // fall out
-    }
-
-    throw new IllegalArgumentException("Unknown raw function type.");
+  public static EFunctionType getType(int ordinal) {
+    return values[ordinal];
   }
 
-  public static String getTypeChar(final EFunctionType functionType) {
-    switch (functionType) {
-      case NORMAL:
-        return "N";
-      case LIBRARY:
-        return "L";
-      case THUNK:
-        return "T";
-      case IMPORTED:
-        return "I";
-      case UNKNOWN:
-        return "U";
-      case MIXED:
-        return "Mixed Function Match";
-    }
-
-    throw new IllegalArgumentException("Unknown raw function type.");
-  }
+  public abstract Color getColor();
 
   @Override
   public String toString() {
-    switch (this) {
-      case NORMAL:
-        return "Normal";
-      case LIBRARY:
-        return "Library";
-      case THUNK:
-        return "Thunk";
-      case IMPORTED:
-        return "Imported";
-      case UNKNOWN:
-        return "Unknown";
-      case MIXED:
-        return "Mixed Function Match";
-    }
-
-    throw new IllegalArgumentException("Unknown raw function type.");
+    return displayName;
   }
 }

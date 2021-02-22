@@ -236,7 +236,7 @@ public class BasicBlockContentEditor implements IZyLineEditor {
 
       if (lineObject.isPlaceholder()) {
         if (((PlaceholderObject) lineObject).getPlaceholderType()
-            == EPlaceholderType.BASICBLOCK_COMMENT) {
+            == EPlaceholderType.BASIC_BLOCK_COMMENT) {
           labelContent.removeLine(index);
 
           continue;

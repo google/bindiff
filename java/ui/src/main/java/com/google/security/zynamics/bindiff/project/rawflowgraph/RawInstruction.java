@@ -29,7 +29,7 @@ public class RawInstruction {
   private final byte[] taggedOperandDisassembly;
   private final long[] callTargetAddresses;
 
-  private List<RawInstructionComment> comments;
+  private final List<RawInstructionComment> comments;
 
   public RawInstruction(
       final IAddress address,
@@ -69,7 +69,7 @@ public class RawInstruction {
   public int getOperandLength() {
     int counter = 0;
     for (final byte value : taggedOperandDisassembly) {
-      if (value > EInstructionHighlighting.ENUM_ENTRY_COUNT) {
+      if (value > EInstructionHighlighting.values().length) {
         ++counter;
       }
     }
@@ -90,24 +90,18 @@ public class RawInstruction {
   }
 
   public void setComment(final String text, final ECommentPlacement commentPlacement) {
-    if (comments != null) {
-      for (final RawInstructionComment comment : comments) {
-        if (comment.getPlacement() == commentPlacement) {
-          comment.setText(text);
-
-          if ("".equals(comment.getText())) {
-            comments.remove(comment);
-
-            if (comments.size() == 0) {
-              comments = null;
-            }
+    if (!comments.isEmpty()) {
+      if (text.isEmpty()) {
+        comments.removeIf(comment -> comment.getPlacement() == commentPlacement);
+      } else {
+        for (final RawInstructionComment comment : comments) {
+          if (comment.getPlacement() == commentPlacement) {
+            comment.setText(text);
+            break;
           }
-
-          return;
         }
       }
     } else if (!"".equals(text)) {
-      comments.clear();
       final RawInstructionComment comment = new RawInstructionComment(text, commentPlacement);
       comments.add(comment);
     }

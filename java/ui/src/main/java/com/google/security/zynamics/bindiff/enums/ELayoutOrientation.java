@@ -15,14 +15,17 @@
 package com.google.security.zynamics.bindiff.enums;
 
 public enum ELayoutOrientation {
-  VERTICAL,
-  HORIZONTAL;
+  VERTICAL("Vertical"),
+  HORIZONTAL("Horizontal");
 
-  public static ELayoutOrientation getEnum(final int orientation) {
-    return orientation == 0 ? VERTICAL : HORIZONTAL;
+  private final String displayName;
+
+  ELayoutOrientation(final String displayName) {
+    this.displayName = displayName;
   }
 
-  public static int getOrdinal(final ELayoutOrientation orientation) {
-    return orientation == VERTICAL ? 0 : 1;
+  @Override
+  public String toString() {
+    return displayName;
   }
 }

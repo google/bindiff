@@ -125,14 +125,14 @@ public class DiffLabelContent extends ZyLabelContent {
 
               return indexCopy;
             }
-          case BASICBLOCK_COMMENT:
+          case BASIC_BLOCK_COMMENT:
             {
               while (--indexCopy > 0) {
                 final IZyEditableObject lineObject = getContent().get(indexCopy).getLineObject();
 
                 if (lineObject.isPlaceholder()
                     && ((PlaceholderObject) lineObject).getPlaceholderType()
-                        == EPlaceholderType.BASICBLOCK_COMMENT) {
+                        == EPlaceholderType.BASIC_BLOCK_COMMENT) {
                   continue;
                 }
 
@@ -272,7 +272,7 @@ public class DiffLabelContent extends ZyLabelContent {
 
               return indexCopy;
             }
-          case BASICBLOCK_COMMENT:
+          case BASIC_BLOCK_COMMENT:
             {
               return lineCount - 1;
             }

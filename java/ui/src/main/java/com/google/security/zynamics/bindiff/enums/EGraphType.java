@@ -15,6 +15,6 @@
 package com.google.security.zynamics.bindiff.enums;
 
 public enum EGraphType {
-  CALLGRAPH,
-  FLOWGRAPH;
+  CALL_GRAPH,
+  FLOW_GRAPH;
 }

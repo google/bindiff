@@ -113,7 +113,7 @@ public class CircularLayoutPanel extends JPanel {
   }
 
   public ECircularLayoutStyle getCircularLayoutStyle() {
-    return ECircularLayoutStyle.getEnum(layoutStyle.getSelectedIndex());
+    return ECircularLayoutStyle.values()[layoutStyle.getSelectedIndex()];
   }
 
   public int getMinimumNodeDistance() {
@@ -123,7 +123,7 @@ public class CircularLayoutPanel extends JPanel {
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    layoutStyle.setSelectedIndex(ECircularLayoutStyle.getOrdinal(getCircularLayoutStyle(config)));
+    layoutStyle.setSelectedIndex(getCircularLayoutStyle(config).ordinal());
 
     minimumNodeDistance.setText(Integer.toString(getMinimumNodeDistance(config)));
   }

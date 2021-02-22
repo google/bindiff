@@ -956,7 +956,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   public void setDefaultNodeColors() {
     final Diff diff = graphs.getDiff();
     final CombinedGraph combinedGraph = graphs.getCombinedGraph();
-    if (combinedGraph.getGraphType() == EGraphType.CALLGRAPH) {
+    if (combinedGraph.getGraphType() == EGraphType.CALL_GRAPH) {
       for (final CombinedDiffNode diffNode : combinedGraph.getNodes()) {
         ViewCallGraphBuilder.colorizeFunctions((RawCombinedFunction) diffNode.getRawNode());
       }

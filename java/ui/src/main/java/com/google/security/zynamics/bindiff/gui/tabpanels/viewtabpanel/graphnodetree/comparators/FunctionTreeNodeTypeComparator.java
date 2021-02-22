@@ -16,7 +16,6 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnod
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.ESortOrder;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.graphnodetree.sorter.ISortableTreeNode;
 import java.util.Comparator;
@@ -30,15 +29,7 @@ public class FunctionTreeNodeTypeComparator implements Comparator<ISortableTreeN
 
   @Override
   public int compare(final ISortableTreeNode o1, final ISortableTreeNode o2) {
-    final Integer t1 = EFunctionType.getOrdinal(o1.getFunctionType());
-    final Integer t2 = EFunctionType.getOrdinal(o2.getFunctionType());
-
-    int value = t1.compareTo(t2);
-
-    if (order == ESortOrder.DESCENDING) {
-      value *= -1;
-    }
-
-    return value;
+    final int value = o1.getFunctionType().ordinal() - o2.getFunctionType().ordinal();
+    return order == ESortOrder.DESCENDING ? -value : value;
   }
 }

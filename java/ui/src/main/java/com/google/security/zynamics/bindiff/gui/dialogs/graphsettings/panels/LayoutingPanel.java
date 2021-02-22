@@ -113,11 +113,11 @@ public final class LayoutingPanel extends JPanel {
   }
 
   public EGraphLayout getDefaultLayout() {
-    return EGraphLayout.getEnum(initalLayout.getSelectedIndex());
+    return EGraphLayout.values()[initalLayout.getSelectedIndex()];
   }
 
   public void getDefaultLayout(final EGraphLayout layout) {
-    initalLayout.setSelectedIndex(EGraphLayout.getOrdinal(layout));
+    initalLayout.setSelectedIndex(layout.ordinal());
   }
 
   public void setAutoLayouting(final boolean autoLayout) {
@@ -127,7 +127,7 @@ public final class LayoutingPanel extends JPanel {
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    initalLayout.setSelectedIndex(EGraphLayout.getOrdinal(getDefaultGraphLayout(config)));
+    initalLayout.setSelectedIndex(getDefaultGraphLayout(config).ordinal());
     autoLayouting.setSelectedIndex(getAutoLayouting(config) ? 0 : 1);
   }
 }

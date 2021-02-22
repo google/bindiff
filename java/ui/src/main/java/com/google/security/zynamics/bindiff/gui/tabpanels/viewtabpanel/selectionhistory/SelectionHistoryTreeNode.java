@@ -116,9 +116,9 @@ public class SelectionHistoryTreeNode extends AbstractSelectionHistoryTreeNode {
     final SelectionHistoryRootNode rootNode = getRootNode();
     final BinDiffGraph<?, ?> graph = rootNode.getGraph();
 
-    if (graph.getGraphType() == EGraphType.CALLGRAPH) {
+    if (graph.getGraphType() == EGraphType.CALL_GRAPH) {
       return new CallGraphPopupMenu(getRootNode().getController(), graph, node);
-    } else if (graph.getGraphType() == EGraphType.FLOWGRAPH) {
+    } else if (graph.getGraphType() == EGraphType.FLOW_GRAPH) {
       return new FlowGraphPopupMenu(getRootNode().getController(), graph, node);
     }
 

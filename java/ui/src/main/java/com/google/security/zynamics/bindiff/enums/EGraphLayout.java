@@ -15,33 +15,18 @@
 package com.google.security.zynamics.bindiff.enums;
 
 public enum EGraphLayout {
-  HIERARCHICAL,
-  ORTHOGONAL,
-  CIRCULAR;
+  HIERARCHICAL("Hierarchical"),
+  ORTHOGONAL("Orthogonal"),
+  CIRCULAR("Circular");
 
-  public static EGraphLayout getEnum(final int style) {
-    switch (style) {
-      case 0:
-        return HIERARCHICAL;
-      case 1:
-        return ORTHOGONAL;
-      case 2:
-        return CIRCULAR;
-    }
+  private final String displayName;
 
-    throw new IllegalArgumentException("Unknown layout style.");
+  EGraphLayout(final String displayName) {
+    this.displayName = displayName;
   }
 
-  public static int getOrdinal(final EGraphLayout style) {
-    switch (style) {
-      case HIERARCHICAL:
-        return 0;
-      case ORTHOGONAL:
-        return 1;
-      case CIRCULAR:
-        return 2;
-    }
-
-    throw new IllegalArgumentException("Unknown layout style.");
+  @Override
+  public String toString() {
+    return displayName;
   }
 }

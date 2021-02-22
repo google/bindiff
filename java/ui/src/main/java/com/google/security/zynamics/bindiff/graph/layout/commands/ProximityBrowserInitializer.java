@@ -42,7 +42,7 @@ public class ProximityBrowserInitializer {
     SingleDiffNode diffNode = null;
     IAddress minAddr = null;
 
-    if (graph.getGraphType() == EGraphType.CALLGRAPH) {
+    if (graph.getGraphType() == EGraphType.CALL_GRAPH) {
       for (final SingleDiffNode node : graph.getNodes()) {
         if (node.getRawNode().getMatchState() == EMatchState.MATCHED) {
           final SingleViewNode rawNode = node.getRawNode();

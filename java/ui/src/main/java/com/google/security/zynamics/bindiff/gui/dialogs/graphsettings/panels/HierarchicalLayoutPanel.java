@@ -149,7 +149,7 @@ public class HierarchicalLayoutPanel extends JPanel {
   }
 
   public ELayoutOrientation getLayoutOrientation() {
-    return ELayoutOrientation.getEnum(orientation.getSelectedIndex());
+    return ELayoutOrientation.values()[orientation.getSelectedIndex()];
   }
 
   public int getMinimumLayerDistance() {
@@ -168,7 +168,7 @@ public class HierarchicalLayoutPanel extends JPanel {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
     layoutStyle.setSelectedIndex(getOrthogonalEdgeRouting(config) ? 0 : 1);
-    orientation.setSelectedIndex(ELayoutOrientation.getOrdinal(getLayoutOrientation(config)));
+    orientation.setSelectedIndex(getLayoutOrientation(config).ordinal());
     minimumLayerDistance.setText(Integer.toString(getMinimumLayerDistance(config)));
     minimumNodeDistance.setText(Integer.toString(getMinimumNodeDistance(config)));
   }

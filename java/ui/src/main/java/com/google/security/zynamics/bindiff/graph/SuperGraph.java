@@ -205,7 +205,7 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
             }));
   }
 
-  public void refreshAllSuperNodesSizes(
+  public void refreshAllSuperNodeSizes(
       final SingleGraph primaryGraph, final SingleGraph secondaryGraph) {
     for (final SuperDiffNode diffNode : getMappings().getNodes()) {
       refreshSuperNodeSize(primaryGraph, secondaryGraph, diffNode);

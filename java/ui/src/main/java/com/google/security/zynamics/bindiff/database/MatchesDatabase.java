@@ -289,12 +289,12 @@ public class MatchesDatabase extends SqliteDatabase {
             "UPDATE file SET functionname = ?, functiontype = ? WHERE id = ?")) {
 
       statement.setString(1, priFunction.getName());
-      statement.setInt(2, EFunctionType.getOrdinal(priFunction.getFunctionType()));
+      statement.setInt(2, priFunction.getFunctionType().ordinal());
       statement.setInt(3, 1);
       statement.addBatch();
 
       statement.setString(1, secFunction.getName());
-      statement.setInt(2, EFunctionType.getOrdinal(secFunction.getFunctionType()));
+      statement.setInt(2, secFunction.getFunctionType().ordinal());
       statement.setInt(3, 2);
       statement.addBatch();
 

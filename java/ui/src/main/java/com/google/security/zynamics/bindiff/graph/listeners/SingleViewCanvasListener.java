@@ -45,7 +45,7 @@ public class SingleViewCanvasListener implements PropertyChangeListener {
 
   @Override
   public void propertyChange(final PropertyChangeEvent event) {
-    if (graph.getGraphType() == EGraphType.FLOWGRAPH && graph.getFunctionAddress() == null) {
+    if (graph.getGraphType() == EGraphType.FLOW_GRAPH && graph.getFunctionAddress() == null) {
       // don't sync zoom and view point if it's is an unmatched view;
       return;
     }

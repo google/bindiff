@@ -52,7 +52,6 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -76,27 +75,28 @@ public class ViewCodeNodeBuilder {
       new PlaceholderObject(EPlaceholderType.UNMATCHED_INSTRUCTION);
   private static final PlaceholderObject PLACEHOLDER_UNMATCHED_BEHIND_INSTRUCTION_COMMENT =
       new PlaceholderObject(EPlaceholderType.UNMATCHED_BEHIND_INSTRUCTION_COMMENT);
-  private static final PlaceholderObject PLACEHOLDER_BASICBLOCK_COMMENT =
-      new PlaceholderObject(EPlaceholderType.BASICBLOCK_COMMENT);
+  private static final PlaceholderObject PLACEHOLDER_BASIC_BLOCK_COMMENT =
+      new PlaceholderObject(EPlaceholderType.BASIC_BLOCK_COMMENT);
 
   private static void buildAddress(
       final IAddress address, final StringBuffer line, final List<CStyleRunData> styleRun) {
     final String text = address.toHexString() + PADDING_AFTER_ADDRESS;
-    final Color color = EInstructionHighlighting.getColor(EInstructionHighlighting.TYPE_ADDRESS);
-    styleRun.add(new CStyleRunData(line.length(), text.length(), color));
+    styleRun.add(
+        new CStyleRunData(
+            line.length(), text.length(), EInstructionHighlighting.TYPE_ADDRESS.getColor()));
     line.append(text);
   }
 
-  private static ZyLineContent buildHeadline(final RawBasicBlock basicblock) {
+  private static ZyLineContent buildHeadline(final RawBasicBlock basicBlock) {
     final StringBuffer line = new StringBuffer();
     final List<CStyleRunData> styleRun = new ArrayList<>();
-    buildAddress(basicblock.getFunctionAddr(), line, styleRun);
+    buildAddress(basicBlock.getFunctionAddr(), line, styleRun);
 
-    final Color color = EInstructionHighlighting.getColor(EInstructionHighlighting.TYPE_DEFAULT);
-    styleRun.add(new CStyleRunData(line.length(), -1, color));
-    line.append(basicblock.getFunctionName());
+    styleRun.add(
+        new CStyleRunData(line.length(), -1, EInstructionHighlighting.TYPE_DEFAULT.getColor()));
+    line.append(basicBlock.getFunctionName());
 
-    final IZyEditableObject headlineObject = new BasicBlockHeadLineObject(basicblock);
+    final IZyEditableObject headlineObject = new BasicBlockHeadLineObject(basicBlock);
     return new ZyLineContent(
         line.toString(), Fonts.BOLD_FONT, styleRun, headlineObject);
   }
@@ -139,7 +139,7 @@ public class ViewCodeNodeBuilder {
 
       for (final Pair<IAddress, IAddress> instrPair : instructionAddrPairs) {
         RawInstruction priInstruction = null;
-        if (priBasicblock != null && instrPair.first() != null) {
+        if (instrPair.first() != null) {
           priInstruction = priBasicblock.getInstruction(instrPair.first());
         }
 
@@ -175,7 +175,7 @@ public class ViewCodeNodeBuilder {
         }
 
         RawInstruction secInstruction = null;
-        if (secBasicblock != null && instrPair.second() != null) {
+        if (instrPair.second() != null) {
           secInstruction = secBasicblock.getInstruction(instrPair.second());
         }
 
@@ -217,8 +217,9 @@ public class ViewCodeNodeBuilder {
       mnemonic = Strings.padEnd(mnemonic, instruction.getMaxMnemonicLen(), ' ');
     }
 
-    final Color color = EInstructionHighlighting.getColor(EInstructionHighlighting.TYPE_MNEMONIC);
-    styleRun.add(new CStyleRunData(line.length(), mnemonic.length(), color));
+    styleRun.add(
+        new CStyleRunData(
+            line.length(), mnemonic.length(), EInstructionHighlighting.TYPE_MNEMONIC.getColor()));
     line.append(mnemonic);
   }
 
@@ -253,11 +254,10 @@ public class ViewCodeNodeBuilder {
     final byte[] rawOperandBytes = instruction.getOperands();
     final ByteArrayOutputStream current = new ByteArrayOutputStream();
     Color color = null;
-
-    for (int b : rawOperandBytes) {
-      if (b > 0 && b < EInstructionHighlighting.getSize()) {
+    for (final byte b : rawOperandBytes) {
+      if (b > 0 && EInstructionHighlighting.validOrdinal(b)) {
         if (appendStyleRunData(current, color, line, styleRun)) {
-          color = EInstructionHighlighting.getColor((byte) b);
+          color = EInstructionHighlighting.getColor(b);
           current.reset();
         }
       } else {
@@ -288,8 +288,7 @@ public class ViewCodeNodeBuilder {
               + MAX_MNEMONIC_SIZE
               + maxOperandLength;
 
-      final Color commentColor =
-          EInstructionHighlighting.getColor(EInstructionHighlighting.TYPE_COMMENT);
+      final Color commentColor = EInstructionHighlighting.TYPE_COMMENT.getColor();
 
       commentText = comment.getText();
       final CMultiCommentLineTokenizer tokenizer =
@@ -416,8 +415,7 @@ public class ViewCodeNodeBuilder {
 
     final CMultiCommentLineTokenizer tokenizer = new CMultiCommentLineTokenizer(commentText, "\n");
 
-    final Color commentColor =
-        EInstructionHighlighting.getColor(EInstructionHighlighting.TYPE_COMMENT);
+    final Color commentColor = EInstructionHighlighting.TYPE_COMMENT.getColor();
 
     while (tokenizer.hasMoreTokens()) {
       final List<CStyleRunData> styleRun = new ArrayList<>();
@@ -488,50 +486,50 @@ public class ViewCodeNodeBuilder {
   }
 
   private static List<Pair<IAddress, IAddress>>
-      getMatchedFunctionsBasicblockInstructionAddressPairs(
+      getMatchedFunctionsBasicBlockInstructionAddressPairs(
           final FunctionMatchData functionMatch,
           final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-              combinedFlowgraph,
-          final IAddress primaryBasicblockAddr,
-          final IAddress secondaryBasicblockAddr) {
+              combinedFlowGraph,
+          final IAddress primaryBasicBlockAddr,
+          final IAddress secondaryBasicBlockAddr) {
     final List<Pair<IAddress, IAddress>> instructionAddrPairs = new ArrayList<>();
 
-    final RawFlowGraph priFlowgraph = combinedFlowgraph.getPrimaryFlowgraph();
-    final RawFlowGraph secFlowgraph = combinedFlowgraph.getSecondaryFlowgraph();
+    final RawFlowGraph priFlowgraph = combinedFlowGraph.getPrimaryFlowgraph();
+    final RawFlowGraph secFlowgraph = combinedFlowGraph.getSecondaryFlowgraph();
 
-    if (primaryBasicblockAddr != null && secondaryBasicblockAddr != null) {
-      final BasicBlockMatchData basicblockMatch =
-          functionMatch.getBasicBlockMatch(primaryBasicblockAddr, ESide.PRIMARY);
-      for (final InstructionMatchData instructionMatch : basicblockMatch.getInstructionMatches()) {
+    if (primaryBasicBlockAddr != null && secondaryBasicBlockAddr != null) {
+      final BasicBlockMatchData basicBlockMatch =
+          functionMatch.getBasicBlockMatch(primaryBasicBlockAddr, ESide.PRIMARY);
+      for (final InstructionMatchData instructionMatch : basicBlockMatch.getInstructionMatches()) {
         instructionAddrPairs.add(
             new Pair<>(
                 instructionMatch.getIAddress(ESide.PRIMARY),
                 instructionMatch.getIAddress(ESide.SECONDARY)));
       }
 
-      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicBlock(primaryBasicblockAddr);
+      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicBlock(primaryBasicBlockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           primaryBasicblock.getInstructions().entrySet()) {
-        if (basicblockMatch.getInstructionMatch(e.getKey(), ESide.PRIMARY) == null) {
+        if (basicBlockMatch.getInstructionMatch(e.getKey(), ESide.PRIMARY) == null) {
           instructionAddrPairs.add(new Pair<>(e.getKey(), null));
         }
       }
 
-      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicBlock(secondaryBasicblockAddr);
+      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicBlock(secondaryBasicBlockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           secondaryBasicblock.getInstructions().entrySet()) {
-        if (basicblockMatch.getInstructionMatch(e.getKey(), ESide.SECONDARY) == null) {
+        if (basicBlockMatch.getInstructionMatch(e.getKey(), ESide.SECONDARY) == null) {
           instructionAddrPairs.add(new Pair<>(null, e.getKey()));
         }
       }
-    } else if (primaryBasicblockAddr != null) {
-      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicBlock(primaryBasicblockAddr);
+    } else if (primaryBasicBlockAddr != null) {
+      final RawBasicBlock primaryBasicblock = priFlowgraph.getBasicBlock(primaryBasicBlockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           primaryBasicblock.getInstructions().entrySet()) {
         instructionAddrPairs.add(new Pair<>(e.getKey(), null));
       }
-    } else if (secondaryBasicblockAddr != null) {
-      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicBlock(secondaryBasicblockAddr);
+    } else if (secondaryBasicBlockAddr != null) {
+      final RawBasicBlock secondaryBasicblock = secFlowgraph.getBasicBlock(secondaryBasicBlockAddr);
       for (final Entry<IAddress, RawInstruction> e :
           secondaryBasicblock.getInstructions().entrySet()) {
         instructionAddrPairs.add(new Pair<>(null, e.getKey()));
@@ -542,17 +540,17 @@ public class ViewCodeNodeBuilder {
   }
 
   private static List<Pair<IAddress, IAddress>>
-      getMatchedFunctionsBasicblockInstructionAddressPairs(
+      getMatchedFunctionsBasicBlockInstructionAddressPairs(
           final FunctionMatchData functionMatch,
           final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
-              combinedFlowgraph,
-          final IAddress primaryBasicblockAddr,
-          final IAddress secondaryBasicblockAddr,
+              combinedFlowGraph,
+          final IAddress primaryBasicBlockAddr,
+          final IAddress secondaryBasicBlockAddr,
           final ESide sortBy) {
     List<Pair<IAddress, IAddress>> instructionAddrPairs =
         new ArrayList<>(
-            getMatchedFunctionsBasicblockInstructionAddressPairs(
-                functionMatch, combinedFlowgraph, primaryBasicblockAddr, secondaryBasicblockAddr));
+            getMatchedFunctionsBasicBlockInstructionAddressPairs(
+                functionMatch, combinedFlowGraph, primaryBasicBlockAddr, secondaryBasicBlockAddr));
 
     final List<Pair<IAddress, IAddress>> firstNotNullAddrPairs = new ArrayList<>();
     final List<Pair<IAddress, IAddress>> secondNotNullAddrPairs = new ArrayList<>();
@@ -571,8 +569,8 @@ public class ViewCodeNodeBuilder {
       }
     }
 
-    Collections.sort(firstNotNullAddrPairs, new AddressPairComparator(ESide.PRIMARY));
-    Collections.sort(secondNotNullAddrPairs, new AddressPairComparator(ESide.SECONDARY));
+    firstNotNullAddrPairs.sort(new AddressPairComparator(ESide.PRIMARY));
+    secondNotNullAddrPairs.sort(new AddressPairComparator(ESide.SECONDARY));
 
     instructionAddrPairs.clear();
 
@@ -616,11 +614,11 @@ public class ViewCodeNodeBuilder {
       }
     }
 
-    // adds secondary unmacthed tail instructions
+    // adds secondary unmatched tail instructions
     final List<Pair<IAddress, IAddress>> secondTail = new ArrayList<>();
     int i = secondNotNullAddrPairs.size();
     while (i > 0) {
-      --i;
+      i--;
 
       if (secondNotNullAddrPairs.get(i).first() == null) {
         secondTail.add(secondNotNullAddrPairs.get(i));
@@ -629,7 +627,7 @@ public class ViewCodeNodeBuilder {
       }
     }
 
-    Collections.sort(secondTail, new AddressPairComparator(ESide.SECONDARY));
+    secondTail.sort(new AddressPairComparator(ESide.SECONDARY));
     instructionAddrPairs.addAll(secondTail);
 
     // switch secondary and first (if order by secondary)
@@ -648,13 +646,10 @@ public class ViewCodeNodeBuilder {
 
   public static List<ZyLineContent> buildBasicblockComment(
       final RawBasicBlock basicblock, final int insertLineCount) {
-    final Color commentColor =
-        EInstructionHighlighting.getColor(EInstructionHighlighting.TYPE_COMMENT);
+    final Color commentColor = EInstructionHighlighting.TYPE_COMMENT.getColor();
 
     final BasicBlockLineObject lineObject = new BasicBlockLineObject(basicblock);
-
     final List<ZyLineContent> commentLines = new ArrayList<>();
-
     final String commentText = basicblock.getComment();
 
     boolean isFirst = true;
@@ -697,7 +692,7 @@ public class ViewCodeNodeBuilder {
     if (lineCounter < insertLineCount) {
       commentLines.addAll(
           buildPlaceholderLines(
-              insertLineCount - lineCounter, EPlaceholderType.BASICBLOCK_COMMENT));
+              insertLineCount - lineCounter, EPlaceholderType.BASIC_BLOCK_COMMENT));
     }
 
     return commentLines;
@@ -788,8 +783,8 @@ public class ViewCodeNodeBuilder {
       case UNMATCHED_BEHIND_INSTRUCTION_COMMENT:
         placeholderObject = PLACEHOLDER_UNMATCHED_BEHIND_INSTRUCTION_COMMENT;
         break;
-      case BASICBLOCK_COMMENT:
-        placeholderObject = PLACEHOLDER_BASICBLOCK_COMMENT;
+      case BASIC_BLOCK_COMMENT:
+        placeholderObject = PLACEHOLDER_BASIC_BLOCK_COMMENT;
         break;
     }
 
@@ -813,36 +808,36 @@ public class ViewCodeNodeBuilder {
     final RawBasicBlock secondaryBasicblock = combinedBasicblock.getRawNode(ESide.SECONDARY);
 
     if (side == ESide.PRIMARY) {
-      // unmatched basicblock
+      // unmatched basic block
       if (secondaryBasicblock == null) {
         buildUnmatchedCodeNodeContent(primaryBasicblock, basicblockContent);
         return;
       }
     } else {
-      // unmatched basicblock
+      // unmatched basic block
       if (primaryBasicblock == null) {
         buildUnmatchedCodeNodeContent(secondaryBasicblock, basicblockContent);
         return;
       }
     }
 
-    // matched basicblock
+    // matched basic block
     List<Pair<IAddress, IAddress>> instructionAddrPairs;
 
-    final IAddress priBasicblockAddr = combinedBasicblock.getAddress(ESide.PRIMARY);
-    final IAddress secBasicblockAddr = combinedBasicblock.getAddress(ESide.SECONDARY);
+    final IAddress priBasicBlockAddr = combinedBasicblock.getAddress(ESide.PRIMARY);
+    final IAddress secBasicBlockAddr = combinedBasicblock.getAddress(ESide.SECONDARY);
 
     instructionAddrPairs =
-        getMatchedFunctionsBasicblockInstructionAddressPairs(
-            functionMatch, combinedFlowgraph, priBasicblockAddr, secBasicblockAddr, ESide.PRIMARY);
+        getMatchedFunctionsBasicBlockInstructionAddressPairs(
+            functionMatch, combinedFlowgraph, priBasicBlockAddr, secBasicBlockAddr, ESide.PRIMARY);
 
-    final RawBasicBlock priBasicblock =
-        combinedFlowgraph.getPrimaryFlowgraph().getBasicBlock(priBasicblockAddr);
-    final RawBasicBlock secBasicblock =
-        combinedFlowgraph.getSecondaryFlowgraph().getBasicBlock(secBasicblockAddr);
+    final RawBasicBlock priBasicBlock =
+        combinedFlowgraph.getPrimaryFlowgraph().getBasicBlock(priBasicBlockAddr);
+    final RawBasicBlock secBasicBlock =
+        combinedFlowgraph.getSecondaryFlowgraph().getBasicBlock(secBasicBlockAddr);
 
     buildMatchedCodeNodeContent(
-        priBasicblock, secBasicblock, instructionAddrPairs, basicblockContent, side);
+        priBasicBlock, secBasicBlock, instructionAddrPairs, basicblockContent, side);
   }
 
   public static int precalcMaxCommentLineCount(

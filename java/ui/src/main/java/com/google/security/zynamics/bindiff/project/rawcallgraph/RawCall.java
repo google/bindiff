@@ -16,8 +16,6 @@ package com.google.security.zynamics.bindiff.project.rawcallgraph;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.security.zynamics.bindiff.enums.ECallType;
-import com.google.security.zynamics.bindiff.enums.EFunctionType;
 import com.google.security.zynamics.bindiff.enums.EMatchState;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.edges.SingleViewEdge;
@@ -25,8 +23,6 @@ import com.google.security.zynamics.zylib.disassembly.IAddress;
 
 public class RawCall extends SingleViewEdge<RawFunction> {
   private final IAddress sourceInstructionAddr;
-
-  private final ECallType callType;
 
   private final ESide side;
 
@@ -49,14 +45,9 @@ public class RawCall extends SingleViewEdge<RawFunction> {
     this.sourceInstructionAddr = checkNotNull(sourceInstructionAddr);
     this.side = checkNotNull(side);
 
-    this.callType = ECallType.getType(EFunctionType.getOrdinal(targetFunction.getFunctionType()));
     this.matchState =
         side == ESide.PRIMARY ? EMatchState.PRIMARY_UNMATCHED : EMatchState.SECONDRAY_UNMATCHED;
     this.matchedPartnerCall = null;
-  }
-
-  public ECallType getCallType() {
-    return callType;
   }
 
   public RawCall getMatchedCall() {
@@ -82,12 +73,11 @@ public class RawCall extends SingleViewEdge<RawFunction> {
   public boolean isChanged() {
     if (matchState != EMatchState.MATCHED && matchedPartnerCall != null) {
       final IAddress addr1 = getTarget().getMatchedFunctionAddress();
-      final IAddress addr2 = matchedPartnerCall.getTarget().getAddress();
-
       if (addr1 == null) {
         return true;
       }
 
+      final IAddress addr2 = matchedPartnerCall.getTarget().getAddress();
       return !addr1.equals(addr2);
     }
 

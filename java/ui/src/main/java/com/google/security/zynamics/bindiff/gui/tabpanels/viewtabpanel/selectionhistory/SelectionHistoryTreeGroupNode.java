@@ -122,7 +122,7 @@ public class SelectionHistoryTreeGroupNode extends AbstractSelectionHistoryTreeN
     final BinDiffGraph<?, ?> graph = getRootNode().getGraph();
 
     if (graph instanceof SingleGraph) {
-      if (graph.getGraphType() == EGraphType.CALLGRAPH) {
+      if (graph.getGraphType() == EGraphType.CALL_GRAPH) {
         final JMenuItem copyFunctionAddresses =
             new JMenuItem(
                 new AbstractAction("Copy Function Addresses") {
@@ -155,7 +155,7 @@ public class SelectionHistoryTreeGroupNode extends AbstractSelectionHistoryTreeN
 
         popupMenu.add(copyFunctionAddresses);
         popupMenu.add(copyFunctionNames);
-      } else if (graph.getGraphType() == EGraphType.FLOWGRAPH) {
+      } else if (graph.getGraphType() == EGraphType.FLOW_GRAPH) {
         final JMenuItem copyBasicblockAddresses =
             new JMenuItem(
                 new AbstractAction("Copy Basic Block Addresses") {
@@ -174,7 +174,7 @@ public class SelectionHistoryTreeGroupNode extends AbstractSelectionHistoryTreeN
         popupMenu.add(copyBasicblockAddresses);
       }
     } else if (getRootNode().getGraph() instanceof CombinedGraph) {
-      if (graph.getGraphType() == EGraphType.CALLGRAPH) {
+      if (graph.getGraphType() == EGraphType.CALL_GRAPH) {
         final JMenuItem copyPriFunctionAddresses =
             new JMenuItem(
                 new AbstractAction("Copy Primary Function Addresses") {
@@ -252,7 +252,7 @@ public class SelectionHistoryTreeGroupNode extends AbstractSelectionHistoryTreeN
         popupMenu.add(copySecFunctionAddresses);
         popupMenu.add(copySecFunctionNames);
 
-      } else if (graph.getGraphType() == EGraphType.FLOWGRAPH) {
+      } else if (graph.getGraphType() == EGraphType.FLOW_GRAPH) {
         final JMenuItem copyPriBasicblockAddresses =
             new JMenuItem(
                 new AbstractAction("Copy Primary Basic Block Addresses") {

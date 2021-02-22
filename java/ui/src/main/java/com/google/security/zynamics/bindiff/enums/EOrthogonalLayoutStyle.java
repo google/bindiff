@@ -15,14 +15,17 @@
 package com.google.security.zynamics.bindiff.enums;
 
 public enum EOrthogonalLayoutStyle {
-  NORMAL,
-  TREE;
+  NORMAL("Normal"), // Should come first (0)
+  TREE("Tree");
 
-  public static EOrthogonalLayoutStyle getEnum(final int style) {
-    return style == 0 ? NORMAL : TREE;
+  private final String displayName;
+
+  EOrthogonalLayoutStyle(final String displayName) {
+    this.displayName = displayName;
   }
 
-  public static int getOrdinal(final EOrthogonalLayoutStyle style) {
-    return style == NORMAL ? 0 : 1;
+  @Override
+  public String toString() {
+    return displayName;
   }
 }

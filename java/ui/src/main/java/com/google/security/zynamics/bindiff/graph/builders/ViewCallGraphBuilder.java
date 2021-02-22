@@ -405,10 +405,10 @@ public class ViewCallGraphBuilder {
     }
 
     if (priFunction != null) {
-      return colors[EFunctionType.getOrdinal(priFunction.getFunctionType())];
+      return colors[priFunction.getFunctionType().ordinal()];
     }
 
-    return colors[EFunctionType.getOrdinal(secFunction.getFunctionType())];
+    return colors[secFunction.getFunctionType().ordinal()];
   }
 
   public static GraphsContainer buildDiffCallgraphs(
@@ -480,7 +480,7 @@ public class ViewCallGraphBuilder {
 
     final CombinedGraph combinedGraph =
         new CombinedGraph(
-            combinedGraphView, combinedNodeMap, combinedEdgeMap, settings, EGraphType.CALLGRAPH);
+            combinedGraphView, combinedNodeMap, combinedEdgeMap, settings, EGraphType.CALL_GRAPH);
     final SingleGraph primaryGraph =
         new SingleGraph(
             primaryGraphView,
@@ -489,7 +489,7 @@ public class ViewCallGraphBuilder {
             primaryEdgeMap,
             settings,
             ESide.PRIMARY,
-            EGraphType.CALLGRAPH);
+            EGraphType.CALL_GRAPH);
     final SingleGraph secondaryGraph =
         new SingleGraph(
             secondaryGraphView,
@@ -498,7 +498,7 @@ public class ViewCallGraphBuilder {
             secondaryEdgeMap,
             settings,
             ESide.SECONDARY,
-            EGraphType.CALLGRAPH);
+            EGraphType.CALL_GRAPH);
     final SuperGraph superGraph =
         new SuperGraph(
             superGraphView,
@@ -507,12 +507,12 @@ public class ViewCallGraphBuilder {
             primaryGraph,
             secondaryGraph,
             settings,
-            EGraphType.CALLGRAPH);
+            EGraphType.CALL_GRAPH);
 
     final GraphsContainer graphs =
         new GraphsContainer(diff, superGraph, combinedGraph, primaryGraph, secondaryGraph);
 
-    superGraph.refreshAllSuperNodesSizes(primaryGraph, secondaryGraph);
+    superGraph.refreshAllSuperNodeSizes(primaryGraph, secondaryGraph);
 
     return graphs;
   }

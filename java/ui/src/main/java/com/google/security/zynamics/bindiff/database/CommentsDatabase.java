@@ -254,7 +254,7 @@ public class CommentsDatabase extends SqliteDatabase {
           statement.setString(1, imageHash);
           statement.setLong(2, functionAddr.toLong());
           statement.setLong(3, instructionAddr.toLong());
-          statement.setShort(4, (short) ECommentPlacement.getOrdinal(placement));
+          statement.setShort(4, (short) placement.ordinal());
           statement.setString(5, comment);
           statement.executeUpdate();
         }
@@ -266,7 +266,7 @@ public class CommentsDatabase extends SqliteDatabase {
           statement.setString(1, imageHash);
           statement.setLong(2, functionAddr.toLong());
           statement.setLong(3, instructionAddr.toLong());
-          statement.setShort(4, (short) ECommentPlacement.getOrdinal(placement));
+          statement.setShort(4, (short) placement.ordinal());
           statement.executeUpdate();
         }
       }

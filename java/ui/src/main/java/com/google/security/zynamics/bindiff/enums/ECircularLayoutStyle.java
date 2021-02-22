@@ -15,33 +15,18 @@
 package com.google.security.zynamics.bindiff.enums;
 
 public enum ECircularLayoutStyle {
-  COMPACT,
-  ISOLATED,
-  SINGLE_CYCLE;
+  COMPACT("Compact"),
+  ISOLATED("Isolated"),
+  SINGLE_CYCLE("Single Cycle");
 
-  public static ECircularLayoutStyle getEnum(final int style) {
-    switch (style) {
-      case 0:
-        return COMPACT;
-      case 1:
-        return ISOLATED;
-      case 2:
-        return SINGLE_CYCLE;
-    }
+  private final String displayName;
 
-    throw new IllegalArgumentException("Unknown circular layout style.");
+  ECircularLayoutStyle(final String displayName) {
+    this.displayName = displayName;
   }
 
-  public static int getOrdinal(final ECircularLayoutStyle style) {
-    switch (style) {
-      case COMPACT:
-        return 0;
-      case ISOLATED:
-        return 1;
-      case SINGLE_CYCLE:
-        return 2;
-    }
-
-    throw new IllegalArgumentException("Unknown cicular layout style.");
+  @Override
+  public String toString() {
+    return displayName;
   }
 }

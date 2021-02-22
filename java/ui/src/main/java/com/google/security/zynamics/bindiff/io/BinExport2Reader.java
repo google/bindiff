@@ -190,7 +190,7 @@ public class BinExport2Reader {
   }
 
   private static char highlightChar(final EInstructionHighlighting value) {
-    return (char) EInstructionHighlighting.getOrdinal(value);
+    return (char) value.ordinal();
   }
 
   private static void renderExpression(

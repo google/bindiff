@@ -501,7 +501,7 @@ public class ViewFlowGraphBuilder {
 
     final CombinedGraph combinedGraph =
         new CombinedGraph(
-            combinedGraphView, combinedNodeMap, combinedEdgeMap, settings, EGraphType.FLOWGRAPH);
+            combinedGraphView, combinedNodeMap, combinedEdgeMap, settings, EGraphType.FLOW_GRAPH);
     final SingleGraph primaryGraph =
         new SingleGraph(
             primaryGraphView,
@@ -510,7 +510,7 @@ public class ViewFlowGraphBuilder {
             primaryEdgeMap,
             settings,
             ESide.PRIMARY,
-            EGraphType.FLOWGRAPH);
+            EGraphType.FLOW_GRAPH);
     final SingleGraph secondaryGraph =
         new SingleGraph(
             secondaryGraphView,
@@ -519,7 +519,7 @@ public class ViewFlowGraphBuilder {
             secondaryEdgeMap,
             settings,
             ESide.SECONDARY,
-            EGraphType.FLOWGRAPH);
+            EGraphType.FLOW_GRAPH);
     final SuperGraph superGraph =
         new SuperGraph(
             superGraphView,
@@ -528,12 +528,12 @@ public class ViewFlowGraphBuilder {
             primaryGraph,
             secondaryGraph,
             settings,
-            EGraphType.FLOWGRAPH);
+            EGraphType.FLOW_GRAPH);
 
     final GraphsContainer graphs =
         new GraphsContainer(diff, superGraph, combinedGraph, primaryGraph, secondaryGraph);
 
-    superGraph.refreshAllSuperNodesSizes(primaryGraph, secondaryGraph);
+    superGraph.refreshAllSuperNodeSizes(primaryGraph, secondaryGraph);
 
     addGraphEditors(functionMatch, graphs);
 

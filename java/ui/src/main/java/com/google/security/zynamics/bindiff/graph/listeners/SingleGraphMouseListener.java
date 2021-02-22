@@ -78,7 +78,7 @@ public class SingleGraphMouseListener implements IZyGraphListener<SingleDiffNode
 
     if (SwingUtilities.isLeftMouseButton(event)
         && event.getClickCount() == 2
-        && graph.getGraphType() == EGraphType.CALLGRAPH) {
+        && graph.getGraphType() == EGraphType.CALL_GRAPH) {
       controller.openFlowgraphsViews(node);
     }
   }

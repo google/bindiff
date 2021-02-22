@@ -135,19 +135,18 @@ public class OrthogonalLayoutPanel extends JPanel {
   }
 
   public EOrthogonalLayoutStyle getOrthogonalLayoutStyle() {
-    return EOrthogonalLayoutStyle.getEnum(layoutStyle.getSelectedIndex());
+    return EOrthogonalLayoutStyle.values()[layoutStyle.getSelectedIndex()];
   }
 
   public ELayoutOrientation getOrthogonalOrientation() {
-    return ELayoutOrientation.getEnum(orientation.getSelectedIndex());
+    return ELayoutOrientation.values()[orientation.getSelectedIndex()];
   }
 
   public void setCurrentValues() {
     final BinDiffConfig config = BinDiffConfig.getInstance();
 
-    layoutStyle.setSelectedIndex(
-        EOrthogonalLayoutStyle.getOrdinal(getOrthogonalLayoutStyle(config)));
-    orientation.setSelectedIndex(ELayoutOrientation.getOrdinal(getOrthogonalOrientation(config)));
+    layoutStyle.setSelectedIndex(getOrthogonalLayoutStyle(config).ordinal());
+    orientation.setSelectedIndex(getOrthogonalOrientation(config).ordinal());
     minimumNodeDistance.setText(Integer.toString(getMinimumNodeDistance(config)));
   }
 }

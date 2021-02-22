@@ -16,9 +16,7 @@ package com.google.security.zynamics.bindiff.graph.layout;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.security.zynamics.bindiff.enums.ECircularLayoutStyle;
 import com.google.security.zynamics.bindiff.enums.ELayoutOrientation;
-import com.google.security.zynamics.bindiff.enums.EOrthogonalLayoutStyle;
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
 import com.google.security.zynamics.zylib.gui.zygraph.layouters.CircularStyle;
 import com.google.security.zynamics.zylib.gui.zygraph.layouters.HierarchicOrientation;
@@ -30,11 +28,10 @@ public final class LayoutCreator {
   public static CanonicMultiStageLayouter getCircularLayout(final GraphLayoutSettings settings) {
     checkNotNull(settings);
 
-    final ECircularLayoutStyle style = settings.getCircularLayoutStyle();
+    final CircularStyle style = CircularStyle.parseInt(settings.getCircularLayoutStyle().ordinal());
     final long minNodeDist = settings.getMinimumCircularNodeDistance();
 
-    return ZyGraphLayouter.createCircularLayouter(
-        CircularStyle.parseInt(ECircularLayoutStyle.getOrdinal(style)), minNodeDist);
+    return ZyGraphLayouter.createCircularLayouter(style, minNodeDist);
   }
 
   public static CanonicMultiStageLayouter getHierarchicalLayout(
@@ -44,25 +41,22 @@ public final class LayoutCreator {
     final boolean orthogonalEdgeRouting = settings.getHierarchicalOrthogonalEdgeRouting();
     final long minLayerDist = settings.getMinimumHierarchicLayerDistance();
     final long minNodeDist = settings.getMinimumHierarchicNodeDistance();
-    final ELayoutOrientation orientation = settings.getHierarchicalOrientation();
-    final HierarchicOrientation zyOrientation =
-        HierarchicOrientation.parseInt(ELayoutOrientation.getOrdinal(orientation));
+    final HierarchicOrientation orientation =
+        HierarchicOrientation.parseInt(settings.getHierarchicalOrientation().ordinal());
 
     return ZyGraphLayouter.createIncrementalHierarchicalLayouter(
-        orthogonalEdgeRouting, minLayerDist, minNodeDist, zyOrientation);
+        orthogonalEdgeRouting, minLayerDist, minNodeDist, orientation);
   }
 
   public static CanonicMultiStageLayouter getOrthogonalLayout(final GraphLayoutSettings settings) {
     checkNotNull(settings);
 
-    final EOrthogonalLayoutStyle style = settings.getOrthogonalLayoutStyle();
+    final OrthogonalStyle style =
+        OrthogonalStyle.parseInt(settings.getOrthogonalLayoutStyle().ordinal());
     final long gridSize = settings.getMinimumOrthogonalNodeDistance();
     final boolean isVerticalOrientation =
         settings.getOrthogonalLayoutOrientation() == ELayoutOrientation.VERTICAL;
 
-    final OrthogonalStyle zyStyle =
-        OrthogonalStyle.parseInt(EOrthogonalLayoutStyle.getOrdinal(style));
-
-    return ZyGraphLayouter.createOrthoLayouter(zyStyle, gridSize, isVerticalOrientation);
+    return ZyGraphLayouter.createOrthoLayouter(style, gridSize, isVerticalOrientation);
   }
 }
