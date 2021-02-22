@@ -19,7 +19,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.layouters.CircularStyle;
 import com.google.security.zynamics.zylib.gui.zygraph.layouters.HierarchicOrientation;
 import com.google.security.zynamics.zylib.gui.zygraph.layouters.HierarchicStyle;
 import com.google.security.zynamics.zylib.gui.zygraph.layouters.OrthogonalStyle;
-
 import y.layout.CanonicMultiStageLayouter;
 import y.layout.OrientationLayouter;
 import y.layout.SelfLoopLayouter;
@@ -43,7 +42,6 @@ public class ZyGraphLayouter {
       final CanonicMultiStageLayouter multiStageLayouter) {
     if (multiStageLayouter instanceof HierarchicLayouter) {
       final HierarchicLayouter layouter = (HierarchicLayouter) multiStageLayouter;
-
       layouter.setLayeringStrategy(HierarchicLayouter.LAYERING_HIERARCHICAL_OPTIMAL);
 
       final OrientationLayouter ol = (OrientationLayouter) layouter.getOrientationLayouter();
@@ -57,10 +55,9 @@ public class ZyGraphLayouter {
           (IncrementalHierarchicLayouter) multiStageLayouter;
       layouter
           .setFromScratchLayeringStrategy(IncrementalHierarchicLayouter.LAYERING_STRATEGY_HIERARCHICAL_OPTIMAL);
-      layouter.getNodeLayoutDescriptor().setLayerAlignment(0); // sets the alignment of the node
-                                                               // within its layer (0 means top
-                                                               // aligned with respect to the
-                                                               // drawing direction).
+      // Sets the alignment of the node within its layer (0 means top-aligned with respect to the
+      // drawing direction).
+      layouter.getNodeLayoutDescriptor().setLayerAlignment(0);
     }
   }
 
@@ -218,9 +215,11 @@ public class ZyGraphLayouter {
       final HierarchicOrientation orientation) {
     final IncrementalHierarchicLayouter layouter = new IncrementalHierarchicLayouter();
 
-    final OrientationLayouter ol = (OrientationLayouter) layouter.getOrientationLayouter();
-    ol.setOrientation(orientation == HierarchicOrientation.HORIZONTAL
-        ? OrientationLayouter.TOP_TO_BOTTOM : OrientationLayouter.LEFT_TO_RIGHT);
+    if (HierarchicOrientation.HORIZONTAL.equals(orientation)) {
+      // OrientationLayouter.TOP_TO_BOTTOM is the default
+      ((OrientationLayouter) layouter.getOrientationLayouter())
+          .setOrientation(OrientationLayouter.LEFT_TO_RIGHT);
+    }
 
     layouter.setMinimumLayerDistance(minLayerDist);
     layouter.setNodeToNodeDistance(minNodeDist);
@@ -229,7 +228,6 @@ public class ZyGraphLayouter {
 
     layouter.setBackloopRoutingEnabled(true);
     layouter.setSelfLoopLayouterEnabled(true);
-    // layouter.setParallelEdgeLayouterEnabled(true);
     layouter.setOrthogonallyRouted(orthogonalEdgeRooting);
 
     return layouter;
@@ -241,19 +239,16 @@ public class ZyGraphLayouter {
     Preconditions.checkNotNull(style, "Internal Error: Layout style can't be null");
 
     final OrthogonalLayouter layouter = new OrthogonalLayouter();
-
-    layouter.setLayoutStyle(style == OrthogonalStyle.NORMAL ? OrthogonalLayouter.NORMAL_STYLE
-        : OrthogonalLayouter.NORMAL_TREE_STYLE);
-
-    final OrientationLayouter ol = (OrientationLayouter) layouter.getOrientationLayouter();
-    ol.setOrientation(isVerticalOrientation ? OrientationLayouter.TOP_TO_BOTTOM
-        : OrientationLayouter.LEFT_TO_RIGHT);
+    if (OrthogonalStyle.TREE.equals(style)) {
+      layouter.setTreeStyle(OrthogonalLayouter.TREE_STYLE_ASPECT_RATIO_TREE);
+    }
+    if (!isVerticalOrientation) {
+      // OrientationLayouter.TOP_TO_BOTTOM is the default
+      ((OrientationLayouter) layouter.getOrientationLayouter())
+          .setOrientation(OrientationLayouter.LEFT_TO_RIGHT);
+    }
     layouter.setGrid((int) gridSize);
 
     return layouter;
-  }
-
-  public enum CurrentLayouterType {
-    HIERACHIC, ORTHOGONAL, CIRCULAR
   }
 }

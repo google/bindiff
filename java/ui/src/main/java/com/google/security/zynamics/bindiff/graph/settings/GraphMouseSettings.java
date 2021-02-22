@@ -69,7 +69,7 @@ public class GraphMouseSettings implements IMouseSettings {
     return zoomSensitivity;
   }
 
-  public void setMousewheelAction(final EMouseAction mouseWheelAction) {
+  public void setMouseWheelAction(final EMouseAction mouseWheelAction) {
     if (this.mouseWheelAction == mouseWheelAction) {
       return;
     }

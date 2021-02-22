@@ -41,10 +41,10 @@ public class GraphLayoutSettings implements ILayoutSettings {
   private final int lastAnimationSpeed;
 
   // Hierarchical tab
-  private ELayoutOrientation hierarchicLayoutOrientation;
-  private boolean hierarchicOrthogonalEdgeRouting;
-  private int hierarchicLayoutMinLayerDistance;
-  private int hierarchicLayoutMinNodeDistance;
+  private ELayoutOrientation hierarchicalLayoutOrientation;
+  private boolean hierarchicalOrthogonalEdgeRouting;
+  private int hierarchicalLayoutMinLayerDistance;
+  private int hierarchicalLayoutMinNodeDistance;
 
   // Orthogonal tab
   private int orthogonalLayoutMinNodeDistance;
@@ -73,10 +73,10 @@ public class GraphLayoutSettings implements ILayoutSettings {
     circularLayoutStyle = initialSettings.getCircularLayoutStyle();
     circularLayoutMinNodeDistance = initialSettings.getCircularMinimumNodeDistance();
 
-    hierarchicOrthogonalEdgeRouting = initialSettings.getHierarchicalOrthogonalEdgeRouting();
-    hierarchicLayoutOrientation = initialSettings.getHierarchicalOrientation();
-    hierarchicLayoutMinLayerDistance = initialSettings.getHierarchicalMinimumNodeDistance();
-    hierarchicLayoutMinNodeDistance = initialSettings.getHierarchicalMinimumLayerDistance();
+    hierarchicalOrthogonalEdgeRouting = initialSettings.getHierarchicalOrthogonalEdgeRouting();
+    hierarchicalLayoutOrientation = initialSettings.getHierarchicalOrientation();
+    hierarchicalLayoutMinLayerDistance = initialSettings.getHierarchicalMinimumNodeDistance();
+    hierarchicalLayoutMinNodeDistance = initialSettings.getHierarchicalMinimumLayerDistance();
 
     orthogonalLayoutStyle = initialSettings.getOrthogonalLayoutStyle();
     orthogonalLayoutOrientation = initialSettings.getOrthogonalOrientation();
@@ -109,7 +109,6 @@ public class GraphLayoutSettings implements ILayoutSettings {
 
   @Override
   public boolean getAnimateLayout() {
-
     return animationSpeed > 0;
   }
 
@@ -142,11 +141,11 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public boolean getHierarchicalOrthogonalEdgeRouting() {
-    return hierarchicOrthogonalEdgeRouting;
+    return hierarchicalOrthogonalEdgeRouting;
   }
 
   public ELayoutOrientation getHierarchicalOrientation() {
-    return hierarchicLayoutOrientation;
+    return hierarchicalLayoutOrientation;
   }
 
   public long getMinimumCircularNodeDistance() {
@@ -154,11 +153,11 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public long getMinimumHierarchicLayerDistance() {
-    return hierarchicLayoutMinLayerDistance;
+    return hierarchicalLayoutMinLayerDistance;
   }
 
   public long getMinimumHierarchicNodeDistance() {
-    return hierarchicLayoutMinNodeDistance;
+    return hierarchicalLayoutMinNodeDistance;
   }
 
   public long getMinimumOrthogonalNodeDistance() {
@@ -219,7 +218,6 @@ public class GraphLayoutSettings implements ILayoutSettings {
     }
 
     defaultGraphLayout = layout;
-
     updateLayouter();
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
@@ -228,23 +226,23 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public void setHierarchicOrientation(final ELayoutOrientation orientation) {
-    if (orientation == hierarchicLayoutOrientation) {
+    if (orientation == hierarchicalLayoutOrientation) {
       return;
     }
 
-    hierarchicLayoutOrientation = orientation;
+    hierarchicalLayoutOrientation = orientation;
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.hierarchicalLayoutOrientationChanged(this);
     }
   }
 
-  public void setHierarchicOrthogonalEdgeRouting(final boolean orthogonal) {
-    if (orthogonal == hierarchicOrthogonalEdgeRouting) {
+  public void setHierarchicalOrthogonalEdgeRouting(final boolean orthogonal) {
+    if (orthogonal == hierarchicalOrthogonalEdgeRouting) {
       return;
     }
 
-    hierarchicOrthogonalEdgeRouting = orthogonal;
+    hierarchicalOrthogonalEdgeRouting = orthogonal;
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.hierarchicalOrthogonalEdgeRoutingChanged(this);
@@ -264,11 +262,11 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public void setMinimumHierarchicLayerDistance(final int minLayerDistance) {
-    if (minLayerDistance == hierarchicLayoutMinLayerDistance) {
+    if (minLayerDistance == hierarchicalLayoutMinLayerDistance) {
       return;
     }
 
-    hierarchicLayoutMinLayerDistance = minLayerDistance;
+    hierarchicalLayoutMinLayerDistance = minLayerDistance;
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.hierarchicalLayoutMinLayerDistanceChanged(this);
@@ -276,11 +274,11 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public void setMinimumHierarchicNodeDistance(final int minNodeDistance) {
-    if (minNodeDistance == hierarchicLayoutMinNodeDistance) {
+    if (minNodeDistance == hierarchicalLayoutMinNodeDistance) {
       return;
     }
 
-    hierarchicLayoutMinNodeDistance = minNodeDistance;
+    hierarchicalLayoutMinNodeDistance = minNodeDistance;
 
     for (final IGraphSettingsChangedListener listener : settingsListeners) {
       listener.hierarchicalLayoutMinNodeDistanceChanged(this);
@@ -336,12 +334,15 @@ public class GraphLayoutSettings implements ILayoutSettings {
   }
 
   public void updateLayouter() {
-    if (getDefaultGraphLayout() == EGraphLayout.HIERARCHICAL) {
-      setCurrentLayouter(LayoutCreator.getHierarchicalLayout(this));
-    } else if (getDefaultGraphLayout() == EGraphLayout.ORTHOGONAL) {
-      setCurrentLayouter(LayoutCreator.getOrthogonalLayout(this));
-    } else {
-      setCurrentLayouter(LayoutCreator.getCircularLayout(this));
+    switch (getDefaultGraphLayout()) {
+      case HIERARCHICAL:
+        setCurrentLayouter(LayoutCreator.getHierarchicalLayout(this));
+        break;
+      case ORTHOGONAL:
+        setCurrentLayouter(LayoutCreator.getOrthogonalLayout(this));
+        break;
+      default:
+        setCurrentLayouter(LayoutCreator.getCircularLayout(this));
     }
   }
 }

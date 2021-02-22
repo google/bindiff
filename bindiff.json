@@ -483,7 +483,7 @@
    "animation_speed": 4,
    "hierarchical_options": {
     "style": "DEFAULT",
-    "orientation": "VERTICAL",
+    "orientation": "HORIZONTAL",
     "min_layer_distance": 50,
     "min_node_distance": 25
    },
@@ -497,7 +497,7 @@
     "min_node_distance": 50
    },
    "proximity_browsing": {
-    "enabled": true,
+    "enabled": false,
     "auto_enable_threshold": 300,
     "child_depth": 1,
     "parent_depth": 1,
@@ -515,7 +515,7 @@
    "draw_bends": false,
    "animation_speed": 5,
    "hierarchical_options": {
-    "style": "ORTHOGONAL_EDGE_ROUTING",
+    "style": "DEFAULT",
     "orientation": "VERTICAL",
     "min_layer_distance": 50,
     "min_node_distance": 25
@@ -530,7 +530,7 @@
     "min_node_distance": 50
    },
    "proximity_browsing": {
-    "enabled": true,
+    "enabled": false,
     "auto_enable_threshold": 200,
     "child_depth": 2,
     "parent_depth": 2,

@@ -103,7 +103,7 @@ public class GraphSettingsDialog extends BaseDialog implements ActionListener {
 
     settings.setDrawBends(edgesPanel.getDrawBends());
 
-    layoutSettings.setHierarchicOrthogonalEdgeRouting(
+    layoutSettings.setHierarchicalOrthogonalEdgeRouting(
         hierarchicalLayoutPanel.getOrthogonalEdgeRouting());
     layoutSettings.setHierarchicOrientation(hierarchicalLayoutPanel.getLayoutOrientation());
     layoutSettings.setMinimumHierarchicLayerDistance(
@@ -120,7 +120,7 @@ public class GraphSettingsDialog extends BaseDialog implements ActionListener {
 
     settings.setShowScrollbars(controlsPanel.getShowScrollbars());
     final GraphMouseSettings mouseSettings = settings.getMouseSettings();
-    mouseSettings.setMousewheelAction(controlsPanel.getMouseWheelBehavior());
+    mouseSettings.setMouseWheelAction(controlsPanel.getMouseWheelBehavior());
     mouseSettings.setZoomSensitivity(controlsPanel.getZoomSensitivity());
     mouseSettings.setScrollSensitivity(controlsPanel.getScrollSensitivity());
 
