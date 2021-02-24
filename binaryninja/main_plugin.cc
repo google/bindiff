@@ -489,6 +489,12 @@ bool Plugin::Init() {
 
 }  // namespace security::binexport
 
+extern "C" BINARYNINJAPLUGIN uint32_t CorePluginABIVersion() {
+  // The stable version of Binary Ninja does not use this yet. For the "dev"
+  // version, we return the current value of BN_MINIMUM_CORE_ABI_VERSION.
+  return 1;
+}
+
 extern "C" BINARYNINJAPLUGIN bool CorePluginInit() {
   return security::binexport::Plugin::instance()->Init();
 }
