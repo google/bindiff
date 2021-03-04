@@ -316,7 +316,6 @@ ida_target_link_libraries(${bindiff_plugin_name}
 set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
-  OSX_ARCHITECTURES x86_64
 )
 ida_install(TARGETS ${bindiff_plugin_name}
             ARCHIVE DESTINATION bindiff-prefix
