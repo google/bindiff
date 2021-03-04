@@ -349,7 +349,6 @@ if(BINEXPORT_ENABLE_IDAPRO)
   )
   set_ida_target_properties(${binexport_ida_plugin_name}
     PROPERTIES POSITION_INDEPENDENT_CODE ON
-    OSX_ARCHITECTURES x86_64
   )
   ida_install(TARGETS ${binexport_ida_plugin_name}
               ARCHIVE DESTINATION binexport-prefix
