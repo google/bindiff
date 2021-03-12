@@ -20,7 +20,9 @@
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::bindiff {
@@ -37,12 +39,12 @@ bool SortEdgeByMdIndex(const std::pair<CallGraph::Edge, double>& one,
 }  // namespace
 
 std::string CallGraph::GetFilename() const {
-  const std::string::size_type filename_pos = filename_.rfind('/');
-  const std::string filename(filename_.substr(
-      filename_pos != std::string::npos ? filename_pos + 1 : 0));
-  const std::string::size_type extension_pos = filename.rfind('.');
-  return filename.substr(
-      0, extension_pos != std::string::npos ? extension_pos : filename.size());
+  absl::string_view basename = filename_;
+  if (auto last_slash = basename.find_last_of(R"(\/)");
+      last_slash != absl::string_view::npos) {
+    basename.remove_prefix(last_slash + 1);
+  }
+  return ReplaceFileExtension(basename, /*new_extension=*/"");
 }
 
 void CallGraph::Reset() {

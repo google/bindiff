@@ -32,6 +32,7 @@ using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::IsTrue;
 using ::testing::Ne;
+using ::testing::StrEq;
 
 TEST(EmptyCallGraphTest, Construction) {
   CallGraph call_graph;  // Empty
@@ -77,6 +78,25 @@ TEST(EmptyCallGraphDeathTest, QueryingVerticesCrashes) {
                             "");
   EXPECT_DEATH_IF_SUPPORTED(
       call_graph.GetMdIndexInverted(CallGraph::kInvalidVertex), "");
+}
+
+TEST(EmptyCallGraphTest, CrossPlatformFileBasenames) {
+  class CallGraphForTesting : public CallGraph {
+   public:
+    void set_filename(std::string value) { filename_ = std::move(value); }
+  } call_graph;  // Empty
+
+  // Plain filename
+  call_graph.set_filename("primary.v1.test.exe");
+  EXPECT_THAT(call_graph.GetFilename(), StrEq("primary.v1.test"));
+
+  // Windows style
+  call_graph.set_filename(R"(C:\TEMP\RE.project\primary.v1.test.exe)");
+  EXPECT_THAT(call_graph.GetFilename(), StrEq("primary.v1.test"));
+
+  // Posix style
+  call_graph.set_filename(R"(/tmp/RE.project/primary.v1.test.exe)");
+  EXPECT_THAT(call_graph.GetFilename(), StrEq("primary.v1.test"));
 }
 
 class SimpleCallGraphTest : public ::testing::Test {
