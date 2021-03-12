@@ -27,7 +27,6 @@
 #include <lines.hpp>                                            // NOLINT
 #include <nalt.hpp>                                             // NOLINT
 #include <segment.hpp>                                          // NOLINT
-#include <strlist.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 

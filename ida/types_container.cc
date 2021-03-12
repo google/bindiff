@@ -201,7 +201,7 @@ const BaseType* GetKnownType(
 
 // Returns the size in bits for an IDA type pointer.
 int GetTypeSize(const tinfo_t& tif) {
-  return tif.get_size() == BADSIZE ? 0 : tif.get_size() * ph.cnbits;
+  return tif.get_size() == BADSIZE ? 0 : tif.get_size() * get_ph()->cnbits;
 }
 
 // Creates a new type instance of an atomic type (i.e. non-compound) based on
@@ -475,7 +475,7 @@ void IdaTypesContainer::CollectCompoundTypes(T start_it, T end_it) {
   for (T it = start_it; it != end_it; ++it) {
     const tid_t struct_id = it->id;
     const asize_t struct_size = static_cast<size_t>(get_struc_size(struct_id)) *
-                                static_cast<size_t>(ph.cnbits);
+                                static_cast<size_t>(get_ph()->cnbits);
 
     if (struct_size >= kMaxStructSize) {
       LOG(INFO) << "Unable to create BaseType with " << struct_size

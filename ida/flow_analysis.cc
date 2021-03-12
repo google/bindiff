@@ -88,7 +88,7 @@ bool IsCode(Address address) {
   return is_code(get_full_flags(address)) &&
          (segment == SEG_CODE || segment == SEG_NORM ||
           // Some processor modules label code segments with SEG_DATA.
-          ((ph.id == PLFM_DALVIK || ph.id == PLFM_M32R) &&
+          ((get_ph()->id == PLFM_DALVIK || get_ph()->id == PLFM_M32R) &&
            segment == SEG_DATA));
 }
 

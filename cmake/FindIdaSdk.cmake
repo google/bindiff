@@ -113,6 +113,24 @@ function(_ida_common_target_settings t ea64)
   target_include_directories(${t} PUBLIC ${IdaSdk_INCLUDE_DIRS})
 endfunction()
 
+macro(_ida_check_bitness)
+  if(opt_NOEA32 AND opt_NOEA64)
+    message(FATAL_ERROR "NOEA32 and NOEA64 cannot be used at the same time")
+  endif()
+endmacro()
+
+function(_ida_library name ea64)
+  if(ea64)
+    set(t ${name}_ea64)
+  else()
+    set(t ${name}_ea32)
+  endif()
+
+  # Define the actual library.
+  add_library(${t} ${ARGN})
+  _ida_common_target_settings(${t} ${ea64})
+endfunction()
+
 function(_ida_plugin name ea64 link_script)  # ARGN contains sources
   if(ea64)
     set(t ${name}${_so64})
@@ -151,24 +169,6 @@ function(_ida_plugin name ea64 link_script)  # ARGN contains sources
       target_link_libraries(${t} ${IdaSdk_DIR}/lib/x64_win_vc_32/ida.lib)
     endif()
   endif()
-endfunction()
-
-macro(_ida_check_bitness)
-  if(opt_NOEA32 AND opt_NOEA64)
-    message(FATAL_ERROR "NOEA32 and NOEA64 cannot be used at the same time")
-  endif()
-endmacro()
-
-function(_ida_library name ea64)
-  if(ea64)
-    set(t ${name}_ea64)
-  else()
-    set(t ${name}_ea32)
-  endif()
-
-  # Define the actual library.
-  add_library(${t} ${ARGN})
-  _ida_common_target_settings(${t} ${ea64})
 endfunction()
 
 function(add_ida_library name)

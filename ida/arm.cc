@@ -20,7 +20,6 @@
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <idp.hpp>                                              // NOLINT
-#include <allins.hpp>                                           // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <ida.hpp>                                              // NOLINT
 #include <ua.hpp>                                               // NOLINT

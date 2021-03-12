@@ -60,7 +60,8 @@ Address GetImageBase() {
 }
 
 Architecture GetArchitecture() {
-  std::string architecture(inf.procname);
+  qstring procname = inf_get_procname();
+  auto architecture = ToStringView(procname);
   if (architecture == "metapc") {
     return kX86;
   }
