@@ -176,6 +176,9 @@ std::unique_ptr<FlowGraph> FlowGraph::FromBinExport2Proto(
                                   instruction_proto.operand_index().end()});
         instruction.set_call_targets({instruction_proto.call_target().begin(),
                                       instruction_proto.call_target().end()});
+        instruction.set_comment_indices(
+            {instruction_proto.comment_index().begin(),
+             instruction_proto.comment_index().end()});
       }
     }
     addresses.push_back(

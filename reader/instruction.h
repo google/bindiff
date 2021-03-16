@@ -31,26 +31,37 @@ namespace security::binexport {
 
 class Instruction {
  public:
+  using CallTargets = absl::InlinedVector<Address, 1>;
+  using CommentIndices = absl::InlinedVector<int32_t, 1>;
+
   Instruction(Address address, const std::string& mnemonic);
+
   const std::string& mnemonic() const { return mnemonic_; }
   Address address() const { return address_; }
+
   const std::vector<int>& operands() const { return operand_indices_; }
   void set_operands(const std::vector<int>& operand_indices);
 
-  using CallTargets = absl::InlinedVector<Address, 1>;
-
   const CallTargets& call_targets() const { return call_targets_; }
   void set_call_targets(const CallTargets& targets) { call_targets_ = targets; }
+
+  const CommentIndices& comment_indices() const { return comment_indices_; }
+  void set_comment_indices(const CommentIndices& comment_indices) {
+    comment_indices_ = std::move(comment_indices);
+  }
 
  private:
   Address address_;
   std::string mnemonic_;
 
-  // Operand indices from the BinExport2 protocol buffer they where loaded from.
+  // Operand indices from the BinExport2 protocol buffer they were loaded from.
   std::vector<int> operand_indices_;
 
   // If this is a call instruction, contains potential call targets.
   CallTargets call_targets_;
+
+  // Comment indices from the BinExport2 protocol buffer they were loaded from
+  CommentIndices comment_indices_;
 };
 
 using Instructions = std::vector<Instruction>;
