@@ -518,7 +518,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     absl::SetFlag(&FLAGS_output_dir, current_path);
   }
 
-  std::string usage = absl::StrFormat(
+  const std::string usage = absl::StrFormat(
       "Find similarities and differences in disassembled code.\n"
       "Usage: %1$s [OPTION] DIRECTORY\n"
       "  or:  %1$s [OPTION] PRIMARY SECONDARY\n"

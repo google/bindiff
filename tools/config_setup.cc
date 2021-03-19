@@ -36,9 +36,10 @@
 #include "third_party/absl/flags/flag.h"
 #include "third_party/absl/flags/parse.h"
 #include "third_party/absl/flags/usage.h"
+#include "third_party/absl/flags/usage_config.h"
 #include "third_party/absl/status/status.h"
-#include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/version.h"
@@ -71,24 +72,13 @@ absl::Status CreateOrUpdateLinkWithFallback(const std::string& target,
   }
   const std::string canonical_target = canonical_path.get();
 
-  if (canonical_path.reset(realpath(link_path.c_str(), nullptr));
-      !canonical_path) {
-    if (errno != ENOENT) {
-      return absl::FailedPreconditionError(absl::StrCat(
-          "Cannot read existing '", link_path, "': ", GetLastOsError()));
-    }
-  } else {
-    if (canonical_target == canonical_path.get()) {  // Same file already?
-      return absl::OkStatus();
-    }
-    // symlink() will not overwrite, so remove first. Since remove can fail
-    // for many reasons, the error is ignored here and symlink() will fail
-    // below.
-    remove(canonical_path.get());
-  }
+  // symlink() will not overwrite, so remove first. Since remove can fail for
+  // many reasons, the error is ignored here and symlink() will fail below.
+  remove(link_path.c_str());
+
   if (symlink(canonical_target.c_str(), link_path.c_str()) == -1) {
     return absl::UnknownError(absl::StrCat(
-        "Symlink creation of '", canonical_target, "': ", GetLastOsError()));
+        "Symlink creation of '", link_path, "': ", GetLastOsError()));
   }
   return absl::OkStatus();
 #else
@@ -280,6 +270,24 @@ absl::Status ApplySettings(const std::vector<char*>& args,
   return absl::OkStatus();
 }
 
+// Install Abseil Flags' library usage callbacks. This needs to be done before
+// any operation that may call one of the callbacks.
+void InstallFlagsUsageConfig() {
+  absl::FlagsUsageConfig usage_config;
+  usage_config.contains_help_flags = [](absl::string_view filename) {
+    return !absl::StartsWith(filename, "core library");
+  };
+  usage_config.contains_helpshort_flags = usage_config.contains_help_flags;
+  usage_config.version_string = []() {
+    return absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, "\n");
+  };
+  usage_config.normalize_filename =
+      [](absl::string_view filename) -> std::string {
+    return absl::StartsWith(filename, "absl") ? "core library" : "this binary";
+  };
+  absl::SetFlagsUsageConfig(usage_config);
+}
+
 absl::Status ConfigSetupMain(int argc, char* argv[]) {
   const std::string binary_name = Basename(argv[0]);
   absl::SetProgramUsageMessage(
@@ -287,6 +295,7 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
                       "Usage: %1$s --config=FILE [KEY=VALUE]...\n"
                       "  or:  %1$s --per_user\n",
                       binary_name));
+  InstallFlagsUsageConfig();
   std::vector<char*> positional = absl::ParseCommandLine(argc, argv);
   positional.erase(positional.begin());
 
@@ -297,7 +306,9 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
     return PerUserSetup(config::Proto());
   }
 
-  auto config = config::Defaults();
+  // `print_only` loads the config file just like BinDiff itself does.
+  auto config =
+      !absl::GetFlag(FLAGS_print_only) ? config::Defaults() : config::Proto();
 
   const StringSettingsMap string_settings = {
       {"directory", config.mutable_directory()},
@@ -318,12 +329,15 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
 
   const std::string config_filename = absl::GetFlag(FLAGS_config);
   if (config_filename.empty()) {
-    return absl::InvalidArgumentError(
-        "Missing config file argument, specify `--config`");
+    if (!absl::GetFlag(FLAGS_print_only)) {
+      return absl::InvalidArgumentError(
+          "Missing config file argument, specify `--config`");
+    }
+  } else {
+    NA_ASSIGN_OR_RETURN(auto loaded_config,
+                        config::LoadFromFile(config_filename));
+    config::MergeInto(loaded_config, config);
   }
-  NA_ASSIGN_OR_RETURN(auto loaded_config,
-                      config::LoadFromFile(config_filename));
-  config::MergeInto(loaded_config, config);
 
   NA_RETURN_IF_ERROR(ApplySettings(positional, string_settings));
 
