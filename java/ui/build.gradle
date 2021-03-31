@@ -52,7 +52,7 @@ dependencies {
     implementation 'org.jfree:jcommon:1.0.24'
     implementation 'org.jfree:jfreechart:1.0.19'
     implementation 'org.xerial.thirdparty:nestedvm:1.0'
-    implementation 'org.xerial:sqlite-jdbc:3.28.0'
+    implementation 'org.xerial:sqlite-jdbc:3.34.0'
     implementation project(':zylib')
 }
 
@@ -78,11 +78,11 @@ shadowJar {
             'binexport2.proto',
             'google/protobuf/**/*.proto',
             'license/**',
-            // Unsupported platforms: drop FreeBSD, drop 32-bit
+            // Unsupported platforms: FreeBSD/DragonFly, remove 32-bit
+            'org/sqlite/native/DragonFlyBSD/**',
             'org/sqlite/native/FreeBSD/**',
             'org/sqlite/native/Linux/android-arm/**',
             'org/sqlite/native/Linux/arm/**',
-            'org/sqlite/native/Linux/armv6/**',
             'org/sqlite/native/Linux/armv7/**',
             'org/sqlite/native/Linux/ppc64/**',
             'org/sqlite/native/Linux/x86/**',
