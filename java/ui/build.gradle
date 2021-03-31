@@ -11,11 +11,15 @@ apply plugin: 'com.google.protobuf'
 protobuf {
     // Configure the protoc executable
     protoc {
-        artifact = 'com.google.protobuf:protoc:3.13.0'
+        // Note: protoc does not ship an 'artifact' for M1 Macs yet. Use an
+        //       absolute 'path' there instead.
+        // path = '/path/to/protoc'
+        artifact = 'com.google.protobuf:protoc:3.15.6'
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.32.1'
+            // Note: See 'protoc' comment above.
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.33.0'
         }
     }
     generateProtoTasks {
@@ -34,8 +38,8 @@ dependencies {
     implementation 'com.google.flogger:flogger-system-backend:0.4'
     implementation 'com.google.flogger:flogger:0.4'
     implementation 'com.google.guava:guava:28.1-jre'
-    implementation 'com.google.protobuf:protobuf-java-util:3.13.0'
-    implementation 'com.google.protobuf:protobuf-java:3.13.0'
+    implementation 'com.google.protobuf:protobuf-java-util:3.15.6'
+    implementation 'com.google.protobuf:protobuf-java:3.15.6'
     implementation 'commons-cli:commons-cli:1.4'
     implementation 'io.grpc:grpc-netty-shaded:1.32.1'
     implementation 'io.grpc:grpc-protobuf:1.32.1'
@@ -54,7 +58,7 @@ dependencies {
 
 buildscript {
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:5.1.0'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
         classpath 'net.sf.proguard:proguard-gradle:6.2.0'
     }
 }

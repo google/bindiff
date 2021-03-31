@@ -15,9 +15,11 @@ allprojects {
 
     buildscript {
         repositories {
-            jcenter()
             maven {
                 url "https://maven-central.storage-download.googleapis.com/maven2/"
+            }
+            maven {
+                url "https://plugins.gradle.org/m2/"
             }
             mavenCentral()
         }
@@ -39,7 +41,6 @@ subprojects {
         flatDir {
             dirs yFilesDir
         }
-        jcenter()
         mavenCentral()
     }
 
