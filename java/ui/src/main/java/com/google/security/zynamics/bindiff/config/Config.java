@@ -148,7 +148,7 @@ public class Config {
   public static Level fromProtoLogLevel(BinDiffProtos.Config.LogOptions.LogLevel level) {
     switch (level) {
       case DEBUG:
-        return Level.ALL;
+        return Level.FINEST;
       case INFO:
         return Level.INFO;
       case WARNING:

@@ -23,6 +23,7 @@ import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.io.File;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
+import java.util.logging.Filter;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 
@@ -31,10 +32,13 @@ public class Logger {
   private static final java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
 
   private static final LogFormatter formatter = new LogFormatter();
+  private static final Filter filter =
+      r -> r.getSourceClassName().startsWith("com.google.security.zynamics.");
   private static final ConsoleHandler consoleHandler = new ConsoleHandler();
   private static FileHandler fileHandler = null;
 
   static {
+    consoleHandler.setFilter(filter);
     consoleHandler.setFormatter(formatter);
     for (final Handler h : rootLogger.getHandlers()) {
       rootLogger.removeHandler(h);
@@ -45,7 +49,7 @@ public class Logger {
   private Logger() {}
 
   public static String levelToString(Level level) {
-    if (Level.ALL.equals(level)) {
+    if (Level.FINEST.equals(level)) {
       return "debug";
     } else if (Level.INFO.equals(level)) {
       return "info";
@@ -66,6 +70,7 @@ public class Logger {
 
     fileHandler = handler;
     fileHandler.setFormatter(formatter);
+    fileHandler.setFilter(filter);
   }
 
   public static void setConsoleLogging(final boolean enable) {
@@ -113,6 +118,10 @@ public class Logger {
   }
 
   public static void setLogLevel(final Level level) {
+    consoleHandler.setLevel(level);
+    if (fileHandler != null) {
+      fileHandler.setLevel(level);
+    }
     rootLogger.setLevel(level);
   }
 }

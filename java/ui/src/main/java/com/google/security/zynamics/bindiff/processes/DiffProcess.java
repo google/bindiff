@@ -14,13 +14,14 @@
 
 package com.google.security.zynamics.bindiff.processes;
 
+import static java.util.stream.Collectors.joining;
+
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.exceptions.DifferException;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.BinDiffFileUtils;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
 
 public class DiffProcess {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -29,17 +30,7 @@ public class DiffProcess {
 
   private static void handleExitCode(final int exitCode) throws DifferException {
     if (exitCode != 0) {
-      if (exitCode == 1) {
-        throw new DifferException("An error occurred while diffing. Exit code 1.");
-      }
-      if (exitCode == 2) {
-        throw new DifferException("An error occurred while diffing. Exit code 2.");
-      }
-      if (exitCode == 3) {
-        throw new DifferException("Machine ran out of memory. Exit code 3.");
-      }
-      throw new DifferException(
-          String.format("Unknown error occurred while diffing. Exit code %d.", exitCode));
+      throw new DifferException(String.format("Error while diffing, exit code %d.", exitCode));
     }
   }
 
@@ -69,7 +60,7 @@ public class DiffProcess {
       final String secondaryExportedName,
       final File outputDir)
       throws DifferException {
-    final ProcessBuilder diffProcess =
+    final ProcessBuilder processBuilder =
         new ProcessBuilder(
             differExe.getPath(),
             "--nologo",
@@ -80,27 +71,27 @@ public class DiffProcess {
             "--output_dir",
             outputDir.getPath(),
             "--output_format=bin");
-
-    logger.at(Level.INFO).log(String.join(" ", diffProcess.command()));
-
     int exitCode = -1;
-    Process processInfo = null;
 
     ProcessOutputStreamReader s1 = null;
     ProcessOutputStreamReader s2 = null;
     try {
-      diffProcess.redirectErrorStream(true);
-      processInfo = diffProcess.start();
+      processBuilder.redirectErrorStream(true);
+      logger.atFinest().log(
+          processBuilder.command().stream()
+              .map(s -> (!s.contains(" ") ? s : "\"" + s + "\""))
+              .collect(joining(" ")));
+      final Process diffProcess = processBuilder.start();
 
       // This is needed to avoid a deadlock!
       // More information see:
       // http://www.javakb.com/Uwe/Forum.aspx/java-programmer/7243/Process-waitFor-vs-Process-destroy
-      s1 = new ProcessOutputStreamReader("BinDiff Process - stdout", processInfo.getInputStream());
-      s2 = new ProcessOutputStreamReader("BinDiff Process - stderr", processInfo.getErrorStream());
+      s1 = new ProcessOutputStreamReader("BinDiff Process - stdout", diffProcess.getInputStream());
+      s2 = new ProcessOutputStreamReader("BinDiff Process - stderr", diffProcess.getErrorStream());
       s1.start();
       s2.start();
 
-      exitCode = processInfo.waitFor();
+      exitCode = diffProcess.waitFor();
 
       s1.interruptThread();
       s2.interruptThread();

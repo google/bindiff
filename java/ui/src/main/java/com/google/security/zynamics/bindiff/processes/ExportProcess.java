@@ -14,6 +14,7 @@
 
 package com.google.security.zynamics.bindiff.processes;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.BinDiffProtos;
 import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.exceptions.BinExportException;
@@ -21,10 +22,12 @@ import com.google.security.zynamics.zylib.io.FileUtils;
 import com.google.security.zynamics.zylib.system.IdaException;
 import com.google.security.zynamics.zylib.system.IdaHelpers;
 import java.io.File;
+import java.nio.file.Path;
 
 /** Static methods to help export IDA Pro databases to .BinExport. */
 // TODO(cblichmann): Remove this functionality from Java and call "bindiff --export" instead.
 public class ExportProcess {
+  private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static String getExportFilename(final String destFilename, final File outputDir) {
     return FileUtils.ensureTrailingSlash(outputDir.getPath()) + destFilename;
@@ -35,8 +38,10 @@ public class ExportProcess {
       throws BinExportException {
     try {
       final BinDiffProtos.Config.IdaProOptions ida = Config.getInstance().getIda();
+      final String idaFullPath = Path.of(ida.getDirectory(), idaExe.getName()).toString();
+      logger.atFinest().log("Launching %s, exporting %s", idaFullPath, fileToExport);
       IdaHelpers.createIdaProcess(
-          ida.getDirectory() + File.separatorChar + idaExe.getName(),
+          idaFullPath,
           fileToExport.getAbsolutePath(),
           outputFolder.getPath() + File.separator + targetName,
           ida.getBinexportX86NoreturnHeuristic());

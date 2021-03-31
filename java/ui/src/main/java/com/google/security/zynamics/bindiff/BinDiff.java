@@ -17,9 +17,9 @@ package com.google.security.zynamics.bindiff;
 import static com.google.common.base.StandardSystemProperty.JAVA_VERSION;
 
 import com.google.common.flogger.FluentLogger;
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.LogOptions;
 import com.google.security.zynamics.bindiff.config.BinDiffConfig;
 import com.google.security.zynamics.bindiff.config.Config;
-import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.config.ThemeConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
 import com.google.security.zynamics.bindiff.gui.window.MainWindow;
@@ -41,7 +41,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.logging.FileHandler;
-import java.util.logging.Level;
 import javax.swing.InputMap;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
@@ -60,7 +59,6 @@ import org.apache.commons.cli.ParseException;
  * on macOS.
  */
 public class BinDiff {
-
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private static final Option HELP =
@@ -104,8 +102,7 @@ public class BinDiff {
   }
 
   private static void initializeConfigFile() {
-    final BinDiffConfig config = BinDiffConfig.getInstance();
-    if (config.getMainSettings().getVersion() < Constants.CONFIG_FILEVERSION) {
+    if (Config.getInstance().getVersion() < Constants.CONFIG_FILEVERSION) {
       final int answer =
           CMessageBox.showYesNoWarning(
               null,
@@ -136,13 +133,13 @@ public class BinDiff {
     if (Arrays.binarySearch(allFonts, uiFont.getFamily()) >= 0) {
       GuiHelper.setDefaultFont(uiFont);
     } else {
-      logger.at(Level.WARNING).log("Font not installed/found: %s", uiFont.getFontName());
+      logger.atWarning().log("Font not installed/found: %s", uiFont.getFontName());
     }
     final Font codeFont = theme.getCodeFont();
     if (Arrays.binarySearch(allFonts, codeFont.getFamily()) >= 0) {
       GuiHelper.setMonospacedFont(codeFont);
     } else {
-      logger.at(Level.WARNING).log("Font not installed/found: %s", codeFont.getFontName());
+      logger.atWarning().log("Font not installed/found: %s", codeFont.getFontName());
     }
     for (final String fontName :
         new String[] {
@@ -192,22 +189,19 @@ public class BinDiff {
   }
 
   private static void initializeLogging() {
-    final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
-
-    FileHandler fileHandler;
+    final LogOptions logOptions = Config.getInstance().getLog();
     try {
-      fileHandler = new FileHandler(Logger.getLoggingFilePath(settings.getLogFileLocation()));
-      Logger.setFileHandler(fileHandler);
-    } catch (final IOException | SecurityException e) {
+      Logger.setFileHandler(new FileHandler(Logger.getLoggingFilePath(logOptions.getDirectory())));
+    } catch (final IOException e) {
       CMessageBox.showWarning(
           null, "Failed to initialize file logger. Could not create log file handler.");
     }
 
     // Do not move these two lines before setFileHandler
-    Logger.setConsoleLogging(settings.getConsoleLogging());
-    Logger.setFileLogging(settings.getFileLogging());
+    Logger.setConsoleLogging(logOptions.getToStderr());
+    Logger.setFileLogging(logOptions.getToFile());
 
-    Logger.setLogLevel(settings.getLogLevel());
+    Logger.setLogLevel(Config.fromProtoLogLevel(logOptions.getLevel()));
   }
 
   private static void initializeStandardHotKeys() {
@@ -239,7 +233,7 @@ public class BinDiff {
         throw new ParseException("More than one workspace file specified");
       }
     } catch (final ParseException e) {
-      logger.at(Level.WARNING).withCause(e).log("Invalid command line arguments");
+      logger.atWarning().withCause(e).log("Invalid command line arguments");
       return null;
     }
 
@@ -248,14 +242,17 @@ public class BinDiff {
       System.exit(0);
     }
 
-    Logger.setConsoleLogging(cmd.hasOption(CONSOLE_LOGGING.getLongOpt()));
+    if (cmd.hasOption(CONSOLE_LOGGING.getLongOpt())) {
+      Logger.setConsoleLogging(true);
+    }
     if (cmd.hasOption(FILE_LOGGING.getLongOpt())) {
       try {
         final String logDir = cmd.getOptionValue(FILE_LOGGING.getLongOpt());
         Logger.setFileHandler(
             new FileHandler(logDir.isEmpty() ? Logger.getDefaultLoggingDirectoryPath() : logDir));
+        Logger.setFileLogging(true);
       } catch (final IOException e) {
-        logger.at(Level.WARNING).withCause(e).log("Could not create log file handler");
+        logger.atWarning().withCause(e).log("Could not create log file handler");
       }
     }
 
@@ -267,17 +264,17 @@ public class BinDiff {
   }
 
   public static void applyLoggingChanges() throws IOException {
-    logger.at(Level.INFO).log("Applying logger changes...");
-    final GeneralSettingsConfigItem settings = BinDiffConfig.getInstance().getMainSettings();
-    Logger.setConsoleLogging(settings.getConsoleLogging());
+    logger.atInfo().log("Applying logger changes...");
+    final LogOptions logOptions = Config.getInstance().getLog();
+    Logger.setConsoleLogging(logOptions.getToStderr());
+    Logger.setLogLevel(Config.fromProtoLogLevel(logOptions.getLevel()));
 
-    final String path = FileUtils.ensureTrailingSlash(settings.getLogFileLocation());
+    final String path = FileUtils.ensureTrailingSlash(logOptions.getDirectory());
     if (!new File(path).isDirectory()) {
       throw new IOException("Not a directory: " + path);
     }
-
     Logger.setFileHandler(new FileHandler(path + Constants.LOG_FILE_NAME));
-    Logger.setLogLevel(settings.getLogLevel());
+    Logger.setFileLogging(logOptions.getToFile());
   }
 
   private static void initializeSocketServer(
@@ -345,7 +342,7 @@ public class BinDiff {
           initializeConfigFile();
           initializeLogging();
 
-          logger.at(Level.INFO).log(
+          logger.atInfo().log(
               "Starting %s (Java %s)", Constants.PRODUCT_NAME_VERSION, JAVA_VERSION.value());
 
           initializeTheme();

@@ -19,8 +19,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.logging.LogRecord;
 import java.util.logging.SimpleFormatter;
 
@@ -48,8 +47,8 @@ public class LogFormatter extends SimpleFormatter {
 
   @Override
   public synchronized String format(final LogRecord record) {
-    // TODO(cblichmann): Use record.getInstant() once Java 11 is default
-    final LocalDateTime time = LocalDateTime.now(ZoneId.systemDefault());
+    @SuppressWarnings("JavaTimeDefaultTimeZone")
+    final ZonedDateTime time = ZonedDateTime.now();
 
     // I1030 12:55:44.747944 1407373 c/g/s/z/b/logging.LogFormatter::format]
     final char shortLevel = Ascii.toUpperCase(Logger.levelToString(record.getLevel()).charAt(0));

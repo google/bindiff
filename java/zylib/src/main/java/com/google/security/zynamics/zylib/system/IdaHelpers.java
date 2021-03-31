@@ -17,6 +17,7 @@ package com.google.security.zynamics.zylib.system;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 /** Contains a few simple methods that are useful for dealing with IDA and command line handling */
 public final class IdaHelpers {
@@ -66,18 +67,19 @@ public final class IdaHelpers {
     // Now launch the exporter to export the IDB to the database
     try {
       processBuilder.redirectErrorStream(true);
-      final Process processInfo = processBuilder.start();
+      final Process idaProcess = processBuilder.start();
 
       // Java manages the streams internally - if they are full, the
       // process blocks, i.e. IDA hangs, so we need to consume them.
       try (final BufferedReader reader =
-          new BufferedReader(new InputStreamReader(processInfo.getInputStream()))) {
+          new BufferedReader(
+              new InputStreamReader(idaProcess.getInputStream(), Charset.defaultCharset()))) {
         String line;
         while ((line = reader.readLine()) != null) {
           System.out.println(line);
         }
       }
-      return processInfo;
+      return idaProcess;
     } catch (final IOException e) {
       throw new IdaException(
           "Failed attempting to launch the importer with IDA: " + e.getMessage(), e);

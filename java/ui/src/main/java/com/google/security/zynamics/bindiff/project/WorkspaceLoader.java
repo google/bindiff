@@ -35,7 +35,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
   private static final int MAX_LOAD_WORKSPACE_ERRORS = 15;
   private final Workspace workspace;
   private final File workspaceFile;
-  private StringBuilder errors = new StringBuilder();
+  private final StringBuilder errors = new StringBuilder();
 
   public WorkspaceLoader(final File workspaceFile, final Workspace workspace) {
     this.workspaceFile = checkNotNull(workspaceFile);
@@ -65,7 +65,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
       throw new IOException("Load workspace failed. Workspace file is a directory.");
     }
 
-    logger.at(Level.INFO).log("Loading workspace '%s'...", workspaceFile.getPath());
+    logger.atInfo().log("Loading workspace '%s'...", workspaceFile.getPath());
     setDescription("Reading workspace data...");
 
     try (final WorkspaceDatabase workspaceDatabase = new WorkspaceDatabase(workspaceFile)) {
