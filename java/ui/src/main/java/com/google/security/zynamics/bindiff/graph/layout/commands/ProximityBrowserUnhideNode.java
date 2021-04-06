@@ -94,7 +94,7 @@ public class ProximityBrowserUnhideNode implements ICommand {
     GraphViewUpdater.updateViews(graph);
     GraphsIntermediateListeners.notifyIntermediateVisibilityListeners(graph);
 
-    if (LayoutCommandHelper.isAutolayout(graph)) {
+    if (LayoutCommandHelper.isAutoLayout(graph)) {
       GraphLayoutUpdater.executeStatic(graph, true);
     }
   }

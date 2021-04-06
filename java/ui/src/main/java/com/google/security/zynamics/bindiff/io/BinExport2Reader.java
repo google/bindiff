@@ -197,7 +197,7 @@ public class BinExport2Reader {
       final BinExport2 proto,
       final BinExport2.Operand operand,
       int index,
-      final StringBuffer output) {
+      final StringBuilder output) {
     // Note: Keep this code in sync with the versions in binexport/instruction.cc and
     //       binexport/tools/binexport2dump.cc.
     final int expressionIndex = operand.getExpressionIndex(index);
@@ -309,7 +309,7 @@ public class BinExport2Reader {
 
   private static String renderInstructionOperands(
       final BinExport2 proto, final BinExport2.Instruction instruction) {
-    final StringBuffer disassembly = new StringBuffer();
+    final StringBuilder disassembly = new StringBuilder();
     for (int i = 0; i < instruction.getOperandIndexCount(); i++) {
       final BinExport2.Operand operand = proto.getOperand(instruction.getOperandIndex(i));
       for (int j = 0; j < operand.getExpressionIndexCount(); j++) {

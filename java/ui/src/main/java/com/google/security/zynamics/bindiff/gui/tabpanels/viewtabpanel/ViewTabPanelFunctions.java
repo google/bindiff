@@ -118,7 +118,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   private ViewTabPanel viewTabPanel;
 
   private Color currentColor = null;
-  private CriteriaDialog selectByCriteriaDlg = null;
+  private CriteriaDialog selectByCriteriaDialog = null;
   private GraphSettingsDialog settingsDialog = null;
 
   // Indicates whether the use made savable changes (which haven't been saved yet)
@@ -437,20 +437,19 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       secondaryHandler.removeEditModeListener(labelEditModeListener);
     }
 
-    if (selectByCriteriaDlg != null) {
-      selectByCriteriaDlg.dispose();
-      selectByCriteriaDlg = null;
+    if (selectByCriteriaDialog != null) {
+      selectByCriteriaDialog.dispose();
+      selectByCriteriaDialog = null;
     }
   }
 
   public void doLayout(final EGraphLayout layoutStyle) {
     final BinDiffGraph<? extends ZyGraphNode<?>, ? extends ZyGraphEdge<?, ?, ?>> graph;
     if (settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
-      if (settings.getFocus() == ESide.PRIMARY) {
-        graph = graphs.getPrimaryGraph();
-      } else {
-        graph = graphs.getSecondaryGraph();
-      }
+      graph =
+          settings.getFocus() == ESide.PRIMARY
+              ? graphs.getPrimaryGraph()
+              : graphs.getSecondaryGraph();
     } else {
       graph = graphs.getCombinedGraph();
     }
@@ -459,106 +458,85 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       return;
     }
     final GraphLayoutSettings layoutSettings = graph.getSettings().getLayoutSettings();
-      switch (layoutStyle) {
-        case CIRCULAR:
+    switch (layoutStyle) {
+      case CIRCULAR:
         layoutSettings.setDefaultGraphLayout(EGraphLayout.CIRCULAR);
-          break;
-        case HIERARCHICAL:
+        break;
+      case HIERARCHICAL:
         layoutSettings.setDefaultGraphLayout(EGraphLayout.HIERARCHICAL);
-          break;
-        case ORTHOGONAL:
+        break;
+      case ORTHOGONAL:
         layoutSettings.setDefaultGraphLayout(EGraphLayout.ORTHOGONAL);
-          break;
-      }
+        break;
+    }
 
-      graphListenerManager.suppressUpdating(true);
-
+    graphListenerManager.suppressUpdating(true);
+    try {
       GraphLayoutEventHandler.handleDoLayoutButtonEvent(graph, true);
-
+    } finally {
       graphListenerManager.suppressUpdating(false);
+    }
   }
 
   public void exportViewAsImage() {
     final MainWindow parent = getMainWindow();
 
-    final ExportViewDialog viewChooserDlg =
+    final ExportViewDialog viewChooserDialog =
         new ExportViewDialog(
             parent,
             "Export View as Image",
             "",
             new File(graphs.getDiff().getDiffFolder()),
             viewTabPanel.getView().getViewName().toString());
-    viewChooserDlg.setVisible(true);
+    viewChooserDialog.setVisible(true);
 
-    if (viewChooserDlg.isOkPressed()) {
-      try {
-        if (viewChooserDlg.isCapturePart()) {
-          if (viewChooserDlg.isPNG()) {
-            GraphExporters.exportPartAsPNG(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportPartAsPNG(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportPartAsPNG(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          } else if (viewChooserDlg.isJPEG()) {
-            GraphExporters.exportPartAsJPEG(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportPartAsJPEG(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportPartAsJPEG(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          } else if (viewChooserDlg.isGIF()) {
-
-            GraphExporters.exportPartAsGIF(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportPartAsGIF(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportPartAsGIF(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          } else if (viewChooserDlg.isSVG()) {
-            GraphExporters.exportPartAsSVG(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportPartAsSVG(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportPartAsSVG(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          }
-        } else {
-          if (viewChooserDlg.isPNG()) {
-            GraphExporters.exportAllAsPNG(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportAllAsPNG(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportAllAsPNG(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          } else if (viewChooserDlg.isJPEG()) {
-            GraphExporters.exportAllAsJPEG(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportAllAsJPEG(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportAllAsJPEG(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          } else if (viewChooserDlg.isGIF()) {
-
-            GraphExporters.exportAllAsGIF(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportAllAsGIF(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportAllAsGIF(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          } else if (viewChooserDlg.isSVG()) {
-            GraphExporters.exportAllAsSVG(
-                getGraphs().getPrimaryGraph(), viewChooserDlg.getPrimaryImageFile().getPath());
-            GraphExporters.exportAllAsSVG(
-                getGraphs().getSecondaryGraph(), viewChooserDlg.getSecondaryImageFile().getPath());
-            GraphExporters.exportAllAsSVG(
-                getGraphs().getCombinedGraph(), viewChooserDlg.getCombinedImageFile().getPath());
-          }
+    if (!viewChooserDialog.isOkPressed()) {
+      return;
+    }
+    try {
+      final String primaryImageFilename = viewChooserDialog.getPrimaryImageFile().getPath();
+      final String secondaryImageFilename = viewChooserDialog.getSecondaryImageFile().getPath();
+      final String combinedImageFilename = viewChooserDialog.getCombinedImageFile().getPath();
+      if (viewChooserDialog.isCapturePart()) {
+        if (viewChooserDialog.isPNG()) {
+          GraphExporters.exportPartAsPNG(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportPartAsPNG(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportPartAsPNG(getGraphs().getCombinedGraph(), combinedImageFilename);
+        } else if (viewChooserDialog.isJPEG()) {
+          GraphExporters.exportPartAsJPEG(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportPartAsJPEG(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportPartAsJPEG(getGraphs().getCombinedGraph(), combinedImageFilename);
+        } else if (viewChooserDialog.isGIF()) {
+          GraphExporters.exportPartAsGIF(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportPartAsGIF(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportPartAsGIF(getGraphs().getCombinedGraph(), combinedImageFilename);
+        } else if (viewChooserDialog.isSVG()) {
+          GraphExporters.exportPartAsSVG(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportPartAsSVG(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportPartAsSVG(getGraphs().getCombinedGraph(), combinedImageFilename);
         }
-      } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Couldn't save exported view images");
-        CMessageBox.showError(parent, "Couldn't save exported view images.");
+      } else {
+        if (viewChooserDialog.isPNG()) {
+          GraphExporters.exportAllAsPNG(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportAllAsPNG(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportAllAsPNG(getGraphs().getCombinedGraph(), combinedImageFilename);
+        } else if (viewChooserDialog.isJPEG()) {
+          GraphExporters.exportAllAsJPEG(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportAllAsJPEG(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportAllAsJPEG(getGraphs().getCombinedGraph(), combinedImageFilename);
+        } else if (viewChooserDialog.isGIF()) {
+          GraphExporters.exportAllAsGIF(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportAllAsGIF(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportAllAsGIF(getGraphs().getCombinedGraph(), combinedImageFilename);
+        } else if (viewChooserDialog.isSVG()) {
+          GraphExporters.exportAllAsSVG(getGraphs().getPrimaryGraph(), primaryImageFilename);
+          GraphExporters.exportAllAsSVG(getGraphs().getSecondaryGraph(), secondaryImageFilename);
+          GraphExporters.exportAllAsSVG(getGraphs().getCombinedGraph(), combinedImageFilename);
+        }
       }
+    } catch (final Exception e) {
+      logger.at(Level.SEVERE).withCause(e).log("Couldn't save exported view images");
+      CMessageBox.showError(parent, "Couldn't save exported view images.");
     }
   }
 
@@ -786,19 +764,19 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void selectByCriteria() {
-    if (selectByCriteriaDlg == null) {
+    if (selectByCriteriaDialog == null) {
       final CriteriaFactory factory = new CriteriaFactory(graphs);
 
-      selectByCriteriaDlg =
+      selectByCriteriaDialog =
           new CriteriaDialog(SwingUtilities.getWindowAncestor(viewTabPanel), factory);
     }
 
-    selectByCriteriaDlg.setVisible(true);
-    selectByCriteriaDlg.setVisible(false);
+    selectByCriteriaDialog.setVisible(true);
+    selectByCriteriaDialog.setVisible(false);
 
     final Set<ZyGraphNode<? extends CViewNode<?>>> nodesToSelect = new HashSet<>();
 
-    final CriterionTree tree = selectByCriteriaDlg.getCriterionTree();
+    final CriterionTree tree = selectByCriteriaDialog.getCriterionTree();
 
     if (settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW) {
       if (settings.isSync()) {
@@ -813,7 +791,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
         final Collection<SingleDiffNode> toSelectSecondarySingle = new ArrayList<>();
         final Collection<SingleDiffNode> toUnselectSecondarySingle = new ArrayList<>();
 
-        if (selectByCriteriaDlg.doSelectNodes()) {
+        if (selectByCriteriaDialog.doSelectNodes()) {
           nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getPrimaryGraph()));
           nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getSecondaryGraph()));
 
@@ -866,17 +844,17 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
         }
       } else {
         if (settings.getFocus() == ESide.PRIMARY) {
-          if (selectByCriteriaDlg.doSelectNodes()) {
+          if (selectByCriteriaDialog.doSelectNodes()) {
             nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getPrimaryGraph()));
           }
         } else {
-          if (selectByCriteriaDlg.doSelectNodes()) {
+          if (selectByCriteriaDialog.doSelectNodes()) {
             nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getSecondaryGraph()));
           }
         }
       }
     } else if (settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW) {
-      if (selectByCriteriaDlg.doSelectNodes()) {
+      if (selectByCriteriaDialog.doSelectNodes()) {
         nodesToSelect.addAll(CriterionExecutor.execute(tree, graphs.getCombinedGraph()));
       }
 

@@ -15,17 +15,17 @@
 package com.google.security.zynamics.zylib.gui.zygraph;
 
 public interface IFineGrainedSloppyGraph2DView {
-  public boolean drawEdges();
+  boolean drawEdges();
 
-  public boolean isEdgeSloppyPaintMode();
+  boolean isEdgeSloppyPaintMode();
 
-  public boolean isNodeSloppyPaintMode();
+  boolean isNodeSloppyPaintMode();
 
-  public void setEdgeSloppyThreshold(double edgeSloppyThreshold);
+  void setEdgeSloppyThreshold(double threshold);
 
-  public void setMinEdgesForSloppyEdgeHiding(int minEdges);
+  void setMinEdgesForSloppyEdgeHiding(int minEdges);
 
-  public void setNodeSloppyThreshold(double nodeSloppyThreshold);
+  void setNodeSloppyThreshold(double threshold);
 
-  public void setSloppyEdgeHidingThreshold(double sloppyEdgeHidingThreshold);
+  void setSloppyEdgeHidingThreshold(double threshold);
 }

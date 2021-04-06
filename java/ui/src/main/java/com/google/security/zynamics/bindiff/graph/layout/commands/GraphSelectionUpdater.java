@@ -345,7 +345,7 @@ public final class GraphSelectionUpdater implements ICommand {
       if (showVisibilityWarningDialog(graph)) {
         ProximityBrowserUpdater.executeStatic(graph);
 
-        if (LayoutCommandHelper.isAutolayout(graph)
+        if (LayoutCommandHelper.isAutoLayout(graph)
             && !LayoutCommandHelper.isProximityBrowsingFrozen(graph)) {
           GraphLayoutUpdater.executeStatic(graph, true);
         }

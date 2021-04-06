@@ -114,7 +114,7 @@ public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, Combined
       final BinDiffGraph<ZyGraphNode<?>, ?> castedGraph =
           (BinDiffGraph<ZyGraphNode<?>, ?>) (BinDiffGraph<?, ?>) diffGraph;
 
-      final boolean autoLayout = LayoutCommandHelper.deactiveAutoLayout(castedGraph);
+      final boolean autoLayout = LayoutCommandHelper.deactivateAutoLayout(castedGraph);
       try {
         ProximityBrowserUnhideNode.executeStatic(
             castedGraph, srcVisible ? srcCombinedDiffNode : tarCombinedDiffNode);

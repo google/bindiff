@@ -137,7 +137,7 @@ public class SingleGraph extends BinDiffGraph<SingleDiffNode, SingleDiffEdge> {
         @SuppressWarnings("unchecked")
         final BinDiffGraph<ZyGraphNode<?>, ?> castedGraph = (BinDiffGraph<ZyGraphNode<?>, ?>) graph;
 
-        final boolean autoLayout = LayoutCommandHelper.deactiveAutoLayout(castedGraph);
+        final boolean autoLayout = LayoutCommandHelper.deactivateAutoLayout(castedGraph);
         try {
           ProximityBrowserUnhideNode.executeStatic(
               castedGraph, srcVisible ? (ZyGraphNode<?>) sourceNode : (ZyGraphNode<?>) targetNode);

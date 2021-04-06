@@ -43,7 +43,7 @@ public class GraphLayoutInitializer implements ICommand {
     settings.setAnimateLayout(false);
     try {
       ProximityBrowserInitializer.executeStatic(graph);
-      if (LayoutCommandHelper.isAutolayout(graph)) {
+      if (LayoutCommandHelper.isAutoLayout(graph)) {
         GraphLayoutUpdater.executeStatic(graph, false);
       }
     } finally {

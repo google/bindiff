@@ -22,11 +22,11 @@ public class LayoutCommandHelper {
     graph.getSettings().getLayoutSettings().setAutomaticLayouting(autoLayout);
   }
 
-  public static boolean deactiveAutoLayout(final BinDiffGraph<?, ?> graph) {
-    final boolean wasAutolayout = isAutolayout(graph);
+  public static boolean deactivateAutoLayout(final BinDiffGraph<?, ?> graph) {
+    final boolean wasAutoLayout = isAutoLayout(graph);
     graph.getSettings().getLayoutSettings().setAutomaticLayouting(false);
 
-    return wasAutolayout;
+    return wasAutoLayout;
   }
 
   public static boolean hasSelectedNodes(final BinDiffGraph<?, ?> graph) {
@@ -39,7 +39,7 @@ public class LayoutCommandHelper {
     return graph.getSelectedNodes().size() > 0;
   }
 
-  public static boolean isAutolayout(final BinDiffGraph<?, ?> graph) {
+  public static boolean isAutoLayout(final BinDiffGraph<?, ?> graph) {
     return graph.getSettings().getLayoutSettings().getAutomaticLayouting();
   }
 
@@ -51,7 +51,7 @@ public class LayoutCommandHelper {
     return graph.getSettings().getProximitySettings().getProximityBrowsingFrozen();
   }
 
-  public static boolean isSnychron(final BinDiffGraph<?, ?> graph) {
+  public static boolean isSync(final BinDiffGraph<?, ?> graph) {
     return graph.getSettings().isSync();
   }
 }

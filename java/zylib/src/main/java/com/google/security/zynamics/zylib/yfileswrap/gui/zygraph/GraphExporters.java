@@ -14,6 +14,10 @@
 
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
+import java.io.IOException;
+import java.util.Iterator;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
 import y.io.IOHandler;
 import y.io.ImageIoOutputHandler;
 import y.io.ImageOutputHandler;
@@ -21,12 +25,6 @@ import y.io.ViewPortConfigurator;
 import y.view.Graph2D;
 import y.view.Graph2DView;
 import yext.svg.io.SVGIOHandler;
-
-import java.io.IOException;
-import java.util.Iterator;
-
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriter;
 
 public class GraphExporters {
   private static void configureExportView(final Graph2DView exportView) {
@@ -48,8 +46,6 @@ public class GraphExporters {
     vpc.configure(exportView);
   }
 
-  // private static void exportGraphPartToImageFileFormat(final Graph2D graph, final
-  // ImageOutputHandler ioh, final String outFile) throws IOException
   private static void exportGraphPartToImageFileFormat(final Graph2D graph, final IOHandler ioh,
       final String outFile) throws IOException {
     writeGraphToFile(graph, ioh, outFile);
@@ -63,8 +59,6 @@ public class GraphExporters {
 
     try {
       writeGraphToFile(graph, ioh, outFile);
-    } catch (final IOException e) {
-      throw e;
     } finally {
       restoreOriginalView(graph, originalView);
     }
@@ -175,7 +169,6 @@ public class GraphExporters {
     exportGraphPartToImageFileFormat(view.getGraph2D(), jpg, filename);
   }
 
-  @SuppressWarnings("unchecked")
   public static void exportPartAsJPEG(final AbstractZyGraph<?, ?> zygraph, final String filename)
       throws IOException {
     Graph2DView view = zygraph.getView();
@@ -185,7 +178,6 @@ public class GraphExporters {
     exportGraphPartToImageFileFormat(view.getGraph2D(), jpg, filename);
   }
 
-  @SuppressWarnings("unchecked")
   public static void exportPartAsPNG(final AbstractZyGraph<?, ?> zygraph, final String filename)
       throws IOException {
     Graph2DView view = zygraph.getView();
@@ -195,7 +187,6 @@ public class GraphExporters {
     exportGraphPartToImageFileFormat(view.getGraph2D(), png, filename);
   }
 
-  @SuppressWarnings("unchecked")
   public static void exportPartAsSVG(final AbstractZyGraph<?, ?> zygraph, final String filename)
       throws IOException {
     Graph2DView view = zygraph.getView();

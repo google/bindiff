@@ -33,9 +33,9 @@ import com.google.security.zynamics.zylib.gui.zygraph.edges.ZyEdgeData;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.ZyNodeData;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.types.common.CollectionHelpers;
-import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraph2DView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.ZyEditMode;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyNormalNodeRealizer;
 import java.util.HashSet;
@@ -195,14 +195,7 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
   @Override
   public Set<SuperDiffNode> getSelectedNodes() {
     return new HashSet<>(
-        CollectionHelpers.filter(
-            super.getMappings().getNodes(),
-            new ICollectionFilter<SuperDiffNode>() {
-              @Override
-              public boolean qualifies(final SuperDiffNode item) {
-                return item.isSelected();
-              }
-            }));
+        CollectionHelpers.filter(super.getMappings().getNodes(), ZyGraphNode::isSelected));
   }
 
   public void refreshAllSuperNodeSizes(

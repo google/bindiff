@@ -164,7 +164,7 @@ public class GraphReactivateViewSynchronization {
 
     GraphsIntermediateListeners.notifyIntermediateVisibilityListeners(graph);
 
-    if (LayoutCommandHelper.isAutolayout(graph)) {
+    if (LayoutCommandHelper.isAutoLayout(graph)) {
       GraphLayoutUpdater.executeStatic(graph, false);
     }
   }

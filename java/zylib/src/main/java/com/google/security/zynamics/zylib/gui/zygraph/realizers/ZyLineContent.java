@@ -285,7 +285,7 @@ public class ZyLineContent {
     if (!isEmpty()) {
       m_textLayout.draw(gfx, x, y);
 
-      for (final CHighlighting highlighting : new ArrayList<CHighlighting>(m_highlighting)) {
+      for (final CHighlighting highlighting : new ArrayList<>(m_highlighting)) {
         final double bpX = (x + highlighting.getStart()) - 2.;
         final double bpY = (y - m_charHeight) + 4;
         final double bpW = highlighting.getEnd() + 4;

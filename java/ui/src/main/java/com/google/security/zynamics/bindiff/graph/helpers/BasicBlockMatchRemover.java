@@ -117,7 +117,7 @@ public class BasicBlockMatchRemover {
       @SuppressWarnings("unchecked")
       final BinDiffGraph<ZyGraphNode<?>, ?> castedGraph = (BinDiffGraph<ZyGraphNode<?>, ?>) graph;
 
-      final boolean autoLayout = LayoutCommandHelper.deactiveAutoLayout(castedGraph);
+      final boolean autoLayout = LayoutCommandHelper.deactivateAutoLayout(castedGraph);
       try {
         ProximityBrowserUnhideNode.executeStatic(
             castedGraph,
@@ -186,7 +186,7 @@ public class BasicBlockMatchRemover {
         @SuppressWarnings("unchecked")
         final BinDiffGraph<ZyGraphNode<?>, ?> castedGraph = (BinDiffGraph<ZyGraphNode<?>, ?>) graph;
 
-        final boolean autoLayout = LayoutCommandHelper.deactiveAutoLayout(castedGraph);
+        final boolean autoLayout = LayoutCommandHelper.deactivateAutoLayout(castedGraph);
         try {
           ProximityBrowserUnhideNode.executeStatic(
               castedGraph, srcVisible ? (ZyGraphNode<?>) sourceNode : (ZyGraphNode<?>) targetNode);
@@ -530,7 +530,8 @@ public class BasicBlockMatchRemover {
       final GraphsContainer graphs, final CombinedDiffNode node) {
     final GraphSettings settings = graphs.getSettings();
     if (settings.isAsync()) {
-      final boolean autoLayout = LayoutCommandHelper.deactiveAutoLayout(graphs.getCombinedGraph());
+      final boolean autoLayout =
+          LayoutCommandHelper.deactivateAutoLayout(graphs.getCombinedGraph());
       try {
         if (settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW) {
           node.getPrimaryRawNode().setVisible(true);
@@ -550,7 +551,7 @@ public class BasicBlockMatchRemover {
 
   public static void doSynchronizedLayout(final CombinedGraph combinedGraph)
       throws GraphLayoutException {
-    if (LayoutCommandHelper.isAutolayout(combinedGraph)) {
+    if (LayoutCommandHelper.isAutoLayout(combinedGraph)) {
       final GraphSettings settings = combinedGraph.getSettings();
       if (settings.isSync() || settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW) {
         GraphLayoutUpdater.executeStatic(combinedGraph, true);

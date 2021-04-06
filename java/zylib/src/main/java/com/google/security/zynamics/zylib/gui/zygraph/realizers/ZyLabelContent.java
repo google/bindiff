@@ -14,6 +14,8 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers;
 
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -24,9 +26,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
 
 public class ZyLabelContent implements Iterable<ZyLineContent> {
   private static final int FONTSIZE = 11;
@@ -71,13 +70,16 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
     m_editable = editable;
   }
 
-  private AffineTransform calcSelectionTransformationMatrix(final AffineTransform currentMatrix,
-      final double xOffset, final double yOffset, final int linenr) {
+  private AffineTransform calcSelectionTransformationMatrix(
+      final AffineTransform currentMatrix,
+      final double xOffset,
+      final double yOffset,
+      final int lineNr) {
     final double scaleX = currentMatrix.getScaleX();
     final double scaleY = currentMatrix.getScaleY();
     final double translateX = currentMatrix.getTranslateX() + (xOffset * scaleX);
     final double translateY =
-        currentMatrix.getTranslateY() + ((yOffset + (linenr * getLineHeight())) * scaleY);
+        currentMatrix.getTranslateY() + ((yOffset + (lineNr * getLineHeight())) * scaleY);
     return new AffineTransform(scaleX, 0, 0, scaleY, translateX, translateY);
   }
 
@@ -116,21 +118,21 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
     final float x = (float) xpos + getPaddingLeft();
     final float y = (float) ypos + getPaddingTop() + getFontSize();
 
-    final double lineheight = getLineHeight();
+    final double lineHeight = getLineHeight();
 
     gfx.setColor(Color.BLACK);
 
-    for (int linenr = 0; linenr < getLineCount(); ++linenr) {
-      final TextLayout textLayout = getLineContent(linenr).getTextLayout();
+    for (int lineNr = 0; lineNr < getLineCount(); lineNr++) {
+      final TextLayout textLayout = getLineContent(lineNr).getTextLayout();
 
-      if (!getLineContent(linenr).isEmpty()) {
-        textLayout.draw(gfx, x, (float) (y + (linenr * lineheight)));
+      if (!getLineContent(lineNr).isEmpty()) {
+        textLayout.draw(gfx, x, (float) (y + (lineNr * lineHeight)));
       }
 
-      if (linenr == m_caret.getYmousePressed()) {
-        gfx.setTransform(calcSelectionTransformationMatrix(affineTrans, x, y, linenr));
+      if (lineNr == m_caret.getYmousePressed()) {
+        gfx.setTransform(calcSelectionTransformationMatrix(affineTrans, x, y, lineNr));
 
-        if (getLineContent(linenr).isEmpty()) {
+        if (getLineContent(lineNr).isEmpty()) {
           m_caret.setCaretStartPos(0);
         } else if (m_caret.getCaretStartPos() >= textLayout.getCharacterCount()) {
           m_caret.setCaretStartPos(textLayout.getCharacterCount());
@@ -144,10 +146,10 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
         gfx.setTransform(affineTrans);
       }
 
-      if (linenr == m_caret.getYmouseReleased()) {
-        gfx.setTransform(calcSelectionTransformationMatrix(affineTrans, x, y, linenr));
+      if (lineNr == m_caret.getYmouseReleased()) {
+        gfx.setTransform(calcSelectionTransformationMatrix(affineTrans, x, y, lineNr));
 
-        if (getLineContent(linenr).isEmpty()) {
+        if (getLineContent(lineNr).isEmpty()) {
           m_caret.setCaretEndPos(0);
         } else if (m_caret.getCaretEndPos() >= textLayout.getCharacterCount()) {
           m_caret.setCaretEndPos(textLayout.getCharacterCount());
@@ -182,17 +184,17 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
       gfx.setColor(m_selectionColor);
       gfx.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
 
-      for (int linenr = pl; linenr <= rl; ++linenr) {
-        gfx.setTransform(calcSelectionTransformationMatrix(affineTrans, x, y, linenr));
+      for (int lineNr = pl; lineNr <= rl; lineNr++) {
+        gfx.setTransform(calcSelectionTransformationMatrix(affineTrans, x, y, lineNr));
 
-        final TextLayout textLayout = getLineContent(linenr).getTextLayout();
+        final TextLayout textLayout = getLineContent(lineNr).getTextLayout();
 
         int rp2 = rp;
         if (pp > textLayout.getCharacterCount()) {
           continue;
         }
 
-        if (getLineContent(linenr).isEmpty()) {
+        if (getLineContent(lineNr).isEmpty()) {
           rp2 = pp;
         } else if (rp > textLayout.getCharacterCount()) {
           rp2 = textLayout.getCharacterCount();
@@ -210,11 +212,6 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
     gfx.setTransform(affineTrans);
   }
 
-  /**
-   * Returns the bounds of the label content.
-   * 
-   * @return The bounds of the label content.
-   */
   public Rectangle2D getBounds() {
     double maxWidth = 0;
     double height = m_topPadding + m_bottomPadding;
@@ -280,22 +277,10 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
     return lineYPos;
   }
 
-  /**
-   * Returns the line content of the given line.
-   * 
-   * @param line The line index.
-   * 
-   * @return The line content of that line.
-   */
   public ZyLineContent getLineContent(final int line) {
     return m_content.get(line);
   }
 
-  /**
-   * Returns the number of lines in the label content.
-   * 
-   * @return The number of lines in the label content.
-   */
   public int getLineCount() {
     return m_content.size();
   }
@@ -318,7 +303,7 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
   }
 
   public int getNonPureCommentLineIndexOfModelAt(final int lineYPos) {
-    // e.g. if it's a basicblock it the instruction line index
+    // e.g. if it's a basic block it the instruction line index
 
     final ZyLineContent lineContent = getLineContent(lineYPos);
 
@@ -349,20 +334,10 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
     return -1;
   }
 
-  /**
-   * Returns the padding on the left side of the content.
-   * 
-   * @return The padding on the left side of the content.
-   */
   public int getPaddingLeft() {
     return m_leftPadding;
   }
 
-  /**
-   * Returns the padding at the top side of the label content
-   * 
-   * @return The padding at the top side of the label content
-   */
   public int getPaddingTop() {
     return m_topPadding;
   }

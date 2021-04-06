@@ -69,7 +69,7 @@ import y.view.Graph2D;
 import y.view.LineType;
 
 public class ViewCallGraphBuilder {
-  private static void buildCallgraphEdgeMaps(
+  private static void buildCallGraphEdgeMaps(
       final Graph2D primaryGraph2D,
       final Graph2D secondaryGraph2D,
       final Graph2D superGraph2D,
@@ -83,32 +83,31 @@ public class ViewCallGraphBuilder {
       final Map<Pair<IAddress, IAddress>, SuperDiffNode> addrPairToSuperDiffNodeMap,
       final Map<Pair<IAddress, IAddress>, CombinedDiffNode> addrPairToCombinedDiffNodeMap,
       final GraphSettings settings,
-      final RawCombinedCallGraph combinedRawCallgraph) {
-    for (final RawCombinedCall combinedCall : combinedRawCallgraph.getEdges()) {
+      final RawCombinedCallGraph combinedRawCallGraph) {
+    for (final RawCombinedCall combinedCall : combinedRawCallGraph.getEdges()) {
       final RawCombinedFunction combinedSourceNode = combinedCall.getSource();
       final RawCombinedFunction combinedTargetNode = combinedCall.getTarget();
 
       // primary calls
       SingleDiffEdge primaryDiffEdge = null;
-      Edge yPrimaryEdge = null;
       final RawFunction primaryFunctionSourceNode = combinedSourceNode.getRawNode(ESide.PRIMARY);
       final RawFunction primaryFunctionTargetNode = combinedTargetNode.getRawNode(ESide.PRIMARY);
       final IAddress priSrcAddr = combinedCall.getSource().getAddress(ESide.PRIMARY);
       final IAddress priTarAddr = combinedCall.getTarget().getAddress(ESide.PRIMARY);
       final RawCall primaryCall = combinedCall.getPrimaryEdge();
 
-      SingleEdgeRealizer primaryEdgeRealizer = null;
-
       if (primaryFunctionSourceNode != null
           && primaryFunctionTargetNode != null
           && primaryCall != null) {
         final ZyLabelContent primaryEdgeContent = new ZyLabelContent(null);
-        primaryEdgeRealizer = new SingleEdgeRealizer(primaryEdgeContent, null, settings);
+        final SingleEdgeRealizer primaryEdgeRealizer =
+            new SingleEdgeRealizer(primaryEdgeContent, null, settings);
 
         final SingleDiffNode sourceNode = primaryAddrToSingleDiffNodeMap.get(priSrcAddr);
         final SingleDiffNode targetNode = primaryAddrToSingleDiffNodeMap.get(priTarAddr);
 
-        yPrimaryEdge = primaryGraph2D.createEdge(sourceNode.getNode(), targetNode.getNode());
+        final Edge yPrimaryEdge =
+            primaryGraph2D.createEdge(sourceNode.getNode(), targetNode.getNode());
         primaryDiffEdge =
             new SingleDiffEdge(
                 sourceNode,
@@ -127,7 +126,6 @@ public class ViewCallGraphBuilder {
 
       // secondary calls
       SingleDiffEdge secondaryDiffEdge = null;
-      Edge ySecondaryEdge = null;
       final RawFunction secondaryFunctionSourceNode =
           combinedSourceNode.getRawNode(ESide.SECONDARY);
       final RawFunction secondaryFunctionTargetNode =
@@ -136,18 +134,17 @@ public class ViewCallGraphBuilder {
       final IAddress secSrcAddr = combinedCall.getSource().getAddress(ESide.SECONDARY);
       final IAddress secTarAddr = combinedCall.getTarget().getAddress(ESide.SECONDARY);
 
-      SingleEdgeRealizer secondaryEdgeRealizer = null;
-
       if (secondaryFunctionSourceNode != null
           && secondaryFunctionTargetNode != null
           && secondaryCall != null) {
         final ZyLabelContent secondaryEdgeContent = new ZyLabelContent(null);
-        secondaryEdgeRealizer = new SingleEdgeRealizer(secondaryEdgeContent, null, settings);
+        final SingleEdgeRealizer secondaryEdgeRealizer =
+            new SingleEdgeRealizer(secondaryEdgeContent, null, settings);
 
         final SingleDiffNode sourceNode = secondaryAddrToSingleDiffNodeMap.get(secSrcAddr);
         final SingleDiffNode targetNode = secondaryAddrToSingleDiffNodeMap.get(secTarAddr);
-
-        ySecondaryEdge = secondaryGraph2D.createEdge(sourceNode.getNode(), targetNode.getNode());
+        final Edge ySecondaryEdge =
+            secondaryGraph2D.createEdge(sourceNode.getNode(), targetNode.getNode());
         secondaryDiffEdge =
             new SingleDiffEdge(
                 sourceNode,
@@ -241,7 +238,7 @@ public class ViewCallGraphBuilder {
     }
   }
 
-  private static void buildCallgraphNodeMaps(
+  private static void buildCallGraphNodeMaps(
       final Graph2D primaryGraph2D,
       final Graph2D secondaryGraph2D,
       final Graph2D superGraph2D,
@@ -254,14 +251,11 @@ public class ViewCallGraphBuilder {
       final Map<IAddress, SingleDiffNode> secondaryAddrToSingleDiffNodeMap,
       final Map<Pair<IAddress, IAddress>, SuperDiffNode> addrPairToSuperDiffNodeMap,
       final Map<Pair<IAddress, IAddress>, CombinedDiffNode> addrPairToCombinedDiffNodeMap,
-      final RawCombinedCallGraph combinedRawCallgraph) {
+      final RawCombinedCallGraph combinedRawCallGraph) {
     // TODO: set node and edge updater to edge and node realizers!
-    for (final RawCombinedFunction combinedFunction : combinedRawCallgraph.getNodes()) {
+    for (final RawCombinedFunction combinedFunction : combinedRawCallGraph.getNodes()) {
       SingleDiffNode primaryDiffNode = null;
       SingleDiffNode secondaryDiffNode = null;
-
-      Node yPrimaryNode = null;
-      Node ySecondaryNode = null;
 
       final RawFunction primaryFunction = combinedFunction.getRawNode(ESide.PRIMARY);
       final RawFunction secondaryFunction = combinedFunction.getRawNode(ESide.SECONDARY);
@@ -271,7 +265,7 @@ public class ViewCallGraphBuilder {
       // Primary functions
       ZyLabelContent primaryNodeContent = null;
       if (primaryFunction != null) {
-        primaryNodeContent = buildNormalCallgraphLabelContent(primaryFunction);
+        primaryNodeContent = buildNormalCallGraphLabelContent(primaryFunction);
         final ZyNormalNodeRealizer<SingleDiffNode> primaryNodeRealizer =
             new ZyNormalNodeRealizer<>(primaryNodeContent);
 
@@ -280,7 +274,7 @@ public class ViewCallGraphBuilder {
         primaryNodeRealizer.setUpdater(updater);
         updater.setRealizer(primaryNodeRealizer);
 
-        yPrimaryNode = primaryGraph2D.createNode();
+        final Node yPrimaryNode = primaryGraph2D.createNode();
         primaryDiffNode =
             new SingleDiffNode(yPrimaryNode, primaryNodeRealizer, primaryFunction, ESide.PRIMARY);
         primaryAddrToSingleDiffNodeMap.put(primaryAddress, primaryDiffNode);
@@ -293,7 +287,7 @@ public class ViewCallGraphBuilder {
       // Secondary functions
       ZyLabelContent secondaryNodeContent = null;
       if (secondaryFunction != null) {
-        secondaryNodeContent = buildNormalCallgraphLabelContent(secondaryFunction);
+        secondaryNodeContent = buildNormalCallGraphLabelContent(secondaryFunction);
         final ZyNormalNodeRealizer<SingleDiffNode> secondaryNodeRealizer =
             new ZyNormalNodeRealizer<>(secondaryNodeContent);
 
@@ -301,7 +295,7 @@ public class ViewCallGraphBuilder {
         secondaryNodeRealizer.setUpdater(updater);
         updater.setRealizer(secondaryNodeRealizer);
 
-        ySecondaryNode = secondaryGraph2D.createNode();
+        final Node ySecondaryNode = secondaryGraph2D.createNode();
         secondaryDiffNode =
             new SingleDiffNode(
                 ySecondaryNode, secondaryNodeRealizer, secondaryFunction, ESide.SECONDARY);
@@ -357,7 +351,7 @@ public class ViewCallGraphBuilder {
     }
   }
 
-  private static ZyLabelContent buildNormalCallgraphLabelContent(final SingleViewNode singleNode) {
+  private static ZyLabelContent buildNormalCallGraphLabelContent(final SingleViewNode singleNode) {
     final RawFunction rawFunction = (RawFunction) singleNode;
 
     final ZyLabelContent labelContent = new ZyLabelContent(null);
@@ -388,31 +382,20 @@ public class ViewCallGraphBuilder {
 
   private static Color getFunctionBorderColor(
       final RawFunction priFunction, final RawFunction secFunction) {
-    final Color[] colors = new Color[6];
-
-    colors[0] = Color.BLACK;
-    colors[1] = Colors.FUNCTION_TYPE_LIBRARY.darker();
-    colors[2] = Colors.FUNCTION_TYPE_THUNK.darker();
-    colors[3] = Colors.FUNCTION_TYPE_IMPORTED.darker();
-    colors[4] = Colors.FUNCTION_TYPE_UNKNOWN;
-    colors[5] = Colors.MIXED_BASE_COLOR;
-
     if (priFunction != null && secFunction != null) {
-      final EFunctionType priType = priFunction.getFunctionType();
-      if (priType != secFunction.getFunctionType()) {
-        return colors[5];
+      if (!priFunction.getFunctionType().equals(secFunction.getFunctionType())) {
+        return EFunctionType.MIXED.getColor();
       }
     }
 
     if (priFunction != null) {
-      return colors[priFunction.getFunctionType().ordinal()];
+      return priFunction.getFunctionType().getColor();
     }
-
-    return colors[secFunction.getFunctionType().ordinal()];
+    return secFunction.getFunctionType().getColor();
   }
 
-  public static GraphsContainer buildDiffCallgraphs(
-      final Diff diff, final RawCombinedCallGraph combinedRawCallgraph) {
+  public static GraphsContainer buildDiffCallGraphs(
+      final Diff diff, final RawCombinedCallGraph combinedRawCallGraph) {
     final GraphSettings settings =
         new GraphSettings(BinDiffConfig.getInstance().getInitialCallGraphSettings());
 
@@ -447,7 +430,7 @@ public class ViewCallGraphBuilder {
         new HashMap<>();
     final Map<Pair<IAddress, IAddress>, SuperDiffNode> addrPairToSuperDiffNodeMap = new HashMap<>();
 
-    buildCallgraphNodeMaps(
+    buildCallGraphNodeMaps(
         primaryGraph2D,
         secondaryGraph2D,
         superGraph2D,
@@ -460,9 +443,9 @@ public class ViewCallGraphBuilder {
         secondaryAddrToSingleDiffNodeMap,
         addrPairToSuperDiffNodeMap,
         addrPairToCombinedDiffNodeMap,
-        combinedRawCallgraph);
+        combinedRawCallGraph);
 
-    buildCallgraphEdgeMaps(
+    buildCallGraphEdgeMaps(
         primaryGraph2D,
         secondaryGraph2D,
         superGraph2D,
@@ -476,7 +459,7 @@ public class ViewCallGraphBuilder {
         addrPairToSuperDiffNodeMap,
         addrPairToCombinedDiffNodeMap,
         settings,
-        combinedRawCallgraph);
+        combinedRawCallGraph);
 
     final CombinedGraph combinedGraph =
         new CombinedGraph(
@@ -519,7 +502,7 @@ public class ViewCallGraphBuilder {
 
   public static void colorizeCalls(final RawCombinedCall combinedCall) {
     // Note: All setColor(Color.BLACK) call are essential. Otherwise all call edges are black
-    // if a callgrpah is loaded a second time. Reason model wasn't deleted and as a consequence
+    // if a call graph is loaded a second time. Reason model wasn't deleted and as a consequence
     // it does not notify the GUI if the same color is set a second time.
 
     final EMatchState matchState = combinedCall.getMatchState();

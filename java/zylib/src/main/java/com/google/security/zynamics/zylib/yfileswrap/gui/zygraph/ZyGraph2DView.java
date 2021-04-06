@@ -15,47 +15,42 @@
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.gui.zygraph.IFineGrainedSloppyGraph2DView;
-
+import java.awt.Cursor;
 import y.view.Graph2D;
 import y.view.Graph2DView;
-
-import java.awt.Cursor;
 
 /**
  * This is a specialized version of the yFiles Graph2DView. It provides the additional functionality
  * of fine-grained control over sloppy edge/node drawing.
- * 
- * The original yFiles Graph2DView allows us to configure a zoom threshold after which the nodes and
- * edges are drawn using "paintSloppy". This thresh- old is the same for both nodes and edges.
- * 
- * For various reasons, we wish to be able to configure this threshold sepa- rately for nodes and
+ *
+ * <p>The original yFiles Graph2DView allows us to configure a zoom threshold after which the nodes
+ * and edges are drawn using "paintSloppy". This threshold is the same for both nodes and edges.
+ *
+ * <p>For various reasons, we wish to be able to configure this threshold separately for nodes and
  * edges.
- * 
- * Furthermore, BinNavi implements it's own logic for not drawing sloppy edges at all if the graph
- * to be displayed is too large. This is implemented in the Realizer currently.
- * 
- * We end up providing the required functionality in the following way:
- * 
- * 1) We derive from the original Graph2DView. We disable the internal decision for sloppy/nonsloppy
- * drawing, and perform it ourselves in the renderer instead.
- * 
- * 2) We implement a custom renderer (ZyFineGrainedGraphRenderer) that makes the more fine-grained
- * sloppy/non-sloppy decision. This renderer needs to be provided a ZyGraph2DView to obtain the
- * values for this decision.
- * 
- * We hence provide this additional functionality:
- * 
- * 1) Separate setting of sloppy thresholds for edges and nodes This means a zoom level can be set
- * for both sloppy edge drawing and sloppy node drawing, independently of each other. 2) Separate
- * setting of "hide threshold", e.g. a zoom threshold and minimum number of edges. If the number of
- * edges is exceeded and the zoom thresh- old too, edges are no longer drawn. This is logic that is
- * currently implemented in the Realizers.
- * 
+ *
+ * <p>Furthermore, BinNavi implements it's own logic for not drawing sloppy edges at all if the
+ * graph to be displayed is too large. This is implemented in the Realizer currently.
+ *
+ * <p>We end up providing the required functionality in the following way:
+ *
+ * <p>1) We derive from the original Graph2DView. We disable the internal decision for
+ * sloppy/non-sloppy drawing, and perform it ourselves in the renderer instead.
+ *
+ * <p>2) We implement a custom renderer (ZyFineGrainedGraphRenderer) that makes the more
+ * fine-grained sloppy/non-sloppy decision. This renderer needs to be provided a ZyGraph2DView to
+ * obtain the values for this decision.
+ *
+ * <p>We hence provide this additional functionality:
+ *
+ * <p>1) Separate setting of sloppy thresholds for edges and nodes This means a zoom level can be
+ * set for both sloppy edge drawing and sloppy node drawing, independently of each other.
+ *
+ * <p>2) Separate setting of "hide threshold", e.g. a zoom threshold and minimum number of edges. If
+ * the number of edges is exceeded and the zoom thresh- old too, edges are no longer drawn. This is
+ * logic that is currently implemented in the Realizers.
  */
-
 public class ZyGraph2DView extends Graph2DView implements IFineGrainedSloppyGraph2DView {
-  private static final long serialVersionUID = 9194672642118308276L;
-
   /**
    * The zoom level at which we will paint sloppy nodes.
    */
@@ -101,11 +96,7 @@ public class ZyGraph2DView extends Graph2DView implements IFineGrainedSloppyGrap
     if (!(m_minEdgesForSloppyEdgeHiding < getGraph2D().E())) {
       return true; // Insufficient edges for hiding
     }
-    if (!(m_sloppyEdgeHidingThreshold > getZoom())) {
-      return true; // Not zoomed out enough for hiding
-    }
-
-    return false;
+    return !(m_sloppyEdgeHidingThreshold > getZoom()); // Not zoomed out enough for hiding
   }
 
   @Override
@@ -152,6 +143,6 @@ public class ZyGraph2DView extends Graph2DView implements IFineGrainedSloppyGrap
    */
   @Override
   public void setViewCursor(final Cursor cursor) {
-    // this function is overwritten to suppress mouse cursor changings by yFiles View.
+    // This function is overwritten to suppress yFiles changing the mouse cursor.
   }
 }

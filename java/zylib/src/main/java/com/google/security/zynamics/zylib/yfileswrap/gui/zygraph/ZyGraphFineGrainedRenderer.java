@@ -15,13 +15,11 @@
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.gui.zygraph.IFineGrainedSloppyGraph2DView;
-
+import java.awt.Graphics2D;
 import y.view.DefaultGraph2DRenderer;
 import y.view.EdgeRealizer;
 import y.view.Graph2D;
 import y.view.NodeRealizer;
-
-import java.awt.Graphics2D;
 
 public class ZyGraphFineGrainedRenderer<ViewType extends IFineGrainedSloppyGraph2DView> extends
     DefaultGraph2DRenderer {
@@ -85,7 +83,7 @@ public class ZyGraphFineGrainedRenderer<ViewType extends IFineGrainedSloppyGraph
   }
 
   // Sloppy Layered painting methods. These shouldn't actually be reached any
-  // more due to the ZyGraph2DView deferring the sloppy/nonsloppy decision to
+  // more due to the ZyGraph2DView deferring the sloppy/non-sloppy decision to
   // this renderer.
   @Override
   protected void paintSloppyLayered(final Graphics2D gfx, final int layer, final NodeRealizer nr) {

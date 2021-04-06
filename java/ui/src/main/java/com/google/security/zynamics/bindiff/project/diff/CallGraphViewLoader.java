@@ -125,7 +125,7 @@ public class CallGraphViewLoader extends CEndlessHelperThread {
 
     setDescription("Building view call graph...");
     final GraphsContainer graphs =
-        ViewCallGraphBuilder.buildDiffCallgraphs(diff, combinedCallGraph);
+        ViewCallGraphBuilder.buildDiffCallGraphs(diff, combinedCallGraph);
 
     final DiffMetadata meta = diff.getMetadata();
     final CallGraphViewData view =

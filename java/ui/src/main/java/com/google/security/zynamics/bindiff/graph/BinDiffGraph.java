@@ -109,7 +109,6 @@ public abstract class BinDiffGraph<
 
     final CanonicMultiStageLayouter layouter =
         getSettings().getLayoutSettings().getCurrentLayouter();
-
     try {
       layouter.setLabelLayouter(new LabelLayoutTranslator());
       layouter.setLabelLayouterEnabled(true);
