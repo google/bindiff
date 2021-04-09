@@ -1083,10 +1083,10 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
       final DiffMetadata metadata = graphs.getDiff().getMetadata();
       final ViewData viewData = viewTabPanel.getView();
 
-      final String priMd5 = metadata.getImageHash(ESide.PRIMARY);
-      final String secMd5 = metadata.getImageHash(ESide.SECONDARY);
+      final String primaryHash = metadata.getImageHash(ESide.PRIMARY);
+      final String secondaryHash = metadata.getImageHash(ESide.SECONDARY);
 
-      CommentsWriter.writeComments(workspace, priMd5, secMd5, viewData);
+      CommentsWriter.writeComments(workspace, primaryHash, secondaryHash, viewData);
     } catch (final SQLException e) {
       logger.at(Level.SEVERE).withCause(e).log("Couldn't save view comments");
       CMessageBox.showError(getMainWindow(), "Couldn't save view comments: " + e.getMessage());

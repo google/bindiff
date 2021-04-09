@@ -16,6 +16,7 @@ package com.google.security.zynamics.bindiff.graph.backgroundrendering;
 
 import com.google.security.zynamics.bindiff.enums.EGraph;
 import com.google.security.zynamics.bindiff.project.userview.ViewData;
+import com.google.security.zynamics.bindiff.resources.Fonts;
 import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import java.awt.Color;
 import java.awt.EventQueue;
@@ -24,7 +25,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.geom.Rectangle2D;
-import java.awt.image.BufferedImage;
 import javax.swing.ScrollPaneConstants;
 import y.view.DefaultBackgroundRenderer;
 import y.view.Graph2DView;
@@ -39,9 +39,6 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
 
   private final Graph2DView graphView;
   private final EGraph type;
-  private int oldViewWidth = 0;
-  private int oldViewHeight = 0;
-  private BufferedImage backgroundImage;
   private final String title;
 
   ImageBackgroundRenderer(final ViewData viewData, final Graph2DView view, final EGraph type) {
@@ -77,49 +74,31 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
   }
 
   @Override
-  public void paint(final Graphics2D gfx, final int x, final int y, final int w, final int h) {
-    if (gfx == null) {
+  public void paint(final Graphics2D g2, final int x, final int y, final int w, final int h) {
+    if (g2 == null) {
       return;
     }
 
+    super.paint(g2, x, y, w, h);
+    undoWorldTransform(g2);
+
+    g2.setPaint(Color.GRAY.darker());
+
     final int vw = graphView.getWidth();
-    final int vh = graphView.getHeight();
+    final int ix = getX(vw, secondaryTextImage.getWidth(null));
+    int tx = ix;
 
-    if (vw != oldViewWidth || vh != oldViewHeight && vw != 0 && vh != 0) {
-      oldViewWidth = vw;
-      oldViewHeight = vh;
+    final Font font = Fonts.BOLD_FONT;
+    g2.setFont(new Font(font.getName(), Font.BOLD, font.getSize()));
+    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-      backgroundImage = new BufferedImage(vw, vh, BufferedImage.TYPE_INT_RGB);
+    if (type == EGraph.SECONDARY_GRAPH) {
+      final Rectangle2D bounds = font.getStringBounds(title, g2.getFontRenderContext());
+      tx = getX(vw, Math.max(OFFSET, (int) bounds.getWidth()));
     }
 
-    if (backgroundImage != null) {
-      final Graphics2D g = (Graphics2D) backgroundImage.getGraphics();
-      g.setPaint(Color.WHITE);
-      g.fill(new Rectangle2D.Double(0, 0, vw, vh));
-
-      g.setPaint(Color.GRAY.darker());
-
-      final int ix = getX(vw, secondaryTextImage.getWidth(null));
-      int tx = ix;
-
-      final Font font = g.getFont();
-      g.setFont(new Font(font.getName(), Font.BOLD, font.getSize()));
-      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-      if (type == EGraph.SECONDARY_GRAPH) {
-        final Rectangle2D bounds =
-            g.getFont().getStringBounds(title, g.getFontRenderContext());
-        tx = getX(vw, Math.max(OFFSET, (int) bounds.getWidth()));
-      }
-
-      g.drawString(title, tx, 15);
-      g.drawImage(getTextImage(), ix, 20, null);
-      g.setFont(font);
-
-      setImage(backgroundImage);
-    }
-
-    super.paint(gfx, x, y, w, h);
+    g2.drawString(title, tx, 15);
+    g2.drawImage(getTextImage(), ix, 20, null);
   }
 
   public void update() {

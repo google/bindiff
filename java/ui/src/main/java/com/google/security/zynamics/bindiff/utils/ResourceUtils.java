@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.logging.Level;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 
 /** Utility class to load images from BinDiff package resources. */
 public class ResourceUtils {
@@ -54,7 +55,7 @@ public class ResourceUtils {
     return getImage(imagePath, null);
   }
 
-  public static Image getImage(final String imagePath, final Component component) {
+  public static Image getImage(final String imagePath, Component component) {
     URL imageUrl = null;
     URL imageUrl2x = null;
     for (String path : SEARCH_PATHS) {
@@ -80,21 +81,19 @@ public class ResourceUtils {
     final Image image = toolkit.getImage(imageUrl);
     final Image image2x = imageUrl2x != null ? toolkit.getImage(imageUrl2x) : null;
 
-    if (component != null) {
-      // Ensure all resolution variants are loaded. While Swing also uses a MediaTracker to track
-      // image load state, it does so inconsistently, sometimes leading to "Invalid Image variant"
-      // errors during paint. Waiting for these images should be fast, as they are part of the JAR.
-      final MediaTracker mt = new MediaTracker(component);
-      mt.addImage(image, 0);
-      if (image2x != null) {
-        mt.addImage(image2x, 1);
-      }
-      try {
-        mt.waitForAll();
-      } catch (final InterruptedException e) {
-        logger.at(Level.WARNING).withCause(e).log(
-            "Interrupted while loading image resource: \"%s\"", imagePath);
-      }
+    // Ensure all resolution variants are loaded. While Swing also uses a MediaTracker to track
+    // image load state, it does so inconsistently, sometimes leading to "Invalid Image variant"
+    // errors during paint. Waiting for these images should be fast, as they are part of the JAR.
+    final MediaTracker mt = new MediaTracker(component != null ? component : new JComponent() {});
+    mt.addImage(image, 0);
+    if (image2x != null) {
+      mt.addImage(image2x, 1);
+    }
+    try {
+      mt.waitForAll();
+    } catch (final InterruptedException e) {
+      logger.at(Level.WARNING).withCause(e).log(
+          "Interrupted while loading image resource: \"%s\"", imagePath);
     }
 
     if (image2x == null) {
