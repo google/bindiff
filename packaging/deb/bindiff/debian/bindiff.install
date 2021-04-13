@@ -8,7 +8,7 @@ files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra
 files/opt/bindiff/libexec/bindiff_config_setup opt/bindiff/libexec
 files/opt/bindiff/plugins/binaryninja/README opt/bindiff/plugins/binaryninja
-files/opt/bindiff/plugins/binaryninja/binexport11_binaryninja.so opt/bindiff/plugins/binaryninja
+files/opt/bindiff/plugins/binaryninja/binexport12_binaryninja.so opt/bindiff/plugins/binaryninja
 files/opt/bindiff/plugins/idapro/bindiff7_ida.so opt/bindiff/plugins/idapro
 files/opt/bindiff/plugins/idapro/bindiff7_ida64.so opt/bindiff/plugins/idapro
 files/opt/bindiff/plugins/idapro/binexport12_ida.so opt/bindiff/plugins/idapro
