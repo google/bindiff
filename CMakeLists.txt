@@ -37,7 +37,7 @@ list(APPEND CMAKE_MODULE_PATH "${BINDIFF_SOURCE_DIR}/cmake"
 include(CompileOptions)
 include(BinDiffDeps)
 
-set(bindiff_BINEXPORT_RELEASE 11)
+set(bindiff_BINEXPORT_RELEASE 12)
 
 string(TOLOWER "${CMAKE_BUILD_TYPE}" _bindiff_build_type)
 if(NOT _bindiff_build_type STREQUAL "debug")

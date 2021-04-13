@@ -9,10 +9,10 @@ files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra
 files/opt/bindiff/libexec/bindiff_config_setup opt/bindiff/libexec
 files/opt/bindiff/plugins/binaryninja/README opt/bindiff/plugins/binaryninja
 files/opt/bindiff/plugins/binaryninja/binexport11_binaryninja.so opt/bindiff/plugins/binaryninja
-files/opt/bindiff/plugins/idapro/bindiff7.so opt/bindiff/plugins/idapro
-files/opt/bindiff/plugins/idapro/bindiff764.so opt/bindiff/plugins/idapro
-files/opt/bindiff/plugins/idapro/binexport11.so opt/bindiff/plugins/idapro
-files/opt/bindiff/plugins/idapro/binexport1164.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/bindiff7_ida.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/bindiff7_ida64.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/binexport12_ida.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/binexport12_ida64.so opt/bindiff/plugins/idapro
 files/opt/bindiff/roboto-mono-font-license.txt opt/bindiff
 files/usr/lib/systemd/user/bindiff-plugins.service usr/lib/systemd/user
 files/usr/share/applications/com-google-security-zynamics-bindiff-Launcher.desktop usr/share/applications

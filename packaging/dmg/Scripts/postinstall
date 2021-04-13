@@ -4,7 +4,7 @@
 set -eu
 
 bindiff_release=7
-binexport_release=11
+binexport_release=12
 
 function log() {
   syslog -s -l error "BinDiff postinstall: $1"

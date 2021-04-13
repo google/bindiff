@@ -1,0 +1,10 @@
+Using BinDiff with Binary Ninja
+===============================
+
+This directory contains a beta version of BinExport for the Binary Ninja
+disassembler.
+Like the IDA Pro plugin, it is open source.
+
+Source code and instructions for how to build and use it are available on
+GitHub:
+  https://github.com/google/binexport/tree/master/binaryninja

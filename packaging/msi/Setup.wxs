@@ -109,7 +109,7 @@
          the following quote (") as escaped, breaking argument passing.
       -->
     <SetProperty Id="SetupConfigFile"
-                 Value='"[#bindiff_config_setup.exe]" --config "[#bindiff.json]" directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
+                 Value='"[64.dllbindiff_config_setup.exe]" --config "[64.dllbindiff.json]" directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
                  Before="SetupConfigFile"
                  Sequence="execute" />
     <CustomAction Id="SetupConfigFile"
@@ -121,7 +121,7 @@
 
     <!-- Install disassembler plugins for the user installing BinDiff -->
     <SetProperty Id="SetupPerUser"
-                 Value='"[#bindiff_config_setup.exe]" --per_user'
+                 Value='"[64.dllbindiff_config_setup.exe]" --per_user'
                  Before="SetupPerUser"
                  Sequence="execute" />
     <CustomAction Id="SetupPerUser"
@@ -201,7 +201,7 @@
               <RegistryValue Root="HKCU"
                              Key="SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
                              Name="BinDiffPerUserSetup"
-                             Type="string" Value='"[#bindiff_config_setup.exe]" --per_user'
+                             Type="string" Value='"[64.dllbindiff_config_setup.exe]" --per_user'
                              KeyPath="yes" />
             </Component>
             <Component Id="BinDiff_Bin_Bindiff_uiCMD" Win64="yes"
@@ -253,7 +253,7 @@
             <Directory Id="BinDiff_Plugins_Binary_Ninja" Name="Binary Ninja">
               <Component Id="BinaryNinja_Plugins" Win64="yes"
                          Guid="34E0F912-2193-4EDC-B417-A5C92A1151F8">
-                <File Name="binexport11_binaryninja.dll" KeyPath="yes" />
+                <File Name="binexport12_binaryninja.dll" KeyPath="yes" />
                 <File Id="BinaryNinja_Plugins_ReadmeTXT" Name="Readme.txt" />
               </Component>
             </Directory>
@@ -262,10 +262,10 @@
             <Directory Id="BinDiff_Plugins_IDA_Pro" Name="IDA Pro">
               <Component Id="Ida_Plugins" Win64="yes"
                          Guid="E2F631C8-DF7A-48AC-BAAB-578D9FB107F3">
-                <File Name="bindiff7.dll" />
-                <File Name="bindiff764.dll" KeyPath="yes" />
-                <File Name="binexport11.dll" />
-                <File Name="binexport1164.dll" />
+                <File Name="bindiff7_ida.dll" />
+                <File Name="bindiff7_ida64.dll" KeyPath="yes" />
+                <File Name="binexport12_ida.dll" />
+                <File Name="binexport12_ida64.dll" />
               </Component>
             </Directory>
           </Directory>
