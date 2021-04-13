@@ -100,7 +100,8 @@ target_link_libraries(bindiff_version
   bindiff_base
 )
 set_target_properties(bindiff_version PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
+)
 
 # Configuration library
 file(READ bindiff.json bindiff_BINDIFF_JSON)
@@ -230,7 +231,8 @@ target_link_libraries(bindiff_shared
   bindiff_config
 )
 set_target_properties(bindiff_shared PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
+)
 
 # Library that helps with testing BinDiff's core engine.
 add_library(bindiff_test_util STATIC
@@ -278,9 +280,9 @@ target_link_libraries(writer_test
 )
 gtest_discover_tests(writer_test)
 
-# Plugins will be named "bindiffX.so" and "bindiffX64.so" (or .dll or .dylib),
-# where X is the release number.
-set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR})
+# Plugins will be named "bindiffX_ida.so" and "bindiffX_ida64.so" (or .dll or
+# .dylib), where X is the release number.
+set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR}_ida)
 add_ida_plugin(${bindiff_plugin_name}
   ida/bindiff_icon.cc
   ida/bindiff_icon.h
@@ -301,9 +303,6 @@ add_ida_plugin(${bindiff_plugin_name}
   match_colors.cc
   match_colors.h
 )
-if(WIN32)
-  list(APPEND bindiff_plugin_libraries ws2_32.lib)
-endif()
 ida_target_link_libraries(${bindiff_plugin_name}
   binexport_core
   binexport_plugin_shared
@@ -311,8 +310,12 @@ ida_target_link_libraries(${bindiff_plugin_name}
   bindiff_shared
   absl::str_format
   absl::time
-  ${bindiff_plugin_libraries}
 )
+if(WIN32)
+  ida_target_link_libraries(${bindiff_plugin_name}
+    ws2_32.lib
+  )
+endif()
 set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
@@ -330,7 +333,8 @@ target_link_libraries(bindiff
   absl::time
 )
 set_target_properties(bindiff PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
+  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
+)
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
 
 # Utility programs. For now, only contains a tool to modify the BinDiff
