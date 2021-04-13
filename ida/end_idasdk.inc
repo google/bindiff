@@ -15,6 +15,13 @@
 // Companion header to begin_idasdk.inc. In order to work, this must be
 // included after including any IDA Pro headers.
 
+#ifdef __clang__
+#pragma clang diagnostic pop
+#elif __GNUC__
+#pragma GCC diagnostic pop
+#elif _MSC_VER
+#endif
+
 #undef uint128
 #undef int128
 #undef uint64

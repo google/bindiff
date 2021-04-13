@@ -36,5 +36,15 @@
 #define int128 ida_int128
 #define uint128 ida_uint128
 
+// Silence some compiler warnings in IDA SDK headers
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wvarargs"
+#elif __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvarargs"
+#elif _MSC_VER
+#endif
+
 // Now include the problematic header, end_idasdk.inc will clean up again.
 #include <pro.h>
