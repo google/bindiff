@@ -211,13 +211,6 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
                                                 Expression::TYPE_REGISTER, 1));
     }
   }
-
-#ifdef ENABLE_POSTGRESQL
-  if (type_system) {
-    type_system->AddTypeSubstitution(instruction.ea, operand_num,
-                                     temp->GetId());
-  }
-#endif
 }
 
 // Creates a tree for expressions of the form:

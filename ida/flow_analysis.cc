@@ -306,10 +306,6 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
   }
 
   IdaTypesContainer types;
-#ifdef ENABLE_POSTGRESQL
-  LOG(INFO) << "gathering types";
-  types.GatherTypes();
-#endif
   TypeSystem type_system(types, address_space);
 
   Instruction::SetBitness(GetArchitectureBitness());

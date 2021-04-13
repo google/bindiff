@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-option(BINEXPORT_ENABLE_POSTGRESQL "Enable export to PostresSQL databases" OFF)
 option(BINEXPORT_ENABLE_TESTS "Build test targets" ON)
 
 option(BINEXPORT_ENABLE_IDAPRO "Enable building the IDA Pro plugins" ON)

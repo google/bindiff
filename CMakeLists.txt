@@ -35,12 +35,6 @@ if(BINEXPORT_ENABLE_TESTS)
   enable_testing()
 endif()
 
-if(BINEXPORT_ENABLE_POSTGRESQL AND WIN32)
-  list(GET PostgreSQL_LIBRARIES 0 postgresql_lib)
-  get_filename_component(postgresql_root ${postgresql_lib} DIRECTORY)
-  list(APPEND PostgreSQL_LIBRARIES ${postgresql_root}/libpgport.lib)
-endif()
-
 # Make Google-style includes work
 set(_binexport_src "${BINEXPORT_BINARY_DIR}/src_include/third_party/zynamics")
 set(_binexport_gen "${BINEXPORT_BINARY_DIR}/gen_include/third_party/zynamics")
@@ -84,14 +78,6 @@ target_include_directories(binexport_base INTERFACE
   ${Boost_INCLUDE_DIR}
   ${Protobuf_INCLUDE_DIRS}
 )
-if(BINEXPORT_ENABLE_POSTGRESQL)
-  target_include_directories(binexport_base INTERFACE
-    ${PostgreSQL_INCLUDE_DIRS}
-  )
-  target_compile_definitions(binexport_base INTERFACE
-    ENABLE_POSTGRESQL
-  )
-endif()
 target_link_libraries(binexport_base INTERFACE
   ${Protobuf_LIBRARIES}  # Same as protobuf::libprotobuf
 )
@@ -283,23 +269,7 @@ if(BINEXPORT_ENABLE_IDAPRO)
     binexport_base
   )
 
-  set(binexport_POSTGRESQL_SRCS)
-  if(BINEXPORT_ENABLE_POSTGRESQL)
-    set(binexport_plugin_POSTGRESQL_SRCS
-      database/initialize_constraints_postgresql_sql.h
-      database/initialize_indices_postgresql_sql.h
-      database/initialize_tables_postgresql_sql.h
-      database/maintenance_postgresql_sql.h
-      database/postgresql.cc
-      database/postgresql.h
-      database/postgresql_writer.cc
-      database/postgresql_writer.h
-      database/query_builder.cc
-      database/query_builder.h
-    )
-  endif()
   add_ida_plugin(${binexport_ida_plugin_name}
-    ${binexport_plugin_POSTGRESQL_SRCS}
     ida/arm.cc
     ida/arm.h
     ida/dalvik.cc
@@ -318,13 +288,6 @@ if(BINEXPORT_ENABLE_IDAPRO)
     ida/types_container.cc
     ida/types_container.h
   )
-  if(BINEXPORT_ENABLE_POSTGRESQL)
-    list(APPEND binexport_libraries
-      ${PostgreSQL_LIBRARIES}
-      # OpenSSL must come after PostgreSQL
-      OpenSSL::SSL
-    )
-  endif()
   if(WIN32)
     list(APPEND binexport_libraries crypt32.lib
                                     secur32.lib
