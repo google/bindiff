@@ -14,7 +14,7 @@
 
 cmake_minimum_required(VERSION 3.14)
 cmake_policy(VERSION 3.14)
-project(binexport VERSION 11)  # Only major version is used
+project(binexport VERSION 12)  # Only major version is used
 
 # BinExport settings
 set(BINEXPORT_BINARY_DIR "${PROJECT_BINARY_DIR}" CACHE INTERNAL "" FORCE)
@@ -67,9 +67,8 @@ endif()
 configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
 
 # Plugin names for IDA Pro and Binary Ninja
-# TODO(cblichmann): Change IDA name when releasing BinExport 12
 if(BINEXPORT_ENABLE_IDAPRO)
-  set(binexport_ida_plugin_name binexport${binexport_VERSION_MAJOR})
+  set(binexport_ida_plugin_name binexport${binexport_VERSION_MAJOR}_ida)
 endif()
 if(BINEXPORT_ENABLE_BINARYNINJA)
   set(binexport_bn_plugin_name binexport${binexport_VERSION_MAJOR}_binaryninja)
