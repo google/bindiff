@@ -91,7 +91,7 @@ public class BinDiff {
       // Set application name
       System.setProperty(
           "com.apple.mrj.application.apple.menu.about.name", Constants.DEFAULT_WINDOW_TITLE);
-    } catch (final SecurityException e) {
+    } catch (SecurityException e) {
       // Do nothing. macOS integration will be sub-optimal but there's nothing we can meaningfully
       // do here.
     }
@@ -103,7 +103,7 @@ public class BinDiff {
 
   private static void initializeConfigFile() {
     if (Config.getInstance().getVersion() < Constants.CONFIG_FILEVERSION) {
-      final int answer =
+      int answer =
           CMessageBox.showYesNoWarning(
               null,
               "Your configuration file is obsolete. Do you want to overwrite it with a new "
@@ -111,7 +111,7 @@ public class BinDiff {
       if (answer == JOptionPane.YES_OPTION) {
         try {
           Files.delete(FileSystems.getDefault().getPath(BinDiffConfig.getConfigFileName()));
-        } catch (final IOException | SecurityException e) {
+        } catch (IOException | SecurityException e) {
           // Logger isn't initialized yet, so no logging here
           CMessageBox.showError(
               null,
@@ -123,13 +123,13 @@ public class BinDiff {
   }
 
   private static void initializeTheme() {
-    final ThemeConfigItem theme = BinDiffConfig.getInstance().getThemeSettings();
+    ThemeConfigItem theme = BinDiffConfig.getInstance().getThemeSettings();
 
-    final String[] allFonts =
+    String[] allFonts =
         GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
     Arrays.sort(allFonts);
 
-    final Font uiFont = theme.getUiFont();
+    Font uiFont = theme.getUiFont();
     if (Arrays.binarySearch(allFonts, uiFont.getFamily()) >= 0) {
       GuiHelper.setDefaultFont(uiFont);
     } else {
@@ -141,7 +141,7 @@ public class BinDiff {
     } else {
       logger.atWarning().log("Font not installed/found: %s", codeFont.getFontName());
     }
-    for (final String fontName :
+    for (var fontName :
         new String[] {
           "Button.font",
           "CheckBox.font",
@@ -189,10 +189,10 @@ public class BinDiff {
   }
 
   private static void initializeLogging() {
-    final LogOptions logOptions = Config.getInstance().getLog();
+    LogOptions logOptions = Config.getInstance().getLog();
     try {
       Logger.setFileHandler(new FileHandler(Logger.getLoggingFilePath(logOptions.getDirectory())));
-    } catch (final IOException e) {
+    } catch (IOException e) {
       CMessageBox.showWarning(
           null, "Failed to initialize file logger. Could not create log file handler.");
     }
@@ -205,7 +205,7 @@ public class BinDiff {
   }
 
   private static void initializeStandardHotKeys() {
-    final InputMap splitPaneMap = (InputMap) UIManager.get("SplitPane.ancestorInputMap");
+    var splitPaneMap = (InputMap) UIManager.get("SplitPane.ancestorInputMap");
     for (int functionKey = KeyEvent.VK_F1; functionKey <= KeyEvent.VK_F12; functionKey++) {
       splitPaneMap.remove(KeyStroke.getKeyStroke(functionKey, 0));
     }
@@ -218,21 +218,21 @@ public class BinDiff {
    * @return a list of positional arguments without any options or {@code null} on error.
    */
   private static String[] parseCommandLine(final String[] args) {
-    final Options flags =
+    var flags =
         new Options()
             .addOption(HELP)
             .addOption(CONSOLE_LOGGING)
             .addOption(FILE_LOGGING)
             .addOption(DEBUG_MENU);
-    final CommandLine cmd;
-    final String[] positional;
+    CommandLine cmd;
+    String[] positional;
     try {
       cmd = new DefaultParser().parse(flags, args);
       positional = cmd.getArgs();
       if (positional.length > 1) {
         throw new ParseException("More than one workspace file specified");
       }
-    } catch (final ParseException e) {
+    } catch (ParseException e) {
       logger.atWarning().withCause(e).log("Invalid command line arguments");
       return null;
     }
@@ -247,11 +247,11 @@ public class BinDiff {
     }
     if (cmd.hasOption(FILE_LOGGING.getLongOpt())) {
       try {
-        final String logDir = cmd.getOptionValue(FILE_LOGGING.getLongOpt());
+        String logDir = cmd.getOptionValue(FILE_LOGGING.getLongOpt());
         Logger.setFileHandler(
             new FileHandler(logDir.isEmpty() ? Logger.getDefaultLoggingDirectoryPath() : logDir));
         Logger.setFileLogging(true);
-      } catch (final IOException e) {
+      } catch (IOException e) {
         logger.atWarning().withCause(e).log("Could not create log file handler");
       }
     }
@@ -265,11 +265,11 @@ public class BinDiff {
 
   public static void applyLoggingChanges() throws IOException {
     logger.atInfo().log("Applying logger changes...");
-    final LogOptions logOptions = Config.getInstance().getLog();
+    LogOptions logOptions = Config.getInstance().getLog();
     Logger.setConsoleLogging(logOptions.getToStderr());
     Logger.setLogLevel(Config.fromProtoLogLevel(logOptions.getLevel()));
 
-    final String path = FileUtils.ensureTrailingSlash(logOptions.getDirectory());
+    String path = FileUtils.ensureTrailingSlash(logOptions.getDirectory());
     if (!new File(path).isDirectory()) {
       throw new IOException("Not a directory: " + path);
     }
@@ -278,16 +278,16 @@ public class BinDiff {
   }
 
   private static void initializeSocketServer(
-      final Component window, final WorkspaceTabPanelFunctions controller) {
+      Component window, WorkspaceTabPanelFunctions controller) {
     // Wrapped in invokeLater to make sure we start the thread after the
     // UI is ready. This is done because the SocketServer relies on
     // a valid parent window for the workspace tree.
     SwingUtilities.invokeLater(
         () -> {
-          final int port = Constants.getSocketPort();
+          int port = Constants.getSocketPort();
           try {
             new SocketServer(port, controller).startListening();
-          } catch (final IOException e) {
+          } catch (IOException e) {
             CMessageBox.showError(
                 window, String.format("Could not listen on port %s. BinDiff exits.", port));
             System.exit(1);
@@ -295,7 +295,7 @@ public class BinDiff {
         });
   }
 
-  private static void initializeDesktop(final Desktop desktop) {
+  private static void initializeDesktop(Desktop desktop) {
     // This enables deeper integration with the macOS system menu bar as well as GNOME's application
     // menu.
     // Note that any of these might independently fail, and we simply ignore the error; different
@@ -306,21 +306,21 @@ public class BinDiff {
           controller.showAboutDialog();
         }
       });
-    } catch (final UnsupportedOperationException e) { /* Ignore */ }
+    } catch (UnsupportedOperationException e) { /* Ignore */ }
     try {
       desktop.setPreferencesHandler(e -> {
         if (controller != null) {
           controller.showMainSettingsDialog();
         }
       });
-    } catch (final UnsupportedOperationException e) { /* Ignore */ }
+    } catch (UnsupportedOperationException e) { /* Ignore */ }
     try {
       desktop.setQuitHandler((e, response) -> {
         if (controller != null) {
           controller.exitBinDiff();
         }
       });
-    } catch (final UnsupportedOperationException e) { /* Ignore */ }
+    } catch (UnsupportedOperationException e) { /* Ignore */ }
 
     desktopIntegrationDone = true;
   }
@@ -331,7 +331,7 @@ public class BinDiff {
    *
    * @param args command line arguments.
    */
-  public static void main(final String[] args) {
+  public static void main(String[] args) {
     SwingUtilities.invokeLater(
         () -> {
           // Set default window title for message boxes
@@ -351,12 +351,12 @@ public class BinDiff {
             initializeDesktop(Desktop.getDesktop());
           }
 
-          final String[] positional = parseCommandLine(args);
+          String[] positional = parseCommandLine(args);
           initializeGlobalTooltipDelays();
           initializeStandardHotKeys();
 
-          final Workspace workspace = new Workspace();
-          final MainWindow window = new MainWindow(workspace);
+          var workspace = new Workspace();
+          var window = new MainWindow(workspace);
           window.setVisible(true);
 
           controller =
