@@ -28,7 +28,7 @@ In order to build, the following software needs to be installed on the
 development machine:
 
 *   OpenJDK 11 or later
-*   Ghidra 9.2.2 (https://ghidra-sre.org/releaseNotes_9.2.2.html)
+*   Ghidra 9.2.3 (https://ghidra-sre.org/releaseNotes_9.2.3.html)
 *   Gradle 5.6 or later
     (https://services.gradle.org/distributions/gradle-5.6.3-all.zip)
 
@@ -50,7 +50,7 @@ gradle
 
 After downloading the addtional dependencies and compiling the Java sources, the
 extension is available as a .zip file under
-`dist/ghidra_9.2.2_PUBLIC_YYYYMMDD_BinExport.zip`, where `YYYYMMDD` stands for
+`dist/ghidra_9.2.3_PUBLIC_YYYYMMDD_BinExport.zip`, where `YYYYMMDD` stands for
 the current date.
 
 ### Development using Eclipse
@@ -99,7 +99,6 @@ compared to the native C++ version for IDA Pro:
 | Protocol Buffer based full export | ✓¹ | ✓ |
 | Statistics text file | - | ✓ |
 | Text format for debugging | - | ✓ |
-| BinNavi database export into a PostgreSQL database | - | ✓ |
 
 ¹ No operand trees
 

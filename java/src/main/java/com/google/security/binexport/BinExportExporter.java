@@ -37,6 +37,12 @@ import java.util.List;
  */
 public class BinExportExporter extends Exporter {
 
+  /** Stringized version number allowing for scriptable update. */
+  private static final String BINEXPORT_VERSION = "12";
+
+  private static final String BINEXPORT_COPYRIGHT =
+      "BinExport " + BINEXPORT_VERSION + " (c)2019-2021 Google LLC";
+
   /** Display name that appears in the export dialog. */
   private static final String BINEXPORT_FORMAT_DISPLAY_NAME =
       "Binary BinExport (v2) for BinDiff";
@@ -63,7 +69,7 @@ public class BinExportExporter extends Exporter {
 
   public BinExportExporter() {
     super(BINEXPORT_FORMAT_DISPLAY_NAME, BINEXPORT_FILE_EXTENSION, null);
-    log.appendMsg("BinExport 11 (c)2019-2021 Google LLC");
+    log.appendMsg(BINEXPORT_COPYRIGHT);
   }
 
   @Override
