@@ -104,6 +104,7 @@ task obfuscatedJar(type: ProGuardTask) {
     useuniqueclassmembernames
 
     dontoptimize  // Optimization uses ~2G RAM
+    dontusemixedcaseclassnames  // Prevent macOS/Windows unpacking problems
 
     // Generally no notices
     dontnote
