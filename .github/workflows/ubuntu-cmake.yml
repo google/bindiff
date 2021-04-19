@@ -26,7 +26,7 @@ jobs:
       run: |
         cmake -E make_directory "${RUNNER_WORKSPACE}/build"
         ./.github/scripts/decrypt_secret.sh
-        unzip -q "${RUNNER_WORKSPACE}/build/idasdk75.zip" \
+        unzip -q "${RUNNER_WORKSPACE}/build/idasdk76.zip" \
           -d "${RUNNER_WORKSPACE}/build/"
 
     - name: Configure CMake
@@ -34,7 +34,7 @@ jobs:
       run: |
         cmake "${GITHUB_WORKSPACE}" -G Ninja \
           "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
-          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk75"
+          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk76"
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
