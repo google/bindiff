@@ -14,6 +14,7 @@
 
 package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.menubar;
 
+import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.gui.tabpanels.menubar.DebugMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.menubar.HelpMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.ViewTabPanelFunctions;
@@ -36,7 +37,9 @@ public class ViewMenuBar extends JMenuBar {
     add(new SelectionMenu(controller));
     add(new SearchMenu(controller));
     add(new WindowMenu(controller));
-    add(new DebugMenu(controller));
+    if (Config.getInstance().getPreferencesOrBuilder().getDebugOrBuilder().getShowDebugMenu()) {
+      add(new DebugMenu(controller));
+    }
     add(new HelpMenu(controller));
 
     removeKeyBindings();
