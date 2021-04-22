@@ -19,7 +19,6 @@ import com.google.security.zynamics.bindiff.config.GraphViewSettingsConfigItem;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.zygraph.settings.IProximitySettings;
 import com.google.security.zynamics.zylib.gui.zygraph.settings.IProximitySettingsListener;
-import java.util.logging.Level;
 
 public class GraphProximityBrowsingSettings implements IProximitySettings {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -53,7 +52,7 @@ public class GraphProximityBrowsingSettings implements IProximitySettings {
     try {
       settingsListeners.addListener(listener);
     } catch (final Exception e) {
-      logger.at(Level.WARNING).log("Listener is already listening");
+      logger.atWarning().log("Listener is already listening");
     }
   }
 
@@ -61,7 +60,7 @@ public class GraphProximityBrowsingSettings implements IProximitySettings {
     try {
       settingsListeners.removeListener(listener);
     } catch (final Exception e) {
-      logger.at(Level.WARNING).log("Listener was not listening.");
+      logger.atWarning().log("Listener was not listening.");
     }
   }
 

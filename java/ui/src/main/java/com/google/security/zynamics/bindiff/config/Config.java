@@ -68,7 +68,7 @@ public class Config {
       mergeInto(loadFromFile(commonConfig).build(), instance);
     } catch (final IOException e) {
       // Just log at a debug level
-      logger.at(Level.FINE).withCause(e).log("Cannot load per-machine config");
+      logger.atFine().withCause(e).log("Cannot load per-machine config");
     }
 
     try {
@@ -79,7 +79,7 @@ public class Config {
       mergeInto(loadFromFile(userConfig).build(), instance);
     } catch (final IOException e) {
       // Just log at a debug level
-      logger.at(Level.FINE).withCause(e).log("Cannot load per-user config");
+      logger.atFine().withCause(e).log("Cannot load per-user config");
     }
 
     return instance;

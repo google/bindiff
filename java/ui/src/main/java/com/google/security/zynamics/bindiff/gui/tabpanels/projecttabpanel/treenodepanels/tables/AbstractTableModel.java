@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public abstract class AbstractTableModel extends javax.swing.table.AbstractTableModel {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -62,7 +61,7 @@ public abstract class AbstractTableModel extends javax.swing.table.AbstractTable
 
   public void setColumnSortRelevance(final int column, final EPercentageBarSortType sortRelevance) {
     if (column >= getColumnCount()) {
-      logger.at(Level.WARNING).log("Column is not in table");
+      logger.atWarning().log("Column is not in table");
       return;
     }
     this.sortRelevance.put(column, sortRelevance);

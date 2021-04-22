@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /** Sets and gets the syntax highlighting color values and font settings for the UI. */
@@ -78,7 +77,7 @@ public class ThemeConfigItem {
     try {
       colors = ramp.stream().map(Color::decode).collect(Collectors.toList());
     } catch (final NumberFormatException e) {
-      logger.at(Level.WARNING).withCause(e).log(
+      logger.atWarning().withCause(e).log(
           "Color hex value failed to parse, reverting to default color ramp");
       colors =
           DEFAULT_THEME.getSimilarityRampList().stream()
@@ -107,14 +106,13 @@ public class ThemeConfigItem {
           final FieldDescriptor fd = THEME_DESCRIPTOR.findFieldByName(k);
           final String color = (String) theme.getField(fd);
           if (color.isEmpty()) {
-            logger.at(Level.INFO).log(k);
+            logger.atInfo().log(k);
             return Color.decode((String) DEFAULT_THEME.getField(fd));
           }
           try {
             return Color.decode(color);
           } catch (NumberFormatException e) {
-            logger.at(Level.WARNING).withCause(e).log(
-                "Color hex value failed to parse, using default");
+            logger.atWarning().withCause(e).log("Color hex value failed to parse, using default");
             return Color.decode((String) DEFAULT_THEME.getField(fd));
           }
         });

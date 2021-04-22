@@ -18,7 +18,6 @@ import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.io.IOException;
-import java.util.logging.Level;
 
 /** A class that is used to read and write the BinDiff configuration. */
 public final class BinDiffConfig {
@@ -69,7 +68,7 @@ public final class BinDiffConfig {
 
   /** Writes the configuration file to disk. */
   public void write() throws IOException {
-    logger.at(Level.INFO).log("Saving configuration...");
+    logger.atInfo().log("Saving configuration...");
     Config.saveUserConfig(Config.getInstance());
   }
 

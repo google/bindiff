@@ -25,7 +25,6 @@ import com.google.security.zynamics.bindiff.enums.EOrthogonalLayoutStyle;
 import com.google.security.zynamics.bindiff.graph.layout.LayoutCreator;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.settings.ILayoutSettings;
-import java.util.logging.Level;
 import y.layout.CanonicMultiStageLayouter;
 
 public class GraphLayoutSettings implements ILayoutSettings {
@@ -95,7 +94,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
     try {
       settingsListeners.addListener(listener);
     } catch (final IllegalStateException e) {
-      logger.at(Level.WARNING).log("Listener is already listening");
+      logger.atWarning().log("Listener is already listening");
     }
   }
 
@@ -103,7 +102,7 @@ public class GraphLayoutSettings implements ILayoutSettings {
     try {
       settingsListeners.removeListener(listener);
     } catch (final IllegalStateException e) {
-      logger.at(Level.WARNING).log("Listener was not listening");
+      logger.atWarning().log("Listener was not listening");
     }
   }
 

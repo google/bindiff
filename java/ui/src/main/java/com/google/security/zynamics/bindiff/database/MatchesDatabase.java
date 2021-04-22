@@ -43,7 +43,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class MatchesDatabase extends SqliteDatabase {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -798,8 +797,7 @@ public class MatchesDatabase extends SqliteDatabase {
 
       connection.commit();
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log(
-          "Couldn't update function match. Executing rollback.");
+      logger.atSevere().withCause(e).log("Couldn't update function match. Executing rollback.");
       connection.rollback();
     }
     connection.setAutoCommit(savedAutoCommit);

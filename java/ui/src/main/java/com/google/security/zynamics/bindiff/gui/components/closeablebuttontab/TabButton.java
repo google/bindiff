@@ -30,7 +30,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.logging.Level;
 import javax.swing.AbstractButton;
 import javax.swing.JButton;
 import javax.swing.JTabbedPane;
@@ -145,7 +144,7 @@ public class TabButton extends JButton {
             return;
           }
         } catch (final Exception e) {
-          logger.at(Level.SEVERE).withCause(e).log("An error occurred while closing the tab");
+          logger.atSevere().withCause(e).log("An error occurred while closing the tab");
           MessageBox.showError(
               SwingUtilities.getWindowAncestor(TabButton.this),
               "An error occurred while closing the tab.");

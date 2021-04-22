@@ -33,7 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import javax.swing.JTabbedPane;
 
 /** Holder class for the actual controller class TabPanelManager. */
@@ -85,7 +84,7 @@ public class WindowFunctions {
     try {
       BinDiffConfig.getInstance().write();
     } catch (final IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't save configuration file");
+      logger.atSevere().withCause(e).log("Couldn't save configuration file");
       CMessageBox.showError(window, "Couldn't save configuration file.");
     }
   }
@@ -109,7 +108,7 @@ public class WindowFunctions {
 
       saveConfigFile();
 
-      logger.at(Level.INFO).log("BinDiff closed normally");
+      logger.atInfo().log("BinDiff closed normally");
     }
 
     System.exit(0);

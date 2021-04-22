@@ -31,7 +31,6 @@ import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
 
 public final class Diff {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -114,7 +113,7 @@ public final class Diff {
   }
 
   public void closeDiff() {
-    logger.at(Level.INFO).log("Unloading Diff '%s'", getDiffName());
+    logger.atInfo().log("Unloading Diff '%s'", getDiffName());
     if (matches == null) {
       return;
     }
@@ -190,7 +189,7 @@ public final class Diff {
   }
 
   public void removeDiff() {
-    logger.at(Level.INFO).log("Removing Diff '%s'", getDiffName());
+    logger.atInfo().log("Removing Diff '%s'", getDiffName());
 
     close();
 

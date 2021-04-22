@@ -81,7 +81,6 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -165,8 +164,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
               String.format("Couldn't delete '%s'.", diff.getMatchesDatabase().toString()));
         }
       } catch (final IOException e) {
-        logger.at(Level.SEVERE).withCause(e).log(
-            "Delete diff failed. Couldn't delete diff folder.");
+        logger.atSevere().withCause(e).log("Delete diff failed. Couldn't delete diff folder.");
         CMessageBox.showError(getMainWindow(), "Delete diff failed. Couldn't delete diff folder.");
 
         return false;
@@ -311,13 +309,13 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
       final String errorMsg = loader.getErrorMessage();
       if (!"".equals(errorMsg)) {
-        logger.at(Level.SEVERE).log(errorMsg);
+        logger.atSevere().log(errorMsg);
         CMessageBox.showError(getMainWindow(), errorMsg);
       } else {
         getWorkspace().saveWorkspace();
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log("Load workspace failed. %s", e.getMessage());
+      logger.atSevere().withCause(e).log("Load workspace failed. %s", e.getMessage());
       CMessageBox.showError(
           getMainWindow(), String.format("Load workspace failed. %s", e.getMessage()));
     }
@@ -340,7 +338,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     try {
       getWorkspace().saveWorkspace();
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't delete temporary files");
+      logger.atSevere().withCause(e).log("Couldn't delete temporary files");
       CMessageBox.showError(getMainWindow(), "Couldn't delete temporary files: " + e.getMessage());
     }
   }
@@ -373,7 +371,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
       getWorkspace().addDiff(newMatchesDatabase, matchesMetadata, false);
     } catch (final IOException | SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Add diff failed. Couldn't add diff to workspace");
+      logger.atSevere().withCause(e).log("Add diff failed. Couldn't add diff to workspace");
       CMessageBox.showError(
           getMainWindow(), "Add diff failed. Couldn't add diff to workspace: " + e.getMessage());
     }
@@ -523,7 +521,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     try {
       ProgressDialog.show(window, "Directory Diffing...", directoryDiffer);
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log(
+      logger.atSevere().withCause(e).log(
           "Directory diffing aborted because of an unexpected exception");
       CMessageBox.showError(
           window, "Directory diffing aborted because of an unexpected exception.");
@@ -627,7 +625,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     final Exception e = progressDialog.getException();
     if (e != null) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -658,7 +656,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     final Exception e = progressDialog.getException();
     if (e != null) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -707,7 +705,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     if (!workspaceDir.exists()) {
       final String msg = "Load workspace failed. Workspace folder does not exist.";
-      logger.at(Level.SEVERE).log(msg);
+      logger.atSevere().log(msg);
       CMessageBox.showError(getMainWindow(), msg);
       return;
     }
@@ -745,7 +743,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             String.format("New single Diff '%s'", destinationFile.getName()),
             newDiffThread);
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log(e.getMessage());
         CMessageBox.showError(getMainWindow(), "Unknown error while diffing.");
       }
     }
@@ -786,7 +784,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             .setDefaultWorkspace(workspaceFile.getAbsolutePath());
       }
     } catch (final IOException | SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log();
+      logger.atSevere().withCause(e).log();
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -802,8 +800,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     try {
       ProgressDialog.show(getMainWindow(), "Loading call graph diff", loader);
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log(
-          "Open call graph view failed. Couldn't create graph.");
+      logger.atSevere().withCause(e).log("Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
     }
   }
@@ -828,8 +825,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log(
-          "Open call graph view failed. Couldn't create graph.");
+      logger.atSevere().withCause(e).log("Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
     }
   }
@@ -866,8 +862,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         diffListener.loadedView(diff);
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log(
-          "Open flow graph view failed. Couldn't create graph.");
+      logger.atSevere().withCause(e).log("Open flow graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
     }
   }
@@ -922,8 +917,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log(
-          "Open flow graph view failed. Couldn't create graph.");
+      logger.atSevere().withCause(e).log("Open flow graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
     }
   }
@@ -944,8 +938,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log(
-          "Open function diff view failed. Couldn't create graph.");
+      logger.atSevere().withCause(e).log("Open function diff view failed. Couldn't create graph.");
       CMessageBox.showError(
           getMainWindow(), "Open function diff view failed. Couldn't create graph.");
     }
@@ -991,7 +984,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       matchesDb.saveDiffDescription(description);
       return true;
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Database error. Couldn't save diff description.");
+      logger.atSevere().withCause(e).log("Database error. Couldn't save diff description.");
       CMessageBox.showError(
           getMainWindow(), "Database error. Couldn't save diff description: " + e.getMessage());
     }

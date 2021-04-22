@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 
 public final class WorkspaceLoader extends CEndlessHelperThread {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -86,7 +85,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         final File workspaceAbs = new File(workspaceRoot + path);
         final File matchesDatabaseFile = workspaceAbs.exists() ? workspaceAbs : new File(path);
 
-        logger.at(Level.INFO).log(" - Preloading Diff '%s'", matchesDatabaseFile.getPath());
+        logger.atInfo().log(" - Preloading Diff '%s'", matchesDatabaseFile.getPath());
 
         final DiffMetadata matchesMetadata;
         try (final MatchesDatabase matchesDatabase = new MatchesDatabase(matchesDatabaseFile)) {
@@ -97,7 +96,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
 
           matchesMetadata = matchesDatabase.loadDiffMetadata(matchesDatabaseFile);
         } catch (final SQLException e) {
-          logger.at(Level.SEVERE).withCause(e).log();
+          logger.atSevere().withCause(e).log();
           errors.append(" - ").append(matchesDatabaseFile.getName()).append("\n");
           continue;
         }
@@ -114,8 +113,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         final File workspaceAbs = new File(workspaceRoot + path);
         final File matchesDatabaseFile = workspaceAbs.exists() ? workspaceAbs : new File(path);
 
-        logger.at(Level.INFO).log(
-            " - Preloading Function Diff '%s'", matchesDatabaseFile.getPath());
+        logger.atInfo().log(" - Preloading Function Diff '%s'", matchesDatabaseFile.getPath());
 
         FunctionDiffMetadata matchesMetadata = null;
         setDescription(
@@ -169,7 +167,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
         listener.loadedWorkspace(workspace);
       }
 
-      logger.at(Level.INFO).log("Workspace loaded");
+      logger.atInfo().log("Workspace loaded");
     }
   }
 }

@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 public final class Workspace {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -50,7 +49,7 @@ public final class Workspace {
     //noinspection EmptyTryBlock
     try (final CommentsDatabase database = new CommentsDatabase(this, true)) {
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
     }
   }
@@ -115,7 +114,7 @@ public final class Workspace {
     try {
       addDiff(diff);
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
     }
 
@@ -131,7 +130,7 @@ public final class Workspace {
       return;
     }
 
-    logger.at(Level.INFO).log("Closing workspace '%s'...", workspaceFile.getPath());
+    logger.atInfo().log("Closing workspace '%s'...", workspaceFile.getPath());
 
     diffs.clear();
 
@@ -144,7 +143,7 @@ public final class Workspace {
       listener.closedWorkspace();
     }
 
-    logger.at(Level.INFO).log("Workspace closed");
+    logger.atInfo().log("Workspace closed");
   }
 
   public boolean containsDiff(final String matchesBinaryPath) {
@@ -224,7 +223,7 @@ public final class Workspace {
       listener.loadedWorkspace(this);
     }
 
-    logger.at(Level.WARNING).log("Created new Workspace");
+    logger.atWarning().log("Created new Workspace");
   }
 
   public void removeDiff(final Diff diff) {

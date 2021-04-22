@@ -99,7 +99,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
@@ -255,7 +254,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
             graphs, oldPriUnmatchedCombinedDiffNode, oldSecUnmatchedCombinedDiffNode);
         setMatchesChanged(true);
       } catch (final GraphLayoutException e) {
-        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log(e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       }
     }
@@ -535,7 +534,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
         }
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't save exported view images");
+      logger.atSevere().withCause(e).log("Couldn't save exported view images");
       CMessageBox.showError(parent, "Couldn't save exported view images.");
     }
   }
@@ -682,11 +681,11 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           setMatchesChanged(true);
         }
       } catch (final GraphLayoutException e) {
-        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log(e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       } catch (final Exception e) {
         // TODO(cblichmann): Never catch all exceptions!
-        logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log(e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       }
     }
@@ -732,7 +731,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           return false;
         }
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Save function diff view failed");
+        logger.atSevere().withCause(e).log("Save function diff view failed");
         CMessageBox.showError(getMainWindow(), "Save function diff view failed.");
 
         return false;
@@ -1088,7 +1087,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
 
       CommentsWriter.writeComments(workspace, primaryHash, secondaryHash, viewData);
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't save view comments");
+      logger.atSevere().withCause(e).log("Couldn't save view comments");
       CMessageBox.showError(getMainWindow(), "Couldn't save view comments: " + e.getMessage());
     }
   }
@@ -1108,7 +1107,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           functionMatch.getAddress(ESide.SECONDARY),
           functionMatch);
     } catch (final SQLException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't save changed basic block matches");
+      logger.atSevere().withCause(e).log("Couldn't save changed basic block matches");
       CMessageBox.showError(
           getMainWindow(), "Couldn't save changed basic block matches." + e.getMessage());
     }

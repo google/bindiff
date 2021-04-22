@@ -38,7 +38,6 @@ import java.awt.Window;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Set;
-import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 import y.algo.AlgorithmAbortedException;
 import y.base.Edge;
@@ -118,7 +117,7 @@ public abstract class BinDiffGraph<
       LayoutFunctions.recalculatePorts(layouter, getGraph());
     } catch (final AlgorithmAbortedException e) {
       // Do nothing, user has canceled layout thread
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
     } catch (final Exception e) {
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }
@@ -142,7 +141,7 @@ public abstract class BinDiffGraph<
       LayoutFunctions.recalculatePorts(layouter, getGraph());
     } catch (final AlgorithmAbortedException e) {
       // Do nothing, user has canceled layout thread
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
     } catch (final Exception e) {
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }

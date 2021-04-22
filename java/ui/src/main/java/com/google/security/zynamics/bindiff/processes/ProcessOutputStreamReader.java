@@ -19,7 +19,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.logging.Level;
 
 public class ProcessOutputStreamReader implements Runnable {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -54,16 +53,16 @@ public class ProcessOutputStreamReader implements Runnable {
           break;
         }
 
-        logger.at(Level.INFO).log("[%s] %s", name, line);
+        logger.atInfo().log("[%s] %s", name, line);
       }
     } catch (final Exception e) {
-      logger.at(Level.SEVERE).withCause(e).log("Could't read process output stream");
+      logger.atSevere().withCause(e).log("Could't read process output stream");
     } finally {
       if (inStream != null) {
         try {
           inStream.close();
         } catch (final IOException e) {
-          logger.at(Level.SEVERE).withCause(e).log("Could't close process output stream");
+          logger.atSevere().withCause(e).log("Could't close process output stream");
         }
       }
     }

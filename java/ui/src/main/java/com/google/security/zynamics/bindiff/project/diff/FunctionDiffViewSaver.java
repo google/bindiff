@@ -33,7 +33,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
 
 public class FunctionDiffViewSaver extends CEndlessHelperThread {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -110,7 +109,7 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
     if (!"".equals(errorMsg)) {
       errorMsg = errorMsg.substring(0, errorMsg.length() - 2);
 
-      logger.at(Level.WARNING).log(errorMsg);
+      logger.atWarning().log(errorMsg);
       MessageBox.showWarning(parent, errorMsg);
     }
   }
@@ -163,14 +162,14 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
 
       ByteStreams.copy(fis, fos);
     } catch (final FileNotFoundException e) {
-      logger.at(Level.SEVERE).withCause(e).log(
+      logger.atSevere().withCause(e).log(
           "Save function diff view failed. Couldn't copy BinDiff file into workspace.");
       MessageBox.showError(
           parent, "Save function diff view failed. Couldn't copy BinDiff file into workspace.");
 
       return false;
     } catch (final IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log(
+      logger.atSevere().withCause(e).log(
           "Save function diff view failed. Couldn't copy BinExport files into workspace.");
       MessageBox.showError(
           parent, "Save function diff view failed. Couldn't copy BinExport files into workspace.");
@@ -181,14 +180,14 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
         try {
           fis.close();
         } catch (final IOException e) {
-          logger.at(Level.WARNING).withCause(e).log("Couldn't close file input stream");
+          logger.atWarning().withCause(e).log("Couldn't close file input stream");
         }
       }
       if (fos != null) {
         try {
           fos.close();
         } catch (final IOException e) {
-          logger.at(Level.WARNING).withCause(e).log("Couldn't close file output stream");
+          logger.atWarning().withCause(e).log("Couldn't close file output stream");
         }
       }
     }
@@ -229,19 +228,19 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
           try {
             fis.close();
           } catch (final IOException e) {
-            logger.at(Level.WARNING).withCause(e).log("Couldn't close file input stream");
+            logger.atWarning().withCause(e).log("Couldn't close file input stream");
           }
         }
         if (fos != null) {
           try {
             fos.close();
           } catch (final IOException e) {
-            logger.at(Level.WARNING).withCause(e).log("Couldn't close file output stream");
+            logger.atWarning().withCause(e).log("Couldn't close file output stream");
           }
         }
       }
     } catch (final IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log(
+      logger.atSevere().withCause(e).log(
           "Save function diff view failed. Couldn't copy BinExport files.");
       MessageBox.showError(
           parent, "Save function diff view failed. Couldn't copy BinExport files.");
@@ -263,7 +262,7 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
       savedDiff.setExportFile(primaryExportFileTarget, ESide.PRIMARY);
       savedDiff.setExportFile(secondaryExportFileTarget, ESide.SECONDARY);
     } catch (final UnsupportedOperationException e) {
-      logger.at(Level.SEVERE).withCause(e).log(
+      logger.atSevere().withCause(e).log(
           "Save function diff view failed. Couldn't update diff object.");
       MessageBox.showError(parent, "Save function diff view failed. Couldn't update diff object.");
 
@@ -292,7 +291,7 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
     } catch (final SQLException e) {
       final String msg =
           "Save function diff view failed. Couldn't update export file name in matches database.";
-      logger.at(Level.SEVERE).withCause(e).log(msg);
+      logger.atSevere().withCause(e).log(msg);
       MessageBox.showError(parent, msg + " " + e.getMessage());
       return false;
     }

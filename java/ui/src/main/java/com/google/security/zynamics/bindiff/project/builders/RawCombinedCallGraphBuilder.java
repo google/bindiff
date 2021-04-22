@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 public class RawCombinedCallGraphBuilder {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -136,7 +135,7 @@ public class RawCombinedCallGraphBuilder {
       final RawCallGraph primaryRawCallGraph,
       final RawCallGraph secondaryRawCallGraph)
       throws GraphCreationException {
-    logger.at(Level.INFO).log(" - Building combined call graph");
+    logger.atInfo().log(" - Building combined call graph");
 
     try {
       // TODO: Use AddressPair here

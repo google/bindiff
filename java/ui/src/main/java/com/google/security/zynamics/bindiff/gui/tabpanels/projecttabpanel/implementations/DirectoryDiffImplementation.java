@@ -38,7 +38,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 
 /** Directory diffing thread implementation that displays visual progress. */
 // TODO(cblichmann): This class should just call the BinDiff engine for "batch diffing". The way
@@ -93,7 +92,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     try {
       BinDiffFileUtils.deleteDirectory(destinationFolder);
     } catch (final IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log(
+      logger.atSevere().withCause(e).log(
           "Couldn't delete diff folder '%s' after exporting failed", destinationFolder.getPath());
       CMessageBox.showWarning(
           mainWindow,
@@ -111,13 +110,13 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     try {
       engineExe = ExternalAppUtils.getBinDiffEngine();
     } catch (final DifferException | FileNotFoundException e) {
-      logger.at(Level.SEVERE).withCause(e).log();
+      logger.atSevere().withCause(e).log();
       CMessageBox.showError(parentWindow, e.getMessage());
 
       return matchesPaths;
     }
 
-    logger.at(Level.INFO).log(
+    logger.atInfo().log(
         "Start directory diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
 
     final String workspacePath = workspace.getWorkspaceDir().getPath();
@@ -166,7 +165,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
 
       // Export primary IDB
       try {
-        logger.at(Level.INFO).log(
+        logger.atInfo().log(
             " - Start exporting primary IDB '%s' to '%s'", primarySource, destination);
 
         final File idaExe = ExternalAppUtils.getIdaExe(primarySourceFile);
@@ -174,7 +173,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         if (idaExe == null || !idaExe.canExecute()) {
           final String msg =
               "Can't start disassembler. Please set correct path in the main settings first.";
-          logger.at(Level.SEVERE).log(msg);
+          logger.atSevere().log(msg);
           CMessageBox.showError(parentWindow, msg);
 
           deleteDirectory(parentWindow, destinationFolder);
@@ -185,11 +184,11 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         ExportProcess.startExportProcess(
             idaExe, destinationFolder, primarySourceFile, priTargetName);
 
-        logger.at(Level.INFO).log(
+        logger.atInfo().log(
             " - Finished exporting primary IDB '%s' to '%s' successfully",
             primarySource, destination);
       } catch (final BinExportException e) {
-        logger.at(Level.INFO).log(
+        logger.atInfo().log(
             " - Exporting primary '%s' to '%s' failed. Reason: %s",
             primarySource, destination, e.getMessage());
         final String msg =
@@ -204,7 +203,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
 
       // Export secondary IDB
       try {
-        logger.at(Level.INFO).log(
+        logger.atInfo().log(
             " - Start exporting secondary IDB '%s' to '%s'", secondarySource, destination);
 
         final File idaExe = ExternalAppUtils.getIdaExe(secondarySourceFile);
@@ -212,7 +211,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         if (idaExe == null || !idaExe.canExecute()) {
           final String msg =
               "Can't start disassembler. Please set correct path in the main settings first.";
-          logger.at(Level.SEVERE).log(msg);
+          logger.atSevere().log(msg);
           CMessageBox.showError(parentWindow, msg);
 
           return matchesPaths;
@@ -221,11 +220,11 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         ExportProcess.startExportProcess(
             idaExe, destinationFolder, secondarySourceFile, secTargetName);
 
-        logger.at(Level.INFO).log(
+        logger.atInfo().log(
             " - Finished exporting secondary IDB '%s' to '%s' successfully",
             secondarySource, destination);
       } catch (final BinExportException e) {
-        logger.at(Level.WARNING).log(
+        logger.atWarning().log(
             " - Exporting secondary '%s' to '%s' failed. Reason: %s",
             secondarySource, destination, e.getMessage());
         String msg =
@@ -245,18 +244,18 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         final String secondaryDifferArgument =
             ExportProcess.getExportFilename(secTargetName, destinationFolder);
 
-        logger.at(Level.INFO).log(" - Start diffing '%s'", destinationFolder.getName());
+        logger.atInfo().log(" - Start diffing '%s'", destinationFolder.getName());
         DiffProcess.startDiffProcess(
             engineExe, primaryDifferArgument, secondaryDifferArgument, destinationFolder);
 
         final String diffBinaryPath =
             DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
 
-        logger.at(Level.INFO).log(" - Diffing '%s' done successfully", destinationFolder.getName());
+        logger.atInfo().log(" - Diffing '%s' done successfully", destinationFolder.getName());
 
         matchesPaths.add(diffBinaryPath);
       } catch (final DifferException e) {
-        logger.at(Level.WARNING).log(
+        logger.atWarning().log(
             " - Diffing '%s' failed. Reason: %s", destinationFolder.getName(), e.getMessage());
         final String msg =
             String.format(
@@ -266,11 +265,11 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     }
 
     if (diffingErrorMessages.size() == 0) {
-      logger.at(Level.INFO).log(
+      logger.atInfo().log(
           "Finished Directory Diff '%s' vs '%s' successfully",
           primarySourcePath, secondarySourcePath);
     } else {
-      logger.at(Level.WARNING).log(
+      logger.atWarning().log(
           "Finished Directory Diff '%s' vs '%s' with errors.",
           primarySourcePath, secondarySourcePath);
     }

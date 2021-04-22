@@ -36,7 +36,6 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNo
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 
 public class SelectionHistory {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -161,7 +160,7 @@ public class SelectionHistory {
       try {
         listener.startedRedo();
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
+        logger.atSevere().withCause(e).log("Selection history listener notification failed");
       }
     }
 
@@ -189,7 +188,7 @@ public class SelectionHistory {
       try {
         listener.finishedRedo();
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
+        logger.atSevere().withCause(e).log("Selection history listener notification failed");
       }
     }
   }
@@ -206,7 +205,7 @@ public class SelectionHistory {
     try {
       listeners.removeListener(listener);
     } catch (final Exception e) {
-      logger.at(Level.WARNING).log("Listener was not listening.");
+      logger.atWarning().log("Listener was not listening.");
     }
   }
 
@@ -219,7 +218,7 @@ public class SelectionHistory {
       try {
         listener.startedUndo();
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
+        logger.atSevere().withCause(e).log("Selection history listener notification failed");
       }
     }
 
@@ -247,7 +246,7 @@ public class SelectionHistory {
       try {
         listener.finishedUndo();
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Selection history listener notification failed");
+        logger.atSevere().withCause(e).log("Selection history listener notification failed");
       }
     }
   }

@@ -19,7 +19,6 @@ import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.condition
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.Criterion;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.expressiontree.ICriterionTreeListener;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
-import java.util.logging.Level;
 
 /** Class that represents the non-visible model of a criterion tree. */
 public class CriterionTree {
@@ -45,7 +44,7 @@ public class CriterionTree {
       try {
         listener.nodeAppended(this, parent, child);
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Append tree node");
+        logger.atSevere().withCause(e).log("Append tree node");
       }
     }
   }
@@ -69,7 +68,7 @@ public class CriterionTree {
       try {
         listener.nodeInserted(this, parent, child);
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Insert tree node");
+        logger.atSevere().withCause(e).log("Insert tree node");
       }
     }
   }
@@ -83,7 +82,7 @@ public class CriterionTree {
       try {
         listener.removedAll(this);
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Remove all tree Nodes");
+        logger.atSevere().withCause(e).log("Remove all tree Nodes");
       }
     }
   }
@@ -102,7 +101,7 @@ public class CriterionTree {
       try {
         listener.nodeRemoved(this, node);
       } catch (final Exception e) {
-        logger.at(Level.SEVERE).withCause(e).log("Remove tree node");
+        logger.atSevere().withCause(e).log("Remove tree node");
       }
     }
   }

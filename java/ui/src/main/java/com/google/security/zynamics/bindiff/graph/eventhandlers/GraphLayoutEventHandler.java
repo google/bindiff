@@ -29,7 +29,6 @@ import com.google.security.zynamics.zylib.gui.CMessageBox;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-import java.util.logging.Level;
 
 public class GraphLayoutEventHandler {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -50,7 +49,7 @@ public class GraphLayoutEventHandler {
     try {
       GraphLayoutUpdater.executeStatic(graph, showProgress);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     }
   }
@@ -62,7 +61,7 @@ public class GraphLayoutEventHandler {
 
       GraphLayoutInitializer.executeStatic(graph);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);
@@ -76,7 +75,7 @@ public class GraphLayoutEventHandler {
 
       ProximityBrowserActivator.executeStatic(graph);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);
@@ -91,7 +90,7 @@ public class GraphLayoutEventHandler {
       blockAllGraphsIntermediateListeners(graph);
       ProximityBrowserDeactivator.executeStatic(graph);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);
@@ -106,7 +105,7 @@ public class GraphLayoutEventHandler {
 
       ProximityNodeClickedUpdater.executeStatic(graph, proximityNode);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);
@@ -120,7 +119,7 @@ public class GraphLayoutEventHandler {
 
       GraphReactivateViewSynchronization.executeStatic(graph);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);
@@ -134,7 +133,7 @@ public class GraphLayoutEventHandler {
 
       GraphSelectionUpdater.executeStatic(graph);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);
@@ -148,7 +147,7 @@ public class GraphLayoutEventHandler {
 
       ProximityBrowserUnhideNode.executeStatic(graph, node);
     } catch (final GraphLayoutException e) {
-      logger.at(Level.SEVERE).withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(BinDiffGraph.getParentWindow(graph), e.getMessage());
     } finally {
       freeAllGraphsIntermediateListeners(graph);

@@ -43,7 +43,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -274,7 +273,7 @@ public class DiffTreeNodeContextPanel extends AbstractTreeNodeContextPanel {
       description.setText(matchesDb.loadDiffDescription());
     } catch (final SQLException e) {
       // No message box (many diffs can be batch loaded)
-      logger.at(Level.SEVERE).withCause(e).log("Load diff description failed");
+      logger.atSevere().withCause(e).log("Load diff description failed");
     }
   }
 

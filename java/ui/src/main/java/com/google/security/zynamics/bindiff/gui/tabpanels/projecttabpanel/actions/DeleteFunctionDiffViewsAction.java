@@ -29,7 +29,6 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import javax.swing.AbstractAction;
 
 public class DeleteFunctionDiffViewsAction extends AbstractAction {
@@ -60,7 +59,7 @@ public class DeleteFunctionDiffViewsAction extends AbstractAction {
         BinDiffFileUtils.deleteDirectory(viewsNode.getViewDirectory());
       }
     } catch (final IOException e) {
-      logger.at(Level.SEVERE).withCause(e).log("Couldn't delete function diff's directory");
+      logger.atSevere().withCause(e).log("Couldn't delete function diff's directory");
       CMessageBox.showError(
           controller.getMainWindow(), "Couldn't delete function diff's directory.");
     }

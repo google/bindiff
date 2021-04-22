@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
 
 public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterion, ESortOrder>> {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -197,7 +196,7 @@ public class TreeNodeMultiSorter implements Iterable<Pair<ESortByCriterion, ESor
       final int criterionDepth,
       final boolean notify) {
     if (criterionDepth < 0 || criterionDepth > MAX_DEPTH) {
-      logger.at(Level.SEVERE).log("Criterion depth is out of range");
+      logger.atSevere().log("Criterion depth is out of range");
 
       return;
     }

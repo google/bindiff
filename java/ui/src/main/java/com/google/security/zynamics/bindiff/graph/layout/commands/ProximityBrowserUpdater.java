@@ -46,7 +46,6 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyPro
 import java.awt.Font;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import y.base.Edge;
 import y.base.Node;
 import y.base.NodeCursor;
@@ -318,7 +317,7 @@ public final class ProximityBrowserUpdater implements ICommand {
                   secondaryYGraph2D, secondaryDiffNode, secondaryDegree, true);
             }
           } else {
-            logger.at(Level.SEVERE).log(
+            logger.atSevere().log(
                 "Malformed graph. Super proximity node without incoming or outgoing edge.");
           }
         }

@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.logging.Level;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 
@@ -72,7 +71,7 @@ public class ResourceUtils {
       }
     }
     if (imageUrl == null) {
-      logger.at(Level.WARNING).log("Image resource not found: \"%s\"", imagePath);
+      logger.atWarning().log("Image resource not found: \"%s\"", imagePath);
       return null;
     }
 
@@ -92,7 +91,7 @@ public class ResourceUtils {
     try {
       mt.waitForAll();
     } catch (final InterruptedException e) {
-      logger.at(Level.WARNING).withCause(e).log(
+      logger.atWarning().withCause(e).log(
           "Interrupted while loading image resource: \"%s\"", imagePath);
     }
 
@@ -117,7 +116,7 @@ public class ResourceUtils {
         return stream;
       }
     }
-    logger.at(Level.WARNING).log("Resource not found: \"%s\"", resourcePath);
+    logger.atWarning().log("Resource not found: \"%s\"", resourcePath);
     return null;
   }
 

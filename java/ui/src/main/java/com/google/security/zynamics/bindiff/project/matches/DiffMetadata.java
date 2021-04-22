@@ -27,7 +27,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Locale;
-import java.util.logging.Level;
 
 public class DiffMetadata {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -140,7 +139,7 @@ public class DiffMetadata {
     try {
       result.setTime(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(date));
     } catch (final ParseException e) {
-      logger.at(Level.SEVERE).withCause(e).log();
+      logger.atSevere().withCause(e).log();
     }
     return result;
   }

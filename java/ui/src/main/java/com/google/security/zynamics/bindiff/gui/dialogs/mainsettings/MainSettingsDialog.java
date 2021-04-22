@@ -32,7 +32,6 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.util.logging.Level;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -69,7 +68,7 @@ public class MainSettingsDialog extends BaseDialog implements ActionListener {
       BinDiff.applyLoggingChanges();
     } catch (final SecurityException | IOException e) {
       final String message = "Couldn't create file logger";
-      logger.at(Level.SEVERE).withCause(e).log(message);
+      logger.atSevere().withCause(e).log(message);
       CMessageBox.showError(this, message);
     }
   }
@@ -148,7 +147,7 @@ public class MainSettingsDialog extends BaseDialog implements ActionListener {
         cancelled = false;
       } catch (final IOException e) {
         final String message = "Couldn't save main settings";
-        logger.at(Level.SEVERE).withCause(e).log(message);
+        logger.atSevere().withCause(e).log(message);
         CMessageBox.showError(this, message);
       }
     }

@@ -30,7 +30,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.logging.Level;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -56,7 +55,7 @@ public final class SocketServer {
   }
 
   private void handleReceivedByteBuffer(final byte[] bytes) {
-    logger.at(Level.INFO).log("Received byte stream from socket...");
+    logger.atInfo().log("Received byte stream from socket...");
 
     try {
       final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -92,11 +91,11 @@ public final class SocketServer {
 
   private void handleError(final Exception e, final String msg) {
     CMessageBox.showError(controller.getMainWindow(), msg);
-    logger.at(Level.SEVERE).withCause(e).log(msg);
+    logger.atSevere().withCause(e).log(msg);
   }
 
   public void startListening() throws IOException {
-    logger.at(Level.INFO).log("Starting local command server on port %d...", port);
+    logger.atInfo().log("Starting local command server on port %d...", port);
     socket = new ServerSocket();
     socket.bind(new InetSocketAddress(InetAddress.getByName(null), port));
     new SocketListenerThread(this).start();

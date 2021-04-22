@@ -51,7 +51,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
 
 /** Reads data from BinExport2 files and renders disassemblies. */
 public class BinExport2Reader {
@@ -408,7 +407,7 @@ public class BinExport2Reader {
         final int targetIndex = edge.getTargetBasicBlockIndex();
         final RawBasicBlock target = basicBlocks.get(targetIndex);
         if (source == null || target == null) {
-          logger.at(Level.WARNING).log(
+          logger.atWarning().log(
               "Incomplete %s flow graph edge (source %d%s, target %d%s)",
               side == ESide.PRIMARY ? "primary" : "secondary",
               sourceIndex,

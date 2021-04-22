@@ -344,7 +344,6 @@ public class BinDiff {
 
           logger.atInfo().log(
               "Starting %s (Java %s)", Constants.PRODUCT_NAME_VERSION, JAVA_VERSION.value());
-
           initializeTheme();
 
           if (Desktop.isDesktopSupported()) {

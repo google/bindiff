@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
-import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 
 public class DiffLoader implements ICommand {
@@ -181,14 +180,14 @@ public class DiffLoader implements ICommand {
 
   void loadDiff(final Diff diff, final DiffRequestMessage data) throws IOException, SQLException {
     if (diff.isLoaded()) {
-      logger.at(Level.INFO).log("Diff is already loaded");
+      logger.atInfo().log("Diff is already loaded");
       return;
     }
 
     if (descriptionTarget != null) {
       descriptionTarget.setDescription(String.format("Loading Diff '%s'", diff.getDiffName()));
     }
-    logger.at(Level.INFO).log("Loading Diff '%s'", diff.getDiffName());
+    logger.atInfo().log("Loading Diff '%s'", diff.getDiffName());
     validateInputFiles(diff);
 
     setSubDescription("Loading function matches...");
@@ -230,7 +229,7 @@ public class DiffLoader implements ICommand {
               matchesDatabase.getPath(), File.separator, matchesDatabase.getName()));
     }
 
-    logger.at(Level.INFO).log(" - Loading Diff '%s'", matchesDatabase.getPath());
+    logger.atInfo().log(" - Loading Diff '%s'", matchesDatabase.getPath());
 
     try (final MatchesDatabase database = new MatchesDatabase(matchesDatabase)) {
       diff.setMatches(database.loadFunctionMatches(diff));

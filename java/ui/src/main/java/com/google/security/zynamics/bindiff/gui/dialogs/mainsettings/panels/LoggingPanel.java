@@ -134,7 +134,7 @@ public class LoggingPanel extends JPanel {
   }
 
   private static int levelToIndex(Level level) {
-    if (level.equals(Level.ALL)) {
+    if (level.equals(Level.FINEST)) {
       return 0;
     }
     if (level.equals(Level.INFO)) {
@@ -155,7 +155,7 @@ public class LoggingPanel extends JPanel {
   public Level getLogLevel() {
     switch (logLevel.getSelectedIndex()) {
       case 0:
-        return Level.ALL;
+        return Level.FINEST;
       case 2:
         return Level.WARNING;
       case 3:

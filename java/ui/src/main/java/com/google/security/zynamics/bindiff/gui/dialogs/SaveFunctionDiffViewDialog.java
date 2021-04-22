@@ -46,7 +46,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -269,7 +268,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
                 String.format("Loading Workspace '%s'", workspaceFile.getName()),
                 loader);
           } catch (final Exception e) {
-            logger.at(Level.SEVERE).withCause(e).log(
+            logger.atSevere().withCause(e).log(
                 "Load default workspace failed: '%s'", workspaceFile.getPath());
             MessageBox.showError(
                 getParent(),
@@ -298,7 +297,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
           final WorkspaceTabPanel workspaceTabPanel = tabPanelManager.getWorkspaceTabPanel();
           workspaceTabPanel.getController().loadWorkspace();
         } catch (final Exception e) {
-          logger.at(Level.SEVERE).withCause(e).log("Load workspace failed");
+          logger.atSevere().withCause(e).log("Load workspace failed");
           MessageBox.showError(window, "Load workspace failed.");
         }
       }
@@ -536,7 +535,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
     if (!createSingleViewsDirectory()) {
       final String msg =
           "Save function diff view failed. Couldn't create 'Function Diffs' directory'.";
-      logger.at(Level.SEVERE).log(msg);
+      logger.atSevere().log(msg);
       MessageBox.showError(window, msg);
 
       dispose();
@@ -546,7 +545,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
 
     if (!createDestinationDirectory()) {
       final String msg = "Save function diff view failed. Couldn't create destination directory.";
-      logger.at(Level.SEVERE).log(msg);
+      logger.atSevere().log(msg);
       MessageBox.showError(window, msg);
 
       dispose();
@@ -558,7 +557,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
       setDefaultNames();
     } catch (final IOException e) {
       final String msg = "Save function diff view failed. Couldn't calculate source BinExport MD5.";
-      logger.at(Level.SEVERE).withCause(e).log(msg);
+      logger.atSevere().withCause(e).log(msg);
       MessageBox.showError(window, msg);
 
       return;
@@ -584,7 +583,7 @@ public class SaveFunctionDiffViewDialog extends BaseDialog {
         } catch (final IOException e) {
           final String msg =
               "Save function diff view failed. Couldn't calculate source BinExport MD5.";
-          logger.at(Level.SEVERE).withCause(e).log(msg);
+          logger.atSevere().withCause(e).log(msg);
           MessageBox.showError(getParent(), msg);
 
           return;

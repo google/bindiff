@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 
 public class RawCombinedFlowGraphBuilder {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -227,7 +226,7 @@ public class RawCombinedFlowGraphBuilder {
           final RawFlowGraph primaryFlowGraph,
           final RawFlowGraph secondaryFlowGraph)
           throws GraphCreationException {
-    logger.at(Level.INFO).log(" - Building combined flow graphs");
+    logger.atInfo().log(" - Building combined flow graphs");
 
     // Build matched functions's combined basic blocks and combined jumps
     if (primaryFlowGraph != null && secondaryFlowGraph != null) {

@@ -27,7 +27,6 @@ import com.google.security.zynamics.zylib.types.common.ICommand;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import java.awt.Window;
-import java.util.logging.Level;
 import javax.swing.SwingUtilities;
 
 public class GraphLayoutUpdater implements ICommand {
@@ -118,7 +117,7 @@ public class GraphLayoutUpdater implements ICommand {
         viewUpdater.execute();
       } catch (final GraphLayoutException e) {
         CMessageBox.showWarning(window, "Couldn't update graph layout.");
-        logger.at(Level.SEVERE).withCause(e).log("Couldn't update graph layout");
+        logger.atSevere().withCause(e).log("Couldn't update graph layout");
       }
     }
   }

@@ -21,7 +21,6 @@ import com.google.security.zynamics.bindiff.enums.EGraphSynchronization;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.zygraph.AbstractZyGraphSettings;
-import java.util.logging.Level;
 
 public class GraphSettings extends AbstractZyGraphSettings {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
@@ -124,7 +123,7 @@ public class GraphSettings extends AbstractZyGraphSettings {
       displaySettings.removeListener(listener);
       mouseSettings.removeListener(listener);
     } catch (final Exception e) {
-      logger.at(Level.WARNING).log("Listener was not listening");
+      logger.atWarning().log("Listener was not listening");
     }
   }
 
