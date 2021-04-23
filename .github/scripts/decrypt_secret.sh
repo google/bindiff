@@ -8,5 +8,5 @@ set -e
 
 gpg --quiet --batch --yes --decrypt \
   "--passphrase=${IDASDK_SECRET}" \
-  --output "${RUNNER_WORKSPACE}/build/idasdk75.zip" \
-  "${GITHUB_WORKSPACE}/third_party/idasdk75.zip.gpg"
+  --output "${RUNNER_WORKSPACE}/build/idasdk76.zip" \
+  "${GITHUB_WORKSPACE}/third_party/idasdk76.zip.gpg"

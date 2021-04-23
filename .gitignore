@@ -4,6 +4,7 @@
 .*.swo
 
 # IDEs
+.cache/
 .clangd/
 .idea/
 .vscode/

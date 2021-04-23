@@ -1,0 +1,57 @@
+name: cmake-build
+
+on: [push, pull_request]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-20.04
+        - os: macos-10.15
+        - os: windows-2019
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install ninja-build tool
+      uses: seanmiddleditch/gha-setup-ninja@v3
+
+    - name: Create Build Environment
+      env:
+        RUNNER_WORKSPACE: ${{ runner.workspace }}
+        IDASDK_SECRET: ${{ secrets.IDASDK_SECRET }}
+      working-directory: ${{ github.workspace }}
+      shell: bash
+      run: |
+        cmake -E make_directory "${RUNNER_WORKSPACE}/build"
+        ./.github/scripts/decrypt_secret.sh
+        unzip -q "${RUNNER_WORKSPACE}/build/idasdk76.zip" \
+          -d "${RUNNER_WORKSPACE}/build/"
+
+    - name: Enable Developer Command Prompt (Windows)
+      if: matrix.os == 'windows-2019'
+      uses: ilammy/msvc-dev-cmd@v1.7.0
+
+    - name: Configure CMake
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      run: |
+        cmake "${GITHUB_WORKSPACE}" -G Ninja \
+          "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
+          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk76"
+
+    - name: Build
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      run: cmake --build . --config "${BUILD_TYPE}"
+
+    - name: Test
+      working-directory: ${{ runner.workspace }}/build
+      shell: bash
+      run: ctest --build-config "${BUILD_TYPE}" --output-on-failure
