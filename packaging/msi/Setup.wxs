@@ -109,7 +109,7 @@
          the following quote (") as escaped, breaking argument passing.
       -->
     <SetProperty Id="SetupConfigFile"
-                 Value='"[64.dllbindiff_config_setup.exe]" --config "[64.dllbindiff.json]" directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
+                 Value='"[#bindiff_config_setup.exe]" --config "[#bindiff.json]" directory="[INSTALLDIR]." ui.java_binary="[INSTALLDIR]jre\bin\javaw.exe"'
                  Before="SetupConfigFile"
                  Sequence="execute" />
     <CustomAction Id="SetupConfigFile"
@@ -121,7 +121,7 @@
 
     <!-- Install disassembler plugins for the user installing BinDiff -->
     <SetProperty Id="SetupPerUser"
-                 Value='"[64.dllbindiff_config_setup.exe]" --per_user'
+                 Value='"[#bindiff_config_setup.exe]" --per_user'
                  Before="SetupPerUser"
                  Sequence="execute" />
     <CustomAction Id="SetupPerUser"
