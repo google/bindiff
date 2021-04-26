@@ -332,9 +332,12 @@ target_link_libraries(bindiff
   absl::flags_parse
   absl::time
 )
-set_target_properties(bindiff PROPERTIES
-  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
-)
+if(NOT MSVC)
+  # IPO breaks Abseil's flag parsing on Windows
+  set_target_properties(bindiff PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
+  )
+endif()
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
 
 # Utility programs. For now, only contains a tool to modify the BinDiff

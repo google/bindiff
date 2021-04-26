@@ -64,12 +64,9 @@ public class DiffProcess {
         new ProcessBuilder(
             differExe.getPath(),
             "--nologo",
-            "--primary",
-            primaryExportedName,
-            "--secondary",
-            secondaryExportedName,
-            "--output_dir",
-            outputDir.getPath(),
+            "--primary=" + primaryExportedName,
+            "--secondary=" + secondaryExportedName,
+            "--output_dir=" + outputDir.getPath(),
             "--output_format=bin");
     int exitCode = -1;
 
@@ -86,8 +83,8 @@ public class DiffProcess {
       // This is needed to avoid a deadlock!
       // More information see:
       // http://www.javakb.com/Uwe/Forum.aspx/java-programmer/7243/Process-waitFor-vs-Process-destroy
-      s1 = new ProcessOutputStreamReader("BinDiff Process - stdout", diffProcess.getInputStream());
-      s2 = new ProcessOutputStreamReader("BinDiff Process - stderr", diffProcess.getErrorStream());
+      s1 = new ProcessOutputStreamReader("BinDiff - stdout", diffProcess.getInputStream());
+      s2 = new ProcessOutputStreamReader("BinDiff - stderr", diffProcess.getErrorStream());
       s1.start();
       s2.start();
 

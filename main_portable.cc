@@ -69,7 +69,7 @@
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
-ABSL_FLAG(bool, nologo, false, "do not display version/copyright information");
+ABSL_FLAG(bool, logo, true, "display version/copyright information");
 ABSL_FLAG(bool, ui, false, "launch the BinDiff UI");
 ABSL_FLAG(std::string, primary, "", "primary input file or path in batch mode");
 ABSL_FLAG(std::string, secondary, "", "secondary input file (optional)");
@@ -507,17 +507,7 @@ void InstallFlagsUsageConfig() {
 }
 
 absl::Status BinDiffMain(int argc, char* argv[]) {
-#ifdef WIN32
-  signal(SIGBREAK, SignalHandler);
-#endif
-  signal(SIGINT, SignalHandler);
-
   const std::string binary_name = Basename(argv[0]);
-  const std::string current_path = GetCurrentDirectory();
-  if (absl::GetFlag(FLAGS_output_dir).empty()) {
-    absl::SetFlag(&FLAGS_output_dir, current_path);
-  }
-
   const std::string usage = absl::StrFormat(
       "Find similarities and differences in disassembled code.\n"
       "Usage: %1$s [OPTION] DIRECTORY\n"
@@ -534,16 +524,24 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
   std::vector<std::string> positional;
   {
     const std::vector<char*> parsed_argv = absl::ParseCommandLine(argc, argv);
-    positional.reserve(parsed_argv.size() - 1);
-    for (int i = 1; i < parsed_argv.size(); ++i) {
-      positional.push_back(parsed_argv[i]);
-    }
+    positional.assign(parsed_argv.begin() + 1, parsed_argv.end());
   }
+
+#ifdef WIN32
+  signal(SIGBREAK, SignalHandler);
+#endif
+  signal(SIGINT, SignalHandler);
+
+  const std::string current_path = GetCurrentDirectory();
+  if (absl::GetFlag(FLAGS_output_dir).empty()) {
+    absl::SetFlag(&FLAGS_output_dir, current_path);
+  }
+
 #ifndef GOOGLE
   SetLogHandler(&UnprefixedLogHandler);
 #endif
 
-  if (!absl::GetFlag(FLAGS_nologo) && !absl::GetFlag(FLAGS_print_config)) {
+  if (absl::GetFlag(FLAGS_logo) && !absl::GetFlag(FLAGS_print_config)) {
     PrintMessage(absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, ", ",
                               kBinDiffCopyright));
   }
