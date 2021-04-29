@@ -39,6 +39,9 @@ class Instruction {
   const std::string& mnemonic() const { return mnemonic_; }
   Address address() const { return address_; }
 
+  int index() const { return index_; }
+  void set_index(int index) { index_ = index; }
+
   const std::vector<int>& operands() const { return operand_indices_; }
   void set_operands(const std::vector<int>& operand_indices);
 
@@ -53,6 +56,10 @@ class Instruction {
  private:
   Address address_;
   std::string mnemonic_;
+
+  // A backwards reference of the instruction's index in the BinExport proto
+  // table.
+  int index_;
 
   // Operand indices from the BinExport2 protocol buffer they were loaded from.
   std::vector<int> operand_indices_;

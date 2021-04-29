@@ -172,6 +172,7 @@ std::unique_ptr<FlowGraph> FlowGraph::FromBinExport2Proto(
         flow_graph->instructions_.emplace_back(instruction_address, mnemonic);
 
         auto& instruction = flow_graph->instructions_.back();
+        instruction.set_index(instruction_index);
         instruction.set_operands({instruction_proto.operand_index().begin(),
                                   instruction_proto.operand_index().end()});
         instruction.set_call_targets({instruction_proto.call_target().begin(),
