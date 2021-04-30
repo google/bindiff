@@ -18,16 +18,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.Image;
 import java.awt.Window;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
@@ -40,85 +38,65 @@ public class GuiUtils {
     /* Prevent instantiation */
   }
 
-  public static JCheckBoxMenuItem buildCheckBoxMenuItem(
-      final String name, final AbstractAction action) {
-    final JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
+  public static JCheckBoxMenuItem buildCheckBoxMenuItem(String name, ActionListener action) {
+    JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
     item.addActionListener(action);
 
     return item;
   }
 
   public static JCheckBoxMenuItem buildCheckBoxMenuItem(
-      final String name, final char mnemonic, final AbstractAction action) {
-    final JCheckBoxMenuItem item = new JCheckBoxMenuItem(name);
+      String name, char mnemonic, ActionListener action) {
+    var item = new JCheckBoxMenuItem(name);
     item.setMnemonic(mnemonic);
     item.addActionListener(action);
-
     return item;
   }
 
   public static JCheckBoxMenuItem buildCheckBoxMenuItem(
-      final String name,
-      final char mnemonic,
-      final int keyEvent,
-      final int modifier,
-      final AbstractAction action) {
-    final JCheckBoxMenuItem item = buildCheckBoxMenuItem(name, mnemonic, action);
+      String name, char mnemonic, int keyEvent, int modifier, ActionListener action) {
+    JCheckBoxMenuItem item = buildCheckBoxMenuItem(name, mnemonic, action);
     item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, modifier));
-
     return item;
   }
 
-  public static JMenu buildMenu(final String name, final char mnemonic) {
-    final JMenu menu = new JMenu(name);
-    menu.setMnemonic(mnemonic);
-
-    return menu;
-  }
-
-  public static JMenuItem buildMenuItem(final String text, final AbstractAction action) {
+  public static JMenuItem buildMenuItem(String text, ActionListener action) {
     return buildMenuItem(text, (char) -1, -1, 0, action, true);
   }
 
-  public static JMenuItem buildMenuItem(
-      final String text, final AbstractAction action, final boolean enable) {
+  public static JMenuItem buildMenuItem(String text, ActionListener action, boolean enable) {
     return buildMenuItem(text, (char) -1, -1, 0, action, enable);
   }
 
-  public static JMenuItem buildMenuItem(
-      final String text, final char mnemonic, final AbstractAction action) {
+  public static JMenuItem buildMenuItem(String text, char mnemonic, ActionListener action) {
     return buildMenuItem(text, mnemonic, -1, 0, action, true);
   }
 
   public static JMenuItem buildMenuItem(
-      final String text, final char mnemonic, final AbstractAction action, final boolean enable) {
+      String text, char mnemonic, ActionListener action, boolean enable) {
     return buildMenuItem(text, mnemonic, -1, 0, action, enable);
   }
 
   public static JMenuItem buildMenuItem(
-      final String text, final char mnemonic, final char accelerator, final AbstractAction action) {
-    final JMenuItem result = buildMenuItem(text, mnemonic, action);
+      String text, char mnemonic, char accelerator, ActionListener action) {
+    JMenuItem result = buildMenuItem(text, mnemonic, action);
     result.setAccelerator(KeyStroke.getKeyStroke(accelerator));
     return result;
   }
 
   public static JMenuItem buildMenuItem(
-      final String text,
-      final char mnemonic,
-      final int keyCode,
-      final int modifier,
-      final AbstractAction action) {
+      String text, char mnemonic, int keyCode, int modifier, ActionListener action) {
     return buildMenuItem(text, mnemonic, keyCode, modifier, action, true);
   }
 
   public static JMenuItem buildMenuItem(
-      final String text,
-      final char mnemonic,
-      final int keyCode,
-      final int modifier,
-      final AbstractAction action,
-      final boolean enable) {
-    final JMenuItem result = new JMenuItem(text, mnemonic);
+      String text,
+      char mnemonic,
+      int keyCode,
+      int modifier,
+      ActionListener action,
+      boolean enable) {
+    var result = new JMenuItem(text, mnemonic);
     if (keyCode >= 0) {
       result.setAccelerator(KeyStroke.getKeyStroke(keyCode, modifier));
     }
@@ -128,69 +106,56 @@ public class GuiUtils {
     return result;
   }
 
-  public static JMenuItem buildMenuItem(
-      final String text, final Icon icon, final AbstractAction action) {
-    final JMenuItem item = buildMenuItem(text, (char) -1, -1, 0, action, true);
+  public static JMenuItem buildMenuItem(String text, Icon icon, ActionListener action) {
+    var item = buildMenuItem(text, (char) -1, -1, 0, action, true);
     item.setIcon(icon);
-
     return item;
   }
 
   public static JMenuItem buildMenuItem(
-      final String text, final int keyCode, final int modifier, final AbstractAction action) {
+      String text, int keyCode, int modifier, ActionListener action) {
     return buildMenuItem(text, (char) -1, keyCode, modifier, action, true);
   }
 
   public static JRadioButtonMenuItem buildRadioButtonMenuItem(
-      final String name, final char mnemonic, final AbstractAction action) {
-    final JRadioButtonMenuItem item = new JRadioButtonMenuItem(name);
+      String name, char mnemonic, ActionListener action) {
+    var item = new JRadioButtonMenuItem(name);
     item.setMnemonic(mnemonic);
     item.addActionListener(action);
-
     return item;
   }
 
   public static JRadioButtonMenuItem buildRadioButtonMenuItem(
-      final String name,
-      final char mnemonic,
-      final int keyEvent,
-      final int modifier,
-      final AbstractAction action) {
-    final JRadioButtonMenuItem item = buildRadioButtonMenuItem(name, mnemonic, action);
+      String name, char mnemonic, int keyEvent, int modifier, ActionListener action) {
+    JRadioButtonMenuItem item = buildRadioButtonMenuItem(name, mnemonic, action);
     item.setAccelerator(KeyStroke.getKeyStroke(keyEvent, modifier));
-
     return item;
   }
 
   public static <T extends Component> T createHorizontalNamedComponent(
-      final JPanel parent,
-      final String labelText,
-      final T component,
-      final int panelWidth,
-      final int panelHeight,
-      final boolean isLast) {
+      JPanel parent,
+      String labelText,
+      T component,
+      int panelWidth,
+      int panelHeight,
+      boolean isLast) {
     component.setPreferredSize(new Dimension(panelWidth, panelHeight));
 
-    final JPanel rowPanel = new JPanel(new BorderLayout());
+    var rowPanel = new JPanel(new BorderLayout());
     rowPanel.setBorder(new EmptyBorder(0, 2, isLast ? 2 : 0, 2));
 
     rowPanel.add(new JLabel(labelText), BorderLayout.CENTER);
     rowPanel.add(component, BorderLayout.EAST);
 
     parent.add(rowPanel);
-
     return component;
   }
 
   public static JPanel createHorizontalNamedComponentPanel(
-      final String labelText,
-      final int labelWidth,
-      final JComponent component,
-      final int panelHeight) {
-    final JPanel panel = new JPanel(new BorderLayout());
+      String labelText, int labelWidth, JComponent component, int panelHeight) {
+    var panel = new JPanel(new BorderLayout());
 
-    final JLabel descriptionLabel = new JLabel(labelText);
-
+    var descriptionLabel = new JLabel(labelText);
     descriptionLabel.setPreferredSize(new Dimension(labelWidth, panelHeight));
     component.setPreferredSize(new Dimension(component.getPreferredSize().width, panelHeight));
 
@@ -203,15 +168,12 @@ public class GuiUtils {
   }
 
   public static JPanel createHorizontalNamedLabelPanel(
-      final String labelText,
-      final int labelWidth,
-      final JLabel valueLabel,
-      final int panelHeight) {
-    final JPanel panel = new JPanel(new BorderLayout());
+      String labelText, int labelWidth, JLabel valueLabel, int panelHeight) {
+    var panel = new JPanel(new BorderLayout());
     panel.setBorder(new EmptyBorder(0, 3, 2, 3));
     panel.setBackground(Color.WHITE);
 
-    final JLabel descriptionLabel = new JLabel(labelText);
+    var descriptionLabel = new JLabel(labelText);
     descriptionLabel.setPreferredSize(new Dimension(labelWidth, panelHeight));
     panel.setPreferredSize(new Dimension(0, panelHeight));
 
@@ -225,44 +187,34 @@ public class GuiUtils {
   }
 
   public static Component createHorizontalNamedLabelPanel(
-      final String labelText,
-      final int labelWidth,
-      final JTextField textfield,
-      final int panelHeight) {
+      String labelText, int labelWidth, JTextField textField, int panelHeight) {
 
-    textfield.setEditable(false);
-    textfield.setBorder(null);
-    textfield.setForeground(new Color(0, 0, 160));
-    textfield.setBackground(Color.WHITE);
+    textField.setEditable(false);
+    textField.setBorder(null);
+    textField.setForeground(new Color(0, 0, 160));
+    textField.setBackground(Color.WHITE);
 
-    final JPanel panel = new JPanel(new BorderLayout());
+    var panel = new JPanel(new BorderLayout());
     panel.setBorder(new EmptyBorder(0, 3, 2, 3));
     panel.setBackground(Color.WHITE);
 
-    final JLabel descriptionLabel = new JLabel(labelText);
+    var descriptionLabel = new JLabel(labelText);
     descriptionLabel.setPreferredSize(new Dimension(labelWidth, panelHeight));
     panel.setPreferredSize(new Dimension(0, panelHeight));
 
     panel.add(descriptionLabel, BorderLayout.WEST);
-    panel.add(textfield, BorderLayout.CENTER);
+    panel.add(textField, BorderLayout.CENTER);
 
     return panel;
   }
 
   public static void setWindowIcons(
-      final Window window,
-      final String iconPath16x16,
-      final String iconPath32x32,
-      final String iconPath48x48) {
-    final ArrayList<Image> imageList = new ArrayList<>();
+      Window window, String iconPath16x16, String iconPath32x32, String iconPath48x48) {
+    var imageList = new ArrayList<Image>();
     imageList.add(ResourceUtils.getImage(iconPath16x16));
     imageList.add(ResourceUtils.getImage(iconPath32x32));
     imageList.add(ResourceUtils.getImage(iconPath48x48));
 
     window.setIconImages(imageList);
-  }
-
-  public static void updateLater(final JComponent component) {
-    EventQueue.invokeLater(component::updateUI);
   }
 }

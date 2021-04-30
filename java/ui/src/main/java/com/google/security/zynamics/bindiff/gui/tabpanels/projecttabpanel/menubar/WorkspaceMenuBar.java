@@ -18,23 +18,16 @@ import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.gui.tabpanels.menubar.DebugMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.menubar.HelpMenu;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 
 public class WorkspaceMenuBar extends JMenuBar {
-  private final JMenu workspaceMenu;
-
-  public WorkspaceMenuBar(final WorkspaceTabPanelFunctions controller) {
-    workspaceMenu = add(new WorkspaceMenu(controller));
+  public WorkspaceMenuBar(WorkspaceTabPanelFunctions controller) {
+    add(new WorkspaceMenu(controller));
     add(new DiffMenu(controller));
     add(new SettingsMenu(controller));
     if (Config.getInstance().getPreferencesOrBuilder().getDebugOrBuilder().getShowDebugMenu()) {
       add(new DebugMenu(controller));
     }
     add(new HelpMenu(controller));
-  }
-
-  public String[] getRecentWorkspaces() {
-    return ((WorkspaceMenu) workspaceMenu).getRecentWorkspaces();
   }
 }

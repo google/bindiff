@@ -192,7 +192,7 @@ message Config {
       string directory_diff_primary_dir = 3;
       string directory_diff_secondary_dir = 4;
       string add_existing_diff_dir = 5;
-      repeated string workspace_dir = 6;
+      repeated string recent_workspace = 6;
     }
     HistoryOptions history = 2;
 

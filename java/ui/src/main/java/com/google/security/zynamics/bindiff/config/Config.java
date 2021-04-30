@@ -24,6 +24,7 @@ import com.google.protobuf.util.JsonFormat;
 import com.google.security.zynamics.bindiff.BinDiffProtos;
 import com.google.security.zynamics.bindiff.BinDiffProtos.Config.LogOptions.LogLevel;
 import com.google.security.zynamics.bindiff.BinDiffProtos.Config.MatchingStep;
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.UiPreferences.HistoryOptions;
 import com.google.security.zynamics.bindiff.resources.Constants;
 import com.google.security.zynamics.bindiff.utils.ResourceUtils;
 import com.google.security.zynamics.zylib.system.SystemHelpers;
@@ -33,14 +34,13 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
-/** JSON configuration parser */
+/** JSON configuration parser. */
 public class Config {
-
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   public static final BinDiffProtos.Config DEFAULTS;
-
   private static BinDiffProtos.Config.Builder instance;
 
   private Config() {}
@@ -48,10 +48,15 @@ public class Config {
   static {
     try {
       DEFAULTS = loadFromJson(ResourceUtils.getResourceAsString("config/bindiff.json")).build();
-    } catch (final IOException e) {
+    } catch (IOException e) {
       // Throw if the embedded default string does not parse or the resource cannot be found.
       throw new AssertionError(e);
     }
+  }
+
+  public static String getUserConfigFilename() {
+    return SystemHelpers.getApplicationDataDirectory(Constants.PRODUCT_NAME)
+        + Constants.CONFIG_FILENAME;
   }
 
   public static BinDiffProtos.Config.Builder getInstance() {
@@ -61,23 +66,20 @@ public class Config {
     instance = BinDiffProtos.Config.newBuilder(DEFAULTS);
 
     try {
-      final File commonConfig =
+      var commonConfig =
           new File(
               SystemHelpers.getAllUsersApplicationDataDirectory(Constants.PRODUCT_NAME)
                   + Constants.CONFIG_FILENAME);
       mergeInto(loadFromFile(commonConfig).build(), instance);
-    } catch (final IOException e) {
+    } catch (IOException e) {
       // Just log at a debug level
       logger.atFine().withCause(e).log("Cannot load per-machine config");
     }
 
     try {
-      final File userConfig =
-          new File(
-              SystemHelpers.getApplicationDataDirectory(Constants.PRODUCT_NAME)
-                  + Constants.CONFIG_FILENAME);
+      var userConfig = new File(getUserConfigFilename());
       mergeInto(loadFromFile(userConfig).build(), instance);
-    } catch (final IOException e) {
+    } catch (IOException e) {
       // Just log at a debug level
       logger.atFine().withCause(e).log("Cannot load per-user config");
     }
@@ -85,11 +87,22 @@ public class Config {
     return instance;
   }
 
+  private static void normalizeRecentWorkspaces(BinDiffProtos.Config.Builder config) {
+    HistoryOptions.Builder history = config.getPreferencesBuilder().getHistoryBuilder();
+    List<String> normalized =
+        history.getRecentWorkspaceList().stream()
+            .filter(workspace -> !workspace.strip().isEmpty() && new File(workspace).isFile())
+            .distinct()
+            .collect(Collectors.toList());
+    history.clearRecentWorkspace();
+    history.addAllRecentWorkspace(normalized);
+  }
+
   public static BinDiffProtos.Config.Builder loadFromJson(String data)
       throws InvalidProtocolBufferException {
-    final JsonFormat.Parser parser = JsonFormat.parser().ignoringUnknownFields();
-    final BinDiffProtos.Config.Builder builder = BinDiffProtos.Config.newBuilder();
-    parser.merge(data, builder);
+    var builder = BinDiffProtos.Config.newBuilder();
+    JsonFormat.parser().ignoringUnknownFields().merge(data, builder);
+    normalizeRecentWorkspaces(builder);
     return builder;
   }
 
@@ -99,28 +112,25 @@ public class Config {
 
   public static String getAsJsonString(BinDiffProtos.ConfigOrBuilder config)
       throws InvalidProtocolBufferException {
-    final JsonFormat.Printer printer =
-        JsonFormat.printer().includingDefaultValueFields().preservingProtoFieldNames();
-    return printer.print(config);
+    return JsonFormat.printer()
+        .includingDefaultValueFields()
+        .preservingProtoFieldNames()
+        .print(config);
   }
 
-  public static void saveUserConfig(BinDiffProtos.ConfigOrBuilder config) throws IOException {
-    final File userConfig =
-        new File(
-                SystemHelpers.getApplicationDataDirectory(Constants.PRODUCT_NAME)
-                    + Constants.CONFIG_FILENAME)
-            .getCanonicalFile();
+  public static void saveUserConfig(BinDiffProtos.Config.Builder config) throws IOException {
+    var userConfig = new File(getUserConfigFilename()).getCanonicalFile();
     userConfig.getParentFile().mkdirs(); // Ensure the config directory exists
+    normalizeRecentWorkspaces(config);
     Files.asCharSink(userConfig, UTF_8).write(getAsJsonString(config));
   }
 
-  public static void mergeInto(
-      final BinDiffProtos.Config from, final BinDiffProtos.Config.Builder config) {
+  public static void mergeInto(BinDiffProtos.Config from, BinDiffProtos.Config.Builder config) {
     // Keep this code in sync with the implementation in `config.cc`.
 
     // Copy and clear the problematic fields
-    final List<MatchingStep> functionMatching = config.getFunctionMatchingList();
-    final List<MatchingStep> basicBlockMatching = config.getBasicBlockMatchingList();
+    List<MatchingStep> functionMatching = config.getFunctionMatchingList();
+    List<MatchingStep> basicBlockMatching = config.getBasicBlockMatchingList();
     config.clearFunctionMatching();
     config.clearBasicBlockMatching();
 
@@ -175,7 +185,7 @@ public class Config {
     // FINER                  400  DEBUG
     // FINEST                 300  DEBUG
     // ALL      Integer.MIN_VALUE  DEBUG
-    final int value = level.intValue();
+    var value = level.intValue();
     if (value < Level.CONFIG.intValue()) {
       return LogLevel.DEBUG;
     }
@@ -191,7 +201,7 @@ public class Config {
     return LogLevel.OFF;
   }
 
-  public static String formatColor(final Color color) {
+  public static String formatColor(Color color) {
     return String.format("#%02x%02x%02x", color.getRed(), color.getGreen(), color.getBlue());
   }
 }

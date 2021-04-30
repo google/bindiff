@@ -15,8 +15,6 @@
 package com.google.security.zynamics.bindiff.config;
 
 import com.google.common.flogger.FluentLogger;
-import com.google.security.zynamics.bindiff.resources.Constants;
-import com.google.security.zynamics.zylib.system.SystemHelpers;
 import java.io.IOException;
 
 /** A class that is used to read and write the BinDiff configuration. */
@@ -70,21 +68,5 @@ public final class BinDiffConfig {
   public void write() throws IOException {
     logger.atInfo().log("Saving configuration...");
     Config.saveUserConfig(Config.getInstance());
-  }
-
-  /** Gets fully qualified path to the configuration file. */
-  public static String getConfigFileName() {
-    return getConfigurationDirectory() + Constants.CONFIG_FILENAME;
-  }
-
-  /** Gets the directory where the settings configuration file is stored. */
-  public static String getConfigurationDirectory() {
-    return SystemHelpers.getApplicationDataDirectory(Constants.PRODUCT_NAME);
-  }
-
-  /** Gets the application directory for use by all users for the machine. */
-  public static String getMachineConfigFileName() {
-    return SystemHelpers.getAllUsersApplicationDataDirectory(Constants.PRODUCT_NAME)
-        + Constants.CONFIG_FILENAME;
   }
 }

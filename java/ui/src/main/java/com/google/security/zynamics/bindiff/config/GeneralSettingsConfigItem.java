@@ -14,7 +14,6 @@
 
 package com.google.security.zynamics.bindiff.config;
 
-import java.util.List;
 import java.util.logging.Level;
 
 /** Sets and gets the main settings via java */
@@ -36,14 +35,6 @@ public class GeneralSettingsConfigItem {
     Config.getInstance().getPreferencesBuilder().setDefaultWorkspace(defaultWorkspace);
   }
 
-  public String getBinDiffDirectory() {
-    return Config.getInstance().getDirectory();
-  }
-
-  public void setBinDiffDirectory(final String diffEnginePath) {
-    Config.getInstance().setDirectory(diffEnginePath);
-  }
-
   public String getIdaDirectory() {
     return Config.getInstance().getIda().getDirectory();
   }
@@ -59,18 +50,6 @@ public class GeneralSettingsConfigItem {
   public void setWorkspaceDirectory(final String workspaceDirectory) {
     // TODO(cblichmann): Implement/check
     // Config.getInstance().getPreferencesBuilder().setWorkspace(workspaceDirectory);
-  }
-
-  public List<String> getRecentWorkspaceDirectories() {
-    return Config.getInstance().getPreferences().getHistory().getWorkspaceDirList();
-  }
-
-  public void setRecentWorkspaceDirectories(final List<String> recentWorkspaceDirectories) {
-    Config.getInstance()
-        .getPreferencesBuilder()
-        .getHistoryBuilder()
-        .clearWorkspaceDir()
-        .addAllWorkspaceDir(recentWorkspaceDirectories);
   }
 
   public final int getSocketPort() {

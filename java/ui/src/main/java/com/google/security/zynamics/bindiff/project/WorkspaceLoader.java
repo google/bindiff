@@ -163,7 +163,7 @@ public final class WorkspaceLoader extends CEndlessHelperThread {
 
       workspace.setLoaded(true);
 
-      for (final WorkspaceListener listener : workspace.getListeners()) {
+      for (WorkspaceListener listener : workspace.getListeners()) {
         listener.loadedWorkspace(workspace);
       }
 

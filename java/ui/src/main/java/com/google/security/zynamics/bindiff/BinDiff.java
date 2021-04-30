@@ -110,7 +110,7 @@ public class BinDiff {
                   + "default configuration file?");
       if (answer == JOptionPane.YES_OPTION) {
         try {
-          Files.delete(FileSystems.getDefault().getPath(BinDiffConfig.getConfigFileName()));
+          Files.delete(FileSystems.getDefault().getPath(Config.getUserConfigFilename()));
         } catch (IOException | SecurityException e) {
           // Logger isn't initialized yet, so no logging here
           CMessageBox.showError(

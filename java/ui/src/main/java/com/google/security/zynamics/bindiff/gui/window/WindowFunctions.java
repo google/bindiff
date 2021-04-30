@@ -23,16 +23,12 @@ import com.google.security.zynamics.bindiff.config.GeneralSettingsConfigItem;
 import com.google.security.zynamics.bindiff.gui.tabpanels.TabPanelManager;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanel;
 import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.WorkspaceTabPanelFunctions;
-import com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.menubar.WorkspaceMenuBar;
 import com.google.security.zynamics.bindiff.project.Workspace;
 import com.google.security.zynamics.zylib.gui.CMessageBox;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import javax.swing.JTabbedPane;
 
 /** Holder class for the actual controller class TabPanelManager. */
@@ -43,23 +39,23 @@ public class WindowFunctions {
 
   private final MainWindow window;
 
-  public WindowFunctions(final MainWindow window, final Workspace workspace) {
+  public WindowFunctions(MainWindow window, Workspace workspace) {
     checkNotNull(window);
     checkNotNull(workspace);
 
     tabPanelManager = new TabPanelManager(window, workspace);
 
-    final WorkspaceTabPanel workspaceTab = new WorkspaceTabPanel(window, workspace);
+    var workspaceTab = new WorkspaceTabPanel(window, workspace);
     tabPanelManager.addTab(workspaceTab);
 
     this.window = window;
   }
 
   private void saveConfigFile() {
-    final BinDiffConfig config = BinDiffConfig.getInstance();
-    final GeneralSettingsConfigItem settings = config.getMainSettings();
+    BinDiffConfig config = BinDiffConfig.getInstance();
+    GeneralSettingsConfigItem settings = config.getMainSettings();
 
-    final Point location = window.getLocation();
+    Point location = window.getLocation();
     settings.setWindowXPos((int) location.getX());
     settings.setWindowYPos((int) location.getY());
     settings.setWindowWidth(window.getWidth());
@@ -70,20 +66,9 @@ public class WindowFunctions {
     settings.setScreenWidth(Toolkit.getDefaultToolkit().getScreenSize().width);
     settings.setScreenHeight(Toolkit.getDefaultToolkit().getScreenSize().height);
 
-    final WorkspaceMenuBar menuBar =
-        (WorkspaceMenuBar) tabPanelManager.getWorkspaceTabPanel().getMenuBar();
-
-    List<String> recents = new ArrayList<>();
-    for (final String recent : menuBar.getRecentWorkspaces()) {
-      if (new File(recent).isFile()) {
-        recents.add(recent);
-      }
-    }
-    settings.setRecentWorkspaceDirectories(recents);
-
     try {
       BinDiffConfig.getInstance().write();
-    } catch (final IOException e) {
+    } catch (IOException e) {
       logger.atSevere().withCause(e).log("Couldn't save configuration file");
       CMessageBox.showError(window, "Couldn't save configuration file.");
     }
@@ -95,13 +80,13 @@ public class WindowFunctions {
     }
     CMessageBox.showWarning(
         window, "Please set the path to your IDA Pro installation in the main settings.");
-    final WorkspaceTabPanelFunctions controller =
+    WorkspaceTabPanelFunctions controller =
         window.getController().getTabPanelManager().getWorkspaceTabPanel().getController();
     return controller.showMainSettingsDialog();
   }
 
   public void exitBinDiff() {
-    final WorkspaceTabPanelFunctions workspaceController =
+    WorkspaceTabPanelFunctions workspaceController =
         tabPanelManager.getWorkspaceTabPanel().getController();
     if (workspaceController.closeWorkspace()) {
       workspaceController.closeDialogs();
