@@ -1,8 +1,9 @@
 [Desktop Entry]
-Version=6
+Version=7
 Name=BinDiff
 Comment=Quickly find differences and similarities in disassembled code.
 GenericName=BinDiff
+Categories=Security;Utility;Java;
 Exec=/opt/bindiff/bin/bindiff_ui
 Icon=/opt/bindiff/bin/bindiff-256x256-rgba.png
 Terminal=false
