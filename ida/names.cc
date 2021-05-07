@@ -29,6 +29,8 @@
 #include <ida.hpp>                                              // NOLINT
 #include <lines.hpp>                                            // NOLINT
 #include <name.hpp>                                             // NOLINT
+#include <nalt.hpp>                                             // NOLINT
+#include <netnode.hpp>                                          // NOLINT
 #include <segment.hpp>                                          // NOLINT
 #include <struct.hpp>                                           // NOLINT
 #include <typeinf.hpp>                                          // NOLINT
@@ -116,9 +118,13 @@ absl::optional<std::string> GetArchitectureName() {
 int GetArchitectureBitness() { return inf_is_64bit() ? 64 : 32; }
 
 std::string GetModuleName() {
-  char path_buffer[QMAXPATH] = {0};
-  get_input_file_path(path_buffer, QMAXPATH);
-  return Basename(path_buffer);
+  std::string path(QMAXPATH, '\0');
+  if (get_input_file_path(&path[0], QMAXPATH) == 0) {
+    // b/186782665: IDA 7.5 and lower use the root_node instead.
+    root_node.valstr(&path[0], QMAXPATH);
+  }
+  path.resize(std::strlen(path.data()));
+  return Basename(path);
 }
 
 int GetOriginalIdaLine(const Address address, std::string* line) {

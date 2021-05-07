@@ -17,6 +17,7 @@
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <nalt.hpp>                                             // NOLINT
+#include <netnode.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
@@ -27,16 +28,25 @@
 namespace security::binexport {
 
 absl::StatusOr<std::string> GetInputFileSha256() {
-  std::string hash(32, '\0');
-  if (!retrieve_input_file_sha256(reinterpret_cast<uchar*>(&hash[0]))) {
+  constexpr int kNumSha256Bytes = 32;
+  std::string hash(kNumSha256Bytes, '\0');
+  auto* hash_uchar = reinterpret_cast<uchar*>(&hash[0]);
+  if (!retrieve_input_file_sha256(hash_uchar) &&
+      // b/186782665: IDA 7.5 and lower use the root_node instead.
+      (root_node.supval(RIDX_SHA256, hash_uchar, kNumSha256Bytes) !=
+       kNumSha256Bytes)) {
     return absl::InternalError("Failed to load SHA256 hash of input file");
   }
   return absl::AsciiStrToLower(absl::BytesToHexString(hash));
 }
 
 absl::StatusOr<std::string> GetInputFileMd5() {
-  std::string hash(32, '\0');
-  if (!retrieve_input_file_md5(reinterpret_cast<uchar*>(&hash[0]))) {
+  constexpr int kNumMd5Bytes = 16;
+  std::string hash(kNumMd5Bytes, '\0');
+  auto* hash_uchar = reinterpret_cast<uchar*>(&hash[0]);
+  if (!retrieve_input_file_md5(hash_uchar) &&
+      // b/186782665: IDA 7.5 and lower use the root_node instead.
+      (root_node.supval(RIDX_MD5, hash_uchar, kNumMd5Bytes) != kNumMd5Bytes)) {
     return absl::InternalError("Failed to load MD5 hash of input file");
   }
   return absl::AsciiStrToLower(absl::BytesToHexString(hash));
