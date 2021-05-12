@@ -17,10 +17,12 @@
 
 #include <cstddef>
 
-// Returns true if the instruction starting at "memory" (which contains at least
-// "size" bytes) is a NOP instruction. NOPs have been taken from the GNU
-// assembler tc-i386.c i386_align_code().
+#include "third_party/absl/strings/string_view.h"
+
+// Returns true if the instruction starting at the first byte in "bytes" is a
+// NOP instruction. NOPs have been taken from the GNU assembler
+// i386_align_code() (in tc-i386.c).
 // For details, see b/24084521#comment7
-bool IsNopX86(const char* m, size_t size);
+bool IsNopX86(absl::string_view bytes);
 
 #endif  // X86_NOP_H_

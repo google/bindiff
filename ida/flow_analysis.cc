@@ -366,9 +366,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
     if (mark_x86_nops) {
       // FLAG_NOP is only important when reconstructing functions, thus we can
       // set if after AnalyzeFlow().
-      const auto& new_instruction_bytes = new_instruction.GetBytes();
-      new_instruction.SetFlag(FLAG_NOP, IsNopX86(new_instruction_bytes.data(),
-                                                 new_instruction_bytes.size()));
+      new_instruction.SetFlag(FLAG_NOP, IsNopX86(new_instruction.GetBytes()));
     }
 
     instructions->push_back(new_instruction);

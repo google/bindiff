@@ -14,7 +14,12 @@
 
 #include "third_party/zynamics/binexport/x86_nop.h"
 
-bool IsNopX86(const char* m, size_t size) {
+#include <cstdint>
+
+bool IsNopX86(absl::string_view bytes) {
+  auto* m = reinterpret_cast<const uint8_t*>(bytes.data());
+  size_t size = bytes.size();
+
   // Consume up to six prefix bytes:
   for (int i = 6; i > 0 && size > 0 && m[0] == 0x66; --i, --size, ++m) {
   }
@@ -52,7 +57,8 @@ bool IsNopX86(const char* m, size_t size) {
       if (m[1] == 0x74) {
         if (m[2] == 0x00) {
           return true;  // 8d 74 00 lea esi, esi
-        } else if (m[2] == 0x26) {
+        }
+        if (m[2] == 0x26) {
           if (size >= 4 && m[3] == 0x00) {
             return true;  // 8d 74 26 00 lea esi, [esi + eiz * 1 + 0]
           }
@@ -64,8 +70,9 @@ bool IsNopX86(const char* m, size_t size) {
         if (m[1] == 0xb4) {
           if (m[2] == 0x00 && m[3] == 0x00) {
             return true;  // 8d b4 00 00 lea
-          } else if (size >= 7 && m[2] == 0x26 && m[3] == 0x00 &&
-                     m[4] == 0x00 && m[5] == 0x00 && m[6] == 0x00) {
+          }
+          if (size >= 7 && m[2] == 0x26 && m[3] == 0x00 && m[4] == 0x00 &&
+              m[5] == 0x00 && m[6] == 0x00) {
             return true;  // 8d b4 26 00 00 00 00 lea
           }
         } else if (m[1] == 0xbd && m[2] == 0x00 && m[3] == 0x00) {
@@ -75,8 +82,9 @@ bool IsNopX86(const char* m, size_t size) {
           if (m[1] == 0xb6 && m[2] == 0x00 && m[3] == 0x00 && m[4] == 0x00 &&
               m[5] == 0x00) {
             return true;  // 8d b6 00 00 00 00 lea
-          } else if (m[1] == 0xbf && m[2] == 0x00 && m[3] == 0x00 &&
-                     m[4] == 0x00 && m[5] == 0x00) {
+          }
+          if (m[1] == 0xbf && m[2] == 0x00 && m[3] == 0x00 && m[4] == 0x00 &&
+              m[5] == 0x00) {
             return true;  // 8d bf 00 00 00 00 lea
           }
           if (size >= 7 && m[1] == 0xbc && m[2] == 0x27 && m[3] == 0x00 &&
@@ -95,4 +103,3 @@ bool IsNopX86(const char* m, size_t size) {
   }
   return false;
 }
-
