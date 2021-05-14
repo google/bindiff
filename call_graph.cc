@@ -77,14 +77,10 @@ void CallGraph::Init() {
   CalculateMdIndex(*this, true);  // Needs to be here to update edge properties.
 }
 
-void CallGraph::SetExeFilename(const std::string& name) {
-  exe_filename_ = name;
-}
-
-void CallGraph::SetExeHash(const std::string& hash) {
+void CallGraph::SetExeHash(std::string hash) {
   // The executable hash is used for display purposes only, so we do not check
   // it for validity here.
-  exe_hash_ = hash;
+  exe_hash_ = std::move(hash);
 }
 
 void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
@@ -98,10 +94,19 @@ void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
   const auto& call_graph = proto.call_graph();
   std::vector<VertexInfo> temp_vertices(call_graph.vertex_size());
   std::vector<Address> temp_addresses(call_graph.vertex_size());
+  Address last_address = 0;
   for (int i = 0; i < call_graph.vertex_size(); ++i) {
     const auto& proto_vertex = call_graph.vertex(i);
     VertexInfo& vertex = temp_vertices[i];
     vertex.address_ = proto_vertex.address();
+
+    if (vertex.address_ < last_address) {
+      throw std::runtime_error(absl::StrCat(
+          "Call graph nodes not sorted: ", FormatAddress(vertex.address_),
+          " >= ", FormatAddress(last_address)));
+    }
+    last_address = vertex.address_;
+
     temp_addresses[i] = vertex.address_;
     if (proto_vertex.has_mangled_name()) {
       vertex.flags_ |= VERTEX_NAME;
@@ -123,10 +128,6 @@ void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
     } else if (proto_vertex.type() == BinExport2::CallGraph::Vertex::THUNK) {
       vertex.flags_ |= VERTEX_STUB;
     }
-  }
-
-  if (!std::is_sorted(temp_addresses.begin(), temp_addresses.end())) {
-    throw std::runtime_error("Call graph nodes not sorted by address!");
   }
 
   std::vector<std::pair<Graph::edges_size_type, Graph::edges_size_type>> edges;
@@ -318,21 +319,21 @@ const std::string& CallGraph::GetName(Vertex vertex) const {
   return graph_[vertex].name_;
 }
 
-void CallGraph::SetName(Vertex vertex, const std::string& name) {
-  graph_[vertex].name_ = name;
+void CallGraph::SetName(Vertex vertex, std::string name) {
+  graph_[vertex].name_ = std::move(name);
 }
 
 const std::string& CallGraph::GetDemangledName(Vertex vertex) const {
   return graph_[vertex].demangled_name_;
 }
 
-void CallGraph::SetDemangledName(Vertex vertex, const std::string& name) {
+void CallGraph::SetDemangledName(Vertex vertex, std::string name) {
   if (name.empty()) {
     graph_[vertex].flags_ &= ~VERTEX_DEMANGLED_NAME;
   } else {
     graph_[vertex].flags_ |= VERTEX_DEMANGLED_NAME;
   }
-  graph_[vertex].demangled_name_ = name;
+  graph_[vertex].demangled_name_ = std::move(name);
 }
 
 const std::string& CallGraph::GetGoodName(Vertex vertex) const {
@@ -508,7 +509,7 @@ void CallGraph::DeleteVertices(Address from, Address to) {
   for (auto [it, end] = boost::vertices(graph_); it != end; ++it) {
     const Address address = GetAddress(*it);
     if (address >= from && address <= to) {
-      // The bfs and MD indices aren't correct after copying - however, the
+      // The BFS and MD indices aren't correct after copying - however, the
       // original indices may still be what we want for correct matching?
       temp_vertices.push_back(graph_[*it]);
       temp_addresses.push_back(address);

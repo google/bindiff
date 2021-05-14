@@ -97,46 +97,49 @@ class CallGraph {
   // Frees all associated data and resets to an initial (empty) state.
   void Reset();
 
-  // O(log n) Binary searches all vertices to return the one with "address".
+  // Searches all vertices to return the one with "address" using Binary Search.
   // Returns kInvalidVertex if address couldn't be found.
+  // Complexity: O(log n)
   Vertex GetVertex(Address address) const;
 
-  // O(1) Returns the vertex' address. The argument needs to be a valid vertex.
+  // Returns the vertex' address. The argument needs to be a valid vertex.
+  // Complexity: O(1)
   Address GetAddress(Vertex vertex) const;
 
-  // O(1) calculate and return the edge's MD index.
+  // Calculates and returns the edge's MD index.
+  // Complexity: O(1)
   double GetMdIndex(const Edge& edge) const;
 
-  // O(1) return cached MD index for the whole graph.
+  // Return the (cached) MD index for the whole graph.
+  // Complexity: O(1)
   double GetMdIndex() const;
 
-  // O(1) set cached MD index for the whole graph.
+  // Set the cached MD index for the whole graph.
+  // Complexity: O(1)
   void SetMdIndex(double index);
 
-  // Return MD index for a given vertex. Inverted MD index uses the bottom up
-  // breadth first node level for calculating MD indices. This method is quite
-  // expensive: it iterates its in and out edges and calculates and sums the
-  // edge MD indices.
+  // Returns the MD index for a given vertex. Inverted MD index uses the bottom
+  // up breadth first node level for calculating MD indices. This method is
+  // quite expensive: it iterates it's in and out edges and calculates and sums
+  // the edge MD indices.
   double GetMdIndex(Vertex vertex) const;
   double GetMdIndexInverted(Vertex vertex) const;
 
-  // O(|V| + |E|) two breadth first searches over the graph. Stores resulting
+  // Performs two breadth first searches over the graph. Stores the resulting
   // BFS indices in vertices.
+  // Complexity: O(|V| + |E|)
   void CalculateTopology();
 
-  // Access internal boost graph structure.
-  inline Graph& GetGraph() {
-    return graph_;
-  }
-  inline const Graph& GetGraph() const {
-    return graph_;
-  }
+  // Accesses the internal boost graph structure.
+  Graph& GetGraph() { return graph_; }
+  const Graph& GetGraph() const { return graph_; }
 
-  // Associate the given flow graph with the corresponding call graph vertex.
+  // Associates the given flow graph with the corresponding call graph vertex.
   // The call graph will _not_ take ownership of the flow graph!
   void AttachFlowGraph(FlowGraph* flow_graph);
   void DetachFlowGraph(FlowGraph* flow_graph);
-  FlowGraph* GetFlowGraph(Address address) const;  // TODO(soerenme) Remove!!!
+  // TODO(cblichmann): Remove!!!
+  FlowGraph* GetFlowGraph(Address address) const;
   inline FlowGraph* GetFlowGraph(Vertex vertex) const {
     return graph_[vertex].flow_graph_;
   }
@@ -171,36 +174,38 @@ class CallGraph {
   // in O(num_of_outedges(source)).
   std::pair<Edge, bool> FindEdge(Vertex source, Vertex target) const;
 
-  // Return the name of the function "vertex". This is actually the only place
+  // Returns the name of the function "vertex". This is actually the only place
   // where this information is stored. The flow graphs themselves don't know
   // their own names.
   const std::string& GetName(Vertex vertex) const;
-  void SetName(Vertex vertex, const std::string& name);
+  void SetName(Vertex vertex, std::string name);
   const std::string& GetDemangledName(Vertex vertex) const;
-  void SetDemangledName(Vertex vertex, const std::string& name);
+  void SetDemangledName(Vertex vertex, std::string name);
   // Returns the demangled name if available, raw name otherwise.
   const std::string& GetGoodName(Vertex vertex) const;
 
-  // Return the name of the original input binary if known, else empty
+  // Returns the name of the original input binary if known, else empty
   // std::string.
   const std::string& GetExeFilename() const { return exe_filename_; }
-  void SetExeFilename(const std::string& name);
+  void SetExeFilename(std::string name) { exe_filename_ = std::move(name); }
 
-  // Return the hex encoded hash (SHA256, SHA1 or obsolete MD5) of the original
+  // Returns the hex encoded hash (SHA256, SHA1 or obsolete MD5) of the original
   // input binary.
   const std::string& GetExeHash() const { return exe_hash_; }
-  void SetExeHash(const std::string& hash);
+  void SetExeHash(std::string hash);
 
-  // Access comments. The call graph stores theses globally even for operands
+  // Accesses comments. The call graph stores theses globally even for operands
   // because we don't want to store them multiple times for shared basic blocks.
   CommentsByOperatorId& GetComments() { return comments_; }
   const CommentsByOperatorId& GetComments() const { return comments_; }
 
-  // Potentially very expensive function: it reduces the graph to the immediate
-  // vicinity of "edge" and recalculates MD indices on that subgraph. The idea
-  // is to become resilient against non-local changes to the call graph.
+  // Reduces the graph to the immediate vicinity of "edge" and recalculates MD
+  // indices on that subgraph. The idea is to become resilient against non-local
+  // changes to the call graph.
+  // Note: This function is potentially very computationally expensive.
   double GetProximityMdIndex(const Edge& edge);
 
+  // Deletes the vertexes from the specified address range (inclusive!).
   // Expensive and buggy function (see notes in implementation). Try to avoid.
   void DeleteVertices(Address from, Address to);
 
