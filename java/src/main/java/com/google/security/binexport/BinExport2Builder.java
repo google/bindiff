@@ -43,13 +43,13 @@ import ghidra.program.model.symbol.SymbolUtilities;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-import java.util.Vector;
 import java.util.function.ToIntFunction;
 
 /**
@@ -106,9 +106,9 @@ public class BinExport2Builder {
 
     // Ghidra uses a quad format like x86:LE:32:default, BinExport just keeps
     // the processor and address size.
-    final String[] quad = program.getLanguageID().toString().split(":", 4);
+    String[] quad = program.getLanguageID().toString().split(":", 4);
     // TODO(cblichmann): Canonicalize architecture names
-    final String arch = quad[0] + "-" + quad[2];
+    String arch = quad[0] + "-" + quad[2];
 
     builder.getMetaInformationBuilder()
         .setExecutableName(new File(program.getExecutablePath()).getName())
@@ -118,11 +118,11 @@ public class BinExport2Builder {
   }
 
   private void buildExpressions(Map<String, Integer> expressionIndices) {
-    final var cuf = new CodeUnitFormat(new CodeUnitFormatOptions());
+    var cuf = new CodeUnitFormat(new CodeUnitFormatOptions());
     int id = 0;
-    for (final Instruction instr : listing.getInstructions(true)) {
+    for (Instruction instr : listing.getInstructions(true)) {
       for (int i = 0; i < instr.getNumOperands(); i++) {
-        final String opRep = cuf.getOperandRepresentationString(instr, i);
+        String opRep = cuf.getOperandRepresentationString(instr, i);
         if (expressionIndices.putIfAbsent(opRep, id) != null) {
           continue;
         }
@@ -134,10 +134,10 @@ public class BinExport2Builder {
   }
 
   private void buildOperands(Map<String, Integer> expressionIndices) {
-    final var entries = new Vector<Map.Entry<String, Integer>>();
+    var entries = new ArrayList<Map.Entry<String, Integer>>();
     entries.addAll(expressionIndices.entrySet());
     Collections.sort(entries, (a, b) -> a.getValue().compareTo(b.getValue()));
-    for (final var entry : entries) {
+    for (var entry : entries) {
       builder.addOperandBuilder().addExpressionIndex(entry.getValue());
     }
   }
@@ -145,18 +145,18 @@ public class BinExport2Builder {
   private void buildMnemonics(Map<String, Integer> mnemonicIndices) {
     monitor.setIndeterminate(true);
     monitor.setMessage("Computing mnemonic histogram");
-    final var mnemonicHist = new HashMap<String, Integer>();
-    for (final Instruction instr : listing.getInstructions(true)) {
+    var mnemonicHist = new HashMap<String, Integer>();
+    for (Instruction instr : listing.getInstructions(true)) {
       mnemonicHist.merge(mnemonicMapper.getInstructionMnemonic(instr), 1,
           Integer::sum);
     }
-    final var mnemonicList = new Vector<Map.Entry<String, Integer>>();
+    var mnemonicList = new ArrayList<Map.Entry<String, Integer>>();
     mnemonicList.addAll(mnemonicHist.entrySet());
     mnemonicList.sort(Comparator
         .comparingInt((ToIntFunction<Entry<String, Integer>>) Entry::getValue)
         .reversed().thenComparing(Entry::getKey));
     int id = 0;
-    for (final var entry : mnemonicList) {
+    for (var entry : mnemonicList) {
       builder.addMnemonicBuilder().setName(entry.getKey());
       mnemonicIndices.put(entry.getKey(), id++);
     }
@@ -173,11 +173,11 @@ public class BinExport2Builder {
     long prevAddress = 0;
     int prevSize = 0;
     int id = 0;
-    final var cuf = new CodeUnitFormat(new CodeUnitFormatOptions());
-    for (final Instruction instr : listing.getInstructions(true)) {
-      final long address = getMappedAddress(instr);
+    var cuf = new CodeUnitFormat(new CodeUnitFormatOptions());
+    for (Instruction instr : listing.getInstructions(true)) {
+      long address = getMappedAddress(instr);
 
-      final var instrBuilder = builder.addInstructionBuilder();
+      var instrBuilder = builder.addInstructionBuilder();
       // Write the full instruction address iff:
       // - there is no previous instruction
       // - the previous instruction doesn't have code flow into the current one
@@ -189,10 +189,10 @@ public class BinExport2Builder {
         instrBuilder.setAddress(address);
       }
       try {
-        final var bytes = instr.getBytes();
+        var bytes = instr.getBytes();
         instrBuilder.setRawBytes(ByteString.copyFrom(bytes));
         prevSize = bytes.length;
-      } catch (final MemoryAccessException e) {
+      } catch (MemoryAccessException e) {
         // Leave raw bytes empty
       }
       int mnemonicIndex =
@@ -214,8 +214,8 @@ public class BinExport2Builder {
       }
 
       // Export call targets.
-      for (final Reference ref : instr.getReferenceIteratorTo()) {
-        final RefType refType = ref.getReferenceType();
+      for (Reference ref : instr.getReferenceIteratorTo()) {
+        RefType refType = ref.getReferenceType();
         if (!refType.isCall()) {
           continue;
         }
@@ -231,23 +231,22 @@ public class BinExport2Builder {
   private void buildBasicBlocks(Map<Long, Integer> instructionIndices,
       Map<Long, Integer> basicBlockIndices) throws CancelledException {
     int id = 0;
-    for (final var bbIter = bbModel.getCodeBlocks(monitor); bbIter.hasNext();) {
-      final CodeBlock bb = bbIter.next();
+    for (var bbIter = bbModel.getCodeBlocks(monitor); bbIter.hasNext(); ) {
+      CodeBlock bb = bbIter.next();
 
-      final var protoBb = builder.addBasicBlockBuilder();
+      var protoBb = builder.addBasicBlockBuilder();
 
       int instructionIndex = 0;
       int beginIndex = -1;
       int endIndex = -1;
-      for (final Instruction instr : listing.getInstructions(bb, true)) {
+      for (Instruction instr : listing.getInstructions(bb, true)) {
         instructionIndex = instructionIndices.get(getMappedAddress(instr));
         if (beginIndex < 0) {
           beginIndex = instructionIndex;
           endIndex = beginIndex + 1;
         } else if (instructionIndex != endIndex) {
           // Sequence is broken, store an interval
-          final var indexRange =
-              protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
+          var indexRange = protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
           if (endIndex != beginIndex + 1) {
             // Omit end index in the single instruction interval case
             indexRange.setEndIndex(endIndex);
@@ -259,8 +258,7 @@ public class BinExport2Builder {
           endIndex = instructionIndex + 1;
         }
       }
-      final var indexRange =
-          protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
+      var indexRange = protoBb.addInstructionIndexBuilder().setBeginIndex(beginIndex);
       if (endIndex != beginIndex + 1) {
         // Like above, omit end index in the single instruction interval case
         indexRange.setEndIndex(endIndex);
@@ -271,39 +269,46 @@ public class BinExport2Builder {
 
   private void buildFlowGraphs(Map<Long, Integer> basicBlockIndices)
       throws CancelledException {
-    for (final Function func : program.getFunctionManager()
-        .getFunctions(true)) {
+    FunctionManager funcManager = program.getFunctionManager();
+    monitor.setIndeterminate(false);
+    monitor.setMaximum(funcManager.getFunctionCount());
+    int i = 0;
+
+    for (Function func : funcManager.getFunctions(true)) {
+      monitor.setProgress(i++);
+      if (func.getEntryPoint().isNonLoadedMemoryAddress()) {
+        continue;
+      }
+
       var bbIter = bbModel.getCodeBlocksContaining(func.getBody(), monitor);
       if (!bbIter.hasNext()) {
         continue; // Skip empty flow graphs, they only exist as call graph nodes
       }
-      final var flowGraph = builder.addFlowGraphBuilder();
+      var flowGraph = builder.addFlowGraphBuilder();
       while (bbIter.hasNext()) {
-        final CodeBlock bb = bbIter.next();
-        final long bbAddress = getMappedAddress(bb.getFirstStartAddress());
-        final int id = basicBlockIndices.get(bbAddress);
+        CodeBlock bb = bbIter.next();
+        long bbAddress = getMappedAddress(bb.getFirstStartAddress());
+        int id = basicBlockIndices.get(bbAddress);
         if (bbAddress == getMappedAddress(func.getEntryPoint())) {
           flowGraph.setEntryBasicBlockIndex(id);
         }
         flowGraph.addBasicBlockIndex(id);
 
-        final long bbLastInstrAddress =
+        long bbLastInstrAddress =
             getMappedAddress(listing.getInstructionBefore(bb.getMaxAddress()));
-        final var edges = new Vector<BinExport2.FlowGraph.Edge>();
+        var edges = new ArrayList<BinExport2.FlowGraph.Edge>();
         var lastFlow = RefType.INVALID;
-        for (final var bbDestIter = bb.getDestinations(monitor); bbDestIter
-            .hasNext();) {
-          final CodeBlockReference bbRef = bbDestIter.next();
+        for (var bbDestIter = bb.getDestinations(monitor); bbDestIter.hasNext(); ) {
+          CodeBlockReference bbRef = bbDestIter.next();
           // BinExport2 only stores flow from the very last instruction of a
           // basic block.
           if (getMappedAddress(bbRef.getReferent()) != bbLastInstrAddress) {
             continue;
           }
 
-          final var edge = BinExport2.FlowGraph.Edge.newBuilder();
-          final var targetId = basicBlockIndices
-              .get(getMappedAddress(bbRef.getDestinationAddress()));
-          final FlowType flow = bbRef.getFlowType();
+          var edge = BinExport2.FlowGraph.Edge.newBuilder();
+          var targetId = basicBlockIndices.get(getMappedAddress(bbRef.getDestinationAddress()));
+          FlowType flow = bbRef.getFlowType();
           if (flow.isConditional() || lastFlow.isConditional()) {
             edge.setType(flow.isConditional()
                 ? BinExport2.FlowGraph.Edge.Type.CONDITION_TRUE
@@ -336,20 +341,25 @@ public class BinExport2Builder {
   }
   
   private void buildCallGraph() throws CancelledException {
-    final var callGraph = builder.getCallGraphBuilder();
-    final FunctionManager funcManager = program.getFunctionManager();
+    var callGraph = builder.getCallGraphBuilder();
+    FunctionManager funcManager = program.getFunctionManager();
     monitor.setIndeterminate(false);
     monitor.setMaximum(funcManager.getFunctionCount() * 2);
     int i = 0;
     int id = 0;
-    final Map<Long, Integer> vertexIndices = new HashMap<>();
+    Map<Long, Integer> vertexIndices = new HashMap<>();
 
+    // First round, gather vertex indices for all functions.
     // TODO(cblichmann): Handle imports using getExternalFunctions()
-    for (final Function func : funcManager.getFunctions(true)) {
-      final Address entryPoint = func.getEntryPoint();
-      final long mappedEntryPoint = getMappedAddress(entryPoint);
+    for (Function func : funcManager.getFunctions(true)) {
+      monitor.setProgress(i++);
+      Address entryPoint = func.getEntryPoint();
+      if (entryPoint.isNonLoadedMemoryAddress()) {
+        continue;
+      }
+      long mappedEntryPoint = getMappedAddress(entryPoint);
 
-      final var vertex = callGraph.addVertexBuilder().setAddress(mappedEntryPoint);
+      var vertex = callGraph.addVertexBuilder().setAddress(mappedEntryPoint);
       if (func.isThunk()) {
         // Only store type if different from default value (NORMAL)
         vertex.setType(BinExport2.CallGraph.Vertex.Type.THUNK);
@@ -367,10 +377,16 @@ public class BinExport2Builder {
         vertex.setMangledName(getFunctionName(func));
       }
       vertexIndices.put(mappedEntryPoint, id++);
-      monitor.setProgress(i++);
     }
 
-    for (final Function func : funcManager.getFunctions(true)) {
+    // Second round, insert all call graph edges.
+    for (Function func : funcManager.getFunctions(true)) {
+      monitor.setProgress(i++);
+      Address entryPoint = func.getEntryPoint();
+      if (entryPoint.isNonLoadedMemoryAddress()) {
+        continue;
+      }
+
       var bbIter = bbModel.getCodeBlocksContaining(func.getBody(), monitor);
       if (!bbIter.hasNext()) {
         continue; // Skip empty flow graphs, they only exist as call graph nodes
@@ -378,34 +394,31 @@ public class BinExport2Builder {
       id = vertexIndices.get(getMappedAddress(func.getEntryPoint()));
 
       while (bbIter.hasNext()) {
-        final CodeBlock bb = bbIter.next();
+        CodeBlock bb = bbIter.next();
 
-        for (final var bbDestIter = bb.getDestinations(monitor); bbDestIter
-            .hasNext();) {
-          final CodeBlockReference bbRef = bbDestIter.next();
-          final FlowType flow = bbRef.getFlowType();
+        for (var bbDestIter = bb.getDestinations(monitor); bbDestIter.hasNext(); ) {
+          CodeBlockReference bbRef = bbDestIter.next();
+          FlowType flow = bbRef.getFlowType();
           if (!flow.isCall()) {
             continue;
           }
 
-          final var targetId = vertexIndices
-              .get(getMappedAddress(bbRef.getDestinationAddress()));
+          var targetId = vertexIndices.get(getMappedAddress(bbRef.getDestinationAddress()));
           if (targetId != null) {
             callGraph.addEdgeBuilder().setSourceVertexIndex(id).setTargetVertexIndex(targetId);
           }
         }
       }
     }
-    monitor.setProgress(i++);
   }
 
   private void buildSections() {
     monitor.setMessage("Exporting sections");
     monitor.setIndeterminate(false);
-    final MemoryBlock[] blocks = program.getMemory().getBlocks();
+    MemoryBlock[] blocks = program.getMemory().getBlocks();
     monitor.setMaximum(blocks.length);
     for (int i = 0; i < blocks.length; i++) {
-      final var block = blocks[i];
+      var block = blocks[i];
       builder.addSectionBuilder().setAddress(block.getStart().getOffset())
           .setSize(block.getSize()).setFlagR(block.isRead())
           .setFlagW(block.isWrite()).setFlagX(block.isExecute());
@@ -425,29 +438,32 @@ public class BinExport2Builder {
       return;
     }
 
-    final var funMgr = program.getFunctionManager();
-    final var refMgr = program.getReferenceManager();
+    var funMgr = program.getFunctionManager();
+    var refMgr = program.getReferenceManager();
 
     System.out.printf("%08X: %s (%s) ops:#%d{\n",
         instr.getAddress().getOffset(), instr.getMnemonicString(),
         instr.getLabel(), instr.getNumOperands());
 
-    final var fun = funMgr.getFunctionContaining(instr.getAddress());
-    final var params = fun.getParameters(new VariableFilter() {
-      @Override
-      public boolean matches(Variable variable) {
-        final var p = (Parameter) variable;
-        final var addr = fun.getEntryPoint().add(p.getFirstUseOffset());
-        System.out.printf("P: %s, %d, %08X %s\n", p.getName(),
-            p.getFirstUseOffset(), addr.getOffset(), p.getRegister());
+    Function fun = funMgr.getFunctionContaining(instr.getAddress());
+    var params =
+        fun.getParameters(
+            new VariableFilter() {
+              @Override
+              public boolean matches(Variable variable) {
+                var p = (Parameter) variable;
+                Address addr = fun.getEntryPoint().add(p.getFirstUseOffset());
+                System.out.printf(
+                    "P: %s, %d, %08X %s\n",
+                    p.getName(), p.getFirstUseOffset(), addr.getOffset(), p.getRegister());
 
-        return instr.getAddress().equals(addr);
-      }
-    });
-    final var cuf = new CodeUnitFormat(new CodeUnitFormatOptions());
+                return instr.getAddress().equals(addr);
+              }
+            });
+    var cuf = new CodeUnitFormat(new CodeUnitFormatOptions());
 
     for (int i = 0; i < instr.getNumOperands(); i++) {
-      final Symbol[] syms = instr.getSymbols();
+      Symbol[] syms = instr.getSymbols();
 
       System.out.printf("  sym:#%d[\n", syms.length);
       for (final var sym : syms) {
@@ -455,24 +471,24 @@ public class BinExport2Builder {
       }
       System.out.printf("  ]\n");
 
-      final Reference[] refs = instr.getOperandReferences(i);
+      Reference[] refs = instr.getOperandReferences(i);
       System.out.printf("  ref:#%d[\n", refs.length);
-      for (final var ref : refs) {
-        final var var = refMgr.getReferencedVariable(ref);
+      for (var ref : refs) {
+        var var = refMgr.getReferencedVariable(ref);
         System.out.printf("    \"%s\" (%s) @%s\n", ref.toString(),
             (var != null ? var.getName() : ""), var.getMinAddress().toString());
       }
       System.out.printf("  ]\n");
 
-      final Object[] objs = instr.getOpObjects(i);
+      Object[] objs = instr.getOpObjects(i);
       System.out.printf("  obj:#%d[\n", objs.length);
-      for (final var obj : objs) {
+      for (var obj : objs) {
         System.out.printf("    %s: \"%s\"", obj.getClass().getName(),
             obj.toString());
         if (obj instanceof Register) {
-          final var reg = (Register) obj;
+          var reg = (Register) obj;
         } else if (obj instanceof Scalar) {
-          final var scalar = (Scalar) obj;
+          var scalar = (Scalar) obj;
         }
         System.out.printf("\n");
       }
@@ -488,7 +504,7 @@ public class BinExport2Builder {
       return function.getName();
     }
     // Push all parent namespace names on top of the Vector.
-    final var functionNameComponents = new Vector<String>();
+    var functionNameComponents = new ArrayList<String>();
     var parentNamespace = function.getParentNamespace();
     while (parentNamespace != null && !"Global".equals(parentNamespace.getName())) {
       functionNameComponents.add(0, parentNamespace.getName());
@@ -508,16 +524,16 @@ public class BinExport2Builder {
     //                   expression corresponds to exactly one operand. Those
     //                   consist of Ghidra's string representation and are of
     //                   type SYMBOL.
-    final var expressionIndices = new HashMap<String, Integer>();
+    var expressionIndices = new HashMap<String, Integer>();
     buildExpressions(expressionIndices);
     buildOperands(expressionIndices);
 
-    final var mnemonics = new TreeMap<String, Integer>();
+    var mnemonics = new TreeMap<String, Integer>();
     buildMnemonics(mnemonics);
-    final var instructionIndices = new TreeMap<Long, Integer>();
+    var instructionIndices = new TreeMap<Long, Integer>();
     buildInstructions(mnemonics, expressionIndices, instructionIndices);
     monitor.setMessage("Exporting basic block structure");
-    final var basicBlockIndices = new HashMap<Long, Integer>();
+    var basicBlockIndices = new HashMap<Long, Integer>();
     buildBasicBlocks(instructionIndices, basicBlockIndices);
     // TODO(cblichmann): Implement these:
     // buildComments()
