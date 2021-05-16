@@ -62,7 +62,7 @@ std::string GetArgument(absl::string_view name) {
   return option ? option : "";
 }
 
-enum class ExportMode { kSql = 1, kBinary = 2, kText = 3, kStatistics = 4 };
+enum class ExportMode { kBinary = 2, kText = 3, kStatistics = 4 };
 
 std::string GetDefaultName(ExportMode mode) {
   std::string new_extension;
@@ -75,9 +75,6 @@ std::string GetDefaultName(ExportMode mode) {
       break;
     case ExportMode::kStatistics:
       new_extension = ".statistics";
-      break;
-    case ExportMode::kSql:
-      // No extension for database export.
       break;
   }
   return ReplaceFileExtension(GetModuleName(), new_extension);
@@ -127,12 +124,8 @@ void ExportIdb(Writer* writer) {
 
 int ExportBinary(const std::string& filename) {
   try {
-    std::string hash;
-    if (auto sha256_or = GetInputFileSha256(); sha256_or.ok()) {
-      hash = std::move(sha256_or).value();
-    } else {
-      hash = GetInputFileMd5().value_or("");
-    }
+    const std::string hash =
+        GetInputFileSha256().value_or(GetInputFileMd5().value_or(""));
     BinExport2Writer writer(filename, GetModuleName(), hash,
                             GetArchitectureName().value());
     ExportIdb(&writer);
