@@ -59,16 +59,15 @@ using binexport::ToStringView;
 
 namespace {
 
-absl::Status ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
+absl::Status ReadTemporaryFlowGraph(Address address,
                                     const FlowGraphInfos& flow_graph_infos,
                                     CallGraph* call_graph,
                                     FlowGraph* flow_graph,
                                     Instruction::Cache* instruction_cache) {
-  auto info = flow_graph_infos.find(fixed_point_info.primary);
+  auto info = flow_graph_infos.find(address);
   if (info == flow_graph_infos.end()) {
-    return absl::NotFoundError(
-        absl::StrCat("Flow graph not found for address ",
-                     FormatAddress(fixed_point_info.primary)));
+    return absl::NotFoundError(absl::StrCat("Flow graph not found for address",
+                                            FormatAddress(address)));
   }
   std::ifstream stream(call_graph->GetFilePath(), std::ios::binary);
   BinExport2 proto;
@@ -1046,14 +1045,14 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
   //                   to it this way.
   instruction_cache_.clear();
   if (auto status =
-          ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_,
+          ReadTemporaryFlowGraph(fixed_point_info.primary, flow_graph_infos1_,
                                  &call_graph1_, &primary, &instruction_cache_);
       !status.ok()) {
     throw std::runtime_error(std::string(status.message()));
   }
-  if (auto status = ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_,
-                                           &call_graph2_, &secondary,
-                                           &instruction_cache_);
+  if (auto status = ReadTemporaryFlowGraph(fixed_point_info.secondary,
+                                           flow_graph_infos2_, &call_graph2_,
+                                           &secondary, &instruction_cache_);
       !status.ok()) {
     throw std::runtime_error(std::string(status.message()));
   }
@@ -1073,8 +1072,6 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
       fixed_points_.insert(fixed_point);
   primary.SetFixedPoint(const_cast<FixedPoint*>(&*fixed_point_it.first));
   secondary.SetFixedPoint(const_cast<FixedPoint*>(&*fixed_point_it.first));
-  call_graph1_.AttachFlowGraph(&primary);
-  call_graph2_.AttachFlowGraph(&secondary);
   if (create_instruction_matches) {
     FindFixedPointsBasicBlock(&fixed_point, &context,
                               GetDefaultMatchingStepsBasicBlock());
