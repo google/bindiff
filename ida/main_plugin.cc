@@ -71,6 +71,7 @@
 #include "third_party/zynamics/binexport/ida/digest.h"
 #include "third_party/zynamics/binexport/ida/log_sink.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
+#include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
@@ -90,6 +91,7 @@ using ::security::binexport::IdbExporter;
 using ::security::binexport::InitLogging;
 using ::security::binexport::LoggingOptions;
 using ::security::binexport::ShutdownLogging;
+using ::security::binexport::ToStringView;
 
 std::string GetArgument(absl::string_view name) {
   const char* option =
@@ -167,15 +169,15 @@ bool ExportIdbs() {
     throw std::runtime_error(
         "You cannot open the same IDB file twice. Please copy and rename one if"
         " you want to diff against itself.");
-  } else if (ReplaceFileExtension(primary_idb_path, "") ==
-             ReplaceFileExtension(secondary_idb_path, "")) {
+  }
+  if (ReplaceFileExtension(primary_idb_path, "") ==
+      ReplaceFileExtension(secondary_idb_path, "")) {
     throw std::runtime_error(
         "You cannot open an idb and an i64 with the same base filename in the "
         "same directory. Please rename or move one of the files.");
-  } else if (absl::AsciiStrToUpper(GetFileExtension(primary_idb_path)) ==
-                 ".IDB" &&
-             absl::AsciiStrToUpper(GetFileExtension(secondary_idb_path)) ==
-                 ".I64") {
+  }
+  if (absl::AsciiStrToUpper(GetFileExtension(primary_idb_path)) == ".IDB" &&
+      absl::AsciiStrToUpper(GetFileExtension(secondary_idb_path)) == ".I64") {
     if (ask_yn(ASKBTN_YES,
                "Warning: you are trying to diff a 32-bit binary vs. a 64-bit "
                "binary.\n"
@@ -196,14 +198,14 @@ bool ExportIdbs() {
   RemoveAll(primary_temp_dir).IgnoreError();
   absl::Status status = CreateDirectories(primary_temp_dir);
   if (!status.ok()) {
-    throw std::runtime_error{std::string(status.message())};
+    throw std::runtime_error(std::string(status.message()));
   }
 
   const std::string secondary_temp_dir = JoinPath(temp_dir, "secondary");
   RemoveAll(secondary_temp_dir).IgnoreError();
   status = CreateDirectories(secondary_temp_dir);
   if (!status.ok()) {
-    throw std::runtime_error{std::string(status.message())};
+    throw std::runtime_error(std::string(status.message()));
   }
 
   {
@@ -220,20 +222,22 @@ bool ExportIdbs() {
     std::thread export_thread(
         [&status, &exporter]() { status = exporter.Export(); });
 
-    qstring errbuf;
-    idc_value_t arg = primary_temp_dir.c_str();
-    if (!call_idc_func(
+    const std::string primary_binexport = JoinPath(
+        primary_temp_dir,
+        ReplaceFileExtension(Basename(primary_idb_path), ".BinExport"));
+    idc_value_t arg = primary_binexport.c_str();
+    if (qstring errbuf; !call_idc_func(
             /*result=*/nullptr, "BinExportBinary", &arg,
             /*argsnum=*/1, &errbuf, /*resolver=*/nullptr)) {
       export_thread.detach();
       throw std::runtime_error(absl::StrCat(
-          "Export of the primary database failed: ", errbuf.c_str()));
+          "Export of the primary database failed: ", ToStringView(errbuf)));
     }
 
     export_thread.join();
     if (!status.ok()) {
-      throw std::runtime_error{absl::StrCat(
-          "Export of the secondary database failed: ", status.message())};
+      throw std::runtime_error(absl::StrCat(
+          "Export of the secondary database failed: ", status.message()));
     }
   }
 

@@ -59,19 +59,22 @@ using binexport::ToStringView;
 
 namespace {
 
-void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
-                            const FlowGraphInfos& flow_graph_infos,
-                            CallGraph* call_graph, FlowGraph* flow_graph,
-                            Instruction::Cache* instruction_cache) {
+absl::Status ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
+                                    const FlowGraphInfos& flow_graph_infos,
+                                    CallGraph* call_graph,
+                                    FlowGraph* flow_graph,
+                                    Instruction::Cache* instruction_cache) {
   auto info = flow_graph_infos.find(fixed_point_info.primary);
   if (info == flow_graph_infos.end()) {
-    throw std::runtime_error("error: flow graph not found for fixed point");
+    return absl::NotFoundError(
+        absl::StrCat("Flow graph not found for address ",
+                     FormatAddress(fixed_point_info.primary)));
   }
-  std::ifstream stream(call_graph->GetFilePath().c_str(),
-                       std::ios_base::binary);
+  std::ifstream stream(call_graph->GetFilePath(), std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
-    throw std::runtime_error("failed parsing protocol buffer");
+    return absl::UnknownError(absl::StrCat(
+        "Failed parsing protocol buffer for ", call_graph->GetFilePath()));
   }
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     // Entry point address is always set.
@@ -85,10 +88,12 @@ void ReadTemporaryFlowGraph(const FixedPointInfo& fixed_point_info,
     if (address == info->second.address) {
       flow_graph->SetCallGraph(call_graph);
       flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
-      return;
+      return absl::OkStatus();
     }
   }
-  throw std::runtime_error("error: flow graph data not found");
+  return absl::UnknownError(
+      absl::StrCat("Flow graph data not found for address ",
+                   FormatAddress(info->second.address)));
 }
 
 // TODO(cblichmann): Move to names.h
@@ -1040,19 +1045,17 @@ void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
   //                   In the BinExport1 format, it was necessary and efficient
   //                   to it this way.
   instruction_cache_.clear();
-  try {
-    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_, &call_graph1_,
-                           &primary, &instruction_cache_);
-  } catch (...) {
-    throw std::runtime_error(
-        absl::StrCat("error reading: ", call_graph1_.GetFilePath()));
+  if (auto status =
+          ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos1_,
+                                 &call_graph1_, &primary, &instruction_cache_);
+      !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
   }
-  try {
-    ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_, &call_graph2_,
-                           &secondary, &instruction_cache_);
-  } catch (...) {
-    throw std::runtime_error(
-        absl::StrCat("error reading: ", call_graph2_.GetFilePath()));
+  if (auto status = ReadTemporaryFlowGraph(fixed_point_info, flow_graph_infos2_,
+                                           &call_graph2_, &secondary,
+                                           &instruction_cache_);
+      !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
   }
   fixed_point.Create(&primary, &secondary);
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
