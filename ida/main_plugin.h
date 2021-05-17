@@ -15,6 +15,8 @@
 #ifndef IDA_MAIN_PLUGIN_H_
 #define IDA_MAIN_PLUGIN_H_
 
+#include <string>
+
 #include "third_party/zynamics/binexport/ida/plugin.h"
 
 namespace security::binexport {
@@ -30,11 +32,13 @@ class Plugin : public IdaPlugin<Plugin> {
   void Terminate() override;
 
   bool alsologtostderr() const { return alsologtostderr_; }
+  const std::string& log_filename() const { return log_filename_; }
 
   bool x86_noreturn_heuristic() const { return x86_noreturn_heuristic_; }
 
  private:
   bool alsologtostderr_ = false;
+  std::string log_filename_;
 
   // Whether to use an X86-specific heuristic to identify functions that do not
   // return. See FlowGraph::FindBasicBlockBreaks() for details.

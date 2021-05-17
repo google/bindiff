@@ -61,7 +61,7 @@ TEST(FileSystemTest, Filenames) {
   EXPECT_THAT(ReplaceFileExtension(
                   absl::StrCat("subdir", kPathSeparator, "filename.ext"), ""),
               StrEq(absl::StrCat("subdir", kPathSeparator, "filename")));
-  // Test that directories with a "." in them don't throw of extension
+  // Test that directories with a "." in them don't throw off the extension
   // replacement.
   EXPECT_THAT(
       ReplaceFileExtension(

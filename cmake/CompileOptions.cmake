@@ -27,8 +27,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # Clang or Apple Clang
   add_compile_options(-Wno-nullability-completeness)
 elseif(MSVC)  # Visual Studio
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-
+  add_compile_options(
+    /wd4018  # signed/unsigned mismatch
+    /wd4244  # 'argument' conversion, possible loss of data
+    /wd4267  # 'initializing' conversion, possible loss of data
+  )
   # Use the static runtime
   foreach(flag_var CMAKE_C_FLAGS CMAKE_CXX_FLAGS
                    CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG
@@ -60,6 +63,7 @@ if(UNIX)
   endif()
 elseif(WIN32)
   add_definitions(
+    -D_CRT_SECURE_NO_WARNINGS
     # Protobuf iterators trigger deprecation warnings
     -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
     # Do not define min/max macros which collide with std::min()/std::max()

@@ -333,9 +333,10 @@ ssize_t idaapi UiHook(void*, int event_id, va_list arguments) {
 Plugin::LoadStatus Plugin::Init() {
   alsologtostderr_ =
       absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
+  log_filename_ = GetArgument("LogFile");
   if (auto status = InitLogging(LoggingOptions{}
                                     .set_alsologtostderr(alsologtostderr_)
-                                    .set_log_filename(GetArgument("LogFile")),
+                                    .set_log_filename(log_filename_),
                                 absl::make_unique<IdaLogSink>());
       !status.ok()) {
     LOG(INFO) << "Error initializing logging, skipping BinExport plugin";

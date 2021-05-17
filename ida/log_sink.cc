@@ -14,6 +14,8 @@
 
 #include "third_party/zynamics/binexport/ida/log_sink.h"
 
+#include <algorithm>
+
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
@@ -27,20 +29,12 @@
 namespace security::binexport {
 
 void IdaLogSink::Send(const not_absl::LogEntry& entry) {
-  struct LoggingExecutor : public exec_request_t {
-    explicit LoggingExecutor(absl::string_view text_message)
-        : text_message(text_message) {}
-
-    int idaapi execute() override {
-      msg("%s\n", text_message.c_str());
-      return 0;
-    }
-
-    std::string text_message;
-  } executor(entry.text_message());
-
-  // Do all logging in IDA's main thread.
-  execute_sync(executor, MFF_FAST);
+  auto message = entry.text_message();
+  // Output up to 8K of log data (including the new line).
+  // Note: msg() and vmsg() are thread-safe.
+  msg("%.*s\n",
+      static_cast<int>(std::clamp(message.size(), size_t(0), size_t(8191))),
+      message.data());
 }
 
 }  // namespace security::binexport

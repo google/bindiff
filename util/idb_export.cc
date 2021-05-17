@@ -59,38 +59,36 @@ absl::Status ExportDatabase(const std::string& idb_path,
     return absl::NotFoundError(absl::StrCat("File not found: " + idb_path));
   }
 
-  std::string ida_exe = is_64bit ? options.ida_exe64 : options.ida_exe;
-  if (ida_exe.empty()) {
 #ifdef _WIN32
-    ida_exe = is_64bit ? "ida64.exe" : "ida.exe";
+  const std::string ida_exe = is_64bit ? "ida64.exe" : "ida.exe";
 #else
-    ida_exe = is_64bit ? "ida64" : "ida";
+  const std::string ida_exe = is_64bit ? "ida64" : "ida";
 #endif
+  std::vector<std::string> args;
+  args.push_back(JoinPath(options.ida_dir, ida_exe));
+  args.push_back("-A");
+  args.push_back("-OBinExportAutoAction:BinExportBinary");
+  args.push_back(absl::StrCat(
+      "-OBinExportModule:",
+      // Make the output name deterministic. When only specifying a directory,
+      // BinExport will use the IDB's original executable name as the base name.
+      JoinPath(options.export_dir,
+               ReplaceFileExtension(Basename(idb_path), kBinExportExtension))));
+  args.push_back(absl::StrCat("-OBinExportAlsoLogToStdErr:",
+                              OptionBool(options.alsologtostderr)));
+  if (!options.log_filename.empty()) {
+    args.push_back(absl::StrCat("-OBinExportLogFile:", options.log_filename));
   }
-  std::vector<std::string> args = {
-      JoinPath(options.ida_dir, ida_exe),
-      "-A",
-      absl::StrCat("-OBinExportModule:",
-                   // Make the output name deterministic. When only using
-                   // specifying a directory, BinExport will use the IDB's
-                   // original executable name as the base name.
-                   JoinPath(options.export_dir,
-                            ReplaceFileExtension(Basename(idb_path),
-                                                 kBinExportExtension))),
-      absl::StrCat("-OBinExportX86NoReturnHeuristic:",
-                   OptionBool(options.x86_noreturn_heuristic)),
-      absl::StrCat("-OBinExportAlsoLogToStdErr:",
-                   OptionBool(options.alsologtostderr)),
-      "-OBinExportAutoAction:BinExportBinary",
-      idb_path,
-  };
+  args.push_back(absl::StrCat("-OBinExportX86NoReturnHeuristic:",
+                              OptionBool(options.x86_noreturn_heuristic)));
+  args.push_back(idb_path);
 
   SetEnvironmentVariable("TVHEADLESS", "1");
-  absl::StatusOr<int> exit_or = SpawnProcessAndWait(args);
+  absl::StatusOr<int> exit = SpawnProcessAndWait(args);
 
   // Reset environment variable.
   SetEnvironmentVariable("TVHEADLESS", /*value=*/"");
-  return exit_or.status();
+  return exit.status();
 }
 
 absl::Status IdbExporter::Export(
@@ -105,7 +103,7 @@ absl::Status IdbExporter::Export(
       while (true) {
         std::string idb_path;
         {
-          absl::MutexLock lock{&queue_mutex_};
+          absl::MutexLock lock(&queue_mutex_);
           if (idb_paths_.empty()) {
             break;
           }

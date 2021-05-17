@@ -44,6 +44,10 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvarargs"
 #elif _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4005)
+#pragma warning(disable : 4244)
+#pragma warning(disable : 4267)
 #endif
 
 // Now include the problematic header, end_idasdk.inc will clean up again.

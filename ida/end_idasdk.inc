@@ -20,6 +20,7 @@
 #elif __GNUC__
 #pragma GCC diagnostic pop
 #elif _MSC_VER
+#pragma warning(pop)
 #endif
 
 #undef uint128

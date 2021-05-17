@@ -46,16 +46,6 @@ class IdbExporter {
       return *this;
     }
 
-    Options& set_ida_exe(std::string value) {
-      ida_exe = std::move(value);
-      return *this;
-    }
-
-    Options& set_ida_exe64(std::string value) {
-      ida_exe64 = std::move(value);
-      return *this;
-    }
-
     Options& set_num_threads(int value) {
       num_threads = value;
       return *this;
@@ -66,6 +56,11 @@ class IdbExporter {
       return *this;
     }
 
+    Options& set_log_filename(std::string value) {
+      log_filename = std::move(value);
+      return *this;
+    }
+
     Options& set_x86_noreturn_heuristic(bool value) {
       x86_noreturn_heuristic = value;
       return *this;
@@ -73,10 +68,9 @@ class IdbExporter {
 
     std::string export_dir;  // Directory to export the files to
     std::string ida_dir;     // IDA Pro installation directory
-    std::string ida_exe;     // Name of the IDA executable, 32-bit addresses
-    std::string ida_exe64;   // IDA executable, 64-bit addresses
     int num_threads = 1;
     bool alsologtostderr = false;
+    std::string log_filename;
     bool x86_noreturn_heuristic = false;
   };
 
