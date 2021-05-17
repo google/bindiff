@@ -313,8 +313,6 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
   const StringSettingsMap string_settings = {
       {"directory", config.mutable_directory()},
       {"ida.directory", config.mutable_ida()->mutable_directory()},
-      {"ida.executable", config.mutable_ida()->mutable_executable()},
-      {"ida.executable64", config.mutable_ida()->mutable_executable64()},
       {"log.directory", config.mutable_log()->mutable_directory()},
       {"preferences.default_workspace",
        config.mutable_preferences()->mutable_default_workspace()},

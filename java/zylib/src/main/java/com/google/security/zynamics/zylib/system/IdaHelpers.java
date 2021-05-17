@@ -18,6 +18,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 
 /** Contains a few simple methods that are useful for dealing with IDA and command line handling */
 public final class IdaHelpers {
@@ -41,27 +42,34 @@ public final class IdaHelpers {
    * and the IDA Pro plugin.
    *
    * @param idaExe the IDA Pro executable to use. @see #IDA32_EXECUTABLE.
-   * @param idbFileName the database file to export
-   * @param outputDirectory where to store the resulting file. The final filename will be
-   *     idbFilename with its file extension replaced by ".BinExport".
+   * @param idbFilename the database file to export
+   * @param binexportFilename where to store the resulting file.
+   * @param alsologtostderr whether to log to standard output.
+   * @param logFilename path to a log file. If empty, file logging is disabled.
    * @param x86NoReturnHeuristic whether to apply an x86/x86-64 specific heuristic to find functions
    *     that do not return.
    * @return the started process.
    */
   public static Process createIdaProcess(
-      final String idaExe,
-      final String idbFileName,
-      final String outputDirectory,
-      final boolean x86NoReturnHeuristic)
+      String idaExe,
+      String idbFilename,
+      String binexportFilename,
+      boolean alsologtostderr,
+      String logFilename,
+      boolean x86NoReturnHeuristic)
       throws IdaException {
-    final ProcessBuilder processBuilder =
-        new ProcessBuilder(
-            idaExe,
-            "-A",
-            "-OBinExportModule:" + outputDirectory,
-            "-OBinExportX86NoReturnHeuristic:" + (x86NoReturnHeuristic ? "TRUE" : "FALSE"),
-            "-OBinExportAutoAction:BinExportBinary",
-            idbFileName);
+    var args = new ArrayList<String>();
+    args.add(idaExe);
+    args.add("-A");
+    args.add("-OBinExportAutoAction:BinExportBinary");
+    args.add("-OBinExportModule:" + binexportFilename);
+    args.add("-OBinExportAlsoLogToStdErr:" + (alsologtostderr ? "TRUE" : "FALSE"));
+    if (!logFilename.isEmpty()) {
+      args.add("-OBinExportLogFile:" + logFilename);
+    }
+    args.add("-OBinExportX86NoReturnHeuristic:" + (x86NoReturnHeuristic ? "TRUE" : "FALSE"));
+    args.add(idbFilename);
+    var processBuilder = new ProcessBuilder(args);
     processBuilder.environment().put("TVHEADLESS", "1");
 
     // Now launch the exporter to export the IDB to the database
@@ -71,7 +79,7 @@ public final class IdaHelpers {
 
       // Java manages the streams internally - if they are full, the
       // process blocks, i.e. IDA hangs, so we need to consume them.
-      try (final BufferedReader reader =
+      try (var reader =
           new BufferedReader(
               new InputStreamReader(idaProcess.getInputStream(), Charset.defaultCharset()))) {
         String line;
@@ -80,7 +88,7 @@ public final class IdaHelpers {
         }
       }
       return idaProcess;
-    } catch (final IOException e) {
+    } catch (IOException e) {
       throw new IdaException(
           "Failed attempting to launch the importer with IDA: " + e.getMessage(), e);
     }

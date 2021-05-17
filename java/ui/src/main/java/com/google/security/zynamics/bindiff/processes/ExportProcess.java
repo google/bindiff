@@ -16,8 +16,11 @@ package com.google.security.zynamics.bindiff.processes;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.bindiff.BinDiffProtos;
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.IdaProOptions;
+import com.google.security.zynamics.bindiff.BinDiffProtos.Config.LogOptions;
 import com.google.security.zynamics.bindiff.config.Config;
 import com.google.security.zynamics.bindiff.exceptions.BinExportException;
+import com.google.security.zynamics.bindiff.logging.Logger;
 import com.google.security.zynamics.zylib.io.FileUtils;
 import com.google.security.zynamics.zylib.system.IdaException;
 import com.google.security.zynamics.zylib.system.IdaHelpers;
@@ -25,27 +28,31 @@ import java.io.File;
 import java.nio.file.Path;
 
 /** Static methods to help export IDA Pro databases to .BinExport. */
-// TODO(cblichmann): Remove this functionality from Java and call "bindiff --export" instead.
+// TODO(cblichmann): BinDiff 8: Call "bindiff --export" instead.
 public class ExportProcess {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
-  public static String getExportFilename(final String destFilename, final File outputDir) {
+  public static String getExportFilename(String destFilename, File outputDir) {
     return FileUtils.ensureTrailingSlash(outputDir.getPath()) + destFilename;
   }
 
   public static void startExportProcess(
-      final File idaExe, final File outputFolder, final File fileToExport, final String targetName)
+      File idaExe, File outputDirectory, File fileToExport, String targetName)
       throws BinExportException {
     try {
-      final BinDiffProtos.Config.IdaProOptions ida = Config.getInstance().getIda();
-      final String idaFullPath = Path.of(ida.getDirectory(), idaExe.getName()).toString();
+      BinDiffProtos.Config.Builder config = Config.getInstance();
+      LogOptions logOptions = config.getLog();
+      IdaProOptions ida = config.getIda();
+      String idaFullPath = Path.of(ida.getDirectory(), idaExe.getName()).toString();
       logger.atFinest().log("Launching %s, exporting %s", idaFullPath, fileToExport);
       IdaHelpers.createIdaProcess(
           idaFullPath,
           fileToExport.getAbsolutePath(),
-          outputFolder.getPath() + File.separator + targetName,
+          outputDirectory.getPath() + File.separator + targetName,
+          logOptions.getToStderr(),
+          logOptions.getToFile() ? Logger.getLoggingFilePath(logOptions.getDirectory()) : "",
           ida.getBinexportX86NoreturnHeuristic());
-    } catch (final IdaException e) {
+    } catch (IdaException e) {
       throw new BinExportException(e);
     }
   }

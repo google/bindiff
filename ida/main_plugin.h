@@ -17,6 +17,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <string>
 
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/binexport/ida/plugin.h"
@@ -47,6 +48,7 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
   void set_results(Results* value) { results_.reset(value); }
 
   bool alsologtostderr() const { return alsologtostderr_; }
+  const std::string& log_filename() const { return log_filename_; }
 
   bool LoadResults();
   void ShowResults(ResultFlags flags);
@@ -67,6 +69,7 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
  private:
   bool init_done_ = false;
   bool alsologtostderr_ = false;
+  std::string log_filename_;
   std::unique_ptr<Results> results_;
 };
 

@@ -77,6 +77,7 @@
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/logging.h"
+#include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
@@ -85,6 +86,7 @@ namespace security::bindiff {
 using ::security::binexport::FormatAddress;
 using ::security::binexport::GetInputFileMd5;
 using ::security::binexport::GetInputFileSha256;
+using ::security::binexport::GetOrCreateAppDataDirectory;
 using ::security::binexport::HumanReadableDuration;
 using ::security::binexport::IdaLogSink;
 using ::security::binexport::IdbExporter;
@@ -97,6 +99,16 @@ std::string GetArgument(absl::string_view name) {
   const char* option =
       get_plugin_options(absl::StrCat("BinDiff", name).c_str());
   return option ? option : "";
+}
+
+std::string GetLogFilename(const bindiff::Config& config,
+                           absl::string_view basename) {
+  std::string log_dir = config.log().directory();
+  if (log_dir.empty()) {
+    log_dir = JoinPath(GetOrCreateAppDataDirectory(kBinDiffName).value_or("."),
+                       "logs");
+  }
+  return JoinPath(log_dir, basename);
 }
 
 bool DoSaveResults();
@@ -148,11 +160,10 @@ bool ExportIdbs() {
     return false;
   }
 
-  auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir_or.ok()) {
+  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir.ok()) {
     return false;
   }
-  const std::string temp_dir = std::move(temp_dir_or).value();
 
   const char* secondary_idb = ask_file(
       /*for_saving=*/false, "*.idb;*.i64", "%s",
@@ -167,8 +178,8 @@ bool ExportIdbs() {
   std::string secondary_idb_path(secondary_idb);
   if (primary_idb_path == secondary_idb_path) {
     throw std::runtime_error(
-        "You cannot open the same IDB file twice. Please copy and rename one if"
-        " you want to diff against itself.");
+        "You cannot open the same database twice. Please copy and rename one "
+        "if you want to diff it against itself.");
   }
   if (ReplaceFileExtension(primary_idb_path, "") ==
       ReplaceFileExtension(secondary_idb_path, "")) {
@@ -179,7 +190,7 @@ bool ExportIdbs() {
   if (absl::AsciiStrToUpper(GetFileExtension(primary_idb_path)) == ".IDB" &&
       absl::AsciiStrToUpper(GetFileExtension(secondary_idb_path)) == ".I64") {
     if (ask_yn(ASKBTN_YES,
-               "Warning: you are trying to diff a 32-bit binary vs. a 64-bit "
+               "Warning: You requested to diff a 32-bit binary vs. a 64-bit "
                "binary.\n"
                "If the 64-bit binary contains addresses outside the 32-bit "
                "range they will be truncated.\n"
@@ -194,31 +205,33 @@ bool ExportIdbs() {
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
 
-  const std::string primary_temp_dir = JoinPath(temp_dir, "primary");
+  const std::string primary_temp_dir = JoinPath(*temp_dir, "primary");
   RemoveAll(primary_temp_dir).IgnoreError();
-  absl::Status status = CreateDirectories(primary_temp_dir);
-  if (!status.ok()) {
+  if (auto status = CreateDirectories(primary_temp_dir); !status.ok()) {
     throw std::runtime_error(std::string(status.message()));
   }
 
-  const std::string secondary_temp_dir = JoinPath(temp_dir, "secondary");
+  const std::string secondary_temp_dir = JoinPath(*temp_dir, "secondary");
   RemoveAll(secondary_temp_dir).IgnoreError();
-  status = CreateDirectories(secondary_temp_dir);
-  if (!status.ok()) {
+  if (auto status = CreateDirectories(secondary_temp_dir); !status.ok()) {
     throw std::runtime_error(std::string(status.message()));
   }
 
   {
     const auto& config = config::Proto();
-    IdbExporter exporter(
+    auto options =
         IdbExporter::Options()
             .set_export_dir(secondary_temp_dir)
             .set_ida_dir(idadir(/*subdir=*/nullptr))
-            .set_ida_exe(config.ida().executable())
-            .set_ida_exe64(config.ida().executable64())
-            .set_alsologtostderr(Plugin::instance()->alsologtostderr()));
+            .set_alsologtostderr(Plugin::instance()->alsologtostderr());
+    if (config.log().to_file()) {
+      options.set_log_filename(
+          GetLogFilename(config, "bindiff_idapro_secondary.log"));
+    }
+    IdbExporter exporter(options);
     exporter.AddDatabase(secondary_idb_path);
 
+    absl::Status status;
     std::thread export_thread(
         [&status, &exporter]() { status = exporter.Export(); });
 
@@ -240,7 +253,6 @@ bool ExportIdbs() {
           "Export of the secondary database failed: ", status.message()));
     }
   }
-
   return true;
 }
 
@@ -400,7 +412,6 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
     if (entry_point < start || entry_point > end) {
       flow_graph_infos->erase(entry_point);
       delete flow_graph;
-      // GNU implementation of erase does not return an iterator.
       flow_graphs->erase(it++);
     } else {
       ++it;
@@ -411,7 +422,8 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
 
 bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
                       ea_t start_address_target, ea_t end_address_target) {
-  Plugin::instance()->DiscardResults(Plugin::DiscardResultsKind::kDontSave);
+  Plugin& plugin = *Plugin::instance();
+  plugin.DiscardResults(Plugin::DiscardResultsKind::kDontSave);
   Timer<> timer;
   if (!ExportIdbs()) {
     return false;
@@ -427,21 +439,30 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   timer.restart();
 
   WaitBox wait_box("Performing diff...");
-  Plugin::instance()->set_results(new Results());
-  auto* results = Plugin::instance()->results();
-  auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir_or.ok()) {
+  // TODO(cblichmann): Create directory with random suffix, so that multiple
+  //                   invocations don't interfere with each other.
+  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir.ok()) {
     return false;
   }
-  const auto temp_dir = std::move(temp_dir_or).value();
-  const auto filename1(FindFile(JoinPath(temp_dir, "primary"), ".BinExport"));
-  const auto filename2(FindFile(JoinPath(temp_dir, "secondary"), ".BinExport"));
-  if (filename1.empty() || filename2.empty()) {
+  const std::string filename1 =
+      FindFile(JoinPath(*temp_dir, "primary"), ".BinExport");
+  if (filename1.empty()) {
     throw std::runtime_error(
-        "Export failed. Is the secondary IDB opened in another IDA instance?\n"
+        "Exporting the primary (this) database failed.\n"
+        "Please check whether the BinExport plugin is installed correctly.");
+  }
+  const std::string filename2 =
+      FindFile(JoinPath(*temp_dir, "secondary"), ".BinExport");
+  if (filename2.empty()) {
+    throw std::runtime_error(
+        "Exporting the secondary database failed. "
+        "Is it opened in another instance?\n"
         "Please close all other IDA instances and try again.");
   }
 
+  plugin.set_results(new Results());
+  auto* results = plugin.results();
   Read(filename1, &results->call_graph1_, &results->flow_graphs1_,
        &results->flow_graph_infos1_, &results->instruction_cache_);
   Read(filename2, &results->call_graph2_, &results->flow_graphs2_,
@@ -463,7 +484,7 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
                             " for matching.");
 
-  Plugin::instance()->ShowResults(Plugin::kResultsShowAll);
+  plugin.ShowResults(Plugin::kResultsShowAll);
   results->SetDirty();
 
   return true;
@@ -474,7 +495,7 @@ bool DoRediffDatabase() {
     auto* results = Plugin::instance()->results();
     if (!results) {
       warning(
-          "You need to provide a normal diff before diffing incrementally. "
+          "You need to create a regular diff before diffing incrementally. "
           "Either create or load one. Diffing incrementally will keep all "
           "manually confirmed matches in the result and try to reassign all "
           "other matches.");
@@ -1243,14 +1264,20 @@ void Plugin::TermMenus() {
 }
 
 Plugin::LoadStatus Plugin::Init() {
+  auto& config = config::Proto();
+
   alsologtostderr_ =
-      absl::AsciiStrToUpper(GetArgument("AlsoLogToStdErr")) == "TRUE";
+      absl::EqualsIgnoreCase(GetArgument("AlsoLogToStdErr"), "TRUE");
+  log_filename_ = GetArgument("LogFile");
+  if (log_filename_.empty() && config.log().to_file()) {
+    log_filename_ = GetLogFilename(config, "bindiff_idapro.log");
+  }
   if (auto status = InitLogging(LoggingOptions{}
                                     .set_alsologtostderr(alsologtostderr_)
-                                    .set_log_filename(GetArgument("LogFile")),
+                                    .set_log_filename(log_filename_),
                                 absl::make_unique<IdaLogSink>());
       !status.ok()) {
-    LOG(INFO) << "Error initializing logging, skipping BinDiff plugin";
+    msg("Error initializing logging, skipping BinDiff plugin\n");
     return PLUGIN_SKIP;
   }
 
@@ -1279,7 +1306,7 @@ Plugin::LoadStatus Plugin::Init() {
     return PLUGIN_SKIP;
   }
 
-  if (auto& config = config::Proto(); config.ida().directory().empty()) {
+  if (config.ida().directory().empty()) {
     config.mutable_ida()->set_directory(idadir(/*subdir=*/nullptr));
     config::SaveUserConfig(config).IgnoreError();
   }

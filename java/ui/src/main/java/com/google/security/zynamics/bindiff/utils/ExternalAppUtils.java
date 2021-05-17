@@ -61,10 +61,9 @@ public class ExternalAppUtils {
 
     String idaExe;
     if (Ascii.equalsIgnoreCase(extension, Constants.IDB64_EXTENSION)) {
-      idaExe =
-          ida.getExecutable64().isEmpty() ? IdaHelpers.IDA64_EXECUTABLE : ida.getExecutable64();
+      idaExe = IdaHelpers.IDA64_EXECUTABLE;
     } else if (Ascii.equalsIgnoreCase(extension, Constants.IDB32_EXTENSION)) {
-      idaExe = ida.getExecutable().isEmpty() ? IdaHelpers.IDA64_EXECUTABLE : ida.getExecutable();
+      idaExe = IdaHelpers.IDA32_EXECUTABLE;
     } else {
       return null;
     }

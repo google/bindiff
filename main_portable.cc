@@ -364,8 +364,6 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
           .set_export_dir(full_out_path)
           .set_num_threads(num_threads)
           .set_ida_dir(config.ida().directory())
-          .set_ida_exe(config.ida().executable())
-          .set_ida_exe64(config.ida().executable64())
           .set_x86_noreturn_heuristic(
               config.ida().binexport_x86_noreturn_heuristic()));
   for (const std::string& idb : idbs) {

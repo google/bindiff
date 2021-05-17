@@ -70,18 +70,10 @@ message Config {
     // UI will simply ask the user.
     string directory = 1;
 
-    // The basename of the actual IDA Pro executable to run for 32-bit
-    // addresses. If empty, "ida" or "ida.exe" will be used.
-    string executable = 2;
-
-    // Like executable, but for 64-bit addresses. If empty, "ida64" or
-    // "ida64.exe" will be used.
-    string executable64 = 3;
-
     // Whether to export IDA Pro databases using an x86/x86-64 specific
     // heuristic to determine whether a function returns. If unset, defaults
     // to "false".
-    bool binexport_x86_noreturn_heuristic = 4;
+    bool binexport_x86_noreturn_heuristic = 2;
   }
   IdaProOptions ida = 4;
 
@@ -232,7 +224,7 @@ message Config {
         LAYOUT_ORIENTATION_UNSPECIFIED = 0;
         HORIZONTAL = 1;
         VERTICAL = 2;
-      };
+      }
 
       message HierarchicalLayoutOptions {
         enum HierarchicalLayoutStyle {
