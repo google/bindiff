@@ -63,6 +63,8 @@ std::string EntryPoint::SourceToString() {
       return "PE64_EXCEPTION_INFO";
     case Source::MSIL_EXCEPTION_RECORD:
       return "MSIL_EXCEPTION_RECORD";
+    case Source::GOLANG_TYPE_INFO:
+      return "GOLANG_TYPE_INFO";
     default:
       CHECK(false);
       return "";  // Not reached
