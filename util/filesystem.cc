@@ -213,10 +213,9 @@ std::string ReplaceFileExtension(absl::string_view path,
 #ifndef _WIN32
 namespace {
 
-absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
+absl::StatusOr<mode_t> GetFileMode(const std::string& path) {
   struct stat file_info;
-  std::string path_copy(path);
-  if (stat(path_copy.c_str(), &file_info) == -1) {
+  if (stat(path.c_str(), &file_info) == -1) {
     switch (errno) {
       case EACCES:
       case ENOENT:
@@ -234,7 +233,7 @@ absl::StatusOr<mode_t> GetFileMode(absl::string_view path) {
 #endif
 
 absl::StatusOr<int64_t> GetFileSize(absl::string_view path) {
-  std::ifstream stream(std::string(path), std::ifstream::ate);
+  std::ifstream stream(std::string(path), std::ios::ate);
   auto size = static_cast<int64_t>(stream.tellg());
   if (stream) {
     return size;
@@ -243,22 +242,25 @@ absl::StatusOr<int64_t> GetFileSize(absl::string_view path) {
 }
 
 bool FileExists(absl::string_view path) {
-#ifdef _WIN32
   std::string path_copy(path);
-  return PathFileExists(path_copy.c_str()) == TRUE;
+#ifdef _WIN32
+  DWORD attr = GetFileAttributes(path_copy.c_str());
+  return (attr != INVALID_FILE_ATTRIBUTES) &&
+         !(attr & FILE_ATTRIBUTE_DIRECTORY);
 #else
-  auto mode_or = GetFileMode(path);
-  return mode_or.ok() ? S_ISREG(mode_or.value()) : false;
+  auto mode = GetFileMode(path_copy);
+  return mode.ok() ? S_ISREG(*mode) : false;
 #endif
 }
 
 bool IsDirectory(absl::string_view path) {
-#ifdef _WIN32
   std::string path_copy(path);
-  return PathIsDirectory(path_copy.c_str()) == FILE_ATTRIBUTE_DIRECTORY;
+#ifdef _WIN32
+  DWORD attr = GetFileAttributes(path_copy.c_str());
+  return (attr != INVALID_FILE_ATTRIBUTES) && (attr & FILE_ATTRIBUTE_DIRECTORY);
 #else
-  auto mode_or = GetFileMode(path);
-  return mode_or.ok() ? S_ISDIR(mode_or.value()) : false;
+  auto mode = GetFileMode(path_copy);
+  return mode.ok() ? S_ISDIR(*mode) : false;
 #endif
 }
 
