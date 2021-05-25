@@ -77,69 +77,69 @@ class Counts {
   static constexpr absl::string_view GetDisplayName(Kind key) {
     switch (key) {
       case kBasicBlockMatchesLibrary:
-        return "basicBlock matches (library)";
+        return "Basic Block Matches (Library)";
       case kBasicBlockMatchesNonLibrary:
-        return "basicBlock matches (non-library)";
+        return "Basic Block Matches (Non-Library)";
       case kBasicBlocksLibrary:
-        return "basicBlocks (library)";
+        return "Basic Blocks (Library)";
       case kBasicBlocksNonLibrary:
-        return "basicBlocks (non-library)";
+        return "Basic Blocks (Non-Library)";
       case kBasicBlocksPrimaryLibrary:
-        return "basicBlocks primary (library)";
+        return "Basic Blocks Primary (Library)";
       case kBasicBlocksPrimaryNonLibrary:
-        return "basicBlocks primary (non-library)";
+        return "Basic Blocks Primary (Non-Library)";
       case kBasicBlocksSecondaryLibrary:
-        return "basicBlocks secondary (library)";
+        return "Basic Blocks Secondary (Library)";
       case kBasicBlocksSecondaryNonLibrary:
-        return "basicBlocks secondary (non-library)";
+        return "Basic Blocks Secondary (Non-Library)";
       case kEdgesLibrary:
-        return "edges (library)";
+        return "Edges (Library)";
       case kEdgesNonLibrary:
-        return "edges (non-library)";
+        return "Edges (Non-Library)";
       case kFlowGraphEdgeMatchesLibrary:
-        return "flowGraph edge matches (library)";
+        return "Flow Graph Edge Matches (Library)";
       case kFlowGraphEdgeMatchesNonLibrary:
-        return "flowGraph edge matches (non-library)";
+        return "Flow Graph Edge Matches (Non-Library)";
       case kFlowGraphEdgesPrimaryLibrary:
-        return "flowGraph edges primary (library)";
+        return "Flow Graph Edges Primary (Library)";
       case kFlowGraphEdgesPrimaryNonLibrary:
-        return "flowGraph edges primary (non-library)";
+        return "Flow Graph Edges Primary (Non-Library)";
       case kFlowGraphEdgesSecondaryLibrary:
-        return "flowGraph edges secondary (library)";
+        return "Flow Graph Edges Secondary (Library)";
       case kFlowGraphEdgesSecondaryNonLibrary:
-        return "flowGraph edges secondary (non-library)";
+        return "Flow Graph Edges Secondary (Non-Library)";
       case kFunctionMatchesLibrary:
-        return "function matches (library)";
+        return "Function Matches (Library)";
       case kFunctionMatchesNonLibrary:
-        return "function matches (non-library)";
+        return "Function Matches (Non-Library)";
       case kFunctionsLibrary:
-        return "functions (library)";
+        return "Functions (Library)";
       case kFunctionsNonLibrary:
-        return "functions (non-library)";
+        return "Functions (Non-Library)";
       case kFunctionsPrimaryLibrary:
-        return "functions primary (library)";
+        return "Functions Primary (Library)";
       case kFunctionsPrimaryNonLibrary:
-        return "functions primary (non-library)";
+        return "Functions Primary (Non-Library)";
       case kFunctionsSecondaryLibrary:
-        return "functions secondary (library)";
+        return "Functions Secondary (Library)";
       case kFunctionsSecondaryNonLibrary:
-        return "functions secondary (non-library)";
+        return "Functions Secondary (Non-Library)";
       case kInstructionMatchesLibrary:
-        return "instruction matches (library)";
+        return "Instruction Matches (Library)";
       case kInstructionMatchesNonLibrary:
-        return "instruction matches (non-library)";
+        return "Instruction Matches (Non-Library)";
       case kInstructionsLibrary:
-        return "instructions (library)";
+        return "Instructions (Library)";
       case kInstructionsNonLibrary:
-        return "instructions (non-library)";
+        return "Instructions (Non-Library)";
       case kInstructionsPrimaryLibrary:
-        return "instructions primary (library)";
+        return "Instructions Primary (Library)";
       case kInstructionsPrimaryNonLibrary:
-        return "instructions primary (non-library)";
+        return "Instructions Primary (Non-Library)";
       case kInstructionsSecondaryLibrary:
-        return "instructions secondary (library)";
+        return "Instructions Secondary (Library)";
       case kInstructionsSecondaryNonLibrary:
-        return "instructions secondary (non-library)";
+        return "Instructions Secondary (Non-Library)";
       case kNumCountEntries:
         break;
     }

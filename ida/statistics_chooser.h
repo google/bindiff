@@ -38,7 +38,7 @@ class StatisticsChooser : public chooser_t {
 
  private:
   static constexpr const int kColumnWidths[] = {
-      10,              // Key
+      30,              // Key
       20 | CHCOL_DEC,  // Value
   };
   static constexpr const char* const kColumnNames[] = {"Name", "Value"};

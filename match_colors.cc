@@ -28,7 +28,7 @@
 
 namespace security::bindiff {
 
-// Parses a hex color triplet in value into a number. Returns -1 on error.
+// Parses a hex color triplet in value into a number.
 absl::optional<int64_t> HexColorToInt(absl::string_view value) {
   const std::string color_string(
       absl::StripPrefix(absl::StripAsciiWhitespace(value), "#"));
@@ -79,10 +79,14 @@ uint32_t GetMatchColor(double value) {
 
   static uint32_t manual_match_color = *HexColorToInt(theme.manual_match());
 
-  uint32_t color =
-      value != kManualMatch
-          ? (*color_ramp)[static_cast<int>(value * (color_ramp->size() - 1))]
-          : manual_match_color;
+  uint32_t color;
+  if (value == kManualMatch) {
+    color = manual_match_color;
+  } else if (value >= 0.0 && value <= 1.0) {
+    color = (*color_ramp)[static_cast<int>(value * (color_ramp->size() - 1))];
+  } else {
+    color = 0xffffff;  // Fallback to white
+  }
   return (color << 16) | (color & 0xff00) | (color >> 16);
 }
 

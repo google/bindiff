@@ -367,6 +367,34 @@ std::string VisualDiffMessage(bool call_graph_match,
                       secondary_address, "\"/></BinDiffMatch>");
 }
 
+// Maps algorithm names from the config file to their respective display names.
+std::string GetMatchingStepDisplayName(absl::string_view name) {
+  static auto* algorithms =
+      []() -> absl::flat_hash_map<std::string, std::string>* {
+    auto* algorithms = new absl::flat_hash_map<std::string, std::string>();
+
+    (*algorithms)[MatchingStep::kFunctionManualName] =
+        MatchingStep::kFunctionManualDisplayName;
+    (*algorithms)[MatchingStep::kFunctionCallReferenceName] =
+        MatchingStep::kFunctionCallReferenceDisplayName;
+    for (const auto* step : GetDefaultMatchingSteps()) {
+      (*algorithms)[step->name()] = step->display_name();
+    }
+
+    (*algorithms)[MatchingStepFlowGraph::kBasicBlockManualName] =
+        MatchingStepFlowGraph::kBasicBlockManualDisplayName;
+    (*algorithms)[MatchingStepFlowGraph::kBasicBlockPropagationName] =
+        MatchingStepFlowGraph::kBasicBlockPropagationDisplayName;
+    for (const auto* step : GetDefaultMatchingStepsBasicBlock()) {
+      (*algorithms)[step->name()] = step->display_name();
+    }
+    return algorithms;
+  }();
+
+  auto found = algorithms->find(name);
+  return found != algorithms->end() ? found->second : std::string(name);
+}
+
 }  // namespace
 
 Results::Results()
@@ -615,7 +643,6 @@ Results::StatisticDescription Results::GetStatisticDescription(
     return desc;
   }
 
-  size_t nr = 0;
   if (index < counts_.ui_entry_size()) {
     const auto entry = counts_.GetEntry(index);
     desc.name = std::string(entry.first);
@@ -624,9 +651,9 @@ Results::StatisticDescription Results::GetStatisticDescription(
   } else if (index < histogram_.size() + counts_.ui_entry_size()) {
     index -= counts_.ui_entry_size();
     auto it = histogram_.cbegin();
-    for (; it != histogram_.cend() && nr < index; ++it, ++nr) {
+    for (size_t nr = 0; it != histogram_.cend() && nr < index; ++it, ++nr) {
     }
-    desc.name = it->first;
+    desc.name = GetMatchingStepDisplayName(it->first);
     desc.is_count = true;
     desc.count = it->second;
   } else if (index == histogram_.size() + counts_.ui_entry_size() + 1) {
@@ -939,7 +966,7 @@ Results::MatchDescription Results::GetMatchDescription(size_t index) const {
   desc.name_secondary =
       call_graph2_.GetGoodName(call_graph2_.GetVertex(fixed_point.secondary));
   desc.comments_ported = fixed_point.comments_ported;
-  desc.algorithm_name = *fixed_point.algorithm;
+  desc.algorithm_name = GetMatchingStepDisplayName(*fixed_point.algorithm);
   desc.basic_block_count = fixed_point.basic_block_count;
   desc.basic_block_count_primary = primary.basic_block_count;
   desc.basic_block_count_secondary = secondary.basic_block_count;

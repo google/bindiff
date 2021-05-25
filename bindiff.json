@@ -11,8 +11,6 @@
  },
  "ida": {
   "directory": "",
-  "executable": "",
-  "executable64": "",
   "binexport_x86_noreturn_heuristic": false
  },
  "num_threads": 0,
