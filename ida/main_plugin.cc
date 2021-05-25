@@ -621,71 +621,51 @@ constexpr ext_idcfunc_t kBinDiffDatabaseIdcFunc = {
     "BinDiffDatabase", IdcBinDiffDatabase, kBinDiffDatabaseArgs, nullptr, 0,
     EXTFUN_BASE};
 
-bool WriteResults(const std::string& path) {
-  if (FileExists(path)) {
-    if (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
-               path.c_str()) != 1) {
-      return false;
-    }
-  }
-
+absl::Status WriteResults(const std::string& path) {
   WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing results...";
   auto* results = Plugin::instance()->results();
-  std::string export1(results->call_graph1_.GetFilePath());
-  std::string export2(results->call_graph2_.GetFilePath());
-  auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir_or.ok()) {
-    return false;
-  }
-  const std::string temp_dir = std::move(temp_dir_or).value();
-  const std::string out_dir(Dirname(path));
+  const std::string export1 = results->call_graph1_.GetFilePath();
+  const std::string export2 = results->call_graph2_.GetFilePath();
+  NA_ASSIGN_OR_RETURN(const std::string temp_dir,
+                      GetOrCreateTempDirectory("BinDiff"));
+  const std::string out_dir = Dirname(path);
 
   if (!results->IsIncomplete()) {
     DatabaseWriter writer(
-        path, DatabaseWriter::Options{}.set_include_function_names(
+        path, DatabaseWriter::Options().set_include_function_names(
                   !config::Proto().binary_format().exclude_function_names()));
     results->Write(&writer);
   } else {
-    // results are incomplete (have been loaded)
-    // copy original result file to temp dir first, so we can overwrite the
-    // original if required
+    // Results are incomplete (have been loaded). Copy original result file to
+    // temp dir first, so we can overwrite the original if required.
     const std::string input_bindiff = JoinPath(temp_dir, "input.BinDiff");
     std::remove(input_bindiff.c_str());
-    if (auto status = CopyFile(results->input_filename_, input_bindiff);
-        !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    NA_RETURN_IF_ERROR(CopyFile(results->input_filename_, input_bindiff));
     {
       SqliteDatabase database(input_bindiff.c_str());
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
       results->Write(&writer);
     }
     std::remove(path.c_str());
-    if (auto status = CopyFile(input_bindiff, path); !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    NA_RETURN_IF_ERROR(CopyFile(input_bindiff, path));
     std::remove(input_bindiff.c_str());
   }
-  const std::string new_export1(JoinPath(out_dir, Basename(export1)));
-  if (export1 != new_export1) {
+  if (const std::string new_export1 = JoinPath(out_dir, Basename(export1));
+      export1 != new_export1) {
     std::remove(new_export1.c_str());
-    if (auto status = CopyFile(export1, new_export1); !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    NA_RETURN_IF_ERROR(CopyFile(export1, new_export1));
   }
-  const std::string new_export2(JoinPath(out_dir, Basename(export2)));
-  if (export2 != new_export2) {
+  if (const std::string new_export2 = JoinPath(out_dir, Basename(export2));
+      export2 != new_export2) {
     std::remove(new_export2.c_str());
-    if (auto status = CopyFile(export2, new_export2); !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    NA_RETURN_IF_ERROR(CopyFile(export2, new_export2));
   }
 
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                             ")");
-  return true;
+  return absl::OkStatus();
 }
 
 bool DoSaveResultsLog() {
@@ -768,26 +748,31 @@ bool DoSaveResults() {
 
   try {
     auto* results = Plugin::instance()->results();
-    // TODO(soerenme) figure out how to use m_InputFileName from g_results if
-    // we have loaded results.
-    // It seems the filechooser will only ever use the directory part of the
-    // default filename _or_ the filename part. I want both!
-    // (Hex-Rays has confirmed this to be a bug and promised to fix it in 6.2)
-    std::string default_filename(
-        results->call_graph1_.GetFilename() + "_vs_" +
-        results->call_graph2_.GetFilename() + ".BinDiff");
     const char* filename = ask_file(
-        /*for_saving=*/true, default_filename.c_str(), "%s",
+        /*for_saving=*/true, results->input_filename_.c_str(), "%s",
         absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files",
                      kAllFilesFilter, "\nSave Results As")
             .c_str());
     if (!filename) {
       return false;
     }
+#ifndef __APPLE__
+    // On macOS, the built-in file chooser asks for confirmation already.
+    if (FileExists(filename) &&
+        (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
+                filename) != ASKBTN_YES)) {
+      return false;
+    }
+#endif
 
-    WriteResults(filename);
+    if (auto status = WriteResults(filename); !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
 
     return true;
+  } catch (const std::exception& message) {
+    LOG(INFO) << "Error writing results: " << message.what();
+    warning("Error writing results: %s\n", message.what());
   } catch (...) {
     LOG(INFO) << "Error writing results.";
     warning("Error writing results.\n");
@@ -1185,7 +1170,7 @@ void Plugin::InitActions() {
       /*tooltip=*/nullptr, bindiff_icon_id));
 
   register_action(LoadResultsAction::MakeActionDesc(
-      "bindiff:load_results", "~B~inDiff results...", /*shortcut=*/"",
+      "bindiff:load_results", "~B~inDiff results...", "CTRL-SHIFT-6",
       /*tooltip=*/nullptr, /*icon=*/-1));
   register_action(SaveResultsAction::MakeActionDesc(
       "bindiff:save_results", "Save ~B~inDiff results...", /*shortcut=*/"",
