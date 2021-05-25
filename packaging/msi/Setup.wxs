@@ -198,10 +198,10 @@
                        Guid="B07DC2EE-501C-4630-B73D-77C6F2132160">
               <File Name="bindiff_config_setup.exe" />
               <!-- Run the per-user setup once per user when they log in. -->
-              <RegistryValue Root="HKCU"
-                             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+              <RegistryValue Root="HKLM"
+                             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
                              Name="BinDiffPerUserSetup"
-                             Type="string" Value='"[64.dllbindiff_config_setup.exe]" --per_user'
+                             Type="string" Value='"[#bindiff_config_setup.exe]" --per_user'
                              KeyPath="yes" />
             </Component>
             <Component Id="BinDiff_Bin_Bindiff_uiCMD" Win64="yes"
