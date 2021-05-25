@@ -646,9 +646,9 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
     database_
         .Statement(
             "INSERT INTO function SELECT "
-            "id + :id, address1, address2, similarity, confidence, flags, "
-            "algorithm, evaluate, commentsported, basicblocks, edges, "
-            "instructions "
+            "id + :id, address1, name1, address2, name2, similarity, "
+            "confidence, flags, algorithm, evaluate, commentsported, "
+            "basicblocks, edges, instructions "
             "FROM newmatches.function")
         ->BindInt(function_id)
         .Execute();
