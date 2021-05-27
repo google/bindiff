@@ -25,3 +25,12 @@ target_link_libraries(bindiff_config_setup
   bindiff_base
 )
 install(TARGETS bindiff_config_setup RUNTIME DESTINATION bindiff-prefix)
+
+if(APPLE)
+  add_executable(bindiff_launcher_macos launcher_macos.cc)
+  target_link_libraries(bindiff_launcher_macos
+    binexport_shared
+    bindiff_base
+  )
+  install(TARGETS bindiff_launcher_macos RUNTIME DESTINATION bindiff-prefix)
+endif()
