@@ -96,21 +96,20 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
   private WorkspaceTree workspaceTree;
 
-  public WorkspaceTabPanelFunctions(final MainWindow window, final Workspace workspace) {
+  public WorkspaceTabPanelFunctions(MainWindow window, Workspace workspace) {
     super(window, workspace);
   }
 
-  private boolean closeViews(
-      final List<ViewTabPanel> viewsToSave, final List<ViewTabPanel> viewsToClose) {
-    for (final ViewTabPanel viewPanel : viewsToSave) {
+  private boolean closeViews(List<ViewTabPanel> viewsToSave, List<ViewTabPanel> viewsToClose) {
+    for (ViewTabPanel viewPanel : viewsToSave) {
       viewPanel
           .getController()
           .getTabPanelManager()
           .getTabbedPane()
           .setSelectedComponent(viewPanel);
 
-      final Diff diff = viewPanel.getDiff();
-      final int answer =
+      Diff diff = viewPanel.getDiff();
+      int answer =
           CMessageBox.showYesNoCancelQuestion(
               getMainWindow(),
               String.format(
@@ -120,12 +119,10 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
       switch (answer) {
         case JOptionPane.YES_OPTION:
-          {
-            if (viewPanel.getController().closeView(true)) {
-              break;
-            }
-            return false;
+          if (viewPanel.getController().closeView(true)) {
+            break;
           }
+          return false;
         case JOptionPane.NO_OPTION:
           viewsToClose.add(viewPanel);
           break;
@@ -134,23 +131,41 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     }
 
-    for (final ViewTabPanel view : viewsToClose) {
+    for (ViewTabPanel view : viewsToClose) {
       view.getController().closeView(false);
     }
 
     return true;
   }
 
-  private File copyFileIntoNewDiffDir(final File newDiffDir, final File toCopy) throws IOException {
-    final String newFilePath =
-        String.format("%s%s%s", newDiffDir, File.separator, toCopy.getName());
-    final File newFile = new File(newFilePath);
+  public void closeViews(Set<ViewTabPanel> views) {
+    List<ViewTabPanel> viewsToSave = new ArrayList<>();
+    List<ViewTabPanel> viewsToClose = new ArrayList<>();
+
+    for (ViewTabPanel viewPanel : views) {
+      if (viewPanel.getController().hasChanged()) {
+        if (viewPanel.getDiff().isFunctionDiff()) {
+          viewsToSave.add(0, viewPanel);
+        } else {
+          viewsToSave.add(viewPanel);
+        }
+      } else {
+        viewsToClose.add(viewPanel);
+      }
+    }
+
+    closeViews(viewsToSave, viewsToClose);
+  }
+
+  private File copyFileIntoNewDiffDir(File newDiffDir, File toCopy) throws IOException {
+    var newFilePath = String.format("%s%s%s", newDiffDir, File.separator, toCopy.getName());
+    var newFile = new File(newFilePath);
 
     ByteStreams.copy(new FileInputStream(toCopy), new FileOutputStream(newFile));
     return newFile;
   }
 
-  private boolean deleteDiff(final Diff diff, final boolean deleteFromDisk) {
+  private boolean deleteDiff(Diff diff, boolean deleteFromDisk) {
     // Remove diff from workspace only
     removeDiffFromWorkspace(diff);
 
@@ -163,7 +178,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
               getMainWindow(),
               String.format("Couldn't delete '%s'.", diff.getMatchesDatabase().toString()));
         }
-      } catch (final IOException e) {
+      } catch (IOException e) {
         logger.atSevere().withCause(e).log("Delete diff failed. Couldn't delete diff folder.");
         CMessageBox.showError(getMainWindow(), "Delete diff failed. Couldn't delete diff folder.");
 
@@ -174,46 +189,58 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     return true;
   }
 
-  private boolean deleteFunctionDiff(final Diff diffToDelete) {
-    if (diffToDelete.getMatchesDatabase().delete()) {
-      final File parentFolder = diffToDelete.getMatchesDatabase().getParentFile();
-      final File priBinExportFile = diffToDelete.getExportFile(ESide.PRIMARY);
-      final File secBinExportFile = diffToDelete.getExportFile(ESide.SECONDARY);
+  public boolean deleteDiff(Diff diff) {
+    Diff diffRef = diff == null ? getSelectedDiff() : diff;
 
-      boolean deletePriExport = true;
-      boolean deleteSecExport = true;
-      for (final Diff diff : getWorkspace().getDiffList(true)) {
+    Pair<Integer, Boolean> answer =
+        CMessageBox.showYesNoQuestionWithCheckbox(
+            getParentWindow(),
+            String.format("Are you sure you want to remove '%s'?\n\n", diffRef.getDiffName()),
+            "Also delete diff contents on disk?");
+
+    if (answer.first() != JOptionPane.YES_OPTION) {
+      return false;
+    }
+
+    return deleteDiff(diffRef, answer.second());
+  }
+
+  private boolean deleteFunctionDiff(Diff diffToDelete) {
+    if (!diffToDelete.getMatchesDatabase().delete()) {
+      return false;
+    }
+    var parentFolder = diffToDelete.getMatchesDatabase().getParentFile();
+    var priBinExportFile = diffToDelete.getExportFile(ESide.PRIMARY);
+    var secBinExportFile = diffToDelete.getExportFile(ESide.SECONDARY);
+
+    var deletePriExport = true;
+    var deleteSecExport = true;
+    for (Diff diff : getWorkspace().getDiffList(true)) {
         if (parentFolder.equals(diff.getMatchesDatabase().getParentFile())) {
           if (diff.getExportFile(ESide.PRIMARY).equals(priBinExportFile)) {
             deletePriExport = false;
           }
-
           if (diff.getExportFile(ESide.SECONDARY).equals(secBinExportFile)) {
             deleteSecExport = false;
           }
         }
       }
 
-      if (deletePriExport) {
-        if (!priBinExportFile.delete()) {
+    if (deletePriExport && !priBinExportFile.delete()) {
           return false;
-        }
       }
-      if (deleteSecExport) {
-        if (!secBinExportFile.delete()) {
+    if (deleteSecExport && !secBinExportFile.delete()) {
           return false;
-        }
       }
 
-      final File[] files = parentFolder.listFiles();
+    File[] files = parentFolder.listFiles();
       if (files != null && files.length == 0) {
-        final AllFunctionDiffViewsNode containerNode =
-            (AllFunctionDiffViewsNode) workspaceTree.getModel().getRoot().getChildAt(0);
+      AllFunctionDiffViewsNode containerNode =
+          (AllFunctionDiffViewsNode) workspaceTree.getModel().getRoot().getChildAt(0);
 
         int removeIndex = -1;
         for (int index = 0; index < containerNode.getChildCount(); ++index) {
-          final FunctionDiffViewsNode child =
-              (FunctionDiffViewsNode) containerNode.getChildAt(index);
+        FunctionDiffViewsNode child = (FunctionDiffViewsNode) containerNode.getChildAt(index);
           if (child.getViewDirectory().equals(parentFolder)) {
             removeIndex = index;
             child.delete();
@@ -226,20 +253,15 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
           --removeIndex;
         }
         if (removeIndex > -1) {
-          final FunctionDiffViewsNode toSelect =
-              (FunctionDiffViewsNode) containerNode.getChildAt(removeIndex);
-          final TreePath toSelectPath = new TreePath(toSelect.getPath());
+        var toSelect = (FunctionDiffViewsNode) containerNode.getChildAt(removeIndex);
+        var toSelectPath = new TreePath(toSelect.getPath());
           workspaceTree.expandPath(toSelectPath);
           workspaceTree.setSelectionPath(toSelectPath);
         }
 
         return parentFolder.delete();
       }
-
       return true;
-    }
-
-    return false;
   }
 
   private MainWindow getParentWindow() {
@@ -251,14 +273,9 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   private boolean isImportThunkView(
-      final Diff diff,
-      final IAddress primaryFunctionAddr,
-      final IAddress secondaryFunctionAddr,
-      final boolean infoMsg) {
-    final RawFunction priFunction =
-        diff.getCallGraph(ESide.PRIMARY).getFunction(primaryFunctionAddr);
-    final RawFunction secFunction =
-        diff.getCallGraph(ESide.SECONDARY).getFunction(secondaryFunctionAddr);
+      Diff diff, IAddress primaryFunctionAddr, IAddress secondaryFunctionAddr, boolean infoMsg) {
+    RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getFunction(primaryFunctionAddr);
+    RawFunction secFunction = diff.getCallGraph(ESide.SECONDARY).getFunction(secondaryFunctionAddr);
 
     if ((priFunction != null
             && secFunction == null
@@ -289,14 +306,14 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     return false;
   }
 
-  private void loadWorkspace(final File workspaceFile, final boolean showProgressDialog) {
+  private void loadWorkspace(File workspaceFile, boolean showProgressDialog) {
     try {
       if (getWorkspace().isLoaded()) {
         getWorkspace().closeWorkspace();
       }
 
-      final Workspace workspace = getWorkspace();
-      final WorkspaceLoader loader = new WorkspaceLoader(workspaceFile, workspace);
+      Workspace workspace = getWorkspace();
+      var loader = new WorkspaceLoader(workspaceFile, workspace);
 
       if (showProgressDialog) {
         ProgressDialog.show(
@@ -307,37 +324,88 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         loader.loadMetaData();
       }
 
-      final String errorMsg = loader.getErrorMessage();
+      String errorMsg = loader.getErrorMessage();
       if (!"".equals(errorMsg)) {
         logger.atSevere().log(errorMsg);
         CMessageBox.showError(getMainWindow(), errorMsg);
       } else {
         getWorkspace().saveWorkspace();
       }
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log("Load workspace failed. %s", e.getMessage());
       CMessageBox.showError(
           getMainWindow(), String.format("Load workspace failed. %s", e.getMessage()));
     }
   }
 
-  private void removeDiffFromWorkspace(final Diff diff) {
+  public void loadWorkspace() {
+    String workingDirPath = BinDiffConfig.getInstance().getMainSettings().getWorkspaceDirectory();
+
+    if ("".equals(workingDirPath)) {
+      BinDiffConfig.getInstance()
+          .getMainSettings()
+          .setWorkspaceDirectory(SystemHelpers.getUserDirectory());
+    }
+
+    var workingDir =
+        new File(BinDiffConfig.getInstance().getMainSettings().getWorkspaceDirectory());
+
+    var openFileDlg =
+        new CFileChooser(Constants.BINDIFF_WORKSPACEFILE_EXTENSION, "BinDiff Workspace");
+    openFileDlg.setDialogTitle("Open Workspace");
+    openFileDlg.setApproveButtonText("Open");
+    openFileDlg.setCheckBox("Use as default workspace");
+
+    if (workingDir.exists()) {
+      openFileDlg.setCurrentDirectory(workingDir);
+    }
+
+    if (JFileChooser.APPROVE_OPTION == openFileDlg.showOpenDialog(getMainWindow())) {
+      File workspaceFile = openFileDlg.getSelectedFile();
+
+      loadWorkspace(workspaceFile, true);
+
+      // TODO(cblichmann): Ensure that a new default workspace can only be set after it has been
+      //                   loaded successfully.
+      // Set default workspace?
+      if (openFileDlg.isSelectedCheckBox()) {
+        BinDiffConfig.getInstance()
+            .getMainSettings()
+            .setDefaultWorkspace(workspaceFile.getAbsolutePath());
+      }
+    }
+  }
+
+  public void loadWorkspace(String path) {
+    var workspaceDir = new File(path);
+
+    if (!workspaceDir.exists()) {
+      String msg = "Load workspace failed. Workspace folder does not exist.";
+      logger.atSevere().log(msg);
+      CMessageBox.showError(getMainWindow(), msg);
+      return;
+    }
+
+    loadWorkspace(workspaceDir, true);
+  }
+
+  private void removeDiffFromWorkspace(Diff diff) {
     assert diff != null;
 
-    final Set<Diff> diffSet = new HashSet<>();
+    Set<Diff> diffSet = new HashSet<>();
     diffSet.add(diff);
     getWorkspace().getDiffList().remove(diff);
     closeDiffs(diffSet);
 
     diff.removeDiff();
 
-    for (final WorkspaceListener listener : getWorkspace().getListeners()) {
+    for (WorkspaceListener listener : getWorkspace().getListeners()) {
       listener.removedDiff(diff);
     }
 
     try {
       getWorkspace().saveWorkspace();
-    } catch (final SQLException e) {
+    } catch (SQLException e) {
       logger.atSevere().withCause(e).log("Couldn't delete temporary files");
       CMessageBox.showError(getMainWindow(), "Couldn't delete temporary files: " + e.getMessage());
     }
@@ -345,19 +413,16 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
   public void addDiff() {
     try {
-      final AddDiffDialog addDiffDialog = new AddDiffDialog(getParentWindow(), getWorkspace());
-
+      var addDiffDialog = new AddDiffDialog(getParentWindow(), getWorkspace());
       if (!addDiffDialog.getAddButtonPressed()) {
         return;
       }
-      final File matchesDatabase = addDiffDialog.getMatchesBinary();
-
-      final File priBinExportFile = addDiffDialog.getBinExportBinary(ESide.PRIMARY);
-      final File secBinExportFile = addDiffDialog.getBinExportBinary(ESide.SECONDARY);
-
-      final File diffDir = addDiffDialog.getDestinationDirectory();
-
+      File matchesDatabase = addDiffDialog.getMatchesBinary();
+      File priBinExportFile = addDiffDialog.getBinExportBinary(ESide.PRIMARY);
+      File secBinExportFile = addDiffDialog.getBinExportBinary(ESide.SECONDARY);
+      File diffDir = addDiffDialog.getDestinationDirectory();
       File newMatchesDatabase = matchesDatabase;
+
       if (!diffDir.equals(matchesDatabase.getParentFile())) {
         diffDir.mkdir();
 
@@ -367,10 +432,10 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
         copyFileIntoNewDiffDir(diffDir, secBinExportFile);
       }
 
-      final DiffMetadata matchesMetadata = DiffLoader.preloadDiffMatches(newMatchesDatabase);
+      DiffMetadata matchesMetadata = DiffLoader.preloadDiffMatches(newMatchesDatabase);
 
       getWorkspace().addDiff(newMatchesDatabase, matchesMetadata, false);
-    } catch (final IOException | SQLException e) {
+    } catch (IOException | SQLException e) {
       logger.atSevere().withCause(e).log("Add diff failed. Couldn't add diff to workspace");
       CMessageBox.showError(
           getMainWindow(), "Add diff failed. Couldn't add diff to workspace: " + e.getMessage());
@@ -389,11 +454,11 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
   }
 
-  public boolean closeDiffs(final Set<Diff> diffs) {
-    final List<ViewTabPanel> viewsToSave = new ArrayList<>();
-    final List<ViewTabPanel> viewsToClose = new ArrayList<>();
+  public boolean closeDiffs(Set<Diff> diffs) {
+    List<ViewTabPanel> viewsToSave = new ArrayList<>();
+    List<ViewTabPanel> viewsToClose = new ArrayList<>();
 
-    for (final ViewTabPanel viewPanel : getOpenViews(diffs)) {
+    for (ViewTabPanel viewPanel : getOpenViews(diffs)) {
       if (viewPanel.getController().hasChanged()) {
         if (viewPanel.getDiff().isFunctionDiff()) {
           viewsToSave.add(0, viewPanel);
@@ -406,73 +471,36 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
 
     if (closeViews(viewsToSave, viewsToClose)) {
-      for (final Diff diff : diffs) {
+      for (Diff diff : diffs) {
         diff.closeDiff();
       }
-
       return true;
     }
 
     return false;
   }
 
-  public void closeViews(final Set<ViewTabPanel> views) {
-    final List<ViewTabPanel> viewsToSave = new ArrayList<>();
-    final List<ViewTabPanel> viewsToClose = new ArrayList<>();
-
-    for (final ViewTabPanel viewPanel : views) {
-      if (viewPanel.getController().hasChanged()) {
-        if (viewPanel.getDiff().isFunctionDiff()) {
-          viewsToSave.add(0, viewPanel);
-        } else {
-          viewsToSave.add(viewPanel);
-        }
-      } else {
-        viewsToClose.add(viewPanel);
-      }
-    }
-
-    closeViews(viewsToSave, viewsToClose);
-  }
-
   public boolean closeWorkspace() {
-    final Set<Diff> diffsToClose = new HashSet<>(getWorkspace().getDiffList());
+    Set<Diff> diffsToClose = new HashSet<>(getWorkspace().getDiffList());
 
     if (!closeDiffs(diffsToClose)) {
       return false;
     }
 
     getWorkspace().closeWorkspace();
-
     return true;
   }
 
-  public boolean deleteDiff(final Diff diff) {
-    final Diff diffRef = diff == null ? getSelectedDiff() : diff;
-
-    final Pair<Integer, Boolean> answer =
-        CMessageBox.showYesNoQuestionWithCheckbox(
-            getParentWindow(),
-            String.format("Are you sure you want to remove '%s'?\n\n", diffRef.getDiffName()),
-            "Also delete diff contents on disk?");
-
-    if (answer.first() != JOptionPane.YES_OPTION) {
-      return false;
-    }
-
-    return deleteDiff(diffRef, answer.second());
-  }
-
-  public boolean deleteFunctionDiffs(final List<Diff> diffs) {
+  public boolean deleteFunctionDiffs(List<Diff> diffs) {
     if (diffs.isEmpty()) {
       return false;
     }
 
-    final StringBuilder msg = new StringBuilder();
+    var msg = new StringBuilder();
     msg.append("Are you sure you want to delete this function diff views from disk?\n\n");
 
     int index = 0;
-    for (final Diff diff : diffs) {
+    for (Diff diff : diffs) {
       if (index != 0) {
         msg.append("\n");
       }
@@ -484,11 +512,11 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     }
 
-    final int answer = CMessageBox.showYesNoQuestion(getParentWindow(), msg.toString());
+    int answer = CMessageBox.showYesNoQuestion(getParentWindow(), msg.toString());
     if (answer == JOptionPane.YES_OPTION) {
       boolean success = true;
-      for (final Diff diff : diffs) {
-        final boolean t = deleteDiff(diff, true);
+      for (Diff diff : diffs) {
+        boolean t = deleteDiff(diff, true);
         if (success) {
           success = t;
         }
@@ -502,25 +530,25 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
   public void directoryDiff() {
     // Create a new view
-    final MainWindow window = getMainWindow();
-    final Workspace workspace = getWorkspace();
+    MainWindow window = getMainWindow();
+    Workspace workspace = getWorkspace();
 
-    final String workspacePath = workspace.getWorkspaceDir().getPath();
-    final DirectoryDiffDialog diffDialog = new DirectoryDiffDialog(window, new File(workspacePath));
+    String workspacePath = workspace.getWorkspaceDir().getPath();
+    var diffDialog = new DirectoryDiffDialog(window, new File(workspacePath));
     if (!diffDialog.getDiffButtonPressed()) {
       return;
     }
 
-    final String priSourceBasePath = diffDialog.getSourceBasePath(ESide.PRIMARY);
-    final String secSourceBasePath = diffDialog.getSourceBasePath(ESide.SECONDARY);
-    final List<DiffPairTableData> selectedIdbPairs = diffDialog.getSelectedIdbPairs();
+    String priSourceBasePath = diffDialog.getSourceBasePath(ESide.PRIMARY);
+    String secSourceBasePath = diffDialog.getSourceBasePath(ESide.SECONDARY);
+    List<DiffPairTableData> selectedIdbPairs = diffDialog.getSelectedIdbPairs();
 
-    final DirectoryDiffImplementation directoryDiffer =
+    var directoryDiffer =
         new DirectoryDiffImplementation(
             window, workspace, priSourceBasePath, secSourceBasePath, selectedIdbPairs);
     try {
       ProgressDialog.show(window, "Directory Diffing...", directoryDiffer);
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log(
           "Directory diffing aborted because of an unexpected exception");
       CMessageBox.showError(
@@ -529,8 +557,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     if (!directoryDiffer.getDiffingErrorMessages().isEmpty()) {
       int counter = 0;
-      final StringBuilder errorText = new StringBuilder();
-      for (final String msg : directoryDiffer.getDiffingErrorMessages()) {
+      var errorText = new StringBuilder();
+      for (String msg : directoryDiffer.getDiffingErrorMessages()) {
         if (++counter == 10) {
           errorText.append("...");
           break;
@@ -543,8 +571,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     if (!directoryDiffer.getOpeningDiffErrorMessages().isEmpty()) {
         int counter = 0;
-        final StringBuilder errorText = new StringBuilder();
-        for (final String msg : directoryDiffer.getOpeningDiffErrorMessages()) {
+      var errorText = new StringBuilder();
+      for (String msg : directoryDiffer.getOpeningDiffErrorMessages()) {
           if (++counter == 10) {
             errorText.append("...");
             break;
@@ -556,28 +584,24 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
   }
 
-  public LinkedHashSet<ViewTabPanel> getOpenViews(final Set<Diff> diffs) {
-    final LinkedHashSet<ViewTabPanel> openViews = new LinkedHashSet<>();
+  public LinkedHashSet<ViewTabPanel> getOpenViews(Set<Diff> diffs) {
+    var openViews = new LinkedHashSet<ViewTabPanel>();
 
-    final MainWindow window = getMainWindow();
-    final List<ViewTabPanel> tabPanels =
-        new ArrayList<>(window.getController().getTabPanelManager().getViewTabPanels());
-    for (final ViewTabPanel viewPanel : tabPanels) {
+    MainWindow window = getMainWindow();
+    for (ViewTabPanel viewPanel : window.getController().getTabPanelManager().getViewTabPanels()) {
       // Only close views that belong to current diff
-      final Diff diff = viewPanel.getDiff();
+      Diff diff = viewPanel.getDiff();
       if (!diffs.contains(diff)) {
         continue;
       }
-
       openViews.add(viewPanel);
     }
     return openViews;
   }
 
   public Diff getSelectedDiff() {
-    final TreePath treePath = getWorkspaceTree().getSelectionModel().getSelectionPath();
-    final AbstractTreeNode node = (AbstractTreeNode) treePath.getLastPathComponent();
-
+    TreePath treePath = getWorkspaceTree().getSelectionModel().getSelectionPath();
+    AbstractTreeNode node = (AbstractTreeNode) treePath.getLastPathComponent();
     return node.getDiff();
   }
 
@@ -586,14 +610,12 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void loadDefaultWorkspace() {
-    final String workspacePath =
-        BinDiffConfig.getInstance().getMainSettings().getDefaultWorkspace();
+    String workspacePath = BinDiffConfig.getInstance().getMainSettings().getDefaultWorkspace();
     if (workspacePath == null || "".equals(workspacePath)) {
       return;
     }
 
-    final File workspaceFile = new File(workspacePath);
-
+    var workspaceFile = new File(workspacePath);
     if (workspaceFile.exists() && workspaceFile.canWrite()) {
       loadWorkspace(workspaceFile, false);
     }
@@ -608,11 +630,11 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       return;
     }
 
-    final LinkedHashSet<Diff> diffs = new LinkedHashSet<>();
+    var diffs = new LinkedHashSet<Diff>();
     diffs.add(diff);
-    final DiffLoader diffLoader = new DiffLoader(diffs);
+    var diffLoader = new DiffLoader(diffs);
 
-    final CUnlimitedProgressDialog progressDialog =
+    var progressDialog =
         new CUnlimitedProgressDialog(
             getParentWindow(),
             Constants.DEFAULT_WINDOW_TITLE,
@@ -623,7 +645,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     progressDialog.setVisible(true);
 
-    final Exception e = progressDialog.getException();
+    Exception e = progressDialog.getException();
     if (e != null) {
       logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
@@ -631,20 +653,18 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void loadFunctionDiffs() {
-    final LinkedHashSet<Diff> diffsToLoad = new LinkedHashSet<>();
-    for (final Diff diff : getWorkspace().getDiffList(true)) {
+    var diffsToLoad = new LinkedHashSet<Diff>();
+    for (Diff diff : getWorkspace().getDiffList(true)) {
       if (!diff.isLoaded()) {
         diffsToLoad.add(diff);
       }
     }
-
     loadFunctionDiffs(diffsToLoad);
   }
 
-  public void loadFunctionDiffs(final LinkedHashSet<Diff> diffsToLoad) {
-    final DiffLoader diffLoader = new DiffLoader(diffsToLoad);
-
-    final CUnlimitedProgressDialog progressDialog =
+  public void loadFunctionDiffs(LinkedHashSet<Diff> diffsToLoad) {
+    var diffLoader = new DiffLoader(diffsToLoad);
+    var progressDialog =
         new CUnlimitedProgressDialog(
             getParentWindow(),
             Constants.DEFAULT_WINDOW_TITLE,
@@ -654,80 +674,27 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     diffLoader.setProgressDescriptionTarget(progressDialog);
     progressDialog.setVisible(true);
 
-    final Exception e = progressDialog.getException();
+    Exception e = progressDialog.getException();
     if (e != null) {
       logger.atSevere().withCause(e).log(e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
 
-  public void loadWorkspace() {
-    final String workingDirPath =
-        BinDiffConfig.getInstance().getMainSettings().getWorkspaceDirectory();
-
-    if ("".equals(workingDirPath)) {
-      BinDiffConfig.getInstance()
-          .getMainSettings()
-          .setWorkspaceDirectory(SystemHelpers.getUserDirectory());
-    }
-
-    final File workingDir =
-        new File(BinDiffConfig.getInstance().getMainSettings().getWorkspaceDirectory());
-
-    final CFileChooser openFileDlg =
-        new CFileChooser(Constants.BINDIFF_WORKSPACEFILE_EXTENSION, "BinDiff Workspace");
-    openFileDlg.setDialogTitle("Open Workspace");
-    openFileDlg.setApproveButtonText("Open");
-    openFileDlg.setCheckBox("Use as default workspace");
-
-    if (workingDir.exists()) {
-      openFileDlg.setCurrentDirectory(workingDir);
-    }
-
-    if (JFileChooser.APPROVE_OPTION == openFileDlg.showOpenDialog(getMainWindow())) {
-      final File workspaceFile = openFileDlg.getSelectedFile();
-
-      loadWorkspace(workspaceFile, true);
-
-      // TODO(cblichmann): Ensure that a new default workspace can only be set after it has been
-      //                   loaded successfully.
-      // Set default workspace?
-      if (openFileDlg.isSelectedCheckBox()) {
-        BinDiffConfig.getInstance()
-            .getMainSettings()
-            .setDefaultWorkspace(workspaceFile.getAbsolutePath());
-      }
-    }
-  }
-
-  public void loadWorkspace(final String path) {
-    final File workspaceDir = new File(path);
-
-    if (!workspaceDir.exists()) {
-      final String msg = "Load workspace failed. Workspace folder does not exist.";
-      logger.atSevere().log(msg);
-      CMessageBox.showError(getMainWindow(), msg);
-      return;
-    }
-
-    loadWorkspace(workspaceDir, true);
-  }
-
   public void newDiff() {
-    final MainWindow window = getMainWindow();
-    final Workspace workspace = getWorkspace();
-    final String workspacePath = workspace.getWorkspaceDir().getPath();
+    MainWindow window = getMainWindow();
+    Workspace workspace = getWorkspace();
+    String workspacePath = workspace.getWorkspaceDir().getPath();
 
-    final NewDiffDialog dlg = new NewDiffDialog(window, new File(workspacePath));
-
+    var dlg = new NewDiffDialog(window, new File(workspacePath));
     if (dlg.getDiffButtonPressed()) {
-      final File priIDBFile = dlg.getIdb(ESide.PRIMARY);
-      final File secIDBFile = dlg.getIdb(ESide.SECONDARY);
-      final File priCallGraphFile = dlg.getBinExportBinary(ESide.PRIMARY);
-      final File secCallGraphFile = dlg.getBinExportBinary(ESide.SECONDARY);
-      final File destinationFile = dlg.getDestinationDirectory();
+      File priIDBFile = dlg.getIdb(ESide.PRIMARY);
+      File secIDBFile = dlg.getIdb(ESide.SECONDARY);
+      File priCallGraphFile = dlg.getBinExportBinary(ESide.PRIMARY);
+      File secCallGraphFile = dlg.getBinExportBinary(ESide.SECONDARY);
+      File destinationFile = dlg.getDestinationDirectory();
 
-      final NewDiffImplementation newDiffThread =
+      var newDiffThread =
           new NewDiffImplementation(
               window,
               workspace,
@@ -742,7 +709,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             getMainWindow(),
             String.format("New single Diff '%s'", destinationFile.getName()),
             newDiffThread);
-      } catch (final Exception e) {
+      } catch (Exception e) {
         logger.atSevere().withCause(e).log(e.getMessage());
         CMessageBox.showError(getMainWindow(), "Unknown error while diffing.");
       }
@@ -750,10 +717,8 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
   }
 
   public void newWorkspace() {
-    final NewWorkspaceDialog workspaceDlg =
-        new NewWorkspaceDialog(getParentWindow(), "New Workspace");
+    var workspaceDlg = new NewWorkspaceDialog(getParentWindow(), "New Workspace");
     workspaceDlg.setVisible(true);
-
     if (!workspaceDlg.isOkPressed()) {
       return;
     }
@@ -762,14 +727,14 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       return;
     }
 
-    final String workspacePath = FileUtils.ensureTrailingSlash(workspaceDlg.getWorkspacePath());
-    final File workspaceDir = new File(workspacePath);
+    String workspacePath = FileUtils.ensureTrailingSlash(workspaceDlg.getWorkspacePath());
+    var workspaceDir = new File(workspacePath);
 
     if (!workspaceDir.exists()) {
       workspaceDir.mkdir();
     }
 
-    final File workspaceFile =
+    var workspaceFile =
         new File(
             String.format(
                 "%s%s.%s",
@@ -783,63 +748,59 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             .getMainSettings()
             .setDefaultWorkspace(workspaceFile.getAbsolutePath());
       }
-    } catch (final IOException | SQLException e) {
+    } catch (IOException | SQLException e) {
       logger.atSevere().withCause(e).log();
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
 
-  public void openCallGraphDiffView(final DiffRequestMessage data) {
-    final MainWindow window = getMainWindow();
-    final TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
+  public void openCallGraphDiffView(DiffRequestMessage data) {
+    MainWindow window = getMainWindow();
+    TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
 
     // Create a new view
-    final CallGraphViewLoader loader =
-        new CallGraphViewLoader(data, window, tabPanelManager, getWorkspace());
+    var loader = new CallGraphViewLoader(data, window, tabPanelManager, getWorkspace());
 
     try {
       ProgressDialog.show(getMainWindow(), "Loading call graph diff", loader);
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log("Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
     }
   }
 
-  public void openCallGraphView(final MainWindow window, final Diff diff) {
+  public void openCallGraphView(MainWindow window, Diff diff) {
     try {
-      final TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
+      TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
 
       if (diff.getViewManager().containsView(null, null)) {
         // view is already open
         tabPanelManager.selectTabPanel(null, null, diff);
       } else {
         // Create a new view
-        CallGraphViewLoader loader =
+        var loader =
             new CallGraphViewLoader(diff, getMainWindow(), tabPanelManager, getWorkspace());
 
         ProgressDialog.show(
             getMainWindow(), String.format("Loading call graph '%s'", diff.getDiffName()), loader);
 
-        for (final DiffListener diffListener : diff.getListener()) {
+        for (DiffListener diffListener : diff.getListener()) {
           diffListener.loadedView(diff);
         }
       }
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log("Open call graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open call graph view failed. Couldn't create graph.");
     }
   }
 
   public void openFlowGraphView(
-      final MainWindow window,
-      final Diff diff,
-      final IAddress primaryFunctionAddr,
-      final IAddress secondaryFunctionAddr) {
+      MainWindow window, Diff diff, IAddress primaryFunctionAddr, IAddress secondaryFunctionAddr) {
     if (isImportThunkView(diff, primaryFunctionAddr, secondaryFunctionAddr, true)) {
       return;
     }
 
-    final TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
+    TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
 
     if (diff.getViewManager().containsView(primaryFunctionAddr, secondaryFunctionAddr)) {
       // normal view is already open
@@ -849,36 +810,34 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     try {
       // create a new view
-      final LinkedHashSet<Triple<Diff, IAddress, IAddress>> viewAddrs = new LinkedHashSet<>();
+      var viewAddrs = new LinkedHashSet<Triple<Diff, IAddress, IAddress>>();
       viewAddrs.add(Triple.make(diff, primaryFunctionAddr, secondaryFunctionAddr));
 
-      final FlowGraphViewLoader loader =
-          new FlowGraphViewLoader(getMainWindow(), tabPanelMgr, getWorkspace(), viewAddrs);
+      var loader = new FlowGraphViewLoader(getMainWindow(), tabPanelMgr, getWorkspace(), viewAddrs);
 
       ProgressDialog.show(
           getMainWindow(), String.format("Loading flow graph '%s'", diff.getDiffName()), loader);
 
-      for (final DiffListener diffListener : diff.getListener()) {
+      for (DiffListener diffListener : diff.getListener()) {
         diffListener.loadedView(diff);
       }
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log("Open flow graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
     }
   }
 
   public void openFlowGraphViews(
-      final MainWindow window,
-      final LinkedHashSet<Triple<Diff, IAddress, IAddress>> viewsAddresses) {
-    final TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
+      MainWindow window, LinkedHashSet<Triple<Diff, IAddress, IAddress>> viewsAddresses) {
+    TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
 
-    final LinkedHashSet<Triple<Diff, IAddress, IAddress>> viewsAddrsToOpen = new LinkedHashSet<>();
+    var viewsAddrsToOpen = new LinkedHashSet<Triple<Diff, IAddress, IAddress>>();
 
     int importedCounter = 0;
-    for (final Triple<Diff, IAddress, IAddress> viewAddrs : viewsAddresses) {
-      final Diff diff = viewAddrs.first();
-      final IAddress priAddr = viewAddrs.second();
-      final IAddress secAddr = viewAddrs.third();
+    for (Triple<Diff, IAddress, IAddress> viewAddrs : viewsAddresses) {
+      Diff diff = viewAddrs.first();
+      IAddress priAddr = viewAddrs.second();
+      IAddress secAddr = viewAddrs.third();
       if (!diff.getViewManager().containsView(priAddr, secAddr)) {
         if (isImportThunkView(diff, priAddr, secAddr, false)) {
           ++importedCounter;
@@ -901,67 +860,65 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     }
 
     try {
-      // create a new view
-      final FlowGraphViewLoader loader =
+      // Create a new view
+      var loader =
           new FlowGraphViewLoader(getMainWindow(), tabPanelMgr, getWorkspace(), viewsAddrsToOpen);
 
       ProgressDialog.show(getMainWindow(), "Loading flow graph views", loader);
 
-      final Set<Diff> diffSet = new HashSet<>();
-      for (final Triple<Diff, IAddress, IAddress> entry : viewsAddresses) {
-        final Diff diff = entry.first();
+      var diffSet = new HashSet<Diff>();
+      for (Triple<Diff, IAddress, IAddress> entry : viewsAddresses) {
+        Diff diff = entry.first();
         if (diffSet.add(diff)) {
-          for (final DiffListener diffListener : diff.getListener()) {
+          for (DiffListener diffListener : diff.getListener()) {
             diffListener.loadedView(diff);
           }
         }
       }
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log("Open flow graph view failed. Couldn't create graph.");
       CMessageBox.showError(getMainWindow(), "Open flow graph view failed. Couldn't create graph.");
     }
   }
 
-  public void openFunctionDiffView(final DiffRequestMessage data) {
+  public void openFunctionDiffView(DiffRequestMessage data) {
     try {
-      final MainWindow window = getMainWindow();
-      final TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
+      MainWindow window = getMainWindow();
+      TabPanelManager tabPanelManager = window.getController().getTabPanelManager();
 
       // create a new view or select the tab which contains the already opened view
-      final FunctionDiffViewLoader loader =
-          new FunctionDiffViewLoader(data, window, tabPanelManager, getWorkspace());
+      var loader = new FunctionDiffViewLoader(data, window, tabPanelManager, getWorkspace());
       ProgressDialog.show(window, "Loading function diff", loader);
 
       if (data.getDiff() != null) {
-        for (final DiffListener diffListener : data.getDiff().getListener()) {
+        for (DiffListener diffListener : data.getDiff().getListener()) {
           diffListener.loadedView(data.getDiff());
         }
       }
-    } catch (final Exception e) {
+    } catch (Exception e) {
       logger.atSevere().withCause(e).log("Open function diff view failed. Couldn't create graph.");
       CMessageBox.showError(
-          getMainWindow(), "Open function diff view failed. Couldn't create graph.");
+          getMainWindow(),
+          "Open function diff view failed. Couldn't create graph: " + e.getMessage());
     }
   }
 
-  public void openFunctionDiffView(final MainWindow window, final Diff diff) {
+  public void openFunctionDiffView(MainWindow window, Diff diff) {
     checkArgument(diff.isFunctionDiff());
 
-    final IAddress priFunctionAddr =
-        diff.getCallGraph(ESide.PRIMARY).getNodes().get(0).getAddress();
-    final IAddress secFunctionAddr =
-        diff.getCallGraph(ESide.SECONDARY).getNodes().get(0).getAddress();
+    IAddress priFunctionAddr = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0).getAddress();
+    IAddress secFunctionAddr = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0).getAddress();
     if (isImportThunkView(diff, priFunctionAddr, secFunctionAddr, true)) {
       return;
     }
 
-    // This cannot work because openFunctionDiffView(final FunctionDiffSocketXmlData data)
+    // This cannot work because openFunctionDiffView(FunctionDiffSocketXmlData data)
     // creates currently always a new Diff object.
-    final TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
-    for (final TabPanel tabPanel : tabPanelMgr) {
+    TabPanelManager tabPanelMgr = window.getController().getTabPanelManager();
+    for (TabPanel tabPanel : tabPanelMgr) {
       if (tabPanel instanceof FunctionDiffViewTabPanel) {
-        final FunctionDiffViewTabPanel functionDiffTabPanel = (FunctionDiffViewTabPanel) tabPanel;
-        final Diff curDiff = functionDiffTabPanel.getView().getGraphs().getDiff();
+        FunctionDiffViewTabPanel functionDiffTabPanel = (FunctionDiffViewTabPanel) tabPanel;
+        Diff curDiff = functionDiffTabPanel.getView().getGraphs().getDiff();
 
         if (curDiff == diff) {
           tabPanelMgr.getTabbedPane().setSelectedComponent(tabPanel);
@@ -971,7 +928,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
       }
     }
 
-    final DiffRequestMessage socketData = new DiffRequestMessage(diff);
+    var socketData = new DiffRequestMessage(diff);
     socketData.setBinExportPath(diff.getExportFile(ESide.PRIMARY).getPath(), ESide.PRIMARY);
     socketData.setBinExportPath(diff.getExportFile(ESide.SECONDARY).getPath(), ESide.SECONDARY);
     socketData.setMatchesDBPath(diff.getMatchesDatabase().getPath());
@@ -979,11 +936,11 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     openFunctionDiffView(socketData);
   }
 
-  public boolean saveDescription(final Diff diff, final String description) {
-    try (final MatchesDatabase matchesDb = new MatchesDatabase(diff.getMatchesDatabase())) {
+  public boolean saveDescription(Diff diff, String description) {
+    try (var matchesDb = new MatchesDatabase(diff.getMatchesDatabase())) {
       matchesDb.saveDiffDescription(description);
       return true;
-    } catch (final SQLException e) {
+    } catch (SQLException e) {
       logger.atSevere().withCause(e).log("Database error. Couldn't save diff description.");
       CMessageBox.showError(
           getMainWindow(), "Database error. Couldn't save diff description: " + e.getMessage());
@@ -991,41 +948,41 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     return false;
   }
 
-  public void setTreeNodeContextComponent(final Component component) {
+  public void setTreeNodeContextComponent(Component component) {
     if (component == null) {
       return;
     }
 
-    final JPanel treeNodeCtxContainer = getWorkspaceTabPanel().getTreeNodeContextContainer();
+    JPanel treeNodeCtxContainer = getWorkspaceTabPanel().getTreeNodeContextContainer();
     treeNodeCtxContainer.removeAll();
     treeNodeCtxContainer.add(component, BorderLayout.CENTER);
     treeNodeCtxContainer.updateUI();
   }
 
-  public void setWorkspaceTree(final WorkspaceTree workspaceTree) {
+  public void setWorkspaceTree(WorkspaceTree workspaceTree) {
     this.workspaceTree = workspaceTree;
   }
 
-  public void showInCallGraph(final Diff diff, final Set<Pair<IAddress, IAddress>> viewAddrPairs) {
+  public void showInCallGraph(Diff diff, Set<Pair<IAddress, IAddress>> viewAddrPairs) {
     if (!diff.getViewManager().containsView(null, null)) {
       openCallGraphView(getMainWindow(), diff);
     } else {
-      final TabPanelManager tabPanelMgr = getMainWindow().getController().getTabPanelManager();
+      TabPanelManager tabPanelMgr = getMainWindow().getController().getTabPanelManager();
       tabPanelMgr.selectTabPanel(null, null, diff);
     }
 
-    final List<CombinedDiffNode> nodesToSelect = new ArrayList<>();
-    final List<CombinedDiffNode> nodesToUnselect = new ArrayList<>();
+    var nodesToSelect = new ArrayList<CombinedDiffNode>();
+    var nodesToUnselect = new ArrayList<CombinedDiffNode>();
 
-    final CallGraphViewData viewData = diff.getViewManager().getCallGraphViewData(diff);
+    CallGraphViewData viewData = diff.getViewManager().getCallGraphViewData(diff);
     if (viewData != null) {
-      final CombinedGraph combinedGraph = viewData.getGraphs().getCombinedGraph();
+      CombinedGraph combinedGraph = viewData.getGraphs().getCombinedGraph();
 
-      for (final CombinedDiffNode node : combinedGraph.getNodes()) {
-        final RawCombinedFunction function = (RawCombinedFunction) node.getRawNode();
+      for (CombinedDiffNode node : combinedGraph.getNodes()) {
+        RawCombinedFunction function = (RawCombinedFunction) node.getRawNode();
 
-        final IAddress priAddr = function.getAddress(ESide.PRIMARY);
-        final IAddress secAddr = function.getAddress(ESide.SECONDARY);
+        IAddress priAddr = function.getAddress(ESide.PRIMARY);
+        IAddress secAddr = function.getAddress(ESide.SECONDARY);
         if (viewAddrPairs.contains(Pair.make(priAddr, secAddr))) {
           nodesToSelect.add(node);
         } else {

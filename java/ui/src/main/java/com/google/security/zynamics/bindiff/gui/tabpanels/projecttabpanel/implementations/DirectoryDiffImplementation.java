@@ -68,8 +68,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     this.idbPairs = checkNotNull(idbPairs);
   }
 
-  private String createUniqueExportFileName(
-      final File priIdb, final File secIdb, final ESide side) {
+  private String createUniqueExportFileName(File priIdb, File secIdb, ESide side) {
     String priName = FileUtils.getFileBasename(priIdb);
     String secName = FileUtils.getFileBasename(secIdb);
 
@@ -88,28 +87,29 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     return side == ESide.PRIMARY ? priName : secName;
   }
 
-  private void deleteDirectory(final MainWindow mainWindow, final File destinationFolder) {
+  private void deleteDestinationDirectory(File destinationDirectory) {
     try {
-      BinDiffFileUtils.deleteDirectory(destinationFolder);
-    } catch (final IOException e) {
+      BinDiffFileUtils.deleteDirectory(destinationDirectory);
+    } catch (IOException e) {
       logger.atSevere().withCause(e).log(
-          "Couldn't delete diff folder '%s' after exporting failed", destinationFolder.getPath());
+          "Couldn't delete diff folder '%s' after exporting failed",
+          destinationDirectory.getPath());
       CMessageBox.showWarning(
-          mainWindow,
+          parentWindow,
           String.format(
               "Couldn't delete diff folder '%s' after exporting failed.\n"
                   + "Please delete this folder manually.",
-              destinationFolder.getPath()));
+              destinationDirectory.getPath()));
     }
   }
 
   private List<String> directoryDiff() {
-    final List<String> matchesPaths = new ArrayList<>();
+    var matchesPaths = new ArrayList<String>();
 
-    final File engineExe;
+    File engineExe;
     try {
       engineExe = ExternalAppUtils.getBinDiffEngine();
-    } catch (final DifferException | FileNotFoundException e) {
+    } catch (DifferException | FileNotFoundException e) {
       logger.atSevere().withCause(e).log();
       CMessageBox.showError(parentWindow, e.getMessage());
 
@@ -119,32 +119,31 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
     logger.atInfo().log(
         "Start directory diff '%s' vs '%s'", primarySourcePath, secondarySourcePath);
 
-    final String workspacePath = workspace.getWorkspaceDir().getPath();
-    for (final DiffPairTableData data : idbPairs) {
-      final String destination =
-          String.join(File.separator, workspacePath, data.getDestinationDirectory());
+    String workspacePath = workspace.getWorkspaceDir().getPath();
+    for (DiffPairTableData data : idbPairs) {
+      var destination = String.join(File.separator, workspacePath, data.getDestinationDirectory());
 
-      final String primarySource =
+      var primarySource =
           String.join(File.separator, primarySourcePath, data.getIDBLocation(), data.getIDBName());
 
-      final String secondarySource =
+      var secondarySource =
           String.join(
               File.separator, secondarySourcePath, data.getIDBLocation(), data.getIDBName());
 
       setDescription(String.format("%s vs %s", data.getIDBName(), data.getIDBName()));
 
-      final File primarySourceFile = new File(primarySource);
-      final File secondarySourceFile = new File(secondarySource);
+      var primarySourceFile = new File(primarySource);
+      var secondarySourceFile = new File(secondarySource);
 
-      final String priTargetName =
+      String priTargetName =
           createUniqueExportFileName(primarySourceFile, secondarySourceFile, ESide.PRIMARY);
-      final String secTargetName =
+      String secTargetName =
           createUniqueExportFileName(primarySourceFile, secondarySourceFile, ESide.SECONDARY);
 
-      final File destinationFolder = new File(destination);
+      var destinationFolder = new File(destination);
 
       if (destinationFolder.exists()) {
-        String msg =
+        var msg =
             String.format(
                 "'%s' failed. Reason: Destination folder already exists.",
                 data.getDestinationDirectory());
@@ -154,7 +153,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
       }
 
       if (!destinationFolder.mkdir()) {
-        String msg =
+        var msg =
             String.format(
                 "'%s' failed. Reason: Destination folder cannot be created.",
                 data.getDestinationDirectory());
@@ -168,16 +167,13 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         logger.atInfo().log(
             " - Start exporting primary IDB '%s' to '%s'", primarySource, destination);
 
-        final File idaExe = ExternalAppUtils.getIdaExe(primarySourceFile);
-
+        File idaExe = ExternalAppUtils.getIdaExe(primarySourceFile);
         if (idaExe == null || !idaExe.canExecute()) {
-          final String msg =
-              "Can't start disassembler. Please set correct path in the main settings first.";
+          var msg = "Can't start disassembler. Please set correct path in the main settings first.";
           logger.atSevere().log(msg);
           CMessageBox.showError(parentWindow, msg);
 
-          deleteDirectory(parentWindow, destinationFolder);
-
+          deleteDestinationDirectory(destinationFolder);
           return matchesPaths;
         }
 
@@ -187,17 +183,16 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         logger.atInfo().log(
             " - Finished exporting primary IDB '%s' to '%s' successfully",
             primarySource, destination);
-      } catch (final BinExportException e) {
+      } catch (BinExportException e) {
         logger.atInfo().log(
             " - Exporting primary '%s' to '%s' failed. Reason: %s",
             primarySource, destination, e.getMessage());
-        final String msg =
+        var msg =
             String.format(
                 "Exporting primary '%s' failed. Reason: %s", primarySource, e.getMessage());
         diffingErrorMessages.add(msg);
 
-        deleteDirectory(parentWindow, destinationFolder);
-
+        deleteDestinationDirectory(destinationFolder);
         continue;
       }
 
@@ -206,11 +201,9 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         logger.atInfo().log(
             " - Start exporting secondary IDB '%s' to '%s'", secondarySource, destination);
 
-        final File idaExe = ExternalAppUtils.getIdaExe(secondarySourceFile);
-
+        File idaExe = ExternalAppUtils.getIdaExe(secondarySourceFile);
         if (idaExe == null || !idaExe.canExecute()) {
-          final String msg =
-              "Can't start disassembler. Please set correct path in the main settings first.";
+          var msg = "Can't start disassembler. Please set correct path in the main settings first.";
           logger.atSevere().log(msg);
           CMessageBox.showError(parentWindow, msg);
 
@@ -223,41 +216,40 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         logger.atInfo().log(
             " - Finished exporting secondary IDB '%s' to '%s' successfully",
             secondarySource, destination);
-      } catch (final BinExportException e) {
+      } catch (BinExportException e) {
         logger.atWarning().log(
             " - Exporting secondary '%s' to '%s' failed. Reason: %s",
             secondarySource, destination, e.getMessage());
-        String msg =
+        var msg =
             String.format(
                 "Exporting secondary '%s' failed. Reason: %s", secondarySource, e.getMessage());
         diffingErrorMessages.add(msg);
 
-        deleteDirectory(parentWindow, destinationFolder);
-
+        deleteDestinationDirectory(destinationFolder);
         continue;
       }
 
       // Diff
       try {
-        final String primaryDifferArgument =
+        String primaryDifferArgument =
             ExportProcess.getExportFilename(priTargetName, destinationFolder);
-        final String secondaryDifferArgument =
+        String secondaryDifferArgument =
             ExportProcess.getExportFilename(secTargetName, destinationFolder);
 
         logger.atInfo().log(" - Start diffing '%s'", destinationFolder.getName());
         DiffProcess.startDiffProcess(
             engineExe, primaryDifferArgument, secondaryDifferArgument, destinationFolder);
 
-        final String diffBinaryPath =
+        String diffBinaryPath =
             DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
 
         logger.atInfo().log(" - Diffing '%s' done successfully", destinationFolder.getName());
 
         matchesPaths.add(diffBinaryPath);
-      } catch (final DifferException e) {
+      } catch (DifferException e) {
         logger.atWarning().log(
             " - Diffing '%s' failed. Reason: %s", destinationFolder.getName(), e.getMessage());
-        final String msg =
+        var msg =
             String.format(
                 "Diffing '%s' failed. Reason: %s", data.getDestinationDirectory(), e.getMessage());
         diffingErrorMessages.add(msg);
@@ -280,27 +272,26 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
   @Override
   protected void runExpensiveCommand() throws Exception {
     List<String> matchesPaths = directoryDiff();
-
-    if (matchesPaths.size() > 0) {
+    if (!matchesPaths.isEmpty()) {
       setGeneralDescription("Preloading diffs...");
     }
 
-    for (final String path : matchesPaths) {
+    for (String path : matchesPaths) {
       if (path == null) {
         continue;
       }
-      final File newMatchesDatabase = new File(path);
+      var newMatchesDatabase = new File(path);
 
       try {
         setDescription(String.format("Loading '%s'", newMatchesDatabase.getName()));
 
         if (newMatchesDatabase.exists()) {
-          final DiffMetadata preloadedMatches = DiffLoader.preloadDiffMatches(newMatchesDatabase);
+          DiffMetadata preloadedMatches = DiffLoader.preloadDiffMatches(newMatchesDatabase);
 
           workspace.addDiff(newMatchesDatabase, preloadedMatches, false);
         }
-      } catch (final Exception e) {
-        String msg =
+      } catch (Exception e) {
+        var msg =
             String.format("Could not load '%s' into workspace.", newMatchesDatabase.getName());
         openingDiffErrorMessages.add(msg);
       }

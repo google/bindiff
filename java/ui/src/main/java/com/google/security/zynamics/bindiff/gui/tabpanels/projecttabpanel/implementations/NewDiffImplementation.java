@@ -40,7 +40,11 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.SQLException;
 
-public final class NewDiffImplementation extends CEndlessHelperThread {
+/**
+ * Class NewDiffImplementation implements the UI flow for adding new .BinDiff results to the
+ * workspace.
+ */
+public class NewDiffImplementation extends CEndlessHelperThread {
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
 
   private final MainWindow parentWindow;
@@ -55,13 +59,13 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
   private final File destinationDirectory;
 
   public NewDiffImplementation(
-      final MainWindow window,
-      final Workspace workspace,
-      final File primaryIdbFile,
-      final File secondaryIdbFile,
-      final File primaryBinExportFile,
-      final File secondaryBinExportFile,
-      final File destinationDir) {
+      MainWindow window,
+      Workspace workspace,
+      File primaryIdbFile,
+      File secondaryIdbFile,
+      File primaryBinExportFile,
+      File secondaryBinExportFile,
+      File destinationDir) {
     parentWindow = checkNotNull(window);
     this.workspace = checkNotNull(workspace);
     destinationDirectory = checkNotNull(destinationDir);
@@ -73,7 +77,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
     this.secondaryBinExportFile = secondaryBinExportFile;
   }
 
-  private String createUniqueExportFileName(final ESide side) {
+  private String createUniqueExportFileName(ESide side) {
     String priName = "";
 
     if (primaryBinExportFile != null) {
@@ -106,245 +110,157 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
     return side == ESide.PRIMARY ? priName : secName;
   }
 
-  @Override
-  protected void runExpensiveCommand() throws Exception {
-    newDiff();
+  void deleteDestinationDirectory(File destinationDirectory) {
+    try {
+      BinDiffFileUtils.deleteDirectory(destinationDirectory);
+    } catch (IOException e2) {
+      logger.atSevere().withCause(e2).log(
+          "Couldn't delete diff folder '%s' after diffing failed", destinationDirectory.getPath());
+      CMessageBox.showWarning(
+          parentWindow,
+          String.format(
+              "Couldn't delete diff folder '%s' after diffing failed.\n"
+                  + "Please delete this folder manually.",
+              destinationDirectory.getPath()));
+    }
   }
 
-  public String createNewDiff() {
-    // TODO(cblichmann): Refactor copy-paste code into new methods
-
-    try {
-      setDescription("Creating destination directory...");
-
-      if (!destinationDirectory.isDirectory() && !destinationDirectory.mkdirs()) {
-        logger.atSevere().log("Could not create destination directory");
-        CMessageBox.showError(parentWindow, "Could not create destination directory.");
-
-        return null;
-      }
-
-      final String priTargetName = createUniqueExportFileName(ESide.PRIMARY);
-      final String secTargetName = createUniqueExportFileName(ESide.SECONDARY);
-
-      // Export primary side
-      if (primaryIdbFile != null) {
-        try {
-          logger.atInfo().log(
-              "- Exporting primary IDB '%s' to '%s'",
-              primaryIdbFile.getPath(), destinationDirectory.getPath());
-
-          setDescription("Exporting primary IDB...");
-
-          final File idaExe = ExternalAppUtils.getIdaExe(primaryIdbFile);
-
-          if (idaExe == null || !idaExe.canExecute()) {
-            final String msg =
-                "Can't start disassembler. Please set correct path in the main settings first.";
-            logger.atSevere().log(msg);
-            CMessageBox.showError(parentWindow, msg);
-            return null;
-          }
-
-          ExportProcess.startExportProcess(
-              idaExe, destinationDirectory, primaryIdbFile, priTargetName);
-        } catch (final BinExportException e) {
-          logger.atSevere().withCause(e).log(e.getMessage());
-          CMessageBox.showError(parentWindow, e.getMessage());
-
-          try {
-            BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException e2) {
-            logger.atSevere().withCause(e2).log(
-                "Couldn't delete diff folder '%s' after diffing failed",
-                destinationDirectory.getPath());
-            CMessageBox.showWarning(
-                parentWindow,
-                String.format(
-                    "Couldn't delete diff folder '%s' after diffing failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
-          }
-
-          return null;
-        }
-      } else if (primaryBinExportFile != null) {
-        try {
-          final File copiedBinExportFile =
-              Path.of(destinationDirectory.getPath(), priTargetName).toFile();
-          if (!copiedBinExportFile.exists()) {
-            setDescription("Copying primary BinExport binary...");
-
-            ByteStreams.copy(
-                new FileInputStream(primaryBinExportFile),
-                new FileOutputStream(copiedBinExportFile));
-          }
-
-          primaryBinExportFile = copiedBinExportFile;
-        } catch (final IOException e) {
-          final String message =
-              "Couldn't copy primary BinExport binaries into the new diff directory.";
-          logger.atSevere().withCause(e).log(message);
-          CMessageBox.showError(parentWindow, message);
-
-          try {
-            BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException e2) {
-            logger.atSevere().withCause(e2).log(
-                "Couldn't delete diff folder '%s' after diffing failed",
-                destinationDirectory.getPath());
-            CMessageBox.showWarning(
-                parentWindow,
-                String.format(
-                    "Couldn't delete diff folder '%s' after diffing failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
-          }
-
-          return null;
-        }
-      }
-
-      // export or copy secondary side
-      if (secondaryIdbFile != null) {
-        try {
-          logger.atInfo().log(
-              "- Exporting secondary IDB '%s' to '%s'",
-              secondaryIdbFile.getPath(), destinationDirectory.getPath());
-
-          setDescription("Exporting secondary IDB...");
-
-          final File idaExe = ExternalAppUtils.getIdaExe(secondaryIdbFile);
-
-          if (idaExe == null || !idaExe.canExecute()) {
-            final String msg =
-                "Can't start disassembler. Please set correct path in the main settings first.";
-            logger.atSevere().log(msg);
-            CMessageBox.showError(parentWindow, msg);
-
-            return null;
-          }
-
-          ExportProcess.startExportProcess(
-              idaExe, destinationDirectory, secondaryIdbFile, secTargetName);
-        } catch (final BinExportException e) {
-          logger.atSevere().withCause(e).log(e.getMessage());
-          CMessageBox.showError(parentWindow, e.getMessage());
-
-          try {
-            BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException e2) {
-            logger.atSevere().withCause(e2).log(
-                "Couldn't delete diff folder '%s' after exporting failed",
-                destinationDirectory.getPath());
-            CMessageBox.showWarning(
-                parentWindow,
-                String.format(
-                    "Couldn't delete diff folder '%s' after exporting failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
-          }
-
-          return null;
-        }
-      } else if (secondaryBinExportFile != null) {
-        try {
-          final File copiedSecBinExportFile =
-              Path.of(destinationDirectory.getPath(), secTargetName).toFile();
-          if (!copiedSecBinExportFile.exists()) {
-            setDescription("Copying primary BinExport binary...");
-            ByteStreams.copy(
-                new FileInputStream(secondaryBinExportFile),
-                new FileOutputStream(copiedSecBinExportFile));
-          }
-
-          secondaryBinExportFile = copiedSecBinExportFile;
-        } catch (final IOException e) {
-          final String message =
-              "Couldn't copy secondary BinExport binaries into the new diff directory.";
-          logger.atSevere().withCause(e).log(message);
-          CMessageBox.showError(parentWindow, message);
-
-          try {
-            BinDiffFileUtils.deleteDirectory(destinationDirectory);
-          } catch (final IOException e2) {
-            logger.atSevere().withCause(e2).log(
-                "Couldn't delete diff folder '%s' after exporting failed",
-                destinationDirectory.getPath());
-            CMessageBox.showWarning(
-                parentWindow,
-                String.format(
-                    "Couldn't delete diff folder '%s' after exporting failed.\n"
-                        + "Please delete this folder manually.",
-                    destinationDirectory.getPath()));
-          }
-
-          return null;
-        }
-      }
-
-      // diff
-      try {
-        final File engineExe = ExternalAppUtils.getBinDiffEngine();
-
-        String primaryDifferArgument = "";
-        if (primaryIdbFile != null) {
-          primaryDifferArgument =
-              ExportProcess.getExportFilename(priTargetName, destinationDirectory);
-        } else {
-          primaryDifferArgument = primaryBinExportFile.getPath();
-        }
-
-        String secondaryDifferArgument = "";
-        if (secondaryIdbFile != null) {
-          secondaryDifferArgument =
-              ExportProcess.getExportFilename(secTargetName, destinationDirectory);
-        } else {
-          secondaryDifferArgument = secondaryBinExportFile.getPath();
-        }
-
-        logger.atInfo().log("- Diffing '%s'", destinationDirectory.getName());
-
-        setDescription("Diffing...");
-
-        DiffProcess.startDiffProcess(
-            engineExe, primaryDifferArgument, secondaryDifferArgument, destinationDirectory);
-
-        final String diffBinaryPath =
-            DiffProcess.getBinDiffFilename(primaryDifferArgument, secondaryDifferArgument);
-
-        logger.atInfo().log("- Diffing done successfully");
-
-        return diffBinaryPath;
-      } catch (final DifferException | FileNotFoundException e) {
-        logger.atSevere().withCause(e).log(e.getMessage());
-        CMessageBox.showError(parentWindow, e.getMessage());
-      }
-
-      return null;
-    } catch (final Exception e) {
-      logger.atSevere().withCause(e).log("New Diff failed.");
-      CMessageBox.showError(parentWindow, "New Diff failed.");
+  boolean exportSingleIdb(File idbFile, File destinationDirectory, String targetName) {
+    File idaExe = ExternalAppUtils.getIdaExe(primaryIdbFile);
+    if (idaExe == null || !idaExe.canExecute()) {
+      var msg = "Cannot start disassembler. Please set the correct path in main settings first.";
+      logger.atSevere().log(msg);
+      CMessageBox.showError(parentWindow, msg);
+      return false;
     }
 
+    try {
+      ExportProcess.startExportProcess(idaExe, destinationDirectory, idbFile, targetName);
+      return true;
+    } catch (BinExportException e) {
+      logger.atSevere().withCause(e).log(e.getMessage());
+      CMessageBox.showError(parentWindow, e.getMessage());
+      deleteDestinationDirectory(destinationDirectory);
+      return false;
+    }
+  }
+
+  File copyBinExport(File binexport, File destinationDirectory, String targetName) {
+    try {
+      var targetBinExport = Path.of(destinationDirectory.getPath(), targetName).toFile();
+      if (!targetBinExport.exists()) {
+        ByteStreams.copy(new FileInputStream(binexport), new FileOutputStream(targetBinExport));
+      }
+
+      return targetBinExport;
+    } catch (IOException e) {
+      var message = "Couldn't copy primary BinExport binaries into the new diff directory";
+      logger.atSevere().withCause(e).log(message);
+      CMessageBox.showError(parentWindow, message + ": " + e.getMessage());
+
+      deleteDestinationDirectory(destinationDirectory);
+    }
     return null;
   }
 
-  public void newDiff() {
+  public String createNewDiff() {
+    // TODO(cblichmann): Remove code duplication with DirectoryDiffImplementation.
+
+    setDescription("Creating destination directory...");
+    if (!destinationDirectory.isDirectory() && !destinationDirectory.mkdirs()) {
+      logger.atSevere().log("Could not create destination directory");
+      CMessageBox.showError(parentWindow, "Could not create destination directory.");
+      return null;
+    }
+
+    String primaryTargetName = createUniqueExportFileName(ESide.PRIMARY);
+    String secondaryTargetName = createUniqueExportFileName(ESide.SECONDARY);
+
+    // Export or copy primary side
+    if (primaryIdbFile != null) {
+      logger.atInfo().log(
+          "- Exporting primary IDB '%s' to '%s'",
+          primaryIdbFile.getPath(), destinationDirectory.getPath());
+
+      setDescription("Exporting primary IDB...");
+      if (!exportSingleIdb(primaryIdbFile, destinationDirectory, primaryTargetName)) {
+        return null;
+      }
+    } else if (primaryBinExportFile != null) {
+      setDescription("Copying primary BinExport binary...");
+      primaryBinExportFile =
+          copyBinExport(primaryBinExportFile, destinationDirectory, primaryTargetName);
+      if (primaryBinExportFile == null) {
+        return null;
+      }
+    }
+
+    // Export or copy secondary side
+    if (secondaryIdbFile != null) {
+      logger.atInfo().log(
+          "- Exporting secondary IDB '%s' to '%s'",
+          secondaryIdbFile.getPath(), destinationDirectory.getPath());
+
+      setDescription("Exporting secondary IDB...");
+      if (!exportSingleIdb(secondaryIdbFile, destinationDirectory, secondaryTargetName)) {
+        return null;
+      }
+    } else if (secondaryBinExportFile != null) {
+      setDescription("Copying secondary BinExport binary...");
+      secondaryBinExportFile =
+          copyBinExport(secondaryBinExportFile, destinationDirectory, secondaryTargetName);
+      if (secondaryBinExportFile == null) {
+        return null;
+      }
+    }
+
+    // Perform the actual diff
     try {
-      final String matchedPath = createNewDiff();
+      // Use the original file base names instead of createUniqueExportFileName().
+      String primaryBinExportPath =
+          primaryIdbFile != null
+              ? ExportProcess.getExportFilename(primaryTargetName, destinationDirectory)
+              : primaryBinExportFile.getPath();
+      String secondaryBinExportPath =
+          secondaryIdbFile != null
+              ? ExportProcess.getExportFilename(secondaryTargetName, destinationDirectory)
+              : secondaryBinExportFile.getPath();
+
+      setDescription("Diffing...");
+        logger.atInfo().log("- Diffing '%s'", destinationDirectory.getName());
+
+      DiffProcess.getBinDiffFilename(primaryBinExportPath, secondaryBinExportPath);
+      DiffProcess.startDiffProcess(
+          ExternalAppUtils.getBinDiffEngine(),
+          primaryBinExportPath,
+          secondaryBinExportPath,
+          destinationDirectory);
+      String diffBinaryPath =
+          DiffProcess.getBinDiffFilename(primaryBinExportPath, secondaryBinExportPath);
+
+        logger.atInfo().log("- Diffing done successfully");
+        return diffBinaryPath;
+    } catch (DifferException | FileNotFoundException | RuntimeException e) {
+        logger.atSevere().withCause(e).log(e.getMessage());
+        CMessageBox.showError(parentWindow, e.getMessage());
+      }
+      return null;
+  }
+
+  @Override
+  protected void runExpensiveCommand() {
+    try {
+      String matchedPath = createNewDiff();
       if (matchedPath == null) {
         return;
       }
 
-      final File newMatchesDatabase = new File(matchedPath);
+      var newMatchesDatabase = new File(matchedPath);
       if (newMatchesDatabase.exists()) {
         setDescription("Preloading Diff...");
-
-        final DiffMetadata preloadedMatches = DiffLoader.preloadDiffMatches(newMatchesDatabase);
+        DiffMetadata preloadedMatches = DiffLoader.preloadDiffMatches(newMatchesDatabase);
 
         setDescription("Adding Diff to workspace...");
-
         workspace.addDiff(newMatchesDatabase, preloadedMatches, false);
       } else {
         logger.atSevere().log(
@@ -352,7 +268,7 @@ public final class NewDiffImplementation extends CEndlessHelperThread {
         CMessageBox.showError(
             parentWindow, "Adding new Diff to workspace failed. Diff binary does not exist.");
       }
-    } catch (final SQLException e) {
+    } catch (SQLException e) {
       logger.atSevere().withCause(e).log("New Diff failed. Couldn't read matches database.");
       CMessageBox.showError(
           parentWindow, "New Diff failed. Couldn't read matches database: " + e.getMessage());

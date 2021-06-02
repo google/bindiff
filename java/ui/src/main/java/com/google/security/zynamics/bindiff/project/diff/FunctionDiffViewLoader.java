@@ -54,10 +54,10 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
   private FlowGraphViewData viewData;
 
   public FunctionDiffViewLoader(
-      final DiffRequestMessage data,
-      final MainWindow window,
-      final TabPanelManager tabPanelManager,
-      final Workspace workspace) {
+      DiffRequestMessage data,
+      MainWindow window,
+      TabPanelManager tabPanelManager,
+      Workspace workspace) {
     this.data = checkNotNull(data);
     this.window = checkNotNull(window);
     this.tabPanelManager = checkNotNull(tabPanelManager);
@@ -66,19 +66,19 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
   }
 
   private void createSingleFunctionDiffFlowGraphView(
-      final Diff diff,
-      final FunctionMatchData functionMatch,
-      final RawFlowGraph priFlowGraph,
-      final RawFlowGraph secFlowGraph,
-      final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
+      Diff diff,
+      FunctionMatchData functionMatch,
+      RawFlowGraph priFlowGraph,
+      RawFlowGraph secFlowGraph,
+      RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
           combinedFlowGraph)
       throws GraphCreationException {
-    final GraphsContainer graphs =
+    GraphsContainer graphs =
         ViewFlowGraphBuilder.buildViewFlowGraphs(diff, functionMatch, combinedFlowGraph);
 
-    final RawFunction priFunction =
+    RawFunction priFunction =
         diff.getFunction(functionMatch.getIAddress(ESide.PRIMARY), ESide.PRIMARY);
-    final RawFunction secFunction =
+    RawFunction secFunction =
         diff.getFunction(functionMatch.getIAddress(ESide.SECONDARY), ESide.SECONDARY);
 
     String name = diff.getMatchesDatabase().getName();
@@ -102,14 +102,14 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
 
     diff.getViewManager().addView(viewData);
 
-    final FunctionDiffViewTabPanel viewTabPanel =
+    var viewTabPanel =
         new FunctionDiffViewTabPanel(
             window, tabPanelManager, workspace, diff, functionMatch, viewData);
 
     try {
       ViewTabPanelInitializer.initialize(viewData.getGraphs(), this);
-    } catch (final Exception e) {
-      throw new GraphCreationException("An error occurred while initializing the graph.");
+    } catch (RuntimeException e) {
+      throw new GraphCreationException(e, "An error occurred while initializing the graph.");
     }
 
     tabPanelManager.addTab(viewTabPanel);
@@ -122,20 +122,20 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
 
   @Override
   protected void runExpensiveCommand() throws Exception {
-    final File matchesFile = new File(data.getMatchesDBPath());
+    var matchesFile = new File(data.getMatchesDBPath());
 
-    try (final MatchesDatabase matchesDB = new MatchesDatabase(matchesFile)) {
-      final FunctionDiffMetadata metaData = matchesDB.loadFunctionDiffMetadata(true);
+    try (MatchesDatabase matchesDB = new MatchesDatabase(matchesFile)) {
+      FunctionDiffMetadata metaData = matchesDB.loadFunctionDiffMetadata(true);
 
-      final File primaryExportFile = new File(data.getBinExportPath(ESide.PRIMARY));
-      final File secondaryExportFile = new File(data.getBinExportPath(ESide.SECONDARY));
+      var primaryExportFile = new File(data.getBinExportPath(ESide.PRIMARY));
+      var secondaryExportFile = new File(data.getBinExportPath(ESide.SECONDARY));
 
       Diff diff = data.getDiff();
       if (diff == null) {
         diff = new Diff(metaData, matchesFile, primaryExportFile, secondaryExportFile, true);
       }
 
-      final DiffLoader diffLoader = new DiffLoader();
+      var diffLoader = new DiffLoader();
       diffLoader.loadDiff(diff, data);
 
       if (diff.getCallGraph(ESide.PRIMARY).getNodes().size() != 1) {
@@ -147,8 +147,8 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
             "Secondary call graph of a single function diff has more than one vertex.");
       }
 
-      final RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
-      final RawFunction secFunction = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0);
+      RawFunction priFunction = diff.getCallGraph(ESide.PRIMARY).getNodes().get(0);
+      RawFunction secFunction = diff.getCallGraph(ESide.SECONDARY).getNodes().get(0);
 
       priFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicBlocks(ESide.PRIMARY));
       secFunction.setSizeOfBasicBlocks(metaData.getSizeOfBasicBlocks(ESide.SECONDARY));
@@ -157,8 +157,8 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
       priFunction.setSizeOfInstructions(metaData.getSizeOfInstructions(ESide.PRIMARY));
       secFunction.setSizeOfInstructions(metaData.getSizeOfInstructions(ESide.SECONDARY));
 
-      final IAddress priFunctionAddr = priFunction.getAddress();
-      final IAddress secFunctionAddr = secFunction.getAddress();
+      IAddress priFunctionAddr = priFunction.getAddress();
+      IAddress secFunctionAddr = secFunction.getAddress();
 
       metaData.setFunctionAddr(priFunctionAddr, ESide.PRIMARY);
       metaData.setFunctionAddr(secFunctionAddr, ESide.SECONDARY);
@@ -167,23 +167,20 @@ public class FunctionDiffViewLoader extends CEndlessHelperThread {
       metaData.setFunctionType(priFunction.getFunctionType(), ESide.PRIMARY);
       metaData.setFunctionType(secFunction.getFunctionType(), ESide.SECONDARY);
 
-      final FunctionMatchData functionMatch =
+      FunctionMatchData functionMatch =
           diff.getMatches().getFunctionMatch(priFunctionAddr, ESide.PRIMARY);
       matchesDB.loadBasicBlockMatches(functionMatch);
 
       CommentsDatabase commentsDatabase = null;
-
       if (workspace.isLoaded()) {
         commentsDatabase = new CommentsDatabase(workspace, true);
       }
 
-      final RawFlowGraph priFlowGraph;
-      priFlowGraph =
+      RawFlowGraph priFlowGraph =
           DiffLoader.loadRawFlowGraph(commentsDatabase, diff, priFunctionAddr, ESide.PRIMARY);
-      final RawFlowGraph secFlowGraph;
-      secFlowGraph =
+      RawFlowGraph secFlowGraph =
           DiffLoader.loadRawFlowGraph(commentsDatabase, diff, secFunctionAddr, ESide.SECONDARY);
-      final RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
+      RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>>
           combinedFlowGraph;
       combinedFlowGraph =
           RawCombinedFlowGraphBuilder.buildRawCombinedFlowGraph(
