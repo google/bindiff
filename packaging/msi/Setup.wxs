@@ -427,6 +427,7 @@
       <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
       <ComponentRef Id="BinDiff_Extra_Config_Bindiff_configPROTO" />
       <ComponentRef Id="BinaryNinja_Plugins" />
+      <ComponentRef Id="Ghidra_Extensions" />
       <ComponentRef Id="Ida_Plugins" />
       <ComponentRef Id="ProgramMenu_BinDiff_GoogleSecurityBlog" />
       <ComponentRef Id="ProgramMenu_BinDiff_Open_Source_BinExport" />
@@ -450,14 +451,6 @@
                AllowAdvertise="no">
         <ComponentRef Id="BinDiff_Bin_BindiffEXE" />
         <ComponentRef Id="BinDiff_Bin_Binexport2dumpEXE" />
-      </Feature>
-
-      <Feature Id="BinExportGhidra"
-                Title="Ghidra Exporter Extension (experimental)"
-                Description="A version of the BinExport exporter to be used with the Ghidra disassembler."
-                Absent="allow"
-                AllowAdvertise="no">
-        <ComponentRef Id="Ghidra_Extensions" />
       </Feature>
 
       <Feature Id="AddToSystemPath"
