@@ -112,6 +112,11 @@ public class UpdateCheckHelper {
           parent, "Could not check for updates. The update site is unavailable.");
       return;
     }
+    if (e != null) {
+      CMessageBox.showWarning(
+          parent, "Could not check for updates: " + e.getMessage());
+      return;
+    }
 
     if (lines.isEmpty()) {
       CMessageBox.showWarning(

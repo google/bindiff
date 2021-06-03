@@ -95,6 +95,13 @@ public class BinDiff {
       // Do nothing. macOS integration will be sub-optimal but there's nothing we can meaningfully
       // do here.
     }
+    try {
+      // For the update check: force the use of a recent TLS version. TLS 1.3 is not generally
+      // usable yet.
+      System.setProperty("https.protocols", "TLSv1.2");
+    } catch (final SecurityException e) {
+      /* Ignore */
+    }
   }
 
   public static boolean isDesktopIntegrationDone() {
