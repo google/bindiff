@@ -8,7 +8,8 @@
   <welcome file="welcome.rtf"/>
   <background alignment="bottomleft" file="background.tiff" scaling="proportional"/>
   <license file="license.rtf"/>
-  <options customize="never" hostArchitectures="x86_64" require-scripts="false"/>
+  <options customize="never" hostArchitectures="x86_64,arm64" require-scripts="false"/>
+  <domains enable_anywhere="false" enable_currentUserHome="false" enable_localSystem="true" />
 
   <pkg-ref id="com.google.security.zynamics.bindiff"/>
   <choices-outline>
