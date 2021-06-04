@@ -35,6 +35,7 @@ absl::optional<int64_t> HexColorToInt(absl::string_view value) {
   if (color_string.size() != 6) {
     return absl::nullopt;
   }
+  errno = 0;
   uint64_t v = std::strtoul(  // NOLINT(runtime/deprecated_fn)
       color_string.c_str(), nullptr, 16);
   if (errno == ERANGE) {
@@ -67,11 +68,12 @@ uint32_t GetMatchColor(double value) {
   }();
 
   static auto* color_ramp = []() -> std::vector<uint32_t>* {
-    auto* color_ramp = new std::vector<uint32_t>(
-        ParseColorRamp(default_theme.similarity_ramp()));
+    auto* color_ramp =
+        new std::vector<uint32_t>(ParseColorRamp(theme.similarity_ramp()));
     if (color_ramp->empty() ||
         color_ramp->size() != theme.similarity_ramp_size()) {
-      // Parse error, set default color ramp
+      // Parse error, set default color ramp. This should never fail, as the
+      // data is embedded.
       *color_ramp = ParseColorRamp(default_theme.similarity_ramp());
     }
     return color_ramp;
@@ -79,13 +81,12 @@ uint32_t GetMatchColor(double value) {
 
   static uint32_t manual_match_color = *HexColorToInt(theme.manual_match());
 
-  uint32_t color;
+  uint32_t color = 0xffffff;  // Fallback to white
   if (value == kManualMatch) {
     color = manual_match_color;
-  } else if (value >= 0.0 && value <= 1.0) {
-    color = (*color_ramp)[static_cast<int>(value * (color_ramp->size() - 1))];
-  } else {
-    color = 0xffffff;  // Fallback to white
+  } else if (size_t ramp_size = color_ramp->size();
+             ramp_size > 0 && value >= 0.0 && value <= 1.0) {
+    color = (*color_ramp)[static_cast<int>(value * (ramp_size - 1))];
   }
   return (color << 16) | (color & 0xff00) | (color >> 16);
 }

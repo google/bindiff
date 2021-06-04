@@ -748,8 +748,14 @@ bool DoSaveResults() {
 
   try {
     auto* results = Plugin::instance()->results();
+    // If we have loaded results, input_filename_ will be non-empty.
+    const std::string default_filename =
+        results->input_filename_.empty()
+            ? absl::StrCat(results->call_graph1_.GetFilename(), "_vs_",
+                           results->call_graph2_.GetFilename(), ".BinDiff")
+            : results->input_filename_;
     const char* filename = ask_file(
-        /*for_saving=*/true, results->input_filename_.c_str(), "%s",
+        /*for_saving=*/true, default_filename.c_str(), "%s",
         absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files",
                      kAllFilesFilter, "\nSave Results As")
             .c_str());
