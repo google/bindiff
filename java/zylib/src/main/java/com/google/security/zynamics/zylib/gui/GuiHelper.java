@@ -20,90 +20,32 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowStateListener;
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
-public class GuiHelper implements WindowStateListener {
+/** UI utility class to centralize default font settings and window placement. */
+public class GuiHelper {
   public static final int DEFAULT_FONTSIZE = 13;
 
   private static final GuiHelper instance = new GuiHelper();
 
-  // Fields needed by the applyWindowFix() method and its workaround.
-  private Field metacityWindowManager = null;
-  private Field awtWindowManager = null;
-  private boolean needsWindowFix = false;
-
   // Application-global font settings
   private Font defaultFont = new Font(Font.SANS_SERIF, Font.PLAIN, DEFAULT_FONTSIZE);
-  private FontMetrics defaultFontMetrics = null;
 
   private Font monospacedFont = new Font(Font.MONOSPACED, Font.PLAIN, DEFAULT_FONTSIZE);
   private FontMetrics monospacedFontMetrics = null;
 
-  /** Private constructor to prevent public instantiation. */
   private GuiHelper() {
-    // See http://hg.netbeans.org/core-main/rev/409566c2aa65, this implements a rather ugly
-    // reflection-based workaround for a super annoying JDK bug with certain window managers. When
-    // this bug hits, menus won't respond normally to mouse events but are offset by a few hundred
-    // pixels.
-    final List<String> linuxDesktops = Arrays.asList("gnome", "gnome-shell", "mate", "cinnamon");
-    final String desktop = System.getenv("DESKTOP_SESSION");
-    if (desktop != null && linuxDesktops.contains(desktop.toLowerCase())) {
-      try {
-        final Class<?> xwm = Class.forName("sun.awt.X11.XWM");
-        awtWindowManager = xwm.getDeclaredField("awt_wmgr");
-        awtWindowManager.setAccessible(true);
-        final Field otherWindowManager = xwm.getDeclaredField("OTHER_WM");
-        otherWindowManager.setAccessible(true);
-        if (awtWindowManager.get(null).equals(otherWindowManager.get(null))) {
-          metacityWindowManager = xwm.getDeclaredField("METACITY_WM");
-          metacityWindowManager.setAccessible(true);
-          needsWindowFix = true;
-        }
-      } catch (final ClassNotFoundException | NoSuchFieldException | SecurityException
-          | IllegalArgumentException | IllegalAccessException e) {
-        // Ignore
-      }
-    }
-  }
-
-  @Override
-  public void windowStateChanged(WindowEvent e) {
-    try {
-      awtWindowManager.set(null, metacityWindowManager.get(null));
-    } catch (IllegalArgumentException | IllegalAccessException e1) {
-      // Ignore
-    }
-  }
-
-  /**
-   * Adds a work around for a weird menu-offset JDK bug under certain window managers.
-   *
-   * @param window the window to apply the fix for.
-   */
-  public static void applyWindowFix(Window window) {
-    if (!instance.needsWindowFix) {
-      return;
-    }
-    window.removeWindowStateListener(instance);
-    window.addWindowStateListener(instance);
-    // Apply fix first for the current window state.
-    instance.windowStateChanged(null);
+    /* Private constructor to prevent public instantiation. */
   }
 
   /** Centers the child component relative to its parent component. */
-  public static void centerChildToParent(
-      final Component parent, final Component child, final boolean bStayOnScreen) {
+  public static void centerChildToParent(Component parent, Component child, boolean bStayOnScreen) {
     int x = (parent.getX() + (parent.getWidth() / 2)) - (child.getWidth() / 2);
     int y = (parent.getY() + (parent.getHeight() / 2)) - (child.getHeight() / 2);
     if (bStayOnScreen) {
-      final Toolkit tk = Toolkit.getDefaultToolkit();
-      final Dimension ss = new Dimension(tk.getScreenSize());
+      Toolkit tk = Toolkit.getDefaultToolkit();
+      var ss = new Dimension(tk.getScreenSize());
       if ((x + child.getWidth()) > ss.getWidth()) {
         x = (int) (ss.getWidth() - child.getWidth());
       }
@@ -124,9 +66,8 @@ public class GuiHelper implements WindowStateListener {
     frame.setLocationRelativeTo(null);
   }
 
-  public static JComponent findComponentByPredicate(
-      final JComponent container, final ComponentFilter pred) {
-    for (final Component c : container.getComponents()) {
+  public static JComponent findComponentByPredicate(JComponent container, ComponentFilter pred) {
+    for (Component c : container.getComponents()) {
       if (!(c instanceof JComponent)) {
         continue;
       }
@@ -135,7 +76,7 @@ public class GuiHelper implements WindowStateListener {
         return (JComponent) c;
       }
 
-      final JComponent result = findComponentByPredicate((JComponent) c, pred);
+      JComponent result = findComponentByPredicate((JComponent) c, pred);
       if (result != null) {
         return result;
       }
@@ -145,7 +86,6 @@ public class GuiHelper implements WindowStateListener {
 
   public static void setDefaultFont(Font font) {
     instance.defaultFont = font;
-    instance.defaultFontMetrics = new JLabel().getFontMetrics(font);
   }
 
   public static Font getDefaultFont() {
