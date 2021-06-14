@@ -18,7 +18,6 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/instruction.h"
-#include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/types.h"
 
 class insn_t;
@@ -27,8 +26,7 @@ namespace security::binexport {
 
 Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
                                       CallGraph* call_graph,
-                                      FlowGraph* flow_graph,
-                                      TypeSystem* type_system);
+                                      FlowGraph* flow_graph);
 
 }  // namespace security::binexport
 

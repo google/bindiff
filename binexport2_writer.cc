@@ -794,7 +794,7 @@ absl::Status BinExport2Writer::WriteToProto(
 absl::Status BinExport2Writer::Write(
     const CallGraph& call_graph, const FlowGraph& flow_graph,
     const Instructions& instructions,
-    const AddressReferences& address_references, const TypeSystem*,
+    const AddressReferences& address_references,
     const AddressSpace& address_space) {
   LOG(INFO) << "Writing to: \"" << filename_ << "\".";
 

@@ -33,7 +33,6 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
-#include "third_party/zynamics/binexport/type_system.h"
 
 namespace security::binexport {
 namespace {
@@ -129,8 +128,8 @@ Address GetSibImmediate(const op_t& operand) { return operand.addr; }
 std::string GetInstanceName(Address address) { return GetName(address, false); }
 
 void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
-                            TypeSystem* type_system, const insn_t& instruction,
-                            const op_t& operand, uint8_t operand_num) {
+                            const insn_t& instruction, const op_t& operand,
+                            uint8_t operand_num) {
   std::string base, index;
   if (ad16(instruction)) {  // https://zynamics.fogbugz.com/default.asp?2792
     switch (operand.phrase) {
@@ -222,8 +221,7 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
 //                           \-> disp
 void HandleDisplacementExpression(const insn_t& instruction,
                                   const op_t& operand, uint8_t operand_num,
-                                  Expressions* expressions,
-                                  TypeSystem* type_system) {
+                                  Expressions* expressions) {
   const std::string base = GetSibBase(instruction, operand);
   const std::string index = GetSibIndex(instruction, operand);
   const int scale = GetSibScale(operand);
@@ -275,14 +273,11 @@ void HandleDisplacementExpression(const insn_t& instruction,
   expressions->push_back(
       expression = Expression::Create(expression, variable_name, immediate,
                                       expression_type, ++pos));
-
-  type_system->AddDisplacedTypeSubstitution(
-      instruction.ea, immediate, operand_num, register_expression->GetId());
 }
 
 void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
                             uint8_t operand_num, Expressions* expressions,
-                            FlowGraph* flow_graph, TypeSystem* type_system) {
+                            FlowGraph* flow_graph) {
   const Address immediate = to_ea(instruction.cs, operand.addr);
   const Name name = GetName(instruction.ea, immediate, operand_num, true);
   const std::string index = GetSibIndex(instruction, operand);
@@ -332,17 +327,11 @@ void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
         expression = Expression::Create(
             parent, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
-    type_system->AddTypeSubstitution(instruction.ea, operand_num,
-                                     expression->GetId());
-    type_system->CreateMemoryTypeInstance(instruction.ea, operand_num,
-                                          expression->GetId(), immediate,
-                                          GetInstanceName);
   }
 }
 
 void HandleImmediate(const insn_t& instruction, const op_t& operand,
-                     uint8_t operand_num, Expressions* expressions,
-                     TypeSystem* type_system) {
+                     uint8_t operand_num, Expressions* expressions) {
   Address immediate = operand.value;
   Name name = GetName(instruction.ea, operand.value, operand_num, true);
   if (name.empty()) {
@@ -372,15 +361,11 @@ void HandleImmediate(const insn_t& instruction, const op_t& operand,
       expression = Expression::Create(
           expression, name.name, immediate,
           name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
-  type_system->CreateTypeInstance(instruction.ea, operand_num,
-                                  expression->GetId(), immediate,
-                                  GetInstanceName);
 }
 
 Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
                                 CallGraph* /* call_graph */,
-                                FlowGraph* flow_graph,
-                                TypeSystem* type_system) {
+                                FlowGraph* flow_graph) {
   Operands operands;
   uint8_t skipped = 0;
   for (uint8_t operand_position = 0; operand_position < UA_MAXOP;
@@ -429,24 +414,22 @@ Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
         break;
       case o_mem:  // direct memory reference
         HandleMemoryExpression(instruction, operand, operand_position - skipped,
-                               &expressions, flow_graph, type_system);
+                               &expressions, flow_graph);
         break;
 
       case o_phrase:  // Memory Ref [Base Reg + Index Reg]    phrase
-        HandlePhraseExpression(&expressions, flow_graph, type_system,
-                               instruction, operand,
+        HandlePhraseExpression(&expressions, flow_graph, instruction, operand,
                                operand_position - skipped);
         break;
 
       case o_displ:  // array dereference [Base Reg + Index Reg + Displacement]
         HandleDisplacementExpression(instruction, operand,
-                                     operand_position - skipped, &expressions,
-                                     type_system);
+                                     operand_position - skipped, &expressions);
         break;
 
       case o_imm:  // Immediate value
         HandleImmediate(instruction, operand, operand_position - skipped,
-                        &expressions, type_system);
+                        &expressions);
         break;
 
       case o_far:   // Immediate Far Address (CODE)
@@ -492,8 +475,7 @@ Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
 
 Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
                                       CallGraph* call_graph,
-                                      FlowGraph* flow_graph,
-                                      TypeSystem* type_system) {
+                                      FlowGraph* flow_graph) {
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }
@@ -550,7 +532,7 @@ Instruction ParseInstructionIdaMetaPc(const insn_t& instruction,
   return Instruction(
       instruction.ea, is_flow(next_flags) ? next_instruction : 0,
       instruction.size, mnemonic,
-      ParseOperandsIdaMetaPc(instruction, call_graph, flow_graph, type_system));
+      ParseOperandsIdaMetaPc(instruction, call_graph, flow_graph));
 }
 
 }  // namespace security::binexport

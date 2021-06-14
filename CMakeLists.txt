@@ -221,8 +221,6 @@ add_library(binexport_core
   operand.h
   statistics_writer.cc
   statistics_writer.h
-  type_system.cc
-  type_system.h
   version.h
   ${CMAKE_CURRENT_BINARY_DIR}/version.cc
   virtual_memory.cc
@@ -285,8 +283,6 @@ if(BINEXPORT_ENABLE_IDAPRO)
     ida/plugin.h
     ida/ppc.cc
     ida/ppc.h
-    ida/types_container.cc
-    ida/types_container.h
   )
   if(WIN32)
     list(APPEND binexport_libraries crypt32.lib

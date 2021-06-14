@@ -95,7 +95,7 @@ absl::Status StatisticsWriter::Write(const CallGraph& call_graph,
                                      const FlowGraph& flow_graph,
                                      const Instructions&,
                                      const AddressReferences&,
-                                     const TypeSystem*, const AddressSpace&) {
+                                     const AddressSpace&) {
   std::map<std::string, size_t> statistics;
   GenerateStatistics(call_graph, flow_graph, &statistics);
   for (const auto& entry : statistics) {

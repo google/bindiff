@@ -49,7 +49,6 @@
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/flow_analysis.h"
 #include "third_party/zynamics/binexport/ida/util.h"
-#include "third_party/zynamics/binexport/type_system.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"

@@ -395,9 +395,10 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
   timer.restart();
 
   LOG(INFO) << "writing...";
-  auto ignore_error(writer->Write(*call_graph, *flow_graph, *instructions,
-                                  address_references, /*type_system=*/nullptr,
-                                  address_space));
+  writer
+      ->Write(*call_graph, *flow_graph, *instructions, address_references,
+              address_space)
+      .IgnoreError();
 
   Operand::EmptyCache();
   Expression::EmptyCache();

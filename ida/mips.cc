@@ -284,8 +284,7 @@ Operands DecodeOperandsMips(const insn_t& instruction) {
 
 Instruction ParseInstructionIdaMips(const insn_t& instruction,
                                     CallGraph* /* call_graph */,
-                                    FlowGraph* /* flow_graph */,
-                                    TypeSystem*) {
+                                    FlowGraph* /* flow_graph */) {
   if (!IsCode(instruction.ea)) {
     return Instruction(instruction.ea);
   }

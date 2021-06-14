@@ -22,7 +22,6 @@
 
 class CallGraph;
 class FlowGraph;
-class TypeSystem;
 
 namespace security::binexport {
 
@@ -39,7 +38,6 @@ class Writer {
                              const FlowGraph& flow_graph,
                              const detego::Instructions& instructions,
                              const AddressReferences& address_references,
-                             const TypeSystem* type_system,
                              const AddressSpace& address_space) = 0;
 };
 

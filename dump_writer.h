@@ -28,7 +28,7 @@ class DumpWriter : public Writer {
 
   absl::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions&, const AddressReferences&,
-                     const TypeSystem*, const AddressSpace&) override;
+                     const AddressSpace&) override;
 
  private:
   std::ofstream file_;

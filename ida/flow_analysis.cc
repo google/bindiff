@@ -40,7 +40,6 @@
 #include "third_party/zynamics/binexport/ida/mips.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/ida/ppc.h"
-#include "third_party/zynamics/binexport/ida/types_container.h"
 #include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/timer.h"
@@ -305,13 +304,10 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
         GetPermissions(segment));
   }
 
-  IdaTypesContainer types;
-  TypeSystem type_system(types, address_space);
-
   Instruction::SetBitness(GetArchitectureBitness());
   Instruction::SetGetBytesCallback(&GetBytes);
   Instruction::SetMemoryFlags(&flags);
-  std::function<Instruction(const insn_t&, CallGraph*, FlowGraph*, TypeSystem*)>
+  std::function<Instruction(const insn_t&, CallGraph*, FlowGraph*)>
       parse_instruction = nullptr;
   bool mark_x86_nops = false;
   switch (GetArchitecture()) {
@@ -353,8 +349,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
     if (decode_insn(&ida_instruction, address) <= 0) {
       continue;
     }
-    Instruction new_instruction = parse_instruction(ida_instruction, call_graph,
-                                                    flow_graph, &type_system);
+    Instruction new_instruction =
+        parse_instruction(ida_instruction, call_graph, flow_graph);
     if (new_instruction.HasFlag(FLAG_INVALID)) {
       continue;
     }
@@ -429,7 +425,6 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
         function.SetType(Function::TYPE_STANDARD);
       }
     }
-    types.CreateFunctionPrototype(function);
   }
 
   const auto processing_time = absl::Seconds(timer.elapsed());
@@ -437,8 +432,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
 
   LOG(INFO) << "writing...";
   auto ignore_error(writer->Write(*call_graph, *flow_graph, *instructions,
-                                  address_references, &type_system,
-                                  address_space));
+                                  address_references, address_space));
 
   Operand::EmptyCache();
   Expression::EmptyCache();

@@ -29,8 +29,7 @@ DumpWriter::DumpWriter(const std::string& file_name)
 
 absl::Status DumpWriter::Write(const CallGraph& call_graph,
                                const FlowGraph& flow_graph, const Instructions&,
-                               const AddressReferences&, const TypeSystem*,
-                               const AddressSpace&) {
+                               const AddressReferences&, const AddressSpace&) {
 
   stream_ << std::endl;
   call_graph.Render(&stream_, flow_graph);
