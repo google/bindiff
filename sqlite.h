@@ -49,7 +49,7 @@ class SqliteDatabase {
   void Commit();
   void Rollback();
 
-  std::shared_ptr<SqliteStatement> Statement(const char* statement);
+  std::unique_ptr<SqliteStatement> Statement(const char* statement);
 
  private:
   sqlite3* database_;

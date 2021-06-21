@@ -15,7 +15,6 @@
 #ifndef WRITER_H_
 #define WRITER_H_
 
-#include <list>
 #include <memory>
 
 #include "third_party/zynamics/bindiff/fixed_points.h"
@@ -46,12 +45,11 @@ class ChainWriter : public Writer {
                      const FlowGraphs& flow_graphs2,
                      const FixedPoints& fixed_points);
 
-  void Add(std::shared_ptr<Writer> writer);
+  void Add(std::unique_ptr<Writer> writer);
   bool IsEmpty() const;
 
  private:
-  using Writers = std::list<std::shared_ptr<Writer>>;
-  Writers writers_;
+  std::vector<std::unique_ptr<Writer>> writers_;
 };
 
 }  // namespace security::bindiff

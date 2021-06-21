@@ -269,12 +269,12 @@ void DifferThread::operator()() {
       {
         ChainWriter writer;
         if (g_output_log) {
-          writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
+          writer.Add(absl::make_unique<ResultsLogWriter>(GetTruncatedFilename(
               out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
               call_graph2.GetFilename(), ".results")));
         }
         if (g_output_binary || writer.IsEmpty()) {
-          writer.Add(std::make_shared<DatabaseWriter>(
+          writer.Add(absl::make_unique<DatabaseWriter>(
               GetTruncatedFilename(out_path_ + kPathSeparator,
                                    call_graph1.GetFilename(), "_vs_",
                                    call_graph2.GetFilename(), ".BinDiff"),
@@ -725,13 +725,13 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
 
       ChainWriter writer;
       if (g_output_log) {
-        writer.Add(std::make_shared<ResultsLogWriter>(GetTruncatedFilename(
+        writer.Add(absl::make_unique<ResultsLogWriter>(GetTruncatedFilename(
             absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
             ".results")));
       }
       if (g_output_binary || writer.IsEmpty()) {
-        writer.Add(std::make_shared<DatabaseWriter>(GetTruncatedFilename(
+        writer.Add(absl::make_unique<DatabaseWriter>(GetTruncatedFilename(
             absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
             ".BinDiff")));

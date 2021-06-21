@@ -17,6 +17,7 @@
 #include <cstring>
 #include <stdexcept>
 
+#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
 
@@ -62,9 +63,9 @@ void SqliteDatabase::Disconnect() {
   database_ = nullptr;
 }
 
-std::shared_ptr<SqliteStatement> SqliteDatabase::Statement(
+std::unique_ptr<SqliteStatement> SqliteDatabase::Statement(
     const char* statement) {
-  return std::make_shared<SqliteStatement>(this, statement);
+  return absl::make_unique<SqliteStatement>(this, statement);
 }
 
 void SqliteDatabase::Begin() {

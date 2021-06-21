@@ -62,9 +62,9 @@ TEST_F(WriterTest, CanChainWriters) {
   ChainWriter chain;
 
   int count = 0;
-  chain.Add(std::make_shared<CountingNopWriter>(&count));
-  chain.Add(std::make_shared<CountingNopWriter>(&count));
-  chain.Add(std::make_shared<CountingNopWriter>(&count));
+  chain.Add(absl::make_unique<CountingNopWriter>(&count));
+  chain.Add(absl::make_unique<CountingNopWriter>(&count));
+  chain.Add(absl::make_unique<CountingNopWriter>(&count));
   EXPECT_THAT(chain.IsEmpty(), IsFalse());
 
   chain.Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
