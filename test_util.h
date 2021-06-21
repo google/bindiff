@@ -22,11 +22,11 @@
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
-#include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/flow_graph_match.h"
 #include "third_party/zynamics/bindiff/instruction.h"
+#include "third_party/zynamics/bindiff/match/call_graph.h"
+#include "third_party/zynamics/bindiff/match/flow_graph.h"
 
 namespace security::bindiff {
 

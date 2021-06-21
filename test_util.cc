@@ -25,10 +25,10 @@
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
-#include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
+#include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
 
 namespace security::bindiff {

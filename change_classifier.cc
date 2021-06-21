@@ -16,7 +16,7 @@
 
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/match/context.h"
 
 namespace security::bindiff {
 namespace {

@@ -44,7 +44,7 @@
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/start_ui.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 

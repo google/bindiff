@@ -132,33 +132,6 @@ set_target_properties(bindiff_config PROPERTIES
 add_library(bindiff_shared STATIC
   call_graph.cc
   call_graph.h
-  call_graph_match.cc
-  call_graph_match.h
-  call_graph_match_function_address_sequence.cc
-  call_graph_match_function_address_sequence.h
-  call_graph_match_function_call_graph_edges_proximity_mdindex.cc
-  call_graph_match_function_call_graph_edges_proximity_mdindex.h
-  call_graph_match_function_call_graph_mdindex.cc
-  call_graph_match_function_call_graph_mdindex.h
-  call_graph_match_function_call_graph_mdindex_relaxed.cc
-  call_graph_match_function_call_graph_mdindex_relaxed.h
-  call_graph_match_function_call_sequence.cc
-  call_graph_match_function_call_sequence.h
-  call_graph_match_function_flow_graph_edges_mdindex.h
-  call_graph_match_function_flow_graph_mdindex.cc
-  call_graph_match_function_flow_graph_mdindex.h
-  call_graph_match_function_hash.cc
-  call_graph_match_function_hash.h
-  call_graph_match_function_instruction_count.cc
-  call_graph_match_function_instruction_count.h
-  call_graph_match_function_loops.cc
-  call_graph_match_function_loops.h
-  call_graph_match_function_name_hash.cc
-  call_graph_match_function_name_hash.h
-  call_graph_match_function_prime.cc
-  call_graph_match_function_prime.h
-  call_graph_match_function_string_refs.cc
-  call_graph_match_function_string_refs.h
   change_classifier.cc
   change_classifier.h
   comments.h
@@ -170,44 +143,71 @@ add_library(bindiff_shared STATIC
   fixed_points.h
   flow_graph.cc
   flow_graph.h
-  flow_graph_match.cc
-  flow_graph_match.h
-  flow_graph_match_basic_block_call_refs.cc
-  flow_graph_match_basic_block_call_refs.h
-  flow_graph_match_basic_block_edges_lengauer_tarjan.cc
-  flow_graph_match_basic_block_edges_lengauer_tarjan.h
-  flow_graph_match_basic_block_edges_mdindex.cc
-  flow_graph_match_basic_block_edges_mdindex.h
-  flow_graph_match_basic_block_edges_prime.cc
-  flow_graph_match_basic_block_edges_prime.h
-  flow_graph_match_basic_block_entry_node.cc
-  flow_graph_match_basic_block_entry_node.h
-  flow_graph_match_basic_block_hash.cc
-  flow_graph_match_basic_block_hash.h
-  flow_graph_match_basic_block_instruction_count.cc
-  flow_graph_match_basic_block_instruction_count.h
-  flow_graph_match_basic_block_jump_sequence.cc
-  flow_graph_match_basic_block_jump_sequence.h
-  flow_graph_match_basic_block_loop_entry.cc
-  flow_graph_match_basic_block_loop_entry.h
-  flow_graph_match_basic_block_mdindex.cc
-  flow_graph_match_basic_block_mdindex.h
-  flow_graph_match_basic_block_mdindex_relaxed.cc
-  flow_graph_match_basic_block_mdindex_relaxed.h
-  flow_graph_match_basic_block_prime.cc
-  flow_graph_match_basic_block_prime.h
-  flow_graph_match_basic_block_self_loop.cc
-  flow_graph_match_basic_block_self_loop.h
-  flow_graph_match_basic_block_string_refs.cc
-  flow_graph_match_basic_block_string_refs.h
   groundtruth_writer.cc
   groundtruth_writer.h
   instruction.cc
   instruction.h
   log_writer.cc
   log_writer.cc
-  match_context.cc
-  match_context.h
+  match/basic_block_call_refs.cc
+  match/basic_block_call_refs.h
+  match/basic_block_edges_lengauer_tarjan.cc
+  match/basic_block_edges_lengauer_tarjan.h
+  match/basic_block_edges_mdindex.cc
+  match/basic_block_edges_mdindex.h
+  match/basic_block_edges_prime.cc
+  match/basic_block_edges_prime.h
+  match/basic_block_entry_node.cc
+  match/basic_block_entry_node.h
+  match/basic_block_hash.cc
+  match/basic_block_hash.h
+  match/basic_block_instruction_count.cc
+  match/basic_block_instruction_count.h
+  match/basic_block_jump_sequence.cc
+  match/basic_block_jump_sequence.h
+  match/basic_block_loop_entry.cc
+  match/basic_block_loop_entry.h
+  match/basic_block_mdindex.cc
+  match/basic_block_mdindex.h
+  match/basic_block_mdindex_relaxed.cc
+  match/basic_block_mdindex_relaxed.h
+  match/basic_block_prime.cc
+  match/basic_block_prime.h
+  match/basic_block_self_loop.cc
+  match/basic_block_self_loop.h
+  match/basic_block_string_refs.cc
+  match/basic_block_string_refs.h
+  match/call_graph.cc
+  match/call_graph.h
+  match/context.cc
+  match/context.h
+  match/flow_graph.cc
+  match/flow_graph.h
+  match/function_address_sequence.cc
+  match/function_address_sequence.h
+  match/function_call_graph_edges_proximity_mdindex.cc
+  match/function_call_graph_edges_proximity_mdindex.h
+  match/function_call_graph_mdindex.cc
+  match/function_call_graph_mdindex.h
+  match/function_call_graph_mdindex_relaxed.cc
+  match/function_call_graph_mdindex_relaxed.h
+  match/function_call_sequence.cc
+  match/function_call_sequence.h
+  match/function_flow_graph_edges_mdindex.h
+  match/function_flow_graph_mdindex.cc
+  match/function_flow_graph_mdindex.h
+  match/function_hash.cc
+  match/function_hash.h
+  match/function_instruction_count.cc
+  match/function_instruction_count.h
+  match/function_loops.cc
+  match/function_loops.h
+  match/function_name_hash.cc
+  match/function_name_hash.h
+  match/function_prime.cc
+  match/function_prime.h
+  match/function_string_refs.cc
+  match/function_string_refs.h
   prime_signature.cc
   prime_signature.h
   reader.cc
@@ -215,8 +215,8 @@ add_library(bindiff_shared STATIC
   sqlite.cc
   sqlite.h
   start_ui.cc
-  statistics.h
   start_ui.h
+  statistics.h
   writer.cc
   writer.h
 )

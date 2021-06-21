@@ -22,9 +22,9 @@
 #include "base/logging.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/zynamics/bindiff/call_graph_match.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/flow_graph_match.h"
+#include "third_party/zynamics/bindiff/match/call_graph.h"
+#include "third_party/zynamics/bindiff/match/flow_graph.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 

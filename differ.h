@@ -22,7 +22,7 @@
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/match_context.h"
+#include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/binexport/types.h"
