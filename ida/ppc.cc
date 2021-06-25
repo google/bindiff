@@ -31,6 +31,7 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/instruction.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::binexport {
 namespace {
@@ -357,72 +358,75 @@ Operands DecodeOperandsPpc(const insn_t& instruction) {
     Expressions expressions;
     const op_t& operand = instruction.ops[operand_position];
 
-    Expression* expression = 0;
+    Expression* expression = nullptr;
+    size_t operand_size = GetOperandByteSize(instruction, operand);
     switch (operand.type) {
       case o_void:  // no operand
         break;
       case o_idpspec3:  // crfield x.reg
-        expressions.push_back(
-            expression = Expression::Create(
-                expression,
-                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetConditionRegisterName(operand.reg), 0,
-                                  Expression::TYPE_REGISTER, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(expression,
+                                        GetConditionRegisterName(operand.reg),
+                                        0, Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
         break;
       case o_reg:  // Register
-        expressions.push_back(
-            expression = Expression::Create(
-                expression,
-                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(
-                expression,
-                GetRegisterName(operand.reg,
-                                GetOperandByteSize(instruction, operand)),
-                0, Expression::TYPE_REGISTER, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, GetRegisterName(operand.reg, operand_size), 0,
+            Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
         break;
       case o_mem:  // Direct memory reference
       {
         const Address immediate = operand.addr;
         const Name name =
             GetName(instruction.ea, immediate, operand_position, false);
-
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(expression, "[", 0,
-                                            Expression::TYPE_DEREFERENCE, 0));
-        expressions.push_back(
-            expression = Expression::Create(
-                expression, name.name, immediate,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
-      } break;
-      case o_phrase:  // Doesn't seem to exist for PPC, Python code doesn't
-                      // handle this either
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(expression, "[", 0,
+                                        Expression::TYPE_DEREFERENCE, 0);
+        expressions.push_back(expression);
+        expression = Expression::Create(
+            expression, name.name, immediate,
+            name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
+        expressions.push_back(expression);
+        break;
+      }
+      case o_phrase:  // Doesn't seem to exist for PPC
         break;
       case o_displ: {
         const Name name =
             GetName(instruction.ea, operand.addr, operand_position, false);
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(expression, "[", 0,
-                                            Expression::TYPE_DEREFERENCE, 0));
-        expressions.push_back(
-            expression = Expression::Create(expression, "+", 0,
-                                            Expression::TYPE_OPERATOR, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(expression, "[", 0,
+                                        Expression::TYPE_DEREFERENCE, 0);
+        expressions.push_back(expression);
+        expression = Expression::Create(expression, "+", 0,
+                                        Expression::TYPE_OPERATOR, 0);
+        expressions.push_back(expression);
         expressions.push_back(Expression::Create(
-            expression, GetRegisterName(operand.reg, GetOperandByteSize(
-                                                         instruction, operand)),
-            0, Expression::TYPE_REGISTER, 0));
+            expression, GetRegisterName(operand.reg, operand_size), 0,
+            Expression::TYPE_REGISTER, 0));
         expressions.push_back(Expression::Create(
             expression, name.name, operand.addr,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 1));
@@ -433,15 +437,16 @@ Operands DecodeOperandsPpc(const insn_t& instruction) {
         const Address immediate = operand.value;
         const Name name =
             GetName(instruction.ea, immediate, operand_position, false);
-
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(
-                expression, name.name, immediate,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, name.name, immediate,
+            name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
+        expressions.push_back(expression);
         break;
       }
       case o_far:   // Immediate Far Address  (CODE)
@@ -450,103 +455,108 @@ Operands DecodeOperandsPpc(const insn_t& instruction) {
         const Address immediate = operand.addr;
         const Name name =
             GetName(instruction.ea, immediate, operand_position, false);
-
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(
-                expression, name.name, immediate,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, name.name, immediate,
+            name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
+        expressions.push_back(expression);
         break;
       }
       case o_idpspec0:  // Special purpose register in operand.value
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSpecialPurposeRegisterName(
-                                                  instruction.ea, operand.value)
-                                                  .c_str(),
-                                  0, Expression::TYPE_REGISTER, 0));
-      break;
-      case o_idpspec1:  // two floating point registers, second in specflag1
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(Expression::Create(
-            expression, GetRegisterName(operand.reg, GetOperandByteSize(
-                                                         instruction, operand)),
-            0, Expression::TYPE_REGISTER, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression,
+            GetSpecialPurposeRegisterName(instruction.ea, operand.value)
+                .c_str(),
+            0, Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
+        break;
+      case o_idpspec1:  // Two floating point registers, second in specflag1
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, GetRegisterName(operand.reg, operand_size), 0,
+            Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
         // Note: IDA returns what is really two operands in a single op. That's
         // why we start a new one here
         operands.push_back(Operand::CreateOperand(expressions));
-        expression = 0;
+        expression = nullptr;
         expressions.clear();
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(Expression::Create(
-            expression,
-            GetRegisterName(operand.specflag1,
-                            GetOperandByteSize(instruction, operand)),
-            0, Expression::TYPE_REGISTER, 0));
-      break;
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, GetRegisterName(operand.specflag1, operand_size), 0,
+            Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
+        break;
       case o_idpspec2:
         // #define aux_sh   0x0020      // shift is present
         // #define aux_mb   0x0040      // mb is present
         // #define aux_me   0x0080      // me is present
         // #define o_shmbme o_idpspec2  // SH & MB & ME
         // #define op_sh    reg         // if aux_sh is set, otherwise here is a
-        // register
+        //                              // register
         // #define op_mb    specflag1   // if aux_mb is set
         // #define op_me    specflag2   // if aux_me is set
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
         if (instruction.auxpref & PPC_aux_sh) {
-          expressions.push_back(
-              expression = Expression::Create(
-                  expression,
-                  GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                  Expression::TYPE_SIZEPREFIX, 0));
-          expressions.push_back(Expression::Create(
-              expression, "", operand.reg, Expression::TYPE_IMMEDIATE_INT, 0));
+          expression = Expression::Create(expression, "", operand.reg,
+                                          Expression::TYPE_IMMEDIATE_INT, 0);
+          expressions.push_back(expression);
         } else {
-          expressions.push_back(
-              expression = Expression::Create(
-                  expression,
-                  GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                  Expression::TYPE_SIZEPREFIX, 0));
-          expressions.push_back(Expression::Create(
-              expression,
-              GetRegisterName(operand.reg,
-                              GetOperandByteSize(instruction, operand)),
-              0, Expression::TYPE_REGISTER, 0));
+          Expression::Create(expression,
+                             GetRegisterName(operand.reg, operand_size), 0,
+                             Expression::TYPE_REGISTER, 0);
+          expressions.push_back(expression);
         }
         if (instruction.auxpref & PPC_aux_mb) {
           operands.push_back(Operand::CreateOperand(expressions));
           expression = 0;
           expressions.clear();
-          expressions.push_back(
-              expression = Expression::Create(
-                  expression,
-                  GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                  Expression::TYPE_SIZEPREFIX, 1));
-          expressions.push_back(
-              Expression::Create(expression, "", operand.specflag1,
-                                 Expression::TYPE_IMMEDIATE_INT, 0));
+          if (operand_size != 0) {
+            expression =
+                Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                   Expression::TYPE_SIZEPREFIX, 1);
+            expressions.push_back(expression);
+          }
+          expression = Expression::Create(expression, "", operand.specflag1,
+                                          Expression::TYPE_IMMEDIATE_INT, 0);
+          expressions.push_back(expression);
         }
         if (instruction.auxpref & PPC_aux_me) {
           operands.push_back(Operand::CreateOperand(expressions));
           expression = 0;
           expressions.clear();
-          expressions.push_back(
-              expression = Expression::Create(
-                  expression,
-                  GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                  Expression::TYPE_SIZEPREFIX, 2));
+          if (operand_size != 0) {
+            expression =
+                Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                   Expression::TYPE_SIZEPREFIX, 2);
+            expressions.push_back(expression);
+          }
           expressions.push_back(
               Expression::Create(expression, "", operand.specflag2,
                                  Expression::TYPE_IMMEDIATE_INT, 0));
@@ -555,30 +565,33 @@ Operands DecodeOperandsPpc(const insn_t& instruction) {
       case o_idpspec4:  // crbit x.reg
                         // IDA displays this as 4*cr7+so but I just get a single
                         // value in x.reg...
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(expression, "", operand.reg,
-                                            Expression::TYPE_IMMEDIATE_INT, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(expression, "", operand.reg,
+                                        Expression::TYPE_IMMEDIATE_INT, 0);
+        expressions.push_back(expression);
         break;
       case o_idpspec5:  // #define o_dcr o_idpspec5  // Device control register
         // #define dcrnum value  // Register number is kept here
-        expressions.push_back(
-            expression = Expression::Create(
-                expression,
-                GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-                Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetDeviceControlRegisterName(operand.value),
-                                  0, Expression::TYPE_REGISTER, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, GetDeviceControlRegisterName(operand.value), 0,
+            Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
         break;
       default:
-        LOG(INFO) << absl::StrCat("warning: unknown operand type ",
+        LOG(INFO) << absl::StrCat("Warning: unknown operand type ",
                                   operand.type, " at ",
-                                  absl::Hex(instruction.ea, absl::kZeroPad8));
+                                  FormatAddress(instruction.ea));
         break;
     }
 

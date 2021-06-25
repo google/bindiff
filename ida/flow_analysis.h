@@ -32,10 +32,10 @@ using ModuleMap = absl::btree_map<Address, std::string>;
 // Creates a map "function address" -> "module name"
 ModuleMap InitModuleMap();
 
-void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
-                    Writer* writer, detego::Instructions* instructions,
-                    FlowGraph* flow_graph, CallGraph* call_graph,
-                    FlowGraph::NoReturnHeuristic noreturn_heuristic);
+absl::Status AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
+                            Writer* writer, detego::Instructions* instructions,
+                            FlowGraph* flow_graph, CallGraph* call_graph,
+                            FlowGraph::NoReturnHeuristic noreturn_heuristic);
 
 }  // namespace security::binexport
 

@@ -50,6 +50,7 @@
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/logging.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/version.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
@@ -80,7 +81,7 @@ std::string GetDefaultName(ExportMode mode) {
   return ReplaceFileExtension(GetModuleName(), new_extension);
 }
 
-void ExportIdb(Writer* writer) {
+absl::Status ExportIdb(Writer* writer) {
   LOG(INFO) << GetModuleName() << ": starting export";
   WaitBox wait_box("Exporting database...");
   Timer<> timer;
@@ -110,34 +111,29 @@ void ExportIdb(Writer* writer) {
   Instructions instructions;
   FlowGraph flow_graph;
   CallGraph call_graph;
-  AnalyzeFlowIda(&entry_points, modules, writer, &instructions, &flow_graph,
-                 &call_graph,
-                 Plugin::instance()->x86_noreturn_heuristic()
-                     ? FlowGraph::NoReturnHeuristic::kNopsAfterCall
-                     : FlowGraph::NoReturnHeuristic::kNone);
+  NA_RETURN_IF_ERROR(AnalyzeFlowIda(
+      &entry_points, modules, writer, &instructions, &flow_graph, &call_graph,
+      Plugin::instance()->x86_noreturn_heuristic()
+          ? FlowGraph::NoReturnHeuristic::kNopsAfterCall
+          : FlowGraph::NoReturnHeuristic::kNone));
 
   LOG(INFO) << absl::StrCat(
       GetModuleName(), ": exported ", flow_graph.GetFunctions().size(),
       " functions with ", instructions.size(), " instructions in ",
       HumanReadableDuration(timer.elapsed()));
+  return absl::OkStatus();
 }
 
 int ExportBinary(const std::string& filename) {
-  try {
     const std::string hash =
         GetInputFileSha256().value_or(GetInputFileMd5().value_or(""));
     BinExport2Writer writer(filename, GetModuleName(), hash,
                             GetArchitectureName().value());
-    ExportIdb(&writer);
-  } catch (const std::exception& error) {
-    LOG(INFO) << "Error exporting: " << error.what();
-    warning("Error exporting: %s\n", error.what());
-    return 666;
-  } catch (...) {
-    LOG(INFO) << "Error exporting.";
-    warning("Error exporting.\n");
-    return 666;
-  }
+    if (absl::Status status = ExportIdb(&writer); !status.ok()) {
+      LOG(INFO) << "Error exporting: " << std::string(status.message());
+      warning("Error exporting: %s\n", std::string(status.message()).c_str());
+      return 666;
+    }
   return eOk;
 }
 
@@ -159,17 +155,11 @@ void idaapi ButtonBinaryExport(TWidget** /* fields */, int) {
 }
 
 int ExportText(const std::string& filename) {
-  try {
-    std::ofstream file(filename);
-    DumpWriter writer{file};
-    ExportIdb(&writer);
-  } catch (const std::exception& error) {
-    LOG(INFO) << "Error exporting: " << error.what();
-    warning("Error exporting: %s\n", error.what());
-    return 666;
-  } catch (...) {
-    LOG(INFO) << "Error exporting.";
-    warning("Error exporting.\n");
+  std::ofstream file(filename);
+  DumpWriter writer(file);
+  if (absl::Status status = ExportIdb(&writer); !status.ok()) {
+    LOG(INFO) << "Error exporting: " << std::string(status.message());
+    warning("Error exporting: %s\n", std::string(status.message()).c_str());
     return 666;
   }
   return eOk;
@@ -193,17 +183,11 @@ void idaapi ButtonTextExport(TWidget** /* fields */, int) {
 }
 
 int ExportStatistics(const std::string& filename) {
-  try {
-    std::ofstream file(filename);
-    StatisticsWriter writer{file};
-    ExportIdb(&writer);
-  } catch (const std::exception& error) {
-    LOG(INFO) << "Error exporting: " << error.what();
-    warning("Error exporting: %s\n", error.what());
-    return 666;
-  } catch (...) {
-    LOG(INFO) << "Error exporting.";
-    warning("Error exporting.\n");
+  std::ofstream file(filename);
+  StatisticsWriter writer{file};
+  if (absl::Status status = ExportIdb(&writer); !status.ok()) {
+    LOG(INFO) << "Error exporting: " << std::string(status.message());
+    warning("Error exporting: %s\n", std::string(status.message()).c_str());
     return 666;
   }
   return eOk;
@@ -227,7 +211,7 @@ void idaapi ButtonStatisticsExport(TWidget** /* fields */, int) {
 }
 
 const char* GetDialog() {
-  static const std::string kDialog = absl::StrCat(
+  static auto* dialog = new std::string(absl::StrCat(
       "STARTITEM 0\n"
       "BUTTON YES Close\n"  // This is actually the OK button
       "BUTTON CANCEL NONE\n"
@@ -239,8 +223,8 @@ const char* GetDialog() {
       "\n\n\n"
       "<BinExport v2 Binary Export:B:1:30:::>\n\n"
       "<Text Dump Export:B:1:30:::>\n\n"
-      "<Statistics Export:B:1:30:::>\n\n");
-  return kDialog.c_str();
+      "<Statistics Export:B:1:30:::>\n\n"));
+  return dialog->c_str();
 }
 
 int DoExport(ExportMode mode, std::string name) {
@@ -391,16 +375,11 @@ bool Plugin::Run(size_t argument) {
   LOG_IF(INFO, !GetArchitectureName())
       << "Warning: Exporting for unknown CPU architecture (Id: " << ph.id
       << ", " << GetArchitectureBitness() << "-bit)";
-  try {
-    if (argument) {
-      DoExport(static_cast<ExportMode>(argument), GetArgument("Module"));
-    } else {
-      ask_form(GetDialog(), ButtonBinaryExport, ButtonTextExport,
-               ButtonStatisticsExport);
-    }
-  } catch (const std::exception& error) {
-    LOG(INFO) << "export cancelled: " << error.what();
-    warning("export cancelled: %s\n", error.what());
+  if (argument) {
+    DoExport(static_cast<ExportMode>(argument), GetArgument("Module"));
+  } else {
+    ask_form(GetDialog(), ButtonBinaryExport, ButtonTextExport,
+             ButtonStatisticsExport);
   }
   return true;
 }

@@ -33,6 +33,7 @@
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/ida/names.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::binexport {
 namespace {
@@ -118,7 +119,7 @@ std::string GetString(Address ea) {
   result.reserve(16);
 
   for (;;) {
-    uint8_t b(get_byte(static_cast<ea_t>(ea++)));
+    uint8_t b = get_byte(static_cast<ea_t>(ea++));
     if (b == 0) {
       break;
     }
@@ -135,7 +136,7 @@ std::string GetDexString(Address ea) {
 
 dex_header_item& GetDexHeader() {
   static dex_header_item header;
-  static bool header_init_done(false);
+  static bool header_init_done = false;
   if (!header_init_done) {
     memset(&header, 0, sizeof(dex_header_item));
     get_bytes(&header, sizeof(dex_header_item), header.link_off);
@@ -145,10 +146,10 @@ dex_header_item& GetDexHeader() {
 }
 
 std::string GetTypeNameByIndex(size_t index) {
-  dex_header_item& header(GetDexHeader());
-  uint32_t type_idx(get_dword(header.type_ids_off + index * sizeof(uint32_t)));
-  uint32_t str_off(
-      get_dword(header.string_ids_off + type_idx * sizeof(uint32_t)));
+  dex_header_item& header = GetDexHeader();
+  uint32_t type_idx = get_dword(header.type_ids_off + index * sizeof(uint32_t));
+  uint32_t str_off =
+      get_dword(header.string_ids_off + type_idx * sizeof(uint32_t));
   return GetDexString(str_off);
 }
 
@@ -160,9 +161,10 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
   Operands operands;
   for (uint8_t i = 0; i < UA_MAXOP && instruction.ops[i].type != o_void; ++i) {
     Expressions expressions;
-    const op_t& operand(instruction.ops[i]);
+    const op_t& operand = instruction.ops[i];
 
-    Expression* expr = nullptr;
+    Expression* expression = nullptr;
+    size_t operand_size = GetOperandByteSize(instruction, operand);
     switch (operand.type) {
       case o_void:      // No operand
       case o_phrase:    // Not used with Dalvik
@@ -175,55 +177,58 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
 
       case dex_o_reg: {
         // Get canonical register name for operand
-        std::string regName(GetRegisterName(
-            operand.reg, GetOperandByteSize(instruction, operand)));
+        std::string reg_name = GetRegisterName(operand.reg, operand_size);
 
         if (operand.dex_regpair) {
           // Register pairs encode 64-bit values
-          expr =
-              Expression::Create(expr, "b8", 0, Expression::TYPE_SIZEPREFIX, 0);
-          expressions.push_back(expr);
-          std::string regName2(GetRegisterName(
-              operand.reg + 1, GetOperandByteSize(instruction, operand)));
-          expr = Expression::Create(expr, regName + ":" + regName2, 0,
-                                    Expression::TYPE_REGISTER, 0);
-          expressions.push_back(expr);
+          expression = Expression::Create(expression, "b8", 0,
+                                          Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+          std::string reg_name2 =
+              GetRegisterName(operand.reg + 1, operand_size);
+          expression =
+              Expression::Create(expression, reg_name + ":" + reg_name2, 0,
+                                 Expression::TYPE_REGISTER, 0);
+          expressions.push_back(expression);
         } else {
           // Regular registers are always 4 bytes on Dalvik
-          expr =
-              Expression::Create(expr, "b4", 0, Expression::TYPE_SIZEPREFIX, 0);
-          expressions.push_back(expr);
-          expr = Expression::Create(expr, regName, 0, Expression::TYPE_REGISTER,
-                                    0);
-          expressions.push_back(expr);
+          expression = Expression::Create(expression, "b4", 0,
+                                          Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+          expression = Expression::Create(expression, reg_name, 0,
+                                          Expression::TYPE_REGISTER, 0);
+          expressions.push_back(expression);
         }
 
         // If the register has been renamed, add an expression substitution
-        regvar_t* rv(find_regvar(get_func(instruction.ea), instruction.ea,
-                                 regName.c_str()));
-        if (rv != 0)
-          flow_graph->AddExpressionSubstitution(
-              instruction.ea, static_cast<uint8_t>(i), expr->GetId(), rv->user);
+        regvar_t* rv = find_regvar(get_func(instruction.ea), instruction.ea,
+                                   reg_name.c_str());
+        if (rv != nullptr)
+          flow_graph->AddExpressionSubstitution(instruction.ea,
+                                                static_cast<uint8_t>(i),
+                                                expression->GetId(), rv->user);
         break;
       }
       case dex_o_imm: {
-        expr = Expression::Create(
-            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-            Expression::TYPE_SIZEPREFIX, 0);
-        expressions.push_back(expr);
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
 
-        const Address immediate(static_cast<Address>(operand.value));
-        const Name name(GetName(instruction.ea, immediate, i, false));
-        expr = Expression::Create(
-            expr, name.name, immediate,
+        const auto immediate = static_cast<Address>(operand.value);
+        const Name name = GetName(instruction.ea, immediate, i, false);
+        expression = Expression::Create(
+            expression, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
-        expressions.push_back(expr);
+        expressions.push_back(expression);
 
         break;
       }
       case dex_o_target: {
-        const Address immediate(static_cast<Address>(operand.addr));
-        Name name(GetName(instruction.ea, immediate, i, false));
+        const auto immediate = static_cast<Address>(operand.addr);
+        Name name = GetName(instruction.ea, immediate, i, false);
         if (name.empty()) {
           LOG(INFO) << absl::StrCat(absl::Hex(instruction.ea, absl::kZeroPad8),
                                     ": dex_o_target: empty name");
@@ -231,15 +236,17 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
           name.type = Expression::TYPE_GLOBALVARIABLE;
         }
 
-        expr = Expression::Create(
-            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-            Expression::TYPE_SIZEPREFIX, 0);
-        expressions.push_back(expr);
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
 
-        expr = Expression::Create(
-            expr, name.name, immediate,
+        expression = Expression::Create(
+            expression, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
-        expressions.push_back(expr);
+        expressions.push_back(expression);
 
         break;
       }
@@ -247,71 +254,77 @@ Operands ParseOperandsIdaDalvik(const insn_t& instruction,
         // TODO(cblichmann) Check if we should use the size of a single
         //                  character (the type "pointed to").
         // TODO(cblichmann) Add string as a comment.
-        expr = Expression::Create(
-            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-            Expression::TYPE_SIZEPREFIX, 0);
-        expressions.push_back(expr);
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
 
-        expr =
-            Expression::Create(expr, "[", 0, Expression::TYPE_DEREFERENCE, 0);
-        expressions.push_back(expr);
+        expression = Expression::Create(expression, "[", 0,
+                                        Expression::TYPE_DEREFERENCE, 0);
+        expressions.push_back(expression);
 
-        const Address immediate(static_cast<Address>(operand.addr));
-        Name name(GetName(instruction.ea, immediate, i, false));
-        expr = Expression::Create(
-            expr, name.name, immediate,
+        const auto immediate = static_cast<Address>(operand.addr);
+        Name name = GetName(instruction.ea, immediate, i, false);
+        expression = Expression::Create(
+            expression, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
-        expressions.push_back(expr);
+        expressions.push_back(expression);
 
         break;
       }
       case dex_o_type: {
-        std::string str(GetTypeNameByIndex(static_cast<size_t>(operand.value)));
+        std::string str =
+            GetTypeNameByIndex(static_cast<size_t>(operand.value));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
 
-        expr = Expression::Create(
-            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-            Expression::TYPE_SIZEPREFIX, 0);
-        expressions.push_back(expr);
-
-        const Address immediate(static_cast<Address>(operand.addr));
-        expr = Expression::Create(expr, str, immediate, Expression::TYPE_SYMBOL,
-                                  0);
-        expressions.push_back(expr);
+        const Address immediate = static_cast<Address>(operand.addr);
+        expression = Expression::Create(expression, str, immediate,
+                                        Expression::TYPE_SYMBOL, 0);
+        expressions.push_back(expression);
 
         break;
       }
       case dex_o_field: {
-        expr = Expression::Create(
-            expr, GetSizePrefix(GetOperandByteSize(instruction, operand)), 0,
-            Expression::TYPE_SIZEPREFIX, 0);
-        expressions.push_back(expr);
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
 
-        const Address immediate(static_cast<Address>(operand.addr));
-        Name name(GetName(instruction.ea, immediate, i, false));
-        expr = Expression::Create(
-            expr, name.name, immediate,
+        const auto immediate = static_cast<Address>(operand.addr);
+        Name name = GetName(instruction.ea, immediate, i, false);
+        expression = Expression::Create(
+            expression, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
-        expressions.push_back(expr);
+        expressions.push_back(expression);
 
         break;
       }
       case dex_o_meth: {
-        const Address immediate(static_cast<Address>(
-            operand.addr != 0 ? operand.addr : operand.specval));
+        const auto immediate = static_cast<Address>(
+            operand.addr != 0 ? operand.addr : operand.specval);
         // immediate == 0 => reference to imported method
 
-        Name name(GetName(instruction.ea, immediate, i, false));
-        expr = Expression::Create(
-            expr, name.name, immediate,
+        Name name = GetName(instruction.ea, immediate, i, false);
+        expression = Expression::Create(
+            expression, name.name, immediate,
             name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
-        expressions.push_back(expr);
+        expressions.push_back(expression);
 
         break;
       }
       default:
-        LOG(INFO) << absl::StrCat("warning: unknown operand type ",
+        LOG(INFO) << absl::StrCat("Warning: unknown operand type ",
                                   operand.type, " at ",
-                                  absl::Hex(instruction.ea, absl::kZeroPad8));
+                                  FormatAddress(instruction.ea));
         break;
     }
     operands.push_back(Operand::CreateOperand(expressions));

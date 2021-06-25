@@ -141,7 +141,7 @@ std::string GetMnemonic(const Address address) {
 }
 
 // Renders hex values as shown in IDA.
-static std::string IdaHexify(int value) {
+std::string IdaHexify(int value) {
   if (value < 10) {
     return absl::StrCat(value);
   }
@@ -149,8 +149,11 @@ static std::string IdaHexify(int value) {
                       "h");
 }
 
-std::string GetSizePrefix(const size_t size_in_bytes) {
-  return "b" + std::to_string(size_in_bytes);
+std::string GetSizePrefix(size_t size_in_bytes) {
+  if (size_in_bytes != 0) {
+    return absl::StrCat("b", size_in_bytes);
+  }
+  return "";
 }
 
 size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
@@ -169,24 +172,24 @@ size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand) {
     case dt_double:
     case dt_qword:
       return 8;  // 64 bit
+    case dt_packreal:  // 96 bit
+      return 12;
     case dt_byte16:
       return 16;  // 128 bit
     case dt_byte32:
       return 32;  // 256 bit
     case dt_byte64:
       return 64;  // 512 bit
-    case dt_tbyte:
-      return ph.tbyte_size;  // variable size (ph.tbyte_size)
-    default: {
-      // TODO(cblichmann): Instead of throwing, return a constant signifying
-      //                   "unknown". Then, in DecodeOperands() (for all
-      //                   archs), do not create a size prefix.
-      //                   Print a warning in all cases.
-      const std::string error =
-          absl::StrCat(__FUNCTION__, ": Invalid operand type (", operand.dtype,
-                       ") at address ", FormatAddress(instruction.ea));
-      throw std::runtime_error(error);
-    }
+    case dt_ldbl:  // Variable size double
+      return ph.sizeof_ldbl();
+    case dt_tbyte:  // Variable size
+      return ph.tbyte_size;
+    case dt_void:     // Operand invalid/undefined
+    case dt_bitfild:  // Unsupported
+    case dt_string:   // Unsupported
+    case dt_unicode:  // Unsupported
+    default:
+      return 0;  // Indicate to not create byte size prefix
   }
 }
 
@@ -230,13 +233,12 @@ std::string GetStringReference(ea_t address) {
   return "";
 }
 
-std::string GetRegisterName(size_t index, size_t segment_size) {
+std::string GetRegisterName(size_t index, size_t bit_width) {
   qstring ida_reg_name;
-  if (get_reg_name(&ida_reg_name, index, segment_size) != -1) {
+  if (get_reg_name(&ida_reg_name, index, bit_width) != -1) {
     return ToString(ida_reg_name);
   }
-  // Do not return empty string due to assertion fail in database_writer.cc
-  return "<bad register>";
+  return absl::StrCat("<reg", index, "-", bit_width);
 }
 
 bool IsStackVariable(Address address, uint8_t operand_num) {

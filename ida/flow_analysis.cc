@@ -42,6 +42,7 @@
 #include "third_party/zynamics/binexport/ida/ppc.h"
 #include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/x86_nop.h"
 
@@ -275,10 +276,10 @@ void AnalyzeFlow(const insn_t& ida_instruction, Instruction* instruction,
   }
 }
 
-void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
-                    Writer* writer, detego::Instructions* instructions,
-                    FlowGraph* flow_graph, CallGraph* call_graph,
-                    FlowGraph::NoReturnHeuristic noreturn_heuristic) {
+absl::Status AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
+                            Writer* writer, detego::Instructions* instructions,
+                            FlowGraph* flow_graph, CallGraph* call_graph,
+                            FlowGraph::NoReturnHeuristic noreturn_heuristic) {
   Timer<> timer;
   AddressReferences address_references;
 
@@ -431,8 +432,8 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
   timer.restart();
 
   LOG(INFO) << "writing...";
-  auto ignore_error(writer->Write(*call_graph, *flow_graph, *instructions,
-                                  address_references, address_space));
+  NA_RETURN_IF_ERROR(writer->Write(*call_graph, *flow_graph, *instructions,
+                                   address_references, address_space));
 
   Operand::EmptyCache();
   Expression::EmptyCache();
@@ -441,6 +442,7 @@ void AnalyzeFlowIda(EntryPoints* entry_points, const ModuleMap& modules,
   LOG(INFO) << absl::StrCat(
       GetModuleName(), ": ", HumanReadableDuration(processing_time),
       " processing, ", HumanReadableDuration(writing_time), " writing");
+  return absl::OkStatus();
 }
 
 }  // namespace security::binexport

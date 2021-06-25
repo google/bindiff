@@ -33,6 +33,7 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/ida/names.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::binexport {
 namespace {
@@ -71,23 +72,23 @@ int GetSegmentSize(const insn_t& instruction, const segment_t* segment) {
 std::string GetExtendedRegisterName(const op_t& operand) {
   switch (operand.type) {
     case o_trreg:  // Test register
-      return "tr" + std::to_string(operand.reg);
+      return absl::StrCat("tr", operand.reg);
     case o_dbreg:  // Debug register
-      return "dr" + std::to_string(operand.reg);
+      return absl::StrCat("dr", operand.reg);
     case o_crreg:  // Control register
-      return "cr" + std::to_string(operand.reg);
+      return absl::StrCat("cr", operand.reg);
     case o_mmxreg:  // MMX register
-      return "mm(" + std::to_string(operand.reg) + ")";
+      return absl::StrCat("mm(", operand.reg, ")");
     case o_xmmreg:  // SSE register
-      return "xmm" + std::to_string(operand.reg);
+      return absl::StrCat("xmm", operand.reg);
     case o_ymmreg:  // AVX register
-      return "ymm" + std::to_string(operand.reg);
+      return absl::StrCat("ymm", operand.reg);
     case o_zmmreg:  // AVX-512 register
-      return "zmm" + std::to_string(operand.reg);
+      return absl::StrCat("zmm", operand.reg);
     case o_fpreg:  // Floating point register
-      return "st(" + std::to_string(operand.reg) + ")";
+      return absl::StrCat("st(", operand.reg, ")");
     default:
-      throw std::runtime_error("invalid register in getExtendedRegisterName");
+      return absl::StrCat("unk(", operand.reg, ")");
   }
 }
 
@@ -171,25 +172,26 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
   std::string variable_name = GetVariableName(instruction, operand_num);
 
   Expression* expression = nullptr;
-  expressions->push_back(
-      expression = Expression::Create(
-          expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
-          0, Expression::TYPE_SIZEPREFIX, 0));
-  expressions->push_back(
-      expression = Expression::Create(expression, GetSegmentSelector(operand),
-                                      0, Expression::TYPE_OPERATOR, 0));
-  expressions->push_back(
-      expression = Expression::Create(expression, "[", 0,
-                                      Expression::TYPE_DEREFERENCE, 0));
-  if (!index.empty()) {
-    expressions->push_back(
-        expression = Expression::Create(expression, "+", 0,
-                                        Expression::TYPE_OPERATOR, 0));
+  if (size_t operand_size = GetOperandByteSize(instruction, operand);
+      operand_size != 0) {
+    expression = Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                    Expression::TYPE_SIZEPREFIX, 0);
+    expressions->push_back(expression);
   }
-  Expression* temp = nullptr;
-  expressions->push_back(temp =
-                             Expression::Create(expression, base, 0,
-                                                Expression::TYPE_REGISTER, 0));
+  expression = Expression::Create(expression, GetSegmentSelector(operand), 0,
+                                  Expression::TYPE_OPERATOR, 0);
+  expressions->push_back(expression);
+  expression =
+      Expression::Create(expression, "[", 0, Expression::TYPE_DEREFERENCE, 0);
+  expressions->push_back(expression);
+  if (!index.empty()) {
+    expression =
+        Expression::Create(expression, "+", 0, Expression::TYPE_OPERATOR, 0);
+    expressions->push_back(expression);
+  }
+  Expression* temp =
+      Expression::Create(expression, base, 0, Expression::TYPE_REGISTER, 0);
+  expressions->push_back(temp);
   if (!variable_name.empty() && IsStackVariable(instruction.ea, operand_num)) {
     flow_graph->AddExpressionSubstitution(
         instruction.ea, operand_num, temp->GetId(), base + "+" + variable_name);
@@ -198,9 +200,9 @@ void HandlePhraseExpression(Expressions* expressions, FlowGraph* flow_graph,
   if (!index.empty()) {
     if (scale) {
       Expression* parent = nullptr;
-      expressions->push_back(
-          parent = Expression::Create(expression, "*", 0,
-                                      Expression::TYPE_OPERATOR, 1));
+      parent =
+          Expression::Create(expression, "*", 0, Expression::TYPE_OPERATOR, 1);
+      expressions->push_back(parent);
       expressions->push_back(
           Expression::Create(parent, index, 0, Expression::TYPE_REGISTER, 0));
       expressions->push_back(Expression::Create(
@@ -230,22 +232,24 @@ void HandleDisplacementExpression(const insn_t& instruction,
 
   Expression* expression = nullptr;
   Expression* register_expression = nullptr;
-  expressions->push_back(
-      expression = Expression::Create(
-          expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
-          0, Expression::TYPE_SIZEPREFIX, pos));
-  expressions->push_back(
-      expression = Expression::Create(expression, GetSegmentSelector(operand),
-                                      0, Expression::TYPE_OPERATOR, pos));
-  expressions->push_back(
-      expression = Expression::Create(expression, "[", 0,
-                                      Expression::TYPE_DEREFERENCE, pos));
-  expressions->push_back(
-      expression = Expression::Create(expression, "+", 0,
-                                      Expression::TYPE_OPERATOR, pos));
-  expressions->push_back(
-      register_expression = Expression::Create(expression, base, 0,
-                                               Expression::TYPE_REGISTER, pos));
+  if (size_t operand_size = GetOperandByteSize(instruction, operand);
+      operand_size != 0) {
+    expression = Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                    Expression::TYPE_SIZEPREFIX, pos);
+    expressions->push_back(expression);
+  }
+  expression = Expression::Create(expression, GetSegmentSelector(operand), 0,
+                                  Expression::TYPE_OPERATOR, pos);
+  expressions->push_back(expression);
+  expression =
+      Expression::Create(expression, "[", 0, Expression::TYPE_DEREFERENCE, pos);
+  expressions->push_back(expression);
+  expression =
+      Expression::Create(expression, "+", 0, Expression::TYPE_OPERATOR, pos);
+  expressions->push_back(expression);
+  register_expression =
+      Expression::Create(expression, base, 0, Expression::TYPE_REGISTER, pos);
+  expressions->push_back(register_expression);
 
   Expression::Type expression_type = Expression::TYPE_IMMEDIATE_INT;
   std::string variable_name = GetVariableName(instruction, operand_num);
@@ -286,10 +290,12 @@ void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
   // 1) lookup type ID by name
   // 2) write entry to flow graph AND member_types(!)
   Expression* expression = nullptr;
-  expressions->push_back(
-      expression = Expression::Create(
-          expression, GetSizePrefix(GetOperandByteSize(instruction, operand)),
-          0, Expression::TYPE_SIZEPREFIX, 0));
+  if (size_t operand_size = GetOperandByteSize(instruction, operand);
+      operand_size != 0) {
+    expression = Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                    Expression::TYPE_SIZEPREFIX, 0);
+    expressions->push_back(expression);
+  }
   if (name.empty()) {
     const std::string global =
         GetGlobalStructureName(instruction.ea, immediate, operand_num);
@@ -298,35 +304,34 @@ void HandleMemoryExpression(const insn_t& instruction, const op_t& operand,
                                             expression->GetId(), global);
     }
   }
-
-  expressions->push_back(
-      expression = Expression::Create(expression, GetSegmentSelector(operand),
-                                      0, Expression::TYPE_OPERATOR, 0));
-  expressions->push_back(
-      expression = Expression::Create(expression, "[", 0,
-                                      Expression::TYPE_DEREFERENCE, 0));
+  expression = Expression::Create(expression, GetSegmentSelector(operand), 0,
+                                  Expression::TYPE_OPERATOR, 0);
+  expressions->push_back(expression);
+  expression =
+      Expression::Create(expression, "[", 0, Expression::TYPE_DEREFERENCE, 0);
+  expressions->push_back(expression);
   Expression* parent = expression;
 
   if (scale && !index.empty()) {
     if (immediate || !name.empty()) {
-      expressions->push_back(
-          parent = Expression::Create(expression, "+", 0,
-                                      Expression::TYPE_OPERATOR, 0));
+      parent =
+          Expression::Create(expression, "+", 0, Expression::TYPE_OPERATOR, 0);
+      expressions->push_back(parent);
       expressions->push_back(Expression::Create(
           parent, name.name, immediate,
           name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
     }
-    expressions->push_back(parent = Expression::Create(
-                               parent, "*", 0, Expression::TYPE_OPERATOR, 1));
+    parent = Expression::Create(parent, "*", 0, Expression::TYPE_OPERATOR, 1);
+    expressions->push_back(parent);
     expressions->push_back(
         Expression::Create(parent, index, 0, Expression::TYPE_REGISTER, 0));
     expressions->push_back(Expression::Create(
         parent, "", 1 << scale, Expression::TYPE_IMMEDIATE_INT, 1));
   } else {
-    expressions->push_back(
-        expression = Expression::Create(
-            parent, name.name, immediate,
-            name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
+    expression = Expression::Create(
+        parent, name.name, immediate,
+        name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
+    expressions->push_back(expression);
   }
 }
 
@@ -341,7 +346,7 @@ void HandleImmediate(const insn_t& instruction, const op_t& operand,
   // By default IDA will perform a sign/zero extension, returning a 32 bit
   // operand size even when the encoding only contains an 8 bit value. This is
   // consistent with what the CPU actually computes, but not with the intel
-  // opcode specification. BeaEngine follows the intel convention, leading to
+  // opcode specification. BeaEngine follows the Intel convention, leading to
   // lots of spurious diffs between the two disassemblers. This here is an
   // attempt at undoing the sign extension.
   size_t operand_size = GetOperandByteSize(instruction, operand);
@@ -354,13 +359,15 @@ void HandleImmediate(const insn_t& instruction, const op_t& operand,
     immediate &= mask;
   }
   Expression* expression = nullptr;
-  expressions->push_back(
-      expression = Expression::Create(expression, GetSizePrefix(operand_size),
-                                      0, Expression::TYPE_SIZEPREFIX, 0));
-  expressions->push_back(
-      expression = Expression::Create(
-          expression, name.name, immediate,
-          name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0));
+  if (operand_size != 0) {
+    expression = Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                    Expression::TYPE_SIZEPREFIX, 0);
+    expressions->push_back(expression);
+  }
+  expression = Expression::Create(
+      expression, name.name, immediate,
+      name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
+  expressions->push_back(expression);
 }
 
 Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
@@ -381,6 +388,7 @@ Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
     }
 
     Expression* expression = nullptr;
+    size_t operand_size = GetOperandByteSize(instruction, operand);
     switch (operand.type) {
       case o_trreg:   // Test register
       case o_dbreg:   // Debug register
@@ -390,27 +398,29 @@ Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
       case o_ymmreg:  // AVX register
       case o_zmmreg:  // AVX-512 register
       case o_fpreg:   // Floating point register
-      {
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetExtendedRegisterName(operand),
-                                  0, Expression::TYPE_REGISTER, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression =
+            Expression::Create(expression, GetExtendedRegisterName(operand), 0,
+                               Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
         break;
-      }
+
       case o_reg:  // register
-        expressions.push_back(expression = Expression::Create(
-                                  expression, GetSizePrefix(GetOperandByteSize(
-                                                  instruction, operand)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(
-                expression,
-                GetRegisterName(operand.reg,
-                                GetOperandByteSize(instruction, operand)),
-                0, Expression::TYPE_REGISTER, 0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression, GetSizePrefix(operand_size), 0,
+                                 Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, GetRegisterName(operand.reg, operand_size), 0,
+            Expression::TYPE_REGISTER, 0);
+        expressions.push_back(expression);
         break;
       case o_mem:  // direct memory reference
         HandleMemoryExpression(instruction, operand, operand_position - skipped,
@@ -443,24 +453,25 @@ Operands ParseOperandsIdaMetaPc(const insn_t& instruction,
                                              operand_position - skipped);
           name.type = Expression::TYPE_GLOBALVARIABLE;
         }
-
-        expressions.push_back(expression = Expression::Create(
-                                  expression,
-                                  GetSizePrefix(GetSegmentSize(
-                                      instruction, /* segment = */ nullptr)),
-                                  0, Expression::TYPE_SIZEPREFIX, 0));
-        expressions.push_back(
-            expression = Expression::Create(
-                expression, name.name, immediate,
-                name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type,
-                0));
+        if (operand_size != 0) {
+          expression =
+              Expression::Create(expression,
+                                 GetSizePrefix(GetSegmentSize(
+                                     instruction, /* segment = */ nullptr)),
+                                 0, Expression::TYPE_SIZEPREFIX, 0);
+          expressions.push_back(expression);
+        }
+        expression = Expression::Create(
+            expression, name.name, immediate,
+            name.empty() ? Expression::TYPE_IMMEDIATE_INT : name.type, 0);
+        expressions.push_back(expression);
         break;
       }
 
       default:
-        LOG(INFO) << absl::StrCat("warning: unknown operand type", operand.type,
-                                  " at ",
-                                  absl::Hex(instruction.ea, absl::kZeroPad8));
+        LOG(INFO) << absl::StrCat("Warning: unknown operand type ",
+                                  operand.type, " at ",
+                                  FormatAddress(instruction.ea));
         break;
     }
 

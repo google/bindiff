@@ -44,7 +44,7 @@ struct Name {
   Expression::Type type = Expression::TYPE_INVALID;
 };
 
-std::string GetRegisterName(size_t index, size_t segment_size);
+std::string GetRegisterName(size_t index, size_t bit_width);
 
 // Returns the variable name of either a stack variable or a structure variable
 // at the given position.
@@ -80,7 +80,10 @@ absl::optional<std::string> GetArchitectureName();
 
 int GetArchitectureBitness();
 
-std::string GetSizePrefix(const size_t size_in_bytes);
+std::string GetSizePrefix(size_t size_in_bytes);
+
+// Returns the size of an instruction's operand in bytes. Returns 0 for invalid
+// or undefined operands.
 size_t GetOperandByteSize(const insn_t& instruction, const op_t& operand);
 
 // Returns the size of the segment to which the address belongs in bytes.
