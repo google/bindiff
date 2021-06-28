@@ -81,7 +81,7 @@ void EntryPointManager::Add(Address address, EntryPoint::Source source) {
   if (parent_) {
     ++parent_->count_;
   }
-#ifdef GOOGLE
+#ifdef VLOG
   VLOG(1) << "Entry point added at: " << std::hex << address
           << " source: " << entry_points_->back().SourceToString()
           << " from: " << name_;

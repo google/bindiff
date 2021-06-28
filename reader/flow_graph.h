@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 
-#include "base/macros.h"
+#include "third_party/absl/base/macros.h"
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/architectures.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"

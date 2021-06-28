@@ -29,9 +29,12 @@
 #include "third_party/zynamics/binexport/binexport2_writer.h"
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
-#include <string>
+#include <codecvt>
 #include <fstream>
+#include <locale>
+#include <string>
 
 #include "base/logging.h"
 #include "third_party/absl/container/flat_hash_map.h"
@@ -591,12 +594,41 @@ void WriteStrings(
     }
     const Address block_address = reference.target_ - block->first;
     const int block_size_left = block->second.size() - block_address;
-    if (reference.kind_ != TYPE_DATA_STRING) {
-      continue;
+
+    if (reference.kind_ == TYPE_DATA_STRING) {
+      content = std::string(
+          reinterpret_cast<const char*>(&address_space[reference.target_]),
+          std::min(reference.size_, block_size_left));
+
+      // Replace control characters and everything above 0x7f with a plain
+      // white-space. This is for compatibility with the Google version of
+      // BinExport.
+      constexpr std::array<uint8_t, 256> kReplaceInvalid = {
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      };
+      for (auto& c : content) {
+        if (kReplaceInvalid[c]) {
+          c = ' ';
+        }
+      }
+    } else {
+      std::u16string wide_source(
+          reinterpret_cast<const char16_t*>(&address_space[reference.target_]),
+          std::min(reference.size_, block_size_left) / sizeof(char16_t));
+      std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> convert;
+      content = convert.to_bytes(wide_source);
     }
-    content = std::string(
-        reinterpret_cast<const char*>(&address_space[reference.target_]),
-        std::min(reference.size_, block_size_left));
 
     auto it =
         string_to_string_index.try_emplace(content, proto->string_table_size());
