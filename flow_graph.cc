@@ -19,19 +19,15 @@
 #include <cstdint>
 #include <sstream>
 
-#include "base/logging.h"
-#include "third_party/absl/strings/str_cat.h"
-#ifdef GOOGLE
-#include "third_party/boost/allowed/graph/breadth_first_search.hpp"
-#include "third_party/boost/allowed/graph/dominator_tree.hpp"
-#include "third_party/boost/allowed/graph/filtered_graph.hpp"
-#include "third_party/boost/allowed/graph/iteration_macros.hpp"
-#else
+// clang-format off
 #include <boost/graph/breadth_first_search.hpp>  // NOLINT
 #include <boost/graph/dominator_tree.hpp>        // NOLINT
 #include <boost/graph/filtered_graph.hpp>        // NOLINT
 #include <boost/graph/iteration_macros.hpp>      // NOLINT
-#endif  // GOOGLE
+// clang-format on
+
+#include "base/logging.h"
+#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comments.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"

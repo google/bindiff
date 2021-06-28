@@ -28,10 +28,6 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 
-#ifdef GOOGLE
-#define GOOGLE_PROTOBUF_VERIFY_VERSION
-#endif
-
 namespace security::bindiff {
 
 // Return the immediate children of the call graph node denoted by
@@ -134,7 +130,6 @@ void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
 void Read(const std::string& filename, CallGraph* call_graph,
           FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
           Instruction::Cache* instruction_cache) {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
   call_graph->Reset();
   DeleteFlowGraphs(flow_graphs);
   flow_graph_infos->clear();

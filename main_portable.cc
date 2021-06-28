@@ -115,7 +115,7 @@ void PrintErrorMessage(absl::string_view message) {
   fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
 }
 
-#ifndef GOOGLE
+#ifndef BINDIFF_GOOGLE
 void UnprefixedLogHandler(google::protobuf::LogLevel level,
                           const char* filename, int line,
                           const std::string& message) {
@@ -535,7 +535,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     absl::SetFlag(&FLAGS_output_dir, current_path);
   }
 
-#ifndef GOOGLE
+#ifndef BINDIFF_GOOGLE
   SetLogHandler(&UnprefixedLogHandler);
 #endif
 

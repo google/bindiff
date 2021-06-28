@@ -17,7 +17,7 @@
 #include <cmath>
 #include <cstdint>
 
-#ifdef GOOGLE
+#ifdef BINDIFF_GOOGLE
 #include "testing/base/public/benchmark.h"
 #endif
 #include "gmock/gmock.h"
@@ -71,7 +71,7 @@ TEST(PrimeSignatureTest, GetPrimeCheckCollision) {
   EXPECT_THAT(GetPrime("ITTEE NETEE NE"), Ne(GetPrime("ITETT LSETT LS")));
 }
 
-#ifdef GOOGLE
+#ifdef BINDIFF_GOOGLE
 void BM_IPow32(::benchmark::State& state) {
   const uint32_t exp = state.range(0);
   uint32_t base = 102345;

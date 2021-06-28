@@ -14,7 +14,7 @@
 
 #include "third_party/zynamics/bindiff/config.h"
 
-#ifdef GOOGLE
+#ifdef BINDIFF_GOOGLE
 #include "net/proto2/util/public/json_util.h"
 #else
 #include <google/protobuf/util/json_util.h>
@@ -37,7 +37,7 @@
 #include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
-#ifdef GOOGLE
+#ifdef BINDIFF_GOOGLE
 namespace google::protobuf {
 namespace util = ::proto2::util;
 }  // namespace google::protobuf
@@ -113,7 +113,7 @@ absl::StatusOr<Config> LoadFromJson(absl::string_view data) {
 
   JsonParseOptions options;
   options.ignore_unknown_fields = true;
-#ifdef GOOGLE
+#ifdef BINDIFF_GOOGLE
   NA_RETURN_IF_ERROR(JsonStringToMessage(data, &config, options));
 #else
   if (auto status = JsonStringToMessage(
