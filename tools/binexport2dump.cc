@@ -147,6 +147,7 @@ void DumpBinExport2(const BinExport2& proto) {
 
   // Read address comments.
   absl::flat_hash_map<int, int> comment_index_map;
+  // NOLINTNEXTLINE(build/deprecated)
   for (const auto& reference : proto.address_comment()) {
     comment_index_map[reference.instruction_index()] =
         reference.string_table_index();
