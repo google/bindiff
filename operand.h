@@ -22,7 +22,7 @@
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/container/node_hash_map.h"
 #include "third_party/zynamics/binexport/expression.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 #pragma pack(push, 1)
 class Operand {

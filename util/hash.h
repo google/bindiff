@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef HASH_H_
-#define HASH_H_
+#ifndef UTIL_HASH_H_
+#define UTIL_HASH_H_
 
 #include <string>
 
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 // Calculates a general-purpose, non-cryptographic hash over the contents of a
 // string.
+// TODO(cblichmann): accept an absl::string_view instead.
 uint32_t GetSdbmHash(const std::string& data);
 
-#endif  // HASH_H_
+#endif  // UTIL_HASH_H_

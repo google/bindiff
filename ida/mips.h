@@ -18,7 +18,7 @@
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/instruction.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 class insn_t;
 

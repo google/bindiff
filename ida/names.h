@@ -28,7 +28,7 @@
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/expression.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::binexport {
 

@@ -18,9 +18,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "third_party/zynamics/binexport/types.h"
-#include "third_party/zynamics/binexport/virtual_memory.h"
 #include "third_party/zynamics/binexport/entry_point.h"
+#include "third_party/zynamics/binexport/util/types.h"
+#include "third_party/zynamics/binexport/virtual_memory.h"
 
 enum AddressReferenceType {
   TYPE_TRUE = 0,

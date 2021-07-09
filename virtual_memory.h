@@ -21,7 +21,7 @@
 
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/container/flat_hash_map.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 class AddressSpace {
  public:

@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 // This namespace collects functions that work directly with BinExport2 protocol
 // buffers, similar to a class with just static methods.

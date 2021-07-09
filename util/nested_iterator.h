@@ -29,19 +29,21 @@
 //   ++it;
 // }
 
-#ifndef NESTED_ITERATOR_H_
-#define NESTED_ITERATOR_H_
+#ifndef UTIL_NESTED_ITERATOR_H_
+#define UTIL_NESTED_ITERATOR_H_
 
 #include <cassert>
 
-template<typename OuterIterator> class NestedIterator {
+template <typename OuterIterator>
+class NestedIterator {
  private:
-  template<typename Pointer>
+  template <typename Pointer>
   struct Traits {
     using iterator = typename OuterIterator::value_type::iterator;
   };
 
-  template<typename Pointer> struct Traits<const Pointer*> {
+  template <typename Pointer>
+  struct Traits<const Pointer*> {
     using iterator = typename OuterIterator::value_type::const_iterator;
   };
 
@@ -54,9 +56,8 @@ template<typename OuterIterator> class NestedIterator {
   using pointer = typename InnerIterator::pointer;
 
   NestedIterator(const OuterIterator& oi, const OuterIterator& oend,
-      const InnerIterator& ii)
-      : outer_iter_(oi), outer_end_(oend), inner_iter_(ii)
-      {}
+                 const InnerIterator& ii)
+      : outer_iter_(oi), outer_end_(oend), inner_iter_(ii) {}
   NestedIterator(const OuterIterator& oi, const OuterIterator& oend)
       : outer_iter_(oi), outer_end_(oend) {
     if (outer_iter_ != outer_end_) {
@@ -65,8 +66,7 @@ template<typename OuterIterator> class NestedIterator {
     }
   }
   explicit NestedIterator(const OuterIterator& oend)
-      : outer_iter_(oend), outer_end_(oend)
-      {}
+      : outer_iter_(oend), outer_end_(oend) {}
 
   reference operator*() const {
     assert(outer_iter_ != outer_end_);
@@ -117,7 +117,7 @@ template<typename OuterIterator> class NestedIterator {
  private:
   void NextOuter() {
     while (outer_iter_ != outer_end_ &&
-      outer_iter_->begin() == outer_iter_->end()) {
+           outer_iter_->begin() == outer_iter_->end()) {
       ++outer_iter_;
     }
     if (outer_iter_ != outer_end_) {
@@ -130,4 +130,4 @@ template<typename OuterIterator> class NestedIterator {
   InnerIterator inner_iter_;
 };
 
-#endif  // NESTED_ITERATOR_H_
+#endif  // UTIL_NESTED_ITERATOR_H_

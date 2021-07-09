@@ -98,8 +98,8 @@ add_library(binexport_shared STATIC
   ${binexport2_proto}
   binexport.cc
   binexport.h
-  hash.cc
-  hash.h
+  util/hash.cc
+  util/hash.h
   util/filesystem.cc
   util/filesystem.h
   util/format.cc
@@ -247,8 +247,8 @@ target_link_libraries(binexport_core PUBLIC
 if(BINEXPORT_ENABLE_IDAPRO)
   # Code shared with the BinDiff plugin
   add_ida_library(binexport_plugin_shared STATIC
-    hash.cc
-    hash.h
+    util/hash.cc
+    util/hash.h
     ida/digest.cc
     ida/digest.h
     ida/flow_analysis.cc

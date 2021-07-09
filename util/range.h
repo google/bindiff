@@ -21,8 +21,8 @@
 // Range<std::vector<int>> range(v.begin() + n, v.begin() + m);
 // for (int i : r) { /* Do something with i */ }
 
-#ifndef RANGE_H_
-#define RANGE_H_
+#ifndef UTIL_RANGE_H_
+#define UTIL_RANGE_H_
 
 #include <utility>
 
@@ -61,4 +61,4 @@ class Range {
   iterator end_;
 };
 
-#endif  // RANGE_H_
+#endif  // UTIL_RANGE_H_

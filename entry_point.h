@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "third_party/zynamics/binexport/instruction.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 
 class EntryPoint {

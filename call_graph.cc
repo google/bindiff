@@ -19,8 +19,8 @@
 #include <iterator>
 #include <ostream>
 
-#include "third_party/zynamics/binexport/hash.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
+#include "third_party/zynamics/binexport/util/hash.h"
 
 namespace {
 

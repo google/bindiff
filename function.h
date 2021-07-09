@@ -21,7 +21,7 @@
 #include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/basic_block.h"
 #include "third_party/zynamics/binexport/edge.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 class CallGraph;
 class Function;

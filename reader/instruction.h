@@ -25,7 +25,7 @@
 #include "third_party/absl/container/inlined_vector.h"
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/binexport/architectures.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::binexport {
 

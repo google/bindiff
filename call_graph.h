@@ -23,7 +23,7 @@
 #include "third_party/absl/container/node_hash_set.h"
 #include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/library_manager.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 class FlowGraph;
 class Function;

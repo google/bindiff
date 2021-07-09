@@ -17,8 +17,8 @@
 #include <sstream>
 
 #include "base/logging.h"
-#include "third_party/zynamics/binexport/hash.h"
 #include "third_party/zynamics/binexport/instruction.h"
+#include "third_party/zynamics/binexport/util/hash.h"
 
 Expression::StringCache Expression::string_cache_;
 Expression::ExpressionCache Expression::expression_cache_;

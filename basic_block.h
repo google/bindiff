@@ -24,9 +24,9 @@
 
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/zynamics/binexport/instruction.h"
-#include "third_party/zynamics/binexport/nested_iterator.h"
-#include "third_party/zynamics/binexport/range.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/nested_iterator.h"
+#include "third_party/zynamics/binexport/util/range.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 class CallGraph;
 class FlowGraph;

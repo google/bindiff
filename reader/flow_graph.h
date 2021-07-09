@@ -30,7 +30,7 @@
 #include "third_party/zynamics/binexport/architectures.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/reader/instruction.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::binexport {
 

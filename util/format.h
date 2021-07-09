@@ -18,7 +18,7 @@
 #include <string>
 
 #include "third_party/absl/time/time.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::binexport {
 

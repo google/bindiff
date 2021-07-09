@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "third_party/zynamics/binexport/hash.h"
+#ifndef UTIL_TYPES_H_
+#define UTIL_TYPES_H_
 
-// Adapted from the optimized version at http://www.cse.yorku.ca/~oz/hash.html
-uint32_t GetSdbmHash(const std::string& data) {
-  uint32_t hash = 0;
-  for (size_t i = 0; i < data.size(); ++i) {
-    hash = data[i] + (hash << 6) + (hash << 16) - hash;
-  }
-  return hash;
-}
+#include <cstdint>
+
+using Byte = uint8_t;
+using Address = uint64_t;
+using Offset = int64_t;
+
+#endif  // UTIL_TYPES_H_
