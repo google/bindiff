@@ -35,8 +35,8 @@
 #include "third_party/zynamics/bindiff/prime_signature.h"
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/hash.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/hash.h"
 
 namespace security::bindiff {
 

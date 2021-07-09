@@ -32,7 +32,7 @@
 #include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/writer.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

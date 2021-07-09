@@ -14,7 +14,7 @@
 
 #include "third_party/zynamics/bindiff/match/function_loops.h"
 
-#include "third_party/zynamics/binexport/hash.h"
+#include "third_party/zynamics/binexport/util/hash.h"
 
 namespace security::bindiff {
 

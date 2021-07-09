@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <string>
 
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

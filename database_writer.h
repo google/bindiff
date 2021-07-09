@@ -20,7 +20,7 @@
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
 #include "third_party/zynamics/bindiff/writer.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

@@ -72,7 +72,6 @@
 #include "third_party/zynamics/binexport/ida/log_sink.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 #include "third_party/zynamics/binexport/ida/util.h"
-#include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/idb_export.h"
@@ -80,6 +79,7 @@
 #include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

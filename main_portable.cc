@@ -62,12 +62,12 @@
 #include "third_party/zynamics/bindiff/start_ui.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
-#include "third_party/zynamics/binexport/types.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 ABSL_FLAG(bool, logo, true, "display version/copyright information");
 ABSL_FLAG(bool, ui, false, "launch the BinDiff UI");

@@ -22,7 +22,7 @@
 #include <memory>
 
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/zynamics/binexport/types.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 struct sqlite3;
 struct sqlite3_stmt;
