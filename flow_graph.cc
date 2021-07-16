@@ -29,7 +29,7 @@
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
-#include "third_party/zynamics/bindiff/comments.h"
+#include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"

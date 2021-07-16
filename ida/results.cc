@@ -33,7 +33,7 @@
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
-#include "third_party/zynamics/bindiff/comments.h"
+#include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/names.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"

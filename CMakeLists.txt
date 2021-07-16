@@ -134,7 +134,7 @@ add_library(bindiff_shared STATIC
   call_graph.h
   change_classifier.cc
   change_classifier.h
-  comments.h
+  comment.h
   database_writer.cc
   database_writer.h
   differ.cc
