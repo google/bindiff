@@ -20,9 +20,11 @@
 
 #include "third_party/zynamics/binexport/util/types.h"
 
-#pragma pack(push, 1)
-class Comment {
+class BasicComment {
  public:
+  // Refer to BinExport2::Comment::Type for documentation on the values below.
+  // Note that this enum has different values from the proto based one. The
+  // reason for this is mostly historical (BinExport v1).
   enum Type {
     REGULAR = 0,
     ENUM = 1,
@@ -32,21 +34,23 @@ class Comment {
     LOCATION = 5,
     GLOBAL_REFERENCE = 6,
     LOCAL_REFERENCE = 7,
-    STRUCTURE = 8,
-    INVALID
+    STRUCTURE = 8,  // Not implemented
+    INVALID,
   };
+};
 
+struct Comment : public BasicComment {
+ public:
   explicit Comment(Address address, size_t operand_num,
                    const std::string* comment = nullptr, Type type = INVALID,
                    bool repeatable = false);
 
-  Address address_;
-  size_t operand_num_;
-  const std::string* comment_;
-  bool repeatable_;
-  Type type_;
+  Address address;
+  size_t operand_num;
+  const std::string* comment;
+  Type type;
+  bool repeatable;
 };
-#pragma pack(pop)
 
 using Comments = std::vector<Comment>;
 bool SortComments(const Comment& lhs, const Comment& rhs);

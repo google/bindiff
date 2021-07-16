@@ -64,7 +64,7 @@ void BasicBlock::Render(std::ostream* stream, const CallGraph& call_graph,
         call_graph.GetComments(instruction.GetAddress());
     if (comments.first != comments.second) {
       for (; comments.first != comments.second; ++comments.first) {
-        *stream << "  // " << *comments.first->comment_ << "\n";
+        *stream << "  // " << *comments.first->comment << "\n";
       }
     } else {
       *stream << std::endl;

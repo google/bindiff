@@ -713,13 +713,13 @@ void WriteComments(
   absl::flat_hash_map<const std::string*, int> comment_to_index;
   for (const Comment& comment : call_graph.GetComments()) {
     const auto [new_comment_it, inserted] =
-        comment_to_index.emplace(comment.comment_, proto->string_table_size());
+        comment_to_index.emplace(comment.comment, proto->string_table_size());
     if (inserted) {
-      proto->add_string_table(*comment.comment_);
+      proto->add_string_table(*comment.comment);
     }
     const auto instruction_it =
         lower_bound(instruction_indices.begin(), instruction_indices.end(),
-                    std::make_pair(comment.address_, 0));
+                    std::make_pair(comment.address, 0));
     QCHECK(instruction_it != instruction_indices.end());
 
     const Address instruction_index = instruction_it->second;
@@ -730,8 +730,8 @@ void WriteComments(
     auto* proto_comment = proto->add_comment();
     proto_comment->set_instruction_index(instruction_index);
     proto_comment->set_string_table_index(string_table_index);
-    proto_comment->set_type(CommentTypeToProtoType(comment.type_));
-    proto_comment->set_repeatable(comment.repeatable_);
+    proto_comment->set_type(CommentTypeToProtoType(comment.type));
+    proto_comment->set_repeatable(comment.repeatable);
 
     // The IDA specific code encodes the comment type in the operand number.
     // That's because BinDiff internally adds all comments into a global cache
@@ -739,11 +739,11 @@ void WriteComments(
     // need a unique operand_id.
     // Do not leak this implementation detail into the written protobuf.
     constexpr int kMaxOp = 8;  // Same as IDA's UA_MAXOP
-    int operand_num = comment.operand_num_;
+    int operand_num = comment.operand_num;
     if (operand_num >= kMaxOp) {
-      if (comment.type_ == Comment::GLOBAL_REFERENCE) {
+      if (comment.type == Comment::GLOBAL_REFERENCE) {
         operand_num -= 1024;  // See ida/names.cc GetGlobalReferences()
-      } else if (comment.type_ == Comment::LOCAL_REFERENCE) {
+      } else if (comment.type == Comment::LOCAL_REFERENCE) {
         operand_num -= 2048;  // See ida/names.cc GetLocalReferences()
       }
     }

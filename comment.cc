@@ -19,22 +19,22 @@
 #include "third_party/zynamics/binexport/util/format.h"
 
 bool SortComments(const Comment& lhs, const Comment& rhs) {
-  if (lhs.address_ == rhs.address_) {
-    if (lhs.type_ == rhs.type_) {
-      return lhs.operand_num_ < rhs.operand_num_;
+  if (lhs.address == rhs.address) {
+    if (lhs.type == rhs.type) {
+      return lhs.operand_num < rhs.operand_num;
     }
-    return lhs.type_ < rhs.type_;
+    return lhs.type < rhs.type;
   }
-  return lhs.address_ < rhs.address_;
+  return lhs.address < rhs.address;
 }
 
 Comment::Comment(Address address, size_t operand_num,
                  const std::string* comment, Type type, bool repeatable)
-    : address_(address),
-      operand_num_(operand_num),
-      comment_(comment),
-      repeatable_(repeatable),
-      type_(type) {
+    : address(address),
+      operand_num(operand_num),
+      comment(comment),
+      type(type),
+      repeatable(repeatable) {
   if (comment && comment->size() >= 4096) {
     LOG(INFO) << absl::StrCat("Excessively long comment at ",
                               security::binexport::FormatAddress(address), ", ",

@@ -27,8 +27,8 @@ namespace {
 bool EdgeFunctionIsNull(const EdgeInfo& edge) { return edge.function_ == 0; }
 
 bool AreDuplicateRegularComments(const Comment& lhs, const Comment& rhs) {
-  return lhs.address_ == rhs.address_ && lhs.type_ == Comment::REGULAR &&
-         rhs.type_ == Comment::REGULAR;
+  return lhs.address == rhs.address && lhs.type == Comment::REGULAR &&
+         rhs.type == Comment::REGULAR;
 }
 
 }  // namespace
@@ -242,14 +242,14 @@ void CallGraph::FoldComments() {
     if (!AreDuplicateRegularComments(*result, *first)) {
       *(++result) = *first;
     } else {
-      std::string accumulated_comment(*result->comment_);
+      std::string accumulated_comment(*result->comment);
       while (first != last && AreDuplicateRegularComments(*result, *first)) {
         accumulated_comment.append("\n");
-        accumulated_comment.append(*first->comment_);
+        accumulated_comment.append(*first->comment);
         ++first;
       }
       --first;
-      result->comment_ = CacheString(accumulated_comment);
+      result->comment = CacheString(accumulated_comment);
     }
   }
   comments_.erase(++result, comments_.end());
