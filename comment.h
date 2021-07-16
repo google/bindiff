@@ -19,28 +19,13 @@
 #include <utility>
 
 #include "third_party/absl/container/btree_map.h"
+#include "third_party/zynamics/binexport/comment.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
-struct Comment {
+struct Comment : public BasicComment {
  public:
-  // Refer to BinExport2::Comment::Type for documentation on the values below.
-  // Note that this enum has different values from the proto based one. The
-  // reason for this is mostly historical (BinExport v1).
-  enum Type {
-    REGULAR = 0,
-    ENUM = 1,
-    ANTERIOR = 2,
-    POSTERIOR = 3,
-    FUNCTION = 4,
-    LOCATION = 5,
-    GLOBAL_REFERENCE = 6,
-    LOCAL_REFERENCE = 7,
-    STRUCTURE = 8,  // Not implemented
-    INVALID,        // For compatibility with BinExport
-  };
-
   std::string comment;
 
   // Whether the comment is propagated to all locations that reference the
