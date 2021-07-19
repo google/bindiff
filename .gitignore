@@ -1,0 +1,15 @@
+# Editor backup files/IDE files
+*~
+.*.swp
+.*.swo
+
+# IDEs
+.cache/
+.clangd/
+.idea/
+.vscode/
+compile_commands.json
+
+# Build artifacts
+build/
+java/ui/build/
