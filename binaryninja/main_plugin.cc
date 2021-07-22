@@ -109,17 +109,14 @@ std::string GetBytes(BinaryNinja::BinaryView* view,
                                instruction.GetSize());
 }
 
-std::vector<Byte> GetSectionBytes(BinaryNinja::BinaryView* view, uint64_t start,
+std::vector<Byte> GetSegmentBytes(BinaryNinja::BinaryView* view, uint64_t start,
                                   size_t length) {
   return GetBytes<std::vector<Byte>>(view, start, length);
 }
 
 int GetPermissions(BinaryNinja::BinaryView* view,
-                   const BinaryNinja::Section& section) {
-  auto segment = view->GetSegmentAt(section.GetStart());
-  CHECK(segment);
-
-  int segment_flags = segment->GetFlags();
+                   const BinaryNinja::Segment& segment) {
+  int segment_flags = segment.GetFlags();
   int permissions = 0;
   if (segment_flags & SegmentDenyExecute) {
     permissions |= AddressSpace::kExecute;
@@ -296,16 +293,16 @@ void AnalyzeFlowBinaryNinja(BinaryNinja::BinaryView* view,
 
   AddressSpace address_space;
   AddressSpace flags;
-  for (auto section_ref : view->GetSections()) {
-    const uint64_t section_start = section_ref->GetStart();
-    const size_t section_length = section_ref->GetLength();
-    const int section_permissions = GetPermissions(view, *section_ref);
+  for (const auto& segment_ref : view->GetSegments()) {
+    const uint64_t segment_start = segment_ref->GetStart();
+    const size_t segment_length = segment_ref->GetLength();
+    const int segment_permissions = GetPermissions(view, *segment_ref);
     address_space.AddMemoryBlock(
-        section_start, GetSectionBytes(view, section_start, section_length),
-        section_permissions);
-    flags.AddMemoryBlock(section_start,
-                         AddressSpace::MemoryBlock(section_length),
-                         section_permissions);
+        segment_start, GetSegmentBytes(view, segment_start, segment_length),
+        segment_permissions);
+    flags.AddMemoryBlock(segment_start,
+                         AddressSpace::MemoryBlock(segment_length),
+                         segment_permissions);
   }
 
   Instruction::SetBitness(GetArchitectureBitness(view));
