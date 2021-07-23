@@ -14,6 +14,7 @@ it is just code that happens to be owned by Google.
 *   [Installation](#installation)
     *   [IDA Pro](#ida-pro)
     *   [Binary Ninja](#binary-ninja)
+    *   [Ghidra](#ghidra)
 *   [Usage](#usage)
 *   [How to build](#how-to-build)
     *   [Preparing the build environment](#preparing-the-build-environment)
@@ -38,7 +39,7 @@ plugin binaries for Linux, macOS and Windows.
 
 ### IDA Pro
 
-Download the binaries from the release page and copy them into the IDA Pro
+Download the binaries from the [releases](https://github.com/google/binexport/releases) page and copy them into the IDA Pro
 plugins directory. These are the default paths:
 
 | OS      | Plugin path                                 |
@@ -67,7 +68,7 @@ directories instead:
 
 ### Binary Ninja
 
-Download the binaries from the release page and copy them into the Binary Ninja
+Download the binaries from the [releases](https://github.com/google/binexport/releases) page and copy them into the Binary Ninja
 plugins directory. These are the default paths for the current user:
 
 | OS      | Plugin path                                           |
@@ -88,6 +89,22 @@ plugins directory. These are the default paths for the current user:
 BinExport 12 (@internal, Mar 12 2021), (c)2004-2011 zynamics GmbH, (c)2011-2021 Google LLC.
 ```
 
+### Ghidra
+
+1.  Download the binaries from the [releases](https://github.com/google/binexport/releases) page.
+2.  Start Ghidra, select `File`|`Install Extensions...`
+3.  In the "Install Extensions" dialog, click the plus icon in the upper right to "Add extension".
+4.  In the "Select extension" dialog, enter the path to the `ghidra_BinExport.zip` you downloaded
+    in step 1 and click `OK`.
+5.  Click `OK` twice to close both the "Install Extensions" dialog and the notice to restart Ghidra.
+6.  Exit Ghidra.
+
+#### Verifying the installation version
+
+1.  Start Ghidra
+2.  Select `File`|`Install Extensions...`
+3.  If installed correctly, the "Install Extensions" dialog should list the "BinExport" extension
+    next to a selected checkbox.
 
 ## Usage
 
@@ -141,7 +158,6 @@ idaapi.run_statements(
     'BinExportDiff("{}")'.format("exported.BinExport"), idc_lang)
 ```
 
-
 #### Plugin Options
 
 BinExport defines the following plugin options, that can be specified on IDA's
@@ -157,7 +173,6 @@ command line:
 
 Note: These options must come before any files.
 
-
 ### Binary Ninja
 
 There is only minimal integration into the Binary Ninja UI at this time.
@@ -168,6 +183,17 @@ There is only minimal integration into the Binary Ninja UI at this time.
 The `.BinExport` file is placed next to the analysis database, in the same
 directory.
 
+### Ghidra
+
+There is only minimal integration into the Ghidra UI at this time.
+
+1.  Open or create a project. For new projects, import a file first using `File`|`Import File...`
+2.  Right-click a file in the current project list and select `Export...` from the context menu.
+3.  In the "Export" dialog, under "Format", choose "Binary Export (v2) for BinDiff".
+4.  Under "Output File", enter the desired output file path. If the file extension is missing,
+    `.BinExport` will be appended automatically.
+5.  Optional: click "Options..." to set additional export options.
+6.  Click "OK", then click "OK" again to dismiss the "Export Results Summary" dialog.
 
 ## How to build
 
