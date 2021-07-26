@@ -243,71 +243,8 @@ target_link_libraries(binexport_core PUBLIC
 )
 
 # IDA Pro plugins
-# TODO(cblichmann): Move most of this to a new ida/CMakeLists.txt
 if(BINEXPORT_ENABLE_IDAPRO)
-  # Code shared with the BinDiff plugin
-  add_ida_library(binexport_plugin_shared STATIC
-    util/hash.cc
-    util/hash.h
-    ida/digest.cc
-    ida/digest.h
-    ida/flow_analysis.cc
-    ida/flow_analysis.h
-    ida/log_sink.cc
-    ida/log_sink.h
-    ida/names.cc
-    ida/names.h
-    ida/ui.cc
-    ida/ui.h
-    ida/util.cc
-    ida/util.h
-  )
-  ida_target_link_libraries(binexport_plugin_shared PUBLIC
-    absl::time
-    binexport_base
-  )
-
-  add_ida_plugin(${binexport_ida_plugin_name}
-    ida/arm.cc
-    ida/arm.h
-    ida/dalvik.cc
-    ida/dalvik.h
-    ida/generic.cc
-    ida/generic.h
-    ida/main_plugin.cc
-    ida/main_plugin.h
-    ida/metapc.cc
-    ida/metapc.h
-    ida/mips.cc
-    ida/mips.h
-    ida/plugin.h
-    ida/ppc.cc
-    ida/ppc.h
-  )
-  if(WIN32)
-    list(APPEND binexport_libraries crypt32.lib
-                                    secur32.lib
-                                    shlwapi.lib
-                                    ws2_32.lib
-                                    wldap32.lib)
-  endif()
-  ida_target_link_libraries(${binexport_ida_plugin_name}
-    absl::bad_optional_access
-    absl::flat_hash_map
-    absl::flat_hash_set
-    absl::hash
-    absl::node_hash_map
-    absl::node_hash_set
-    absl::optional
-    absl::strings
-    absl::time
-    binexport_core
-    binexport_plugin_shared
-    ${binexport_libraries}
-  )
-  set_ida_target_properties(${binexport_ida_plugin_name}
-    PROPERTIES POSITION_INDEPENDENT_CODE ON
-  )
+  add_subdirectory(ida)
   ida_install(TARGETS ${binexport_ida_plugin_name}
               ARCHIVE DESTINATION binexport-prefix
               RUNTIME DESTINATION binexport-prefix
