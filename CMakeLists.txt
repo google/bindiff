@@ -208,6 +208,8 @@ add_library(bindiff_shared STATIC
   match/function_prime.h
   match/function_string_refs.cc
   match/function_string_refs.h
+  match_colors.cc
+  match_colors.h
   prime_signature.cc
   prime_signature.h
   reader.cc
@@ -281,46 +283,7 @@ target_link_libraries(writer_test
 )
 gtest_discover_tests(writer_test)
 
-# Plugins will be named "bindiffX_ida.so" and "bindiffX_ida64.so" (or .dll or
-# .dylib), where X is the release number.
-set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR}_ida)
-add_ida_plugin(${bindiff_plugin_name}
-  ida/bindiff_icon.cc
-  ida/bindiff_icon.h
-  ida/main_plugin.cc
-  ida/main_plugin.h
-  ida/matched_functions_chooser.cc
-  ida/matched_functions_chooser.h
-  ida/names.cc
-  ida/names.h
-  ida/results.cc
-  ida/results.h
-  ida/statistics_chooser.cc
-  ida/statistics_chooser.h
-  ida/unmatched_functions_chooser.cc
-  ida/unmatched_functions_chooser.h
-  ida/visual_diff.cc
-  ida/visual_diff.h
-  match_colors.cc
-  match_colors.h
-)
-ida_target_link_libraries(${bindiff_plugin_name}
-  binexport_core
-  binexport_plugin_shared
-  bindiff_base
-  bindiff_shared
-  absl::str_format
-  absl::time
-)
-if(WIN32)
-  ida_target_link_libraries(${bindiff_plugin_name}
-    ws2_32.lib
-  )
-endif()
-set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
-  POSITION_INDEPENDENT_CODE ON
-  INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
-)
+add_subdirectory(ida)
 ida_install(TARGETS ${bindiff_plugin_name}
             ARCHIVE DESTINATION bindiff-prefix
             RUNTIME DESTINATION bindiff-prefix
