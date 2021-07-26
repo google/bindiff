@@ -83,7 +83,8 @@ void CallGraph::SetExeHash(std::string hash) {
   exe_hash_ = std::move(hash);
 }
 
-void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
+absl::Status CallGraph::Read(const BinExport2& proto,
+                             const std::string& filename) {
   filename_ = filename;
   std::replace(filename_.begin(), filename_.end(), '\\', '/');
 
@@ -101,7 +102,7 @@ void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
     vertex.address_ = proto_vertex.address();
 
     if (vertex.address_ < last_address) {
-      throw std::runtime_error(absl::StrCat(
+      return absl::FailedPreconditionError(absl::StrCat(
           "Call graph nodes not sorted: ", FormatAddress(vertex.address_),
           " >= ", FormatAddress(last_address)));
     }
@@ -158,6 +159,7 @@ void CallGraph::Read(const BinExport2& proto, const std::string& filename) {
     graph_[*it] = temp_vertices[j];
   }
   Init();
+  return absl::OkStatus();
 }
 
 void CallGraph::AttachFlowGraph(FlowGraph* flow_graph) {

@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <limits>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
@@ -85,7 +86,7 @@ class CallGraph {
   // Reads and initializes the call graph from "proto". "filename" is passed in
   // and remembered for informational purposes only (we want to be able to
   // construct default save filenames with it for example).
-  void Read(const BinExport2& proto, const std::string& filename);
+  absl::Status Read(const BinExport2& proto, const std::string& filename);
 
   // Gets just the filename part (without path or extension) passed into Read().
   std::string GetFilename() const;

@@ -219,10 +219,10 @@ int GetInternalCommentOperandNum(int operand_num, Comment::Type type,
   return operand_num;
 }
 
-void FlowGraph::Read(const BinExport2& proto,
-                     const BinExport2::FlowGraph& proto_flow_graph,
-                     CallGraph* call_graph,
-                     Instruction::Cache* instruction_cache) {
+absl::Status FlowGraph::Read(const BinExport2& proto,
+                             const BinExport2::FlowGraph& proto_flow_graph,
+                             CallGraph* call_graph,
+                             Instruction::Cache* instruction_cache) {
   entry_point_address_ =
       proto.instruction(
                proto.basic_block(proto_flow_graph.entry_basic_block_index())
@@ -334,7 +334,7 @@ void FlowGraph::Read(const BinExport2& proto,
   byte_hash_ = GetSdbmHash(function_bytes);
 
   if (!std::is_sorted(temp_addresses.begin(), temp_addresses.end())) {
-    throw std::runtime_error("Basic blocks not sorted by address!");
+    return absl::FailedPreconditionError("Basic blocks not sorted by address");
   }
 
   using EdgeDescriptor =
@@ -380,6 +380,7 @@ void FlowGraph::Read(const BinExport2& proto,
   }
 
   Init();
+  return absl::OkStatus();
 }
 
 void FlowGraph::Init() {

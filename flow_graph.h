@@ -20,6 +20,7 @@
 #include <limits>
 #include <string>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/instruction.h"
@@ -93,9 +94,10 @@ class FlowGraph {
   // Read and initialize flow graph from given proto message. The instruction
   // cache should be shared between flow graphs and stores mnemonic strings and
   // operand trees.
-  void Read(const BinExport2& proto,
-            const BinExport2::FlowGraph& proto_flow_graph,
-            CallGraph* call_graph, Instruction::Cache* instruction_cache);
+  absl::Status Read(const BinExport2& proto,
+                    const BinExport2::FlowGraph& proto_flow_graph,
+                    CallGraph* call_graph,
+                    Instruction::Cache* instruction_cache);
 
   // O(logn) binary search for the vertex (==basic block) starting at "address".
   Vertex GetVertex(Address address) const;

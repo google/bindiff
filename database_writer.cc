@@ -58,7 +58,8 @@ void ReadInfos(const std::string& filename, CallGraph& call_graph,
                FlowGraphInfos& flow_graph_infos) {
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
-    throw std::runtime_error(("failed reading \"" + filename + "\"").c_str());
+    throw std::runtime_error(
+        absl::StrCat("failed reading \"", filename, "\"").c_str());
   }
   BinExport2 proto;
   if (!proto.ParseFromIstream(&file)) {
@@ -68,14 +69,20 @@ void ReadInfos(const std::string& filename, CallGraph& call_graph,
   const auto& meta_information = proto.meta_information();
   call_graph.SetExeFilename(meta_information.executable_name());
   call_graph.SetExeHash(meta_information.executable_id());
-  call_graph.Read(proto, filename);
+  if (auto status = call_graph.Read(proto, filename); !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
 
   Instruction::Cache instruction_cache;
   for (const auto& flow_graph_proto : proto.flow_graph()) {
     // Create an ephemeral FlowGraph instance to update the instruction cache
     // and to use it to parse the BinExport2 information.
     FlowGraph flow_graph;
-    flow_graph.Read(proto, flow_graph_proto, &call_graph, &instruction_cache);
+    if (auto status = flow_graph.Read(proto, flow_graph_proto, &call_graph,
+                                      &instruction_cache);
+        !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
 
     Counts counts;
     Count(flow_graph, &counts);

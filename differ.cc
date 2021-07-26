@@ -98,13 +98,19 @@ void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
                           CallGraph* call_graph, FlowGraphs* flow_graphs,
                           FlowGraphInfos* flow_graph_infos,
                           Instruction::Cache* instruction_cache) {
-  call_graph->Read(proto, filename);
+  if (auto status = call_graph->Read(proto, filename); !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     if (proto_flow_graph.basic_block_index_size() == 0) {
       continue;
     }
     auto flow_graph = absl::make_unique<FlowGraph>();
-    flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
+    if (auto status = flow_graph->Read(proto, proto_flow_graph, call_graph,
+                                       instruction_cache);
+        !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
 
     Counts counts;
     Count(*flow_graph, &counts);

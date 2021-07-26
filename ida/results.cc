@@ -86,8 +86,8 @@ absl::Status ReadTemporaryFlowGraph(Address address,
             .address();
     if (address == info->second.address) {
       flow_graph->SetCallGraph(call_graph);
-      flow_graph->Read(proto, proto_flow_graph, call_graph, instruction_cache);
-      return absl::OkStatus();
+      return flow_graph->Read(proto, proto_flow_graph, call_graph,
+                              instruction_cache);
     }
   }
   return absl::UnknownError(

@@ -225,6 +225,7 @@ target_link_libraries(bindiff_shared
   absl::hash
   absl::str_format
   absl::strings
+  absl::status
   binexport_shared
   sqlite
   bindiff_version
