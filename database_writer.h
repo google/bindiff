@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
 #include "third_party/zynamics/bindiff/writer.h"
@@ -43,10 +44,9 @@ class DatabaseWriter : public Writer {
   // Special constructor for creating the temporary database.
   explicit DatabaseWriter(const std::string& path, bool recreate);
 
-  virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
-                     const FlowGraphs& flow_graphs1,
-                     const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points);
+  void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+             const FlowGraphs& flow_graphs1, const FlowGraphs& flow_graphs2,
+             const FixedPoints& fixed_points) override;
 
   void Close();
   void WriteToTempDatabase(const FixedPoint& fixed_point);
@@ -80,10 +80,9 @@ class DatabaseTransmuter : public Writer {
  public:
   DatabaseTransmuter(SqliteDatabase& database,
                      const FixedPointInfos& fixed_points);
-  virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
-                     const FlowGraphs& flow_graphs1,
-                     const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points);
+  void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+             const FlowGraphs& flow_graphs1, const FlowGraphs& flow_graphs2,
+             const FixedPoints& fixed_points) override;
 
   static void MarkPortedComments(SqliteDatabase* database,
                                  const char* temp_database,
@@ -104,9 +103,9 @@ class DatabaseReader : public Reader {
  public:
   explicit DatabaseReader(SqliteDatabase& database, const std::string& filename,
                           const std::string& temp_directory);
-  virtual void Read(CallGraph& call_graph1, CallGraph& call_graph2,
+  absl::Status Read(CallGraph& call_graph1, CallGraph& call_graph2,
                     FlowGraphInfos& flow_graphs1, FlowGraphInfos& flow_graphs2,
-                    FixedPointInfos& fixed_points);
+                    FixedPointInfos& fixed_points) override;
 
   static void ReadFullMatches(SqliteDatabase* database,
                               CallGraph* call_graph1, CallGraph* call_graph2,

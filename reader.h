@@ -17,6 +17,7 @@
 
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/container/btree_set.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/binexport/util/types.h"
@@ -34,19 +35,8 @@ struct FlowGraphInfo {
 using FlowGraphInfos = absl::btree_map<Address, FlowGraphInfo>;
 
 struct FixedPointInfo {
-  Address primary;
-  Address secondary;
-  int basic_block_count;
-  int edge_count;
-  int instruction_count;
-  double similarity;
-  double confidence;
-  int flags;
-  const std::string* algorithm;
-  bool evaluate;
-  bool comments_ported;
-
   friend bool operator==(const FixedPointInfo& lhs, const FixedPointInfo& rhs) {
+    // TODO(cblichmann): Use defaulted operator==() once we're on C++20.
     return lhs.primary == rhs.primary && lhs.secondary == rhs.secondary &&
            lhs.basic_block_count == rhs.basic_block_count &&
            lhs.edge_count == rhs.edge_count &&
@@ -66,6 +56,18 @@ struct FixedPointInfo {
   }
 
   bool IsManual() const;
+
+  Address primary;
+  Address secondary;
+  int basic_block_count;
+  int edge_count;
+  int instruction_count;
+  double similarity;
+  double confidence;
+  int flags;
+  const std::string* algorithm;
+  bool evaluate;
+  bool comments_ported;
 };
 using FixedPointInfos = absl::btree_set<FixedPointInfo>;
 
@@ -73,22 +75,24 @@ bool operator<(const FixedPointInfo& one, const FixedPointInfo& two);
 
 class Reader {
  public:
-  explicit Reader();
-  virtual ~Reader() = default;
+  Reader() = default;
 
   Reader(const Reader&) = delete;
   Reader& operator=(const Reader&) = delete;
 
-  virtual void Read(CallGraph& call_graph1, CallGraph& call_graph2,
-                    FlowGraphInfos& flow_graphs1, FlowGraphInfos& flow_graphs2,
-                    FixedPointInfos& fixed_points) = 0;
+  virtual ~Reader() = default;
 
-  double GetSimilarity() const;
-  double GetConfidence() const;
+  virtual absl::Status Read(CallGraph& call_graph1, CallGraph& call_graph2,
+                            FlowGraphInfos& flow_graphs1,
+                            FlowGraphInfos& flow_graphs2,
+                            FixedPointInfos& fixed_points) = 0;
+
+  double similarity() const { return similarity_; }
+  double confidence() const { return confidence_; }
 
  protected:
-  double similarity_;
-  double confidence_;
+  double similarity_ = 0.0;
+  double confidence_ = 0.0;
 };
 
 }  // namespace security::bindiff

@@ -28,10 +28,4 @@ bool FixedPointInfo::IsManual() const {
          algorithm->find("manual") != std::string::npos;
 }
 
-Reader::Reader() : similarity_(0.0), confidence_(0.0) {}
-
-double Reader::GetSimilarity() const { return similarity_; }
-
-double Reader::GetConfidence() const { return confidence_; }
-
 }  // namespace security::bindiff

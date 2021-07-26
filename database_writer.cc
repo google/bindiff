@@ -54,39 +54,34 @@ void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
                  counts[Counts::kInstructionMatchesNonLibrary];
 }
 
-void ReadInfos(const std::string& filename, CallGraph& call_graph,
-               FlowGraphInfos& flow_graph_infos) {
+absl::Status ReadInfos(const std::string& filename, CallGraph& call_graph,
+                       FlowGraphInfos& flow_graph_infos) {
   std::ifstream file(filename.c_str(), std::ios_base::binary);
   if (!file) {
-    throw std::runtime_error(
-        absl::StrCat("failed reading \"", filename, "\"").c_str());
+    return absl::FailedPreconditionError(
+        absl::StrCat("failed reading \"", filename, "\""));
   }
   BinExport2 proto;
   if (!proto.ParseFromIstream(&file)) {
-    throw std::runtime_error("failed parsing protocol buffer");
+    return absl::FailedPreconditionError("failed parsing protocol buffer");
   }
 
   const auto& meta_information = proto.meta_information();
   call_graph.SetExeFilename(meta_information.executable_name());
   call_graph.SetExeHash(meta_information.executable_id());
-  if (auto status = call_graph.Read(proto, filename); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+  NA_RETURN_IF_ERROR(call_graph.Read(proto, filename));
 
   Instruction::Cache instruction_cache;
   for (const auto& flow_graph_proto : proto.flow_graph()) {
     // Create an ephemeral FlowGraph instance to update the instruction cache
     // and to use it to parse the BinExport2 information.
     FlowGraph flow_graph;
-    if (auto status = flow_graph.Read(proto, flow_graph_proto, &call_graph,
-                                      &instruction_cache);
-        !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    NA_RETURN_IF_ERROR(flow_graph.Read(proto, flow_graph_proto, &call_graph,
+                                       &instruction_cache));
 
     Counts counts;
     Count(flow_graph, &counts);
-    auto address = flow_graph.GetEntryPointAddress();
+    Address address = flow_graph.GetEntryPointAddress();
     FlowGraphInfo& info = flow_graph_infos[address];
     info.address = address;
     info.name = &flow_graph.GetName();
@@ -98,6 +93,7 @@ void ReadInfos(const std::string& filename, CallGraph& call_graph,
     info.instruction_count = counts[Counts::kInstructionsLibrary] +
                              counts[Counts::kInstructionsNonLibrary];
   }
+  return absl::OkStatus();
 }
 
 DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
@@ -108,12 +104,12 @@ DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
 DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
   options_.include_function_names = false;
 
-  auto tempdir_or = GetOrCreateTempDirectory("BinDiff");
-  if (!tempdir_or.ok()) {
+  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+  if (!temp_dir.ok()) {
     // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error(std::string(tempdir_or.status().message()));
+    throw std::runtime_error(std::string(temp_dir.status().message()));
   }
-  filename_ = JoinPath(tempdir_or.value(), Basename(path));
+  filename_ = JoinPath(*temp_dir, Basename(path));
   if (recreate) {
     std::remove(filename_.c_str());
   }
@@ -795,71 +791,81 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
   }
 }
 
-void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
-                          FlowGraphInfos& flow_graphs1,
-                          FlowGraphInfos& flow_graphs2,
-                          FixedPointInfos& fixed_points) {
+absl::Status DatabaseReader::Read(CallGraph& call_graph1,
+                                  CallGraph& call_graph2,
+                                  FlowGraphInfos& flow_graphs1,
+                                  FlowGraphInfos& flow_graphs2,
+                                  FixedPointInfos& fixed_points) {
   absl::flat_hash_set<FixedPointInfo> database_fixed_points;
-  database_
-      .Statement(
-          "SELECT "
-          " file1.filename AS filename1, file2.filename AS filename2, "
-          " similarity, confidence "
-          "FROM metadata "
-          "INNER JOIN file AS file1 ON file1.id = file1 "
-          "INNER JOIN file AS file2 ON file2.id = file2")
-      ->Execute()
-      .Into(&primary_filename_)
-      .Into(&secondary_filename_)
-      .Into(&similarity_)
-      .Into(&confidence_);
+  try {
+    database_
+        .Statement(
+            "SELECT "
+            " file1.filename AS filename1, file2.filename AS filename2, "
+            " similarity, confidence "
+            "FROM metadata "
+            "INNER JOIN file AS file1 ON file1.id = file1 "
+            "INNER JOIN file AS file2 ON file2.id = file2")
+        ->Execute()
+        .Into(&primary_filename_)
+        .Into(&secondary_filename_)
+        .Into(&similarity_)
+        .Into(&confidence_);
 
-  {  // Function matches
-    SqliteStatement statement(
-        &database_,
-        "SELECT address1, address2, similarity, confidence, flags, a.name, "
-        "evaluate, commentsported, basicblocks, edges, instructions "
-        "FROM function AS f "
-        "INNER JOIN functionalgorithm AS a ON a.id = f.algorithm");
-    for (statement.Execute(); statement.GotData(); statement.Execute()) {
-      std::string algorithm;
-      FixedPointInfo fixed_point;
-      int evaluate = 0;
-      int comments_ported = 0;
-      statement
-          .Into(&fixed_point.primary)
-          .Into(&fixed_point.secondary)
-          .Into(&fixed_point.similarity)
-          .Into(&fixed_point.confidence)
-          .Into(&fixed_point.flags)
-          .Into(&algorithm)
-          .Into(&evaluate)
-          .Into(&comments_ported)
-          .Into(&fixed_point.basic_block_count)
-          .Into(&fixed_point.edge_count)
-          .Into(&fixed_point.instruction_count);
-      fixed_point.algorithm = FindString(algorithm);
-      fixed_point.evaluate = evaluate != 0;
-      fixed_point.comments_ported = comments_ported != 0;
-      database_fixed_points.insert(fixed_point);
+    {  // Function matches
+      SqliteStatement statement(
+          &database_,
+          "SELECT address1, address2, similarity, confidence, flags, a.name, "
+          "evaluate, commentsported, basicblocks, edges, instructions "
+          "FROM function AS f "
+          "INNER JOIN functionalgorithm AS a ON a.id = f.algorithm");
+      for (statement.Execute(); statement.GotData(); statement.Execute()) {
+        std::string algorithm;
+        FixedPointInfo fixed_point;
+        int evaluate = 0;
+        int comments_ported = 0;
+        statement.Into(&fixed_point.primary)
+            .Into(&fixed_point.secondary)
+            .Into(&fixed_point.similarity)
+            .Into(&fixed_point.confidence)
+            .Into(&fixed_point.flags)
+            .Into(&algorithm)
+            .Into(&evaluate)
+            .Into(&comments_ported)
+            .Into(&fixed_point.basic_block_count)
+            .Into(&fixed_point.edge_count)
+            .Into(&fixed_point.instruction_count);
+        fixed_point.algorithm = FindString(algorithm);
+        fixed_point.evaluate = evaluate != 0;
+        fixed_point.comments_ported = comments_ported != 0;
+        database_fixed_points.insert(fixed_point);
+      }
     }
+    {  // Basic block matches
+      SqliteStatement statement(
+          &database_,
+          "SELECT a.name, COUNT(*) FROM basicblock AS b INNER JOIN "
+          "basicblockalgorithm AS a ON a.id = b.algorithm GROUP BY "
+          "b.algorithm");
+      for (statement.Execute(); statement.GotData(); statement.Execute()) {
+        std::string algorithm_name;
+        int count = 0;
+        statement.Into(&algorithm_name).Into(&count);
+        basic_block_fixed_point_info_[algorithm_name] = count;
+      }
+    }
+  } catch (const std::exception& error) {
+    return absl::UnknownError(error.what());
+  } catch (...) {
+    return absl::UnknownError("Unknown error querying matches database");
   }
 
-  {  // Basic block matches
-    SqliteStatement statement(&database_,
-        "SELECT a.name, COUNT(*) FROM basicblock AS b INNER JOIN "
-        "basicblockalgorithm AS a ON a.id = b.algorithm GROUP BY b.algorithm");
-    for (statement.Execute(); statement.GotData(); statement.Execute()) {
-      std::string algorithm_name;
-      int count = 0;
-      statement.Into(&algorithm_name).Into(&count);
-      basic_block_fixed_point_info_[algorithm_name] = count;
-    }
-  }
-  ReadInfos((path_ + (primary_filename_ + ".BinExport")),
-            call_graph1, flow_graphs1);
-  ReadInfos((path_ + (secondary_filename_ + ".BinExport")),
-            call_graph2, flow_graphs2);
+  NA_RETURN_IF_ERROR(
+      ReadInfos(JoinPath(path_, primary_filename_ + ".BinExport"), call_graph1,
+                flow_graphs1));
+  NA_RETURN_IF_ERROR(
+      ReadInfos(JoinPath(path_, secondary_filename_ + ".BinExport"),
+                call_graph2, flow_graphs2));
 
   // Check consistency between BinExport data and results
   bool inconsistent = false;
@@ -880,6 +886,7 @@ void DatabaseReader::Read(CallGraph& call_graph1, CallGraph& call_graph2,
   }
   LOG_IF(ERROR, inconsistent)
       << "Call graph data is inconsistent, results may not be accurate";
+  return absl::OkStatus();
 }
 
 }  // namespace security::bindiff

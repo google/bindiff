@@ -1227,10 +1227,12 @@ void Results::Read(Reader* reader) {
   indexed_fixed_points_.clear();
 
   incomplete_results_ = true;
-  reader->Read(call_graph1_, call_graph2_, flow_graph_infos1_,
-               flow_graph_infos2_, fixed_point_infos_);
-  if (const DatabaseReader* database_reader =
-          dynamic_cast<DatabaseReader*>(reader)) {
+  if (auto status = reader->Read(call_graph1_, call_graph2_, flow_graph_infos1_,
+                                 flow_graph_infos2_, fixed_point_infos_);
+      !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
+  if (const auto* database_reader = dynamic_cast<DatabaseReader*>(reader)) {
     input_filename_ = database_reader->GetInputFilename();
     histogram_ = database_reader->GetBasicBlockFixedPointInfo();
   } else {
@@ -1239,8 +1241,8 @@ void Results::Read(Reader* reader) {
 
   InitializeIndexedVectors();
   Count();
-  similarity_ = reader->GetSimilarity();
-  confidence_ = reader->GetConfidence();
+  similarity_ = reader->similarity();
+  confidence_ = reader->confidence();
   dirty_ = false;
 
   // TODO(cblichmann): Iterate over all fixed points that have been added
