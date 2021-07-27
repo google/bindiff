@@ -73,3 +73,7 @@ ida_target_link_libraries(${binexport_ida_plugin_name}
 set_ida_target_properties(${binexport_ida_plugin_name}
   PROPERTIES POSITION_INDEPENDENT_CODE ON
 )
+ida_install(TARGETS ${binexport_ida_plugin_name}
+            ARCHIVE DESTINATION binexport-prefix
+            RUNTIME DESTINATION binexport-prefix
+            LIBRARY DESTINATION binexport-prefix)

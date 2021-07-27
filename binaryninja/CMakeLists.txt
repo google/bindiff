@@ -28,3 +28,7 @@ target_link_libraries(${binexport_bn_plugin_name} PRIVATE
 set_target_properties(${binexport_bn_plugin_name} PROPERTIES
   PREFIX ""
 )
+install(TARGETS ${binexport_bn_plugin_name}
+        ARCHIVE DESTINATION binexport-prefix
+        RUNTIME DESTINATION binexport-prefix
+        LIBRARY DESTINATION binexport-prefix)

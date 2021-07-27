@@ -245,19 +245,11 @@ target_link_libraries(binexport_core PUBLIC
 # IDA Pro plugins
 if(BINEXPORT_ENABLE_IDAPRO)
   add_subdirectory(ida)
-  ida_install(TARGETS ${binexport_ida_plugin_name}
-              ARCHIVE DESTINATION binexport-prefix
-              RUNTIME DESTINATION binexport-prefix
-              LIBRARY DESTINATION binexport-prefix)
 endif()
 
 # Binary Ninja plugin
 if(BINEXPORT_ENABLE_BINARYNINJA)
   add_subdirectory(binaryninja)
-  install(TARGETS ${binexport_bn_plugin_name}
-          ARCHIVE DESTINATION binexport-prefix
-          RUNTIME DESTINATION binexport-prefix
-          LIBRARY DESTINATION binexport-prefix)
 endif()
 
 # BinExport reader library
