@@ -283,12 +283,6 @@ target_link_libraries(writer_test
 )
 gtest_discover_tests(writer_test)
 
-add_subdirectory(ida)
-ida_install(TARGETS ${bindiff_plugin_name}
-            ARCHIVE DESTINATION bindiff-prefix
-            RUNTIME DESTINATION bindiff-prefix
-            LIBRARY DESTINATION bindiff-prefix)
-
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
   bindiff_shared
@@ -303,6 +297,9 @@ if(NOT MSVC)
   )
 endif()
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
+
+# IDA Pro plugins
+add_subdirectory(ida)
 
 # Utility programs. For now, only contains a tool to modify the BinDiff
 # config from the installer/package scripts.

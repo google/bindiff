@@ -50,3 +50,7 @@ set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
 )
+ida_install(TARGETS ${bindiff_plugin_name}
+            ARCHIVE DESTINATION bindiff-prefix
+            RUNTIME DESTINATION bindiff-prefix
+            LIBRARY DESTINATION bindiff-prefix)
