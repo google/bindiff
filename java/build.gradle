@@ -33,7 +33,7 @@ if (System.env.YFILES_DIR) {
     yFilesDir = project.getProperty("YFILES_DIR")
 } else {
     // Note: This path is relative to the sub-project
-    yFilesDir = '../../../../java/yfiles/v2_15'
+    yFilesDir = '../../../../java/yfiles/v2_17'
 }
 
 subprojects {
