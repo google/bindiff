@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
+# TODO(cblichmann): Remove this workaround for macOS protobuf build
+if(APPLE)
+  add_definitions(-DGOOGLE_PROTOBUF_NO_RDTSC)
+endif()
+
 # Plugins will be named "bindiffX_ida.so" and "bindiffX_ida64.so" (or .dll or
 # .dylib), where X is the release number.
 set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR}_ida)
