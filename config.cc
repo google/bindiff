@@ -120,7 +120,7 @@ absl::StatusOr<Config> LoadFromJson(absl::string_view data) {
           google::protobuf::StringPiece(data.data(), data.size()), &config,
           options);
       !status.ok()) {
-    return absl::UnknownError(std::string(status.error_message()));
+    return absl::UnknownError(std::string(status.message()));
   }
 #endif
   return config;
