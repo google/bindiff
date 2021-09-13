@@ -37,13 +37,22 @@ TEST(FileSystemTest, Basename) {
   EXPECT_THAT(Basename(R"(C:\subdir/with\mixed_separators/filename.ext)"),
               StrEq("filename.ext"));
 #endif
+  EXPECT_THAT(Basename(absl::StrCat("unicode", kPathSeparator, "官话",
+                                    kPathSeparator, "filename.ext")),
+              StrEq("filename.ext"));
 }
 
-TEST(FileSystemTest, Filenames) {
+TEST(FileSystemTest, Dirname) {
   EXPECT_THAT(Dirname(absl::StrCat("subdir1", kPathSeparator, "subdir2",
                                    kPathSeparator, "filename.ext")),
               StrEq(absl::StrCat("subdir1", kPathSeparator, "subdir2")));
 
+  EXPECT_THAT(Dirname(absl::StrCat("unicode", kPathSeparator, "官话",
+                                   kPathSeparator, "filename.ext")),
+              StrEq(absl::StrCat("unicode", kPathSeparator, "官话")));
+}
+
+TEST(FileSystemTest, Extensions) {
   EXPECT_THAT(
       GetFileExtension(absl::StrCat("subdir", kPathSeparator, "filename.ext")),
       StrEq(".ext"));
