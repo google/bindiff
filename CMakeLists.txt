@@ -41,6 +41,8 @@ set(_binexport_gen "${BINEXPORT_BINARY_DIR}/gen_include/third_party/zynamics")
 create_directory_symlink("${BINEXPORT_SOURCE_DIR}" "${_binexport_src}/binexport")
 create_directory_symlink("${absl_SOURCE_DIR}/absl" "${_binexport_src}/../absl")
 create_directory_symlink("${BINEXPORT_BINARY_DIR}" "${_binexport_gen}/binexport")
+# For Google3 workspaces
+create_directory_symlink("${BINEXPORT_SOURCE_DIR}/third_party/boost_parts/boost" "${_binexport_src}/../boost/allowed")
 
 # Find the Git revision number, if applicable
 # TODO(cblichmann): Move this to Util.cmake

@@ -39,9 +39,15 @@
 // Silence some compiler warnings in IDA SDK headers
 #ifdef __clang__
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wlogical-op-parentheses"
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#pragma clang diagnostic ignored "-Wnullability-completeness"
 #pragma clang diagnostic ignored "-Wvarargs"
 #elif __GNUC__
 #pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlogical-op-parentheses"
+#pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
+#pragma GCC diagnostic ignored "-Wnullability-completeness"
 #pragma GCC diagnostic ignored "-Wvarargs"
 #elif _MSC_VER
 #pragma warning(push)
