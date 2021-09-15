@@ -20,9 +20,8 @@
 #include <iterator>
 #include <list>
 
-#include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
-
 #include "base/logging.h"
+#include <boost/iterator/transform_iterator.hpp>
 
 namespace security::bindiff {
 namespace {

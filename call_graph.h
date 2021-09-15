@@ -15,11 +15,11 @@
 #ifndef CALL_GRAPH_H_
 #define CALL_GRAPH_H_
 
-#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 #include <cstdint>
 #include <limits>
 
 #include "third_party/absl/status/status.h"
+#include <boost/graph/compressed_sparse_row_graph.hpp>
 #include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"

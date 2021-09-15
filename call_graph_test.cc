@@ -14,7 +14,6 @@
 
 #include "third_party/zynamics/bindiff/call_graph.h"
 
-#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 #include <limits>
 #include <memory>
 #include <stdexcept>
@@ -22,6 +21,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/memory/memory.h"
+#include <boost/graph/compressed_sparse_row_graph.hpp>
 #include "third_party/zynamics/bindiff/test_util.h"
 
 namespace security::bindiff {

@@ -19,15 +19,12 @@
 #include <cstdint>
 #include <sstream>
 
-// clang-format off
-#include <boost/graph/breadth_first_search.hpp>  // NOLINT
-#include <boost/graph/dominator_tree.hpp>        // NOLINT
-#include <boost/graph/filtered_graph.hpp>        // NOLINT
-#include <boost/graph/iteration_macros.hpp>      // NOLINT
-// clang-format on
-
 #include "base/logging.h"
 #include "third_party/absl/strings/str_cat.h"
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/dominator_tree.hpp>
+#include <boost/graph/filtered_graph.hpp>
+#include <boost/graph/iteration_macros.hpp>
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"

@@ -18,11 +18,9 @@
 #include <numeric>
 #include <queue>
 
-// clang-format off
-#include <boost/graph/adjacency_list.hpp>        // NOLINT(readability/boost)
-#include <boost/graph/breadth_first_search.hpp>  // NOLINT(readability/boost)
-#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
-// clang-format on
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/compressed_sparse_row_graph.hpp>
 
 enum vertex_flags_t { vertex_flags };
 enum vertex_bfs_index_t { vertex_bfs_index };

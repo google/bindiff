@@ -14,12 +14,12 @@
 
 #include "third_party/zynamics/bindiff/change_classifier.h"
 
-#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 #include <limits>
 #include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include <boost/graph/compressed_sparse_row_graph.hpp>
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"

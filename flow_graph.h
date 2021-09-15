@@ -15,12 +15,12 @@
 #ifndef FLOW_GRAPH_H_
 #define FLOW_GRAPH_H_
 
-#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT(readability/boost)
 #include <cstdint>
 #include <limits>
 #include <string>
 
 #include "third_party/absl/status/status.h"
+#include <boost/graph/compressed_sparse_row_graph.hpp>
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/instruction.h"

@@ -18,10 +18,8 @@
 #include <iomanip>
 #include <memory>
 
-// TODO(cblichmann): Replace this
-#include <boost/iterator/transform_iterator.hpp>  // NOLINT(readability/boost)
-
 #include "third_party/absl/strings/str_cat.h"
+#include <boost/iterator/transform_iterator.hpp>
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/util/format.h"
