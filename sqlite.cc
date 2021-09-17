@@ -18,40 +18,45 @@
 #include <stdexcept>
 
 #include "third_party/absl/memory/memory.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
 
 namespace security::bindiff {
 
-SqliteDatabase::SqliteDatabase()
-    : database_(nullptr) {
+SqliteDatabase::SqliteDatabase(SqliteDatabase&& other)
+    : database_(other.database_) {
+  other.database_ = nullptr;
 }
 
-SqliteDatabase::SqliteDatabase(const char* filename)
-    : database_(nullptr) {
-  Connect(filename);
+SqliteDatabase& SqliteDatabase::operator=(SqliteDatabase&& other) {
+  if (this != &other) {
+    database_ = other.database_;
+    other.database_ = nullptr;
+  }
+  return *this;
 }
 
 SqliteDatabase::~SqliteDatabase() {
   Disconnect();
 }
 
-void SqliteDatabase::Connect(const char* filename) {
-  if (database_) {
-    throw std::runtime_error("database already open");
-  }
-
-  if (sqlite3_open(filename, &database_) != SQLITE_OK) {
-    const std::string error(sqlite3_errmsg(database_));
-    sqlite3_close(database_);
-    database_ = nullptr;
+absl::StatusOr<SqliteDatabase> SqliteDatabase::Connect(const char* filename) {
+  sqlite3* handle = nullptr;
+  if (sqlite3_open(filename, &handle) != SQLITE_OK) {
+    const std::string error = sqlite3_errmsg(handle);
+    sqlite3_close(handle);
     throw std::runtime_error(absl::StrCat("failed opening database: '", error,
                                           "', filename: '", filename, "'"));
   }
 
-  if (!database_) {
+  if (!handle) {
     throw std::runtime_error("failed opening database");
   }
+
+  SqliteDatabase database;
+  database.database_ = handle;
+  return database;
 }
 
 void SqliteDatabase::Disconnect() {

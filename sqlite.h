@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <memory>
 
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
@@ -33,16 +34,15 @@ class SqliteStatement;
 
 class SqliteDatabase {
  public:
-  friend class SqliteStatement;
-
-  SqliteDatabase();
-  explicit SqliteDatabase(const char* filename);
-  ~SqliteDatabase();
-
   SqliteDatabase(const SqliteDatabase&) = delete;
   SqliteDatabase& operator=(const SqliteDatabase&) = delete;
 
-  void Connect(const char* filename);
+  SqliteDatabase(SqliteDatabase&& other);
+  SqliteDatabase& operator=(SqliteDatabase&& other);
+
+  ~SqliteDatabase();
+
+  static absl::StatusOr<SqliteDatabase> Connect(const char* filename);
   void Disconnect();
 
   void Begin();
@@ -52,7 +52,11 @@ class SqliteDatabase {
   std::unique_ptr<SqliteStatement> Statement(const char* statement);
 
  private:
-  sqlite3* database_;
+  friend class SqliteStatement;
+
+  SqliteDatabase() = default;
+
+  sqlite3* database_ = nullptr;
 };
 
 class SqliteStatement {

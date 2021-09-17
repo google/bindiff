@@ -97,25 +97,30 @@ absl::Status ReadInfos(const std::string& filename, CallGraph& call_graph,
 }
 
 DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
-    : database_(path.c_str()), filename_(path), options_(std::move(options)) {
+    : filename_(path),
+      options_(std::move(options)),
+      database_(*SqliteDatabase::Connect(filename_.c_str())) {
   PrepareDatabase();
 }
 
-DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate) {
+DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate)
+    : database_([this, &path, recreate]() -> SqliteDatabase {
+        auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+        if (!temp_dir.ok()) {
+          throw std::runtime_error(std::string(temp_dir.status().message()));
+        }
+        filename_ = JoinPath(*temp_dir, Basename(path));
+        if (recreate) {
+          std::remove(filename_.c_str());
+        }
+        auto database = SqliteDatabase::Connect(filename_.c_str());
+        if (!database.ok()) {
+          throw std::runtime_error(std::string(database.status().message()));
+        }
+        return std::move(*database);
+      }()) {
   options_.include_function_names = false;
-
-  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir.ok()) {
-    // TODO(cblichmann): Refactor ctor and add init function to avoid throw.
-    throw std::runtime_error(std::string(temp_dir.status().message()));
-  }
-  filename_ = JoinPath(*temp_dir, Basename(path));
   if (recreate) {
-    std::remove(filename_.c_str());
-  }
-  const bool needs_init = !FileExists(filename_);
-  database_.Connect(filename_.c_str());
-  if (needs_init) {
     PrepareDatabase();
     WriteAlgorithms();
   }

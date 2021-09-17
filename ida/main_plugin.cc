@@ -644,7 +644,8 @@ absl::Status WriteResults(const std::string& path) {
     std::remove(input_bindiff.c_str());
     NA_RETURN_IF_ERROR(CopyFile(results->input_filename_, input_bindiff));
     {
-      SqliteDatabase database(input_bindiff.c_str());
+      NA_ASSIGN_OR_RETURN(auto database,
+                          SqliteDatabase::Connect(input_bindiff.c_str()));
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
       results->Write(&writer);
     }
@@ -808,7 +809,7 @@ bool Plugin::LoadResults() {
       return false;
     }
 
-    std::string path(Dirname(filename));
+    std::string path = Dirname(filename);
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("Loading results...");
@@ -816,14 +817,16 @@ bool Plugin::LoadResults() {
 
     results_.reset(new Results());
 
-    auto temp_dir_or = GetOrCreateTempDirectory("BinDiff");
-    if (!temp_dir_or.ok()) {
+    auto temp_dir = GetOrCreateTempDirectory("BinDiff");
+    if (!temp_dir.ok()) {
       return false;
     }
-    const std::string temp_dir = std::move(temp_dir_or).value();
 
-    SqliteDatabase database(filename);
-    DatabaseReader reader(database, filename, temp_dir);
+    auto database = SqliteDatabase::Connect(filename);
+    if (!database.ok()) {
+      throw std::runtime_error(std::string(database.status().message()));
+    }
+    DatabaseReader reader(*database, filename, *temp_dir);
     results_->Read(&reader);
 
     auto sha256_or = GetInputFileSha256();

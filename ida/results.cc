@@ -524,7 +524,7 @@ bool Results::IncrementalDiff() {
         throw std::runtime_error(std::string(status.message()));
       }
 
-      SqliteDatabase database(incremental.c_str());
+      auto database = *SqliteDatabase::Connect(incremental.c_str());
       DatabaseTransmuter writer(database, fixed_point_infos_);
       Write(&writer);
 
@@ -993,16 +993,18 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
       .BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress())
       .Execute()
       .Into(&id);
-  std::shared_ptr<SqliteDatabase> database;
-  if (id) {  // found in temp db
-    database.reset(temp_database_.GetDatabase(), [](SqliteDatabase*) {});
-  } else {  // load original
-    database.reset(new SqliteDatabase(input_filename_.c_str()));
+  absl::StatusOr<SqliteDatabase> original_database;
+  SqliteDatabase* database;
+  if (id) {  // Found in temp db
+    database = temp_database_.GetDatabase();
+  } else {  // Load original
+    original_database = SqliteDatabase::Connect(input_filename_.c_str());
+    database = &*original_database;
   }
 
   absl::flat_hash_map<int, std::string> algorithms;
   {
-    SqliteStatement statement(database.get(),
+    SqliteStatement statement(database,
                               "SELECT id, name FROM basicblockalgorithm");
     for (statement.Execute(); statement.GotData(); statement.Execute()) {
       int id;
@@ -1013,7 +1015,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   }
 
   SqliteStatement statement(
-      database.get(),
+      database,
       "SELECT basicblock.address1, basicblock.address2, "
       "basicblock.algorithm "
       "FROM function "
@@ -1302,7 +1304,7 @@ void Results::MarkPortedCommentsInTempDatabase() {
 void Results::MarkPortedCommentsInDatabase() {
   try {
     if (!input_filename_.empty()) {
-      SqliteDatabase database(input_filename_.c_str());
+      auto database = *SqliteDatabase::Connect(input_filename_.c_str());
       DatabaseTransmuter::MarkPortedComments(
           &database, temp_database_.GetFilename().c_str(), fixed_point_infos_);
     }

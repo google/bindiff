@@ -39,10 +39,10 @@ class DatabaseWriter : public Writer {
   using Options = DatabaseWriterOptions;
 
   // Regular constructor for creating result databases.
-  DatabaseWriter(const std::string& path, Options options = {});
+  explicit DatabaseWriter(const std::string& path, Options options = {});
 
   // Special constructor for creating the temporary database.
-  explicit DatabaseWriter(const std::string& path, bool recreate);
+  DatabaseWriter(const std::string& path, bool recreate);
 
   void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
              const FlowGraphs& flow_graphs1, const FlowGraphs& flow_graphs2,
@@ -71,9 +71,9 @@ class DatabaseWriter : public Writer {
   using NameToId = std::map<std::string, int>;
   NameToId basic_block_steps_;
   NameToId function_steps_;
-  SqliteDatabase database_;
   std::string filename_;
   Options options_;
+  SqliteDatabase database_;
 };
 
 class DatabaseTransmuter : public Writer {
