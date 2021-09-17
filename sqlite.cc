@@ -16,8 +16,8 @@
 
 #include <cstring>
 #include <stdexcept>
+#include <memory>
 
-#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
@@ -41,9 +41,10 @@ SqliteDatabase::~SqliteDatabase() {
   Disconnect();
 }
 
-absl::StatusOr<SqliteDatabase> SqliteDatabase::Connect(const char* filename) {
+absl::StatusOr<SqliteDatabase> SqliteDatabase::Connect(
+    absl::string_view filename) {
   sqlite3* handle = nullptr;
-  if (sqlite3_open(filename, &handle) != SQLITE_OK) {
+  if (sqlite3_open(std::string(filename).c_str(), &handle) != SQLITE_OK) {
     const std::string error = sqlite3_errmsg(handle);
     sqlite3_close(handle);
     throw std::runtime_error(absl::StrCat("failed opening database: '", error,
@@ -69,8 +70,8 @@ void SqliteDatabase::Disconnect() {
 }
 
 std::unique_ptr<SqliteStatement> SqliteDatabase::Statement(
-    const char* statement) {
-  return absl::make_unique<SqliteStatement>(this, statement);
+    absl::string_view statement) {
+  return std::make_unique<SqliteStatement>(this, statement);
 }
 
 void SqliteDatabase::Begin() {
@@ -86,14 +87,10 @@ void SqliteDatabase::Rollback() {
 }
 
 SqliteStatement::SqliteStatement(SqliteDatabase* database,
-                                 const char* statement)
-    : database_(database->database_),
-      statement_(nullptr),
-      parameter_(0),
-      column_(0),
-      got_data_(false) {
-  if (sqlite3_prepare_v2(database_, statement, strlen(statement), &statement_,
-                         nullptr) != SQLITE_OK) {
+                                 absl::string_view statement)
+    : database_(database->database_) {
+  if (sqlite3_prepare_v2(database_, statement.data(), statement.size(),
+                         &statement_, nullptr) != SQLITE_OK) {
     const std::string error(sqlite3_errmsg(database_));
     throw std::runtime_error(absl::StrCat("error preparing statement '",
                                           statement, "', '", error, "'"));

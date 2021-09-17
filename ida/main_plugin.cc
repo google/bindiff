@@ -645,7 +645,7 @@ absl::Status WriteResults(const std::string& path) {
     NA_RETURN_IF_ERROR(CopyFile(results->input_filename_, input_bindiff));
     {
       NA_ASSIGN_OR_RETURN(auto database,
-                          SqliteDatabase::Connect(input_bindiff.c_str()));
+                          SqliteDatabase::Connect(input_bindiff));
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
       results->Write(&writer);
     }

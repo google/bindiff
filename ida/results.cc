@@ -524,7 +524,7 @@ bool Results::IncrementalDiff() {
         throw std::runtime_error(std::string(status.message()));
       }
 
-      auto database = *SqliteDatabase::Connect(incremental.c_str());
+      auto database = *SqliteDatabase::Connect(incremental);
       DatabaseTransmuter writer(database, fixed_point_infos_);
       Write(&writer);
 
@@ -998,7 +998,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   if (id) {  // Found in temp db
     database = temp_database_.GetDatabase();
   } else {  // Load original
-    original_database = SqliteDatabase::Connect(input_filename_.c_str());
+    original_database = SqliteDatabase::Connect(input_filename_);
     database = &*original_database;
   }
 
@@ -1304,7 +1304,7 @@ void Results::MarkPortedCommentsInTempDatabase() {
 void Results::MarkPortedCommentsInDatabase() {
   try {
     if (!input_filename_.empty()) {
-      auto database = *SqliteDatabase::Connect(input_filename_.c_str());
+      auto database = *SqliteDatabase::Connect(input_filename_);
       DatabaseTransmuter::MarkPortedComments(
           &database, temp_database_.GetFilename().c_str(), fixed_point_infos_);
     }

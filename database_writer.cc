@@ -99,7 +99,7 @@ absl::Status ReadInfos(const std::string& filename, CallGraph& call_graph,
 DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
     : filename_(path),
       options_(std::move(options)),
-      database_(*SqliteDatabase::Connect(filename_.c_str())) {
+      database_(*SqliteDatabase::Connect(filename_)) {
   PrepareDatabase();
 }
 
@@ -113,7 +113,7 @@ DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate)
         if (recreate) {
           std::remove(filename_.c_str());
         }
-        auto database = SqliteDatabase::Connect(filename_.c_str());
+        auto database = SqliteDatabase::Connect(filename_);
         if (!database.ok()) {
           throw std::runtime_error(std::string(database.status().message()));
         }

@@ -42,14 +42,14 @@ class SqliteDatabase {
 
   ~SqliteDatabase();
 
-  static absl::StatusOr<SqliteDatabase> Connect(const char* filename);
+  static absl::StatusOr<SqliteDatabase> Connect(absl::string_view filename);
   void Disconnect();
 
   void Begin();
   void Commit();
   void Rollback();
 
-  std::unique_ptr<SqliteStatement> Statement(const char* statement);
+  std::unique_ptr<SqliteStatement> Statement(absl::string_view statement);
 
  private:
   friend class SqliteStatement;
@@ -61,7 +61,8 @@ class SqliteDatabase {
 
 class SqliteStatement {
  public:
-  explicit SqliteStatement(SqliteDatabase* database, const char* statement);
+  explicit SqliteStatement(SqliteDatabase* database,
+                           absl::string_view statement);
   ~SqliteStatement();
 
   SqliteStatement(const SqliteStatement&) = delete;
@@ -85,10 +86,10 @@ class SqliteStatement {
 
  private:
   sqlite3* database_;
-  sqlite3_stmt* statement_;
-  int parameter_;
-  int column_;
-  bool got_data_;
+  sqlite3_stmt* statement_ = nullptr;
+  int parameter_ = 0;
+  int column_ = 0;
+  bool got_data_ = false;
 };
 
 }  // namespace security::bindiff
