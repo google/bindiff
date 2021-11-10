@@ -17,6 +17,7 @@
 
 #include <fstream>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/writer.h"
 
 namespace security::binexport {
@@ -26,9 +27,9 @@ class StatisticsWriter : public Writer {
   explicit StatisticsWriter(std::ostream& stream);
   explicit StatisticsWriter(const std::string& filename);
 
-  void GenerateStatistics(const CallGraph& call_graph,
-                          const FlowGraph& flow_graph,
-                          std::map<std::string, size_t>* statistics) const;
+  void GenerateStatistics(
+      const CallGraph& call_graph, const FlowGraph& flow_graph,
+      absl::flat_hash_map<std::string, size_t>* statistics) const;
 
   absl::Status Write(const CallGraph& call_graph, const FlowGraph& flow_graph,
                      const Instructions&, const AddressReferences&,

@@ -15,9 +15,9 @@
 #include "third_party/zynamics/binexport/statistics_writer.h"
 
 #include <iomanip>
-#include <map>
 #include <string>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 
@@ -30,8 +30,8 @@ StatisticsWriter::StatisticsWriter(const std::string& filename)
 
 void StatisticsWriter::GenerateStatistics(
     const CallGraph& call_graph, const FlowGraph& flow_graph,
-    std::map<std::string, size_t>* statistics_ptr) const {
-  std::map<std::string, size_t>& statistics = *statistics_ptr;
+    absl::flat_hash_map<std::string, size_t>* statistics_ptr) const {
+  absl::flat_hash_map<std::string, size_t>& statistics = *statistics_ptr;
   statistics.clear();
   const Functions& functions = flow_graph.GetFunctions();
   statistics["callgraph nodes (functions)"] = functions.size();
@@ -96,7 +96,7 @@ absl::Status StatisticsWriter::Write(const CallGraph& call_graph,
                                      const Instructions&,
                                      const AddressReferences&,
                                      const AddressSpace&) {
-  std::map<std::string, size_t> statistics;
+  absl::flat_hash_map<std::string, size_t> statistics;
   GenerateStatistics(call_graph, flow_graph, &statistics);
   for (const auto& entry : statistics) {
     const std::string padding(32 - entry.first.size(), '.');
