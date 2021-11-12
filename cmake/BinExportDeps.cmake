@@ -25,7 +25,7 @@ include(FetchContent)
 # Googletest
 FetchContent_Declare(googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        b1fbd33c06cdb0024c67733c6fdec2009d17b384 # 2020-11-24
+  GIT_TAG        9ca071b6e55568dff6960bebe1a5cfaa180fb3ce # 2021-11-10
 )
 FetchContent_MakeAvailable(googletest)
 binexport_check_target(gtest)
@@ -35,7 +35,7 @@ binexport_check_target(gmock)
 # Abseil
 FetchContent_Declare(absl
   GIT_REPOSITORY https://github.com/abseil/abseil-cpp
-  GIT_TAG        592924480acf034aec0454160492a20bccdbdf3e # 2020-12-01
+  GIT_TAG        f2dbd918d8d08529800eb72f23bd2829f92104a4 # 2021-11-11
 )
 set(ABSL_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "" FORCE)
 set(ABSL_USE_EXTERNAL_GOOGLETEST ON CACHE BOOL "" FORCE)
@@ -45,7 +45,7 @@ binexport_check_target(absl::core_headers)
 # Protocol Buffers
 FetchContent_Declare(protobuf
   GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-  GIT_TAG        e8906e4ecd9e75f7c438afc317c99f82441c138a # 2020-12-02
+  GIT_TAG        47e05427e3341c9b18fff047e7d9f79af0dafe9b # 2021-11-11
   GIT_SUBMODULES "cmake" # Workaround for CMake #20579
   SOURCE_SUBDIR  cmake
 )
@@ -64,11 +64,11 @@ if(BINEXPORT_ENABLE_BINARYNINJA)
   if(BINEXPORT_BINARYNINJA_CHANNEL STREQUAL "stable")
     set(_binexport_binaryninjacore_suffix "_stable")
     set(_binexport_binaryninja_git_tag
-        "d5e3e8b3141fc742b0004a7c9549b28a33db18d0") # 2021-02-24
+        "8b5e9d9f10e9e78a3093e41bf0a03073fcbfb1f8") # 2021-06-03
   else()
     set(_binexport_binaryninjacore_suffix "")
     set(_binexport_binaryninja_git_tag
-        "a39ee992ab54eddb4ce06c41e8d552e55bf4e0b2") # 2021-04-08
+        "fb0924a21fcc43f716524d172c7f64249d0e77fd") # 2021-11-12
   endif()
   FetchContent_Declare(binaryninjaapi
     GIT_REPOSITORY https://github.com/Vector35/binaryninja-api.git
