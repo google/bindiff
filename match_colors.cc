@@ -20,6 +20,7 @@
 #include <limits>
 
 #include "third_party/absl/strings/ascii.h"
+#include "third_party/absl/strings/numbers.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/strip.h"
@@ -29,16 +30,12 @@
 namespace security::bindiff {
 
 // Parses a hex color triplet in value into a number.
-absl::optional<int64_t> HexColorToInt(absl::string_view value) {
-  const std::string color_string(
-      absl::StripPrefix(absl::StripAsciiWhitespace(value), "#"));
-  if (color_string.size() != 6) {
+absl::optional<int32_t> HexColorToInt(absl::string_view value) {
+  uint32_t v;
+  if (!absl::SimpleHexAtoi(value, &v)) {
     return absl::nullopt;
   }
-  errno = 0;
-  uint64_t v = std::strtoul(  // NOLINT(runtime/deprecated_fn)
-      color_string.c_str(), nullptr, 16);
-  if (errno == ERANGE) {
+  if (v > 0xFFFFFF /* 16M colors */) {
     return absl::nullopt;
   }
   return v;
