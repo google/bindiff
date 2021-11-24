@@ -131,31 +131,36 @@ The BinExport plugin registers the IDC functions below.
 
 | IDC Function name   | Exports to           | Arguments  |
 | ------------------- | -------------------- | ---------- |
-| BinExportDiff       | Protocol Buffer      | filename   |
+| BinExportBinary     | Protocol Buffer      | filename   |
 | BinExportText       | Text file dump       | filename   |
 | BinExportStatistics | Statistics text file | filename   |
 
-*Deprecated*: BinExport also supports exporting to a database via the
-`RunPlugin()` IDC function:
+Alternatively, the plugin can be invoked from IDC by calling its main function
+directly:
 
 ```c
 static main() {
   batch(0);
   auto_wait();
-  load_and_run_plugin("binexport12_ida", 1);
+  load_and_run_plugin("binexport12_ida", 2 /* kBinary */);
   qexit(0);
 }
 ```
 
+Note that this does provide any control over the output filename. BinExport
+will always use the filename of the currently loaded database (without
+extension) and append ".BinExport".
+
 #### IDAPython
 
-The option flags are the same as IDC (listed above).
+The arguments are the same as for IDC (listed above).
+
+Example invocation of one of the registered IDC functions:
 
 ```python
 import idaapi
-idc_lang = idaapi.find_extlang_by_name("idc")
-idaapi.run_statements(
-    'BinExportDiff("{}")'.format("exported.BinExport"), idc_lang)
+idaapi.ida_expr.eval_idc_expr(None, ida_idaapi.BADADDR,
+  'BinExportBinary("exported.BinExport");')
 ```
 
 #### Plugin Options
