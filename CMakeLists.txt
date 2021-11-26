@@ -67,6 +67,9 @@ else()
   set(REVISION internal)
 endif()
 
+# Plugin names for IDA Pro
+set(bindiff_ida_plugin_name bindiff${bindiff_VERSION_MAJOR}_ida)
+
 # Interface library with include paths used by BinDiff
 add_library(bindiff_base INTERFACE)
 target_include_directories(bindiff_base INTERFACE

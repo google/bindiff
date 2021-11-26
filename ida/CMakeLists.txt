@@ -20,8 +20,7 @@ endif()
 
 # Plugins will be named "bindiffX_ida.so" and "bindiffX_ida64.so" (or .dll or
 # .dylib), where X is the release number.
-set(bindiff_plugin_name bindiff${PROJECT_VERSION_MAJOR}_ida)
-add_ida_plugin(${bindiff_plugin_name}
+add_ida_plugin(${bindiff_ida_plugin_name}
   bindiff_icon.cc
   bindiff_icon.h
   main_plugin.cc
@@ -39,7 +38,7 @@ add_ida_plugin(${bindiff_plugin_name}
   visual_diff.cc
   visual_diff.h
 )
-ida_target_link_libraries(${bindiff_plugin_name}
+ida_target_link_libraries(${bindiff_ida_plugin_name}
   binexport_core
   binexport_plugin_shared
   bindiff_base
@@ -48,15 +47,20 @@ ida_target_link_libraries(${bindiff_plugin_name}
   absl::time
 )
 if(WIN32)
-  ida_target_link_libraries(${bindiff_plugin_name}
+  ida_target_link_libraries(${bindiff_ida_plugin_name}
+    delayimp.lib  # Helper for /DELAYLOAD
     ws2_32.lib
   )
+  # See b/206656063 for context
+  set_ida_target_properties(${bindiff_ida_plugin_name} PROPERTIES
+    LINK_FLAGS /DELAYLOAD:dbghelp.dll
+  )
 endif()
-set_ida_target_properties(${bindiff_plugin_name} PROPERTIES
+set_ida_target_properties(${bindiff_ida_plugin_name} PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
 )
-ida_install(TARGETS ${bindiff_plugin_name}
+ida_install(TARGETS ${bindiff_ida_plugin_name}
             ARCHIVE DESTINATION bindiff-prefix
             RUNTIME DESTINATION bindiff-prefix
             LIBRARY DESTINATION bindiff-prefix)
