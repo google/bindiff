@@ -50,13 +50,6 @@ add_ida_plugin(${binexport_ida_plugin_name}
   ppc.cc
   ppc.h
 )
-if(WIN32)
-  list(APPEND binexport_libraries crypt32.lib
-                                  secur32.lib
-                                  shlwapi.lib
-                                  ws2_32.lib
-                                  wldap32.lib)
-endif()
 ida_target_link_libraries(${binexport_ida_plugin_name}
   absl::bad_optional_access
   absl::flat_hash_map
@@ -69,10 +62,23 @@ ida_target_link_libraries(${binexport_ida_plugin_name}
   absl::time
   binexport_core
   binexport_plugin_shared
-  ${binexport_libraries}
 )
-set_ida_target_properties(${binexport_ida_plugin_name}
-  PROPERTIES POSITION_INDEPENDENT_CODE ON
+if(WIN32)
+  ida_target_link_libraries(${binexport_ida_plugin_name}
+    crypt32.lib
+    delayimp.lib  # Helper for /DELAYLOAD
+    secur32.lib
+    shlwapi.lib
+    ws2_32.lib
+    wldap32.lib
+  )
+  # See b/206656063 for context
+  set_ida_target_properties(${binexport_ida_plugin_name} PROPERTIES
+    LINK_FLAGS /DELAYLOAD:dbghelp.dll
+  )
+endif()
+set_ida_target_properties(${binexport_ida_plugin_name} PROPERTIES
+  POSITION_INDEPENDENT_CODE ON
 )
 ida_install(TARGETS ${binexport_ida_plugin_name}
             ARCHIVE DESTINATION binexport-prefix
