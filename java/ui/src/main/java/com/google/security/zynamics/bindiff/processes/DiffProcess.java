@@ -119,6 +119,7 @@ public class DiffProcess {
     try {
       processBuilder.redirectErrorStream(true);
       logger.atFinest().log(
+          "%s",
           processBuilder.command().stream()
               .map(s -> (!s.contains(" ") ? s : "\"" + s + "\""))
               .collect(joining(" ")));

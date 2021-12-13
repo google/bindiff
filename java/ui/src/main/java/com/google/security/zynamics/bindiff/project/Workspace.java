@@ -49,7 +49,7 @@ public final class Workspace {
     //noinspection EmptyTryBlock
     try (final CommentsDatabase database = new CommentsDatabase(this, true)) {
     } catch (final SQLException e) {
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
     }
   }
@@ -114,7 +114,7 @@ public final class Workspace {
     try {
       addDiff(diff);
     } catch (final SQLException e) {
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
     }
 

@@ -254,7 +254,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
             graphs, oldPriUnmatchedCombinedDiffNode, oldSecUnmatchedCombinedDiffNode);
         setMatchesChanged(true);
       } catch (final GraphLayoutException e) {
-        logger.atSevere().withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log("%s", e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       }
     }
@@ -681,11 +681,11 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
           setMatchesChanged(true);
         }
       } catch (final GraphLayoutException e) {
-        logger.atSevere().withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log("%s", e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       } catch (final Exception e) {
         // TODO(cblichmann): Never catch all exceptions!
-        logger.atSevere().withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log("%s", e.getMessage());
         CMessageBox.showError(viewTabPanel, e.getMessage());
       }
     }

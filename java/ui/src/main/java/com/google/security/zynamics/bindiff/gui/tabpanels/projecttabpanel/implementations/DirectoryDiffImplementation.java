@@ -170,7 +170,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         File idaExe = ExternalAppUtils.getIdaExe(primarySourceFile);
         if (idaExe == null || !idaExe.canExecute()) {
           var msg = "Can't start disassembler. Please set correct path in the main settings first.";
-          logger.atSevere().log(msg);
+          logger.atSevere().log("%s", msg);
           CMessageBox.showError(parentWindow, msg);
 
           deleteDestinationDirectory(destinationFolder);
@@ -204,7 +204,7 @@ public class DirectoryDiffImplementation extends CEndlessHelperThread {
         File idaExe = ExternalAppUtils.getIdaExe(secondarySourceFile);
         if (idaExe == null || !idaExe.canExecute()) {
           var msg = "Can't start disassembler. Please set correct path in the main settings first.";
-          logger.atSevere().log(msg);
+          logger.atSevere().log("%s", msg);
           CMessageBox.showError(parentWindow, msg);
 
           return matchesPaths;

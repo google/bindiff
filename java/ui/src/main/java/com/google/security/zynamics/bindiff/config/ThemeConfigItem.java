@@ -106,7 +106,7 @@ public class ThemeConfigItem {
           final FieldDescriptor fd = THEME_DESCRIPTOR.findFieldByName(k);
           final String color = (String) theme.getField(fd);
           if (color.isEmpty()) {
-            logger.atInfo().log(k);
+            logger.atInfo().log("%s", k);
             return Color.decode((String) DEFAULT_THEME.getField(fd));
           }
           try {

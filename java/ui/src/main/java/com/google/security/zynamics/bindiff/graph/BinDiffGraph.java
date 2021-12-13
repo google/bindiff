@@ -117,7 +117,7 @@ public abstract class BinDiffGraph<
       LayoutFunctions.recalculatePorts(layouter, getGraph());
     } catch (final AlgorithmAbortedException e) {
       // Do nothing, user has canceled layout thread
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
     } catch (final Exception e) {
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }
@@ -141,7 +141,7 @@ public abstract class BinDiffGraph<
       LayoutFunctions.recalculatePorts(layouter, getGraph());
     } catch (final AlgorithmAbortedException e) {
       // Do nothing, user has canceled layout thread
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
     } catch (final Exception e) {
       throw new GraphLayoutException(e, "Could not calculate graph layout.");
     }

@@ -326,7 +326,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
       String errorMsg = loader.getErrorMessage();
       if (!"".equals(errorMsg)) {
-        logger.atSevere().log(errorMsg);
+        logger.atSevere().log("%s", errorMsg);
         CMessageBox.showError(getMainWindow(), errorMsg);
       } else {
         getWorkspace().saveWorkspace();
@@ -381,7 +381,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     if (!workspaceDir.exists()) {
       String msg = "Load workspace failed. Workspace folder does not exist.";
-      logger.atSevere().log(msg);
+      logger.atSevere().log("%s", msg);
       CMessageBox.showError(getMainWindow(), msg);
       return;
     }
@@ -647,7 +647,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     Exception e = progressDialog.getException();
     if (e != null) {
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -676,7 +676,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
 
     Exception e = progressDialog.getException();
     if (e != null) {
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
       CMessageBox.showError(getMainWindow(), e.getMessage());
     }
   }
@@ -710,7 +710,7 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
             String.format("New single Diff '%s'", destinationFile.getName()),
             newDiffThread);
       } catch (Exception e) {
-        logger.atSevere().withCause(e).log(e.getMessage());
+        logger.atSevere().withCause(e).log("%s", e.getMessage());
         CMessageBox.showError(getMainWindow(), "Unknown error while diffing.");
       }
     }

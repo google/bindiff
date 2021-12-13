@@ -129,7 +129,7 @@ public class NewDiffImplementation extends CEndlessHelperThread {
     File idaExe = ExternalAppUtils.getIdaExe(primaryIdbFile);
     if (idaExe == null || !idaExe.canExecute()) {
       var msg = "Cannot start disassembler. Please set the correct path in main settings first.";
-      logger.atSevere().log(msg);
+      logger.atSevere().log("%s", msg);
       CMessageBox.showError(parentWindow, msg);
       return false;
     }
@@ -138,7 +138,7 @@ public class NewDiffImplementation extends CEndlessHelperThread {
       ExportProcess.startExportProcess(idaExe, destinationDirectory, idbFile, targetName);
       return true;
     } catch (BinExportException e) {
-      logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
       CMessageBox.showError(parentWindow, e.getMessage());
       deleteDestinationDirectory(destinationDirectory);
       return false;
@@ -155,7 +155,7 @@ public class NewDiffImplementation extends CEndlessHelperThread {
       return targetBinExport;
     } catch (IOException e) {
       var message = "Couldn't copy primary BinExport binaries into the new diff directory";
-      logger.atSevere().withCause(e).log(message);
+      logger.atSevere().withCause(e).log("%s", message);
       CMessageBox.showError(parentWindow, message + ": " + e.getMessage());
 
       deleteDestinationDirectory(destinationDirectory);
@@ -241,7 +241,7 @@ public class NewDiffImplementation extends CEndlessHelperThread {
         logger.atInfo().log("- Diffing done successfully");
         return diffBinaryPath;
     } catch (DifferException | FileNotFoundException | RuntimeException e) {
-        logger.atSevere().withCause(e).log(e.getMessage());
+      logger.atSevere().withCause(e).log("%s", e.getMessage());
         CMessageBox.showError(parentWindow, e.getMessage());
       }
       return null;

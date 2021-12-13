@@ -91,7 +91,7 @@ public final class SocketServer {
 
   private void handleError(final Exception e, final String msg) {
     CMessageBox.showError(controller.getMainWindow(), msg);
-    logger.atSevere().withCause(e).log(msg);
+    logger.atSevere().withCause(e).log("%s", msg);
   }
 
   public void startListening() throws IOException {

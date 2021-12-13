@@ -109,7 +109,7 @@ public class FunctionDiffViewSaver extends CEndlessHelperThread {
     if (!"".equals(errorMsg)) {
       errorMsg = errorMsg.substring(0, errorMsg.length() - 2);
 
-      logger.atWarning().log(errorMsg);
+      logger.atWarning().log("%s", errorMsg);
       MessageBox.showWarning(parent, errorMsg);
     }
   }
