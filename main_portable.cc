@@ -77,7 +77,8 @@ ABSL_FLAG(std::string, output_dir, "",
           "output path, defaults to current directory");
 ABSL_FLAG(std::vector<std::string>, output_format, {"bin"},
           "comma-separated list of output formats: log (text file), bin[ary] "
-          "(BinDiff database loadable by the disassembler plugins)");
+          "(BinDiff database loadable by the disassembler plugins). An empty "
+          "value or using 'none' will disable writing to disk completely.");
 ABSL_FLAG(bool, md_index, false, "dump MD indices (will not diff anything)");
 ABSL_FLAG(bool, export, false,
           "batch export .idb files from input directory to BinExport format");
@@ -85,7 +86,7 @@ ABSL_FLAG(bool, ls, false,
           "list hash/filenames for all .BinExport files in input directory");
 ABSL_FLAG(std::string, config, "", "specify config file name");
 ABSL_FLAG(bool, print_config, false,
-          "Print parsed configuration to stdout and exit");
+          "print parsed configuration to stdout and exit");
 
 namespace security::bindiff {
 
@@ -265,7 +266,6 @@ void DifferThread::operator()() {
       Confidences confidences;
       const double confidence = GetConfidence(histogram, &confidences);
 
-      PrintMessage("Writing results");
       {
         ChainWriter writer;
         if (g_output_log) {
@@ -273,7 +273,7 @@ void DifferThread::operator()() {
               out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
               call_graph2.GetFilename(), ".results")));
         }
-        if (g_output_binary || writer.IsEmpty()) {
+        if (g_output_binary) {
           writer.Add(absl::make_unique<DatabaseWriter>(
               GetTruncatedFilename(out_path_ + kPathSeparator,
                                    call_graph1.GetFilename(), "_vs_",
@@ -282,8 +282,11 @@ void DifferThread::operator()() {
                   !config::Proto().binary_format().exclude_function_names())));
         }
 
-        writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                     fixed_points);
+        if (!writer.IsEmpty()) {
+          PrintMessage("Writing results");
+          writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                       fixed_points);
+        }
 
         std::string result_message = absl::StrCat(
             file1, " vs ", file2, " (", HumanReadableDuration(timer.elapsed()),
@@ -586,6 +589,11 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
       g_output_binary = true;
     } else if (format == "LOG") {
       g_output_log = true;
+    } else if (format == "NONE") {
+      if (absl::GetFlag(FLAGS_output_format).size() != 1) {
+        return absl::InvalidArgumentError(absl::StrCat(
+            "If specified, '", entry, "' needs to be the only output format"));
+      }
     } else {
       return absl::InvalidArgumentError(
           absl::StrCat("Invalid output format: ", entry));
@@ -730,7 +738,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
             ".results")));
       }
-      if (g_output_binary || writer.IsEmpty()) {
+      if (g_output_binary) {
         writer.Add(absl::make_unique<DatabaseWriter>(GetTruncatedFilename(
             absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
