@@ -48,7 +48,13 @@ class EntryPoint {
     GOLANG_TYPE_INFO,
   };
 
-  EntryPoint(Address address, EntryPoint::Source source);
+  static constexpr int kFlagsNone = 0;
+  // Used to indicate that the disassembler should probe for the code type
+  // (where this is appropriate to do so i.e. ARM, otherwise ignore it).
+  static constexpr int kFlagsProbeCodeType = 1 << 0;
+
+  EntryPoint(Address address, EntryPoint::Source source,
+             const int flags = kFlagsNone);
 
   std::string SourceToString() const;
 
@@ -68,6 +74,7 @@ class EntryPoint {
 
   Address address_;
   EntryPoint::Source source_;
+  int flags_;
 };
 
 bool operator<(const EntryPoint& lhs, const EntryPoint& rhs);
@@ -97,7 +104,8 @@ class EntryPointManager {
 
   ~EntryPointManager();
 
-  void Add(Address address, EntryPoint::Source source);
+  void Add(Address address, EntryPoint::Source source,
+           const int flags = EntryPoint::kFlagsNone);
 
   EntryPoints* entry_points() { return entry_points_; }
 

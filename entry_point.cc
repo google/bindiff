@@ -16,8 +16,9 @@
 
 #include "base/logging.h"
 
-EntryPoint::EntryPoint(Address address, EntryPoint::Source source)
-    : address_(address), source_(source) {}
+EntryPoint::EntryPoint(Address address, EntryPoint::Source source,
+                       const int flags)
+    : address_(address), source_(source), flags_(flags) {}
 
 bool operator<(const EntryPoint& lhs, const EntryPoint& rhs) {
   return lhs.address_ < rhs.address_;
@@ -75,8 +76,9 @@ EntryPointManager::~EntryPointManager() {
   LOG(INFO) << "Added " << count_ << " entry points from " << name_;
 }
 
-void EntryPointManager::Add(Address address, EntryPoint::Source source) {
-  entry_points_->emplace_back(address, source);
+void EntryPointManager::Add(Address address, EntryPoint::Source source,
+                            const int flags) {
+  entry_points_->emplace_back(address, source, flags);
   ++count_;
   if (parent_) {
     ++parent_->count_;
