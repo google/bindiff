@@ -50,7 +50,7 @@ class EntryPoint {
 
   EntryPoint(Address address, EntryPoint::Source source);
 
-  std::string SourceToString();
+  std::string SourceToString() const;
 
   bool IsFunctionPrologue() const {
     return source_ == Source::FUNCTION_PROLOGUE ||

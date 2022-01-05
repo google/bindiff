@@ -27,7 +27,7 @@ bool operator==(const EntryPoint& lhs, const EntryPoint& rhs) {
   return lhs.address_ == rhs.address_;
 }
 
-std::string EntryPoint::SourceToString() {
+std::string EntryPoint::SourceToString() const {
   switch (source_) {
     case Source::CODE_FLOW:
       return "CODE_FLOW";
