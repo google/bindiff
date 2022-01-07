@@ -9,7 +9,7 @@ Package: bindiff
 Architecture: amd64
 Pre-Depends: debconf
 Depends: fonts-roboto, xdg-utils, ${shlibs:Depends}, ${misc:Depends}
-Description: zynamics BinDiff
+Description: Find differences and similarities in disassembled code
  BinDiff is a comparison tool for binary files that helps to quickly find
  differences and similarities in disassembled code. It is used by
  security researchers and engineers across the globe to identify and

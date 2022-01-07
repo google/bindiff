@@ -1,9 +1,9 @@
 files/etc/opt/bindiff/bindiff.json etc/opt/bindiff
 files/opt/bindiff/LICENSE opt/bindiff
 files/opt/bindiff/bin/bindiff opt/bindiff/bin
-files/opt/bindiff/bin/bindiff-256x256-rgba.png opt/bindiff/bin
 files/opt/bindiff/bin/bindiff.jar opt/bindiff/bin
 files/opt/bindiff/bin/binexport2dump opt/bindiff/bin
+files/opt/bindiff/extra/config/bindiff_config.proto opt/bindiff/extra/config
 files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra
 files/opt/bindiff/libexec/bindiff_config_setup opt/bindiff/libexec
@@ -26,3 +26,4 @@ files/usr/share/fonts/truetype/robotomono/RobotoMono-MediumItalic.ttf usr/share/
 files/usr/share/fonts/truetype/robotomono/RobotoMono-Regular.ttf usr/share/fonts/truetype/robotomono
 files/usr/share/fonts/truetype/robotomono/RobotoMono-Thin.ttf usr/share/fonts/truetype/robotomono
 files/usr/share/fonts/truetype/robotomono/RobotoMono-ThinItalic.ttf usr/share/fonts/truetype/robotomono
+files/usr/share/icons/hicolor/256x256/apps/com-google-security-zynamics-bindiff.png usr/share/icons/hicolor/256x256/apps
