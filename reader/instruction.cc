@@ -17,7 +17,7 @@
 namespace security::binexport {
 
 Instruction::Instruction(Address address, const std::string& mnemonic)
-    : address_(address), mnemonic_(mnemonic) {}
+    : address_(address), mnemonic_(mnemonic), index_(0) {}
 
 void Instruction::set_operands(const std::vector<int>& operand_indices) {
   operand_indices_ = operand_indices;
