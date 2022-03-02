@@ -187,7 +187,6 @@ absl::Status PerUserSetup(const Config& config) {
   constexpr absl::string_view kBinDiffBinaryNinjaPluginsPrefix =
       "plugins/binaryninja";
 
-  constexpr absl::string_view kIdaPro = "idapro";
   constexpr absl::string_view kBinDiffIdaProPluginsPrefix = "plugins/idapro";
 #endif
 
