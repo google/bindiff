@@ -47,7 +47,8 @@ case "$1" in
     fi
 
     if [ -d /run/systemd/system ]; then
-      deb-systemd-invoke --global enable bindiff-plugins.service
+      # Note: deb-systemd-invoke does not know about --global
+      systemctl --global enable bindiff-plugins.service
     fi
 
     echo ""

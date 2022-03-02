@@ -24,7 +24,8 @@ case "$1" in
     xdg-desktop-menu forceupdate --mode system
 
     if [ -d /run/systemd/system ]; then
-      deb-systemd-invoke --global disable bindiff-plugins.service
+      # Note: deb-systemd-invoke does not know about --global
+      systemctl --global disable bindiff-plugins.service
       systemctl --system daemon-reload >/dev/null || true
     fi
   ;;
