@@ -48,6 +48,7 @@
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/match.h"
+#include "third_party/absl/strings/numbers.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/time.h"
@@ -567,27 +568,44 @@ bool DoPortComments() {
       "  <Start address (target):$::16::>\n"
       "  <End address (target):$::16::>\n\n"
       "Minimum confidence required (default: none)\n\n"
-      "  <confidence:A::16::>\n\n"
+      "  <confidence:q::16::>\n\n"
       "Minimum similarity required (default: none)\n\n"
-      "  <similarity:A::16::>\n\n";
+      "  <similarity:q::16::>\n\n";
 
   // Default to full address range.
   ea_t start_address_source = 0;
   ea_t end_address_source = std::numeric_limits<ea_t>::max() - 1;
   ea_t start_address_target = 0;
   ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
-  char buffer1[MAXSTR]{0};
-  buffer1[0] = '0';
-  char buffer2[MAXSTR]{0};
-  buffer2[0] = '0';
+  qstring min_confidence_str = "0.0";
+  qstring min_similarity_str = "0.0";
   if (!ask_form(kDialog, &start_address_source, &end_address_source,
-                &start_address_target, &end_address_target, buffer1, buffer2)) {
+                &start_address_target, &end_address_target, &min_confidence_str,
+                &min_similarity_str)) {
     return false;
   }
 
   Timer<> timer;
-  const double min_confidence = std::stod(buffer1);
-  const double min_similarity = std::stod(buffer2);
+  double min_confidence;
+  double min_similarity;
+
+  if (auto s = ToStringView(min_confidence_str);
+      !absl::SimpleAtod(s, &min_confidence)) {
+    const std::string message =
+        absl::StrCat("Error: Invalid value for minimum confidence: ", s);
+    warning("%s\n", message.c_str());
+    LOG(INFO) << message;
+    return false;
+  }
+  if (auto s = ToStringView(min_similarity_str);
+      !absl::SimpleAtod(s, &min_similarity)) {
+    const std::string message =
+        absl::StrCat("Error: Invalid value for minimum similarity: ", s);
+    warning("%s\n", message.c_str());
+    LOG(INFO) << message;
+    return false;
+  }
+
   absl::Status status = Plugin::instance()->results()->PortComments(
       start_address_source, end_address_source, start_address_target,
       end_address_target, min_confidence, min_similarity);

@@ -34,6 +34,6 @@ ABSL_CONST_INIT const char* kBinDiffDetailedVersion =
     ")";
 
 ABSL_CONST_INIT const char* kBinDiffCopyright =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2021 Google LLC.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2022 Google LLC.";
 
 }  // namespace security::bindiff
