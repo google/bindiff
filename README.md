@@ -1,6 +1,6 @@
 # BinExport
 
-Copyright 2011-2021 Google LLC.
+Copyright 2011-2022 Google LLC.
 
 [![Linux Build Status](https://github.com/google/binexport/workflows/linux-build/badge.svg)](https://github.com/google/binexport/actions?query=workflow%3Alinux-build)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/8977/badge.svg)](https://scan.coverity.com/projects/google-binexport)
@@ -86,7 +86,7 @@ plugins directory. These are the default paths for the current user:
 3.  If installed correctly, the log window contains a line similar to this one:
 
 ```
-BinExport 12 (@internal, Mar 12 2021), (c)2004-2011 zynamics GmbH, (c)2011-2021 Google LLC.
+BinExport 12 (@internal, Mar 12 2021), (c)2004-2011 zynamics GmbH, (c)2011-2022 Google LLC.
 ```
 
 ### Ghidra
