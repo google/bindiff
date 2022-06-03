@@ -25,7 +25,10 @@ set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")  # GCC
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")  # Clang or Apple Clang
-  add_compile_options(-Wno-nullability-completeness)
+  add_compile_options(
+    -Wno-nullability-completeness
+    -Wno-invalid-noreturn
+  )
 elseif(MSVC)  # Visual Studio
   add_compile_options(
     /wd4018  # signed/unsigned mismatch
@@ -54,6 +57,16 @@ if(UNIX)
   if(APPLE)
     add_compile_options(-gfull)
     add_link_options(-dead_strip)
+
+    # Suppress ranlib warnings "file has no symbols"
+    set(CMAKE_C_ARCHIVE_CREATE
+        "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_CXX_ARCHIVE_CREATE
+        "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+    set(CMAKE_C_ARCHIVE_FINISH
+        "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+    set(CMAKE_CXX_ARCHIVE_FINISH
+        "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
   else()
    add_compile_options(
      -ffunction-sections

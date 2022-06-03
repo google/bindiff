@@ -25,7 +25,7 @@ include(FetchContent)
 # Googletest
 FetchContent_Declare(googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        9ca071b6e55568dff6960bebe1a5cfaa180fb3ce # 2021-11-10
+  GIT_TAG        0320f517fd920866d918e564105d68fd4362040a # 2022-06-01
 )
 FetchContent_MakeAvailable(googletest)
 binexport_check_target(gtest)
@@ -35,9 +35,10 @@ binexport_check_target(gmock)
 # Abseil
 FetchContent_Declare(absl
   GIT_REPOSITORY https://github.com/abseil/abseil-cpp
-  GIT_TAG        f2dbd918d8d08529800eb72f23bd2829f92104a4 # 2021-11-11
+  GIT_TAG        fa5d5f4c262ce3d42bfe35439913162aef45ee23 # 2022-06-02
 )
 set(ABSL_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "" FORCE)
+set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
 set(ABSL_USE_EXTERNAL_GOOGLETEST ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(absl)
 binexport_check_target(absl::core_headers)
@@ -45,9 +46,7 @@ binexport_check_target(absl::core_headers)
 # Protocol Buffers
 FetchContent_Declare(protobuf
   GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-  GIT_TAG        47e05427e3341c9b18fff047e7d9f79af0dafe9b # 2021-11-11
-  GIT_SUBMODULES "cmake" # Workaround for CMake #20579
-  SOURCE_SUBDIR  cmake
+  GIT_TAG        v21.1 # 2022-05-28
 )
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
