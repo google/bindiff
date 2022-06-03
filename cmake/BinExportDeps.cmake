@@ -63,11 +63,11 @@ if(BINEXPORT_ENABLE_BINARYNINJA)
   if(BINEXPORT_BINARYNINJA_CHANNEL STREQUAL "stable")
     set(_binexport_binaryninjacore_suffix "_stable")
     set(_binexport_binaryninja_git_tag
-        "8b5e9d9f10e9e78a3093e41bf0a03073fcbfb1f8") # 2021-06-03
+        "14905bd51979f4f55dfe3e0b299d9a33d9343ef6") # 2022-05-26
   else()
     set(_binexport_binaryninjacore_suffix "")
     set(_binexport_binaryninja_git_tag
-        "fb0924a21fcc43f716524d172c7f64249d0e77fd") # 2021-11-12
+        "4bb510c2e4456606e03acfc6970bf8697156769e") # 2022-06-02
   endif()
   FetchContent_Declare(binaryninjaapi
     GIT_REPOSITORY https://github.com/Vector35/binaryninja-api.git
@@ -87,7 +87,8 @@ if(BINEXPORT_ENABLE_BINARYNINJA)
   target_include_directories(binaryninjacore PRIVATE
     "${binaryninjaapi_SOURCE_DIR}"
   )
-  set(BN_CORE_LIBRARY binaryninjacore)
+  set(CORE_LIBRARY binaryninjacore)
+  set(BN_CORE_LIBRARY "${CORE_LIBRARY}")
   set(HEADLESS TRUE)
   if(binaryninjaapi_POPULATED)
     add_subdirectory("${binaryninjaapi_SOURCE_DIR}" "${binaryninjaapi_BINARY_DIR}")

@@ -81,8 +81,12 @@ EOF
   # that builds BinExport.
   # Note that the script line below can be replaced with a small Clang
   # tool to make it more robust.
-  grep -v '^__attribute__' "${BINARYNINJA_API_SRC}/binaryninjacore.h" | \
-    sed 's,//.*$,,' | \
+  cat "${BINARYNINJA_API_SRC}/binaryninjacore.h" | \
+    sed '
+      /^[[:space:]]*__attribute__/d;
+      s,//.*$,,
+    ' | \
+    perl -pe 's/void\n/void/igs' | \
     clang-format --style='{BasedOnStyle: Google, Language: Cpp, ColumnLimit: 100000}' | \
     grep ^BINARYNINJACOREAPI | \
     sed '

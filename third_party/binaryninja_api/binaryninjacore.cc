@@ -46,6 +46,49 @@ BINARYNINJACOREAPI char* BNGetProductType(void) { return {}; }
 BINARYNINJACOREAPI int BNGetLicenseCount(void) { return {}; }
 BINARYNINJACOREAPI bool BNIsUIEnabled(void) { return {}; }
 BINARYNINJACOREAPI void BNSetLicense(const char* licenseData) {}
+BINARYNINJACOREAPI bool BNAuthenticateEnterpriseServerWithCredentials(
+    const char* username, const char* password, bool remember) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNAuthenticateEnterpriseServerWithMethod(
+    const char* method, bool remember) {
+  return {};
+}
+BINARYNINJACOREAPI size_t
+BNGetEnterpriseServerAuthenticationMethods(char*** methods, char*** names) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNDeauthenticateEnterpriseServer(void) { return {}; }
+BINARYNINJACOREAPI void BNCancelEnterpriseServerAuthentication(void) {}
+BINARYNINJACOREAPI bool BNConnectEnterpriseServer(void) { return {}; }
+BINARYNINJACOREAPI bool BNAcquireEnterpriseServerLicense(uint64_t timeout) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNReleaseEnterpriseServerLicense(void) { return {}; }
+BINARYNINJACOREAPI bool BNIsEnterpriseServerConnected(void) { return {}; }
+BINARYNINJACOREAPI bool BNIsEnterpriseServerAuthenticated(void) { return {}; }
+BINARYNINJACOREAPI char* BNGetEnterpriseServerUsername(void) { return {}; }
+BINARYNINJACOREAPI char* BNGetEnterpriseServerToken(void) { return {}; }
+BINARYNINJACOREAPI char* BNGetEnterpriseServerUrl(void) { return {}; }
+BINARYNINJACOREAPI bool BNSetEnterpriseServerUrl(const char* url) { return {}; }
+BINARYNINJACOREAPI char* BNGetEnterpriseServerName(void) { return {}; }
+BINARYNINJACOREAPI char* BNGetEnterpriseServerId(void) { return {}; }
+BINARYNINJACOREAPI uint64_t BNGetEnterpriseServerVersion(void) { return {}; }
+BINARYNINJACOREAPI char* BNGetEnterpriseServerBuildId(void) { return {}; }
+BINARYNINJACOREAPI uint64_t BNGetEnterpriseServerLicenseExpirationTime(void) {
+  return {};
+}
+BINARYNINJACOREAPI uint64_t BNGetEnterpriseServerLicenseDuration(void) {
+  return {};
+}
+BINARYNINJACOREAPI uint64_t BNGetEnterpriseServerReservationTimeLimit(void) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNIsEnterpriseServerLicenseStillActivated(void) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNGetEnterpriseServerLastError(void) { return {}; }
+BINARYNINJACOREAPI bool BNIsEnterpriseServerInitialized(void) { return {}; }
 BINARYNINJACOREAPI void BNRegisterObjectDestructionCallbacks(
     BNObjectDestructionCallbacks* callbacks) {}
 BINARYNINJACOREAPI void BNUnregisterObjectDestructionCallbacks(
@@ -84,13 +127,39 @@ BINARYNINJACOREAPI bool BNExecuteWorkerProcess(
 BINARYNINJACOREAPI void BNSetCurrentPluginLoadOrder(BNPluginLoadOrder order) {}
 BINARYNINJACOREAPI void BNAddRequiredPluginDependency(const char* name) {}
 BINARYNINJACOREAPI void BNAddOptionalPluginDependency(const char* name) {}
-BINARYNINJACOREAPI void BNLog(BNLogLevel level, const char* fmt, ...) {}
+BINARYNINJACOREAPI void BNLog(size_t session, BNLogLevel level,
+                              const char* logger_name, size_t tid,
+                              const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogDebug(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogInfo(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogWarn(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogError(const char* fmt, ...) {}
 BINARYNINJACOREAPI void BNLogAlert(const char* fmt, ...) {}
-BINARYNINJACOREAPI void BNLogString(BNLogLevel level, const char* str) {}
+BINARYNINJACOREAPI void BNLogString(size_t session, BNLogLevel level,
+                                    const char* logger_name, size_t tid,
+                                    const char* str) {}
+BINARYNINJACOREAPI BNLogger* BNNewLoggerReference(BNLogger* logger) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeLogger(BNLogger* logger) {}
+BINARYNINJACOREAPI void BNLoggerLog(BNLogger* logger, BNLogLevel level,
+                                    const char* fmt, ...) {}
+BINARYNINJACOREAPI void BNLoggerLogString(BNLogger* logger, BNLogLevel level,
+                                          const char* msg) {}
+BINARYNINJACOREAPI char* BNLoggerGetName(BNLogger* logger) { return {}; }
+BINARYNINJACOREAPI size_t BNLoggerGetSessionId(BNLogger* logger) { return {}; }
+BINARYNINJACOREAPI BNLogger* BNLogCreateLogger(const char* loggerName,
+                                               size_t sessionId) {
+  return {};
+}
+BINARYNINJACOREAPI BNLogger* BNLogGetLogger(const char* loggerName,
+                                            size_t sessionId) {
+  return {};
+}
+BINARYNINJACOREAPI char** BNLogGetLoggerNames(size_t* count) { return {}; }
+BINARYNINJACOREAPI void BNLogRegisterLoggerCallback(void (*cb)(const char* name,
+                                                               void* ctxt),
+                                                    void* ctxt) {}
 BINARYNINJACOREAPI void BNRegisterLogListener(BNLogListener* listener) {}
 BINARYNINJACOREAPI void BNUnregisterLogListener(BNLogListener* listener) {}
 BINARYNINJACOREAPI void BNUpdateLogListeners(void) {}
@@ -207,7 +276,7 @@ BINARYNINJACOREAPI bool BNCreateDatabase(BNBinaryView* data, const char* path,
 }
 BINARYNINJACOREAPI bool BNCreateDatabaseWithProgress(
     BNBinaryView* data, const char* path, void* ctxt,
-    void (*progress)(void* ctxt, size_t progress, size_t total),
+    bool (*progress)(void* ctxt, size_t progress, size_t total),
     BNSaveSettings* settings) {
   return {};
 }
@@ -217,7 +286,7 @@ BINARYNINJACOREAPI BNBinaryView* BNOpenExistingDatabase(BNFileMetadata* file,
 }
 BINARYNINJACOREAPI BNBinaryView* BNOpenExistingDatabaseWithProgress(
     BNFileMetadata* file, const char* path, void* ctxt,
-    void (*progress)(void* ctxt, size_t progress, size_t total)) {
+    bool (*progress)(void* ctxt, size_t progress, size_t total)) {
   return {};
 }
 BINARYNINJACOREAPI BNBinaryView* BNOpenDatabaseForConfiguration(
@@ -230,17 +299,17 @@ BINARYNINJACOREAPI bool BNSaveAutoSnapshot(BNBinaryView* data,
 }
 BINARYNINJACOREAPI bool BNSaveAutoSnapshotWithProgress(
     BNBinaryView* data, void* ctxt,
-    void (*progress)(void* ctxt, size_t progress, size_t total),
+    bool (*progress)(void* ctxt, size_t progress, size_t total),
     BNSaveSettings* settings) {
   return {};
 }
 BINARYNINJACOREAPI void BNGetSnapshotData(
     BNFileMetadata* file, BNKeyValueStore* data, BNKeyValueStore* cache,
-    void* ctxt, void (*progress)(void* ctxt, size_t current, size_t total)) {}
+    void* ctxt, bool (*progress)(void* ctxt, size_t current, size_t total)) {}
 BINARYNINJACOREAPI void BNApplySnapshotData(
     BNFileMetadata* file, BNBinaryView* view, BNKeyValueStore* data,
     BNKeyValueStore* cache, void* ctxt,
-    void (*progress)(void* ctxt, size_t current, size_t total),
+    bool (*progress)(void* ctxt, size_t current, size_t total),
     bool openForConfiguration, bool restoreRawView) {}
 BINARYNINJACOREAPI BNDatabase* BNGetFileMetadataDatabase(BNFileMetadata* file) {
   return {};
@@ -326,7 +395,11 @@ BINARYNINJACOREAPI BNSnapshot* BNGetDatabaseSnapshot(BNDatabase* database,
 BINARYNINJACOREAPI int64_t BNWriteDatabaseSnapshotData(
     BNDatabase* database, int64_t* parents, size_t parentCount,
     BNBinaryView* file, const char* name, BNKeyValueStore* data, bool autoSave,
-    void* ctxt, void (*progress)(void*, size_t, size_t)) {
+    void* ctxt, bool (*progress)(void*, size_t, size_t)) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNTrimDatabaseSnapshot(BNDatabase* database,
+                                               int64_t id) {
   return {};
 }
 BINARYNINJACOREAPI bool BNRemoveDatabaseSnapshot(BNDatabase* database,
@@ -395,6 +468,10 @@ BINARYNINJACOREAPI char* BNGetSnapshotName(BNSnapshot* snapshot) { return {}; }
 BINARYNINJACOREAPI bool BNIsSnapshotAutoSave(BNSnapshot* snapshot) {
   return {};
 }
+BINARYNINJACOREAPI bool BNSnapshotHasContents(BNSnapshot* snapshot) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNSnapshotHasUndo(BNSnapshot* snapshot) { return {}; }
 BINARYNINJACOREAPI BNDataBuffer* BNGetSnapshotFileContents(
     BNSnapshot* snapshot) {
   return {};
@@ -408,7 +485,7 @@ BINARYNINJACOREAPI BNKeyValueStore* BNReadSnapshotData(BNSnapshot* snapshot) {
 }
 BINARYNINJACOREAPI BNKeyValueStore* BNReadSnapshotDataWithProgress(
     BNSnapshot* snapshot, void* ctxt,
-    void (*progress)(void* ctxt, size_t progress, size_t total)) {
+    bool (*progress)(void* ctxt, size_t progress, size_t total)) {
   return {};
 }
 BINARYNINJACOREAPI BNUndoEntry* BNGetSnapshotUndoEntries(BNSnapshot* snapshot,
@@ -417,7 +494,7 @@ BINARYNINJACOREAPI BNUndoEntry* BNGetSnapshotUndoEntries(BNSnapshot* snapshot,
 }
 BINARYNINJACOREAPI BNUndoEntry* BNGetSnapshotUndoEntriesWithProgress(
     BNSnapshot* snapshot, void* ctxt,
-    void (*progress)(void* ctxt, size_t progress, size_t total),
+    bool (*progress)(void* ctxt, size_t progress, size_t total),
     size_t* count) {
   return {};
 }
@@ -430,12 +507,21 @@ BINARYNINJACOREAPI bool BNRebase(BNBinaryView* data, uint64_t address) {
 }
 BINARYNINJACOREAPI bool BNRebaseWithProgress(
     BNBinaryView* data, uint64_t address, void* ctxt,
-    void (*progress)(void* ctxt, size_t progress, size_t total)) {
+    bool (*progress)(void* ctxt, size_t progress, size_t total)) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNCreateSnapshotedView(BNBinaryView* data,
+                                               const char* viewName) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNCreateSnapshotedViewWithProgress(
+    BNBinaryView* data, const char* viewName, void* ctxt,
+    bool (*progress)(void* ctxt, size_t progress, size_t total)) {
   return {};
 }
 BINARYNINJACOREAPI BNMergeResult
 BNMergeUserAnalysis(BNFileMetadata* file, const char* name, void* ctxt,
-                    void (*progress)(void* ctxt, size_t progress, size_t total),
+                    bool (*progress)(void* ctxt, size_t progress, size_t total),
                     char** excludedHashes, size_t excludedHashesCount) {
   return {};
 }
@@ -482,6 +568,9 @@ BINARYNINJACOREAPI BNBinaryView* BNGetFileViewOfType(BNFileMetadata* file,
 }
 BINARYNINJACOREAPI char** BNGetExistingViews(BNFileMetadata* file,
                                              size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI size_t BNFileMetadataGetSessionId(BNFileMetadata* file) {
   return {};
 }
 BINARYNINJACOREAPI bool BNIsSnapshotDataAppliedWithoutError(
@@ -1091,6 +1180,9 @@ BINARYNINJACOREAPI BNArchitecture* BNRegisterArchitectureHook(
   return {};
 }
 BINARYNINJACOREAPI void BNFinalizeArchitectureHook(BNArchitecture* base) {}
+BINARYNINJACOREAPI BNArchitecture* BNGetNativeTypeParserArchitecture() {
+  return {};
+}
 BINARYNINJACOREAPI char* BNGetArchitectureName(BNArchitecture* arch) {
   return {};
 }
@@ -1505,6 +1597,9 @@ BINARYNINJACOREAPI BNSymbol* BNGetFunctionSymbol(BNFunction* func) {
 BINARYNINJACOREAPI bool BNWasFunctionAutomaticallyDiscovered(BNFunction* func) {
   return {};
 }
+BINARYNINJACOREAPI bool BNFunctionHasUserAnnotations(BNFunction* func) {
+  return {};
+}
 BINARYNINJACOREAPI BNBoolWithConfidence BNCanFunctionReturn(BNFunction* func) {
   return {};
 }
@@ -1613,12 +1708,28 @@ BINARYNINJACOREAPI BNMediumLevelILFunction*
 BNGetFunctionMediumLevelILIfAvailable(BNFunction* func) {
   return {};
 }
+BINARYNINJACOREAPI BNMediumLevelILFunction* BNGetFunctionMappedMediumLevelIL(
+    BNFunction* func) {
+  return {};
+}
+BINARYNINJACOREAPI BNMediumLevelILFunction*
+BNGetFunctionMappedMediumLevelILIfAvailable(BNFunction* func) {
+  return {};
+}
 BINARYNINJACOREAPI BNHighLevelILFunction* BNGetFunctionHighLevelIL(
     BNFunction* func) {
   return {};
 }
 BINARYNINJACOREAPI BNHighLevelILFunction* BNGetFunctionHighLevelILIfAvailable(
     BNFunction* func) {
+  return {};
+}
+BINARYNINJACOREAPI BNLanguageRepresentationFunction*
+BNGetFunctionLanguageRepresentation(BNFunction* func) {
+  return {};
+}
+BINARYNINJACOREAPI BNLanguageRepresentationFunction*
+BNGetFunctionLanguageRepresentationIfAvailable(BNFunction* func) {
   return {};
 }
 BINARYNINJACOREAPI BNRegisterValue BNGetRegisterValueAtInstruction(
@@ -1663,10 +1774,23 @@ BNGetStackVariablesReferencedByInstruction(BNFunction* func,
                                            size_t* count) {
   return {};
 }
+BINARYNINJACOREAPI BNStackVariableReference*
+BNGetStackVariablesReferencedByInstructionIfAvailable(BNFunction* func,
+                                                      BNArchitecture* arch,
+                                                      uint64_t addr,
+                                                      size_t* count) {
+  return {};
+}
 BINARYNINJACOREAPI void BNFreeStackVariableReferenceList(
     BNStackVariableReference* refs, size_t count) {}
 BINARYNINJACOREAPI BNConstantReference* BNGetConstantsReferencedByInstruction(
     BNFunction* func, BNArchitecture* arch, uint64_t addr, size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNConstantReference*
+BNGetConstantsReferencedByInstructionIfAvailable(BNFunction* func,
+                                                 BNArchitecture* arch,
+                                                 uint64_t addr, size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI void BNFreeConstantReferenceList(BNConstantReference* refs) {
@@ -2502,6 +2626,68 @@ BINARYNINJACOREAPI BNLinearViewObject* BNCreateLinearViewHighLevelILSSAForm(
     BNBinaryView* view, BNDisassemblySettings* settings) {
   return {};
 }
+BINARYNINJACOREAPI BNLinearViewObject* BNCreateLinearViewLanguageRepresentation(
+    BNBinaryView* view, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject* BNCreateLinearViewDataOnly(
+    BNBinaryView* view, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionDisassembly(BNFunction* func,
+                                            BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject* BNCreateLinearViewSingleFunctionLiftedIL(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionLowLevelIL(BNFunction* func,
+                                           BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionLowLevelILSSAForm(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionMediumLevelIL(BNFunction* func,
+                                              BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionMediumLevelILSSAForm(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionMappedMediumLevelIL(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionMappedMediumLevelILSSAForm(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionHighLevelIL(BNFunction* func,
+                                            BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionHighLevelILSSAForm(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNLinearViewObject*
+BNCreateLinearViewSingleFunctionLanguageRepresentation(
+    BNFunction* func, BNDisassemblySettings* settings) {
+  return {};
+}
 BINARYNINJACOREAPI BNLinearViewObject* BNNewLinearViewObjectReference(
     BNLinearViewObject* obj) {
   return {};
@@ -2681,20 +2867,32 @@ BINARYNINJACOREAPI bool BNParseTypeString(
   return {};
 }
 BINARYNINJACOREAPI bool BNParseTypesString(
-    BNBinaryView* view, const char* text, BNTypeParserResult* result,
-    char** errors, BNQualifiedNameList* typesAllowRedefinition) {
+    BNBinaryView* view, const char* text, const char* const* options,
+    size_t optionCount, const char* const* includeDirs, size_t includeDirCount,
+    BNTypeParserResult* result, char** errors,
+    BNQualifiedNameList* typesAllowRedefinition) {
   return {};
 }
 BINARYNINJACOREAPI void BNFreeQualifiedNameAndType(
     BNQualifiedNameAndType* obj) {}
 BINARYNINJACOREAPI void BNFreeQualifiedNameAndTypeArray(
     BNQualifiedNameAndType* obj, size_t count) {}
+BINARYNINJACOREAPI char* BNEscapeTypeName(const char* name,
+                                          BNTokenEscapingType escaping) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNUnescapeTypeName(const char* name,
+                                            BNTokenEscapingType escaping) {
+  return {};
+}
 BINARYNINJACOREAPI BNQualifiedNameAndType* BNGetAnalysisTypeList(
     BNBinaryView* view, size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI void BNFreeTypeList(BNQualifiedNameAndType* types,
                                        size_t count) {}
+BINARYNINJACOREAPI void BNFreeTypeIdList(BNQualifiedNameTypeAndId* types,
+                                         size_t count) {}
 BINARYNINJACOREAPI BNQualifiedName* BNGetAnalysisTypeNames(
     BNBinaryView* view, size_t* count, const char* matching) {
   return {};
@@ -2729,6 +2927,12 @@ BNDefineAnalysisType(BNBinaryView* view, const char* id,
 BINARYNINJACOREAPI void BNDefineUserAnalysisType(BNBinaryView* view,
                                                  BNQualifiedName* name,
                                                  BNType* type) {}
+BINARYNINJACOREAPI void BNDefineAnalysisTypes(
+    BNBinaryView* view, BNQualifiedNameTypeAndId* types, size_t count,
+    bool (*progress)(void*, size_t, size_t), void* progressContext) {}
+BINARYNINJACOREAPI void BNDefineUserAnalysisTypes(
+    BNBinaryView* view, BNQualifiedNameAndType* types, size_t count,
+    bool (*progress)(void*, size_t, size_t), void* progressContext) {}
 BINARYNINJACOREAPI void BNUndefineAnalysisType(BNBinaryView* view,
                                                const char* id) {}
 BINARYNINJACOREAPI void BNUndefineUserAnalysisType(BNBinaryView* view,
@@ -2758,7 +2962,13 @@ BINARYNINJACOREAPI char* BNGetAutoDebugTypeIdSource(void) { return {}; }
 BINARYNINJACOREAPI void BNRegisterPlatformTypes(BNBinaryView* view,
                                                 BNPlatform* platform) {}
 BINARYNINJACOREAPI void BNReanalyzeAllFunctions(BNBinaryView* view) {}
-BINARYNINJACOREAPI void BNReanalyzeFunction(BNFunction* func) {}
+BINARYNINJACOREAPI void BNReanalyzeFunction(BNFunction* func,
+                                            BNFunctionUpdateType type) {}
+BINARYNINJACOREAPI void BNMarkUpdatesRequired(BNFunction* func,
+                                              BNFunctionUpdateType type) {}
+BINARYNINJACOREAPI void BNMarkCallerUpdatesRequired(BNFunction* func,
+                                                    BNFunctionUpdateType type) {
+}
 BINARYNINJACOREAPI BNWorkflow* BNGetWorkflowForBinaryView(BNBinaryView* view) {
   return {};
 }
@@ -3147,6 +3357,27 @@ BNGetMediumLevelILVariableReferencesInRange(BNFunction* func,
                                             size_t* count) {
   return {};
 }
+BINARYNINJACOREAPI BNILReferenceSource*
+BNGetMediumLevelILVariableReferencesIfAvailable(BNFunction* func,
+                                                BNVariable* var,
+                                                size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNVariableReferenceSource*
+BNGetMediumLevelILVariableReferencesFromIfAvailable(BNFunction* func,
+                                                    BNArchitecture* arch,
+                                                    uint64_t address,
+                                                    size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNVariableReferenceSource*
+BNGetMediumLevelILVariableReferencesInRangeIfAvailable(BNFunction* func,
+                                                       BNArchitecture* arch,
+                                                       uint64_t address,
+                                                       uint64_t len,
+                                                       size_t* count) {
+  return {};
+}
 BINARYNINJACOREAPI BNILReferenceSource* BNGetHighLevelILVariableReferences(
     BNFunction* func, BNVariable* var, size_t* count) {
   return {};
@@ -3161,6 +3392,26 @@ BNGetHighLevelILVariableReferencesInRange(BNFunction* func,
                                           BNArchitecture* arch,
                                           uint64_t address, uint64_t len,
                                           size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNILReferenceSource*
+BNGetHighLevelILVariableReferencesIfAvailable(BNFunction* func, BNVariable* var,
+                                              size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNVariableReferenceSource*
+BNGetHighLevelILVariableReferencesFromIfAvailable(BNFunction* func,
+                                                  BNArchitecture* arch,
+                                                  uint64_t address,
+                                                  size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNVariableReferenceSource*
+BNGetHighLevelILVariableReferencesInRangeIfAvailable(BNFunction* func,
+                                                     BNArchitecture* arch,
+                                                     uint64_t address,
+                                                     uint64_t len,
+                                                     size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI void BNFreeVariableList(BNVariable* vars) {}
@@ -3303,6 +3554,10 @@ BINARYNINJACOREAPI BNDisassemblySettings* BNCreateDisassemblySettings(void) {
   return {};
 }
 BINARYNINJACOREAPI BNDisassemblySettings* BNNewDisassemblySettingsReference(
+    BNDisassemblySettings* settings) {
+  return {};
+}
+BINARYNINJACOREAPI BNDisassemblySettings* BNDuplicateDisassemblySettings(
     BNDisassemblySettings* settings) {
   return {};
 }
@@ -3538,6 +3793,10 @@ BINARYNINJACOREAPI BNNameSpace BNGetSymbolNameSpace(BNSymbol* sym) {
 BINARYNINJACOREAPI char* BNGetSymbolShortName(BNSymbol* sym) { return {}; }
 BINARYNINJACOREAPI char* BNGetSymbolFullName(BNSymbol* sym) { return {}; }
 BINARYNINJACOREAPI char* BNGetSymbolRawName(BNSymbol* sym) { return {}; }
+BINARYNINJACOREAPI void* BNGetSymbolRawBytes(BNSymbol* sym, size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeSymbolRawBytes(void* bytes) {}
 BINARYNINJACOREAPI uint64_t BNGetSymbolAddress(BNSymbol* sym) { return {}; }
 BINARYNINJACOREAPI uint64_t BNGetSymbolOrdinal(BNSymbol* sym) { return {}; }
 BINARYNINJACOREAPI bool BNIsSymbolAutoDefined(BNSymbol* sym) { return {}; }
@@ -3599,6 +3858,8 @@ BINARYNINJACOREAPI BNSymbol* BNDefineAutoSymbolAndVariableOrFunction(
     BNBinaryView* view, BNPlatform* platform, BNSymbol* sym, BNType* type) {
   return {};
 }
+BINARYNINJACOREAPI void BNBeginBulkModifySymbols(BNBinaryView* view) {}
+BINARYNINJACOREAPI void BNEndBulkModifySymbols(BNBinaryView* view) {}
 BINARYNINJACOREAPI BNDebugInfo* BNGetDebugInfo(BNBinaryView* view) {
   return {};
 }
@@ -4347,6 +4608,8 @@ BINARYNINJACOREAPI void BNSetHighLevelILRootExpr(BNHighLevelILFunction* func,
                                                  size_t expr) {}
 BINARYNINJACOREAPI void BNFinalizeHighLevelILFunction(
     BNHighLevelILFunction* func) {}
+BINARYNINJACOREAPI void BNGenerateHighLevelILSSAForm(
+    BNHighLevelILFunction* func, BNVariable* aliases, size_t aliasCount) {}
 BINARYNINJACOREAPI size_t BNHighLevelILAddOperandList(
     BNHighLevelILFunction* func, uint64_t* operands, size_t count) {
   return {};
@@ -4588,6 +4851,9 @@ BINARYNINJACOREAPI void BNAddTypeLibraryNamedObject(BNTypeLibrary* lib,
 BINARYNINJACOREAPI void BNAddTypeLibraryNamedType(BNTypeLibrary* lib,
                                                   BNQualifiedName* name,
                                                   BNType* type) {}
+BINARYNINJACOREAPI void BNAddTypeLibraryNamedTypeSource(BNTypeLibrary* lib,
+                                                        BNQualifiedName* name,
+                                                        const char* source) {}
 BINARYNINJACOREAPI BNType* BNGetTypeLibraryNamedObject(BNTypeLibrary* lib,
                                                        BNQualifiedName* name) {
   return {};
@@ -4630,6 +4896,21 @@ BINARYNINJACOREAPI void BNBinaryViewExportTypeToTypeLibrary(
 BINARYNINJACOREAPI void BNBinaryViewExportObjectToTypeLibrary(
     BNBinaryView* view, BNTypeLibrary* lib, BNQualifiedName* name,
     BNType* type) {}
+BINARYNINJACOREAPI BNLanguageRepresentationFunction*
+BNCreateLanguageRepresentationFunction(BNArchitecture* arch, BNFunction* func) {
+  return {};
+}
+BINARYNINJACOREAPI BNLanguageRepresentationFunction*
+BNNewLanguageRepresentationFunctionReference(
+    BNLanguageRepresentationFunction* func) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeLanguageRepresentationFunction(
+    BNLanguageRepresentationFunction* func) {}
+BINARYNINJACOREAPI BNFunction* BNGetLanguageRepresentationOwnerFunction(
+    BNLanguageRepresentationFunction* func) {
+  return {};
+}
 BINARYNINJACOREAPI bool BNTypesEqual(BNType* a, BNType* b) { return {}; }
 BINARYNINJACOREAPI bool BNTypesNotEqual(BNType* a, BNType* b) { return {}; }
 BINARYNINJACOREAPI BNType* BNCreateVoidType(void) { return {}; }
@@ -4648,15 +4929,13 @@ BINARYNINJACOREAPI BNType* BNCreateWideCharType(size_t width,
   return {};
 }
 BINARYNINJACOREAPI BNType* BNCreateStructureType(BNStructure* s) { return {}; }
-BINARYNINJACOREAPI BNType* BNCreateEnumerationType(BNArchitecture* arch,
-                                                   BNEnumeration* e,
-                                                   size_t width,
-                                                   bool isSigned) {
+BINARYNINJACOREAPI BNType* BNCreateEnumerationType(
+    BNArchitecture* arch, BNEnumeration* e, size_t width,
+    BNBoolWithConfidence* isSigned) {
   return {};
 }
-BINARYNINJACOREAPI BNType* BNCreateEnumerationTypeOfWidth(BNEnumeration* e,
-                                                          size_t width,
-                                                          bool isSigned) {
+BINARYNINJACOREAPI BNType* BNCreateEnumerationTypeOfWidth(
+    BNEnumeration* e, size_t width, BNBoolWithConfidence* isSigned) {
   return {};
 }
 BINARYNINJACOREAPI BNType* BNCreatePointerType(
@@ -4679,12 +4958,16 @@ BINARYNINJACOREAPI BNType* BNCreateFunctionType(
     BNTypeWithConfidence* returnValue,
     BNCallingConventionWithConfidence* callingConvention,
     BNFunctionParameter* params, size_t paramCount,
-    BNBoolWithConfidence* varArg, BNOffsetWithConfidence* stackAdjust) {
+    BNBoolWithConfidence* varArg, BNBoolWithConfidence* canReturn,
+    BNOffsetWithConfidence* stackAdjust, uint32_t* regStackAdjustRegs,
+    BNOffsetWithConfidence* regStackAdjustValues, size_t regStackAdjustCount,
+    BNRegisterSetWithConfidence* returnRegs, BNNameType ft) {
   return {};
 }
 BINARYNINJACOREAPI BNType* BNNewTypeReference(BNType* type) { return {}; }
 BINARYNINJACOREAPI BNType* BNDuplicateType(BNType* type) { return {}; }
-BINARYNINJACOREAPI char* BNGetTypeAndName(BNType* type, BNQualifiedName* name) {
+BINARYNINJACOREAPI char* BNGetTypeAndName(BNType* type, BNQualifiedName* name,
+                                          BNTokenEscapingType escaping) {
   return {};
 }
 BINARYNINJACOREAPI void BNFreeType(BNType* type) {}
@@ -4713,12 +4996,13 @@ BINARYNINJACOREAPI BNTypeBuilder* BNCreateStructureTypeBuilderWithBuilder(
   return {};
 }
 BINARYNINJACOREAPI BNTypeBuilder* BNCreateEnumerationTypeBuilder(
-    BNArchitecture* arch, BNEnumeration* e, size_t width, bool isSigned) {
+    BNArchitecture* arch, BNEnumeration* e, size_t width,
+    BNBoolWithConfidence* isSigned) {
   return {};
 }
 BINARYNINJACOREAPI BNTypeBuilder* BNCreateEnumerationTypeBuilderWithBuilder(
     BNArchitecture* arch, BNEnumerationBuilder* e, size_t width,
-    bool isSigned) {
+    BNBoolWithConfidence* isSigned) {
   return {};
 }
 BINARYNINJACOREAPI BNTypeBuilder* BNCreatePointerTypeBuilder(
@@ -4741,7 +5025,10 @@ BINARYNINJACOREAPI BNTypeBuilder* BNCreateFunctionTypeBuilder(
     BNTypeWithConfidence* returnValue,
     BNCallingConventionWithConfidence* callingConvention,
     BNFunctionParameter* params, size_t paramCount,
-    BNBoolWithConfidence* varArg, BNOffsetWithConfidence* stackAdjust) {
+    BNBoolWithConfidence* varArg, BNBoolWithConfidence* canReturn,
+    BNOffsetWithConfidence* stackAdjust, uint32_t* regStackAdjustRegs,
+    BNOffsetWithConfidence* regStackAdjustValues, size_t regStackAdjustCount,
+    BNRegisterSetWithConfidence* returnRegs, BNNameType ft) {
   return {};
 }
 BINARYNINJACOREAPI BNType* BNFinalizeTypeBuilder(BNTypeBuilder* type) {
@@ -4819,27 +5106,35 @@ BINARYNINJACOREAPI BNReferenceType BNTypeGetReferenceType(BNType* type) {
   return {};
 }
 BINARYNINJACOREAPI char* BNGetTypeAlternateName(BNType* type) { return {}; }
-BINARYNINJACOREAPI char* BNGetTypeString(BNType* type, BNPlatform* platform) {
+BINARYNINJACOREAPI uint32_t BNTypeGetSystemCallNumber(BNType* type) {
   return {};
 }
-BINARYNINJACOREAPI char* BNGetTypeStringBeforeName(BNType* type,
-                                                   BNPlatform* platform) {
+BINARYNINJACOREAPI bool BNTypeIsSystemCall(BNType* type) { return {}; }
+BINARYNINJACOREAPI char* BNGetTypeString(BNType* type, BNPlatform* platform,
+                                         BNTokenEscapingType escaping) {
   return {};
 }
-BINARYNINJACOREAPI char* BNGetTypeStringAfterName(BNType* type,
-                                                  BNPlatform* platform) {
+BINARYNINJACOREAPI char* BNGetTypeStringBeforeName(
+    BNType* type, BNPlatform* platform, BNTokenEscapingType escaping) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNGetTypeStringAfterName(
+    BNType* type, BNPlatform* platform, BNTokenEscapingType escaping) {
   return {};
 }
 BINARYNINJACOREAPI BNInstructionTextToken* BNGetTypeTokens(
-    BNType* type, BNPlatform* platform, uint8_t baseConfidence, size_t* count) {
+    BNType* type, BNPlatform* platform, uint8_t baseConfidence,
+    BNTokenEscapingType escaping, size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI BNInstructionTextToken* BNGetTypeTokensBeforeName(
-    BNType* type, BNPlatform* platform, uint8_t baseConfidence, size_t* count) {
+    BNType* type, BNPlatform* platform, uint8_t baseConfidence,
+    BNTokenEscapingType escaping, size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI BNInstructionTextToken* BNGetTypeTokensAfterName(
-    BNType* type, BNPlatform* platform, uint8_t baseConfidence, size_t* count) {
+    BNType* type, BNPlatform* platform, uint8_t baseConfidence,
+    BNTokenEscapingType escaping, size_t* count) {
   return {};
 }
 BINARYNINJACOREAPI BNType* BNTypeWithReplacedStructure(BNType* type,
@@ -4864,6 +5159,13 @@ BINARYNINJACOREAPI bool BNAddTypeMemberTokens(BNType* type, BNBinaryView* data,
                                               bool indirect) {
   return {};
 }
+BINARYNINJACOREAPI BNTypeDefinitionLine* BNGetTypeLines(
+    BNType* type, BNBinaryView* data, const char* name, int lineWidth,
+    bool collapsed, BNTokenEscapingType escaping, size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeTypeDefinitionLineList(BNTypeDefinitionLine* list,
+                                                     size_t count) {}
 BINARYNINJACOREAPI BNQualifiedName BNTypeBuilderGetTypeName(BNTypeBuilder* nt) {
   return {};
 }
@@ -4874,6 +5176,8 @@ BINARYNINJACOREAPI void BNTypeBuilderSetAlternateName(BNTypeBuilder* type,
 BINARYNINJACOREAPI BNTypeClass BNGetTypeBuilderClass(BNTypeBuilder* type) {
   return {};
 }
+BINARYNINJACOREAPI void BNTypeBuilderSetSystemCallNumber(BNTypeBuilder* type,
+                                                         bool v, uint32_t n) {}
 BINARYNINJACOREAPI uint64_t BNGetTypeBuilderWidth(BNTypeBuilder* type) {
   return {};
 }
@@ -4960,6 +5264,15 @@ BNTypeBuilderGetReferenceType(BNTypeBuilder* type) {
 BINARYNINJACOREAPI char* BNGetTypeBuilderAlternateName(BNTypeBuilder* type) {
   return {};
 }
+BINARYNINJACOREAPI bool BNTypeBuilderIsSystemCall(BNTypeBuilder* type) {
+  return {};
+}
+BINARYNINJACOREAPI uint32_t
+BNTypeBuilderGetSystemCallNumber(BNTypeBuilder* type) {
+  return {};
+}
+BINARYNINJACOREAPI void BNTypeBuilderSetStackAdjustment(
+    BNTypeBuilder* type, BNOffsetWithConfidence* adjust) {}
 BINARYNINJACOREAPI char* BNGetTypeBuilderString(BNTypeBuilder* type,
                                                 BNPlatform* platform) {
   return {};
@@ -4987,9 +5300,9 @@ BINARYNINJACOREAPI BNInstructionTextToken* BNGetTypeBuilderTokensAfterName(
     size_t* count) {
   return {};
 }
-BINARYNINJACOREAPI BNType* BNCreateNamedTypeReference(BNNamedTypeReference* nt,
-                                                      size_t width,
-                                                      size_t align) {
+BINARYNINJACOREAPI BNType* BNCreateNamedTypeReference(
+    BNNamedTypeReference* nt, size_t width, size_t align,
+    BNBoolWithConfidence* cnst, BNBoolWithConfidence* vltl) {
   return {};
 }
 BINARYNINJACOREAPI BNType* BNCreateNamedTypeReferenceFromTypeAndId(
@@ -5001,11 +5314,13 @@ BINARYNINJACOREAPI BNType* BNCreateNamedTypeReferenceFromType(
   return {};
 }
 BINARYNINJACOREAPI BNTypeBuilder* BNCreateNamedTypeReferenceBuilder(
-    BNNamedTypeReference* nt, size_t width, size_t align) {
+    BNNamedTypeReference* nt, size_t width, size_t align,
+    BNBoolWithConfidence* cnst, BNBoolWithConfidence* vltl) {
   return {};
 }
 BINARYNINJACOREAPI BNTypeBuilder* BNCreateNamedTypeReferenceBuilderWithBuilder(
-    BNNamedTypeReferenceBuilder* nt, size_t width, size_t align) {
+    BNNamedTypeReferenceBuilder* nt, size_t width, size_t align,
+    BNBoolWithConfidence* cnst, BNBoolWithConfidence* vltl) {
   return {};
 }
 BINARYNINJACOREAPI BNTypeBuilder*
@@ -5239,7 +5554,101 @@ BINARYNINJACOREAPI bool BNParseTypesFromSourceFile(
     const char* autoTypeSource) {
   return {};
 }
+BINARYNINJACOREAPI BNTypeParser* BNRegisterTypeParser(
+    const char* name, BNTypeParserCallbacks* callbacks) {
+  return {};
+}
+BINARYNINJACOREAPI BNTypeParser** BNGetTypeParserList(size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeTypeParserList(BNTypeParser** parsers) {}
+BINARYNINJACOREAPI BNTypeParser* BNGetTypeParserByName(const char* name) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNGetTypeParserName(BNTypeParser* parser) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNTypeParserPreprocessSource(
+    BNTypeParser* parser, const char* source, const char* fileName,
+    BNPlatform* platform, const BNQualifiedNameTypeAndId* existingTypes,
+    size_t existingTypeCount, const char* const* options, size_t optionCount,
+    const char* const* includeDirs, size_t includeDirCount, char** output,
+    BNTypeParserError** errors, size_t* errorCount) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNTypeParserParseTypesFromSource(
+    BNTypeParser* parser, const char* source, const char* fileName,
+    BNPlatform* platform, const BNQualifiedNameTypeAndId* existingTypes,
+    size_t existingTypeCount, const char* const* options, size_t optionCount,
+    const char* const* includeDirs, size_t includeDirCount,
+    const char* autoTypeSource, BNTypeParserResult* result,
+    BNTypeParserError** errors, size_t* errorCount) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNTypeParserParseTypeString(
+    BNTypeParser* parser, const char* source, BNPlatform* platform,
+    const BNQualifiedNameTypeAndId* existingTypes, size_t existingTypeCount,
+    BNQualifiedNameAndType* result, BNTypeParserError** errors,
+    size_t* errorCount) {
+  return {};
+}
+BINARYNINJACOREAPI BNTypePrinter* BNRegisterTypePrinter(
+    const char* name, BNTypePrinterCallbacks* callbacks) {
+  return {};
+}
+BINARYNINJACOREAPI BNTypePrinter** BNGetTypePrinterList(size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeTypePrinterList(BNTypePrinter** printers) {}
+BINARYNINJACOREAPI BNTypePrinter* BNGetTypePrinterByName(const char* name) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNGetTypePrinterName(BNTypePrinter* printer) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeTokens(
+    BNTypePrinter* printer, BNType* type, BNPlatform* platform,
+    BNQualifiedName* name, uint8_t baseConfidence, BNTokenEscapingType escaping,
+    BNInstructionTextToken** result, size_t* resultCount) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeTokensBeforeName(
+    BNTypePrinter* printer, BNType* type, BNPlatform* platform,
+    uint8_t baseConfidence, BNType* parentType, BNTokenEscapingType escaping,
+    BNInstructionTextToken** result, size_t* resultCount) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeTokensAfterName(
+    BNTypePrinter* printer, BNType* type, BNPlatform* platform,
+    uint8_t baseConfidence, BNType* parentType, BNTokenEscapingType escaping,
+    BNInstructionTextToken** result, size_t* resultCount) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeString(
+    BNTypePrinter* printer, BNType* type, BNPlatform* platform,
+    BNQualifiedName* name, BNTokenEscapingType escaping, char** result) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeStringBeforeName(
+    BNTypePrinter* printer, BNType* type, BNPlatform* platform,
+    BNTokenEscapingType escaping, char** result) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeStringAfterName(
+    BNTypePrinter* printer, BNType* type, BNPlatform* platform,
+    BNTokenEscapingType escaping, char** result) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNGetTypePrinterTypeLines(
+    BNTypePrinter* printer, BNType* type, BNBinaryView* data,
+    BNQualifiedName* name, int lineWidth, bool collapsed,
+    BNTokenEscapingType escaping, BNTypeDefinitionLine** result,
+    size_t* resultCount) {
+  return {};
+}
 BINARYNINJACOREAPI void BNFreeTypeParserResult(BNTypeParserResult* result) {}
+BINARYNINJACOREAPI void BNFreeTypeParserErrors(BNTypeParserError* errors,
+                                               size_t count) {}
 BINARYNINJACOREAPI BNUpdateChannel* BNGetUpdateChannels(size_t* count,
                                                         char** errors) {
   return {};
@@ -5883,6 +6292,8 @@ BINARYNINJACOREAPI char* BNScriptingInstanceCompleteInput(
     BNScriptingInstance* instance, const char* text, uint64_t state) {
   return {};
 }
+BINARYNINJACOREAPI void BNStopScriptingInstance(BNScriptingInstance* instance) {
+}
 BINARYNINJACOREAPI void BNRegisterMainThread(BNMainThreadCallbacks* callbacks) {
 }
 BINARYNINJACOREAPI BNMainThreadAction* BNNewMainThreadActionReference(
@@ -6006,6 +6417,7 @@ BNShowMessageBox(const char* title, const char* text,
                  BNMessageBoxButtonSet buttons, BNMessageBoxIcon icon) {
   return {};
 }
+BINARYNINJACOREAPI bool BNOpenUrl(const char* url) { return {}; }
 BINARYNINJACOREAPI BNReportCollection* BNCreateReportCollection(void) {
   return {};
 }
@@ -6807,6 +7219,39 @@ BINARYNINJACOREAPI bool BNAddDebugDataVariable(BNDebugInfo* const debugInfo,
 }
 BINARYNINJACOREAPI BNDataVariableAndName* BNGetDebugDataVariables(
     BNDebugInfo* const debugInfo, const char* const name, size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI BNSecretsProvider* BNRegisterSecretsProvider(
+    const char* name, BNSecretsProviderCallbacks* callbacks) {
+  return {};
+}
+BINARYNINJACOREAPI BNSecretsProvider** BNGetSecretsProviderList(size_t* count) {
+  return {};
+}
+BINARYNINJACOREAPI void BNFreeSecretsProviderList(
+    BNSecretsProvider** providers) {}
+BINARYNINJACOREAPI BNSecretsProvider* BNGetSecretsProviderByName(
+    const char* name) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNGetSecretsProviderName(BNSecretsProvider* provider) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNSecretsProviderHasData(BNSecretsProvider* provider,
+                                                 const char* key) {
+  return {};
+}
+BINARYNINJACOREAPI char* BNGetSecretsProviderData(BNSecretsProvider* provider,
+                                                  const char* key) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNStoreSecretsProviderData(BNSecretsProvider* provider,
+                                                   const char* key,
+                                                   const char* data) {
+  return {};
+}
+BINARYNINJACOREAPI bool BNDeleteSecretsProviderData(BNSecretsProvider* provider,
+                                                    const char* key) {
   return {};
 }
 }  // extern "C"
