@@ -14,7 +14,7 @@
 
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.14..3.22)
 cmake_policy(VERSION 3.14)
 project(bindiff VERSION 7)
 
@@ -25,7 +25,7 @@ set(BINDIFF_BINEXPORT_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
     PATH "Path to a BinExport source tree")
 
 # Import BinExport targets
-set(BINEXPORT_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(BINEXPORT_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory("${BINDIFF_BINEXPORT_DIR}" "_deps/binexport-build" EXCLUDE_FROM_ALL)
 
 # CMake settings
@@ -49,6 +49,7 @@ endif()
 option(BINDIFF_ENABLE_IPO "Enable interprocedural optimization"
                           ${_bindiff_ipo_supported})
 
+include(CTest)
 include(GoogleTest)
 enable_testing()
 
