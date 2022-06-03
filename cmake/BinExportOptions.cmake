@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-option(BINEXPORT_ENABLE_TESTS "Build test targets" ON)
+option(BINEXPORT_BUILD_TESTING
+       "If ON, this will build all of BinExport's own tests" ON)
 
-option(BINEXPORT_ENABLE_IDAPRO "Enable building the IDA Pro plugins" ON)
-option(BINEXPORT_ENABLE_BINARYNINJA "Enable building the Binary Ninja plugin" ON)
+option(BINEXPORT_ENABLE_IDAPRO "Build the IDA Pro plugins" ON)
+option(BINEXPORT_ENABLE_BINARYNINJA "Build the Binary Ninja plugin" ON)
 
 set(BINEXPORT_BINARYNINJA_CHANNEL "stable" CACHE
     STRING "Binary Ninja channel, either 'stable' or 'dev'")

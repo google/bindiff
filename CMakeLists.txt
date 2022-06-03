@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.14..3.22)
 cmake_policy(VERSION 3.14)
 project(binexport VERSION 12)  # Only major version is used
 
@@ -30,8 +30,9 @@ include(Util)
 include(BinExportOptions)
 include(BinExportDeps)
 
-include(GoogleTest)
-if(BINEXPORT_ENABLE_TESTS)
+include(CTest)
+if(BUILD_TESTING AND BINEXPORT_BUILD_TESTING)
+  include(GoogleTest)
   enable_testing()
 endif()
 
@@ -133,7 +134,7 @@ if(WIN32)
     shlwapi.lib
   )
 endif()
-if(BINEXPORT_ENABLE_TESTS)
+if(BUILD_TESTING AND BINEXPORT_BUILD_TESTING)
   add_executable(binexport_shared_test
     util/filesystem_test.cc
     util/format_test.cc
@@ -160,7 +161,7 @@ target_link_libraries(binexport_testing PUBLIC
 )
 
 # IDB export test
-if(BINEXPORT_ENABLE_TESTS)
+if(BUILD_TESTING AND BINEXPORT_BUILD_TESTING)
   add_executable(idb_export_test util/idb_export_test.cc)
   target_link_libraries(idb_export_test
     binexport_test_base
@@ -172,7 +173,7 @@ if(BINEXPORT_ENABLE_TESTS)
 endif()
 
 # General BinExport tests
-if(BINEXPORT_ENABLE_TESTS)
+if(BUILD_TESTING AND BINEXPORT_BUILD_TESTING)
   add_executable(binexport_test
     binexport_test.cc
   )
@@ -269,7 +270,7 @@ target_link_libraries(binexport_reader PUBLIC
   absl::strings
   binexport_shared
 )
-if(BINEXPORT_ENABLE_TESTS)
+if(BUILD_TESTING AND BINEXPORT_BUILD_TESTING)
   add_executable(binexport_reader_test
     reader/call_graph_test.cc
     reader/flow_graph_test.cc
