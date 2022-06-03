@@ -49,9 +49,9 @@ endif()
 option(BINDIFF_ENABLE_IPO "Enable interprocedural optimization"
                           ${_bindiff_ipo_supported})
 
+enable_testing()
 include(CTest)
 include(GoogleTest)
-enable_testing()
 
 # Make Google-style includes work
 set(_bindiff_src "${BINDIFF_BINARY_DIR}/src_include/third_party/zynamics")
