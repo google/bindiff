@@ -202,6 +202,10 @@ There is only minimal integration into the Ghidra UI at this time.
 
 ## How to build
 
+Below are build instructions for the native code plugins for IDA Pro and
+Binary Ninja. To build the Java-based extension for Ghidra, please refer
+to the [BinExport for Ghidra](/java) instructions.
+
 ### Preparing the build environment
 
 There are quite a few dependencies to satisfy:
@@ -328,7 +332,7 @@ The last command makes CMake available in the system path.
 #### IDA SDK
 
 Unzip the contents of the IDA SDK into `third_party/idasdk`. Shown commands are
-for IDA 7.5:
+for IDA 7.6:
 
 ```bash
 unzip PATH/TO/idasdk76.zip -d third_party/idasdk
@@ -416,7 +420,7 @@ With all prerequisites in place, configure and build BinExport:
 if not exist build_msvc mkdir build_msvc
 cd build_msvc
 cmake .. ^
-    -G "Visual Studio 16 2019 Win64" ^
+    -G "Visual Studio 16 2019" ^
     -DCMAKE_BUILD_TYPE=Release ^
     "-DCMAKE_INSTALL_PREFIX=%cd%" ^
     -DBINEXPORT_ENABLE_IDAPRO=ON ^
