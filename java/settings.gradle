@@ -1,3 +1,2 @@
 rootProject.name = 'bindiff'
-include(':ui')
-include(':zylib')
+include 'ui', 'zylib'

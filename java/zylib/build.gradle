@@ -2,6 +2,5 @@ dependencies {
     implementation ':y:'
     implementation ':ysvg:'
     implementation 'com.google.guava:guava:28.1-jre'
-    //implementation 'xml-apis:xml-apis:1.0.b2'
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 }
