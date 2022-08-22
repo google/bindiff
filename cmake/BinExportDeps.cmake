@@ -35,21 +35,29 @@ binexport_check_target(gmock)
 # Abseil
 FetchContent_Declare(absl
   GIT_REPOSITORY https://github.com/abseil/abseil-cpp
-  GIT_TAG        fa5d5f4c262ce3d42bfe35439913162aef45ee23 # 2022-06-02
+  GIT_TAG        f7474d4961b769c34a08475110ba391e5926e893 # 2022-08-18
 )
-set(ABSL_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "" FORCE)
-set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
-set(ABSL_USE_EXTERNAL_GOOGLETEST ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(absl)
+FetchContent_GetProperties(absl)
+if(NOT absl_POPULATED)
+  set(ABSL_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "" FORCE)
+  set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
+  set(ABSL_USE_EXTERNAL_GOOGLETEST ON CACHE BOOL "" FORCE)
+  FetchContent_Populate(absl)
+  set(absl_DIR "${absl_BINARY_DIR}")
+  file(WRITE "${absl_BINARY_DIR}/absl-config.cmake" "")
+  add_subdirectory("${absl_SOURCE_DIR}" "${absl_BINARY_DIR}")
+endif()
 binexport_check_target(absl::core_headers)
 
 # Protocol Buffers
 FetchContent_Declare(protobuf
   GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-  GIT_TAG        v21.1 # 2022-05-28
+  GIT_TAG        d8421bd49c1328dc5bcaea2e60dd6577ac235336 # 2022-08-21
 )
+set(protobuf_ABSL_PROVIDER "package" CACHE STRING "" FORCE)
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(protobuf_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(protobuf_INSTALL OFF CACHE BOOL "" FORCE)
 set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(protobuf)
 binexport_check_target(protobuf::libprotobuf)
