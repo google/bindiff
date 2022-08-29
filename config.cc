@@ -26,10 +26,8 @@
 #include <vector>
 
 #include "base/logging.h"
-#include "third_party/absl/base/attributes.h"
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/status.h"
-#include "third_party/absl/strings/numbers.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/config_defaults.h"
 #include "third_party/zynamics/bindiff/version.h"
@@ -113,16 +111,7 @@ absl::StatusOr<Config> LoadFromJson(absl::string_view data) {
 
   JsonParseOptions options;
   options.ignore_unknown_fields = true;
-#ifdef BINDIFF_GOOGLE
   NA_RETURN_IF_ERROR(JsonStringToMessage(data, &config, options));
-#else
-  if (auto status = JsonStringToMessage(
-          google::protobuf::StringPiece(data.data(), data.size()), &config,
-          options);
-      !status.ok()) {
-    return absl::UnknownError(std::string(status.message()));
-  }
-#endif
   return config;
 }
 
