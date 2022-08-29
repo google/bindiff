@@ -488,14 +488,15 @@ bool Plugin::Init() {
 }  // namespace security::binexport
 
 extern "C" BINARYNINJAPLUGIN uint32_t CorePluginABIVersion() {
-  // BinExport should work on both channels of the 2.x series as it only uses
-  // API functions that have remained relatively stable.
-  // Note: This works around Binary Ninja's ABI version handling and BinExport
-  //       will fail to load with an error message if the "dev" channel diverges
-  //       too far from stable. However, users on "dev" should expect some
-  //       breakage and failing to load the plugin still leaves Binary Ninja
-  //       functional.
-  return BNGetMinimumCoreABIVersion();
+  // Previously, BinExport worked around Binary Ninja's ABI version handling,
+  // to make sure to have it try and load the plugin unconditionally. This
+  // was done in order to be able to support both the fast moving "dev"
+  // channel as well as the stable one. The intention was for BinExport to
+  // use "mostly stable" API functions to work on both and have Binary Ninja
+  // ignore the plugin if it used functionality that was not available.
+  // However, this proved to be no longer feasible at some point with
+  // BinExport leading to crashes.
+  return BN_MINIMUM_CORE_ABI_VERSION;
 }
 
 extern "C" BINARYNINJAPLUGIN bool CorePluginInit() {
