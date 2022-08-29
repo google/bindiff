@@ -72,7 +72,7 @@ if(BINEXPORT_ENABLE_BINARYNINJA)
   else()
     set(_binexport_binaryninjacore_suffix "")
     set(_binexport_binaryninja_git_tag
-        "4bb510c2e4456606e03acfc6970bf8697156769e") # 2022-06-02
+        "22c0d1f1f85d9438ece720761060c1011c24b388") # 2022-08-29
   endif()
   FetchContent_Declare(binaryninjaapi
     GIT_REPOSITORY https://github.com/Vector35/binaryninja-api.git
