@@ -99,22 +99,26 @@ protobuf_generate_cpp(binexport2_proto binexport2_proto_h binexport2.proto)
 add_library(binexport_shared STATIC
   ${binexport2_proto_h}
   ${binexport2_proto}
+  architectures.h
   binexport.cc
   binexport.h
-  util/hash.cc
-  util/hash.h
   util/filesystem.cc
   util/filesystem.h
   util/format.cc
   util/format.h
+  util/hash.cc
+  util/hash.h
   util/idb_export.cc
   util/idb_export.h
   util/logging.cc
   util/logging.h
+  util/nested_iterator.h
   util/process.cc
   util/process.h
+  util/range.h
   util/status_macros.h
   util/timer.h
+  util/types.h
 )
 target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access

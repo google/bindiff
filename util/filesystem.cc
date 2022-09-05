@@ -49,9 +49,9 @@
 
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/absl/strings/str_replace.h"
+#include "third_party/absl/strings/str_replace.h"  // IWYU pragma: keep
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/absl/strings/strip.h"
+#include "third_party/absl/strings/strip.h"  // IWYU pragma: keep
 #include "third_party/zynamics/binexport/util/process.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 
