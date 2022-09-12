@@ -33,6 +33,13 @@ enum AddressReferenceType {
   TYPE_DATA = 7,
   TYPE_DATA_STRING = 8,
   TYPE_DATA_WIDE_STRING = 9,
+  // DATA_PARTIAL is intended to cover the cases typically found in Aarch64 and
+  // RISC-V where multiple instructions are used to create an address.  In the
+  // case of Aarch64, ADRP followed later by ADD for example, and lui or auipc
+  // followed by addi, lw, or sw for RISC-V.  The "base" instruction will have a
+  // partial reference type, and the actual data reference will be on the
+  // instruction where the final address is put together.
+  TYPE_DATA_PARTIAL = 10,
 };
 
 struct AddressReference {
