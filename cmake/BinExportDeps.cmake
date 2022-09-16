@@ -35,7 +35,7 @@ binexport_check_target(gmock)
 # Abseil
 FetchContent_Declare(absl
   GIT_REPOSITORY https://github.com/abseil/abseil-cpp
-  GIT_TAG        f7474d4961b769c34a08475110ba391e5926e893 # 2022-08-18
+  GIT_TAG        ab2e2c4f6062999afaf960759dfccb77f350c702 # 2022-09-15
 )
 set(ABSL_CXX_STANDARD ${CMAKE_CXX_STANDARD} CACHE STRING "" FORCE)
 set(ABSL_PROPAGATE_CXX_STD ON CACHE BOOL "" FORCE)
@@ -46,7 +46,7 @@ binexport_check_target(absl::core_headers)
 # Protocol Buffers
 FetchContent_Declare(protobuf
   GIT_REPOSITORY https://github.com/protocolbuffers/protobuf.git
-  GIT_TAG        66ed6dd75b0b5f0d62a9bf90509638f380cbcd7f # 2022-08-27
+  GIT_TAG        66ed6dd75b0b5f0d62a9bf90509638f380cbcd7f # 2022-09-15
 )
 set(protobuf_ABSL_PROVIDER "package" CACHE STRING "" FORCE)
 set(protobuf_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -56,9 +56,6 @@ set(protobuf_WITH_ZLIB OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(protobuf)
 binexport_check_target(protobuf::libprotobuf)
 binexport_check_target(protobuf::protoc)
-# Workaround for protobuf not respecting our C++ standard
-set_target_properties(libprotobuf libprotoc protoc
-                      PROPERTIES CXX_STANDARD ${CMAKE_CXX_STANDARD})
 set(Protobuf_INCLUDE_DIR "${protobuf_SOURCE_DIR}/src" CACHE INTERNAL "")
 set(Protobuf_LIBRARIES protobuf::libprotobuf CACHE INTERNAL "")
 find_package(Protobuf 3.14 REQUIRED) # Make protobuf_generate_cpp available
