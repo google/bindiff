@@ -16,7 +16,7 @@
 
 #include <functional>
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 
 bool operator<(const FlowGraphEdge& one, const FlowGraphEdge& two) {
   if (one.source == two.source) {

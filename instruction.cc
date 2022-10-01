@@ -22,7 +22,8 @@
 #include <sstream>
 #include <tuple>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"
 

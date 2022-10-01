@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -13,8 +13,7 @@ namespace security::binexport {
 std::string GetTestTempPath(absl::string_view name) {
   // When using Bazel, the environment variable TEST_TMPDIR is guaranteed to be
   // set. The CMake build should set this up correctly, too.
-  // See https://docs.bazel.build/versions/master/test-encyclopedia.html for
-  // details.
+  // See https://bazel.build/reference/test-encyclopedia for details.
   const char* test_tmpdir = getenv("TEST_TMPDIR");
   return JoinPath(test_tmpdir ? test_tmpdir : "", name);
 }

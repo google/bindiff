@@ -23,7 +23,8 @@
 #include <boost/graph/filtered_graph.hpp>               // NOLINT
 #include <boost/graph/iteration_macros.hpp>             // NOLINT
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"

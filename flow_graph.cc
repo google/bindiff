@@ -21,7 +21,8 @@
 #include <stack>
 #include <unordered_map>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/call_graph.h"

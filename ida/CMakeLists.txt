@@ -55,6 +55,8 @@ ida_target_link_libraries(${binexport_ida_plugin_name}
   absl::flat_hash_map
   absl::flat_hash_set
   absl::hash
+  absl::log
+  absl::log_initialize
   absl::node_hash_map
   absl::node_hash_set
   absl::optional

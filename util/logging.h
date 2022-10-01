@@ -20,59 +20,9 @@
 #include <string>
 #include <thread>  // NOLINT
 
-#include "base/logging.h"
 #include "third_party/absl/base/log_severity.h"
+#include "third_party/absl/log/log_sink.h"
 #include "third_party/absl/status/status.h"
-#include "third_party/absl/time/clock.h"
-#include "third_party/absl/time/time.h"
-
-namespace not_absl {
-
-class LogEntry {
- public:
-  LogEntry() : timestamp_(absl::Now()) {}
-  LogEntry(absl::string_view full_filename, int line,
-           absl::LogSeverity severity, absl::Time timestamp)
-      : full_filename_(full_filename),
-        line_(line),
-        severity_(absl::NormalizeLogSeverity(severity)),
-        timestamp_(timestamp),
-        tid_(GetCachedTID()) {}
-
-  std::string ToString() const;
-
-  absl::string_view source_filename() const { return full_filename_; }
-  int source_line() const { return line_; }
-  absl::LogSeverity log_severity() const { return severity_; }
-  absl::Time timestamp() const { return timestamp_; }
-
-  absl::string_view text_message() const { return text_message_; }
-  void set_text_message(absl::string_view text_message) {
-    text_message_ = text_message;
-    formatted_message_.clear();
-  }
-
- private:
-  static uint32_t GetCachedTID();
-
-  absl::string_view full_filename_ = "";
-  int line_ = 0;
-  absl::LogSeverity severity_ = absl::LogSeverity::kInfo;
-  absl::Time timestamp_;
-  uint32_t tid_ = 0;
-  absl::string_view text_message_ = "";
-  mutable std::string formatted_message_;  // Cached result of ToString()
-};
-
-class LogSink {
- public:
-  virtual ~LogSink() = default;
-
-  virtual void Send(const not_absl::LogEntry& entry) = 0;
-  virtual void WaitTillSent() {}
-};
-
-}  // namespace not_absl
 
 namespace security::binexport {
 
@@ -91,9 +41,10 @@ struct LoggingOptions {
   std::string log_filename;
 };
 
-// Initializes logging with the specified options and a default log sink.
+// Initializes logging with the specified options and a default log sink. It is
+// an error to call this function multiple times.
 absl::Status InitLogging(const LoggingOptions& options,
-                         std::unique_ptr<not_absl::LogSink> log_sink);
+                         std::unique_ptr<absl::LogSink> log_sink);
 
 // Shuts down logging, closing any log files.
 void ShutdownLogging();

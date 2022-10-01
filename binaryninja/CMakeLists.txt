@@ -19,6 +19,8 @@ add_library(${binexport_bn_plugin_name} SHARED
   log_sink.h
 )
 target_link_libraries(${binexport_bn_plugin_name} PRIVATE
+  absl::log
+  absl::log_initialize
   absl::status
   absl::statusor
   absl::strings

@@ -18,7 +18,7 @@
 #include <utility>
 #include <vector>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/reader/graph_utility.h"

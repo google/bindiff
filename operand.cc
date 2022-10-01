@@ -15,9 +15,8 @@
 #include "third_party/zynamics/binexport/operand.h"
 
 #include <iterator>
-#include <sstream>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
 
 Expressions Operand::expressions_;
 Operand::OperandCache Operand::operand_cache_;

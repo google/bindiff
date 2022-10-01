@@ -14,7 +14,7 @@
 
 #include "third_party/zynamics/binexport/library_manager.h"
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
 
 int LibraryManager::AddKnownLibrary(const std::string& library_name,
                                     Linkage linkage) {

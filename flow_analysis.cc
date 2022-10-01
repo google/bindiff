@@ -19,7 +19,6 @@
 #include <map>
 #include <set>
 
-#include "base/logging.h"
 #include "third_party/zynamics/binexport/call_graph.h"
 #include "third_party/zynamics/binexport/flow_graph.h"
 #include "third_party/zynamics/binexport/virtual_memory.h"

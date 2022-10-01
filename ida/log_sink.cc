@@ -22,18 +22,17 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "base/logging.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 
 namespace security::binexport {
 
-void IdaLogSink::Send(const not_absl::LogEntry& entry) {
-  auto message = entry.text_message();
+void IdaLogSink::Send(const absl::LogEntry& entry) {
+  auto message = entry.text_message_with_newline();
   // Output up to 8K of log data (including the new line).
   // Note: msg() and vmsg() are thread-safe.
-  msg("%.*s\n",
-      static_cast<int>(std::clamp(message.size(), size_t(0), size_t(8191))),
+  msg("%.*s",
+      static_cast<int>(std::clamp(message.size(), size_t(0), size_t(8192))),
       message.data());
 }
 

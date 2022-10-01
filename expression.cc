@@ -16,7 +16,7 @@
 
 #include <sstream>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
 #include "third_party/zynamics/binexport/instruction.h"
 #include "third_party/zynamics/binexport/util/hash.h"
 

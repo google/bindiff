@@ -14,7 +14,7 @@
 
 #include "third_party/zynamics/binexport/entry_point.h"
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 
 EntryPoint::EntryPoint(Address address, EntryPoint::Source source,
                        const int flags)
@@ -67,7 +67,8 @@ std::string EntryPoint::SourceToString() const {
     case Source::GOLANG_TYPE_INFO:
       return "GOLANG_TYPE_INFO";
     default:
-      CHECK(false);
+      LOG(QFATAL) << "Invalid entry point source: "
+                  << static_cast<int>(source_);
       return "";  // Not reached
   }
 }

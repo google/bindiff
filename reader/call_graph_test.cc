@@ -16,7 +16,6 @@
 
 #include "third_party/zynamics/binexport/reader/call_graph.h"
 
-#include "base/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"

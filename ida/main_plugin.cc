@@ -25,7 +25,7 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/base/attributes.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/ascii.h"

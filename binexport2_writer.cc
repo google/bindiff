@@ -36,8 +36,9 @@
 #include <locale>
 #include <string>
 
-#include "base/logging.h"
 #include "third_party/absl/container/flat_hash_map.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"

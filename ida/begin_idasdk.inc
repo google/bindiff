@@ -45,9 +45,9 @@
 #pragma clang diagnostic ignored "-Wvarargs"
 #elif __GNUC__
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wlogical-op-parentheses"
+#pragma GCC diagnostic ignored "-Wlogical-not-parentheses"
 #pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-#pragma GCC diagnostic ignored "-Wnullability-completeness"
+#pragma GCC diagnostic ignored "-Wnonnull"
 #pragma GCC diagnostic ignored "-Wvarargs"
 #elif _MSC_VER
 #pragma warning(push)

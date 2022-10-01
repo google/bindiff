@@ -122,8 +122,11 @@ add_library(binexport_shared STATIC
 )
 target_link_libraries(binexport_shared PUBLIC
   absl::bad_optional_access
+  absl::check
   absl::flat_hash_map
   absl::flat_hash_set
+  absl::log
+  absl::log_initialize
   absl::optional
   absl::status
   absl::statusor
@@ -238,11 +241,13 @@ add_library(binexport_core
 target_link_libraries(binexport_core PUBLIC
   absl::bad_optional_access
   absl::btree
+  absl::check
   absl::flat_hash_map
   absl::flat_hash_set
   absl::hash
   absl::node_hash_map
   absl::node_hash_set
+  absl::log
   absl::optional
   absl::strings
   absl::time
@@ -270,7 +275,9 @@ add_library(binexport_reader STATIC
   reader/instruction.h
 )
 target_link_libraries(binexport_reader PUBLIC
+  absl::check
   absl::inlined_vector
+  absl::log
   absl::strings
   binexport_shared
 )

@@ -30,7 +30,7 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/util/format.h"

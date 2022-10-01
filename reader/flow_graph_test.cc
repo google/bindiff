@@ -14,7 +14,6 @@
 
 #include "third_party/zynamics/binexport/reader/flow_graph.h"
 
-#include "base/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -132,7 +131,6 @@ TEST_F(FlowGraphTest, GetCallTargetsMultiple) {
       proto_, proto_.flow_graph(2),
       GetAllInstructionAddresses(proto_)));
   const auto& vertex = flow_graph->GetVertex(0x00322310);
-  LOG(INFO) << vertex;
   std::vector<Address> call_targets;
   flow_graph->GetCallTargets(vertex, std::back_inserter(call_targets));
   EXPECT_THAT(call_targets.size(), Eq(6));

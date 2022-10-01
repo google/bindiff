@@ -16,6 +16,7 @@ add_executable(binexport2dump binexport2dump.cc)
 target_link_libraries(binexport2dump
   absl::flat_hash_map
   absl::hash
+  absl::log_initialize
   absl::str_format
   absl::time
   binexport_base

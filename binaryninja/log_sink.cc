@@ -18,14 +18,13 @@
 #include "binaryninjaapi.h"  // NOLINT
 // clang-format on
 
-#include "base/logging.h"
 #include "third_party/absl/base/log_severity.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 
 namespace security::binexport {
 
-void BinaryNinjaLogSink::Send(const not_absl::LogEntry& entry) {
+void BinaryNinjaLogSink::Send(const absl::LogEntry& entry) {
   BNLogLevel level;
   switch (entry.log_severity()) {
     case absl::LogSeverity::kInfo:

@@ -20,8 +20,10 @@
 #include <string>
 #include <vector>
 
-#include "base/logging.h"
 #include "third_party/absl/container/flat_hash_map.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/initialize.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
@@ -258,6 +260,8 @@ void DumpBinExport2(const BinExport2& proto) {
 }  // namespace security::binexport
 
 int main(int argc, char* argv[]) {
+  absl::InitializeLog();
+
   if (argc != 2) {
     absl::FPrintF(stderr, "Usage: %s BINEXPORT2\n", Basename(argv[0]));
     return EXIT_FAILURE;

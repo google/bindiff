@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <string>
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/escaping.h"
