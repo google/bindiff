@@ -20,7 +20,8 @@
 #include <iterator>
 #include <list>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include <boost/iterator/transform_iterator.hpp>
 
 namespace security::bindiff {

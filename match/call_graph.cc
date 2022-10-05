@@ -16,12 +16,11 @@
 
 #include <iomanip>
 
-#include "base/logging.h"
 #include "third_party/absl/container/flat_hash_map.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/memory/memory.h"
-#include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/config.h"
-#include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"

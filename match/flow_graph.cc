@@ -17,9 +17,8 @@
 #include <map>
 #include <unordered_map>
 
-#include "base/logging.h"
 #include "third_party/absl/container/flat_hash_map.h"
-#include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/basic_block_call_refs.h"

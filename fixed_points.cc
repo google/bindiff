@@ -14,7 +14,6 @@
 
 #include "third_party/zynamics/bindiff/fixed_points.h"
 
-#include "base/logging.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"

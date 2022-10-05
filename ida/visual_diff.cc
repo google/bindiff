@@ -36,7 +36,6 @@
 #include <sstream>
 #include <thread>  // NOLINT
 
-#include "base/logging.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"

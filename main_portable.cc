@@ -33,7 +33,6 @@
 #include <utility>
 #include <vector>
 
-#include "base/logging.h"
 #include "third_party/absl/base/const_init.h"
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/flags/flag.h"
@@ -41,6 +40,7 @@
 #include "third_party/absl/flags/parse.h"
 #include "third_party/absl/flags/usage.h"
 #include "third_party/absl/flags/usage_config.h"
+#include "third_party/absl/log/initialize.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/ascii.h"
@@ -49,7 +49,6 @@
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/synchronization/mutex.h"
-#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -115,15 +114,6 @@ void PrintErrorMessage(absl::string_view message) {
   fwrite(message.data(), 1 /* Size */, size, stderr);
   fwrite("\n", 1 /* Size */, 1 /* Count */, stderr);
 }
-
-#ifndef BINDIFF_GOOGLE
-void UnprefixedLogHandler(google::protobuf::LogLevel level,
-                          const char* filename, int line,
-                          const std::string& message) {
-  fwrite(message.data(), 1 /* Size */, message.size(), stdout);
-  fwrite("\n", 1 /* Size */, 1 /* Count */, stdout);
-}
-#endif
 
 // This function will try and create a fully specified filename no longer than
 // 250 characters. It'll truncate part1 and part2, leaving all other fragments
@@ -508,6 +498,8 @@ void InstallFlagsUsageConfig() {
 }
 
 absl::Status BinDiffMain(int argc, char* argv[]) {
+  absl::InitializeLog();
+
   const std::string binary_name = Basename(argv[0]);
   const std::string usage = absl::StrFormat(
       "Find similarities and differences in disassembled code.\n"
@@ -537,10 +529,6 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
   if (absl::GetFlag(FLAGS_output_dir).empty()) {
     absl::SetFlag(&FLAGS_output_dir, current_path);
   }
-
-#ifndef BINDIFF_GOOGLE
-  SetLogHandler(&UnprefixedLogHandler);
-#endif
 
   if (absl::GetFlag(FLAGS_logo) && !absl::GetFlag(FLAGS_print_config)) {
     PrintMessage(absl::StrCat(kBinDiffName, " ", kBinDiffDetailedVersion, ", ",

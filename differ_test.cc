@@ -19,10 +19,11 @@
 #include <cstdint>
 #include <vector>
 
-#include "base/logging.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/flags/flag.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_split.h"

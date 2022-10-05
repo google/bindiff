@@ -19,7 +19,6 @@
 #include <iomanip>
 #include <memory>
 
-#include "base/logging.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"

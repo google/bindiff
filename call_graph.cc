@@ -16,7 +16,7 @@
 
 #include <cassert>
 
-#include "base/logging.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"

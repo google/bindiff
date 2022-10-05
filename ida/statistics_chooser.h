@@ -19,7 +19,6 @@
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 
-#include "base/logging.h"
 #include "third_party/absl/base/macros.h"
 
 namespace security::bindiff {

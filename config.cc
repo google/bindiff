@@ -25,7 +25,6 @@
 #include <string>
 #include <vector>
 
-#include "base/logging.h"
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"

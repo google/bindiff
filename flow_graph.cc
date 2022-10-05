@@ -19,7 +19,8 @@
 #include <cstdint>
 #include <sstream>
 
-#include "base/logging.h"
+#include "third_party/absl/log/check.h"
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/str_cat.h"
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/dominator_tree.hpp>

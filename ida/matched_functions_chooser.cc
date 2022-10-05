@@ -17,6 +17,7 @@
 #include <cstring>
 #include <vector>
 
+#include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
