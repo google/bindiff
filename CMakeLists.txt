@@ -49,9 +49,11 @@ endif()
 option(BINDIFF_ENABLE_IPO "Enable interprocedural optimization"
                           ${_bindiff_ipo_supported})
 
-enable_testing()
 include(CTest)
-include(GoogleTest)
+if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
+  include(GoogleTest)
+  enable_testing()
+endif()
 
 # Make Google-style includes work
 set(_bindiff_src "${BINDIFF_BINARY_DIR}/src_include/third_party/zynamics")
@@ -83,13 +85,15 @@ target_link_libraries(bindiff_base INTERFACE
   protobuf::libprotobuf
 )
 
-# Interface library for tests
-add_library(bindiff_test_base INTERFACE)
-target_link_libraries(bindiff_test_base INTERFACE
-  bindiff_base
-  gtest_main
-  gmock
-)
+if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
+  # Interface library for tests
+  add_library(bindiff_test_base INTERFACE)
+  target_link_libraries(bindiff_test_base INTERFACE
+    bindiff_base
+    gtest_main
+    gmock
+  )
+endif()
 
 # Version information
 configure_file(version.cc.in version.cc ESCAPE_QUOTES @ONLY)
@@ -241,51 +245,54 @@ set_target_properties(bindiff_shared PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
 )
 
-# Library that helps with testing BinDiff's core engine.
-add_library(bindiff_test_util STATIC
-  test_util.cc
-  test_util.h
-)
-target_link_libraries(bindiff_test_util
-  binexport_testing
-  bindiff_test_base
-  bindiff_shared
-)
+if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
+  # Library that helps with testing BinDiff's core engine.
+  add_library(bindiff_test_util STATIC
+    test_util.cc
+    test_util.h
+  )
+  target_link_libraries(bindiff_test_util
+    binexport_testing
+    bindiff_test_base
+    bindiff_shared
+  )
 
-add_executable(call_graph_test call_graph_test.cc)
-target_link_libraries(call_graph_test
-  bindiff_test_util
-  bindiff_test_base
-  bindiff_shared
-)
-gtest_discover_tests(call_graph_test)
+  add_executable(call_graph_test call_graph_test.cc)
+  target_link_libraries(call_graph_test
+    bindiff_test_util
+    bindiff_test_base
+    bindiff_shared
+  )
+  gtest_discover_tests(call_graph_test)
 
-add_executable(change_classifier_test change_classifier_test.cc)
-target_link_libraries(change_classifier_test
-  bindiff_test_util
-  bindiff_test_base
-  bindiff_shared
-)
-gtest_discover_tests(change_classifier_test)
 
-add_executable(prime_signature_test prime_signature_test.cc)
-target_link_libraries(prime_signature_test
-  bindiff_test_base
-  bindiff_shared
-)
-gtest_discover_tests(prime_signature_test)
+  add_executable(change_classifier_test change_classifier_test.cc)
+  target_link_libraries(change_classifier_test
+    bindiff_test_util
+    bindiff_test_base
+    bindiff_shared
+  )
+  gtest_discover_tests(change_classifier_test)
 
-add_executable(writer_test
-  log_writer_test.cc
-  writer_test.cc
-)
-target_link_libraries(writer_test
-  bindiff_test_base
-  bindiff_test_util
-  bindiff_shared
-  binexport_shared
-)
-gtest_discover_tests(writer_test)
+  add_executable(prime_signature_test prime_signature_test.cc)
+  target_link_libraries(prime_signature_test
+    bindiff_test_base
+    bindiff_shared
+  )
+  gtest_discover_tests(prime_signature_test)
+
+  add_executable(writer_test
+    log_writer_test.cc
+    writer_test.cc
+  )
+  target_link_libraries(writer_test
+    bindiff_test_base
+    bindiff_test_util
+    bindiff_shared
+    binexport_shared
+  )
+  gtest_discover_tests(writer_test)
+endif()
 
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
