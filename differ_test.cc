@@ -19,16 +19,12 @@
 #include <cstdint>
 #include <vector>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "third_party/absl/flags/flag.h"
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
-#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
@@ -36,7 +32,6 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
@@ -159,8 +154,7 @@ struct FixtureMetadata {
   std::string truth;
 };
 
-class GroundtruthTest
-    : public testing::TestWithParam<FixtureMetadata> {};
+class GroundtruthTest : public testing::TestWithParam<FixtureMetadata> {};
 
 TEST_P(GroundtruthTest, Run) {
   const FixtureMetadata& meta = GetParam();
@@ -252,13 +246,13 @@ TEST_P(GroundtruthTest, Run) {
 INSTANTIATE_TEST_SUITE_P(
     GtTest, GroundtruthTest,
     testing::Values(
-        FixtureMetadata{}
+        FixtureMetadata()
             .set_name("insider")
             .set_primary("bindiff/fixtures/insider/insider_gcc.BinExport")
             .set_secondary("bindiff/fixtures/insider/insider_lcc.BinExport")
             .set_truth(
                 "bindiff/fixtures/insider/insider_gcc_vs_insider_lcc.truth"),
-        FixtureMetadata{}
+        FixtureMetadata()
             .set_name("libssl 0.9.8g (x86)")
             .set_primary("bindiff/fixtures/libssl/"
                          "libssl.0.9.8g.x86.gcc.4.3.3.a.BinExport")
@@ -267,7 +261,7 @@ INSTANTIATE_TEST_SUITE_P(
             .set_truth("bindiff/fixtures/libssl/"
                        "libssl.0.9.8g.x86.gcc.4.3.3.a_vs_libssl.0.9g.x86.gcc.3."
                        "4.6.a.truth"),
-        FixtureMetadata{}
+        FixtureMetadata()
             .set_primary("bindiff/fixtures/minievil/"
                          "0d0d06e42bb39a4a8fd1a3da8a9be8d2abaacd4c7373d4cd36cd6"
                          "fac6f4d1650.BinExport")
@@ -275,7 +269,7 @@ INSTANTIATE_TEST_SUITE_P(
                            "70726a39fda45d1e0bb167a2bf3825db0960529368a5814c4f4"
                            "3d59b4d585e79.BinExport")
             .set_truth("bindiff/fixtures/minievil/minievil.truth"),
-        FixtureMetadata{}
+        FixtureMetadata()
             .set_primary("bindiff/fixtures/mydoom/Mydoom-vc_orig.BinExport")
             .set_secondary("bindiff/fixtures/mydoom/Mydoom-vc_optz.BinExport")
             .set_truth("bindiff/fixtures/mydoom/"
