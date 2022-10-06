@@ -14,3 +14,9 @@
 
 option(BINDIFF_BUILD_TESTING
        "If ON, this will build all of BinDiff's own tests" ON)
+
+if(BINDIFF_BUILD_TESTING)
+  # Have BinExport download GoogleTest for us
+  set(BINEXPORT_BUILD_TESTING ON)
+endif()
+
