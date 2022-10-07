@@ -40,6 +40,7 @@
 #include "third_party/absl/flags/parse.h"
 #include "third_party/absl/flags/usage.h"
 #include "third_party/absl/flags/usage_config.h"
+#include "third_party/absl/log/globals.h"
 #include "third_party/absl/log/initialize.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
@@ -498,8 +499,6 @@ void InstallFlagsUsageConfig() {
 }
 
 absl::Status BinDiffMain(int argc, char* argv[]) {
-  absl::InitializeLog();
-
   const std::string binary_name = Basename(argv[0]);
   const std::string usage = absl::StrFormat(
       "Find similarities and differences in disassembled code.\n"
@@ -519,6 +518,9 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     const std::vector<char*> parsed_argv = absl::ParseCommandLine(argc, argv);
     positional.assign(parsed_argv.begin() + 1, parsed_argv.end());
   }
+
+  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
+  absl::InitializeLog();
 
 #ifdef WIN32
   signal(SIGBREAK, SignalHandler);

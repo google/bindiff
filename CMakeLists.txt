@@ -314,8 +314,9 @@ endif()
 add_executable(bindiff main_portable.cc)
 target_link_libraries(bindiff
   bindiff_shared
-  absl::flat_hash_set
   absl::flags_parse
+  absl::flat_hash_set
+  absl::log_globals
   absl::time
 )
 if(NOT MSVC)
