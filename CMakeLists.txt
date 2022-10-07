@@ -25,7 +25,6 @@ set(BINDIFF_BINEXPORT_DIR "${PROJECT_SOURCE_DIR}/../binexport" CACHE
     PATH "Path to a BinExport source tree")
 
 # Import BinExport targets
-set(BINEXPORT_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory("${BINDIFF_BINEXPORT_DIR}" "_deps/binexport-build" EXCLUDE_FROM_ALL)
 
 # CMake settings
@@ -35,6 +34,7 @@ list(APPEND CMAKE_MODULE_PATH "${BINDIFF_SOURCE_DIR}/cmake"
 
 # BinDiff CMake modules, order matters
 include(CompileOptions)
+include(BinDiffOptions)
 include(BinDiffDeps)
 
 set(bindiff_BINEXPORT_RELEASE 12)
@@ -292,6 +292,23 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
     binexport_shared
   )
   gtest_discover_tests(writer_test)
+
+  if(BINDIFF_BUILD_BENCHMARK)
+    # Needs to be run from the build dir in order to find the fixtures:
+    #   cd src_include/third_party/zynamics; ../../../differ_benchmark
+    add_executable(differ_benchmark
+      differ_benchmark.cc
+    )
+    target_link_libraries(differ_benchmark
+      bindiff_base
+      benchmark::benchmark_main
+      gtest
+      gmock
+      bindiff_test_util
+      bindiff_shared
+      binexport_shared
+    )
+  endif()
 endif()
 
 add_executable(bindiff main_portable.cc)

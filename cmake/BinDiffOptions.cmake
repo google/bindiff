@@ -14,9 +14,14 @@
 
 option(BINDIFF_BUILD_TESTING
        "If ON, this will build all of BinDiff's own tests" ON)
+option(BINDIFF_BUILD_BENCHMARK
+       "If this and BINDIFF_BUILD_TESTING is ON, build benchmark tests" OFF)
 
 if(BINDIFF_BUILD_TESTING)
-  # Have BinExport download GoogleTest for us
-  set(BINEXPORT_BUILD_TESTING ON)
+  # Have BinExport download GoogleTest/Benchmark for us
+  set(BINEXPORT_BUILD_TESTING ON CACHE BOOL "" FORCE)
+  if(BINDIFF_BUILD_BENCHMARK)
+    set(BINEXPORT_BUILD_BENCHMARK ON CACHE BOOL "" FORCE)
+  endif()
 endif()
 
