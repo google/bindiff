@@ -5,7 +5,6 @@ files/opt/bindiff/bin/bindiff.jar opt/bindiff/bin
 files/opt/bindiff/bin/binexport2dump opt/bindiff/bin
 files/opt/bindiff/extra/config/bindiff_config.proto opt/bindiff/extra/config
 files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
-files/opt/bindiff/extra/ghidra/ghidra_BinExport.zip opt/bindiff/extra/ghidra
 files/opt/bindiff/libexec/bindiff_config_setup opt/bindiff/libexec
 files/opt/bindiff/plugins/binaryninja/README opt/bindiff/plugins/binaryninja
 files/opt/bindiff/plugins/binaryninja/binexport12_binaryninja.so opt/bindiff/plugins/binaryninja

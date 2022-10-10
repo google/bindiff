@@ -30,6 +30,7 @@
     </DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Extra_Ghidra.wxs" />
     <Compile Include="Jre.wxs" />
     <Compile Include="Setup.wxs" />
   </ItemGroup>

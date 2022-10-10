@@ -237,15 +237,6 @@
                 <File Name="bindiff_config.proto" KeyPath="yes" />
               </Component>
             </Directory>
-
-            <!-- Ghidra BinExport extension -->
-            <Directory Id="BinDiff_Extra_Ghidra" Name="Ghidra">
-              <Component Id="Ghidra_Extensions"
-                         Guid="30561A75-8C83-414B-B3F8-9389EA7F27C0">
-                <File Name="ghidra_BinExport.zip" KeyPath="yes" />
-                <File Id="Ghidra_Extensions_ReadmeTXT" Name="Readme.txt" />
-              </Component>
-            </Directory>
           </Directory>
 
           <Directory Id="BinDiff_Plugins" Name="Plugins">
@@ -427,7 +418,6 @@
       <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
       <ComponentRef Id="BinDiff_Extra_Config_Bindiff_configPROTO" />
       <ComponentRef Id="BinaryNinja_Plugins" />
-      <ComponentRef Id="Ghidra_Extensions" />
       <ComponentRef Id="Ida_Plugins" />
       <ComponentRef Id="ProgramMenu_BinDiff_GoogleSecurityBlog" />
       <ComponentRef Id="ProgramMenu_BinDiff_Open_Source_BinExport" />
