@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
 #include "third_party/zynamics/bindiff/test_util.h"

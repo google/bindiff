@@ -16,8 +16,8 @@
 #define MATCH_CONTEXT_H_
 
 #include <list>
-#include <unordered_map>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
@@ -112,7 +112,7 @@ class MatchingContext {
   }
 
  private:
-  using FixedPointByAddress = std::unordered_map<Address, FixedPoint*>;
+  using FixedPointByAddress = absl::flat_hash_map<Address, FixedPoint*>;
   using FeaturesDestructor = void (*)(void*);
 
   struct FeatureRecord {

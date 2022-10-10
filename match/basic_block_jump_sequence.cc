@@ -16,6 +16,7 @@
 
 #include <cstdint>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
 
 namespace security::bindiff {
@@ -37,8 +38,8 @@ void MatchingStepJumpSequence ::GetUnmatchedBasicBlocksByJumpSequence(
     const FlowGraph* flow_graph, const VertexSet& vertices,
     VertexIntMap* basic_blocks_map) {
   basic_blocks_map->clear();
-  std::map<uint64_t, uint64_t> md_count;
-  for (auto vertex : vertices) {
+  absl::flat_hash_map<uint64_t, uint64_t> md_count;
+  for (const auto& vertex : vertices) {
     if (!flow_graph->GetFixedPoint(vertex)) {
       const auto int_md_index = static_cast<uint64_t>(
           flow_graph->GetMdIndex(vertex) * 1000000000000000000ULL);

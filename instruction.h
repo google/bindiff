@@ -17,16 +17,16 @@
 
 #include <cstdint>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
+#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
 class Instruction {
  public:
-  using Cache = std::unordered_map<uint32_t, std::string>;
+  using Cache = absl::flat_hash_map<uint32_t, std::string>;
 
   Instruction(Cache* cache, Address address, const std::string& mnemonic,
               uint32_t prime);

@@ -20,9 +20,10 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
 #include "third_party/absl/strings/string_view.h"
+#include "third_party/zynamics/bindiff/match/call_graph.h"
+#include "third_party/zynamics/bindiff/match/flow_graph.h"
 #include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/bindiff/test_util.h"
-#include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/testing.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 

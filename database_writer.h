@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
@@ -68,7 +69,7 @@ class DatabaseWriter : public Writer {
   void WriteMatches(const FixedPoints& fixed_points);
   void WriteAlgorithms();
 
-  using NameToId = std::map<std::string, int>;
+  using NameToId = absl::btree_map<std::string, int>;
   NameToId basic_block_steps_;
   NameToId function_steps_;
   std::string filename_;

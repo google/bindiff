@@ -18,15 +18,13 @@
 #include <memory>
 #include <string>
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
-#include "third_party/zynamics/bindiff/match/call_graph.h"
-#include "third_party/zynamics/bindiff/match/flow_graph.h"
 
 namespace security::bindiff {
 
@@ -105,7 +103,7 @@ class BasicBlockBuilder {
   friend class FunctionBuilder;
 
   std::string label_;
-  std::map<int, std::string> out_flow_labels_;
+  absl::btree_map<int, std::string> out_flow_labels_;
   std::vector<InstructionBuilder> instructions_;
 };
 

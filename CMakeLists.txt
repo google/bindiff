@@ -231,6 +231,7 @@ add_library(bindiff_shared STATIC
   writer.h
 )
 target_link_libraries(bindiff_shared
+  absl::btree
   absl::flat_hash_map
   absl::hash
   absl::str_format
@@ -252,6 +253,7 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
     test_util.h
   )
   target_link_libraries(bindiff_test_util
+    absl::btree
     binexport_testing
     bindiff_test_base
     bindiff_shared

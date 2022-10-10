@@ -16,24 +16,23 @@
 #define DIFFER_H_
 
 #include <array>
-#include <map>
 #include <string>
 
+#include "third_party/absl/container/btree_map.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/statistics.h"
-#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
 class MatchingContext;
 
 // These need to be sorted
-using Histogram = std::map<std::string, size_t>;
-using Confidences = std::map<std::string, double>;
+using Histogram = absl::btree_map<std::string, size_t>;
+using Confidences = absl::btree_map<std::string, double>;
 
 // Main entry point to the differ. Runs the core algorithm and produces a
 // (partial) matching between the two inputs.
