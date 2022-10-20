@@ -417,6 +417,7 @@
       <ComponentRef Id="BinDiff_Bin_Bindiff_uiCMD" />
       <ComponentRef Id="BinDiff_Bin_BindiffJAR" />
       <ComponentRef Id="BinDiff_Extra_Config_Bindiff_configPROTO" />
+      <ComponentGroupRef Id="BinDiff_Extra_Ghidra"/>
       <ComponentRef Id="BinaryNinja_Plugins" />
       <ComponentRef Id="Ida_Plugins" />
       <ComponentRef Id="ProgramMenu_BinDiff_GoogleSecurityBlog" />

@@ -23,7 +23,8 @@
     <SuppressIces>ICE03;ICE48;ICE50</SuppressIces>
     <SuppressAllWarnings>True</SuppressAllWarnings>
     <Pedantic>False</Pedantic>
-    <LinkerAdditionalOptions>-b SourceDir\Jre</LinkerAdditionalOptions>
+    <LinkerAdditionalOptions>-b SourceDir\ProgramFiles\BinDiff\jre</LinkerAdditionalOptions>
+    <LinkerAdditionalOptions>-b SourceDir\ProgramFiles\BinDiff\Extra\Ghidra</LinkerAdditionalOptions>
     <CompilerAdditionalOptions>
     </CompilerAdditionalOptions>
     <DefineConstants>
