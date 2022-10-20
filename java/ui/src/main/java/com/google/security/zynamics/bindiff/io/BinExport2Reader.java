@@ -125,7 +125,7 @@ public class BinExport2Reader {
     if (!name.isEmpty()) {
       return name;
     }
-    return String.format("sub_%08X", vertex.getAddress());
+    return String.format("sub_%X", vertex.getAddress());
   }
 
   private static EJumpType toJumpType(final BinExport2.FlowGraph.Edge.Type type) {

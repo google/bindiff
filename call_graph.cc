@@ -17,8 +17,6 @@
 #include <cassert>
 
 #include "third_party/absl/log/log.h"
-#include "third_party/absl/strings/ascii.h"
-#include "third_party/absl/strings/escaping.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
@@ -28,6 +26,7 @@
 namespace security::bindiff {
 
 using binexport::FormatAddress;
+using binexport::FormatFunctionName;
 
 namespace {
 
@@ -121,7 +120,7 @@ absl::Status CallGraph::Read(const BinExport2& proto,
     }
     if (!(vertex.flags_ & VERTEX_NAME)) {
       // Provide a dummy name for display.
-      vertex.name_ = absl::StrCat("sub_", FormatAddress(vertex.address_));
+      vertex.name_ = FormatFunctionName(vertex.address_);
     }
 
     if (proto_vertex.type() == BinExport2::CallGraph::Vertex::LIBRARY) {

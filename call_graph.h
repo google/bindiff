@@ -166,7 +166,7 @@ class CallGraph {
   void SetStub(Vertex vertex, bool stub);
 
   // Does this vertex have a real, i.e. user supplied, name? Binaries without
-  // symbols often have auto generated names like "sub_baadf00d".
+  // symbols often have auto generated names like "sub_BAADF00D".
   bool HasRealName(Vertex vertex) const;
 
   // Returns the pair<edge,true> if the edge could be found or
