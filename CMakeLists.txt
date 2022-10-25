@@ -14,7 +14,7 @@
 
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
-cmake_minimum_required(VERSION 3.14..3.22)
+cmake_minimum_required(VERSION 3.14..3.24)
 cmake_policy(VERSION 3.14)
 project(bindiff VERSION 7)
 
@@ -56,12 +56,22 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
 endif()
 
 # Make Google-style includes work
-set(_bindiff_src "${BINDIFF_BINARY_DIR}/src_include/third_party/zynamics")
-set(_bindiff_gen "${BINDIFF_BINARY_DIR}/gen_include/third_party/zynamics")
-create_directory_symlink("${BINDIFF_SOURCE_DIR}" "${_bindiff_src}/bindiff")
-create_directory_symlink("${absl_SOURCE_DIR}/absl" "${_bindiff_src}/../absl")
-create_directory_symlink("${sqlite_SOURCE_DIR}" "${_bindiff_src}/../sqlite/src")
-create_directory_symlink("${BINDIFF_BINARY_DIR}" "${_bindiff_gen}/bindiff")
+create_directory_symlink(
+  "${BINDIFF_SOURCE_DIR}"
+  "${BINDIFF_BINARY_DIR}/src_include/third_party/zynamics/bindiff"
+)
+create_directory_symlink(
+  "${absl_SOURCE_DIR}/absl"
+  "${BINDIFF_BINARY_DIR}/src_include/third_party/absl"
+)
+create_directory_symlink(
+  "${sqlite_SOURCE_DIR}"
+  "${BINDIFF_BINARY_DIR}/src_include/third_party/sqlite/src"
+)
+create_directory_symlink(
+  "${BINDIFF_BINARY_DIR}"
+  "${BINDIFF_BINARY_DIR}/gen_include/third_party/zynamics/bindiff"
+)
 
 # Set revision number, if applicable
 if(NOT $ENV{KOKORO_PIPER_CHANGELIST} STREQUAL "")
@@ -76,10 +86,10 @@ set(bindiff_ida_plugin_name bindiff${bindiff_VERSION_MAJOR}_ida)
 # Interface library with include paths used by BinDiff
 add_library(bindiff_base INTERFACE)
 target_include_directories(bindiff_base INTERFACE
-  ${BINEXPORT_SOURCE_DIR}/stubs  # Use BinExport infrastructure
-  ${BINDIFF_BINARY_DIR}/src_include
-  ${BINDIFF_BINARY_DIR}/gen_include
-  ${Boost_INCLUDE_DIR}
+  "${BINEXPORT_SOURCE_DIR}/stubs"  # Use BinExport infrastructure
+  "${BINDIFF_BINARY_DIR}/src_include"
+  "${BINDIFF_BINARY_DIR}/gen_include"
+  "${Boost_INCLUDE_DIR}"
 )
 target_link_libraries(bindiff_base INTERFACE
   protobuf::libprotobuf
@@ -120,8 +130,8 @@ protobuf_generate_cpp(bd_config_proto bd_config_proto_h
 )
 
 add_library(bindiff_config STATIC
-  ${bd_config_proto_h}
-  ${bd_config_proto}
+  "${bd_config_proto_h}"
+  "${bd_config_proto}"
   config.cc
   config.h
   ${CMAKE_CURRENT_BINARY_DIR}/config_defaults.h
