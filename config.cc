@@ -15,7 +15,7 @@
 #include "third_party/zynamics/bindiff/config.h"
 
 #ifdef BINDIFF_GOOGLE
-#include "net/proto2/util/public/json_util.h"
+#include "third_party/protobuf/util/json_util.h"
 #else
 #include <google/protobuf/util/json_util.h>
 #endif
