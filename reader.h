@@ -25,12 +25,12 @@
 namespace security::bindiff {
 
 struct FlowGraphInfo {
-  Address address;
-  const std::string* name;
-  const std::string* demangled_name;
-  int basic_block_count;
-  int edge_count;
-  int instruction_count;
+  Address address = 0;
+  const std::string* name = nullptr;
+  const std::string* demangled_name = nullptr;
+  int basic_block_count = 0;
+  int edge_count = 0;
+  int instruction_count = 0;
 };
 using FlowGraphInfos = absl::btree_map<Address, FlowGraphInfo>;
 

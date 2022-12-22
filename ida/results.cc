@@ -53,6 +53,7 @@
 namespace security::bindiff {
 
 using binexport::FormatAddress;
+using binexport::FormatFunctionName;
 using binexport::GetDemangledName;
 using binexport::GetName;
 using binexport::HumanReadableDuration;
@@ -463,13 +464,18 @@ Results::UnmatchedDescription Results::GetUnmatchedDescription(
     UpdateName(const_cast<CallGraph*>(&call_graph1_), flow_graph_info.address);
   }
 
-  CHECK(flow_graph_info.demangled_name);
+  const std::string* name = flow_graph_info.demangled_name;
+  if (name == nullptr) {
+    name = flow_graph_info.name;
+  }
 
   Results::UnmatchedDescription desc{};
   desc.address = flow_graph_info.address;
-  desc.name = flow_graph_info.demangled_name->empty()
-                  ? *flow_graph_info.name
-                  : *flow_graph_info.demangled_name;
+  desc.name = name != nullptr && !name->empty()
+                  ? *name
+                  // Fallback, name may still be nullptr, as the underlying
+                  // function simply might not have a name (b/263365607).
+                  : FormatFunctionName(flow_graph_info.address);
   desc.basic_block_count = flow_graph_info.basic_block_count;
   desc.instruction_count = flow_graph_info.instruction_count;
   desc.edge_count = flow_graph_info.edge_count;
@@ -934,9 +940,7 @@ absl::Status Results::AddMatch(Address primary, Address secondary) {
   return absl::OkStatus();
 }
 
-size_t Results::GetNumMatches() const {
-  return indexed_fixed_points_.size();
-}
+size_t Results::GetNumMatches() const { return indexed_fixed_points_.size(); }
 
 Results::MatchDescription Results::GetMatchDescription(size_t index) const {
   if (index >= indexed_fixed_points_.size()) {
