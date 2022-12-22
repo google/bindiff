@@ -108,6 +108,8 @@ std::string GetLogFilename(const bindiff::Config& config,
   if (log_dir.empty()) {
     log_dir = JoinPath(GetOrCreateAppDataDirectory(kBinDiffName).value_or("."),
                        "logs");
+    CreateDirectories(log_dir)
+        .IgnoreError();  // Let logging code handle the error
   }
   return JoinPath(log_dir, basename);
 }
