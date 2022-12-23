@@ -286,6 +286,14 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
   )
   gtest_discover_tests(change_classifier_test)
 
+  add_executable(match_tests match/basic_block_instruction_count_test.cc)
+  target_link_libraries(match_tests
+    bindiff_test_util
+    bindiff_test_base
+    bindiff_shared
+  )
+  gtest_discover_tests(match_tests)
+
   add_executable(prime_signature_test prime_signature_test.cc)
   target_link_libraries(prime_signature_test
     bindiff_test_base
