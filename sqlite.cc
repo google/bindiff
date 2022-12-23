@@ -23,6 +23,14 @@
 #include "third_party/sqlite/src/sqlite3.h"
 
 namespace security::bindiff {
+namespace {
+
+absl::Status Sqlite3ErrToStatus(sqlite3* handle, absl::string_view message) {
+  return absl::UnknownError(
+      absl::StrCat(message, ": ", sqlite3_errmsg(handle)));
+}
+
+}  // namespace
 
 SqliteDatabase::SqliteDatabase(SqliteDatabase&& other)
     : database_(other.database_) {
@@ -45,10 +53,10 @@ absl::StatusOr<SqliteDatabase> SqliteDatabase::Connect(
     absl::string_view filename) {
   sqlite3* handle = nullptr;
   if (sqlite3_open(std::string(filename).c_str(), &handle) != SQLITE_OK) {
-    const std::string error = sqlite3_errmsg(handle);
+    absl::Status status = Sqlite3ErrToStatus(
+        handle, absl::StrCat("open database '", filename, "'"));
     sqlite3_close(handle);
-    throw std::runtime_error(absl::StrCat("failed opening database: '", error,
-                                          "', filename: '", filename, "'"));
+    throw std::runtime_error(std::string(status.message()));
   }
 
   if (!handle) {
@@ -75,15 +83,15 @@ std::unique_ptr<SqliteStatement> SqliteDatabase::Statement(
 }
 
 void SqliteDatabase::Begin() {
-  Statement("begin transaction")->Execute();
+  Statement("BEGIN TRANSACTION")->Execute();
 }
 
 void SqliteDatabase::Commit() {
-  Statement("commit transaction")->Execute();
+  Statement("COMMIT TRANSACTION")->Execute();
 }
 
 void SqliteDatabase::Rollback() {
-  Statement("rollback transaction")->Execute();
+  Statement("ROLLBACK TRANSACTION")->Execute();
 }
 
 SqliteStatement::SqliteStatement(SqliteDatabase* database,
@@ -91,9 +99,9 @@ SqliteStatement::SqliteStatement(SqliteDatabase* database,
     : database_(database->database_) {
   if (sqlite3_prepare_v2(database_, statement.data(), statement.size(),
                          &statement_, nullptr) != SQLITE_OK) {
-    const std::string error(sqlite3_errmsg(database_));
-    throw std::runtime_error(absl::StrCat("error preparing statement '",
-                                          statement, "', '", error, "'"));
+    absl::Status status = Sqlite3ErrToStatus(
+        database_, absl::StrCat("preparing statement '", statement, "'"));
+    throw std::runtime_error(std::string(status.message()));
   }
 }
 
@@ -179,10 +187,10 @@ SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
 SqliteStatement& SqliteStatement::Execute() {
   const int return_code = sqlite3_step(statement_);
   if (return_code != SQLITE_ROW && return_code != SQLITE_DONE) {
-    const std::string error(sqlite3_errmsg(database_));
-    throw std::runtime_error(absl::StrCat("error executing statement '",
-                                          sqlite3_sql(statement_), "', '",
-                                          error, "'"));
+    absl::Status status = Sqlite3ErrToStatus(
+        database_,
+        absl::StrCat("executing statement '", sqlite3_sql(statement_), "'"));
+    throw std::runtime_error(std::string(status.message()));
   }
 
   parameter_ = 0;

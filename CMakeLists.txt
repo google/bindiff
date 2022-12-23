@@ -280,16 +280,16 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
 
   add_executable(change_classifier_test change_classifier_test.cc)
   target_link_libraries(change_classifier_test
-    bindiff_test_util
     bindiff_test_base
+    bindiff_test_util
     bindiff_shared
   )
   gtest_discover_tests(change_classifier_test)
 
   add_executable(match_tests match/basic_block_instruction_count_test.cc)
   target_link_libraries(match_tests
-    bindiff_test_util
     bindiff_test_base
+    bindiff_test_util
     bindiff_shared
   )
   gtest_discover_tests(match_tests)
@@ -300,6 +300,14 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
     bindiff_shared
   )
   gtest_discover_tests(prime_signature_test)
+
+  add_executable(sqlite_test sqlite_test.cc)
+  target_link_libraries(sqlite_test
+    bindiff_test_base
+    bindiff_test_util
+    bindiff_shared
+  )
+  gtest_discover_tests(sqlite_test)
 
   add_executable(writer_test
     log_writer_test.cc
