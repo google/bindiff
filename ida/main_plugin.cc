@@ -417,15 +417,16 @@ void FilterFunctions(ea_t start, ea_t end, CallGraph* call_graph,
   call_graph->DeleteVertices(start, end);
 }
 
-bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
-                      ea_t start_address_target, ea_t end_address_target) {
+absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
+                                      ea_t end_address_source,
+                                      ea_t start_address_target,
+                                      ea_t end_address_target) {
   Plugin& plugin = *Plugin::instance();
   plugin.DiscardResults(Plugin::DiscardResultsKind::kDontSave);
   Timer<> timer;
 
-  if (absl::StatusOr<bool> exported = ExportIdbs(); !exported.ok()) {
-    throw std::runtime_error(std::string(exported.status().message()));
-  } else if (!*exported) {
+  NA_ASSIGN_OR_RETURN(const bool exported, ExportIdbs());
+  if (!exported) {
     return false;
   }
 
@@ -441,53 +442,57 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   WaitBox wait_box("Performing diff...");
   // TODO(cblichmann): Create directory with random suffix, so that multiple
   //                   invocations don't interfere with each other.
-  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir.ok()) {
-    return false;
-  }
+  NA_ASSIGN_OR_RETURN(const std::string temp_dir,
+                      GetOrCreateTempDirectory("BinDiff"));
   const std::string filename1 =
-      FindFile(JoinPath(*temp_dir, "primary"), ".BinExport");
+      FindFile(JoinPath(temp_dir, "primary"), ".BinExport");
   if (filename1.empty()) {
-    throw std::runtime_error(
+    return absl::UnknownError(
         "Exporting the primary (this) database failed.\n"
         "Please check whether the BinExport plugin is installed correctly.");
   }
   const std::string filename2 =
-      FindFile(JoinPath(*temp_dir, "secondary"), ".BinExport");
+      FindFile(JoinPath(temp_dir, "secondary"), ".BinExport");
   if (filename2.empty()) {
-    throw std::runtime_error(
+    return absl::UnknownError(
         "Exporting the secondary database failed. "
         "Is it opened in another instance?\n"
         "Please close all other IDA instances and try again.");
   }
 
-  plugin.set_results(new Results());
-  auto* results = plugin.results();
-  Read(filename1, &results->call_graph1_, &results->flow_graphs1_,
-       &results->flow_graph_infos1_, &results->instruction_cache_);
-  Read(filename2, &results->call_graph2_, &results->flow_graphs2_,
-       &results->flow_graph_infos2_, &results->instruction_cache_);
-  MatchingContext context(results->call_graph1_, results->call_graph2_,
-                          results->flow_graphs1_, results->flow_graphs2_,
-                          results->fixed_points_);
-  FilterFunctions(start_address_source, end_address_source,
-                  &context.primary_call_graph_, &context.primary_flow_graphs_,
-                  &results->flow_graph_infos1_);
-  FilterFunctions(
-      start_address_target, end_address_target, &context.secondary_call_graph_,
-      &context.secondary_flow_graphs_, &results->flow_graph_infos2_);
+  try {
+    plugin.set_results(new Results());
+    auto* results = plugin.results();
+    Read(filename1, &results->call_graph1_, &results->flow_graphs1_,
+         &results->flow_graph_infos1_, &results->instruction_cache_);
+    Read(filename2, &results->call_graph2_, &results->flow_graphs2_,
+         &results->flow_graph_infos2_, &results->instruction_cache_);
+    MatchingContext context(results->call_graph1_, results->call_graph2_,
+                            results->flow_graphs1_, results->flow_graphs2_,
+                            results->fixed_points_);
+    FilterFunctions(start_address_source, end_address_source,
+                    &context.primary_call_graph_, &context.primary_flow_graphs_,
+                    &results->flow_graph_infos1_);
+    FilterFunctions(start_address_target, end_address_target,
+                    &context.secondary_call_graph_,
+                    &context.secondary_flow_graphs_,
+                    &results->flow_graph_infos2_);
 
-  const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
-  const MatchingStepsFlowGraph default_basicblock_steps(
-      GetDefaultMatchingStepsBasicBlock());
-  Diff(&context, default_callgraph_steps, default_basicblock_steps);
-  LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
-                            " for matching.");
+    const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
+    const MatchingStepsFlowGraph default_basicblock_steps(
+        GetDefaultMatchingStepsBasicBlock());
+    Diff(&context, default_callgraph_steps, default_basicblock_steps);
+    LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                              " for matching.");
+    plugin.ShowResults(Plugin::kResultsShowAll);
+    results->SetDirty();
 
-  plugin.ShowResults(Plugin::kResultsShowAll);
-  results->SetDirty();
-
-  return true;
+    return true;
+  } catch (const std::exception& e) {
+    return absl::UnknownError(e.what());
+  } catch (...) {
+    return absl::UnknownError("Unknown error");
+  }
 }
 
 bool DoRediffDatabase() {
@@ -515,42 +520,42 @@ bool DoRediffDatabase() {
 }
 
 bool DoDiffDatabase(bool filtered) {
-  try {
-    if (!Plugin::instance()->DiscardResults(
-            Plugin::DiscardResultsKind::kAskSaveCancellable)) {
+  if (!Plugin::instance()->DiscardResults(
+          Plugin::DiscardResultsKind::kAskSaveCancellable)) {
+    return false;
+  }
+
+  // Default to full address range
+  ea_t start_address_source = 0;
+  ea_t end_address_source = std::numeric_limits<ea_t>::max() - 1;
+  ea_t start_address_target = 0;
+  ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
+
+  if (filtered) {
+    constexpr char kDialog[] =
+        "STARTITEM 0\n"
+        "Diff Database Filtered\n"
+        "Specify address ranges to diff (default: all)\n\n"
+        "  <Start address (primary)      :$::16::>\n"
+        "  <End address (primary):$::16::>\n"
+        "  <Start address (secondary):$::16::>\n"
+        "  <End address (secondary):$::16::>\n\n";
+    if (!ask_form(kDialog, &start_address_source, &end_address_source,
+                  &start_address_target, &end_address_target)) {
       return false;
     }
-
-    // Default to full address range
-    ea_t start_address_source = 0;
-    ea_t end_address_source = std::numeric_limits<ea_t>::max() - 1;
-    ea_t start_address_target = 0;
-    ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
-
-    if (filtered) {
-      static const char kDialog[] =
-          "STARTITEM 0\n"
-          "Diff Database Filtered\n"
-          "Specify address ranges to diff (default: all)\n\n"
-          "  <Start address (primary)      :$::16::>\n"
-          "  <End address (primary):$::16::>\n"
-          "  <Start address (secondary):$::16::>\n"
-          "  <End address (secondary):$::16::>\n\n";
-      if (!ask_form(kDialog, &start_address_source, &end_address_source,
-                    &start_address_target, &end_address_target)) {
-        return false;
-      }
-    }
-    return DiffAddressRange(start_address_source, end_address_source,
-                            start_address_target, end_address_target);
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error while diffing: " << message.what();
-    warning("Error while diffing: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while diffing.";
-    warning("Unknown error while diffing.");
   }
-  return false;
+
+  absl::StatusOr<bool> diffed =
+      DiffAddressRange(start_address_source, end_address_source,
+                       start_address_target, end_address_target);
+  if (!diffed.ok()) {
+    const auto& message = diffed.status().message();
+    LOG(INFO) << "Error while diffing: " << message;
+    warning("Error while diffing: %s\n", std::string(message).c_str());
+    return false;
+  }
+  return *diffed;
 }
 
 bool DoPortComments() {
@@ -558,7 +563,7 @@ bool DoPortComments() {
     return false;
   }
 
-  static const char kDialog[] =
+  constexpr char kDialog[] =
       "STARTITEM 0\n"
       "Import Symbols/Comments\n"
       "Address range (default: all)\n\n"
