@@ -158,15 +158,13 @@ class ActionHandlerWithResults : public ActionHandler<T> {
   }
 };
 
-bool ExportIdbs() {
+absl::StatusOr<bool> ExportIdbs() {
   if (!CheckHaveIdbWithMessage()) {
     return false;
   }
 
-  auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-  if (!temp_dir.ok()) {
-    return false;
-  }
+  NA_ASSIGN_OR_RETURN(std::string temp_dir,
+                      GetOrCreateTempDirectory("BinDiff"));
 
   const char* secondary_idb = ask_file(
       /*for_saving=*/false, "*.idb;*.i64", "%s",
@@ -180,13 +178,13 @@ bool ExportIdbs() {
   const std::string primary_idb_path(get_path(PATH_TYPE_IDB));
   std::string secondary_idb_path(secondary_idb);
   if (primary_idb_path == secondary_idb_path) {
-    throw std::runtime_error(
+    return absl::FailedPreconditionError(
         "You cannot open the same database twice. Please copy and rename one "
         "if you want to diff it against itself.");
   }
   if (ReplaceFileExtension(primary_idb_path, "") ==
       ReplaceFileExtension(secondary_idb_path, "")) {
-    throw std::runtime_error(
+    return absl::FailedPreconditionError(
         "You cannot open an idb and an i64 with the same base filename in the "
         "same directory. Please rename or move one of the files.");
   }
@@ -208,17 +206,13 @@ bool ExportIdbs() {
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
 
-  const std::string primary_temp_dir = JoinPath(*temp_dir, "primary");
+  const std::string primary_temp_dir = JoinPath(temp_dir, "primary");
   RemoveAll(primary_temp_dir).IgnoreError();
-  if (auto status = CreateDirectories(primary_temp_dir); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+  NA_RETURN_IF_ERROR(CreateDirectories(primary_temp_dir));
 
-  const std::string secondary_temp_dir = JoinPath(*temp_dir, "secondary");
+  const std::string secondary_temp_dir = JoinPath(temp_dir, "secondary");
   RemoveAll(secondary_temp_dir).IgnoreError();
-  if (auto status = CreateDirectories(secondary_temp_dir); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+  NA_RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
 
   {
     const auto& config = config::Proto();
@@ -246,13 +240,13 @@ bool ExportIdbs() {
             /*result=*/nullptr, "BinExportBinary", &arg,
             /*argsnum=*/1, &errbuf, /*resolver=*/nullptr)) {
       export_thread.detach();
-      throw std::runtime_error(absl::StrCat(
+      return absl::UnknownError(absl::StrCat(
           "Export of the primary database failed: ", ToStringView(errbuf)));
     }
 
     export_thread.join();
     if (!status.ok()) {
-      throw std::runtime_error(absl::StrCat(
+      return absl::UnknownError(absl::StrCat(
           "Export of the secondary database failed: ", status.message()));
     }
   }
@@ -428,7 +422,10 @@ bool DiffAddressRange(ea_t start_address_source, ea_t end_address_source,
   Plugin& plugin = *Plugin::instance();
   plugin.DiscardResults(Plugin::DiscardResultsKind::kDontSave);
   Timer<> timer;
-  if (!ExportIdbs()) {
+
+  if (absl::StatusOr<bool> exported = ExportIdbs(); !exported.ok()) {
+    throw std::runtime_error(std::string(exported.status().message()));
+  } else if (!*exported) {
     return false;
   }
 
@@ -540,7 +537,7 @@ bool DoDiffDatabase(bool filtered) {
           "  <Start address (secondary):$::16::>\n"
           "  <End address (secondary):$::16::>\n\n";
       if (!ask_form(kDialog, &start_address_source, &end_address_source,
-                          &start_address_target, &end_address_target)) {
+                    &start_address_target, &end_address_target)) {
         return false;
       }
     }
@@ -1249,8 +1246,7 @@ void Plugin::InitMenus() {
                         "bindiff:port_comments", SETMENU_APP);
 
   create_menu("bindiff:view_bindiff", "BinDiff", "View/Open subviews");
-  attach_action_to_menu("View/BinDiff/", "bindiff:show_matched",
-                        SETMENU_FIRST);
+  attach_action_to_menu("View/BinDiff/", "bindiff:show_matched", SETMENU_FIRST);
   attach_action_to_menu("View/BinDiff/MatchedFunctions",
                         "bindiff:show_statistics", SETMENU_APP);
   attach_action_to_menu("View/BinDiff/Statistics",
