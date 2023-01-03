@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,19 +22,16 @@ import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.functions.MoveFunctions;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.functions.ZoomFunctions;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.view.Graph2DView;
-import y.view.Graph2DViewActions;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.Collection;
-
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
+import y.view.Graph2DView;
+import y.view.Graph2DViewActions;
 
 public class CRegisterHotKeys {
   public static <NodeType extends ZyGraphNode<?>> void register(
@@ -59,8 +56,10 @@ public class CRegisterHotKeys {
     imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0), "m");
     imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), "s");
     imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_LESS, 0), "<");
-    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.CTRL_DOWN_MASK), "SELECT_VISIBLE_NODES");
-    imap.put(KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK),
+    imap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.CTRL_DOWN_MASK), "SELECT_VISIBLE_NODES");
+    imap.put(
+        KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK),
         "COPY_CONTENT_FROM_SELECTED_NODES");
 
     amap.remove(Graph2DViewActions.DELETE_SELECTION);
@@ -83,12 +82,12 @@ public class CRegisterHotKeys {
     amap.put("s", new CActionHotKey<NodeType>("s", graph));
     amap.put("<", new CActionHotKey<NodeType>("<", graph));
     amap.put("SELECT_VISIBLE_NODES", new CActionHotKey<NodeType>("SELECT_VISIBLE_NODES", graph));
-    amap.put("COPY_CONTENT_FROM_SELECTED_NODES", new CActionHotKey<NodeType>(
-        "COPY_CONTENT_FROM_SELECTED_NODES", graph));
+    amap.put(
+        "COPY_CONTENT_FROM_SELECTED_NODES",
+        new CActionHotKey<NodeType>("COPY_CONTENT_FROM_SELECTED_NODES", graph));
 
     graph.getView().setActionMap(amap);
     graph.getView().getCanvasComponent().setActionMap(amap);
-
   }
 
   public static <NodeType extends ZyGraphNode<?>> void unregisterActions(
@@ -122,8 +121,8 @@ public class CRegisterHotKeys {
     amap2.remove("COPY_CONTENT_FROM_SELECTED_NODES");
   }
 
-  private static class CActionHotKey<NodeType extends ZyGraphNode<? extends IViewNode<?>>> extends
-      AbstractAction {
+  private static class CActionHotKey<NodeType extends ZyGraphNode<? extends IViewNode<?>>>
+      extends AbstractAction {
     private static final long serialVersionUID = 4029488848855226091L;
 
     private final String m_action;
@@ -155,8 +154,8 @@ public class CRegisterHotKeys {
       } else if (m_action.equals("m")) {
         m_graph.getView().fitContent(true);
       } else if (m_action.equals("s")) {
-        ZoomFunctions
-            .zoomToNodes(m_graph, SelectedVisibleFilter.filter(m_graph.getSelectedNodes()));
+        ZoomFunctions.zoomToNodes(
+            m_graph, SelectedVisibleFilter.filter(m_graph.getSelectedNodes()));
       } else if (m_action.equals("SELECT_VISIBLE_NODES")) {
         // Use a temporary variable to work around OpenJDK build problem. Original code is:
         // m_graph.selectNodes(NodeFunctions.getVisibleNodes(m_graph), true);

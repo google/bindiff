@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@ import com.google.security.zynamics.zylib.gui.zygraph.helpers.INodeCallback;
 import com.google.security.zynamics.zylib.gui.zygraph.helpers.ISelectableGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.Collection;
 
-public class SelectableGraph<NodeType extends ZyGraphNode<?>> implements ISelectableGraph<NodeType> {
+public class SelectableGraph<NodeType extends ZyGraphNode<?>>
+    implements ISelectableGraph<NodeType> {
   private final AbstractZyGraph<NodeType, ?> m_graph;
 
   private SelectableGraph(final AbstractZyGraph<NodeType, ?> graph) {
@@ -45,7 +45,8 @@ public class SelectableGraph<NodeType extends ZyGraphNode<?>> implements ISelect
   }
 
   @Override
-  public void selectNodes(final Collection<NodeType> toSelect, final Collection<NodeType> toDeselect) {
+  public void selectNodes(
+      final Collection<NodeType> toSelect, final Collection<NodeType> toDeselect) {
     m_graph.selectNodes(toSelect, toDeselect);
   }
 }

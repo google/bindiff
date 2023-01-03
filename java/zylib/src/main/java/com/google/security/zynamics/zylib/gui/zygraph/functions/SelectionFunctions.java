@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,15 +18,13 @@ import com.google.security.zynamics.zylib.gui.zygraph.helpers.INodeCallback;
 import com.google.security.zynamics.zylib.types.common.IterationMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.ArrayList;
 
 public class SelectionFunctions {
   /**
    * Inverts the selected nodes of a graph.
-   * 
+   *
    * @param <NodeType> The type of the nodes in the graph.
-   * 
    * @param graph The graph in question.
    */
   public static <NodeType extends ZyGraphNode<?>> void invertSelection(
@@ -34,20 +32,20 @@ public class SelectionFunctions {
     final ArrayList<NodeType> toSelect = new ArrayList<NodeType>();
     final ArrayList<NodeType> toUnselect = new ArrayList<NodeType>();
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (node.isSelected()) {
-          toUnselect.add(node);
-        } else {
-          toSelect.add(node);
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (node.isSelected()) {
+              toUnselect.add(node);
+            } else {
+              toSelect.add(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     graph.selectNodes(toSelect, toUnselect);
   }
-
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CEdgeHighlighter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CTooltipUpdater;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CEdgeEnterState;
-
+import java.awt.event.MouseEvent;
 import y.base.Edge;
 import y.view.Graph2D;
-
-import java.awt.event.MouseEvent;
 
 public class CDefaultEdgeEnterAction implements IStateAction<CEdgeEnterState> {
   protected void highlightEdge(final Edge edge) {

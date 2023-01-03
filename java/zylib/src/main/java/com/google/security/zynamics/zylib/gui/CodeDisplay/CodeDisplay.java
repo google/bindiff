@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package com.google.security.zynamics.zylib.gui.CodeDisplay;
 
 import com.google.security.zynamics.zylib.gui.JCaret.ICaretListener;
 import com.google.security.zynamics.zylib.gui.JCaret.JCaret;
-
 import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -40,20 +39,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.swing.JComponent;
 import javax.swing.JScrollBar;
 
 /**
  * A general-purpose JComponent to allow the synchronized side-by-side rendering of multiple
- * "columns" of highlighted text. This is useful for all sorts of things:
- *  * Write a code editor that displays line numbers at the left-hand side but allows wrapping of
- *    lines
- *  * An IDA-style display with addresses at the left, opcode bytes to the right of it,
- *    instructions, and finally comments to the far right
- *  * ... etc.
+ * "columns" of highlighted text. This is useful for all sorts of things: * Write a code editor that
+ * displays line numbers at the left-hand side but allows wrapping of lines * An IDA-style display
+ * with addresses at the left, opcode bytes to the right of it, instructions, and finally comments
+ * to the far right * ... etc.
  *
- * <p> Originally intended to replace some tables in BinNavi, but more widely applicable for all
+ * <p>Originally intended to replace some tables in BinNavi, but more widely applicable for all
  * sorts of (monospace) text rendering.
  */
 public class CodeDisplay extends JComponent {
@@ -65,11 +61,12 @@ public class CodeDisplay extends JComponent {
 
   /** Vertical scroll bar to scroll through the different rows in the display. */
   private final JScrollBar verticalScrollbar =
-      new JScrollBar(JScrollBar.VERTICAL, 0/* value */, 1/* extent */, 0/* min */, 1/* max */);
+      new JScrollBar(JScrollBar.VERTICAL, 0 /* value */, 1 /* extent */, 0 /* min */, 1 /* max */);
 
   /** Horizontal scroll bar that is used to scroll sideways. */
   private final JScrollBar horizontalScrollbar =
-      new JScrollBar(JScrollBar.HORIZONTAL, 0/* value */, 1/* extent */, 0/* min */, 1/* max */);
+      new JScrollBar(
+          JScrollBar.HORIZONTAL, 0 /* value */, 1 /* extent */, 0 /* min */, 1 /* max */);
 
   /** Default internal listener that is used to handle various events. */
   private final InternalListener listener = new InternalListener();
@@ -79,10 +76,12 @@ public class CodeDisplay extends JComponent {
 
   /** Internal double-buffer for drawing. */
   private BufferedImage bufferedImage;
+
   private Graphics2D bufferedGraphics;
 
   /** The dimensions of individual characters in the selected font and the height of a text row. */
   private int fontCharWidth = 0;
+
   private int fontLineHeight = 0;
 
   /** The caret inside the component. */
@@ -92,6 +91,7 @@ public class CodeDisplay extends JComponent {
 
   /** Coordinates for the caret in the local FormattedCharacterBuffer. */
   private int caretX = 0;
+
   private int caretY = 0;
 
   /** The number of currently visible rows. */
@@ -172,8 +172,11 @@ public class CodeDisplay extends JComponent {
   }
 
   private void initializeGraphicsBuffer() {
-    bufferedImage = new BufferedImage(((codeModel.getTotalWidthInCharacters() + 1) * fontCharWidth),
-        (currentlyVisibleLines + 10) * fontLineHeight, BufferedImage.TYPE_INT_RGB);
+    bufferedImage =
+        new BufferedImage(
+            ((codeModel.getTotalWidthInCharacters() + 1) * fontCharWidth),
+            (currentlyVisibleLines + 10) * fontLineHeight,
+            BufferedImage.TYPE_INT_RGB);
     bufferedGraphics = (Graphics2D) bufferedImage.getGraphics();
   }
 
@@ -208,9 +211,7 @@ public class CodeDisplay extends JComponent {
     caret.addCaretListener(listener);
   }
 
-  /**
-   * Creates and initializes the scroll bars that are used to scroll through the data.
-   **/
+  /** Creates and initializes the scroll bars that are used to scroll through the data. */
   private void initializeScrollbars() {
     verticalScrollbar.addAdjustmentListener(listener);
 
@@ -229,9 +230,7 @@ public class CodeDisplay extends JComponent {
     return (rawHeight / fontLineHeight) + ((rawHeight % fontLineHeight) == 0 ? 0 : 1);
   }
 
-  /**
-   * Updates the maximum scroll range of the scroll bar depending on the number
-   **/
+  /** Updates the maximum scroll range of the scroll bar depending on the number */
   private void setScrollBarMaximum() {
     final int totalRows = codeModel.getNumberOfRows();
     int scrollRange = totalRows;
@@ -262,15 +261,14 @@ public class CodeDisplay extends JComponent {
 
   /**
    * Updates/rewrites the internal representation of the character buffer (that will be drawn) from
-   * the data model.
-   * Updating the character buffer from the data model requires a bit of care: The model provides a
-   * sequence of rows, each divided into a fixed number of columns, and each cell (identified by a
-   * row/column combination) can have multiple lines of text.
-   * To properly copy this into a FormattedCharacterBuffer, the code iterates over all rows first.
-   * For each row, it determines what the maximum number of text lines is (over all columns) - this
-   * is needed to determine the overall height of the row. The individual cells are then filled into
-   * the right row, and everything advances to the next row.
-   **/
+   * the data model. Updating the character buffer from the data model requires a bit of care: The
+   * model provides a sequence of rows, each divided into a fixed number of columns, and each cell
+   * (identified by a row/column combination) can have multiple lines of text. To properly copy this
+   * into a FormattedCharacterBuffer, the code iterates over all rows first. For each row, it
+   * determines what the maximum number of text lines is (over all columns) - this is needed to
+   * determine the overall height of the row. The individual cells are then filled into the right
+   * row, and everything advances to the next row.
+   */
   private void updateCharacterBufferFromModel() {
     charBuffer.clear();
 
@@ -283,7 +281,8 @@ public class CodeDisplay extends JComponent {
     if (codeModel.hasHeaderRow()) {
       totalCopiedLines = 1;
       int currentColumnIndex = 0;
-      for (int fieldIndex = 0; fieldIndex < codeModel.getNumberOfColumns();
+      for (int fieldIndex = 0;
+          fieldIndex < codeModel.getNumberOfColumns();
           currentColumnIndex += codeModel.getColumnWidthInCharacters(fieldIndex), fieldIndex++) {
         charBuffer.copyInto(0, currentColumnIndex, codeModel.getHeader(fieldIndex));
       }
@@ -296,13 +295,16 @@ public class CodeDisplay extends JComponent {
         rowIndex < Math.min(currentFirstRow + currentlyVisibleLines, codeModel.getNumberOfRows());
         rowIndex++) {
       for (int lineIndex = (rowIndex == currentFirstRow) ? currentFirstLine : 0;
-          lineIndex < codeModel.getMaximumLinesForRow(rowIndex); lineIndex++) {
+          lineIndex < codeModel.getMaximumLinesForRow(rowIndex);
+          lineIndex++) {
         // Iterate over all the columns that need to be drawn.
         int currentColumnIndex = 0;
-        for (int fieldIndex = 0; fieldIndex < codeModel.getNumberOfColumns();
+        for (int fieldIndex = 0;
+            fieldIndex < codeModel.getNumberOfColumns();
             currentColumnIndex += codeModel.getColumnWidthInCharacters(fieldIndex), fieldIndex++) {
           // Update the current X/Y position of the caret in terms of this buffer.
-          if ((caretPosition.getRow() == rowIndex) && (caretPosition.getLine() == lineIndex)
+          if ((caretPosition.getRow() == rowIndex)
+              && (caretPosition.getLine() == lineIndex)
               && (caretPosition.getColumn() == fieldIndex)) {
             caretX = currentColumnIndex + caretPosition.getFieldIndex();
             caretY = totalCopiedLines;
@@ -365,8 +367,11 @@ public class CodeDisplay extends JComponent {
       int properWidth = codeModel.getTotalWidthInCharacters();
       int properLines = currentlyVisibleLines + 1;
       charBuffer = new FormattedCharacterBuffer(properLines, properWidth);
-      bufferedImage = new BufferedImage(
-          properWidth * fontCharWidth, properLines * fontLineHeight, BufferedImage.TYPE_INT_RGB);
+      bufferedImage =
+          new BufferedImage(
+              properWidth * fontCharWidth,
+              properLines * fontLineHeight,
+              BufferedImage.TYPE_INT_RGB);
       bufferedGraphics = (Graphics2D) bufferedImage.getGraphics();
     }
   }
@@ -449,9 +454,7 @@ public class CodeDisplay extends JComponent {
     eventListeners.remove(e);
   }
 
-  /**
-   * Internal event listener.
-   */
+  /** Internal event listener. */
   private class InternalListener extends MouseAdapter
       implements AdjustmentListener, FocusListener, ICaretListener, ComponentListener, KeyListener {
     @Override

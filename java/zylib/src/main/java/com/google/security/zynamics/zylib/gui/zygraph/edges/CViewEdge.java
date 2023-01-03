@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.edges;
 
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.general.ListenerProvider;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.zylib.general.ListenerProvider;
 
 public class CViewEdge<NodeType> implements IViewEdge<NodeType> {
   private final NodeType m_sourceNode;
@@ -39,9 +38,19 @@ public class CViewEdge<NodeType> implements IViewEdge<NodeType> {
   protected final ListenerProvider<IViewEdgeListener> m_listeners =
       new ListenerProvider<IViewEdgeListener>();
 
-  public CViewEdge(final int id, final NodeType sourceNode, final NodeType targetNode,
-      final EdgeType type, final double x1, final double y1, final double x2, final double y2,
-      final Color color, final boolean selected, final boolean visible, final List<CBend> edgePaths) {
+  public CViewEdge(
+      final int id,
+      final NodeType sourceNode,
+      final NodeType targetNode,
+      final EdgeType type,
+      final double x1,
+      final double y1,
+      final double x2,
+      final double y2,
+      final Color color,
+      final boolean selected,
+      final boolean visible,
+      final List<CBend> edgePaths) {
     m_sourceNode =
         Preconditions.checkNotNull(sourceNode, "Error: Source node argument can't be null");
     m_targetNode =

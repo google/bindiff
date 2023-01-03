@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,11 +39,20 @@ public class CUndoStateData {
   private final int m_caretMouseReleasedX;
   private final int m_caretMouseReleasedY;
 
-  public CUndoStateData(final ZyLabelContent labelContent, final Object persistentModel,
-      final IZyEditableObject editableObject, final String text, final boolean isAboveLineComment,
-      final boolean isBehindLineComment, final boolean isLabelComment, final int caretStartX,
-      final int caretMousePressedX, final int caretMousePressedY, final int caretEndX,
-      final int caretMouseReleasedX, final int caretMouseReleasedY) {
+  public CUndoStateData(
+      final ZyLabelContent labelContent,
+      final Object persistentModel,
+      final IZyEditableObject editableObject,
+      final String text,
+      final boolean isAboveLineComment,
+      final boolean isBehindLineComment,
+      final boolean isLabelComment,
+      final int caretStartX,
+      final int caretMousePressedX,
+      final int caretMousePressedY,
+      final int caretEndX,
+      final int caretMouseReleasedX,
+      final int caretMouseReleasedY) {
     Preconditions.checkNotNull(labelContent, "Error: Label content can't be null.");
     Preconditions.checkNotNull(persistentModel, "Error: Persistent model can't be null.");
     Preconditions.checkNotNull(editableObject, "Error: Editable object cant be null.");
@@ -72,12 +81,11 @@ public class CUndoStateData {
     if (obj instanceof CUndoStateData) {
       final CUndoStateData undoData = (CUndoStateData) obj;
 
-      return
-
-      (m_isAboveLineComment == undoData.m_isAboveLineComment)
+      return (m_isAboveLineComment == undoData.m_isAboveLineComment)
           && (m_isBehindLineComment == undoData.m_isBehindLineComment)
           && (m_isLabelComment == undoData.m_isLabelComment)
-          && (m_persistentModel == undoData.m_persistentModel) && m_text.equals(undoData.m_text);
+          && (m_persistentModel == undoData.m_persistentModel)
+          && m_text.equals(undoData.m_text);
     }
 
     return false;
@@ -111,7 +119,14 @@ public class CUndoStateData {
 
     m_labelContent.getLineEditor().recreateLabelLines(m_labelContent, m_persistentModel);
 
-    m_labelContent.getCaret().setCaret(m_caretStartX, m_caretMousePressedX, m_caretMousePressedY,
-        m_caretEndX, m_caretMouseReleasedX, m_caretMouseReleasedY);
+    m_labelContent
+        .getCaret()
+        .setCaret(
+            m_caretStartX,
+            m_caretMousePressedX,
+            m_caretMousePressedY,
+            m_caretEndX,
+            m_caretMouseReleasedX,
+            m_caretMouseReleasedY);
   }
 }

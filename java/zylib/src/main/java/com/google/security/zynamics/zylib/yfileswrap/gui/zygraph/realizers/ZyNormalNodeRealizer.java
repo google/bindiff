@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,9 +31,7 @@ import y.view.ShapeNodeRealizer;
 public class ZyNormalNodeRealizer<NodeType extends ZyGraphNode<?>>
     extends ZyNodeRealizer<NodeType> {
 
-  /**
-   * Content that is displayed in the realizer.
-   */
+  /** Content that is displayed in the realizer. */
   private final ZyLabelContent m_content;
 
   /**

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -227,13 +227,9 @@ Address CallGraph::GetAddress(Vertex vertex) const {
   return graph_[vertex].address_;
 }
 
-void CallGraph::SetMdIndex(double index) {
-  md_index_ = index;
-}
+void CallGraph::SetMdIndex(double index) { md_index_ = index; }
 
-double CallGraph::GetMdIndex() const {
-  return md_index_;
-}
+double CallGraph::GetMdIndex() const { return md_index_; }
 
 double CallGraph::GetMdIndex(const Edge& edge) const {
   const Vertex source = boost::source(edge, graph_);
@@ -245,12 +241,9 @@ double CallGraph::GetMdIndex(const Edge& edge) const {
   const double out_degree_target = boost::out_degree(target, graph_);
   const double level_target = graph_[target].bfs_top_down_;
   const double md_index =
-      sqrt(2.0) * in_degree_source +
-      sqrt(3.0) * out_degree_source +
-      sqrt(5.0) * in_degree_target +
-      sqrt(7.0) * out_degree_target +
-      sqrt(11.0) * level_source +
-      sqrt(13.0) * level_target;
+      sqrt(2.0) * in_degree_source + sqrt(3.0) * out_degree_source +
+      sqrt(5.0) * in_degree_target + sqrt(7.0) * out_degree_target +
+      sqrt(11.0) * level_source + sqrt(13.0) * level_target;
   return md_index ? 1.0 / md_index : 0.0;
 }
 
@@ -434,8 +427,8 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
   for (auto& neighbor : neighbors) {
     {
       InEdgeIterator i, end;
-      for (auto [i, end] = boost::in_edges(neighbor.vertex_, graph_);
-           i != end; ++i) {
+      for (auto [i, end] = boost::in_edges(neighbor.vertex_, graph_); i != end;
+           ++i) {
         const Vertex source = boost::source(*i, graph_);
         if (std::binary_search(neighbors.begin(), neighbors.end(),
                                NeighborInfo(source))) {
@@ -448,8 +441,8 @@ double CallGraph::CalculateProximityMdIndex(Edge edge) {
     }
     {
       OutEdgeIterator i, end;
-      for (auto [i, end] = boost::out_edges(neighbor.vertex_, graph_);
-           i != end; ++i) {
+      for (auto [i, end] = boost::out_edges(neighbor.vertex_, graph_); i != end;
+           ++i) {
         const Vertex target = boost::target(*i, graph_);
         if (std::binary_search(neighbors.begin(), neighbors.end(),
                                NeighborInfo(target))) {

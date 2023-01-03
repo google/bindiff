@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@ package com.google.security.zynamics.zylib.gui.scripting;
 
 import java.util.HashSet;
 
-/**
- * Document style for the syntax highlighted Python interpreter.
- */
+/** Document style for the syntax highlighted Python interpreter. */
 public class CodeDocumentPython extends SyntaxDocument {
   private static final long serialVersionUID = 3801352080461814771L;
 
@@ -120,5 +118,4 @@ public class CodeDocumentPython extends SyntaxDocument {
       return false;
     }
   }
-
 }

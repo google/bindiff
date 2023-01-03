@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,41 +24,37 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyInfoEdg
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyProximityNodeRealizer;
-
+import java.awt.Font;
 import y.base.Edge;
 import y.base.Node;
 import y.view.Graph2D;
 import y.view.LineType;
 
-import java.awt.Font;
-
-/**
- * This class is used to create proximity browsing nodes and edges.
- */
+/** This class is used to create proximity browsing nodes and edges. */
 public final class ProximityNodeCreator {
   /**
    * Creates a proximity browsing node.
-   * 
+   *
    * @param graph The graph where the proximity node is added to.
    * @param attachedNode The graph node the proximity node is attached to.
    * @param degree The edge degree of the attached node (this is the number shown in the proximity
-   *        node).
+   *     node).
    * @param isIncoming True, to signal that the proximity node is incoming. False, if it is
-   *        outcoming.
-   * 
+   *     outcoming.
    * @param <NodeType> Raw node type of the real (e.g. not proximity nodes) nodes in the graph.
-   * 
    * @return The created proximity node.
    */
   public static <NodeType extends IViewNode<?>> ZyProximityNode<?> createProximityNode(
-      final Graph2D graph, final ZyGraphNode<?> attachedNode, final int degree,
+      final Graph2D graph,
+      final ZyGraphNode<?> attachedNode,
+      final int degree,
       final boolean isIncoming) {
     Preconditions.checkNotNull(graph, "Graph argument can not be null");
     Preconditions.checkNotNull(attachedNode, "Target node argument can not be null");
 
     final ZyLabelContent labelcontent = new ZyLabelContent(null);
-    labelcontent.addLineContent(new ZyLineContent(String.valueOf(degree), new Font("New Courier",
-        Font.PLAIN, 12), null));
+    labelcontent.addLineContent(
+        new ZyLineContent(String.valueOf(degree), new Font("New Courier", Font.PLAIN, 12), null));
 
     final ZyProximityNodeRealizer<NodeType> r = new ZyProximityNodeRealizer<NodeType>(labelcontent);
 
@@ -78,21 +74,20 @@ public final class ProximityNodeCreator {
   /**
    * Inserts a proximity edge between two nodes. One of the two input nodes must be a proximity
    * browsing node or an exception is thrown.
-   * 
+   *
    * @param graph The graph where the node is inserted.
    * @param sourceNode The source node of the edge.
    * @param targetNode The target node of the edge.
-   * 
    * @return The inserted edge.
    */
-  public static ZyInfoEdge insertProximityEdge(final Graph2D graph,
-      final ZyGraphNode<?> sourceNode, final ZyGraphNode<?> targetNode) {
+  public static ZyInfoEdge insertProximityEdge(
+      final Graph2D graph, final ZyGraphNode<?> sourceNode, final ZyGraphNode<?> targetNode) {
     Preconditions.checkNotNull(graph, "Graph argument can not be null");
     Preconditions.checkNotNull(sourceNode, "Source node argument can not be null");
     Preconditions.checkNotNull(targetNode, "Target node argument can not be null");
 
-    Preconditions.checkArgument((sourceNode instanceof ZyProximityNode<?>)
-        || (targetNode instanceof ZyProximityNode<?>),
+    Preconditions.checkArgument(
+        (sourceNode instanceof ZyProximityNode<?>) || (targetNode instanceof ZyProximityNode<?>),
         "One of the two arguments must be a proximity browsing node");
 
     final ZyEdgeRealizer<ZyInfoEdge> r =

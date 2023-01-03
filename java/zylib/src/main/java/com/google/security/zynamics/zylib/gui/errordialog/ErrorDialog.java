@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
 
 package com.google.security.zynamics.zylib.gui.errordialog;
 
+import com.google.security.zynamics.zylib.general.StackTrace;
+import com.google.security.zynamics.zylib.gui.CDialogEscaper;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -30,10 +31,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
-
-import com.google.security.zynamics.zylib.general.StackTrace;
-import com.google.security.zynamics.zylib.gui.CDialogEscaper;
-
 
 public abstract class ErrorDialog extends JDialog {
   private static final long serialVersionUID = -2246347447228688878L;
@@ -48,7 +45,10 @@ public abstract class ErrorDialog extends JDialog {
     this(owner, message, description, null);
   }
 
-  public ErrorDialog(final Window owner, final String message, final String description,
+  public ErrorDialog(
+      final Window owner,
+      final String message,
+      final String description,
       final Throwable exception) {
     super(owner, ModalityType.APPLICATION_MODAL);
 

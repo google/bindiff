@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,12 +19,10 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.IRealizerUpdater
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyNodeRealizerListener;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.view.NodeRealizer;
-
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
+import y.view.NodeRealizer;
 
 public interface IZyNodeRealizer {
   void addListener(IZyNodeRealizerListener<? extends ZyGraphNode<?>> listener);

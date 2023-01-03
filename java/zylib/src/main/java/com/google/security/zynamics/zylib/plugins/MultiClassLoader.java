@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ import java.util.Hashtable;
 /**
  * A simple test class loader capable of loading from multiple sources, such as local files or a
  * URL.
- * 
- * This class is derived from an article by Chuck McManis
+ *
+ * <p>This class is derived from an article by Chuck McManis
  * http://www.javaworld.com/javaworld/jw-10-1996/indepth.src.html with large modifications.
- * 
- * Note that this has been updated to use the non-deprecated version of defineClass() -- JDM.
- * 
+ *
+ * <p>Note that this has been updated to use the non-deprecated version of defineClass() -- JDM.
+ *
  * @author Jack Harich - 8/18/97
  * @author John D. Mitchell - 99.03.04
  */
@@ -39,8 +39,7 @@ public abstract class MultiClassLoader extends ClassLoader {
   protected boolean sourceMonitorOn = true;
 
   // ---------- Initialization ------------------------------
-  public MultiClassLoader() {
-  }
+  public MultiClassLoader() {}
 
   // --- Std
   protected static void print(final String text) {
@@ -134,5 +133,4 @@ public abstract class MultiClassLoader extends ClassLoader {
   public void setClassNameReplacementChar(final char replacement) {
     classNameReplacementChar = replacement;
   }
-
 } // End class

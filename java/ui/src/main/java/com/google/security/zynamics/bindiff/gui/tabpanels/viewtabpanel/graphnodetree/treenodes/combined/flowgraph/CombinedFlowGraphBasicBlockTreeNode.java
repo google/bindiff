@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -158,58 +158,62 @@ public class CombinedFlowGraphBasicBlockTreeNode extends AbstractTreeNode
 
   @Override
   public ZyGraphNode<?> getGraphNode(final ESide side) {
-    return side == ESide.PRIMARY ? combinedDiffNode.getPrimaryDiffNode() : combinedDiffNode
-        .getSecondaryDiffNode();
+    return side == ESide.PRIMARY
+        ? combinedDiffNode.getPrimaryDiffNode()
+        : combinedDiffNode.getSecondaryDiffNode();
   }
 
   @Override
   public Icon getIcon() {
     switch (getMatchState()) {
-      case MATCHED: {
-      if (!isChangedBasicblock()) {
-        if (isSelected()) {
-          return MATCHED_BASICBLOCK_SELECTED;
+      case MATCHED:
+        {
+          if (!isChangedBasicblock()) {
+            if (isSelected()) {
+              return MATCHED_BASICBLOCK_SELECTED;
+            }
+
+            if (!isVisible()) {
+              return MATCHED_BASICBLOCK_INVISIBLE;
+            }
+
+            return MATCHED_BASICBLOCK;
+          } else {
+            if (isSelected()) {
+              return CHANGED_BASICBLOCK_SELECTED;
+            }
+
+            if (!isVisible()) {
+              return CHANGED_BASICBLOCK_INVISIBLE;
+            }
+
+            return CHANGED_BASICBLOCK;
+          }
         }
+      case PRIMARY_UNMATCHED:
+        {
+          if (isSelected()) {
+            return PRIMARY_UNMATCHED_BASICBLOCK_SELECTED;
+          }
 
-        if (!isVisible()) {
-          return MATCHED_BASICBLOCK_INVISIBLE;
+          if (!isVisible()) {
+            return PRIMARY_UNMATCHED_BASICBLOCK_INVISIBLE;
+          }
+
+          return PRIMARY_UNMATCHED_BASICBLOCK;
         }
+      case SECONDRAY_UNMATCHED:
+        {
+          if (isSelected()) {
+            return SECONDARY_UNMATCHED_BASICBLOCK_SELECTED;
+          }
 
-        return MATCHED_BASICBLOCK;
-      } else {
-        if (isSelected()) {
-          return CHANGED_BASICBLOCK_SELECTED;
+          if (!isVisible()) {
+            return SECONDARY_UNMATCHED_BASICBLOCK_INVISIBLE;
+          }
+
+          return SECONDARY_UNMATCHED_BASICBLOCK;
         }
-
-        if (!isVisible()) {
-          return CHANGED_BASICBLOCK_INVISIBLE;
-        }
-
-        return CHANGED_BASICBLOCK;
-      }
-    }
-      case PRIMARY_UNMATCHED: {
-      if (isSelected()) {
-        return PRIMARY_UNMATCHED_BASICBLOCK_SELECTED;
-      }
-
-      if (!isVisible()) {
-        return PRIMARY_UNMATCHED_BASICBLOCK_INVISIBLE;
-      }
-
-      return PRIMARY_UNMATCHED_BASICBLOCK;
-    }
-      case SECONDRAY_UNMATCHED: {
-      if (isSelected()) {
-        return SECONDARY_UNMATCHED_BASICBLOCK_SELECTED;
-      }
-
-      if (!isVisible()) {
-        return SECONDARY_UNMATCHED_BASICBLOCK_INVISIBLE;
-      }
-
-      return SECONDARY_UNMATCHED_BASICBLOCK;
-    }
     }
 
     throw new IllegalStateException("Unknown match type.");
@@ -263,7 +267,8 @@ public class CombinedFlowGraphBasicBlockTreeNode extends AbstractTreeNode
     final RawBasicBlock priBasicblock = combinedBasicblock.getRawNode(ESide.PRIMARY);
     final RawBasicBlock secBasicblock = combinedBasicblock.getRawNode(ESide.SECONDARY);
 
-    return String.format("%s \u2194 %s",
+    return String.format(
+        "%s \u2194 %s",
         priBasicblock == null ? "missing" : priBasicblock.getAddress().toHexString(),
         secBasicblock == null ? "missing" : secBasicblock.getAddress().toHexString());
   }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,13 +23,12 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-public class CNodeClickedRightState<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CNodeClickedRightState<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IMouseState {
   private final CStateFactory<NodeType, EdgeType> m_factory;
 
@@ -37,8 +36,10 @@ public class CNodeClickedRightState<NodeType extends ZyGraphNode<?>, EdgeType ex
 
   private final Node m_node;
 
-  public CNodeClickedRightState(final CStateFactory<NodeType, EdgeType> factory,
-      final AbstractZyGraph<NodeType, EdgeType> graph, final Node node) {
+  public CNodeClickedRightState(
+      final CStateFactory<NodeType, EdgeType> factory,
+      final AbstractZyGraph<NodeType, EdgeType> graph,
+      final Node node) {
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_node = Preconditions.checkNotNull(node, "Error: node argument can not be null");
@@ -84,7 +85,8 @@ public class CNodeClickedRightState<NodeType extends ZyGraphNode<?>, EdgeType ex
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(m_factory.createDefaultState(), true);
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,24 +16,20 @@ package com.google.security.zynamics.zylib.general;
 
 /**
  * Simple pair class.
- * 
+ *
  * @param <S> The type of the first element.
  * @param <T> The type of the second element.
  */
 public class Pair<S, T> {
-  /**
-   * The first element of the pair.
-   */
+  /** The first element of the pair. */
   private final S first;
 
-  /**
-   * The second element of the pair.
-   */
+  /** The second element of the pair. */
   private final T second;
 
   /**
    * Creates a new pair.
-   * 
+   *
    * @param first The first element of the pair.
    * @param second The second element of the pair.
    */
@@ -55,12 +51,13 @@ public class Pair<S, T> {
     final Pair<?, ?> p = (Pair<?, ?>) obj;
 
     return (((p.first != null) && p.first.equals(first)) || ((p.first == null) && (first == null)))
-        && (((p.second != null) && p.second.equals(second)) || ((p.second == null) && (second == null)));
+        && (((p.second != null) && p.second.equals(second))
+            || ((p.second == null) && (second == null)));
   }
 
   /**
    * Returns the first element of the pair.
-   * 
+   *
    * @return The first element of the pair.
    */
   public S first() {
@@ -74,7 +71,7 @@ public class Pair<S, T> {
 
   /**
    * The second element of the pair.
-   * 
+   *
    * @return The second element of the pair.
    */
   public T second() {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
 package com.google.security.zynamics.zylib.ZyTree;
 
 import com.google.security.zynamics.zylib.general.Pair;
-
 import java.util.Stack;
-
 
 public class PostorderIterator {
   private final Stack<Pair<IZyTreeNode, Integer>> traversalStack =
@@ -72,13 +70,13 @@ public class PostorderIterator {
           continue;
         } else if (childrenProcessed == parentElement.first().getChildren().size()) {
           // Processing finished => Process the parent node now
-          traversalStack.push(new Pair<IZyTreeNode, Integer>(parentElement.first(),
-              childrenProcessed));
+          traversalStack.push(
+              new Pair<IZyTreeNode, Integer>(parentElement.first(), childrenProcessed));
 
           return true;
         } else {
-          traversalStack.push(new Pair<IZyTreeNode, Integer>(parentElement.first(),
-              childrenProcessed));
+          traversalStack.push(
+              new Pair<IZyTreeNode, Integer>(parentElement.first(), childrenProcessed));
 
           pushLongestPathFrom(parentElement.first().getChildren().get(childrenProcessed));
 

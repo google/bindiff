@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -82,8 +82,10 @@ public class SingleCallGraphFunctionTreeNode extends AbstractTreeNode
     createChildren();
   }
 
-  public SingleCallGraphFunctionTreeNode(final SingleCallGraphRootTreeNode rootNode,
-      final SingleDiffNode function, final boolean isLeaf) {
+  public SingleCallGraphFunctionTreeNode(
+      final SingleCallGraphRootTreeNode rootNode,
+      final SingleDiffNode function,
+      final boolean isLeaf) {
     super(rootNode);
 
     singleDiffNode = checkNotNull(function);
@@ -101,8 +103,7 @@ public class SingleCallGraphFunctionTreeNode extends AbstractTreeNode
   }
 
   @Override
-  public void createChildren() {
-  }
+  public void createChildren() {}
 
   @Override
   public IAddress getAddress() {
@@ -149,47 +150,50 @@ public class SingleCallGraphFunctionTreeNode extends AbstractTreeNode
   public Icon getIcon() {
     final RawFunction function = getFunction();
     switch (function.getMatchState()) {
-      case MATCHED: {
-      if (function.isIdenticalMatch()) {
-        if (isSelected()) {
-          return MATCHED_IDENTICAL_FUNCTION_SELECTED_ICON;
-        } else if (!isVisible()) {
-          return MATCHED_IDENTICAL_FUNCTION_INVISIBLE_ICON;
+      case MATCHED:
+        {
+          if (function.isIdenticalMatch()) {
+            if (isSelected()) {
+              return MATCHED_IDENTICAL_FUNCTION_SELECTED_ICON;
+            } else if (!isVisible()) {
+              return MATCHED_IDENTICAL_FUNCTION_INVISIBLE_ICON;
+            }
+            return MATCHED_IDENTICAL_FUNCTION_ICON;
+          } else if (function.isChangedInstructionsOnlyMatch()) {
+            if (isSelected()) {
+              return MATCHED_INSTRUCTIONCHANGED_FUNCTION_SELECTED_ICON;
+            } else if (!isVisible()) {
+              return MATCHED_INSTRUCTIONCHANGED_FUNCTION_INVISIBLE_ICON;
+            }
+            return MATCHED_INSTRUCTIONCHANGED_FUNCTION_ICON;
+          } else if (function.isChangedStructuralMatch()) {
+            if (isSelected()) {
+              return MATCHED_STRUCTURALCHANGED_FUNCTION_SELECTED_ICON;
+            } else if (!isVisible()) {
+              return MATCHED_STRUCTURALCHANGED_FUNCTION_INVISIBLE_ICON;
+            }
+            return MATCHED_STRUCTURALCHANGED_FUNCTION_ICON;
+          }
+          break;
         }
-        return MATCHED_IDENTICAL_FUNCTION_ICON;
-      } else if (function.isChangedInstructionsOnlyMatch()) {
-        if (isSelected()) {
-          return MATCHED_INSTRUCTIONCHANGED_FUNCTION_SELECTED_ICON;
-        } else if (!isVisible()) {
-          return MATCHED_INSTRUCTIONCHANGED_FUNCTION_INVISIBLE_ICON;
+      case PRIMARY_UNMATCHED:
+        {
+          if (isSelected()) {
+            return PRIMARY_UNMATCHED_FUNCTION_SELECTED_ICON;
+          } else if (!isVisible()) {
+            return PRIMARY_UNMATCHED_FUNCTION_INVISIBLE_ICON;
+          }
+          return PRIMARY_UNMATCHED_FUNCTION_ICON;
         }
-        return MATCHED_INSTRUCTIONCHANGED_FUNCTION_ICON;
-      } else if (function.isChangedStructuralMatch()) {
-        if (isSelected()) {
-          return MATCHED_STRUCTURALCHANGED_FUNCTION_SELECTED_ICON;
-        } else if (!isVisible()) {
-          return MATCHED_STRUCTURALCHANGED_FUNCTION_INVISIBLE_ICON;
+      case SECONDRAY_UNMATCHED:
+        {
+          if (isSelected()) {
+            return SECONDARY_UNMATCHED_FUNCTION_SELECTED_ICON;
+          } else if (!isVisible()) {
+            return SECONDARY_UNMATCHED_FUNCTION_INVISIBLE_ICON;
+          }
+          return SECONDARY_UNMATCHED_FUNCTION_ICON;
         }
-        return MATCHED_STRUCTURALCHANGED_FUNCTION_ICON;
-      }
-      break;
-    }
-      case PRIMARY_UNMATCHED: {
-      if (isSelected()) {
-        return PRIMARY_UNMATCHED_FUNCTION_SELECTED_ICON;
-      } else if (!isVisible()) {
-        return PRIMARY_UNMATCHED_FUNCTION_INVISIBLE_ICON;
-      }
-      return PRIMARY_UNMATCHED_FUNCTION_ICON;
-    }
-      case SECONDRAY_UNMATCHED: {
-      if (isSelected()) {
-        return SECONDARY_UNMATCHED_FUNCTION_SELECTED_ICON;
-      } else if (!isVisible()) {
-        return SECONDARY_UNMATCHED_FUNCTION_INVISIBLE_ICON;
-      }
-      return SECONDARY_UNMATCHED_FUNCTION_ICON;
-    }
     }
 
     throw new IllegalStateException("Unknown match type.");

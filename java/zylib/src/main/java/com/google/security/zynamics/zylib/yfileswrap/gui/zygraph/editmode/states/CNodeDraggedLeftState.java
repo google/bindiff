@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,13 +23,12 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-public class CNodeDraggedLeftState<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CNodeDraggedLeftState<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IMouseState {
   private final CStateFactory<NodeType, EdgeType> m_factory;
 
@@ -43,14 +42,21 @@ public class CNodeDraggedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
 
   private final double m_distY;
 
-  public CNodeDraggedLeftState(final CStateFactory<NodeType, EdgeType> factory,
-      final AbstractZyGraph<NodeType, EdgeType> graph, final Node node, final MouseEvent event) {
+  public CNodeDraggedLeftState(
+      final CStateFactory<NodeType, EdgeType> factory,
+      final AbstractZyGraph<NodeType, EdgeType> graph,
+      final Node node,
+      final MouseEvent event) {
     this(factory, graph, node, event, 0, 0);
   }
 
-  public CNodeDraggedLeftState(final CStateFactory<NodeType, EdgeType> factory,
-      final AbstractZyGraph<NodeType, EdgeType> graph, final Node node, final MouseEvent event,
-      final double distX, final double distY) {
+  public CNodeDraggedLeftState(
+      final CStateFactory<NodeType, EdgeType> factory,
+      final AbstractZyGraph<NodeType, EdgeType> graph,
+      final Node node,
+      final MouseEvent event,
+      final double distX,
+      final double distY) {
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_node = Preconditions.checkNotNull(node, "Error: node argument can not be null");
@@ -90,8 +96,8 @@ public class CNodeDraggedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
         m_graph.getEditMode().translateY(event.getY())
             - m_graph.getEditMode().translateY(m_event.getY());
 
-    return new CStateChange(m_factory.createNodeDraggedLeftState(m_node, event, distX, distY),
-        false);
+    return new CStateChange(
+        m_factory.createNodeDraggedLeftState(m_node, event, distX, distY), false);
   }
 
   @Override
@@ -103,8 +109,8 @@ public class CNodeDraggedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
         m_graph.getEditMode().translateY(event.getY())
             - m_graph.getEditMode().translateY(m_event.getY());
 
-    return new CStateChange(m_factory.createNodeDraggedLeftState(m_node, event, distX, distY),
-        false);
+    return new CStateChange(
+        m_factory.createNodeDraggedLeftState(m_node, event, distX, distY), false);
   }
 
   @Override
@@ -116,12 +122,13 @@ public class CNodeDraggedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
         m_graph.getEditMode().translateY(event.getY())
             - m_graph.getEditMode().translateY(m_event.getY());
 
-    return new CStateChange(m_factory.createNodeDraggedLeftState(m_node, event, distX, distY),
-        false);
+    return new CStateChange(
+        m_factory.createNodeDraggedLeftState(m_node, event, distX, distY), false);
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     final double x = m_graph.getEditMode().translateX(event.getX());
     final double y = m_graph.getEditMode().translateY(event.getY());
 

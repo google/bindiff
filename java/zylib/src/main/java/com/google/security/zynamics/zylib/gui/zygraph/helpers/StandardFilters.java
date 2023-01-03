@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,15 +17,12 @@ package com.google.security.zynamics.zylib.gui.zygraph.helpers;
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.proximity.CProximityNode;
 
-/**
- * Provides common node filters.
- */
+/** Provides common node filters. */
 public class StandardFilters {
   /**
    * Returns a filter that can be used to filter selected nodes.
-   * 
+   *
    * @param <NodeType> The type of the nodes that are filtered by the returned filter.
-   * 
    * @return A filter that can be used to filter selected nodes.
    */
   public static <NodeType extends ISelectableNode> INodeFilter<NodeType> getDeselectedFilter() {
@@ -45,14 +42,13 @@ public class StandardFilters {
 
   /**
    * Creates a filter that negates another filter.
-   * 
+   *
    * @param <NodeType> The type of the nodes that are filtered by the returned filter.
-   * 
    * @param filter The filter that's negated.
-   * 
    * @return A filter that negates the input filter.
    */
-  public static <NodeType> INodeFilter<NodeType> getNegatedFilter(final INodeFilter<NodeType> filter) {
+  public static <NodeType> INodeFilter<NodeType> getNegatedFilter(
+      final INodeFilter<NodeType> filter) {
     Preconditions.checkNotNull(filter, "Error: Filter argument can't be null");
 
     return new INodeFilter<NodeType>() {
@@ -65,9 +61,8 @@ public class StandardFilters {
 
   /**
    * Returns a filter that can be used to filter deselected nodes.
-   * 
+   *
    * @param <NodeType> The type of the nodes that are filtered by the returned filter.
-   * 
    * @return A filter that can be used to filter deselected nodes.
    */
   public static <NodeType extends ISelectableNode> INodeFilter<NodeType> getSelectedFilter() {
@@ -81,9 +76,8 @@ public class StandardFilters {
 
   /**
    * Returns a filter that accepts every node.
-   * 
+   *
    * @param <NodeType> The type of the nodes that are filtered by the returned filter.
-   * 
    * @return A filter that accepts all nodes.
    */
   public static <NodeType> INodeFilter<NodeType> getTrueFilter() {
@@ -94,5 +88,4 @@ public class StandardFilters {
       }
     };
   }
-
 }

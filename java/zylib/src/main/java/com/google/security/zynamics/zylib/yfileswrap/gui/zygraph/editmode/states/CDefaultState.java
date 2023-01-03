@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,20 +26,15 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transf
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitEdgesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.view.HitInfo;
-
 import java.awt.event.MouseEvent;
-
+import y.view.HitInfo;
 
 /**
  * This class describes the mouse state where the cursor is not hovering over any special object and
  * no button is clicked.
  */
 public final class CDefaultState implements IMouseState {
-  /**
-   * Factory class for creating state changes.
-   */
+  /** Factory class for creating state changes. */
   private final CStateFactory<?, ?> m_factory;
 
   /**
@@ -91,7 +86,8 @@ public final class CDefaultState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(this, true);
   }
 }

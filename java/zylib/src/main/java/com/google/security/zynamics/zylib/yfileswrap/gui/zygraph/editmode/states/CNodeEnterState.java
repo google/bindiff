@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,11 +23,9 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CState
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CMousePressedHandler;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 import y.view.HitInfo;
-
-import java.awt.event.MouseEvent;
 
 // TODO the use of the state machine to trigger context sensitive parts without
 // using the state machine is wrong in my opinion
@@ -35,32 +33,29 @@ import java.awt.event.MouseEvent;
  * This class represents the mouse state that is reached as soon as the user moves the mouse into a
  * node.
  */
-public final class CNodeEnterState<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public final class CNodeEnterState<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IMouseState {
-  /**
-   * State factory that creates new state objects when necessary.
-   */
+  /** State factory that creates new state objects when necessary. */
   private final CStateFactory<NodeType, EdgeType> m_factory;
 
-  /**
-   * The graph the entered node belongs to.
-   */
+  /** The graph the entered node belongs to. */
   private final AbstractZyGraph<NodeType, EdgeType> m_graph;
 
-  /**
-   * The entered node.
-   */
+  /** The entered node. */
   private final Node m_node;
 
   /**
    * Creates a new state object.
-   * 
+   *
    * @param factory State factory that creates new state objects when necessary.
    * @param graph The graph the entered node belongs to.
    * @param node The entered node.
    */
-  public CNodeEnterState(final CStateFactory<NodeType, EdgeType> factory,
-      final AbstractZyGraph<NodeType, EdgeType> graph, final Node node) {
+  public CNodeEnterState(
+      final CStateFactory<NodeType, EdgeType> factory,
+      final AbstractZyGraph<NodeType, EdgeType> graph,
+      final Node node) {
     m_factory = factory;
     m_graph = graph;
     m_node = node;
@@ -68,7 +63,7 @@ public final class CNodeEnterState<NodeType extends ZyGraphNode<?>, EdgeType ext
 
   /**
    * Returns the graph the entered node belongs to.
-   * 
+   *
    * @return The graph the entered node belongs to.
    */
   public AbstractZyGraph<NodeType, EdgeType> getGraph() {
@@ -77,7 +72,7 @@ public final class CNodeEnterState<NodeType extends ZyGraphNode<?>, EdgeType ext
 
   /**
    * Returns the entered node.
-   * 
+   *
    * @return The entered node.
    */
   public Node getNode() {
@@ -116,7 +111,8 @@ public final class CNodeEnterState<NodeType extends ZyGraphNode<?>, EdgeType ext
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(m_factory.createDefaultState(), true);
   }
 }

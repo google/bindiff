@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,13 +19,11 @@ import y.view.Graph2D;
 import y.view.LineType;
 import y.view.NodeRealizer;
 
-/**
- * Helper class for highlighting the border of nodes.
- */
+/** Helper class for highlighting the border of nodes. */
 public final class CNodeHighlighter {
   /**
    * Highlights the border of a node.
-   * 
+   *
    * @param node The node to highlight.
    * @param state True, to highlight the node. False, to unhighlight it.
    */

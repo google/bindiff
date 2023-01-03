@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,20 +19,16 @@ import com.google.security.zynamics.zylib.gui.zygraph.proximity.CProximityNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyProximityNodeRealizer;
-
-import y.base.Node;
-
 import java.util.List;
+import y.base.Node;
 
 /**
  * Represents a visible proximity node in ZyGraphs.
- * 
+ *
  * @param <T> Type of the raw nodes in the graph.
  */
 public class ZyProximityNode<T extends IViewNode<?>> extends ZyGraphNode<CProximityNode<T>> {
-  /**
-   * Default vertical distance from the attached node.
-   */
+  /** Default vertical distance from the attached node. */
   private static final int DEFAULT_DISTANCE = 50;
 
   /**
@@ -43,14 +39,17 @@ public class ZyProximityNode<T extends IViewNode<?>> extends ZyGraphNode<CProxim
 
   /**
    * Creates a new proximity node object.
-   * 
+   *
    * @param node YNode of the proximity node.
    * @param realizer Realizer used by this node.
    * @param attachedNode Real graph node the proximity node is attached to.
    * @param isIncoming Signals the position of the proximity node relative to the attached node.
    */
-  public ZyProximityNode(final Node node, final ZyProximityNodeRealizer<T> realizer,
-      final ZyGraphNode<T> attachedNode, final boolean isIncoming) {
+  public ZyProximityNode(
+      final Node node,
+      final ZyProximityNodeRealizer<T> realizer,
+      final ZyGraphNode<T> attachedNode,
+      final boolean isIncoming) {
     super(node, realizer, new CProximityNode<T>(getRawNode(attachedNode)));
 
     m_isIncoming = isIncoming;
@@ -91,7 +90,7 @@ public class ZyProximityNode<T extends IViewNode<?>> extends ZyGraphNode<CProxim
 
   /**
    * Signals the relative position of the proximity browsing node to the attached node.
-   * 
+   *
    * @return True, to signal an incoming node. False, to signal an outgoing node.
    */
   public boolean isIncoming() {

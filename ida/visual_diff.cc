@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   }
 
   // Use the original BSD names for these.
-  int (__stdcall *close)(SOCKET) = closesocket;
+  int(__stdcall * close)(SOCKET) = closesocket;
   auto write = [](SOCKET socket, const char* buf, int len) -> int {
     return send(socket, buf, len, /* flags = */ 0);
   };

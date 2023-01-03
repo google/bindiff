@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
-
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import java.awt.Point;
-
 
 public class CPasteKeyBehavior extends CAbstractKeyBehavior {
   private int m_caretX = 0;
@@ -66,18 +64,29 @@ public class CPasteKeyBehavior extends CAbstractKeyBehavior {
     if (lineFragmentObject != null) {
       if (!isNewBehindLineComment) {
         text =
-            lineContent.getText().substring(lineFragmentObject.getStart(),
-                lineFragmentObject.getEnd());
+            lineContent
+                .getText()
+                .substring(lineFragmentObject.getStart(), lineFragmentObject.getEnd());
 
         if (isComment(x, y)) {
           text = getMultiLineComment(y);
         }
       }
 
-      udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-          lineFragmentObject, text, m_isAboveComment, m_isBehindComment, m_isLabelComment,
-          getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          lineContent.getLineObject().getPersistentModel(),
+          lineFragmentObject,
+          text,
+          m_isAboveComment,
+          m_isBehindComment,
+          m_isLabelComment,
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 
@@ -124,17 +133,28 @@ public class CPasteKeyBehavior extends CAbstractKeyBehavior {
 
       if (lineFragmentObject != null) {
         String text =
-            lineContent.getText().substring(lineFragmentObject.getStart(),
-                lineFragmentObject.getEnd());
+            lineContent
+                .getText()
+                .substring(lineFragmentObject.getStart(), lineFragmentObject.getEnd());
 
         if (isComment(x, y)) {
           text = getMultiLineComment(y);
         }
 
-        udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-            lineFragmentObject, text, m_isAboveComment, m_isBehindComment, m_isLabelComment,
-            getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(),
-            getCaretEndPosX(), getCaretMouseReleasedX(), getCaretMouseReleasedY());
+        udpateUndolist(
+            getLabelContent(),
+            lineContent.getLineObject().getPersistentModel(),
+            lineFragmentObject,
+            text,
+            m_isAboveComment,
+            m_isBehindComment,
+            m_isLabelComment,
+            getCaretStartPosX(),
+            getCaretMousePressedX(),
+            getCaretMousePressedY(),
+            getCaretEndPosX(),
+            getCaretMouseReleasedX(),
+            getCaretMouseReleasedY());
       }
     }
   }

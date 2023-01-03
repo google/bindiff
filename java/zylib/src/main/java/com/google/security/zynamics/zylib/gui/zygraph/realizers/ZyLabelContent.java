@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,22 +49,18 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
 
   private Color m_selectionColor = Color.WHITE;
 
-  /**
-   * List of line content objects that form the label content.
-   */
+  /** List of line content objects that form the label content. */
   private final ArrayList<ZyLineContent> m_content = new ArrayList<ZyLineContent>();
 
-  /**
-   * Boolean which indicates if the sloppy paint modus is on or not.
-   */
+  /** Boolean which indicates if the sloppy paint modus is on or not. */
   private boolean m_sloppy = false;
 
   public ZyLabelContent(final IZyEditableObject nodeModel) {
     m_model = nodeModel;
   }
 
-  public ZyLabelContent(final IZyEditableObject nodeModel, final boolean selectable,
-      final boolean editable) {
+  public ZyLabelContent(
+      final IZyEditableObject nodeModel, final boolean selectable, final boolean editable) {
     m_model = Preconditions.checkNotNull(nodeModel, "Error: Node model can't be null.");
     m_selectable = selectable;
     m_editable = editable;
@@ -85,7 +81,7 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
 
   /**
    * Adds another line add the end of the label content.
-   * 
+   *
    * @param line The line to add.
    */
   public void addLineContent(final ZyLineContent line) {
@@ -387,7 +383,6 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
       if (!"\n".equals(line) && (y < lr)) {
         selectedString.append("\n");
       }
-
     }
     return selectedString.toString();
   }
@@ -460,7 +455,6 @@ public class ZyLabelContent implements Iterable<ZyLineContent> {
 
   public void setPaddingLeft(final int padding) {
     m_leftPadding = padding;
-
   }
 
   public void setRightPadding(final int right) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,11 +17,9 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
-
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import java.awt.Point;
-
 
 public class CDelKeyBehavior extends CAbstractKeyBehavior {
   private boolean m_wasSelection = false;
@@ -41,12 +39,16 @@ public class CDelKeyBehavior extends CAbstractKeyBehavior {
       final ZyLineContent lineContent = getLineContent(lineYPos);
 
       int x =
-          lineContent.getLineFragmentObjectList()
-              .get(lineContent.getLineFragmentObjectList().size() - 1).getEnd();
+          lineContent
+              .getLineFragmentObjectList()
+              .get(lineContent.getLineFragmentObjectList().size() - 1)
+              .getEnd();
 
       int y = lineYPos;
 
-      for (int index = lineYPos + 1; index <= getLabelContent().getLastLineIndexOfModelAt(lineYPos); ++index) {
+      for (int index = lineYPos + 1;
+          index <= getLabelContent().getLastLineIndexOfModelAt(lineYPos);
+          ++index) {
         final ZyLineContent nextLineContent = getLineContent(index);
 
         final int editableObjectSize = nextLineContent.getLineFragmentObjectList().size();
@@ -84,8 +86,9 @@ public class CDelKeyBehavior extends CAbstractKeyBehavior {
 
     if (lineFragmentObject != null) {
       String text =
-          lineContent.getText().substring(lineFragmentObject.getStart(),
-              lineFragmentObject.getEnd());
+          lineContent
+              .getText()
+              .substring(lineFragmentObject.getStart(), lineFragmentObject.getEnd());
 
       m_isAboveComment = isAboveLineComment(y);
       m_isBehindComment = isBehindLineComment(x, y);
@@ -95,10 +98,20 @@ public class CDelKeyBehavior extends CAbstractKeyBehavior {
         text = getMultiLineComment(y);
       }
 
-      udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-          m_editableObject, text, m_isAboveComment, m_isBehindComment, m_isLabelComment,
-          getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          lineContent.getLineObject().getPersistentModel(),
+          m_editableObject,
+          text,
+          m_isAboveComment,
+          m_isBehindComment,
+          m_isLabelComment,
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 
@@ -186,8 +199,9 @@ public class CDelKeyBehavior extends CAbstractKeyBehavior {
         lineContent.getLineObject().updateComment(changedText, ECommentPlacement.BEHIND_LINE);
       }
 
-      getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-          lineContent.getLineObject().getPersistentModel());
+      getLabelContent()
+          .getLineEditor()
+          .recreateLabelLines(getLabelContent(), lineContent.getLineObject().getPersistentModel());
     } else {
       // Caret end was within an editable object, but NOT a comment.
 
@@ -214,17 +228,28 @@ public class CDelKeyBehavior extends CAbstractKeyBehavior {
 
     if (lineFragmentObject != null) {
       text =
-          lineContent.getText().substring(lineFragmentObject.getStart(),
-              lineFragmentObject.getEnd());
+          lineContent
+              .getText()
+              .substring(lineFragmentObject.getStart(), lineFragmentObject.getEnd());
 
       if (isComment(x, y)) {
         text = getMultiLineComment(y);
       }
 
-      udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-          m_editableObject, text, m_isAboveComment, m_isBehindComment, m_isLabelComment,
-          getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          lineContent.getLineObject().getPersistentModel(),
+          m_editableObject,
+          text,
+          m_isAboveComment,
+          m_isBehindComment,
+          m_isLabelComment,
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 }

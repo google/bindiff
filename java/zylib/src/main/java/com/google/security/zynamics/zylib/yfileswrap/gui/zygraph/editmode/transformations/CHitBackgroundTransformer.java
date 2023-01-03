@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,17 +19,16 @@ import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseState;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseStateChange;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
-
+import java.awt.event.MouseEvent;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-/**
- * Utility class to encapsulate state changes for the background.
- */
+/** Utility class to encapsulate state changes for the background. */
 public class CHitBackgroundTransformer {
-  public static IMouseStateChange exitBackground(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final AbstractZyGraph<?, ?> graph, final IMouseState state) {
+  public static IMouseStateChange exitBackground(
+      final CStateFactory<?, ?> m_factory,
+      final MouseEvent event,
+      final AbstractZyGraph<?, ?> graph,
+      final IMouseState state) {
     final double x = graph.getEditMode().translateX(event.getX());
     final double y = graph.getEditMode().translateY(event.getY());
 

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,14 +46,10 @@ public class ZyEditMode<
         NodeType extends ZyGraphNode<?> & IViewableNode & ISelectableNode,
         EdgeType extends ZyGraphEdge<?, ?, ?>>
     extends EditMode {
-  /**
-   * Provides the default actions that are executed on changes in mouse states.
-   */
+  /** Provides the default actions that are executed on changes in mouse states. */
   private final IStateActionFactory<NodeType, EdgeType> m_actionFactory;
 
-  /**
-   * Provides the available mouse states.
-   */
+  /** Provides the available mouse states. */
   private final CStateFactory<NodeType, EdgeType> m_stateFactory;
 
   /**
@@ -61,14 +57,10 @@ public class ZyEditMode<
    */
   private IMouseState m_state;
 
-  /**
-   * The owning graph of the edit mode.
-   */
+  /** The owning graph of the edit mode. */
   private final AbstractZyGraph<NodeType, EdgeType> m_graph;
 
-  /**
-   * Used to display the magnifying glass in the graph window.
-   */
+  /** Used to display the magnifying glass in the graph window. */
   private final MagnifierViewMode m_magifierViewMode = new MagnifierViewMode();
 
   /** Listeners that are notified about import edit mode events. */
@@ -86,7 +78,7 @@ public class ZyEditMode<
 
   /**
    * Creates a new edit mode object which is tied to the given graph.
-   * 
+   *
    * @param graph The owning graph of the edit mode.
    */
   public ZyEditMode(final AbstractZyGraph<NodeType, EdgeType> graph) {
@@ -101,12 +93,12 @@ public class ZyEditMode<
 
   /**
    * Determines whether magnifying mode is active or not.
-   * 
+   *
    * @return True, if magnifying mode is active. False, otherwise.
    */
   private boolean getMagnifyingMode() {
     // ESCA-JAVA0254: Can not improve the loop to for-each
-    for (final Iterator<?> iter = m_graph.getView().getViewModes(); iter.hasNext();) {
+    for (final Iterator<?> iter = m_graph.getView().getViewModes(); iter.hasNext(); ) {
       if (iter.next() == m_magifierViewMode) {
         return true;
       }
@@ -115,9 +107,7 @@ public class ZyEditMode<
     return false;
   }
 
-  /**
-   * Initializes the default behavior of the edit mode.
-   */
+  /** Initializes the default behavior of the edit mode. */
   private void setDefaultBehaviour() {
     allowBendCreation(false);
     allowEdgeCreation(false);
@@ -134,7 +124,9 @@ public class ZyEditMode<
 
     setSelectionBoxMode(new CSelectionMode<NodeType>(m_graph));
 
-    m_graph.getView().getCanvasComponent()
+    m_graph
+        .getView()
+        .getCanvasComponent()
         .addMouseWheelListener(new ZyEditModeMouseWheelListener<NodeType, EdgeType>(m_graph));
   }
 
@@ -163,7 +155,7 @@ public class ZyEditMode<
 
   /**
    * Adds a listener object that is notified about changes in the edit mode.
-   * 
+   *
    * @param listener The listener object to add.
    */
   public void addListener(final IZyEditModeListener<NodeType, EdgeType> listener) {
@@ -281,7 +273,7 @@ public class ZyEditMode<
 
   /**
    * Enables or disables magnifying mode.
-   * 
+   *
    * @param active True, to enable magnifying mode. False, to disable it.
    */
   public void setMagnifyingMode(final boolean active) {

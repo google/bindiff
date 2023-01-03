@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,25 +24,26 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helper
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CNodeMover;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeDraggedLeftState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Node;
-import y.view.Bend;
-
 import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.Set;
+import y.base.Node;
+import y.view.Bend;
 
-public class CDefaultNodeDraggedLeftAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultNodeDraggedLeftAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodeDraggedLeftState<NodeType, EdgeType>> {
   protected void moveToFront(final ZyGraphLayeredRenderer<?> renderer, final Node node) {
     renderer.bringNodeToFront(node);
   }
 
   @Override
-  public void execute(final CNodeDraggedLeftState<NodeType, EdgeType> state, final MouseEvent event) {
+  public void execute(
+      final CNodeDraggedLeftState<NodeType, EdgeType> state, final MouseEvent event) {
     CMouseCursorHelper.setHandCursor(state.getGraph());
 
-    moveToFront((ZyGraphLayeredRenderer<?>) state.getGraph().getView().getGraph2DRenderer(),
+    moveToFront(
+        (ZyGraphLayeredRenderer<?>) state.getGraph().getView().getGraph2DRenderer(),
         state.getNode());
 
     // 1. The dragged node is always moved
@@ -61,8 +62,8 @@ public class CDefaultNodeDraggedLeftAction<NodeType extends ZyGraphNode<?>, Edge
         CNodeMover.moveNode(graph, n, state.getDistanceX(), state.getDistanceY(), movedBends);
       }
     } else {
-      CNodeMover.moveNode(graph, draggedNode, state.getDistanceX(), state.getDistanceY(),
-          movedBends);
+      CNodeMover.moveNode(
+          graph, draggedNode, state.getDistanceX(), state.getDistanceY(), movedBends);
     }
 
     graph.updateViews();

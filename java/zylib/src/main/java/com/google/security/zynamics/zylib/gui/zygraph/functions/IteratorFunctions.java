@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -30,16 +30,17 @@ public class IteratorFunctions {
           final AbstractZyGraph<?, EdgeType> graph, final IEdgeCallback<EdgeType> callback) {
     Preconditions.checkNotNull(callback, "Error: Callback argument can't be null");
 
-    graph.iterateEdges(new IEdgeCallback<EdgeType>() {
-      @Override
-      public IterationMode nextEdge(final EdgeType edge) {
-        if (edge.isVisible()) {
-          return IterationMode.CONTINUE;
-        }
+    graph.iterateEdges(
+        new IEdgeCallback<EdgeType>() {
+          @Override
+          public IterationMode nextEdge(final EdgeType edge) {
+            if (edge.isVisible()) {
+              return IterationMode.CONTINUE;
+            }
 
-        return callback.nextEdge(edge);
-      }
-    });
+            return callback.nextEdge(edge);
+          }
+        });
   }
 
   /**
@@ -52,16 +53,17 @@ public class IteratorFunctions {
           final AbstractZyGraph<NodeType, ?> graph, final INodeCallback<NodeType> callback) {
     Preconditions.checkNotNull(callback, "Error: Callback argument can't be null");
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (node.isVisible()) {
-          return IterationMode.CONTINUE;
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (node.isVisible()) {
+              return IterationMode.CONTINUE;
+            }
 
-        return callback.next(node);
-      }
-    });
+            return callback.next(node);
+          }
+        });
   }
 
   /**
@@ -74,16 +76,17 @@ public class IteratorFunctions {
           final AbstractZyGraph<NodeType, ?> graph, final INodeCallback<NodeType> callback) {
     Preconditions.checkNotNull(callback, "Error: Callback argument can't be null");
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (!node.isSelected()) {
-          return IterationMode.CONTINUE;
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (!node.isSelected()) {
+              return IterationMode.CONTINUE;
+            }
 
-        return callback.next(node);
-      }
-    });
+            return callback.next(node);
+          }
+        });
   }
 
   public static <EdgeType extends ZyGraphEdge<?, ?, ?> & ISelectableNode & IViewableNode>
@@ -91,16 +94,17 @@ public class IteratorFunctions {
           final AbstractZyGraph<?, EdgeType> graph, final IEdgeCallback<EdgeType> callback) {
     Preconditions.checkNotNull(callback, "Error: Callback argument can't be null");
 
-    graph.iterateEdges(new IEdgeCallback<EdgeType>() {
-      @Override
-      public IterationMode nextEdge(final EdgeType edge) {
-        if (!edge.isVisible()) {
-          return IterationMode.CONTINUE;
-        }
+    graph.iterateEdges(
+        new IEdgeCallback<EdgeType>() {
+          @Override
+          public IterationMode nextEdge(final EdgeType edge) {
+            if (!edge.isVisible()) {
+              return IterationMode.CONTINUE;
+            }
 
-        return callback.nextEdge(edge);
-      }
-    });
+            return callback.nextEdge(edge);
+          }
+        });
   }
 
   /**
@@ -113,15 +117,16 @@ public class IteratorFunctions {
           final AbstractZyGraph<NodeType, ?> graph, final INodeCallback<NodeType> callback) {
     Preconditions.checkNotNull(callback, "Error: Callback argument can't be null");
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (!node.isVisible()) {
-          return IterationMode.CONTINUE;
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (!node.isVisible()) {
+              return IterationMode.CONTINUE;
+            }
 
-        return callback.next(node);
-      }
-    });
+            return callback.next(node);
+          }
+        });
   }
 }

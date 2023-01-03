@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,14 +22,14 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyInfoEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CEdgeClickedRightState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.event.MouseEvent;
 
-
-public class CDefaultEdgeClickedRightAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultEdgeClickedRightAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CEdgeClickedRightState<NodeType, EdgeType>> {
   @Override
-  public void execute(final CEdgeClickedRightState<NodeType, EdgeType> state, final MouseEvent event) {
+  public void execute(
+      final CEdgeClickedRightState<NodeType, EdgeType> state, final MouseEvent event) {
     CMouseCursorHelper.setDefaultCursor(state.getGraph());
 
     final AbstractZyGraph<NodeType, EdgeType> graph = state.getGraph();
@@ -43,8 +43,8 @@ public class CDefaultEdgeClickedRightAction<NodeType extends ZyGraphNode<?>, Edg
     final double x = graph.getEditMode().translateX(event.getX());
     final double y = graph.getEditMode().translateY(event.getY());
 
-    for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-        .getListeners()) {
+    for (final IZyEditModeListener<NodeType, EdgeType> listener :
+        state.getStateFactory().getListeners()) {
       try {
         listener.edgeClicked(edgeT, event, x, y);
       } catch (final Exception exception) {

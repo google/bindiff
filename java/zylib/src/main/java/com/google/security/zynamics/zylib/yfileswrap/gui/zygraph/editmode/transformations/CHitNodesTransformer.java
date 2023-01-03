@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,28 +18,26 @@ import com.google.security.zynamics.zylib.gui.zygraph.editmode.CStateChange;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseState;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseStateChange;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-/**
- * Utility class to encapsulate state changes for nodes.
- */
+/** Utility class to encapsulate state changes for nodes. */
 public final class CHitNodesTransformer {
   /**
    * Changes the state of the node depending on the current hitInfo.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
    * @param oldNode The node which we come from.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static CStateChange changeNode(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo, final Node oldNode) {
+  public static CStateChange changeNode(
+      final CStateFactory<?, ?> m_factory,
+      final MouseEvent event,
+      final HitInfo hitInfo,
+      final Node oldNode) {
     final Node node = hitInfo.getHitNode();
 
     if (node == oldNode) {
@@ -55,15 +53,14 @@ public final class CHitNodesTransformer {
 
   /**
    * Changes the state to node enter state.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static IMouseStateChange enterNode(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo) {
+  public static IMouseStateChange enterNode(
+      final CStateFactory<?, ?> m_factory, final MouseEvent event, final HitInfo hitInfo) {
     final Node n = hitInfo.getHitNode();
 
     return new CStateChange(m_factory.createNodeEnterState(n, event), true);
@@ -71,16 +68,18 @@ public final class CHitNodesTransformer {
 
   /**
    * Changes the state depending on the hit information from a node state to a non node state.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
    * @param state The state which we come from.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static IMouseStateChange exitNode(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo, final IMouseState state) {
+  public static IMouseStateChange exitNode(
+      final CStateFactory<?, ?> m_factory,
+      final MouseEvent event,
+      final HitInfo hitInfo,
+      final IMouseState state) {
     if (hitInfo.hasHitNodeLabels()) {
       throw new IllegalStateException();
     } else if (hitInfo.hasHitEdges()) {

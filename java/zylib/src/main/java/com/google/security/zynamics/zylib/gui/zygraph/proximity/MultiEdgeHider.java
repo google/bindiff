@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,29 +23,25 @@ import com.google.security.zynamics.zylib.types.common.IterationMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.HashSet;
 
-/**
- * Class to form a single edge out of a number of edges.
- */
+/** Class to form a single edge out of a number of edges. */
 public class MultiEdgeHider {
-  public static <
-      NodeType extends ZyGraphNode<? extends IViewNode<?>>> void hideMultipleEdgesInternal(
-      final AbstractZyGraph<NodeType, ?> graph) {
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        hideMultipleEdgesInternal(node);
+  public static <NodeType extends ZyGraphNode<? extends IViewNode<?>>>
+      void hideMultipleEdgesInternal(final AbstractZyGraph<NodeType, ?> graph) {
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            hideMultipleEdgesInternal(node);
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
   }
 
-  public static <
-      NodeType extends ZyGraphNode<? extends IViewNode<?>>> void hideMultipleEdgesInternal(
-      final NodeType node) {
+  public static <NodeType extends ZyGraphNode<? extends IViewNode<?>>>
+      void hideMultipleEdgesInternal(final NodeType node) {
     if (!node.isVisible() || (node.getRawNode() instanceof IGroupNode<?, ?>)) {
       // If the node is not visible, then none of the edges are visible.
       return;
@@ -74,17 +70,19 @@ public class MultiEdgeHider {
     }
   }
 
-  public static <NodeType extends ZyGraphNode<? extends IViewNode<?>>,
-      EdgeType extends ZyGraphEdge<NodeType, EdgeType,
-      ? extends IViewEdge<?>>> void unhideMultipleEdgesInternal(
-      final AbstractZyGraph<NodeType, EdgeType> graph) {
-    graph.iterateEdges(new IEdgeCallback<EdgeType>() {
-      @Override
-      public IterationMode nextEdge(final EdgeType edge) {
-        edge.getRawEdge().setVisible(edge.getSource().isVisible() && edge.getTarget().isVisible());
+  public static <
+          NodeType extends ZyGraphNode<? extends IViewNode<?>>,
+          EdgeType extends ZyGraphEdge<NodeType, EdgeType, ? extends IViewEdge<?>>>
+      void unhideMultipleEdgesInternal(final AbstractZyGraph<NodeType, EdgeType> graph) {
+    graph.iterateEdges(
+        new IEdgeCallback<EdgeType>() {
+          @Override
+          public IterationMode nextEdge(final EdgeType edge) {
+            edge.getRawEdge()
+                .setVisible(edge.getSource().isVisible() && edge.getTarget().isVisible());
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
   }
 }

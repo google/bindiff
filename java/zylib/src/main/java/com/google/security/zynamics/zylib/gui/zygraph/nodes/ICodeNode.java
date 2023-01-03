@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@ import com.google.security.zynamics.zylib.disassembly.ICodeContainer;
 import com.google.security.zynamics.zylib.disassembly.IInstruction;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdge;
 
-public interface ICodeNode<EdgeType extends IViewEdge<? extends IViewNode<?>>, InstructionType extends IInstruction, ListenerTyp extends ICodeNodeListener<?, ?, ?>>
+public interface ICodeNode<
+        EdgeType extends IViewEdge<? extends IViewNode<?>>,
+        InstructionType extends IInstruction,
+        ListenerTyp extends ICodeNodeListener<?, ?, ?>>
     extends ILineNode<EdgeType>, ICodeContainer<InstructionType> {
   void addListener(ListenerTyp listener);
 

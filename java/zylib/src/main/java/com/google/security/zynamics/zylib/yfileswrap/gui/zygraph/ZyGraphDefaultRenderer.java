@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,12 @@
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyGroupNodeRealizer;
-
+import java.util.LinkedHashSet;
 import y.base.Node;
 import y.base.NodeCursor;
 import y.view.DefaultGraph2DRenderer;
 import y.view.Graph2D;
 import y.view.NodeRealizer;
-
-import java.util.LinkedHashSet;
 
 public class ZyGraphDefaultRenderer extends DefaultGraph2DRenderer {
   /**

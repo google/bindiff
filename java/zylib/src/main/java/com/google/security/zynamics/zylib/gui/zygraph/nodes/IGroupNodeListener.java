@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@ package com.google.security.zynamics.zylib.gui.zygraph.nodes;
 
 import java.util.List;
 
-
 public interface IGroupNodeListener<NodeType, CommentType> {
   /**
    * Invoked if a comment was appended to the list of group node comments.
-   * 
+   *
    * @param node The group node where the comment was appended.
    * @param comment The comment which was appended.
    */
@@ -28,7 +27,7 @@ public interface IGroupNodeListener<NodeType, CommentType> {
 
   /**
    * Invoked if a comment was deleted from the list of group node comments.
-   * 
+   *
    * @param node The group node where the comment was deleted.
    * @param comment The comment which was deleted.
    */
@@ -36,7 +35,7 @@ public interface IGroupNodeListener<NodeType, CommentType> {
 
   /**
    * Invoked if a comment in the list of group node comments was edited.
-   * 
+   *
    * @param node The group node where the comment was edited.
    * @param comment The comment which was edited.
    */
@@ -44,7 +43,7 @@ public interface IGroupNodeListener<NodeType, CommentType> {
 
   /**
    * Invoked if the comments of a group node have been initialized.
-   * 
+   *
    * @param node The group node where the comments have been initialized
    * @param comment The list of comments which are now associated to the group node.
    */

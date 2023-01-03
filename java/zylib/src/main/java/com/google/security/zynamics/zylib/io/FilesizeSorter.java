@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 public class FilesizeSorter implements Comparator<File>, Serializable {
-  /**
-   * Used for serialization.
-   */
+  /** Used for serialization. */
   private static final long serialVersionUID = 7060651903531011219L;
 
   @Override

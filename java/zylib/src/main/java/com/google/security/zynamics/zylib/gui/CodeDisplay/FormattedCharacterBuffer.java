@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -32,9 +32,11 @@ public class FormattedCharacterBuffer {
   private char[] charBuffer = new char[0];
   /** Array of references to the font for each character. */
   private Font[] perCharFonts = new Font[0];
+
   private static final Font DEFAULT_FONT = new Font(Font.MONOSPACED, Font.PLAIN, 12);
   /** Foreground and background color for each character. */
   private Color[] perCharForegroundColor = new Color[0];
+
   private Color defaultForegroundColor = Color.BLACK;
 
   private Color[] perCharBackgroundColor = new Color[0];
@@ -62,9 +64,7 @@ public class FormattedCharacterBuffer {
     }
   }
 
-  /**
-   * Create a single-line formatted character buffer. Newlines are converted to underscores.
-   */
+  /** Create a single-line formatted character buffer. Newlines are converted to underscores. */
   public FormattedCharacterBuffer(String data, Font font, Color foreground, Color background) {
     this(/* Single line per default */ 1, data.length());
     for (int i = 0; i < numberOfLinesInBuffer * numberOfColumnsInBuffer; i++) {
@@ -90,12 +90,8 @@ public class FormattedCharacterBuffer {
     return this;
   }
 
-  public void setAt(int lineIndex,
-      int columnIndex,
-      char value,
-      Font font,
-      Color foreground,
-      Color background) {
+  public void setAt(
+      int lineIndex, int columnIndex, char value, Font font, Color foreground, Color background) {
     int writeIndex = (lineIndex * numberOfColumnsInBuffer) + columnIndex;
     charBuffer[writeIndex] = value;
     perCharFonts[writeIndex] = font;
@@ -128,12 +124,10 @@ public class FormattedCharacterBuffer {
     return true;
   }
 
-  /**
-   * Returns a particular line in the current FormattedCharacterBuffer.
-   */
+  /** Returns a particular line in the current FormattedCharacterBuffer. */
   public FormattedCharacterBuffer getLine(int lineIndex) {
-    FormattedCharacterBuffer result = new FormattedCharacterBuffer(1 /* one line only */,
-        numberOfColumnsInBuffer);
+    FormattedCharacterBuffer result =
+        new FormattedCharacterBuffer(1 /* one line only */, numberOfColumnsInBuffer);
     for (int column = 0; column < getNumberOfColumns(); column++) {
       int readIndex = (lineIndex * getNumberOfColumns()) + column;
       char value = charBuffer[readIndex];
@@ -154,42 +148,51 @@ public class FormattedCharacterBuffer {
     context.setFont(perCharFonts[0]);
     FontMetrics fontMetrics = context.getFontMetrics();
     // Clear the context with the default background color.
-    context.fillRect(0, 0, numberOfColumnsInBuffer * fontMetrics.charWidth('a'),
+    context.fillRect(
+        0,
+        0,
+        numberOfColumnsInBuffer * fontMetrics.charWidth('a'),
         numberOfLinesInBuffer * fontMetrics.getHeight());
 
     for (int i = 0; i < numberOfLinesInBuffer; i++) {
       AttributedString stringToDraw = getAttributedStringForLine(i, skipColumns);
       // the +1 for the line index is necessary to avoid cutting off first line.
-      context.drawString(stringToDraw.getIterator(), x,
-          y + fontMetrics.getHeight() * (i + 1));
+      context.drawString(stringToDraw.getIterator(), x, y + fontMetrics.getHeight() * (i + 1));
     }
   }
 
   /** Returns the AttributedString to be drawn, skipping the first skip characters. */
   private AttributedString getAttributedStringForLine(int lineIndex, int skip) {
-    String newLine = new String(charBuffer, (numberOfColumnsInBuffer * lineIndex) + skip,
-        numberOfColumnsInBuffer - skip);
+    String newLine =
+        new String(
+            charBuffer,
+            (numberOfColumnsInBuffer * lineIndex) + skip,
+            numberOfColumnsInBuffer - skip);
     AttributedString attributedString = new AttributedString(newLine);
 
     int lineStart = (lineIndex * numberOfColumnsInBuffer) + skip;
     for (int index = 0; index < numberOfColumnsInBuffer - skip; index++) {
-      attributedString.addAttribute(java.awt.font.TextAttribute.FONT,
-          perCharFonts[lineStart + index], index, index + 1);
-      attributedString.addAttribute(java.awt.font.TextAttribute.BACKGROUND,
-          perCharBackgroundColor[lineStart + index], index, index + 1);
-      attributedString.addAttribute(java.awt.font.TextAttribute.FOREGROUND,
-          perCharForegroundColor[lineStart + index], index, index + 1);
+      attributedString.addAttribute(
+          java.awt.font.TextAttribute.FONT, perCharFonts[lineStart + index], index, index + 1);
+      attributedString.addAttribute(
+          java.awt.font.TextAttribute.BACKGROUND,
+          perCharBackgroundColor[lineStart + index],
+          index,
+          index + 1);
+      attributedString.addAttribute(
+          java.awt.font.TextAttribute.FOREGROUND,
+          perCharForegroundColor[lineStart + index],
+          index,
+          index + 1);
     }
     return attributedString;
   }
 
   /** Rarely-used function to return the contents of the buffer as string */
   public String getCharBufferAsString() {
-    StringBuilder buffer =
-        new StringBuilder(numberOfLinesInBuffer * numberOfColumnsInBuffer);
+    StringBuilder buffer = new StringBuilder(numberOfLinesInBuffer * numberOfColumnsInBuffer);
     for (int lineIndex = 0; lineIndex < numberOfLinesInBuffer; lineIndex++) {
-      buffer.append(
-          charBuffer, numberOfColumnsInBuffer * lineIndex, numberOfColumnsInBuffer);
+      buffer.append(charBuffer, numberOfColumnsInBuffer * lineIndex, numberOfColumnsInBuffer);
       buffer.append("\n");
     }
     return buffer.toString();

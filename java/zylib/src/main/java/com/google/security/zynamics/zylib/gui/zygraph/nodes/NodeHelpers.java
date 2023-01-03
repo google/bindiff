@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@ package com.google.security.zynamics.zylib.gui.zygraph.nodes;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdge;
 import com.google.security.zynamics.zylib.types.common.CollectionHelpers;
 import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
-
 import java.util.HashSet;
 import java.util.Set;
 
-
 public class NodeHelpers {
   public static <NodeType extends IViewNode<?>> int countInvisibleIndegree(final NodeType node) {
-    return CollectionHelpers.countIf(node.getIncomingEdges(),
+    return CollectionHelpers.countIf(
+        node.getIncomingEdges(),
         new ICollectionFilter<IViewEdge<? extends IViewNode<?>>>() {
           @Override
           public boolean qualifies(final IViewEdge<? extends IViewNode<?>> item) {
@@ -49,7 +48,8 @@ public class NodeHelpers {
   }
 
   public static <NodeType extends IViewNode<?>> int countInvisibleOutdegree(final NodeType node) {
-    return CollectionHelpers.countIf(node.getOutgoingEdges(),
+    return CollectionHelpers.countIf(
+        node.getOutgoingEdges(),
         new ICollectionFilter<IViewEdge<? extends IViewNode<?>>>() {
           @Override
           public boolean qualifies(final IViewEdge<? extends IViewNode<?>> item) {

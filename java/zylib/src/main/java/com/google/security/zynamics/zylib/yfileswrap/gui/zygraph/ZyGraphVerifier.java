@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,21 @@
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.common.base.Preconditions;
-
-import y.base.Node;
-import y.view.Graph2D;
-
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import y.base.Node;
+import y.view.Graph2D;
 
 public class ZyGraphVerifier {
   /**
    * Verifies the map that maps between ynode objects and node objects. If the map has an incorrect
    * format, the function throws an {@link IllegalArgumentException}.
-   * 
+   *
    * @param graph
    */
-  public static <NodeType> void verifyMap(final Graph2D graph, final HashMap<Node, NodeType> nodeMap) {
+  public static <NodeType> void verifyMap(
+      final Graph2D graph, final HashMap<Node, NodeType> nodeMap) {
     // Let's verify the node map.
     //
     // - The number of mappings must equal or less than the number of graphs in the node (each node
@@ -38,9 +37,13 @@ public class ZyGraphVerifier {
     // - No element of the key set/value set of the mapping must appear more than once
     // - No key or value of the mapping must be null
 
-    Preconditions.checkArgument(graph.nodeCount() <= nodeMap.size(),
-        "Error: Invalid node map (Graph contains " + graph.nodeCount()
-            + " nodes while nodeMap contains " + nodeMap.size() + " nodes");
+    Preconditions.checkArgument(
+        graph.nodeCount() <= nodeMap.size(),
+        "Error: Invalid node map (Graph contains "
+            + graph.nodeCount()
+            + " nodes while nodeMap contains "
+            + nodeMap.size()
+            + " nodes");
 
     final HashSet<Node> visitedNodes = new HashSet<Node>();
     final HashSet<NodeType> visitedNodes2 = new HashSet<NodeType>();

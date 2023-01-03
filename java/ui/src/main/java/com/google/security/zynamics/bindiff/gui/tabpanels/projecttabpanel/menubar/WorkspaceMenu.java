@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -101,19 +101,11 @@ public class WorkspaceMenu extends JMenu implements WorkspaceListener {
 
     loadWorkspaceMenuItem =
         GuiUtils.buildMenuItem(
-            "Open Workspace...",
-            'O',
-            KeyEvent.VK_O,
-            ctrlDownMask,
-            e -> controller.loadWorkspace());
+            "Open Workspace...", 'O', KeyEvent.VK_O, ctrlDownMask, e -> controller.loadWorkspace());
 
     closeWorkspaceMenuItem =
         GuiUtils.buildMenuItem(
-            "Close Workspace",
-            'W',
-            KeyEvent.VK_W,
-            ctrlDownMask,
-            e -> controller.closeWorkspace());
+            "Close Workspace", 'W', KeyEvent.VK_W, ctrlDownMask, e -> controller.closeWorkspace());
     closeWorkspaceMenuItem.setEnabled(false); // Initial state: no workspace loaded
 
     if (!SystemHelpers.isRunningMacOSX() || !BinDiff.isDesktopIntegrationDone()) {

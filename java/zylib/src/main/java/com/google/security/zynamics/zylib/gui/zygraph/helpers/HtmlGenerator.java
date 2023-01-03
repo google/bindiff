@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
 package com.google.security.zynamics.zylib.gui.zygraph.helpers;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class HtmlGenerator {
   private static Map<String, String> initLineCache = new HashMap<String, String>();
@@ -39,11 +37,11 @@ public class HtmlGenerator {
     return buf.toString();
   }
 
-  public static String getHtml(final Collection<String> strings, final String fontname,
-      final boolean boldFirstLine) {
+  public static String getHtml(
+      final Collection<String> strings, final String fontname, final boolean boldFirstLine) {
     final StringBuilder html =
-        new StringBuilder(String.format("<html><font face=\"%s\" size=\"3\" color=\"000000\">",
-            fontname));
+        new StringBuilder(
+            String.format("<html><font face=\"%s\" size=\"3\" color=\"000000\">", fontname));
 
     boolean first = true;
 
@@ -61,15 +59,19 @@ public class HtmlGenerator {
     return html.toString();
   }
 
-  public static String getHtml(final ZyLabelContent content, final String fontname,
-      final boolean boldFirstLine) {
+  public static String getHtml(
+      final ZyLabelContent content, final String fontname, final boolean boldFirstLine) {
     return getHtml(content, fontname, boldFirstLine, false);
   }
 
-  public static String getHtml(final ZyLabelContent content, final String fontname,
-      final boolean boldFirstLine, final boolean eliminateEmptyLines) {
+  public static String getHtml(
+      final ZyLabelContent content,
+      final String fontname,
+      final boolean boldFirstLine,
+      final boolean eliminateEmptyLines) {
     if (!initLineCache.containsKey(fontname)) {
-      initLineCache.put(fontname,
+      initLineCache.put(
+          fontname,
           String.format("<html><font face=\"%s\" size=\"3\" color=\"000000\">", fontname));
     }
 
@@ -100,16 +102,23 @@ public class HtmlGenerator {
     return html.toString();
   }
 
-  public static String getHtml(final ZyLabelContent contentOne, final ZyLabelContent contentTwo,
-      final String fontname, final boolean boldFirstLine) {
+  public static String getHtml(
+      final ZyLabelContent contentOne,
+      final ZyLabelContent contentTwo,
+      final String fontname,
+      final boolean boldFirstLine) {
     return getHtml(contentOne, contentTwo, fontname, boldFirstLine, false);
   }
 
-  public static String getHtml(final ZyLabelContent contentOne, final ZyLabelContent contentTwo,
-      final String fontname, final boolean boldFirstLine, final boolean eliminateEmptyLines) {
+  public static String getHtml(
+      final ZyLabelContent contentOne,
+      final ZyLabelContent contentTwo,
+      final String fontname,
+      final boolean boldFirstLine,
+      final boolean eliminateEmptyLines) {
     final StringBuilder html =
-        new StringBuilder(String.format("<html><font face=\"%s\" size=\"3\" color=\"000000\">",
-            fontname));
+        new StringBuilder(
+            String.format("<html><font face=\"%s\" size=\"3\" color=\"000000\">", fontname));
 
     for (int i = 0; i < contentOne.getLineCount(); ++i) {
       final String text = contentOne.getLineContent(i).getText();
@@ -147,5 +156,4 @@ public class HtmlGenerator {
 
     return html.toString();
   }
-
 }

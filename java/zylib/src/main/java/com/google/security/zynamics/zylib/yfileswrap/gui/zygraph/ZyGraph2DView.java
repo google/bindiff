@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,24 +51,16 @@ import y.view.Graph2DView;
  * logic that is currently implemented in the Realizers.
  */
 public class ZyGraph2DView extends Graph2DView implements IFineGrainedSloppyGraph2DView {
-  /**
-   * The zoom level at which we will paint sloppy nodes.
-   */
+  /** The zoom level at which we will paint sloppy nodes. */
   private double m_nodeSloppyThreshold;
 
-  /**
-   * The zoom level at which we will paint sloppy edges.
-   */
+  /** The zoom level at which we will paint sloppy edges. */
   private double m_edgeSloppyThreshold;
 
-  /**
-   * What number of edges is required so that we hide edges on zoomout ?
-   */
+  /** What number of edges is required so that we hide edges on zoomout ? */
   private int m_minEdgesForSloppyEdgeHiding;
 
-  /**
-   * At what zoom level do we hide edges ?
-   */
+  /** At what zoom level do we hide edges ? */
   private double m_sloppyEdgeHidingThreshold;
 
   public ZyGraph2DView() {

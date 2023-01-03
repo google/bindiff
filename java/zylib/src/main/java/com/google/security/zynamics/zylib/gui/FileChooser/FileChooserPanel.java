@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -34,13 +33,18 @@ public class FileChooserPanel extends JPanel {
     this(defaultText, listener, "...", 0, 0, 0);
   }
 
-  public FileChooserPanel(final String defaultText, final ActionListener listener,
-      final String buttonText) {
+  public FileChooserPanel(
+      final String defaultText, final ActionListener listener, final String buttonText) {
     this(defaultText, listener, buttonText, 0, 0, 0);
   }
 
-  public FileChooserPanel(final String defaultText, final ActionListener listener,
-      final String buttonText, final int width, final int height, final int buttonWidth) {
+  public FileChooserPanel(
+      final String defaultText,
+      final ActionListener listener,
+      final String buttonText,
+      final int width,
+      final int height,
+      final int buttonWidth) {
     super(new BorderLayout());
 
     setBorder(new LineBorder(Color.GRAY));

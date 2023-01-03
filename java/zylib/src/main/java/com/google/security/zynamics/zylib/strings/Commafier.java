@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
 
 package com.google.security.zynamics.zylib.strings;
 
-/**
- * This class can be used to create comma-separated lists of objects.
- */
+/** This class can be used to create comma-separated lists of objects. */
 public final class Commafier {
   private static String DEFAULT_SEPARATOR = ", ";
 
@@ -26,16 +24,14 @@ public final class Commafier {
 
   private boolean needsComma = false;
 
-  /**
-   * Creates a Commafier object that starts with an empty string.
-   */
+  /** Creates a Commafier object that starts with an empty string. */
   public Commafier() {
     m_separator = DEFAULT_SEPARATOR;
   }
 
   /**
    * Creates a Commafier object that starts with a commafied list that contains the given elements.
-   * 
+   *
    * @param elements The elements that are commafied into the list.
    */
   public Commafier(final Iterable<? extends Object> elements) {
@@ -44,7 +40,7 @@ public final class Commafier {
 
   /**
    * Creates a Commafier object that starts with a commafied list that contains the given elements.
-   * 
+   *
    * @param elements The elements that are commafied into the list.
    */
   public Commafier(final Iterable<? extends Object> elements, final String separator) {
@@ -57,7 +53,7 @@ public final class Commafier {
 
   /**
    * Creates a Commafier object that starts with an initial string.
-   * 
+   *
    * @param initial The initial string.
    */
   public Commafier(final String initial) {
@@ -68,9 +64,8 @@ public final class Commafier {
 
   /**
    * Commafies a list of elements and returns the commafied string.
-   * 
+   *
    * @param elements The elements to commafy.
-   * 
    * @return The commafied string.
    */
   public static String commafy(final Iterable<? extends Object> elements) {
@@ -83,7 +78,7 @@ public final class Commafier {
 
   /**
    * Appends a new value to the commafied list.
-   * 
+   *
    * @param value The value to add to the commafied list.
    */
   public void append(final Object value) {
@@ -98,7 +93,7 @@ public final class Commafier {
 
   /**
    * Appends a value to the commafied list without prepending a comma.
-   * 
+   *
    * @param value The value to be appended.
    */
   public void appendUncommafied(final String value) {

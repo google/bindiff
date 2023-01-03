@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,17 @@
 package com.google.security.zynamics.zylib.gui.scripting;
 
 import com.google.security.zynamics.zylib.resources.Constants;
-
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.io.File;
-
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.KeyStroke;
 
-
-/**
- * Default menu bar used in the scripting dialog.
- */
+/** Default menu bar used in the scripting dialog. */
 public abstract class ScriptingMenuBar extends JMenuBar {
   private static final int CTRL_MASK = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
@@ -158,8 +153,8 @@ public abstract class ScriptingMenuBar extends JMenuBar {
     public ExecuteAgainAction() {
       super(String.format(Constants.MENU_EXECUTE_AGAIN_SCRIPT, "-"));
 
-      putValue(ACCELERATOR_KEY,
-          KeyStroke.getKeyStroke(KeyEvent.VK_E, CTRL_MASK | KeyEvent.SHIFT_MASK));
+      putValue(
+          ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_E, CTRL_MASK | KeyEvent.SHIFT_MASK));
 
       setFile(null);
     }
@@ -171,7 +166,8 @@ public abstract class ScriptingMenuBar extends JMenuBar {
 
     public void setFile(final File file) {
       if (file != null) {
-        putValue(AbstractAction.NAME,
+        putValue(
+            AbstractAction.NAME,
             String.format(Constants.MENU_EXECUTE_AGAIN_SCRIPT, file.getAbsolutePath()));
       } else {
         putValue(AbstractAction.NAME, String.format(Constants.MENU_EXECUTE_AGAIN_SCRIPT, "-"));
@@ -185,8 +181,8 @@ public abstract class ScriptingMenuBar extends JMenuBar {
     public NewConsoleTabAction() {
       super(Constants.MENU_SCRIPTING_CONSOLE);
 
-      putValue(SMALL_ICON,
-          new ImageIcon(Constants.class.getResource("application_xp_terminal.png")));
+      putValue(
+          SMALL_ICON, new ImageIcon(Constants.class.getResource("application_xp_terminal.png")));
     }
 
     @Override
@@ -208,5 +204,4 @@ public abstract class ScriptingMenuBar extends JMenuBar {
       pasteMenuClicked();
     }
   }
-
 }

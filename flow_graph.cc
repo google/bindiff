@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -222,10 +222,11 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
                              CallGraph* call_graph,
                              Instruction::Cache* instruction_cache) {
   entry_point_address_ =
-      proto.instruction(
-               proto.basic_block(proto_flow_graph.entry_basic_block_index())
-                   .instruction_index(0)
-                   .begin_index())
+      proto
+          .instruction(
+              proto.basic_block(proto_flow_graph.entry_basic_block_index())
+                  .instruction_index(0)
+                  .begin_index())
           .address();
   call_graph_ = call_graph;
   call_graph_->AttachFlowGraph(this);
@@ -340,8 +341,7 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
   std::vector<EdgeDescriptor> edges(proto_flow_graph.edge_size());
   std::vector<EdgeInfo> edge_properties(proto_flow_graph.edge_size());
   for (int i = 0; i < proto_flow_graph.edge_size(); ++i) {
-    const BinExport2::FlowGraph::Edge& proto_edge =
-        proto_flow_graph.edge(i);
+    const BinExport2::FlowGraph::Edge& proto_edge = proto_flow_graph.edge(i);
     const Address source_address = GetInstructionAddress(
         proto, proto.basic_block(proto_edge.source_basic_block_index())
                    .instruction_index(0)

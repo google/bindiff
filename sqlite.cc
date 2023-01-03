@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
 #include "third_party/zynamics/bindiff/sqlite.h"
 
 #include <cstring>
-#include <stdexcept>
 #include <memory>
+#include <stdexcept>
 
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -45,9 +45,7 @@ SqliteDatabase& SqliteDatabase::operator=(SqliteDatabase&& other) {
   return *this;
 }
 
-SqliteDatabase::~SqliteDatabase() {
-  Disconnect();
-}
+SqliteDatabase::~SqliteDatabase() { Disconnect(); }
 
 absl::StatusOr<SqliteDatabase> SqliteDatabase::Connect(
     absl::string_view filename) {
@@ -82,13 +80,9 @@ std::unique_ptr<SqliteStatement> SqliteDatabase::Statement(
   return std::make_unique<SqliteStatement>(this, statement);
 }
 
-void SqliteDatabase::Begin() {
-  Statement("BEGIN TRANSACTION")->Execute();
-}
+void SqliteDatabase::Begin() { Statement("BEGIN TRANSACTION")->Execute(); }
 
-void SqliteDatabase::Commit() {
-  Statement("COMMIT TRANSACTION")->Execute();
-}
+void SqliteDatabase::Commit() { Statement("COMMIT TRANSACTION")->Execute(); }
 
 void SqliteDatabase::Rollback() {
   Statement("ROLLBACK TRANSACTION")->Execute();
@@ -105,9 +99,7 @@ SqliteStatement::SqliteStatement(SqliteDatabase* database,
   }
 }
 
-SqliteStatement::~SqliteStatement() {
-  sqlite3_finalize(statement_);
-}
+SqliteStatement::~SqliteStatement() { sqlite3_finalize(statement_); }
 
 SqliteStatement& SqliteStatement::BindInt(int value) {
   sqlite3_bind_int(statement_, ++parameter_, value);
@@ -145,7 +137,7 @@ SqliteStatement& SqliteStatement::Into(int* value, bool* is_null) {
   return *this;
 }
 
-SqliteStatement& SqliteStatement::Into(int64_t * value, bool* is_null) {
+SqliteStatement& SqliteStatement::Into(int64_t* value, bool* is_null) {
   if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
   }
@@ -158,8 +150,7 @@ SqliteStatement& SqliteStatement::Into(Address* value, bool* is_null) {
   if (is_null) {
     *is_null = sqlite3_column_type(statement_, column_) == SQLITE_NULL;
   }
-  *value = static_cast<Address>(
-      sqlite3_column_int64(statement_, column_));
+  *value = static_cast<Address>(sqlite3_column_int64(statement_, column_));
   ++column_;
   return *this;
 }
@@ -205,8 +196,6 @@ SqliteStatement& SqliteStatement::Reset() {
   return *this;
 }
 
-bool SqliteStatement::GotData() const {
-  return got_data_;
-}
+bool SqliteStatement::GotData() const { return got_data_; }
 
 }  // namespace security::bindiff

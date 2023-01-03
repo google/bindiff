@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,10 @@
 
 package com.google.security.zynamics.zylib.gui.ProgressDialogs;
 
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.gui.GuiHelper;
+import com.google.security.zynamics.zylib.types.common.ICancelableCommand;
+import com.google.security.zynamics.zylib.types.common.ICommand;
 import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -21,15 +25,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.concurrent.CountDownLatch;
-
 import javax.swing.JDialog;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
-
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.zylib.gui.GuiHelper;
-import com.google.security.zynamics.zylib.types.common.ICancelableCommand;
-import com.google.security.zynamics.zylib.types.common.ICommand;
 
 public class CUnlimitedProgressDialog extends JDialog implements IProgressDescription {
   private static final long serialVersionUID = 1009536934858788904L;
@@ -44,8 +42,12 @@ public class CUnlimitedProgressDialog extends JDialog implements IProgressDescri
 
   private final boolean m_isCancelable;
 
-  private CUnlimitedProgressDialog(final Window parent, final String title,
-      final String description, final ICommand command, final boolean isCancelable) {
+  private CUnlimitedProgressDialog(
+      final Window parent,
+      final String title,
+      final String description,
+      final ICommand command,
+      final boolean isCancelable) {
     super(parent, title, ModalityType.DOCUMENT_MODAL);
 
     Preconditions.checkNotNull(command, "Error: Comand can't be null.");
@@ -68,7 +70,8 @@ public class CUnlimitedProgressDialog extends JDialog implements IProgressDescri
 
     setSize(400, getPreferredSize().height);
     setMinimumSize(new Dimension(400, getPreferredSize().height));
-    setMaximumSize(new Dimension(Math.max(400, getPreferredSize().width), getPreferredSize().height));
+    setMaximumSize(
+        new Dimension(Math.max(400, getPreferredSize().width), getPreferredSize().height));
 
     pack();
 
@@ -81,18 +84,23 @@ public class CUnlimitedProgressDialog extends JDialog implements IProgressDescri
     }
   }
 
-  public CUnlimitedProgressDialog(final Window parent, final String title,
-      final String description, final ICancelableCommand command) {
+  public CUnlimitedProgressDialog(
+      final Window parent,
+      final String title,
+      final String description,
+      final ICancelableCommand command) {
     this(parent, title, description, command, true);
   }
 
-  public CUnlimitedProgressDialog(final Window parent, final String title,
-      final String description, final ICommand command) {
+  public CUnlimitedProgressDialog(
+      final Window parent, final String title, final String description, final ICommand command) {
     this(parent, title, description, command, false);
   }
 
-  private static CProgressPanel createProgressPanel(final String description,
-      final boolean isCancelable, final InternalWindowListener windowListener) {
+  private static CProgressPanel createProgressPanel(
+      final String description,
+      final boolean isCancelable,
+      final InternalWindowListener windowListener) {
     if (isCancelable) {
       return new CProgressPanel(description, true, true, windowListener);
     }
@@ -152,7 +160,7 @@ public class CUnlimitedProgressDialog extends JDialog implements IProgressDescri
   }
 
   private class InternalCommandThread implements Runnable {
-    final private CountDownLatch m_countDownLatch;
+    private final CountDownLatch m_countDownLatch;
 
     public InternalCommandThread(final CountDownLatch countDownLatch) {
       m_countDownLatch = countDownLatch;
@@ -167,15 +175,16 @@ public class CUnlimitedProgressDialog extends JDialog implements IProgressDescri
       }
 
       try {
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            CUnlimitedProgressDialog.super.dispose();
-            CUnlimitedProgressDialog.super.setVisible(false);
+        SwingUtilities.invokeLater(
+            new Runnable() {
+              @Override
+              public void run() {
+                CUnlimitedProgressDialog.super.dispose();
+                CUnlimitedProgressDialog.super.setVisible(false);
 
-            m_countDownLatch.countDown();
-          }
-        });
+                m_countDownLatch.countDown();
+              }
+            });
       } catch (final Exception e) {
         setException(e);
       } finally {

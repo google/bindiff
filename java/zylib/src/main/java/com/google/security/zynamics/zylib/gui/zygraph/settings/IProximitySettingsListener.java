@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.google.security.zynamics.zylib.gui.zygraph.settings;
 public interface IProximitySettingsListener {
   /**
    * Invoked after the proximity browsing setting changed.
-   * 
+   *
    * @param value The new value of the proximity browsing setting.
    */
   void changedProximityBrowsing(boolean value);
@@ -26,14 +26,14 @@ public interface IProximitySettingsListener {
 
   /**
    * Invoked after the proximity browsing frozen setting changed.
-   * 
+   *
    * @param value The new value of the proximity browsing frozen setting.
    */
   void changedProximityBrowsingFrozen(boolean value);
 
   /**
    * Invoked after the proximity browsing preview setting changed.
-   * 
+   *
    * @param value The new value of the proximity browsing preview setting.
    */
   void changedProximityBrowsingPreview(boolean value);

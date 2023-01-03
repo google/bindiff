@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Queue;
 
 /**
  * Iterator that can be used to iterate over a tree in breadth-first order.
- * 
+ *
  * @param <ObjectType> Types of the objects stored in the tree nodes.
  */
 public class BreadthFirstIterator<ObjectType> implements Iterator<ITreeNode<ObjectType>> {
@@ -28,7 +28,7 @@ public class BreadthFirstIterator<ObjectType> implements Iterator<ITreeNode<Obje
 
   /**
    * Creates a new iterator object.
-   * 
+   *
    * @param rootNode Root node where iteration begins.
    */
   public BreadthFirstIterator(final ITreeNode<ObjectType> rootNode) {
@@ -54,6 +54,5 @@ public class BreadthFirstIterator<ObjectType> implements Iterator<ITreeNode<Obje
   }
 
   @Override
-  public void remove() {
-  }
+  public void remove() {}
 }

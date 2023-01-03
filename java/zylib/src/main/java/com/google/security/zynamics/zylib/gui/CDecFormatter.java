@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -91,16 +91,25 @@ public class CDecFormatter extends JFormattedTextField.AbstractFormatter {
 
   private class DecFilter extends DocumentFilter {
     @Override
-    public void insertString(final DocumentFilter.FilterBypass fb, final int offset,
-        final String string, final AttributeSet attr) throws BadLocationException {
+    public void insertString(
+        final DocumentFilter.FilterBypass fb,
+        final int offset,
+        final String string,
+        final AttributeSet attr)
+        throws BadLocationException {
       if (isValid(string, 0)) {
         super.insertString(fb, offset, string, attr);
       }
     }
 
     @Override
-    public void replace(final DocumentFilter.FilterBypass fb, final int offset, final int length,
-        final String string, final AttributeSet attr) throws BadLocationException {
+    public void replace(
+        final DocumentFilter.FilterBypass fb,
+        final int offset,
+        final int length,
+        final String string,
+        final AttributeSet attr)
+        throws BadLocationException {
       if (isValid(string, length)) {
         super.replace(fb, offset, length, string, attr);
       }

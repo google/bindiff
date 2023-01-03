@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,13 +21,11 @@ import y.view.EdgeRealizer;
 import y.view.Graph2D;
 import y.view.LineType;
 
-/**
- * Helper class for edge highlighting in mouse-over situations.
- */
+/** Helper class for edge highlighting in mouse-over situations. */
 public final class CEdgeHighlighter {
   /**
    * Highlights a single edge realizer.
-   * 
+   *
    * @param realizer The realizer to highlight.
    * @param state True, to highlight the realizer. False, to unhighlight it.
    */
@@ -61,7 +59,7 @@ public final class CEdgeHighlighter {
 
   /**
    * Highlights all edges of a node.
-   * 
+   *
    * @param node The node whose edges are highlighted.
    * @param highlight True to add highlighting to the edges. False to remove it.
    */

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
 package com.google.security.zynamics.zylib.gui.scripting;
 
 import com.google.security.zynamics.zylib.general.Convert;
-
 import java.awt.Color;
 import java.util.HashSet;
-
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
@@ -27,7 +25,6 @@ import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
-
 
 public abstract class SyntaxDocument extends DefaultStyledDocument {
   private static final int DEFAULT_FONT_SIZE = 13;
@@ -95,7 +92,8 @@ public abstract class SyntaxDocument extends DefaultStyledDocument {
     // check for multi line comments
     // (always set the comment attribute for the entire line)
 
-    if (endingMultiLineComment(content, startOffset, endOffset) || isMultiLineComment()
+    if (endingMultiLineComment(content, startOffset, endOffset)
+        || isMultiLineComment()
         || startingMultiLineComment(content, startOffset, endOffset)) {
       doc.setCharacterAttributes(startOffset, (endOffset - startOffset) + 1, comment, false);
       return;
@@ -199,8 +197,8 @@ public abstract class SyntaxDocument extends DefaultStyledDocument {
   /*
    * Does this line contain the end delimiter
    */
-  private boolean endingMultiLineComment(final String content, final int startOffset,
-      final int endOffset) {
+  private boolean endingMultiLineComment(
+      final String content, final int startOffset, final int endOffset) {
     final int index = indexOf(content, getEndDelimiter(), startOffset);
 
     if ((index < 0) || (index > endOffset)) {
@@ -368,8 +366,8 @@ public abstract class SyntaxDocument extends DefaultStyledDocument {
   /*
    * Does this line contain the start delimiter
    */
-  private boolean startingMultiLineComment(final String content, final int startOffset,
-      final int endOffset) {
+  private boolean startingMultiLineComment(
+      final String content, final int startOffset, final int endOffset) {
     final int index = indexOf(content, getStartDelimiter(), startOffset);
 
     if ((index < 0) || (index > endOffset)) {

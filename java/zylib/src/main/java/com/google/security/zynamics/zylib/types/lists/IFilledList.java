@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ import java.util.List;
 
 /**
  * List which is guaranteed not to have null-elements.
- * 
+ *
  * @param <T> Type of the elements in the list.
  */
-public interface IFilledList<T> extends List<T> {
-}
+public interface IFilledList<T> extends List<T> {}

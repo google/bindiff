@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,16 +21,14 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.IEdgeRealizerUpd
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEdgeRealizer;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEdgeRealizerListener;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
-
+import java.awt.Color;
+import java.awt.Graphics2D;
 import y.base.Graph;
 import y.geom.YPoint;
 import y.view.Arrow;
 import y.view.Bend;
 import y.view.LineType;
 import y.view.PolyLineEdgeRealizer;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
 
 public class ZyEdgeRealizer<EdgeType> extends PolyLineEdgeRealizer implements IZyEdgeRealizer {
   private ZyEdgeData<EdgeType> m_edgeData;
@@ -50,8 +48,8 @@ public class ZyEdgeRealizer<EdgeType> extends PolyLineEdgeRealizer implements IZ
 
   private ZyLabelContent m_content;
 
-
-  public ZyEdgeRealizer(final ZyLabelContent content, final IEdgeRealizerUpdater<EdgeType> updater) {
+  public ZyEdgeRealizer(
+      final ZyLabelContent content, final IEdgeRealizerUpdater<EdgeType> updater) {
     Preconditions.checkNotNull(content, "Internal Error: Content cannot be null");
 
     m_content = content;
@@ -179,9 +177,7 @@ public class ZyEdgeRealizer<EdgeType> extends PolyLineEdgeRealizer implements IZ
     }
   }
 
-  /**
-   * Regenerates the content of the realizer.
-   */
+  /** Regenerates the content of the realizer. */
   @Override
   public void regenerate() {
     m_content = m_updater.generateContent(this);
@@ -252,8 +248,10 @@ public class ZyEdgeRealizer<EdgeType> extends PolyLineEdgeRealizer implements IZ
   @Override
   public void setLineType(final LineType lineType) {
     m_isHighlighted =
-        (lineType == LineType.LINE_5) || (lineType == LineType.DASHED_5)
-            || (lineType == LineType.DOTTED_5) || (lineType == LineType.DASHED_DOTTED_5);
+        (lineType == LineType.LINE_5)
+            || (lineType == LineType.DASHED_5)
+            || (lineType == LineType.DOTTED_5)
+            || (lineType == LineType.DASHED_DOTTED_5);
 
     super.setLineType(lineType);
   }

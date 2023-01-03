@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNo
 
 /**
  * Collects all information that is passed to the user data field of a yfiles node.
- * 
+ *
  * @param <NodeType> The type of the node.
  */
 public class ZyNodeData<NodeType extends ZyGraphNode<? extends IViewNode<?>>> {
@@ -34,5 +34,4 @@ public class ZyNodeData<NodeType extends ZyGraphNode<? extends IViewNode<?>>> {
   public NodeType getNode() {
     return m_node;
   }
-
 }

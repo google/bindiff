@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -308,26 +308,35 @@ public class BinDiff {
     // Note that any of these might independently fail, and we simply ignore the error; different
     // platforms implement different subsets of the desktop API.
     try {
-      desktop.setAboutHandler(e -> {
-        if (controller != null) {
-          controller.showAboutDialog();
-        }
-      });
-    } catch (UnsupportedOperationException e) { /* Ignore */ }
+      desktop.setAboutHandler(
+          e -> {
+            if (controller != null) {
+              controller.showAboutDialog();
+            }
+          });
+    } catch (UnsupportedOperationException e) {
+      /* Ignore */
+    }
     try {
-      desktop.setPreferencesHandler(e -> {
-        if (controller != null) {
-          controller.showMainSettingsDialog();
-        }
-      });
-    } catch (UnsupportedOperationException e) { /* Ignore */ }
+      desktop.setPreferencesHandler(
+          e -> {
+            if (controller != null) {
+              controller.showMainSettingsDialog();
+            }
+          });
+    } catch (UnsupportedOperationException e) {
+      /* Ignore */
+    }
     try {
-      desktop.setQuitHandler((e, response) -> {
-        if (controller != null) {
-          controller.exitBinDiff();
-        }
-      });
-    } catch (UnsupportedOperationException e) { /* Ignore */ }
+      desktop.setQuitHandler(
+          (e, response) -> {
+            if (controller != null) {
+              controller.exitBinDiff();
+            }
+          });
+    } catch (UnsupportedOperationException e) {
+      /* Ignore */
+    }
 
     desktopIntegrationDone = true;
   }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -227,7 +227,7 @@ public class NewDiffImplementation extends CEndlessHelperThread {
               : secondaryBinExportFile.getPath();
 
       setDescription("Diffing...");
-        logger.atInfo().log("- Diffing '%s'", destinationDirectory.getName());
+      logger.atInfo().log("- Diffing '%s'", destinationDirectory.getName());
 
       DiffProcess.getBinDiffFilename(primaryBinExportPath, secondaryBinExportPath);
       DiffProcess.startDiffProcess(
@@ -238,13 +238,13 @@ public class NewDiffImplementation extends CEndlessHelperThread {
       String diffBinaryPath =
           DiffProcess.getBinDiffFilename(primaryBinExportPath, secondaryBinExportPath);
 
-        logger.atInfo().log("- Diffing done successfully");
-        return diffBinaryPath;
+      logger.atInfo().log("- Diffing done successfully");
+      return diffBinaryPath;
     } catch (DifferException | FileNotFoundException | RuntimeException e) {
       logger.atSevere().withCause(e).log("%s", e.getMessage());
-        CMessageBox.showError(parentWindow, e.getMessage());
-      }
-      return null;
+      CMessageBox.showError(parentWindow, e.getMessage());
+    }
+    return null;
   }
 
   @Override

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,10 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 
-import com.google.common.base.Preconditions;
-
-/**
- * Small helper class that is used to keep track of text colors.
- */
+/** Small helper class that is used to keep track of text colors. */
 public class CStyleRunData {
   private final int m_start;
 
@@ -36,8 +33,8 @@ public class CStyleRunData {
     this(start, length, color, null);
   }
 
-  public CStyleRunData(final int start, final int length, final Color color,
-      final IZyEditableObject lineObject) {
+  public CStyleRunData(
+      final int start, final int length, final Color color, final IZyEditableObject lineObject) {
     Preconditions.checkArgument(length != 0, "Error: Invalid style run length");
 
     m_start = start;

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,14 +36,13 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-
 import javax.swing.JComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-public abstract class AbstractTreeTransferHandler implements DragGestureListener,
-    DragSourceListener, DropTargetListener {
+public abstract class AbstractTreeTransferHandler
+    implements DragGestureListener, DragSourceListener, DropTargetListener {
 
   private static DefaultMutableTreeNode draggedNode;
   private static BufferedImage image = null; // buff image
@@ -54,7 +53,8 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
   private final Rectangle rect2D = new Rectangle();
   private final boolean drawImage;
 
-  protected AbstractTreeTransferHandler(final DNDTree tree, final int action, final boolean drawIcon) {
+  protected AbstractTreeTransferHandler(
+      final DNDTree tree, final int action, final boolean drawIcon) {
     this.tree = tree;
     drawImage = drawIcon;
     dragSource = new DragSource();
@@ -74,19 +74,20 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
     }
   }
 
-  protected abstract boolean canPerformAction(DNDTree tree, DataFlavor flavor,
-      Transferable tranferable, int action, Point pt);
+  protected abstract boolean canPerformAction(
+      DNDTree tree, DataFlavor flavor, Transferable tranferable, int action, Point pt);
 
-  protected abstract boolean executeDrop(DNDTree tree, Transferable transferable,
-      DefaultMutableTreeNode newParentNode, int action);
+  protected abstract boolean executeDrop(
+      DNDTree tree, Transferable transferable, DefaultMutableTreeNode newParentNode, int action);
 
-  public abstract boolean canPerformAction(DNDTree target, DefaultMutableTreeNode draggedNode,
-      int action, Point location);
+  public abstract boolean canPerformAction(
+      DNDTree target, DefaultMutableTreeNode draggedNode, int action, Point location);
 
   /* Methods for DragSourceListener */
   @Override
   public void dragDropEnd(final DragSourceDropEvent dsde) {
-    if (dsde.getDropSuccess() && (dsde.getDropAction() == DnDConstants.ACTION_MOVE)
+    if (dsde.getDropSuccess()
+        && (dsde.getDropAction() == DnDConstants.ACTION_MOVE)
         && (draggedNodeParent != null)) {
       ((DefaultTreeModel) tree.getModel()).nodeStructureChanged(draggedNodeParent);
     }
@@ -118,8 +119,8 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
     final Transferable transferable = dtde.getTransferable();
 
     if (!transferable.isDataFlavorSupported(TransferableNode.NODE_FLAVOR)) {
-      if (canPerformAction(tree, dtde.getCurrentDataFlavorsAsList().get(0), dtde.getTransferable(),
-          action, pt)) {
+      if (canPerformAction(
+          tree, dtde.getCurrentDataFlavorsAsList().get(0), dtde.getTransferable(), action, pt)) {
         dtde.acceptDrag(action);
       } else {
         dtde.rejectDrag();
@@ -157,30 +158,44 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
       if (drawImage) {
         final Rectangle pathBounds = tree.getPathBounds(path); // getpathbounds of selectionpath
         final JComponent lbl =
-            (JComponent) tree.getCellRenderer().getTreeCellRendererComponent(tree, draggedNode,
-                false, tree.isExpanded(path),
-                ((DefaultTreeModel) tree.getModel()).isLeaf(path.getLastPathComponent()), 0, false);// returning
-                                                                                                    // the
-                                                                                                    // label
-        lbl.setBounds(pathBounds);// setting bounds to lbl
+            (JComponent)
+                tree.getCellRenderer()
+                    .getTreeCellRendererComponent(
+                        tree,
+                        draggedNode,
+                        false,
+                        tree.isExpanded(path),
+                        ((DefaultTreeModel) tree.getModel()).isLeaf(path.getLastPathComponent()),
+                        0,
+                        false); // returning
+        // the
+        // label
+        lbl.setBounds(pathBounds); // setting bounds to lbl
         image =
-            new BufferedImage(lbl.getWidth(), lbl.getHeight(),
-                java.awt.image.BufferedImage.TYPE_INT_ARGB_PRE);// buffered image reference passing
-                                                                // the label's ht and width
-        final Graphics2D graphics = image.createGraphics();// creating the graphics for buffered
-                                                           // image
+            new BufferedImage(
+                lbl.getWidth(),
+                lbl.getHeight(),
+                java.awt.image.BufferedImage.TYPE_INT_ARGB_PRE); // buffered image reference passing
+        // the label's ht and width
+        final Graphics2D graphics = image.createGraphics(); // creating the graphics for buffered
+        // image
         graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f)); // Sets
-                                                                                          // the
-                                                                                          // Composite
-                                                                                          // for the
-                                                                                          // Graphics2D
-                                                                                          // context
+        // the
+        // Composite
+        // for the
+        // Graphics2D
+        // context
         lbl.setOpaque(false);
         lbl.paint(graphics); // painting the graphics to label
         graphics.dispose();
       }
-      dragSource.startDrag(dge, DragSource.DefaultMoveNoDrop, image, new Point(0, 0),
-          new TransferableNode(draggedNode), this);
+      dragSource.startDrag(
+          dge,
+          DragSource.DefaultMoveNoDrop,
+          image,
+          new Point(0, 0),
+          new TransferableNode(draggedNode),
+          this);
     }
   }
 
@@ -210,8 +225,8 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
     final Transferable transferable = dtde.getTransferable();
 
     if (!transferable.isDataFlavorSupported(TransferableNode.NODE_FLAVOR)) {
-      if (canPerformAction(tree, dtde.getCurrentDataFlavorsAsList().get(0), dtde.getTransferable(),
-          action, pt)) {
+      if (canPerformAction(
+          tree, dtde.getCurrentDataFlavorsAsList().get(0), dtde.getTransferable(), action, pt)) {
         dtde.acceptDrag(action);
       } else {
         dtde.rejectDrag();
@@ -258,8 +273,8 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
           return;
         }
       }
-    } else if (canPerformAction(tree, dtde.getCurrentDataFlavors()[0], dtde.getTransferable(),
-        action, pt)) {
+    } else if (canPerformAction(
+        tree, dtde.getCurrentDataFlavors()[0], dtde.getTransferable(), action, pt)) {
       final TreePath pathTarget = tree.getPathForLocation(pt.x, pt.y);
       final DefaultMutableTreeNode newParentNode =
           (DefaultMutableTreeNode) pathTarget.getLastPathComponent();
@@ -297,8 +312,8 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
       paintImage(pt);
     }
     if (draggedNode == null) {
-      if (canPerformAction(tree, dtde.getCurrentDataFlavorsAsList().get(0), dtde.getTransferable(),
-          action, pt)) {
+      if (canPerformAction(
+          tree, dtde.getCurrentDataFlavorsAsList().get(0), dtde.getTransferable(), action, pt)) {
         dtde.acceptDrag(action);
       } else {
         dtde.rejectDrag();
@@ -312,8 +327,11 @@ public abstract class AbstractTreeTransferHandler implements DragGestureListener
     }
   }
 
-  public abstract boolean executeDrop(DNDTree tree, DefaultMutableTreeNode draggedNode,
-      DefaultMutableTreeNode newParentNode, int action);
+  public abstract boolean executeDrop(
+      DNDTree tree,
+      DefaultMutableTreeNode draggedNode,
+      DefaultMutableTreeNode newParentNode,
+      int action);
 
   public DropTarget getDropTarget() {
     return dropTarget;

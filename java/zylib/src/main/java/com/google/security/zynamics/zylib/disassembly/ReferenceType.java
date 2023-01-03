@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,20 @@
 package com.google.security.zynamics.zylib.disassembly;
 
 public enum ReferenceType {
-  CONDITIONAL_TRUE, CONDITIONAL_FALSE, UNCONDITIONAL, SWITCH, CALL_DIRECT, CALL_INDIRECT, CALL_VIRTUAL, DATA, DATA_STRING;
+  CONDITIONAL_TRUE,
+  CONDITIONAL_FALSE,
+  UNCONDITIONAL,
+  SWITCH,
+  CALL_DIRECT,
+  CALL_INDIRECT,
+  CALL_VIRTUAL,
+  DATA,
+  DATA_STRING;
 
   /**
    * Converts an integer to the corresponding reference type.
-   * 
+   *
    * @param type integer indicating the type.
-   * 
    * @return the reference type corresponding to the integer argument.
    */
   public static ReferenceType convertIntToReferenceType(final int type) {
@@ -53,9 +60,8 @@ public enum ReferenceType {
 
   /**
    * Turns a reference type into a numerical value that can be stored in the database.
-   * 
+   *
    * @param referenceType The reference type.
-   * 
    * @return The numerical value of the reference type.
    */
   public static int convertReferenceTypeToInt(final ReferenceType referenceType) {
@@ -64,9 +70,8 @@ public enum ReferenceType {
 
   /**
    * Indicates whether a reference is a code reference.
-   * 
+   *
    * @param referenceType The reference type.
-   * 
    * @return true if the reference is a code reference false otherwise.
    */
   public static boolean isCodeReference(final ReferenceType referenceType) {
@@ -75,9 +80,8 @@ public enum ReferenceType {
 
   /**
    * Indicates whether a reference is a data reference.
-   * 
+   *
    * @param referenceType The reference type.
-   * 
    * @return true if the reference is a data type reference false otherwise.
    */
   public static boolean isDataReference(final ReferenceType referenceType) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,8 +38,13 @@ import javax.swing.border.EmptyBorder;
 public class CDialogAboutEx extends JDialog {
   private static final long serialVersionUID = -3626217728291899345L;
 
-  public CDialogAboutEx(final Window owner, final ImageIcon logo, final String productName,
-      final String message, final String description, final List<Pair<String, URL>> urls) {
+  public CDialogAboutEx(
+      final Window owner,
+      final ImageIcon logo,
+      final String productName,
+      final String message,
+      final String description,
+      final List<Pair<String, URL>> urls) {
     super(owner, "About " + productName, ModalityType.APPLICATION_MODAL);
 
     new CDialogEscaper(this);
@@ -66,7 +71,6 @@ public class CDialogAboutEx extends JDialog {
 
     final JPanel outerMessagePanel = new JPanel(new BorderLayout());
     outerMessagePanel.setBorder(new EmptyBorder(7, 7, 7, 7));
-
 
     final JPanel messagePanel = new JPanel(new BorderLayout());
 
@@ -105,7 +109,6 @@ public class CDialogAboutEx extends JDialog {
     c.gridy = 2;
 
     add(outerDescriptionPanel, c);
-
 
     final JPanel outerLowerPanel = new JPanel(new BorderLayout());
     outerLowerPanel.setBorder(new EmptyBorder(0, 7, 7, 7));

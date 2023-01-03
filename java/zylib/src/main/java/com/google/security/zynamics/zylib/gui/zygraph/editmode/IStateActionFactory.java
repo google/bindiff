@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,41 +51,40 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodePressedRightState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 
-/**
- * Interface for factory classes that create actions.
- */
-public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>> {
+/** Interface for factory classes that create actions. */
+public interface IStateActionFactory<
+    NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>> {
   /**
    * Creates a new Background Left Clicked action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBackgroundClickedLeftState<NodeType>> createBackgroundClickedLeftAction();
 
   /**
    * Creates a new Background Right Clicked action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBackgroundClickedRightState<NodeType>> createBackgroundClickedRightAction();
 
   /**
    * Creates a new Background Dragged action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBackgroundDraggedLeftState> createBackgroundDraggedLeftAction();
 
   /**
    * Creates a new Background Dragged action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBackgroundDraggedRightState> createBackgroundDraggedRightAction();
 
   /**
    * Creates a new Background Pressed action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBackgroundPressedLeftState> createBackgroundPressedLeftAction();
@@ -96,14 +95,14 @@ public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Creates a new Bend Enter action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBendEnterState> createBendEnterAction();
 
   /**
    * Creates a new Bend Exit action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CBendExitState> createBendExitAction();
@@ -118,36 +117,35 @@ public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Creates a new Edge Enter action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CEdgeEnterState> createEdgeEnterAction();
 
   /**
    * Creates a new Edge Exit action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CEdgeExitState> createEdgeExitAction();
 
   /**
    * Creates a new Edge Hover action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CEdgeHoverState> createEdgeHoverAction();
 
   /**
    * Creates a new EdgeLabel Entered action object.
-   * 
+   *
    * @return the created object.
    */
-
   IStateAction<CEdgeLabelEnterState<NodeType, EdgeType>> createEdgeLabelEnterAction();
 
   /**
    * Creates a new EdgeLabel Exit action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CEdgeLabelExitState<NodeType, EdgeType>> createEdgeLabelExitAction();
@@ -160,7 +158,7 @@ public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Creates a new Node Clicked Left action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodeClickedLeftState<NodeType, EdgeType>> createNodeClickedLeftAction();
@@ -169,14 +167,14 @@ public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Creates a new Node Clicked Right action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodeClickedRightState<NodeType, EdgeType>> createNodeClickedRightAction();
 
   /**
    * Creates a new Node Dragged Left action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodeDraggedLeftState<NodeType, EdgeType>> createNodeDraggedLeftAction();
@@ -189,28 +187,28 @@ public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Creates a new Node Enter action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodeEnterState<NodeType, EdgeType>> createNodeEnterAction();
 
   /**
    * Creates a new Node Exit action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodeExitState<NodeType, EdgeType>> createNodeExitAction();
 
   /**
    * Creates a new Node Hover action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodeHoverState<NodeType, EdgeType>> createNodeHoverAction();
 
   /**
    * Creates a new Node Pressed Left action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodePressedLeftState<NodeType, EdgeType>> createNodePressedLeftAction();
@@ -219,7 +217,7 @@ public interface IStateActionFactory<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Creates a new Node Pressed Right action object.
-   * 
+   *
    * @return The created object.
    */
   IStateAction<CNodePressedRightState> createNodePressedRightAction();

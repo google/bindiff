@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,14 +21,11 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.IZyEditModeList
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeHoverState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.event.MouseEvent;
 
-
-/**
- * Describes the default actions which are executed as soon as the mouse hovers over a node.
- */
-public class CDefaultNodeHoverAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+/** Describes the default actions which are executed as soon as the mouse hovers over a node. */
+public class CDefaultNodeHoverAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodeHoverState<NodeType, EdgeType>> {
   @Override
   public void execute(final CNodeHoverState<NodeType, EdgeType> state, final MouseEvent event) {
@@ -42,8 +39,8 @@ public class CDefaultNodeHoverAction<NodeType extends ZyGraphNode<?>, EdgeType e
 
     if (node != null) // node == null => Proximity Node
     {
-      for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-          .getListeners()) {
+      for (final IZyEditModeListener<NodeType, EdgeType> listener :
+          state.getStateFactory().getListeners()) {
         try {
           listener.nodeHovered(node, x, y);
         } catch (final Exception exception) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,56 +15,38 @@
 package com.google.security.zynamics.zylib.gui.JCaret;
 
 import com.google.common.base.Preconditions;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.Timer;
 
-/**
- * Caret class that can be used to draw carets in custom GUI components.
- */
+/** Caret class that can be used to draw carets in custom GUI components. */
 public class JCaret {
 
-  /**
-   * The default blink time of the caret in milliseconds.
-   */
+  /** The default blink time of the caret in milliseconds. */
   private static final int DEFAULT_BLINK_TIME = 600;
 
-  /**
-   * The default color of the caret.
-   */
+  /** The default color of the caret. */
   private static final Color DEFAULT_CARET_COLOR = Color.RED;
 
-  /**
-   * List of listeners that are notified when the caret status changes.
-   */
+  /** List of listeners that are notified when the caret status changes. */
   private final List<ICaretListener> m_listeners = new ArrayList<ICaretListener>();
 
-  /**
-   * Timer that is used to make the caret blink.
-   */
+  /** Timer that is used to make the caret blink. */
   private final Timer m_caretTimer;
 
-  /**
-   * Flag that determines whether the caret is visible or not.
-   */
+  /** Flag that determines whether the caret is visible or not. */
   private boolean m_isCaretVisible = false;
 
-  /**
-   * The color of the caret.
-   */
+  /** The color of the caret. */
   private final Color m_caretColor = Color.RED;
 
   private final InternalListener m_listener = new InternalListener();
 
-  /**
-   * Creates a new caret with a default blink period of 500ms and the default caret color red.
-   */
+  /** Creates a new caret with a default blink period of 500ms and the default caret color red. */
   public JCaret() {
     this(DEFAULT_BLINK_TIME, DEFAULT_CARET_COLOR);
   }
@@ -73,7 +55,6 @@ public class JCaret {
    * Creates a new caret with the default blink period and a custom caret color.
    *
    * @param caretColor The color of the caret.
-   *
    * @throws NullPointerException Thrown if the color is null.
    */
   public JCaret(final Color caretColor) {
@@ -84,7 +65,6 @@ public class JCaret {
    * Creates a new caret with a custom blink period and the default caret color red.
    *
    * @param blinkPeriod The blink period in milliseconds.
-   *
    * @throws IllegalArgumentException Thrown if the blink period is negative.
    */
   public JCaret(final int blinkPeriod) {
@@ -96,7 +76,6 @@ public class JCaret {
    *
    * @param blinkPeriod The blink period in milliseconds.
    * @param caretColor The color of the caret.
-   *
    * @throws IllegalArgumentException Thrown if the blink period is negative.
    * @throws NullPointerException Thrown if the color is null.
    */
@@ -110,9 +89,7 @@ public class JCaret {
     m_caretTimer.start();
   }
 
-  /**
-   * Notifies all listeners of a status change of the caret.
-   */
+  /** Notifies all listeners of a status change of the caret. */
   private void notifyListeners() {
     for (final ICaretListener listener : m_listeners) {
       listener.caretStatusChanged(JCaret.this);
@@ -123,7 +100,6 @@ public class JCaret {
    * Adds a new status change listener to the list of listeners.
    *
    * @param listener The new listener.
-   *
    * @throws NullPointerException Thrown if the passed listener is null.
    */
   public void addCaretListener(final ICaretListener listener) {
@@ -143,7 +119,6 @@ public class JCaret {
    * @param x The x coordinate of the caret.
    * @param y The y coordinate of the caret.
    * @param height The height of the caret.
-   *
    * @throws NullPointerException Thrown if the graphics context is null.
    */
   public void draw(final Graphics g, final int x, final int y, final int height) {
@@ -201,9 +176,7 @@ public class JCaret {
    */
   private class InternalListener implements ActionListener {
 
-    /**
-     * This function is called every time the caret timer ticks.
-     */
+    /** This function is called every time the caret timer ticks. */
     @Override
     public void actionPerformed(final ActionEvent event) {
       // Switch the caret status at every timer click.

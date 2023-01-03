@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,15 +35,13 @@ class MatchingStepCallSequence : public MatchingStep {
 
   explicit MatchingStepCallSequence(Accuracy accuracy)
       : MatchingStep(absl::StrCat("function: call sequence matching(",
-                                  accuracy == EXACT
-                                      ? "exact)"
-                                      : accuracy == TOPOLOGY ? "topology)"
-                                                             : "sequence)"),
+                                  accuracy == EXACT      ? "exact)"
+                                  : accuracy == TOPOLOGY ? "topology)"
+                                                         : "sequence)"),
                      absl::StrCat("Function: Call Sequence (",
-                                  accuracy == EXACT
-                                      ? "Exact)"
-                                      : accuracy == TOPOLOGY ? "Topology)"
-                                                             : "Sequence)")),
+                                  accuracy == EXACT      ? "Exact)"
+                                  : accuracy == TOPOLOGY ? "Topology)"
+                                                         : "Sequence)")),
         accuracy_(accuracy) {}
 
   bool FindFixedPoints(const FlowGraph* primary_parent,

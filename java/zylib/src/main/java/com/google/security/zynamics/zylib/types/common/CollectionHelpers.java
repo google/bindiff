@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,15 @@
 
 package com.google.security.zynamics.zylib.types.common;
 
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.general.Pair;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.zylib.general.Pair;
-
 public class CollectionHelpers {
-  public static <ItemType> boolean all(final Collection<ItemType> collection,
-      final ICollectionFilter<ItemType> callback) {
+  public static <ItemType> boolean all(
+      final Collection<ItemType> collection, final ICollectionFilter<ItemType> callback) {
     for (final ItemType item : collection) {
       if (!callback.qualifies(item)) {
         return false;
@@ -33,8 +32,8 @@ public class CollectionHelpers {
     return true;
   }
 
-  public static <ItemType> boolean any(final Collection<ItemType> collection,
-      final ICollectionFilter<ItemType> callback) {
+  public static <ItemType> boolean any(
+      final Collection<ItemType> collection, final ICollectionFilter<ItemType> callback) {
     for (final ItemType item : collection) {
       if (callback.qualifies(item)) {
         return true;
@@ -44,8 +43,8 @@ public class CollectionHelpers {
     return false;
   }
 
-  public static <ItemType> int count(final Collection<? extends ItemType> collection,
-      final ItemType item) {
+  public static <ItemType> int count(
+      final Collection<? extends ItemType> collection, final ItemType item) {
     int counter = 0;
 
     for (final ItemType itemType : collection) {
@@ -57,8 +56,8 @@ public class CollectionHelpers {
     return counter;
   }
 
-  public static <ItemType> int countIf(final Collection<? extends ItemType> collection,
-      final ICollectionFilter<ItemType> item) {
+  public static <ItemType> int countIf(
+      final Collection<? extends ItemType> collection, final ICollectionFilter<ItemType> item) {
     int counter = 0;
 
     for (final ItemType itemType : collection) {
@@ -70,8 +69,8 @@ public class CollectionHelpers {
     return counter;
   }
 
-  public static <ItemType> List<ItemType> filter(final Collection<? extends ItemType> collection,
-      final ICollectionFilter<ItemType> callback) {
+  public static <ItemType> List<ItemType> filter(
+      final Collection<? extends ItemType> collection, final ICollectionFilter<ItemType> callback) {
     final List<ItemType> filteredItems = new ArrayList<ItemType>();
 
     for (final ItemType item : collection) {
@@ -95,57 +94,60 @@ public class CollectionHelpers {
 
   /**
    * Performs an operation on all items that pass a filter check.
-   * 
+   *
    * @param <ItemType> The type of the items in the collection.
    * @param <CollectionType> The type of the collection.
-   * 
    * @param collection The collection that provides the items.
    * @param filter The filter that selects the items that qualify.
    * @param callback The callback that is invoked once for each item that passes the filter check.
    */
-  public static <ItemType, CollectionType extends IIterableCollection<IItemCallback<ItemType>>> void iterate(
-      final CollectionType collection, final ICollectionFilter<ItemType> filter,
-      final IItemCallback<ItemType> callback) {
+  public static <ItemType, CollectionType extends IIterableCollection<IItemCallback<ItemType>>>
+      void iterate(
+          final CollectionType collection,
+          final ICollectionFilter<ItemType> filter,
+          final IItemCallback<ItemType> callback) {
     Preconditions.checkNotNull(collection, "Error: Graph argument can't be null");
 
     Preconditions.checkNotNull(callback, "Error: Callback argument can't be null");
 
     Preconditions.checkNotNull(filter, "Error: Filter argument can't be null");
 
-    collection.iterate(new IItemCallback<ItemType>() {
-      @Override
-      public IterationMode next(final ItemType node) {
-        if (filter.qualifies(node)) {
-          return callback.next(node);
-        }
+    collection.iterate(
+        new IItemCallback<ItemType>() {
+          @Override
+          public IterationMode next(final ItemType node) {
+            if (filter.qualifies(node)) {
+              return callback.next(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
   }
 
   /**
    * Performs an operation on all items that pass a filter check.
-   * 
+   *
    * @param <ItemType> The type of the items in the collection.
    * @param <CollectionType> The type of the collection.
-   * 
    * @param collection The collection that provides the items.
    * @param callback The callback that filters the collection and performs an operation on each item
-   *        that passes the filter check.
+   *     that passes the filter check.
    */
-  public static <ItemType, CollectionType extends IIterableCollection<IItemCallback<ItemType>>> void iterate(
-      final CollectionType collection, final IFilteredItemCallback<ItemType> callback) {
-    collection.iterate(new IItemCallback<ItemType>() {
-      @Override
-      public IterationMode next(final ItemType node) {
-        if (callback.qualifies(node)) {
-          return callback.next(node);
-        }
+  public static <ItemType, CollectionType extends IIterableCollection<IItemCallback<ItemType>>>
+      void iterate(
+          final CollectionType collection, final IFilteredItemCallback<ItemType> callback) {
+    collection.iterate(
+        new IItemCallback<ItemType>() {
+          @Override
+          public IterationMode next(final ItemType node) {
+            if (callback.qualifies(node)) {
+              return callback.next(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
   }
 
   public static <InputType, OutputType> List<OutputType> map(
@@ -160,8 +162,10 @@ public class CollectionHelpers {
     return list;
   }
 
-  public static <ItemType> ItemType nth(final Collection<? extends ItemType> collection,
-      final ICollectionFilter<ItemType> callback, final int index) {
+  public static <ItemType> ItemType nth(
+      final Collection<? extends ItemType> collection,
+      final ICollectionFilter<ItemType> callback,
+      final int index) {
     int counter = 0;
 
     for (final ItemType itemType : collection) {

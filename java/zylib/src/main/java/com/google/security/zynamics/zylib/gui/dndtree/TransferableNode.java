@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,12 +18,11 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.util.Arrays;
-
 import javax.swing.tree.DefaultMutableTreeNode;
 
 public class TransferableNode implements Transferable {
-  public static final DataFlavor NODE_FLAVOR = new DataFlavor(
-      DataFlavor.javaJVMLocalObjectMimeType, "Node");
+  public static final DataFlavor NODE_FLAVOR =
+      new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType, "Node");
   private final DefaultMutableTreeNode node;
   private final DataFlavor[] flavors = {NODE_FLAVOR};
 

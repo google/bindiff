@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,45 +55,39 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodePressedMiddleState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodePressedRightState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
+import java.util.List;
 import y.base.Edge;
 import y.base.Node;
 import y.view.Bend;
 import y.view.EdgeLabel;
 
-import java.awt.event.MouseEvent;
-import java.util.List;
-
 /**
  * Factory class for mouse state objects.
- * 
+ *
  * @param <NodeType> Type of the nodes in the graph.
  * @param <EdgeType> Type of the edges in the graph.
  */
-public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>> {
-  /**
-   * The graph for which mouse states are processed.
-   */
+public final class CStateFactory<
+    NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>> {
+  /** The graph for which mouse states are processed. */
   private final AbstractZyGraph<NodeType, EdgeType> m_graph;
 
-  /**
-   * Listeners that are notified about state changes.
-   */
+  /** Listeners that are notified about state changes. */
   private final List<IZyEditModeListener<NodeType, EdgeType>> m_listeners;
 
-  /**
-   * Provides action objects that are executed on state changes.
-   */
+  /** Provides action objects that are executed on state changes. */
   private final IStateActionFactory<NodeType, EdgeType> m_factory;
 
   /**
    * Creates a new factory object.
-   * 
+   *
    * @param graph The graph for which mouse states are processed.
    * @param listeners Listeners that are notified about state changes.
    * @param factory Provides action objects that are executed on state changes.
    */
-  public CStateFactory(final AbstractZyGraph<NodeType, EdgeType> graph,
+  public CStateFactory(
+      final AbstractZyGraph<NodeType, EdgeType> graph,
       final List<IZyEditModeListener<NodeType, EdgeType>> listeners,
       final IStateActionFactory<NodeType, EdgeType> factory) {
     m_graph = graph;
@@ -103,9 +97,8 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the background has been clicked with the left mouse button
-   * 
+   *
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBackgroundClickedLeftState(final MouseEvent event) {
@@ -128,9 +121,8 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the background has been dragged
-   * 
+   *
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBackgroundDraggedLeftState(final MouseEvent event) {
@@ -143,9 +135,8 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the background has been dragged
-   * 
+   *
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBackgroundDraggedRightState(final MouseEvent event) {
@@ -158,9 +149,8 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the background is pressed with the left mouse button.
-   * 
+   *
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBackgroundPressedLeftState(final MouseEvent event) {
@@ -173,9 +163,8 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the background is pressed with the left mouse button.
-   * 
+   *
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBackgroundPressedRightState(final MouseEvent event) {
@@ -188,10 +177,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when a bend is clicked with the left mouse button.
-   * 
+   *
    * @param b The bend which is clicked.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBendClickedLeftState(final Bend b, final MouseEvent event) {
@@ -204,10 +192,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the bend is entered
-   * 
+   *
    * @param b The bend wich is entered.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBendEnterState(final Bend b, final MouseEvent event) {
@@ -220,10 +207,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when a bend is exited.
-   * 
+   *
    * @param b The bend which is exited.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBendExitState(final Bend b, final MouseEvent event) {
@@ -236,10 +222,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the bend enters hover state.
-   * 
+   *
    * @param b The bend in hover state.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBendHoverState(final Bend b, final MouseEvent event) {
@@ -252,10 +237,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the bend is pressed with the left mouse button.
-   * 
+   *
    * @param b The bend pressed.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createBendPressedLeftState(final Bend b, final MouseEvent event) {
@@ -268,7 +252,7 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new default state object.
-   * 
+   *
    * @return The new default state object.
    */
   public IMouseState createDefaultState() {
@@ -277,10 +261,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state event object when the edge is clicked with the left mouse button.
-   * 
+   *
    * @param e The edge which has been clicked.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeClickedLeftState(final Edge e, final MouseEvent event) {
@@ -293,10 +276,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state event object when the edge is clicked with the right mouse button.
-   * 
+   *
    * @param e The edge which is clicked.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeClickedRightState(final Edge e, final MouseEvent event) {
@@ -310,10 +292,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state event object when the edge is entered.
-   * 
+   *
    * @param e The edge which is entered.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeEnterState(final Edge e, final MouseEvent event) {
@@ -326,10 +307,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state event object when the edge is exited.
-   * 
+   *
    * @param e The edge which is exited.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeExitState(final Edge e, final MouseEvent event) {
@@ -342,10 +322,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state event object when the edge enters hover state.
-   * 
+   *
    * @param e The edge which is in hover state.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeHoverState(final Edge e, final MouseEvent event) {
@@ -358,10 +337,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state event object when the edge label is entered.
-   * 
+   *
    * @param l The edge label which is entered.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeLabelEnterState(final EdgeLabel l, final MouseEvent event) {
@@ -375,10 +353,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the edge label is exited.
-   * 
+   *
    * @param l The edge label which is exited.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeLabelExitState(final EdgeLabel l, final MouseEvent event) {
@@ -392,10 +369,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the edge label is in hover mode.
-   * 
+   *
    * @param l The label which is in hover mode.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgeLabelHoverState(final EdgeLabel l, final MouseEvent event) {
@@ -408,10 +384,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when an edge is pressed with the left mouse button.
-   * 
+   *
    * @param e The edge which was pressed.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgePressedLeftState(final Edge e, final MouseEvent event) {
@@ -424,10 +399,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when an edge is pressed with the right mouse button.
-   * 
+   *
    * @param e The edge which was pressed.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createEdgePressedRightState(final Edge e, final MouseEvent event) {
@@ -440,10 +414,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when a node is clicked with the left mouse button.
-   * 
+   *
    * @param n The node which was clicked.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeClickedLeftState(final Node n, final MouseEvent event) {
@@ -457,10 +430,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when a node is clicked with the middle mouse button.
-   * 
+   *
    * @param n The node which was clicked.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeClickedMiddleState(final Node n, final MouseEvent event) {
@@ -473,10 +445,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when the node is clicked with the right mouse button.
-   * 
+   *
    * @param n The node which was clicked.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeClickedRightState(final Node n, final MouseEvent event) {
@@ -490,16 +461,15 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object when a node is dragged.
-   * 
+   *
    * @param n The node which is dragged
    * @param xDist The x distance which the node will be dragged by.
    * @param yDist The y distance which the node will be dragged by.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public IMouseState createNodeDraggedLeftState(final Node n, final MouseEvent event,
-      final double xDist, final double yDist) {
+  public IMouseState createNodeDraggedLeftState(
+      final Node n, final MouseEvent event, final double xDist, final double yDist) {
     final CNodeDraggedLeftState<NodeType, EdgeType> state =
         new CNodeDraggedLeftState<NodeType, EdgeType>(this, m_graph, n, event, xDist, yDist);
 
@@ -510,10 +480,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after we entered edit mode.
-   * 
+   *
    * @param n The node which has entered edit mode.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeEditEnterState(final Node n, final MouseEvent event) {
@@ -526,10 +495,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after we exit edit mode.
-   * 
+   *
    * @param n The node which was in edit mode.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeEditExitState(final Node n, final MouseEvent event) {
@@ -542,10 +510,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after we enter edit mode.
-   * 
+   *
    * @param n The node in edit mode
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeEditState(final Node n, final MouseEvent event) {
@@ -558,10 +525,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the cursor enters a node.
-   * 
+   *
    * @param n The node that was entered.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeEnterState(final Node n, final MouseEvent event) {
@@ -575,10 +541,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the cursor exits a node.
-   * 
+   *
    * @param n The node that was exited.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeExitState(final Node n, final MouseEvent event) {
@@ -592,10 +557,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the cursor hovers over a node.
-   * 
+   *
    * @param n The node that was entered.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodeHoverState(final Node n, final MouseEvent event) {
@@ -609,10 +573,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the mouse left button has been pressed.
-   * 
+   *
    * @param n The node that was entered.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodePressedLeftState(final Node n, final MouseEvent event) {
@@ -626,10 +589,9 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * Creates a new state object after the mouse middle button has been pressed.
-   * 
+   *
    * @param n The node that was pressed.
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodePressedMiddleState(final Node n, final MouseEvent event) {
@@ -641,10 +603,8 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
   }
 
   /**
-   * 
    * @param n
    * @param event The mouse event that caused the state change.
-   * 
    * @return The state object that describes the mouse state.
    */
   public IMouseState createNodePressedRightState(final Node n, final MouseEvent event) {
@@ -657,7 +617,7 @@ public final class CStateFactory<NodeType extends ZyGraphNode<?>, EdgeType exten
 
   /**
    * gets all listeners.
-   * 
+   *
    * @return the currently listening listeners.
    */
   public List<IZyEditModeListener<NodeType, EdgeType>> getListeners() {

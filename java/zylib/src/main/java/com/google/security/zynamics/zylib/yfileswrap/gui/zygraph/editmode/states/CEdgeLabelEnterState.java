@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,37 +27,32 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transf
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitEdgesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.view.EdgeLabel;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-public class CEdgeLabelEnterState<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CEdgeLabelEnterState<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IMouseState {
-  /**
-   * State factory that creates new state objects when necessary.
-   */
+  /** State factory that creates new state objects when necessary. */
   private final CStateFactory<NodeType, EdgeType> m_factory;
 
-  /**
-   * The graph the entered node belongs to.
-   */
+  /** The graph the entered node belongs to. */
   private final AbstractZyGraph<NodeType, EdgeType> m_graph;
 
-  /**
-   * The entered label.
-   */
+  /** The entered label. */
   private final EdgeLabel m_label;
 
   /**
    * Creates a new state object.
-   * 
+   *
    * @param factory State factory that creates new state objects when necessary.
    * @param graph The graph the entered node belongs to.
    */
-  public CEdgeLabelEnterState(final CStateFactory<NodeType, EdgeType> factory,
-      final AbstractZyGraph<NodeType, EdgeType> graph, final EdgeLabel label) {
+  public CEdgeLabelEnterState(
+      final CStateFactory<NodeType, EdgeType> factory,
+      final AbstractZyGraph<NodeType, EdgeType> graph,
+      final EdgeLabel label) {
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_label = Preconditions.checkNotNull(label, "Error: label argument can not be null");
@@ -65,7 +60,7 @@ public class CEdgeLabelEnterState<NodeType extends ZyGraphNode<?>, EdgeType exte
 
   /**
    * Returns the graph the entered label belongs to.
-   * 
+   *
    * @return The graph the entered label belongs to.
    */
   public AbstractZyGraph<NodeType, EdgeType> getGraph() {
@@ -126,8 +121,8 @@ public class CEdgeLabelEnterState<NodeType extends ZyGraphNode<?>, EdgeType exte
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(m_factory.createDefaultState(), true);
   }
-
 }

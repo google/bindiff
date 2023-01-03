@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,16 +19,14 @@ import javax.swing.JPopupMenu;
 /**
  * This interface must be implemented by all classes that want to provide context menus for the
  * JHexView control.
- * 
  */
 public interface IMenuCreator {
 
   /**
    * This function is called to generate a popup menu after the user right-clicked somewhere in the
    * hex control.
-   * 
+   *
    * @param offset The offset of the right-click.
-   * 
    * @return The popup menu suitable for that offset or null if no popup menu should be shown.
    */
   JPopupMenu createMenu(long offset);

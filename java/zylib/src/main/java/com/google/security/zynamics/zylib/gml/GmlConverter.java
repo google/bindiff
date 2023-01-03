@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,25 +14,21 @@
 
 package com.google.security.zynamics.zylib.gml;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.types.graphs.IDirectedGraph;
 import com.google.security.zynamics.zylib.types.graphs.IGraphEdge;
 import com.google.security.zynamics.zylib.types.trees.ITree;
 import com.google.security.zynamics.zylib.types.trees.ITreeNode;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
-/**
- * This class can be used to generate GML files from input objects.
- */
+/** This class can be used to generate GML files from input objects. */
 public final class GmlConverter {
   /**
    * Creates GML code that represents a given directed graph.
-   * 
+   *
    * @param graph The input graph.
-   * 
    * @return The code generated for the input graph.
    */
   public static String toGml(final IDirectedGraph<?, ? extends IGraphEdge<?>> graph) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -89,7 +89,8 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNo
  * This class provides the default action handlers that are executed when mouse state changes are
  * executed.
  */
-public class CDefaultActionFactory<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultActionFactory<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateActionFactory<NodeType, EdgeType> {
   @Override
   public IStateAction<CBackgroundClickedLeftState<NodeType>> createBackgroundClickedLeftAction() {

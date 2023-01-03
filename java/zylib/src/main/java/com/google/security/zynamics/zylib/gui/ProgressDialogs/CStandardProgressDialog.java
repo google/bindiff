@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
 package com.google.security.zynamics.zylib.gui.ProgressDialogs;
 
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import javax.swing.JDialog;
 import javax.swing.border.EmptyBorder;
-
 
 public class CStandardProgressDialog extends JDialog {
   private static final long serialVersionUID = 7140381762236285546L;
@@ -37,7 +34,10 @@ public class CStandardProgressDialog extends JDialog {
 
   private final CProgressPanel m_progressPanel;
 
-  public CStandardProgressDialog(final Window parent, final String title, final String description,
+  public CStandardProgressDialog(
+      final Window parent,
+      final String title,
+      final String description,
       final IStandardProgressModel progressModel) {
     super(parent, title, ModalityType.DOCUMENT_MODAL);
 
@@ -69,7 +69,10 @@ public class CStandardProgressDialog extends JDialog {
   // return "<html>" + text.replaceAll("\n", "<br>") + "</html>";
   // }
 
-  public static void show(final Window parent, final String title, final String description,
+  public static void show(
+      final Window parent,
+      final String title,
+      final String description,
       final CStandardHelperThread thread) {
     final CStandardProgressDialog dlg =
         new CStandardProgressDialog(parent, title, description, thread);
@@ -137,8 +140,7 @@ public class CStandardProgressDialog extends JDialog {
 
   private class InternalWindowListener extends WindowAdapter {
     @Override
-    public void windowClosed(final WindowEvent arg0) {
-    }
+    public void windowClosed(final WindowEvent arg0) {}
 
     @Override
     public void windowClosing(final WindowEvent arg0) {

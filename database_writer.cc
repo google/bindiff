@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -127,15 +127,11 @@ DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate)
   }
 }
 
-SqliteDatabase* DatabaseWriter::GetDatabase() {
-  return &database_;
-}
+SqliteDatabase* DatabaseWriter::GetDatabase() { return &database_; }
 
 const std::string& DatabaseWriter::GetFilename() const { return filename_; }
 
-void DatabaseWriter::Close() {
-  database_.Disconnect();
-}
+void DatabaseWriter::Close() { database_.Disconnect(); }
 
 void DatabaseWriter::SetCommentsPorted(const FixedPointInfos& fixed_points) {
   database_
@@ -209,17 +205,21 @@ void DatabaseWriter::PrepareDatabase() {
   database_.Statement("DROP TABLE IF EXISTS function")->Execute();
   database_.Statement("DROP TABLE IF EXISTS functionalgorithm")->Execute();
 
-  database_.Statement(
-      "CREATE TABLE basicblockalgorithm ("
-      "id SMALLINT PRIMARY KEY, "
-      "name TEXT"
-      ")")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE basicblockalgorithm ("
+          "id SMALLINT PRIMARY KEY, "
+          "name TEXT"
+          ")")
+      ->Execute();
 
-  database_.Statement(
-      "CREATE TABLE functionalgorithm ("
-      "id SMALLINT PRIMARY KEY, "
-      "name TEXT"
-      ")")->Execute();
+  database_
+      .Statement(
+          "CREATE TABLE functionalgorithm ("
+          "id SMALLINT PRIMARY KEY, "
+          "name TEXT"
+          ")")
+      ->Execute();
 
   database_
       .Statement(
@@ -446,8 +446,7 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
     for (auto j = i->GetBasicBlockFixedPoints().cbegin(),
               jend = i->GetBasicBlockFixedPoints().cend();
          j != jend; ++j, ++basic_block_id) {
-      basic_block_match_statement
-          .BindInt(basic_block_id)
+      basic_block_match_statement.BindInt(basic_block_id)
           .BindInt(function_id)
           .BindInt64(primary.GetAddress(j->GetPrimaryVertex()))
           .BindInt64(secondary.GetAddress(j->GetSecondaryVertex()))
@@ -459,12 +458,11 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
       for (auto k = j->GetInstructionMatches().cbegin(),
                 kend = j->GetInstructionMatches().cend();
            k != kend; ++k) {
-        instruction_statement
-          .BindInt(basic_block_id)
-          .BindInt64(k->first->GetAddress())
-          .BindInt64(k->second->GetAddress())
-          .Execute()
-          .Reset();
+        instruction_statement.BindInt(basic_block_id)
+            .BindInt64(k->first->GetAddress())
+            .BindInt64(k->second->GetAddress())
+            .Execute()
+            .Reset();
       }
     }
   }
@@ -498,8 +496,7 @@ void DatabaseWriter::WriteAlgorithms() {
   id = 0;
   for (const auto* step : GetDefaultMatchingSteps()) {
     function_steps_[step->name()] = ++id;
-    database_
-        .Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
+    database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)")
         ->BindInt(id)
         .BindText(step->name().c_str())
         .Execute();
@@ -530,7 +527,7 @@ void DatabaseWriter::Write(const CallGraph& call_graph1,
     WriteMatches(fixed_points);
 
     database_.Commit();
-  } catch(...) {
+  } catch (...) {
     database_.Rollback();
     throw;
   }
@@ -682,17 +679,16 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   // Step 3: Update changed matches (user set algorithm type to "manual").
   int algorithm = 0;
   database_.Statement("SELECT MAX(id) FROM functionalgorithm")
-      ->Execute().Into(&algorithm);
+      ->Execute()
+      .Into(&algorithm);
   SqliteStatement statement(
       &database_,
       "UPDATE function SET confidence=1.0, algorithm=:algorithm "
       "WHERE address1=:address1 AND address2=:address2");
   for (auto i = fixed_point_infos_.cbegin(), end = fixed_point_infos_.cend();
        i != end; ++i) {
-    if (!i->IsManual())
-      continue;
-    statement
-        .BindInt(algorithm)
+    if (!i->IsManual()) continue;
+    statement.BindInt(algorithm)
         .BindInt64(i->primary)
         .BindInt64(i->secondary)
         .Execute()
@@ -766,8 +762,7 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
     double similarity = 0.0;
     double confidence = 0.0;
     bool basic_block_is_null = false;
-    statement
-        .Into(&function1)
+    statement.Into(&function1)
         .Into(&function2)
         .Into(&function_algorithm)
         .Into(&similarity)

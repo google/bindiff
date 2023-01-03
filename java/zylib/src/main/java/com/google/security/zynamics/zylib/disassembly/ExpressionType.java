@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,14 @@
 
 package com.google.security.zynamics.zylib.disassembly;
 
-/**
- * Enumeration type that describes the possible types of operand expressions.
- */
+/** Enumeration type that describes the possible types of operand expressions. */
 public enum ExpressionType {
-  SYMBOL, IMMEDIATE_INTEGER, IMMEDIATE_FLOAT, OPERATOR, REGISTER, SIZE_PREFIX, MEMDEREF, EXPRESSION_LIST
+  SYMBOL,
+  IMMEDIATE_INTEGER,
+  IMMEDIATE_FLOAT,
+  OPERATOR,
+  REGISTER,
+  SIZE_PREFIX,
+  MEMDEREF,
+  EXPRESSION_LIST
 }

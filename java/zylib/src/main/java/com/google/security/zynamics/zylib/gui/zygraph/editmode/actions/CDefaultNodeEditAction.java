@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,12 +16,9 @@ package com.google.security.zynamics.zylib.gui.zygraph.editmode.actions;
 
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IStateAction;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeEditState;
-
 import java.awt.event.MouseEvent;
-
 
 public class CDefaultNodeEditAction implements IStateAction<CNodeEditState> {
   @Override
-  public void execute(final CNodeEditState state, final MouseEvent event) {
-  }
+  public void execute(final CNodeEditState state, final MouseEvent event) {}
 }

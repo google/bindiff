@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,8 +62,7 @@ public class CodeDisplayCoordinate {
   }
 
   public void setColumn(int column) {
-    Preconditions.checkArgument(column >= 0, "Column should be >= 0: %s",
-        column);
+    Preconditions.checkArgument(column >= 0, "Column should be >= 0: %s", column);
     columnIndex = column;
   }
 
@@ -73,14 +72,19 @@ public class CodeDisplayCoordinate {
   }
 
   public void setFieldIndex(int index) {
-    Preconditions.checkArgument(index >= 0, "Index should be >= 0: %s",
-        index);
+    Preconditions.checkArgument(index >= 0, "Index should be >= 0: %s", index);
     fieldIndex = index;
   }
 
   @Override
   public String toString() {
-    return "Row: " + Integer.toString(rowIndex) + ", Column: " + Integer.toString(columnIndex)
-        + ", Line: " + Integer.toString(lineIndex) + "," + Integer.toString(fieldIndex);
+    return "Row: "
+        + Integer.toString(rowIndex)
+        + ", Column: "
+        + Integer.toString(columnIndex)
+        + ", Line: "
+        + Integer.toString(lineIndex)
+        + ","
+        + Integer.toString(fieldIndex);
   }
 }

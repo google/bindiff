@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@ package com.google.security.zynamics.zylib.gui.CodeDisplay;
 
 import java.util.EventListener;
 
-/**
- * Eventlistener for events specific to the CodeDisplay.
- */
+/** Eventlistener for events specific to the CodeDisplay. */
 public interface CodeDisplayEventListener extends EventListener {
   void caretChanged(CodeDisplayCoordinate caret);
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.general;
 
 import com.google.common.base.Preconditions;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,10 +27,11 @@ import java.util.LinkedHashSet;
 /**
  * Helper class that can be used by all classes that need to keep track of a list of listeners.
  *
- *  This class already takes care of parameter checking and proper iteration over the listener list.
+ * <p>This class already takes care of parameter checking and proper iteration over the listener
+ * list.
  *
- *  To use this class, simply add a field of type ListenerProvider<T> to your class and forward the
- * addListener and removeListener functions to the ListenerProvider functions. To notify the
+ * <p>To use this class, simply add a field of type ListenerProvider<T> to your class and forward
+ * the addListener and removeListener functions to the ListenerProvider functions. To notify the
  * listeners use a for-each loop on the ListenerProvider object.
  *
  * @param <T> The type of the listeners stored in the ListenerProvider.
@@ -44,10 +44,9 @@ public class ListenerProvider<T> implements Iterable<T> {
    * Adds a listener to the listener provider.
    *
    * @param listener The listener to add.
-   *
    * @throws NullPointerException Thrown if the listener object is null.
    * @throws IllegalStateException Thrown if the listener is already managed by the listener
-   *         provider.
+   *     provider.
    */
   public void addListener(final T listener) {
     Preconditions.checkNotNull(listener, "Internal Error: Listener cannot be null");
@@ -97,10 +96,9 @@ public class ListenerProvider<T> implements Iterable<T> {
    * Removes a listener from the listener provider.
    *
    * @param listener The listener to remove.
-   *
    * @throws NullPointerException Thrown if the listener object is null.
    * @throws IllegalStateException Thrown if the listener object was not managed by the listener
-   *         provider.
+   *     provider.
    */
   public void removeListener(final T listener) {
     Preconditions.checkNotNull(listener, "Internal Error: Listener cannot be null");

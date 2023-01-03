@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,23 +27,21 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ProximityHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
-import y.base.Node;
-import y.view.NodeLabel;
-import y.view.hierarchy.GroupNodeRealizer;
-
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
-
 import javax.swing.SwingUtilities;
+import y.base.Node;
+import y.view.NodeLabel;
+import y.view.hierarchy.GroupNodeRealizer;
 
-public class CDefaultNodeClickedLeftAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultNodeClickedLeftAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodeClickedLeftState<NodeType, EdgeType>> {
   /**
    * Toggles the expansion state of a given group node.
-   * 
+   *
    * @param node The node to expand or collapse.
    */
   private void toggleGroup(final NodeType node) {
@@ -53,7 +51,8 @@ public class CDefaultNodeClickedLeftAction<NodeType extends ZyGraphNode<?>, Edge
   }
 
   @Override
-  public void execute(final CNodeClickedLeftState<NodeType, EdgeType> state, final MouseEvent event) {
+  public void execute(
+      final CNodeClickedLeftState<NodeType, EdgeType> state, final MouseEvent event) {
     CMouseCursorHelper.setDefaultCursor(state.getGraph());
 
     final AbstractZyGraph<NodeType, EdgeType> graph = state.getGraph();
@@ -100,7 +99,9 @@ public class CDefaultNodeClickedLeftAction<NodeType extends ZyGraphNode<?>, Edge
       }
     } else {
       if (node != null) {
-        if (graph.getEditMode().getLabelEventHandler()
+        if (graph
+            .getEditMode()
+            .getLabelEventHandler()
             .isActiveLabel(node.getRealizer().getNodeContent())) {
           CEditNodeHelper.setCaretEnd(graph, state.getNode(), event);
         } else {

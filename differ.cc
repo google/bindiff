@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -506,9 +506,9 @@ double GetSimilarityScore(const FlowGraph& flow_graph1,
       0.15 * instruction_matches /
       (std::max(1.0, 0.5 * (instructions_primary + instructions_secondary)));
   similarity = std::min(similarity, 1.0);
-  similarity += 1.0 -
-                std::fabs(flow_graph1.GetMdIndex() - flow_graph2.GetMdIndex()) /
-                    (1.0 + flow_graph1.GetMdIndex() + flow_graph2.GetMdIndex());
+  similarity +=
+      1.0 - std::fabs(flow_graph1.GetMdIndex() - flow_graph2.GetMdIndex()) /
+                (1.0 + flow_graph1.GetMdIndex() + flow_graph2.GetMdIndex());
   similarity /= 2.0;
 
   // TODO(soerenme) Investigate this:

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
 
 package com.google.security.zynamics.zylib.gui.ColorGrid;
 
+import com.google.common.base.Preconditions;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.List;
-
 import javax.swing.JPanel;
-
-import com.google.common.base.Preconditions;
 
 public class ColorGrid extends JPanel {
   private static final long serialVersionUID = -5981626927250840656L;

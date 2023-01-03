@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,6 @@
 
 package com.google.security.zynamics.zylib.types.graphs.algorithms;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.Stack;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.security.zynamics.zylib.general.Pair;
@@ -29,17 +22,27 @@ import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
 import com.google.security.zynamics.zylib.types.trees.ITreeNode;
 import com.google.security.zynamics.zylib.types.trees.Tree;
 import com.google.security.zynamics.zylib.types.trees.TreeNode;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Stack;
 
 /**
  * Uses the Lengauer-Tarjan algorithm to determine the dominator tree of a directed graph.
- * 
- * The implementation of this algorithm was taken from Modern Compiler Implementation in Java, pages
- * 452 and 453.
+ *
+ * <p>The implementation of this algorithm was taken from Modern Compiler Implementation in Java,
+ * pages 452 and 453.
  */
 public final class LengauerTarjan {
   private static <NodeType extends IGraphNode<NodeType>> int depthFirstSearch(
-      final NodeType parent, final NodeType rootNode, final HashMap<NodeType, Integer> dfnums,
-      final HashMap<Integer, NodeType> vertex, final HashMap<NodeType, NodeType> parents, int dfnum) {
+      final NodeType parent,
+      final NodeType rootNode,
+      final HashMap<NodeType, Integer> dfnums,
+      final HashMap<Integer, NodeType> vertex,
+      final HashMap<NodeType, NodeType> parents,
+      int dfnum) {
     parents.put(rootNode, parent);
     vertex.put(dfnum, rootNode);
     dfnums.put(rootNode, dfnum);
@@ -69,12 +72,12 @@ public final class LengauerTarjan {
     return dfnum - 1;
   }
 
-  /**
-   * In the forest, find the non-root ancestor of n that has the lowest-numbered semidominator.
-   */
+  /** In the forest, find the non-root ancestor of n that has the lowest-numbered semidominator. */
   private static <NodeType extends IGraphNode<NodeType>> NodeType getAncestorWithLowestSemi(
-      final NodeType node, final HashMap<NodeType, Integer> dfnum,
-      final HashMap<NodeType, NodeType> semi, final HashMap<NodeType, NodeType> ancestor,
+      final NodeType node,
+      final HashMap<NodeType, Integer> dfnum,
+      final HashMap<NodeType, NodeType> semi,
+      final HashMap<NodeType, NodeType> ancestor,
       final HashMap<NodeType, NodeType> best) {
     final NodeType a = ancestor.get(node);
 
@@ -93,11 +96,13 @@ public final class LengauerTarjan {
 
   /**
    * Add edge p -> n to spanning forest implied by ancestor array.
-   * 
+   *
    * @param <NodeType> Type of the nodes in the directed graph.
    */
-  private static <NodeType extends IGraphNode<NodeType>> void link(final NodeType parent,
-      final NodeType node, final HashMap<NodeType, NodeType> ancestor,
+  private static <NodeType extends IGraphNode<NodeType>> void link(
+      final NodeType parent,
+      final NodeType node,
+      final HashMap<NodeType, NodeType> ancestor,
       final HashMap<NodeType, NodeType> best) {
     ancestor.put(node, parent);
     best.put(node, node);
@@ -105,18 +110,17 @@ public final class LengauerTarjan {
 
   /**
    * Generates the dominator tree of a list of nodes.
-   * 
+   *
    * @param <NodeType> Type of the nodes.
-   * 
    * @param nodes The list of nodes.
    * @param rootNode The node that is considered the root node of the graph.
-   * 
    * @return The dominator tree created from the node list.
-   * 
    * @throws MalformedGraphException Thrown if an issue in the graph was detected.
    */
-  public static <NodeType extends IGraphNode<NodeType>> Pair<Tree<NodeType>, HashMap<NodeType, ITreeNode<NodeType>>> calculate(
-      final Collection<NodeType> nodes, final NodeType rootNode) throws MalformedGraphException {
+  public static <NodeType extends IGraphNode<NodeType>>
+      Pair<Tree<NodeType>, HashMap<NodeType, ITreeNode<NodeType>>> calculate(
+          final Collection<NodeType> nodes, final NodeType rootNode)
+          throws MalformedGraphException {
     Preconditions.checkNotNull(nodes, "Error: Nodes argument can not be null");
 
     if (nodes.size() == 0) {
@@ -124,8 +128,8 @@ public final class LengauerTarjan {
     }
 
     Preconditions.checkNotNull(rootNode, "Error: Root node argument can not be null");
-    Preconditions.checkArgument(nodes.contains(rootNode),
-        "Error: Root node is not part of the graph");
+    Preconditions.checkArgument(
+        nodes.contains(rootNode), "Error: Root node is not part of the graph");
 
     int entryNodes = 0;
 
@@ -231,23 +235,22 @@ public final class LengauerTarjan {
       }
     }
 
-    return new Pair<Tree<NodeType>, HashMap<NodeType, ITreeNode<NodeType>>>(new Tree<NodeType>(
-        treeRoot), nodeMap);
+    return new Pair<Tree<NodeType>, HashMap<NodeType, ITreeNode<NodeType>>>(
+        new Tree<NodeType>(treeRoot), nodeMap);
   }
 
   /**
    * Generates the dominator tree of a directed graph.
-   * 
+   *
    * @param <NodeType> Type of the nodes in the graph.
-   * 
    * @param graph The input graph.
    * @param rootNode The node that is considered the root node of the graph.
-   * 
    * @return The dominator tree created from the graph.
    */
-  public static <NodeType extends IGraphNode<NodeType>> Pair<Tree<NodeType>, HashMap<NodeType, ITreeNode<NodeType>>> calculate(
-      final IDirectedGraph<NodeType, ?> graph, final NodeType rootNode)
-      throws MalformedGraphException {
+  public static <NodeType extends IGraphNode<NodeType>>
+      Pair<Tree<NodeType>, HashMap<NodeType, ITreeNode<NodeType>>> calculate(
+          final IDirectedGraph<NodeType, ?> graph, final NodeType rootNode)
+          throws MalformedGraphException {
     Preconditions.checkNotNull(graph, "Error: Graph argument can not be null");
     Preconditions.checkNotNull(rootNode, "Error: Root node argument can not be null");
 

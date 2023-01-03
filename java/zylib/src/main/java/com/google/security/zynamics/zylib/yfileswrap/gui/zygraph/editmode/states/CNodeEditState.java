@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,45 +22,36 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CEditNodeHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
+import javax.swing.SwingUtilities;
 import y.base.Node;
 import y.view.HitInfo;
-
-import java.awt.event.MouseEvent;
-
-import javax.swing.SwingUtilities;
 
 /**
  * This class represents the mouse state that is reached as soon as the user moves the mouse into a
  * node.
  */
 public final class CNodeEditState implements IMouseState {
-  /**
-   * State factory that creates new state objects when necessary.
-   */
+  /** State factory that creates new state objects when necessary. */
   private final CStateFactory<?, ?> m_factory;
 
-  /**
-   * The graph the entered node belongs to.
-   */
+  /** The graph the entered node belongs to. */
   private final AbstractZyGraph<?, ?> m_graph;
 
-  /**
-   * The entered node.
-   */
+  /** The entered node. */
   private final Node m_node;
 
   private boolean m_isDragging = false;
 
   /**
    * Creates a new state object.
-   * 
+   *
    * @param factory State factory that creates new state objects when necessary.
    * @param graph The graph the entered node belongs to.
    * @param node The entered node.
    */
-  public CNodeEditState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
-      final Node node) {
+  public CNodeEditState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final Node node) {
     m_factory = factory;
     m_graph = graph;
     m_node = node;
@@ -68,7 +59,7 @@ public final class CNodeEditState implements IMouseState {
 
   /**
    * Returns the graph the entered node belongs to.
-   * 
+   *
    * @return The graph the entered node belongs to.
    */
   public AbstractZyGraph<?, ?> getGraph() {
@@ -77,7 +68,7 @@ public final class CNodeEditState implements IMouseState {
 
   /**
    * Returns the entered node.
-   * 
+   *
    * @return The entered node.
    */
   public Node getNode() {
@@ -166,18 +157,18 @@ public final class CNodeEditState implements IMouseState {
     } else if (hitInfo.hasHitEdges()) {
       m_factory.createNodeEditExitState(m_node, event);
 
-      return new CStateChange(m_factory.createEdgePressedLeftState(hitInfo.getHitEdge(), event),
-          true);
+      return new CStateChange(
+          m_factory.createEdgePressedLeftState(hitInfo.getHitEdge(), event), true);
     } else if (hitInfo.hasHitEdgeLabels()) {
       m_factory.createNodeEditExitState(m_node, event);
 
-      return new CStateChange(m_factory.createEdgePressedLeftState(hitInfo.getHitEdgeLabel()
-          .getEdge(), event), true);
+      return new CStateChange(
+          m_factory.createEdgePressedLeftState(hitInfo.getHitEdgeLabel().getEdge(), event), true);
     } else if (hitInfo.hasHitBends()) {
       m_factory.createNodeEditExitState(m_node, event);
 
-      return new CStateChange(m_factory.createBendPressedLeftState(hitInfo.getHitBend(), event),
-          true);
+      return new CStateChange(
+          m_factory.createBendPressedLeftState(hitInfo.getHitBend(), event), true);
     } else if (hitInfo.hasHitPorts()) {
       m_factory.createNodeEditExitState(m_node, event);
 
@@ -192,7 +183,8 @@ public final class CNodeEditState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     final double x = graph.getEditMode().translateX(event.getX());
     final double y = graph.getEditMode().translateY(event.getY());
 
@@ -257,18 +249,18 @@ public final class CNodeEditState implements IMouseState {
     } else if (hitInfo.hasHitEdges()) {
       m_factory.createNodeEditExitState(m_node, event);
 
-      return new CStateChange(m_factory.createEdgePressedLeftState(hitInfo.getHitEdge(), event),
-          true);
+      return new CStateChange(
+          m_factory.createEdgePressedLeftState(hitInfo.getHitEdge(), event), true);
     } else if (hitInfo.hasHitEdgeLabels()) {
       m_factory.createNodeEditExitState(m_node, event);
 
-      return new CStateChange(m_factory.createEdgePressedLeftState(hitInfo.getHitEdgeLabel()
-          .getEdge(), event), true);
+      return new CStateChange(
+          m_factory.createEdgePressedLeftState(hitInfo.getHitEdgeLabel().getEdge(), event), true);
     } else if (hitInfo.hasHitBends()) {
       m_factory.createNodeEditExitState(m_node, event);
 
-      return new CStateChange(m_factory.createBendPressedLeftState(hitInfo.getHitBend(), event),
-          true);
+      return new CStateChange(
+          m_factory.createBendPressedLeftState(hitInfo.getHitBend(), event), true);
     } else if (hitInfo.hasHitPorts()) {
       m_factory.createNodeEditExitState(m_node, event);
 

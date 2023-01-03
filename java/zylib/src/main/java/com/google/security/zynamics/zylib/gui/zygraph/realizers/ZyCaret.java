@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.gui.zygraph.realizers;
 
 import com.google.common.base.Preconditions;
-
 import java.awt.font.TextHitInfo;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
@@ -53,8 +52,9 @@ public class ZyCaret {
 
     if (y < m_content.getLineContent(0).getBounds().getMinY()) {
       hitline = 0;
-    } else if (y > (m_content.getLineContent(linecount - 1).getBounds().getMinY()
-        + (linecount * lineHeight))) {
+    } else if (y
+        > (m_content.getLineContent(linecount - 1).getBounds().getMinY()
+            + (linecount * lineHeight))) {
       hitline = linecount - 1;
     } else {
       for (int line = 0; line < linecount; ++line) {
@@ -72,8 +72,8 @@ public class ZyCaret {
     return hitline;
   }
 
-  private int calcHitPosition(final int caretPosition, final double x, final double y,
-      final double zoomFactor) {
+  private int calcHitPosition(
+      final int caretPosition, final double x, final double y, final double zoomFactor) {
     boolean switched = false;
 
     int lp = m_mouse_pressed_y;
@@ -221,11 +221,14 @@ public class ZyCaret {
     m_mouse_pressed_x = 0;
     m_caret_endpos_x = m_mouse_released_x;
     m_caret_startpos_x = m_mouse_pressed_x;
-
   }
 
-  public void selectWord(final double labelParentX, final double labelParentY, final double mouseX,
-      final double mouseY, final double zoomFactor) {
+  public void selectWord(
+      final double labelParentX,
+      final double labelParentY,
+      final double mouseX,
+      final double mouseY,
+      final double zoomFactor) {
     final double x = mouseX - labelParentX - m_content.getPaddingLeft();
     final double y = mouseY - labelParentY - m_content.getPaddingTop();
 
@@ -263,7 +266,8 @@ public class ZyCaret {
     m_mouse_released_x = m_caret_endpos_x;
   }
 
-  public void setCaret(int caretStartPos_X,
+  public void setCaret(
+      int caretStartPos_X,
       int mousePressed_X,
       final int mousePressed_Y,
       int caretEndPos_X,
@@ -294,8 +298,12 @@ public class ZyCaret {
     m_mouse_released_y = mouseReleased_Y;
   }
 
-  public void setCaretEnd(final double labelParentX, final double labelParentY, final double mouseX,
-      final double mouseY, final double zoomFactor) {
+  public void setCaretEnd(
+      final double labelParentX,
+      final double labelParentY,
+      final double mouseX,
+      final double mouseY,
+      final double zoomFactor) {
     final double x = mouseX - labelParentX - m_content.getPaddingLeft();
     final double y = mouseY - labelParentY;
 
@@ -314,8 +322,12 @@ public class ZyCaret {
     m_caret_endpos_x = endPos;
   }
 
-  public void setCaretStart(final double labelParentX, final double labelParentY,
-      final double mouseX, final double mouseY, final double zoomFactor) {
+  public void setCaretStart(
+      final double labelParentX,
+      final double labelParentY,
+      final double mouseX,
+      final double mouseY,
+      final double zoomFactor) {
     final double x = mouseX - labelParentX - m_content.getPaddingLeft();
     final double y = mouseY - labelParentY;
 

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
 
 package com.google.security.zynamics.zylib.types.trees;
 
+import com.google.common.base.Preconditions;
 import java.util.Iterator;
 import java.util.Stack;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Iterator that can be used to iterate over a tree in depth-first order.
- * 
+ *
  * @param <ObjectType> Types of the objects stored in the tree nodes.
  */
 public class DepthFirstIterator<ObjectType> implements Iterator<ITreeNode<ObjectType>> {
@@ -29,7 +28,7 @@ public class DepthFirstIterator<ObjectType> implements Iterator<ITreeNode<Object
 
   /**
    * Creates a new iterator object.
-   * 
+   *
    * @param rootNode Root node where iteration begins.
    */
   public DepthFirstIterator(final ITreeNode<ObjectType> rootNode) {
@@ -57,6 +56,5 @@ public class DepthFirstIterator<ObjectType> implements Iterator<ITreeNode<Object
   }
 
   @Override
-  public void remove() {
-  }
+  public void remove() {}
 }

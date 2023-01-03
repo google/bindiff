@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,20 +17,15 @@ package com.google.security.zynamics.zylib.gui.CodeDisplay;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
-/**
- * Simple harness for testing GUI code.
- */
+/** Simple harness for testing GUI code. */
 public final class MinimalCodeDisplayHarness {
 
-  /**
-   * Build and display minimal GUI.
-   */
+  /** Build and display minimal GUI. */
   public static void main(String... args) {
     MinimalCodeDisplayHarness app = new MinimalCodeDisplayHarness();
     app.buildAndDisplayGui();

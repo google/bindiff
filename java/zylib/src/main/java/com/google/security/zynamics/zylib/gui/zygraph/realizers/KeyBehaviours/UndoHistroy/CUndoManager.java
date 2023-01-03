@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.U
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
-
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class CUndoManager {
   private final Map<ZyLabelContent, CUndoHistory> m_undoHistories =
@@ -43,11 +41,19 @@ public class CUndoManager {
     return undoHistory;
   }
 
-  public void addUndoState(final ZyLabelContent labelContent, final Object persistantModel,
-      final IZyEditableObject editableObject, final String changedText,
-      final boolean isAboveLineComment, final boolean isBehindLineComment,
-      final boolean isLabelComment, final int caretStartX, final int caretMousePressedX,
-      final int caretMousePressedY, final int caretEndX, final int caretMouseReleasedX,
+  public void addUndoState(
+      final ZyLabelContent labelContent,
+      final Object persistantModel,
+      final IZyEditableObject editableObject,
+      final String changedText,
+      final boolean isAboveLineComment,
+      final boolean isBehindLineComment,
+      final boolean isLabelComment,
+      final int caretStartX,
+      final int caretMousePressedX,
+      final int caretMousePressedY,
+      final int caretEndX,
+      final int caretMouseReleasedX,
       final int caretMouseReleasedY) {
     if (persistantModel == null) {
       // Must be a placeholder object without label content text.
@@ -58,9 +64,19 @@ public class CUndoManager {
 
     if (undoHistory != null) {
       final CUndoStateData undoData =
-          new CUndoStateData(labelContent, persistantModel, editableObject, changedText,
-              isAboveLineComment, isBehindLineComment, isLabelComment, caretStartX,
-              caretMousePressedX, caretMousePressedY, caretEndX, caretMouseReleasedX,
+          new CUndoStateData(
+              labelContent,
+              persistantModel,
+              editableObject,
+              changedText,
+              isAboveLineComment,
+              isBehindLineComment,
+              isLabelComment,
+              caretStartX,
+              caretMousePressedX,
+              caretMousePressedY,
+              caretEndX,
+              caretMouseReleasedX,
               caretMouseReleasedY);
 
       undoHistory.addState(undoData);

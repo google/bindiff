@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
 package com.google.security.zynamics.zylib.gui.ProgressDialogs;
 
 import com.google.security.zynamics.zylib.gui.GuiHelper;
-
 import java.awt.Window;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-
 import javax.swing.JDialog;
 import javax.swing.border.EmptyBorder;
 
@@ -33,7 +31,10 @@ public class CEndlessProgressDialog extends JDialog {
 
   private final CProgressPanel m_progressPanel;
 
-  public CEndlessProgressDialog(final Window parent, final String title, final String description,
+  public CEndlessProgressDialog(
+      final Window parent,
+      final String title,
+      final String description,
       final IEndlessProgressModel progressModel) {
     super(parent, title, ModalityType.DOCUMENT_MODAL);
 
@@ -64,8 +65,11 @@ public class CEndlessProgressDialog extends JDialog {
     }
   }
 
-  public static CEndlessProgressDialog show(final Window parent, final String title,
-      final String description, final CEndlessHelperThread thread) {
+  public static CEndlessProgressDialog show(
+      final Window parent,
+      final String title,
+      final String description,
+      final CEndlessHelperThread thread) {
     final CEndlessProgressDialog dlg =
         new CEndlessProgressDialog(parent, title, description, thread);
 

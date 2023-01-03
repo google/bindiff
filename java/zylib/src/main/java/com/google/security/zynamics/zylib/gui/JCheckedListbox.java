@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Vector;
-
 import javax.swing.JCheckBox;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -31,12 +30,10 @@ import javax.swing.border.LineBorder;
 /**
  * List class that can be used to have lists with checkable entries.
  *
- * Note: Does not (yet) work with lists the grow or shrink.
+ * <p>Note: Does not (yet) work with lists the grow or shrink.
  */
 public class JCheckedListbox<T> extends JList<T> {
-  /**
-   * Keeps track of what list items are m_selected.
-   */
+  /** Keeps track of what list items are m_selected. */
   private final boolean[] m_selected;
 
   private boolean m_selectCompleteLine = true;
@@ -119,8 +116,12 @@ public class JCheckedListbox<T> extends JList<T> {
     }
 
     @Override
-    public Component getListCellRendererComponent(final JList<? extends T> list, final T value,
-        final int index, final boolean iss, final boolean chf) {
+    public Component getListCellRendererComponent(
+        final JList<? extends T> list,
+        final T value,
+        final int index,
+        final boolean iss,
+        final boolean chf) {
       checkBox.setEnabled(JCheckedListbox.this.isEnabled());
 
       if (m_selectCompleteLine) {

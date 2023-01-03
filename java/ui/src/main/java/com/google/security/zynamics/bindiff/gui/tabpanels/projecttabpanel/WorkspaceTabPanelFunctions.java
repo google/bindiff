@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -216,52 +216,52 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
     var deletePriExport = true;
     var deleteSecExport = true;
     for (Diff diff : getWorkspace().getDiffList(true)) {
-        if (parentFolder.equals(diff.getMatchesDatabase().getParentFile())) {
-          if (diff.getExportFile(ESide.PRIMARY).equals(priBinExportFile)) {
-            deletePriExport = false;
-          }
-          if (diff.getExportFile(ESide.SECONDARY).equals(secBinExportFile)) {
-            deleteSecExport = false;
-          }
+      if (parentFolder.equals(diff.getMatchesDatabase().getParentFile())) {
+        if (diff.getExportFile(ESide.PRIMARY).equals(priBinExportFile)) {
+          deletePriExport = false;
+        }
+        if (diff.getExportFile(ESide.SECONDARY).equals(secBinExportFile)) {
+          deleteSecExport = false;
         }
       }
+    }
 
     if (deletePriExport && !priBinExportFile.delete()) {
-          return false;
-      }
+      return false;
+    }
     if (deleteSecExport && !secBinExportFile.delete()) {
-          return false;
-      }
+      return false;
+    }
 
     File[] files = parentFolder.listFiles();
-      if (files != null && files.length == 0) {
+    if (files != null && files.length == 0) {
       AllFunctionDiffViewsNode containerNode =
           (AllFunctionDiffViewsNode) workspaceTree.getModel().getRoot().getChildAt(0);
 
-        int removeIndex = -1;
-        for (int index = 0; index < containerNode.getChildCount(); ++index) {
+      int removeIndex = -1;
+      for (int index = 0; index < containerNode.getChildCount(); ++index) {
         FunctionDiffViewsNode child = (FunctionDiffViewsNode) containerNode.getChildAt(index);
-          if (child.getViewDirectory().equals(parentFolder)) {
-            removeIndex = index;
-            child.delete();
-            containerNode.remove(index);
-            workspaceTree.updateTree();
-          }
+        if (child.getViewDirectory().equals(parentFolder)) {
+          removeIndex = index;
+          child.delete();
+          containerNode.remove(index);
+          workspaceTree.updateTree();
         }
+      }
 
-        if (removeIndex == containerNode.getChildCount()) {
-          --removeIndex;
-        }
-        if (removeIndex > -1) {
+      if (removeIndex == containerNode.getChildCount()) {
+        --removeIndex;
+      }
+      if (removeIndex > -1) {
         var toSelect = (FunctionDiffViewsNode) containerNode.getChildAt(removeIndex);
         var toSelectPath = new TreePath(toSelect.getPath());
-          workspaceTree.expandPath(toSelectPath);
-          workspaceTree.setSelectionPath(toSelectPath);
-        }
-
-        return parentFolder.delete();
+        workspaceTree.expandPath(toSelectPath);
+        workspaceTree.setSelectionPath(toSelectPath);
       }
-      return true;
+
+      return parentFolder.delete();
+    }
+    return true;
   }
 
   private MainWindow getParentWindow() {
@@ -563,25 +563,25 @@ public final class WorkspaceTabPanelFunctions extends TabPanelFunctions {
           errorText.append("...");
           break;
         }
-          errorText.append(msg).append("\n");
-        }
-
-        CMessageBox.showError(window, errorText.toString());
+        errorText.append(msg).append("\n");
       }
+
+      CMessageBox.showError(window, errorText.toString());
+    }
 
     if (!directoryDiffer.getOpeningDiffErrorMessages().isEmpty()) {
-        int counter = 0;
+      int counter = 0;
       var errorText = new StringBuilder();
       for (String msg : directoryDiffer.getOpeningDiffErrorMessages()) {
-          if (++counter == 10) {
-            errorText.append("...");
-            break;
-          }
-          errorText.append(msg).append("\n");
+        if (++counter == 10) {
+          errorText.append("...");
+          break;
         }
-
-        CMessageBox.showError(window, errorText.toString());
+        errorText.append(msg).append("\n");
       }
+
+      CMessageBox.showError(window, errorText.toString());
+    }
   }
 
   public LinkedHashSet<ViewTabPanel> getOpenViews(Set<Diff> diffs) {

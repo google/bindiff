@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CEditNodeHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodePressedLeftState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.event.MouseEvent;
 
-
-public class CDefaultNodePressedLeftAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultNodePressedLeftAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodePressedLeftState<NodeType, EdgeType>> {
   @Override
-  public void execute(final CNodePressedLeftState<NodeType, EdgeType> state, final MouseEvent event) {
+  public void execute(
+      final CNodePressedLeftState<NodeType, EdgeType> state, final MouseEvent event) {
     final AbstractZyGraph<NodeType, EdgeType> graph = state.getGraph();
 
     final NodeType draggedNode = graph.getNode(state.getNode());

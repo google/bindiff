@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,20 +19,16 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.ZyGraph2DView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.TooltipGenerator;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyProximityNodeRealizer;
-
 import y.base.Edge;
 import y.base.Node;
 
-/**
- * Helper class to update the tool tip shown in a graph.
- */
+/** Helper class to update the tool tip shown in a graph. */
 public final class CTooltipUpdater {
   /**
    * Determines whether a given node is a proximity node.
-   * 
+   *
    * @param graph The graph the node belongs to.
    * @param node The node to check.
-   * 
    * @return True, if the node is a proximity node. False, otherwise.
    */
   public static boolean isProximityNode(final AbstractZyGraph<?, ?> graph, final Node node) {
@@ -58,7 +54,7 @@ public final class CTooltipUpdater {
 
   /**
    * Sets the tool tip of a node.
-   * 
+   *
    * @param node The node whose tool tip is set.
    */
   public static String updateNodeTooltip(final AbstractZyGraph<?, ?> graph, final Node node) {

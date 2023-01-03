@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
 
 package com.google.security.zynamics.zylib.disassembly;
 
-/**
- * Interface for function methods.
- */
+/** Interface for function methods. */
 public interface IFunction {
   /**
    * Return the address of the function.

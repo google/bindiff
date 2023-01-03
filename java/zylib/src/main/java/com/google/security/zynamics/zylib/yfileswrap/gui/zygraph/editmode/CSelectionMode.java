@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
+import java.awt.Rectangle;
+import java.awt.event.InputEvent;
 import y.base.Edge;
 import y.base.EdgeCursor;
 import y.base.Node;
@@ -26,16 +27,11 @@ import y.base.NodeCursor;
 import y.base.NodeList;
 import y.view.SelectionBoxMode;
 
-import java.awt.Rectangle;
-import java.awt.event.InputEvent;
-
 /**
  * @param <NodeType> Necessary to get additional box selection using SHIFT+DRAGMOUSE
  */
 public class CSelectionMode<NodeType extends ZyGraphNode<?>> extends SelectionBoxMode {
-  /**
-   * The owning graph of the edit mode.
-   */
+  /** The owning graph of the edit mode. */
   private final AbstractZyGraph<NodeType, ?> m_graph;
 
   public CSelectionMode(final AbstractZyGraph<NodeType, ?> graph) {

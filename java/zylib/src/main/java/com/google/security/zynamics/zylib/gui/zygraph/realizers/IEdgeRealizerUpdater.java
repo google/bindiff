@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,16 +23,15 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdg
 public interface IEdgeRealizerUpdater<EdgeType> {
   /**
    * Regenerates the content of the realizer.
-   * 
+   *
    * @param realizer The realizers whose content is updated.
-   * 
    * @return The new content of the realizer.
    */
   ZyLabelContent generateContent(ZyEdgeRealizer<EdgeType> realizer);
 
   /**
    * Called by the realizer to set the realizer updater.
-   * 
+   *
    * @param realizer The realizer to be updated.
    */
   void setRealizer(ZyEdgeRealizer<EdgeType> realizer);

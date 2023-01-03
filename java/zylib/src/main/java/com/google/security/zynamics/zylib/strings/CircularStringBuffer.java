@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,23 +17,17 @@ package com.google.security.zynamics.zylib.strings;
 import java.util.LinkedList;
 import java.util.Queue;
 
-/**
- * Manages a string which behaves like a circular buffer with a fixed number of lines.
- */
+/** Manages a string which behaves like a circular buffer with a fixed number of lines. */
 public class CircularStringBuffer {
-  /**
-   * FIFO string container.
-   */
+  /** FIFO string container. */
   private final Queue<String> m_buffer = new LinkedList<String>();
 
-  /**
-   * Maximum number of lines to be held in the buffer.
-   */
+  /** Maximum number of lines to be held in the buffer. */
   private final int m_maxSize;
 
   /**
    * Creates a new instance of the circular string buffer.
-   * 
+   *
    * @param maxLines The maximum number of lines which are held by the string buffer.
    */
   public CircularStringBuffer(final int maxLines) {
@@ -53,7 +47,7 @@ public class CircularStringBuffer {
 
   /**
    * Adds the given text to the circular buffer.
-   * 
+   *
    * @param text The text to be added to the buffer.
    */
   public void add(final String text) {
@@ -67,7 +61,7 @@ public class CircularStringBuffer {
 
   /**
    * Return the number of lines in the buffer.
-   * 
+   *
    * @return The number of lines in the buffer.
    */
   public int getSize() {
@@ -76,7 +70,7 @@ public class CircularStringBuffer {
 
   /**
    * Returns the circular buffer in one string object.
-   * 
+   *
    * @return The whole buffer represented as one string.
    */
   public String getText() {

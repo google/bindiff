@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,9 +29,7 @@ import java.awt.event.MouseWheelEvent;
 import java.util.Set;
 import y.view.Graph2DViewMouseWheelZoomListener;
 
-/**
- * Listens to mouse wheel events in edit mode.
- */
+/** Listens to mouse wheel events in edit mode. */
 public class ZyEditModeMouseWheelListener<
         NodeType extends ZyGraphNode<?> & ISelectableNode & IViewableNode,
         EdgeType extends ZyGraphEdge<?, ?, ?>>
@@ -76,35 +74,46 @@ public class ZyEditModeMouseWheelListener<
   }
 
   private boolean hasSelectedNode() {
-    return GraphHelpers.any(m_zyGraph, new INodeFilter<NodeType>() {
-      @Override
-      public boolean qualifies(final NodeType node) {
-        return node.isSelected();
-      }
-    });
+    return GraphHelpers.any(
+        m_zyGraph,
+        new INodeFilter<NodeType>() {
+          @Override
+          public boolean qualifies(final NodeType node) {
+            return node.isSelected();
+          }
+        });
   }
 
   private void moveHorizontal(final boolean zoomOut) {
     if (zoomOut) {
-      MoveFunctions.pan(m_zyGraph, 0, SCROLL_SUB_FACTOR
-          * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity());
+      MoveFunctions.pan(
+          m_zyGraph,
+          0,
+          SCROLL_SUB_FACTOR * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity());
     } else {
-      MoveFunctions.pan(m_zyGraph, 0, -SCROLL_SUB_FACTOR
-          * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity());
+      MoveFunctions.pan(
+          m_zyGraph,
+          0,
+          -SCROLL_SUB_FACTOR * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity());
     }
   }
 
   private void moveVertical(final boolean scrollDirection) {
     if (scrollDirection) {
-      MoveFunctions.pan(m_zyGraph, SCROLL_SUB_FACTOR
-          * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity(), 0);
+      MoveFunctions.pan(
+          m_zyGraph,
+          SCROLL_SUB_FACTOR * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity(),
+          0);
     } else {
-      MoveFunctions.pan(m_zyGraph, -SCROLL_SUB_FACTOR
-          * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity(), 0);
+      MoveFunctions.pan(
+          m_zyGraph,
+          -SCROLL_SUB_FACTOR * m_zyGraph.getSettings().getMouseSettings().getScrollSensitivity(),
+          0);
     }
   }
 
-  private void zoom(final MouseWheelEvent event, final boolean zoomOut, final boolean centerSelected) {
+  private void zoom(
+      final MouseWheelEvent event, final boolean zoomOut, final boolean centerSelected) {
     if (!hasSelectedNode() || !centerSelected) {
       // Zoom to cursor in the absence of selected nodes
       super.mouseWheelMoved(event);
@@ -155,8 +164,12 @@ public class ZyEditModeMouseWheelListener<
     final boolean changeMode = event.isControlDown();
 
     for (int i = 0; i < ticks; ++i) {
-      if (((m_zyGraph.getSettings().getMouseSettings().getMouseWheelAction() == MouseWheelAction.ZOOM) && !changeMode)
-          || ((m_zyGraph.getSettings().getMouseSettings().getMouseWheelAction() == MouseWheelAction.SCROLL) && changeMode)) {
+      if (((m_zyGraph.getSettings().getMouseSettings().getMouseWheelAction()
+                  == MouseWheelAction.ZOOM)
+              && !changeMode)
+          || ((m_zyGraph.getSettings().getMouseSettings().getMouseWheelAction()
+                  == MouseWheelAction.SCROLL)
+              && changeMode)) {
         handleInZoomMode(event);
       } else {
         handleInMoveMode(event);

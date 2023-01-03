@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,18 +17,14 @@ package com.google.security.zynamics.zylib.general;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Contains methods that are useful when working with Pair objects.
- */
+/** Contains methods that are useful when working with Pair objects. */
 public final class PairHelpers {
   /**
    * Takes a list of <S, T> pairs and retrieves all S elements from the pairs in the list.
-   * 
+   *
    * @param <S> Type of the first element of the pairs in the list.
    * @param <T> Type of the second element of the pairs in the list.
-   * 
    * @param list The list of <S, T> pairs.
-   * 
    * @return A list of all S elements of the input list.
    */
   public static <S, T> List<S> projectFirst(final List<Pair<S, T>> list) {
@@ -43,12 +39,10 @@ public final class PairHelpers {
 
   /**
    * Takes a list of <S, T> pairs and retrieves all T elements from the pairs in the list.
-   * 
+   *
    * @param <S> Type of the first element of the pairs in the list.
    * @param <T> Type of the second element of the pairs in the list.
-   * 
    * @param list The list of <S, T> pairs.
-   * 
    * @return A list of all T elements of the input list.
    */
   public static <S, T> List<T> projectSecond(final List<Pair<S, T>> list) {

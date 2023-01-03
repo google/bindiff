@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ public class ConsolePane extends AbstractScriptPanel {
 
   private final TabCompletionManager m_tabCompletion = new TabCompletionManager();
 
-  private final static boolean m_IsMultilineInput = false;
+  private static final boolean m_IsMultilineInput = false;
 
   private int m_LastAutoCompleteChunkLength = 0;
 
@@ -153,9 +153,7 @@ public class ConsolePane extends AbstractScriptPanel {
     return getDocument().getLineStartOffset(getInputPane().getText().length());
   }
 
-  /**
-   * Set the caret to the end of the pane's text.
-   */
+  /** Set the caret to the end of the pane's text. */
   private void goToLastLine() {
     getInputPane().setCaretPosition(getInputPane().getText().length());
   }
@@ -164,8 +162,7 @@ public class ConsolePane extends AbstractScriptPanel {
    * Add a new empty interpreter line with the corresponding prompt.
    *
    * @params additionalInput if the input is multi line this can be set to true in order to change
-   *         the prompt to indicate the need of additional input
-   *
+   *     the prompt to indicate the need of additional input
    */
   private void interpreterNewLine(final boolean additionalInput) {
     final int position = getInputPane().getCaretPosition();
@@ -254,8 +251,9 @@ public class ConsolePane extends AbstractScriptPanel {
     private void execute() {
       final InternalScriptRunner loader = new InternalScriptRunner();
 
-      final CEndlessProgressDialog dlg = new CEndlessProgressDialog(null, getProgressWindowTitle(),
-          Constants.MESSAGE_RUNNING_SCRIPT, loader);
+      final CEndlessProgressDialog dlg =
+          new CEndlessProgressDialog(
+              null, getProgressWindowTitle(), Constants.MESSAGE_RUNNING_SCRIPT, loader);
 
       loader.run();
 
@@ -267,9 +265,9 @@ public class ConsolePane extends AbstractScriptPanel {
     }
 
     private void handleBackspace(final KeyEvent e) {
-      if ((getInputPane().getSelectionStart() == getInputPane().getSelectionEnd()) && (
-          getDocument().getCaretOffsetInLine(getInputPane().getCaretPosition())
-          <= m_CurrentPrompt.length())) {
+      if ((getInputPane().getSelectionStart() == getInputPane().getSelectionEnd())
+          && (getDocument().getCaretOffsetInLine(getInputPane().getCaretPosition())
+              <= m_CurrentPrompt.length())) {
         e.consume();
       }
     }
@@ -369,7 +367,6 @@ public class ConsolePane extends AbstractScriptPanel {
           e.consume();
         }
       }
-
     }
 
     private void handleUpKey(final KeyEvent e) {
@@ -458,25 +455,25 @@ public class ConsolePane extends AbstractScriptPanel {
       }
 
       public void run() {
-        m_thread = new Thread() {
-          @Override
-          public void run() {
-            try {
-              engine.eval(buffered);
-            } catch (final ScriptException e) {
-              getOutputPane().setText(e.getLocalizedMessage());
-              quitProperly = false;
-            }
+        m_thread =
+            new Thread() {
+              @Override
+              public void run() {
+                try {
+                  engine.eval(buffered);
+                } catch (final ScriptException e) {
+                  getOutputPane().setText(e.getLocalizedMessage());
+                  quitProperly = false;
+                }
 
-            for (final IEndlessProgressListener listener : listeners) {
-              listener.finished();
-            }
-          }
-        };
+                for (final IEndlessProgressListener listener : listeners) {
+                  listener.finished();
+                }
+              }
+            };
 
         m_thread.start();
       }
-
     }
   }
 
@@ -490,10 +487,10 @@ public class ConsolePane extends AbstractScriptPanel {
      * @param candidates Array of completion candidates
      * @param str string to autocomplete
      * @param completionIdx number of completions to skip. It will wrap around if it's bigger than
-     *        the number of completions.
+     *     the number of completions.
      */
-    private String getCompletionCandidate(final String candidates[], final String str,
-        int completionIdx) {
+    private String getCompletionCandidate(
+        final String candidates[], final String str, int completionIdx) {
       boolean completionsExist = false;
 
       // Loop through the candidate list searching for completions while
@@ -534,6 +531,5 @@ public class ConsolePane extends AbstractScriptPanel {
     public void reset() {
       m_completionIndex = 0;
     }
-
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,31 +21,25 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyNodeRealizerL
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
-import y.view.LineType;
-import y.view.NodeRealizer;
-import y.view.ShapeNodeRealizer;
-
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import y.view.LineType;
+import y.view.NodeRealizer;
+import y.view.ShapeNodeRealizer;
 
-/**
- * Realizer class for circular proximity browsing nodes.
- */
-public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>> extends
-    ZyNodeRealizer<ZyProximityNode<RawNodeType>> {
+/** Realizer class for circular proximity browsing nodes. */
+public class ZyProximityNodeRealizer<RawNodeType extends IViewNode<?>>
+    extends ZyNodeRealizer<ZyProximityNode<RawNodeType>> {
   private static Color m_backGroundColor = new Color(250, 250, 255);
 
-  /**
-   * Content that is displayed in the realizer.
-   */
+  /** Content that is displayed in the realizer. */
   private final ZyLabelContent m_content;
 
   /**
    * Creates a new node realizer.
-   * 
+   *
    * @param content Content of the realizer.
    */
   public ZyProximityNodeRealizer(final ZyLabelContent content) {

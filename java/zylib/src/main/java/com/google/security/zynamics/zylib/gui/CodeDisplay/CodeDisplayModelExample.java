@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,8 +31,9 @@ public class CodeDisplayModelExample implements ICodeDisplayModel {
   // two columns always contain one line each, the third column contains two
   // lines.
   private ArrayList< // Rows
-      ArrayList< // Fields
-          ArrayList<String>>> data = new ArrayList<>();
+          ArrayList< // Fields
+              ArrayList<String>>>
+      data = new ArrayList<>();
   private int totalNumberOfLines = 0;
 
   private Font fontColumnA = new Font(Font.MONOSPACED, Font.BOLD, 12);
@@ -168,9 +169,12 @@ public class CodeDisplayModelExample implements ICodeDisplayModel {
           if (stringToEdit.length() < coordinate.getFieldIndex()) {
             stringToEdit = padRight(stringToEdit, coordinate.getFieldIndex());
           }
-          String newString = stringToEdit.substring(0, coordinate.getFieldIndex())
-              + event.getKeyChar() + stringToEdit.substring(coordinate.getFieldIndex());
-          data.get(coordinate.getRow()).get(coordinate.getColumn())
+          String newString =
+              stringToEdit.substring(0, coordinate.getFieldIndex())
+                  + event.getKeyChar()
+                  + stringToEdit.substring(coordinate.getFieldIndex());
+          data.get(coordinate.getRow())
+              .get(coordinate.getColumn())
               .set(coordinate.getLine(), newString);
           coordinate.setFieldIndex(coordinate.getFieldIndex() + 1);
           break;

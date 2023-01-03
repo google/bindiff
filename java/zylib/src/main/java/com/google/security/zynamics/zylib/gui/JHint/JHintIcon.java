@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,18 +15,16 @@
 package com.google.security.zynamics.zylib.gui.JHint;
 
 import com.google.security.zynamics.zylib.resources.Constants;
-
 import java.awt.BorderLayout;
-
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-
 public class JHintIcon extends JPanel {
   private static final long serialVersionUID = 6381830838383637854L;
 
-  private static final ImageIcon HELP_ICON = new ImageIcon(Constants.class.getResource("help.png")); //$NON-NLS-1$
+  private static final ImageIcon HELP_ICON =
+      new ImageIcon(Constants.class.getResource("help.png")); // $NON-NLS-1$
 
   private final String m_message;
 

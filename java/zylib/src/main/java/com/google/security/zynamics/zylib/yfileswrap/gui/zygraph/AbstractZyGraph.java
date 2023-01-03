@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,15 +38,6 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.grouping.GroupH
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ZoomHelpers;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyDefaultProximityBrowser;
-
-import y.base.Edge;
-import y.base.Node;
-import y.layout.LayoutGraphWriter;
-import y.view.Graph2D;
-import y.view.Graph2DView;
-import y.view.hierarchy.GroupNodeRealizer;
-import y.view.hierarchy.HierarchyManager;
-
 import java.awt.Cursor;
 import java.awt.event.FocusListener;
 import java.io.File;
@@ -58,6 +49,13 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import y.base.Edge;
+import y.base.Node;
+import y.layout.LayoutGraphWriter;
+import y.view.Graph2D;
+import y.view.Graph2DView;
+import y.view.hierarchy.GroupNodeRealizer;
+import y.view.hierarchy.HierarchyManager;
 
 /**
  * Base class that provides all kinds of management functions for working with yfiles Graph2D
@@ -66,13 +64,12 @@ import java.util.Set;
  * @param <NodeType> Base type of all nodes that are present in the graph.
  * @param <EdgeType> Base type of all edges that are present in the graph.
  */
-public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public abstract class AbstractZyGraph<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IIterableGraph<NodeType>, IEdgeIterableGraph<EdgeType> {
   private static final double STANDARD_ZOOM_FACTOR = 0.8;
 
-  /**
-   * List of listeners that are notified about click events.
-   */
+  /** List of listeners that are notified about click events. */
   private final ListenerProvider<IZyGraphListener<NodeType, EdgeType>> m_graphListeners =
       new ListenerProvider<IZyGraphListener<NodeType, EdgeType>>();
 
@@ -87,19 +84,13 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
    */
   private ZyDefaultProximityBrowser<NodeType, EdgeType> m_proximityBrowser;
 
-  /**
-   * The yfiles graph that provides the elements of this graph.
-   */
+  /** The yfiles graph that provides the elements of this graph. */
   private final Graph2D m_graph;
 
-  /**
-   * The view where the graph is shown.
-   */
+  /** The view where the graph is shown. */
   private final ZyGraph2DView m_view;
 
-  /**
-   * The edit mode that describes the GUI behavior of the graph.
-   */
+  /** The edit mode that describes the GUI behavior of the graph. */
   private final ZyEditMode<NodeType, EdgeType> m_editMode;
 
   private final ZyGraphSelectionObserver m_selectionObserver = new ZyGraphSelectionObserver();
@@ -119,8 +110,11 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
    * @param edgeMap A mapping that links yedge objects of the graph with the edge objects.
    * @param settings Settings used by the graph.
    */
-  protected AbstractZyGraph(final ZyGraph2DView view, final LinkedHashMap<Node, NodeType> nodeMap,
-      final LinkedHashMap<Edge, EdgeType> edgeMap, final AbstractZyGraphSettings settings) {
+  protected AbstractZyGraph(
+      final ZyGraph2DView view,
+      final LinkedHashMap<Node, NodeType> nodeMap,
+      final LinkedHashMap<Edge, EdgeType> edgeMap,
+      final AbstractZyGraphSettings settings) {
     m_view = Preconditions.checkNotNull(view, "Error: View argument can't be null");
     Preconditions.checkNotNull(nodeMap, "Error: Node map argument can't be null");
 
@@ -152,9 +146,7 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     m_graph.addGraphListener(m_selectionObserver);
   }
 
-  /**
-   * Initializes various things like proximity browsing, edit mode, ...
-   */
+  /** Initializes various things like proximity browsing, edit mode, ... */
   private void initializeView() {
     // Initialize the default edit mode.
     getView().addViewMode(m_editMode);
@@ -188,17 +180,19 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
 
   private void showNeighbors(final Collection<NodeType> toShow) {
     final Set<NodeType> all =
-        ProximityRangeCalculator.getNeighbors(this, toShow, getSettings().getProximitySettings()
-            .getProximityBrowsingChildren(), getSettings().getProximitySettings()
-            .getProximityBrowsingParents());
+        ProximityRangeCalculator.getNeighbors(
+            this,
+            toShow,
+            getSettings().getProximitySettings().getProximityBrowsingChildren(),
+            getSettings().getProximitySettings().getProximityBrowsingParents());
 
     showNodesInternal(all);
   }
 
   private void showNodesInternal(final Collection<NodeType> all) {
     for (final NodeType node : all) {
-      Preconditions
-          .checkNotNull(node, "Error: The list of nodes to show contained an invalid node");
+      Preconditions.checkNotNull(
+          node, "Error: The list of nodes to show contained an invalid node");
 
       if (!((IViewNode<?>) node.getRawNode()).isVisible()) {
         ((IViewNode<?>) node.getRawNode()).setVisible(true);
@@ -209,46 +203,48 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
   private Collection<NodeType> sortLayers(final Collection<NodeType> nodes) {
     final List<NodeType> sortedNodes = new ArrayList<NodeType>(nodes);
 
-    Collections.sort(sortedNodes, new Comparator<NodeType>() {
-      private boolean isInsideGroup(final IViewNode<?> node, final IGroupNode<?, ?> group) {
-        final IGroupNode<?, ?> parentGroup = node.getParentGroup();
+    Collections.sort(
+        sortedNodes,
+        new Comparator<NodeType>() {
+          private boolean isInsideGroup(final IViewNode<?> node, final IGroupNode<?, ?> group) {
+            final IGroupNode<?, ?> parentGroup = node.getParentGroup();
 
-        if (parentGroup == null) {
-          return false;
-        }
-        if (parentGroup == group) {
-          return true;
-        }
-        return isInsideGroup(node, group.getParentGroup());
-      }
-
-      @Override
-      public int compare(final NodeType lhs, final NodeType rhs) {
-        final IViewNode<?> rawLhs = lhs.getRawNode();
-        final IViewNode<?> rawRhs = rhs.getRawNode();
-
-        if ((rawLhs instanceof IGroupNode<?, ?>) && (rawRhs instanceof IGroupNode<?, ?>)) {
-          if (isInsideGroup(rawRhs, (IGroupNode<?, ?>) rawLhs)) {
-            // RHS is in group LHS => RHS must be hidden first
-            return 1;
+            if (parentGroup == null) {
+              return false;
+            }
+            if (parentGroup == group) {
+              return true;
+            }
+            return isInsideGroup(node, group.getParentGroup());
           }
-          if (isInsideGroup(rawLhs, (IGroupNode<?, ?>) rawRhs)) {
-            // LHS is in group RHS => LHS must be hidden first
-            return -1;
+
+          @Override
+          public int compare(final NodeType lhs, final NodeType rhs) {
+            final IViewNode<?> rawLhs = lhs.getRawNode();
+            final IViewNode<?> rawRhs = rhs.getRawNode();
+
+            if ((rawLhs instanceof IGroupNode<?, ?>) && (rawRhs instanceof IGroupNode<?, ?>)) {
+              if (isInsideGroup(rawRhs, (IGroupNode<?, ?>) rawLhs)) {
+                // RHS is in group LHS => RHS must be hidden first
+                return 1;
+              }
+              if (isInsideGroup(rawLhs, (IGroupNode<?, ?>) rawRhs)) {
+                // LHS is in group RHS => LHS must be hidden first
+                return -1;
+              }
+              return 0;
+            }
+            if (rawLhs instanceof IGroupNode<?, ?>) {
+              // If the node is inside the group node, the node must be hidden first
+              return isInsideGroup(rawRhs, (IGroupNode<?, ?>) rawLhs) ? 1 : 0;
+            }
+            if (rhs instanceof IGroupNode<?, ?>) {
+              // If the node is inside the group node, the node must be hidden first
+              return isInsideGroup(rawLhs, (IGroupNode<?, ?>) rawRhs) ? 1 : 0;
+            }
+            return 0;
           }
-          return 0;
-        }
-        if (rawLhs instanceof IGroupNode<?, ?>) {
-          // If the node is inside the group node, the node must be hidden first
-          return isInsideGroup(rawRhs, (IGroupNode<?, ?>) rawLhs) ? 1 : 0;
-        }
-        if (rhs instanceof IGroupNode<?, ?>) {
-          // If the node is inside the group node, the node must be hidden first
-          return isInsideGroup(rawLhs, (IGroupNode<?, ?>) rawRhs) ? 1 : 0;
-        }
-        return 0;
-      }
-    });
+        });
 
     return sortedNodes;
   }
@@ -317,9 +313,7 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     m_settingsSynchronizer.dispose();
   }
 
-  /**
-   * Layouts the graph using the last set layouter that was passed to setLayouter.
-   */
+  /** Layouts the graph using the last set layouter that was passed to setLayouter. */
   public void doLayout() {
     LayoutFunctions.doLayout(this, m_settings.getLayoutSettings().getCurrentLayouter());
   }
@@ -342,8 +336,8 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
   }
 
   /**
-   * Returns the Graph2D object managed by the AbstractZyGraph. Be careful with this function -
-   * do not use it from code that lives outside of the yfileswrap/ folders, because it introduces
+   * Returns the Graph2D object managed by the AbstractZyGraph. Be careful with this function - do
+   * not use it from code that lives outside of the yfileswrap/ folders, because it introduces
    * dependency on yFiles.
    *
    * @return The Graph2D object.
@@ -368,7 +362,6 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
    * Given a ynode object, this function returns the corresponding node.
    *
    * @param node The ynode object.
-   *
    * @return The node object that corresponds to the ynode object.
    */
   public NodeType getNode(final Node node) {
@@ -519,8 +512,8 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     m_graph.firePreEvent();
 
     for (final NodeType node : nodes) {
-      Preconditions.checkNotNull(node,
-          "Error: The list of nodes to select contained an invalid node.");
+      Preconditions.checkNotNull(
+          node, "Error: The list of nodes to select contained an invalid node.");
 
       ((IViewNode<?>) node.getRawNode()).setSelected(selected);
     }
@@ -534,19 +527,20 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
    * @param toSelect The list of nodes to select.
    * @param toUnselect The list of nodes to unselect.
    */
-  public void selectNodes(final Collection<NodeType> toSelect, final Collection<NodeType> toUnselect) {
+  public void selectNodes(
+      final Collection<NodeType> toSelect, final Collection<NodeType> toUnselect) {
     m_graph.firePreEvent();
 
     for (final NodeType node : toSelect) {
-      Preconditions.checkNotNull(node,
-          "Error: The list of nodes to select contained an invalid node");
+      Preconditions.checkNotNull(
+          node, "Error: The list of nodes to select contained an invalid node");
 
       ((IViewNode<?>) node.getRawNode()).setSelected(true);
     }
 
     for (final NodeType node : toUnselect) {
-      Preconditions.checkNotNull(node,
-          "Error: The list of nodes to unselect contained an invalid node");
+      Preconditions.checkNotNull(
+          node, "Error: The list of nodes to unselect contained an invalid node");
 
       ((IViewNode<?>) node.getRawNode()).setSelected(false);
     }
@@ -594,15 +588,17 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
   public void showNodes(final Collection<NodeType> toShow, final Collection<NodeType> toHide) {
     final IProximitySettings proxiSettings = getSettings().getProximitySettings();
     final Set<NodeType> neighbors =
-        ProximityRangeCalculator.getNeighbors(this, toShow,
+        ProximityRangeCalculator.getNeighbors(
+            this,
+            toShow,
             proxiSettings.getProximityBrowsingChildren(),
             proxiSettings.getProximityBrowsingParents());
 
     toHide.removeAll(neighbors);
 
     for (final NodeType node : sortLayers(toHide)) {
-      Preconditions
-          .checkNotNull(node, "Error: The list of nodes to hide contained an invalid node");
+      Preconditions.checkNotNull(
+          node, "Error: The list of nodes to hide contained an invalid node");
 
       ((IViewNode<?>) node.getRawNode()).setVisible(false);
     }
@@ -612,12 +608,16 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     notifyVisibilityListeners();
   }
 
-  public void showNodes(final Collection<NodeType> toShow, final Collection<NodeType> toHide,
+  public void showNodes(
+      final Collection<NodeType> toShow,
+      final Collection<NodeType> toHide,
       final boolean addNeighbours) {
     if (addNeighbours) {
       final IProximitySettings proxiSettings = getSettings().getProximitySettings();
       final Set<NodeType> neighbors =
-          ProximityRangeCalculator.getNeighbors(this, toShow,
+          ProximityRangeCalculator.getNeighbors(
+              this,
+              toShow,
               proxiSettings.getProximityBrowsingChildren(),
               proxiSettings.getProximityBrowsingParents());
 
@@ -625,8 +625,8 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     }
 
     for (final NodeType node : sortLayers(toHide)) {
-      Preconditions
-          .checkNotNull(node, "Error: The list of nodes to hide contained an invalid node");
+      Preconditions.checkNotNull(
+          node, "Error: The list of nodes to hide contained an invalid node");
 
       ((IViewNode<?>) node.getRawNode()).setVisible(false);
     }
@@ -639,7 +639,6 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
 
         ((IViewNode<?>) node.getRawNode()).setVisible(true);
       }
-
     }
 
     notifyVisibilityListeners();
@@ -658,9 +657,7 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     m_graph.updateViews();
   }
 
-  /**
-   * Zooms the graph in by the standard zoom factor.
-   */
+  /** Zooms the graph in by the standard zoom factor. */
   public void zoomIn() {
     m_view.setZoom((m_view.getZoom() * 1.0) / STANDARD_ZOOM_FACTOR);
 
@@ -669,9 +666,7 @@ public abstract class AbstractZyGraph<NodeType extends ZyGraphNode<?>, EdgeType 
     m_graph.updateViews();
   }
 
-  /**
-   * Zooms the graph out by the standard zoom factor.
-   */
+  /** Zooms the graph out by the standard zoom factor. */
   public void zoomOut() {
     m_view.setZoom(m_view.getZoom() * STANDARD_ZOOM_FACTOR);
 

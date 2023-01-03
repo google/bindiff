@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,6 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.wrappers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdge;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
@@ -25,6 +21,9 @@ import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
 import com.google.security.zynamics.zylib.types.lists.FilledList;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class ViewNodeAdapter implements IGraphNode<ViewNodeAdapter> {
   private final IViewNode<?> m_viewNode;
@@ -35,8 +34,10 @@ public class ViewNodeAdapter implements IGraphNode<ViewNodeAdapter> {
     m_viewNode = viewNode;
   }
 
-  private static <NodeType extends ZyGraphNode<? extends IViewNode<?>>> Collection<NodeType> convert(
-      final AbstractZyGraph<NodeType, ?> graph, final Collection<? extends IViewNode<?>> nodes) {
+  private static <NodeType extends ZyGraphNode<? extends IViewNode<?>>>
+      Collection<NodeType> convert(
+          final AbstractZyGraph<NodeType, ?> graph,
+          final Collection<? extends IViewNode<?>> nodes) {
     final List<NodeType> list = new ArrayList<NodeType>();
 
     for (final IViewNode<?> node : nodes) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.helpers;
 
-
 /**
  * Nodes that implement this interface unlock {@link GraphHelpers} functions that require tests
  * whether a node is selected or not.
@@ -22,7 +21,7 @@ package com.google.security.zynamics.zylib.gui.zygraph.helpers;
 public interface ISelectableNode {
   /**
    * Determines whether the node is selected or not.
-   * 
+   *
    * @return True, if the node is selected. False, if the node is deselected.
    */
   boolean isSelected();

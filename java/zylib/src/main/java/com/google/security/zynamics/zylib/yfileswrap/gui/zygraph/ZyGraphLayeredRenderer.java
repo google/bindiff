@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,15 +16,13 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.gui.zygraph.IFineGrainedSloppyGraph2DView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyGroupNodeRealizer;
-
 import y.base.Edge;
 import y.base.Node;
 import y.view.Graph2D;
 import y.view.hierarchy.HierarchyManager;
 
-
-public class ZyGraphLayeredRenderer<ViewType extends IFineGrainedSloppyGraph2DView> extends
-    ZyGraphFineGrainedRenderer<ViewType> {
+public class ZyGraphLayeredRenderer<ViewType extends IFineGrainedSloppyGraph2DView>
+    extends ZyGraphFineGrainedRenderer<ViewType> {
   private Node m_node = null;
 
   public ZyGraphLayeredRenderer(final ViewType inputView) {
@@ -32,9 +30,7 @@ public class ZyGraphLayeredRenderer<ViewType extends IFineGrainedSloppyGraph2DVi
     setLayeredPainting(true);
   }
 
-  /**
-   * Determines whether any of the parent nodes of the given node is selected.
-   */
+  /** Determines whether any of the parent nodes of the given node is selected. */
   private boolean isAnyParentNodeSelected(final Node n) {
     final Graph2D graph = (Graph2D) n.getGraph();
     final HierarchyManager hierarchy = graph.getHierarchyManager();

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,19 +14,18 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
-import java.awt.Point;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyCaret;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
 import com.google.security.zynamics.zylib.strings.StringHelper;
+import java.awt.Point;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 
 public abstract class CAbstractKeyBehavior {
   private ZyLabelContent m_labelContent = null;
@@ -101,8 +100,8 @@ public abstract class CAbstractKeyBehavior {
     labelContent.getLineEditor().recreateLabelLines(labelContent, labelModel);
   }
 
-  protected int correctMouseReleasedX(final int mouseReleased_X, final int mouseReleased_Y,
-      final int mousePressed_Y) {
+  protected int correctMouseReleasedX(
+      final int mouseReleased_X, final int mouseReleased_Y, final int mousePressed_Y) {
     final int lastReleasedXPos = getLastLineXPos(mouseReleased_Y);
 
     if ((mouseReleased_X > lastReleasedXPos) && (mouseReleased_Y == mousePressed_Y)) {
@@ -169,8 +168,10 @@ public abstract class CAbstractKeyBehavior {
         final String text = lineContent.getText();
 
         changedText =
-            new StringBuilder(String.format("%s%s",
-                text.substring(editObject.getStart(), mouseStartX), text.substring(mouseEndX)));
+            new StringBuilder(
+                String.format(
+                    "%s%s",
+                    text.substring(editObject.getStart(), mouseStartX), text.substring(mouseEndX)));
       } else {
         // It's multi line editable object.
 
@@ -199,10 +200,13 @@ public abstract class CAbstractKeyBehavior {
           final String text = curLineContent.getText();
           final int curEndX = Math.min(text.length(), tempMouseEndX);
 
-          if ((lineIndex >= mouseStartY) && (lineIndex <= mouseEndY)
+          if ((lineIndex >= mouseStartY)
+              && (lineIndex <= mouseEndY)
               && (text.length() > tempMouseStartX)) {
             final String afterDeletion =
-                String.format("%s%s", text.substring(curEditObject.getStart(), tempMouseStartX),
+                String.format(
+                    "%s%s",
+                    text.substring(curEditObject.getStart(), tempMouseStartX),
                     text.substring(curEndX));
 
             if (!afterDeletion.equals("\n") && !afterDeletion.equals("\r")) {
@@ -242,8 +246,9 @@ public abstract class CAbstractKeyBehavior {
       // Update object, recreate lines and set caret.
       if (editObject != null) {
         editObject.update(changedText.toString());
-        getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-            editObject.getPersistentModel());
+        getLabelContent()
+            .getLineEditor()
+            .recreateLabelLines(getLabelContent(), editObject.getPersistentModel());
       }
       setCaret(caretStartX, mouseStartX, mouseStartY, caretStartX, mouseStartX, mouseStartY);
     }
@@ -610,15 +615,17 @@ public abstract class CAbstractKeyBehavior {
             lineContent.getText().substring(editObject.getStart(), editObject.getEnd());
 
         String changedText =
-            String.format("%s%s%s", lineText.substring(0, textCursor), insertText,
-                lineText.substring(textCursor));
+            String.format(
+                "%s%s%s",
+                lineText.substring(0, textCursor), insertText, lineText.substring(textCursor));
 
         changedText = getMultilineComment(caretY, changedText);
 
         editObject.update(changedText);
 
-        getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-            editObject.getPersistentModel());
+        getLabelContent()
+            .getLineEditor()
+            .recreateLabelLines(getLabelContent(), editObject.getPersistentModel());
 
         caretX += insertText.length() - lastLineBreak - 1;
         caretY += insertedLineCount;
@@ -628,8 +635,9 @@ public abstract class CAbstractKeyBehavior {
         editObject.updateComment(insertText, ECommentPlacement.BEHIND_LINE);
 
         if (!isLabelComment(caretY)) {
-          getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-              editObject.getPersistentModel());
+          getLabelContent()
+              .getLineEditor()
+              .recreateLabelLines(getLabelContent(), editObject.getPersistentModel());
 
           final int insertedLineCount = StringHelper.count(insertText, '\n');
 
@@ -656,8 +664,11 @@ public abstract class CAbstractKeyBehavior {
         final int insertXpos = tempCaretX - editObject.getStart();
 
         changedText =
-            String.format("%s%s%s", lineText.substring(editObject.getStart(), insertXpos),
-                insertText, lineText.substring(caretX, editObject.getEnd()));
+            String.format(
+                "%s%s%s",
+                lineText.substring(editObject.getStart(), insertXpos),
+                insertText,
+                lineText.substring(caretX, editObject.getEnd()));
 
         editObject.update(changedText);
       }
@@ -670,22 +681,51 @@ public abstract class CAbstractKeyBehavior {
     m_undoManager.redo();
   }
 
-  protected void setCaret(final int caretStartPos_X, final int mousePressed_X,
-      final int mousePressed_Y, final int caretEndPos_X, final int mouseReleased_X,
+  protected void setCaret(
+      final int caretStartPos_X,
+      final int mousePressed_X,
+      final int mousePressed_Y,
+      final int caretEndPos_X,
+      final int mouseReleased_X,
       final int mouseReleased_Y) {
-    getCaret().setCaret(caretStartPos_X, mousePressed_X, mousePressed_Y, caretEndPos_X,
-        mouseReleased_X, mouseReleased_Y);
+    getCaret()
+        .setCaret(
+            caretStartPos_X,
+            mousePressed_X,
+            mousePressed_Y,
+            caretEndPos_X,
+            mouseReleased_X,
+            mouseReleased_Y);
   }
 
-  protected void udpateUndolist(final ZyLabelContent labelContent, final Object persistantModel,
-      final IZyEditableObject editableObject, final String changedText,
-      final boolean isAboveLineComment, final boolean isBehindLineComment,
-      final boolean isLabelComment, final int caretStartX, final int caretMousePressedX,
-      final int caretMousePressedY, final int caretEndX, final int caretMouseReleasedX,
+  protected void udpateUndolist(
+      final ZyLabelContent labelContent,
+      final Object persistantModel,
+      final IZyEditableObject editableObject,
+      final String changedText,
+      final boolean isAboveLineComment,
+      final boolean isBehindLineComment,
+      final boolean isLabelComment,
+      final int caretStartX,
+      final int caretMousePressedX,
+      final int caretMousePressedY,
+      final int caretEndX,
+      final int caretMouseReleasedX,
       final int caretMouseReleasedY) {
-    m_undoManager.addUndoState(labelContent, persistantModel, editableObject, changedText,
-        isAboveLineComment, isBehindLineComment, isLabelComment, caretStartX, caretMousePressedX,
-        caretMousePressedY, caretEndX, caretMouseReleasedX, caretMouseReleasedY);
+    m_undoManager.addUndoState(
+        labelContent,
+        persistantModel,
+        editableObject,
+        changedText,
+        isAboveLineComment,
+        isBehindLineComment,
+        isLabelComment,
+        caretStartX,
+        caretMousePressedX,
+        caretMousePressedY,
+        caretEndX,
+        caretMouseReleasedX,
+        caretMouseReleasedY);
   }
 
   protected void undo() {

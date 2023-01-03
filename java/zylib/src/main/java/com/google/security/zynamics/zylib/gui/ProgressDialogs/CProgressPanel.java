@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@ package com.google.security.zynamics.zylib.gui.ProgressDialogs;
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.SwingInvoker;
 import com.google.security.zynamics.zylib.resources.Constants;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -56,16 +54,19 @@ public class CProgressPanel extends JPanel {
 
   private final boolean m_showSeconds;
 
-  public CProgressPanel(final String description, final boolean indeterminate,
-      final boolean showCancelButton) {
+  public CProgressPanel(
+      final String description, final boolean indeterminate, final boolean showCancelButton) {
     this(description, indeterminate, true, showCancelButton);
   }
 
-  public CProgressPanel(final String description, final boolean indeterminate,
-      final boolean showSeconds, final ActionListener cancelButtonListener) {
+  public CProgressPanel(
+      final String description,
+      final boolean indeterminate,
+      final boolean showSeconds,
+      final ActionListener cancelButtonListener) {
     m_externalCancelButtonListener =
-        Preconditions.checkNotNull(cancelButtonListener,
-            "Error: Cancel button listener can't be null.");
+        Preconditions.checkNotNull(
+            cancelButtonListener, "Error: Cancel button listener can't be null.");
 
     m_description = description;
     m_showSeconds = showSeconds;
@@ -73,8 +74,11 @@ public class CProgressPanel extends JPanel {
     createPanel(indeterminate, showSeconds, true, true);
   }
 
-  public CProgressPanel(final String description, final boolean indeterminate,
-      final boolean showSeconds, final boolean showCancelButton) {
+  public CProgressPanel(
+      final String description,
+      final boolean indeterminate,
+      final boolean showSeconds,
+      final boolean showCancelButton) {
     m_description = description;
     m_showSeconds = showSeconds;
 
@@ -83,8 +87,12 @@ public class CProgressPanel extends JPanel {
     createPanel(indeterminate, showSeconds, showCancelButton, false);
   }
 
-  public CProgressPanel(final String description, final boolean indeterminate,
-      final boolean showSeconds, final boolean border, final boolean showCancelButton) {
+  public CProgressPanel(
+      final String description,
+      final boolean indeterminate,
+      final boolean showSeconds,
+      final boolean border,
+      final boolean showCancelButton) {
     m_description = description;
     m_showSeconds = showSeconds;
 
@@ -97,10 +105,12 @@ public class CProgressPanel extends JPanel {
     return "<html>" + text.replaceAll("\n", "<br>") + "</html>";
   }
 
-  private void createPanel(final boolean indeterminate, final boolean showSeconds,
-      final boolean showCancelButton, final boolean addBorder) {
+  private void createPanel(
+      final boolean indeterminate,
+      final boolean showSeconds,
+      final boolean showCancelButton,
+      final boolean addBorder) {
     setLayout(new BorderLayout());
-
 
     final JPanel pPb = new JPanel(new BorderLayout());
     pPb.setBorder(new TitledBorder(""));
@@ -119,8 +129,9 @@ public class CProgressPanel extends JPanel {
     final JPanel borderPanel = new JPanel(new BorderLayout());
 
     if (addBorder) {
-      borderPanel.setBorder(BorderFactory.createCompoundBorder(new LineBorder(Color.GRAY),
-          new EmptyBorder(1, 1, 1, 1)));
+      borderPanel.setBorder(
+          BorderFactory.createCompoundBorder(
+              new LineBorder(Color.GRAY), new EmptyBorder(1, 1, 1, 1)));
     }
 
     if (showCancelButton) {
@@ -155,8 +166,7 @@ public class CProgressPanel extends JPanel {
     m_progressBar.setString(String.format("%d seconds", ++m_seconds));
   }
 
-  protected void closeRequested() {
-  }
+  protected void closeRequested() {}
 
   public String fitTextToLabel(String text) {
     final FontMetrics metrics = m_label.getFontMetrics(m_label.getFont());

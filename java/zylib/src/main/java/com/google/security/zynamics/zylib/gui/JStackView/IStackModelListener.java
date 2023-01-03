@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,8 @@
 
 package com.google.security.zynamics.zylib.gui.JStackView;
 
-/**
- * Interface for listener objects that want to be notified about changes in the stack data.
- */
+/** Interface for listener objects that want to be notified about changes in the stack data. */
 public interface IStackModelListener {
-  /**
-   * Invoked after the data of the stack model changed.
-   */
+  /** Invoked after the data of the stack model changed. */
   void dataChanged();
 }

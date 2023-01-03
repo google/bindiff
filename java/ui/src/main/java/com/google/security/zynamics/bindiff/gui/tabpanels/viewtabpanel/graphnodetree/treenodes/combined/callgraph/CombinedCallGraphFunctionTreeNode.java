@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -92,8 +92,7 @@ public class CombinedCallGraphFunctionTreeNode extends AbstractTreeNode
   }
 
   @Override
-  public void createChildren() {
-  }
+  public void createChildren() {}
 
   @Override
   public IAddress getAddress() {
@@ -130,8 +129,9 @@ public class CombinedCallGraphFunctionTreeNode extends AbstractTreeNode
 
   @Override
   public ZyGraphNode<?> getGraphNode(final ESide side) {
-    return side == ESide.PRIMARY ? combinedDiffNode.getPrimaryDiffNode() : combinedDiffNode
-        .getSecondaryDiffNode();
+    return side == ESide.PRIMARY
+        ? combinedDiffNode.getPrimaryDiffNode()
+        : combinedDiffNode.getSecondaryDiffNode();
   }
 
   @Override
@@ -142,58 +142,60 @@ public class CombinedCallGraphFunctionTreeNode extends AbstractTreeNode
     }
 
     switch (combinedDiffNode.getRawNode().getMatchState()) {
-      case MATCHED: {
-      if (function.isIdenticalMatch()) {
-        if (isSelected()) {
-          return MATCHED_IDENTICAL_FUNCTION_SELECTED_ICON;
-        } else if (!isVisible()) {
-          return MATCHED_IDENTICAL_FUNCTION_INVISIBLE_ICON;
+      case MATCHED:
+        {
+          if (function.isIdenticalMatch()) {
+            if (isSelected()) {
+              return MATCHED_IDENTICAL_FUNCTION_SELECTED_ICON;
+            } else if (!isVisible()) {
+              return MATCHED_IDENTICAL_FUNCTION_INVISIBLE_ICON;
+            }
+
+            return MATCHED_IDENTICAL_FUNCTION_ICON;
+          } else if (function.isChangedInstructionsOnlyMatch()) {
+            if (isSelected()) {
+              return MATCHED_INSTRUCTIONCHANGED_FUNCTION_SELECTED_ICON;
+            } else if (!isVisible()) {
+              return MATCHED_INSTRUCTIONCHANGED_FUNCTION_INVISIBLE_ICON;
+            }
+
+            return MATCHED_INSTRUCTIONCHANGED_FUNCTION_ICON;
+
+          } else if (function.isChangedStructuralMatch()) {
+            if (isSelected()) {
+              return MATCHED_STRUCTURALCHANGED_FUNCTION_SELECTED_ICON;
+            } else if (!isVisible()) {
+              return MATCHED_STRUCTURALCHANGED_FUNCTION_INVISIBLE_ICON;
+            }
+
+            return MATCHED_STRUCTURALCHANGED_FUNCTION_ICON;
+          }
+          break;
         }
+      case PRIMARY_UNMATCHED:
+        {
+          if (combinedDiffNode != null) {
+            if (combinedDiffNode.isSelected()) {
+              return PRIMARY_UNMATCHED_FUNCTION_SELECTED;
+            } else if (!combinedDiffNode.isVisible()) {
+              return PRIMARY_UNMATCHED_FUNCTION_INVISIBLE;
+            }
+          }
 
-        return MATCHED_IDENTICAL_FUNCTION_ICON;
-      } else if (function.isChangedInstructionsOnlyMatch()) {
-        if (isSelected()) {
-          return MATCHED_INSTRUCTIONCHANGED_FUNCTION_SELECTED_ICON;
-        } else if (!isVisible()) {
-          return MATCHED_INSTRUCTIONCHANGED_FUNCTION_INVISIBLE_ICON;
+          return PRIMARY_UNMATCHED_FUNCTION;
         }
+      case SECONDRAY_UNMATCHED:
+        {
+          if (combinedDiffNode != null) {
+            if (combinedDiffNode.isSelected()) {
+              return SECONDARY_UNMATCHED_FUNCTION_SELECTED;
+            } else if (!combinedDiffNode.isVisible()) {
+              return SECONDARY_UNMATCHED_FUNCTION_INVISIBLE;
+            }
+          }
 
-        return MATCHED_INSTRUCTIONCHANGED_FUNCTION_ICON;
-
-      } else if (function.isChangedStructuralMatch()) {
-        if (isSelected()) {
-          return MATCHED_STRUCTURALCHANGED_FUNCTION_SELECTED_ICON;
-        } else if (!isVisible()) {
-          return MATCHED_STRUCTURALCHANGED_FUNCTION_INVISIBLE_ICON;
+          return SECONDARY_UNMATCHED_FUNCTION;
         }
-
-        return MATCHED_STRUCTURALCHANGED_FUNCTION_ICON;
-
-      }
-      break;
-    }
-      case PRIMARY_UNMATCHED: {
-      if (combinedDiffNode != null) {
-        if (combinedDiffNode.isSelected()) {
-          return PRIMARY_UNMATCHED_FUNCTION_SELECTED;
-        } else if (!combinedDiffNode.isVisible()) {
-          return PRIMARY_UNMATCHED_FUNCTION_INVISIBLE;
-        }
-      }
-
-      return PRIMARY_UNMATCHED_FUNCTION;
-    }
-      case SECONDRAY_UNMATCHED: {
-      if (combinedDiffNode != null) {
-        if (combinedDiffNode.isSelected()) {
-          return SECONDARY_UNMATCHED_FUNCTION_SELECTED;
-        } else if (!combinedDiffNode.isVisible()) {
-          return SECONDARY_UNMATCHED_FUNCTION_INVISIBLE;
-        }
-      }
-
-      return SECONDARY_UNMATCHED_FUNCTION;
-    }
     }
 
     throw new IllegalStateException("Unknown match type.");
@@ -257,16 +259,21 @@ public class CombinedCallGraphFunctionTreeNode extends AbstractTreeNode
     final EMatchState matchState = combinedDiffNode.getRawNode().getMatchState();
 
     if (matchState == EMatchState.MATCHED) {
-      nodetext = String.format(
-          "%s \u2194 %s", combinedDiffNode.getPrimaryRawNode().getAddress().toHexString(),
-          combinedDiffNode.getSecondaryRawNode().getAddress().toHexString());
+      nodetext =
+          String.format(
+              "%s \u2194 %s",
+              combinedDiffNode.getPrimaryRawNode().getAddress().toHexString(),
+              combinedDiffNode.getSecondaryRawNode().getAddress().toHexString());
     } else if (matchState == EMatchState.PRIMARY_UNMATCHED) {
-      nodetext = String.format(
-          "%s \u2194 %s", combinedDiffNode.getPrimaryRawNode().getAddress().toHexString(),
-          "missing");
+      nodetext =
+          String.format(
+              "%s \u2194 %s",
+              combinedDiffNode.getPrimaryRawNode().getAddress().toHexString(), "missing");
     } else if (matchState == EMatchState.SECONDRAY_UNMATCHED) {
-      nodetext = String.format("%s \u2194 %s", "missing",
-          combinedDiffNode.getSecondaryRawNode().getAddress().toHexString());
+      nodetext =
+          String.format(
+              "%s \u2194 %s",
+              "missing", combinedDiffNode.getSecondaryRawNode().getAddress().toHexString());
     }
 
     return nodetext;

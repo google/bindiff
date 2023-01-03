@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
 package com.google.security.zynamics.zylib.gui.scripting.console;
 
 import com.google.security.zynamics.zylib.gui.scripting.SyntaxDocument;
-
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
-
 
 public class ConsoleHelpers {
   private final SyntaxDocument document;
@@ -33,9 +31,9 @@ public class ConsoleHelpers {
 
   /**
    * Convert a global position in the document to a position within the containing element.
-   * 
+   *
    * @param pos the global document position which to convert to a position within the element
-   *        containing it.
+   *     containing it.
    * @return the position within the element
    */
   public int getCaretOffsetInLine(final int pos) {
@@ -44,7 +42,7 @@ public class ConsoleHelpers {
 
   /**
    * Get the text of the element containing the given position.
-   * 
+   *
    * @param pos the global document position at which to find the element containing it.
    * @return the text contained within the element
    */
@@ -54,8 +52,8 @@ public class ConsoleHelpers {
 
     try {
       line =
-          document.getText(element.getStartOffset(),
-              element.getEndOffset() - element.getStartOffset());
+          document.getText(
+              element.getStartOffset(), element.getEndOffset() - element.getStartOffset());
     } catch (final BadLocationException e) {
       System.out.println("Bad location!");
       e.printStackTrace();
@@ -66,7 +64,7 @@ public class ConsoleHelpers {
 
   /**
    * Get the global document position of the start of an element.
-   * 
+   *
    * @param position the global document position at which to find the element containing it.
    * @return the global start position of the element
    */
@@ -81,7 +79,7 @@ public class ConsoleHelpers {
   /**
    * Return all the characters forming a word (alpha-chars) from the given position backwards, up to
    * the when the first delimiter is found.
-   * 
+   *
    * @param position location within the document from where to retrieve a word
    */
   public String getWord(final int position) {
@@ -91,8 +89,8 @@ public class ConsoleHelpers {
 
     try {
       elementText =
-          document.getText(element.getStartOffset(),
-              element.getEndOffset() - element.getStartOffset());
+          document.getText(
+              element.getStartOffset(), element.getEndOffset() - element.getStartOffset());
     } catch (final Exception excp) {
       return "";
     }

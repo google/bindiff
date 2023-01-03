@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ public interface IModuleConfiguration {
 
   /**
    * Returns the name of the module.
-   * 
+   *
    * @return The name of the module. This value is guaranteed to be non-null.
    */
   String getName();

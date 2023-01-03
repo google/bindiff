@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
 package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
-import y.view.EdgeLabel;
-
 import java.awt.event.MouseEvent;
+import y.view.EdgeLabel;
 
 public interface IZyEditModeListener<NodeType, EdgeType> {
   void edgeClicked(EdgeType node, MouseEvent event, double x, double y);
@@ -35,7 +33,6 @@ public interface IZyEditModeListener<NodeType, EdgeType> {
 
   void nodeLeft(NodeType node);
 
-  void proximityBrowserNodeClicked(ZyProximityNode<?> proximityNode, MouseEvent e, double x,
-      double y);
-
+  void proximityBrowserNodeClicked(
+      ZyProximityNode<?> proximityNode, MouseEvent e, double x, double y);
 }

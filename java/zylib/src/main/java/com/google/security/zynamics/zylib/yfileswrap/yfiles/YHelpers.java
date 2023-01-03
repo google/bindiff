@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 package com.google.security.zynamics.zylib.yfileswrap.yfiles;
 
 import com.google.common.base.Preconditions;
-
+import java.awt.geom.Rectangle2D;
 import y.base.EdgeCursor;
 import y.base.Node;
 import y.base.NodeCursor;
@@ -25,11 +25,7 @@ import y.layout.LayoutTool;
 import y.view.Graph2D;
 import y.view.hierarchy.HierarchyManager;
 
-import java.awt.geom.Rectangle2D;
-
-/**
- * Contains small helper functions for working with the yFiles graph library.
- */
+/** Contains small helper functions for working with the yFiles graph library. */
 public final class YHelpers {
   private YHelpers() {
     // You are not supposed to instantiate this class.
@@ -37,7 +33,7 @@ public final class YHelpers {
 
   /**
    * Closes a group node.
-   * 
+   *
    * @param graph The graph the group node belongs to.
    * @param groupNode The group node to be closed.
    */
@@ -72,12 +68,11 @@ public final class YHelpers {
     }
 
     graph.updateViews();
-
   }
 
   /**
    * Opens a folder node.
-   * 
+   *
    * @param graph The graph the folder node belongs to.
    * @param folderNode The folder node to be opened.
    */

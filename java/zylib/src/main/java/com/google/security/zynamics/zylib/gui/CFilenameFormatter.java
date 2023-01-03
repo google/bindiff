@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
 
 package com.google.security.zynamics.zylib.gui;
 
+import com.google.common.base.Preconditions;
 import java.io.File;
 import java.io.IOException;
-
 import javax.swing.JFormattedTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-import com.google.common.base.Preconditions;
-
 public class CFilenameFormatter extends JFormattedTextField.AbstractFormatter {
-  private final static int MAX_CHAR = 255;
+  private static final int MAX_CHAR = 255;
 
   private final FilenameFilter filter = new FilenameFilter();
 
@@ -33,11 +31,10 @@ public class CFilenameFormatter extends JFormattedTextField.AbstractFormatter {
 
   /**
    * Filter for JFormattedTextField. Ensures valid filenames. Does not work for directories.
-   * 
+   *
    * @param directory Directory where a file with the specified filename is temporarily created for
-   *        validation purpose.
-   *        http://stackoverflow.com/questions/893977/java-how-to-find-out-whether
-   *        -a-file-name-is-valid
+   *     validation purpose. http://stackoverflow.com/questions/893977/java-how-to-find-out-whether
+   *     -a-file-name-is-valid
    */
   public CFilenameFormatter(final File directory) {
     Preconditions.checkArgument(directory.exists(), "Error: Direcctory must exist.");
@@ -46,7 +43,8 @@ public class CFilenameFormatter extends JFormattedTextField.AbstractFormatter {
 
   private boolean isValid(final String string, final int selected) {
     if ((((getFormattedTextField().getText().length() - selected) + string.length()) > MAX_CHAR)
-        || (string.indexOf("\\") > -1) || (string.indexOf("/") > -1)) {
+        || (string.indexOf("\\") > -1)
+        || (string.indexOf("/") > -1)) {
       invalidEdit();
       return false;
     }
@@ -89,16 +87,25 @@ public class CFilenameFormatter extends JFormattedTextField.AbstractFormatter {
 
   private class FilenameFilter extends DocumentFilter {
     @Override
-    public void insertString(final DocumentFilter.FilterBypass fb, final int offset,
-        final String string, final AttributeSet attr) throws BadLocationException {
+    public void insertString(
+        final DocumentFilter.FilterBypass fb,
+        final int offset,
+        final String string,
+        final AttributeSet attr)
+        throws BadLocationException {
       if (isValid(string, 0)) {
         super.insertString(fb, offset, string, attr);
       }
     }
 
     @Override
-    public void replace(final DocumentFilter.FilterBypass fb, final int offset, final int length,
-        final String string, final AttributeSet attr) throws BadLocationException {
+    public void replace(
+        final DocumentFilter.FilterBypass fb,
+        final int offset,
+        final int length,
+        final String string,
+        final AttributeSet attr)
+        throws BadLocationException {
       if (isValid(string, length)) {
         super.replace(fb, offset, length, string, attr);
       }

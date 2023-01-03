@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,16 +18,16 @@ import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 
 /**
  * Objects that implement this interface can be used to filter nodes from node lists.
- * 
+ *
  * @param <NodeType> The type of the nodes in the list.
  */
 public interface INodeFilter<NodeType> extends ICollectionFilter<NodeType> {
   /**
    * Determines whether a node passes the filter check.
-   * 
+   *
    * @param node The node in question.
    * @return True, if the node passes the filter check. False, if the node does not pass the filter
-   *         check.
+   *     check.
    */
   @Override
   boolean qualifies(NodeType node);

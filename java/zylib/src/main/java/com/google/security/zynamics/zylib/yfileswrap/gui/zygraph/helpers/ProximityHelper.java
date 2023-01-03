@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers;
 
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
 import y.base.Edge;
 import y.base.Node;
 import y.view.Graph2D;
-
 
 public class ProximityHelper {
   public static ZyProximityNode<?> getProximityNode(final Graph2D graph, final Node node) {
@@ -38,5 +36,4 @@ public class ProximityHelper {
 
     return realizer.getUserData().getNode() instanceof ZyProximityNode<?>;
   }
-
 }

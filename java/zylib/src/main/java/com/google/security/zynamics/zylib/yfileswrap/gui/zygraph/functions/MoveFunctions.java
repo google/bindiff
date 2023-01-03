@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,8 +38,12 @@ public class MoveFunctions {
       final double x = box.x + (box.width / 2);
       final double y = box.y + (box.height / 2);
 
-      graph.getView().focusView(graph.getView().getZoom(), new Point2D.Double(x, y),
-          graph.getSettings().getLayoutSettings().getAnimateLayout());
+      graph
+          .getView()
+          .focusView(
+              graph.getView().getZoom(),
+              new Point2D.Double(x, y),
+              graph.getSettings().getLayoutSettings().getAnimateLayout());
 
       graph.updateViews();
     } else {
@@ -63,9 +67,12 @@ public class MoveFunctions {
     final NodeRealizer realizer = graph.getGraph().getRealizer(node.getNode());
 
     if (realizer.isVisible()) {
-      graph.getView().focusView(graph.getView().getZoom(),
-          new Point2D.Double(realizer.getCenterX(), realizer.getCenterY()),
-          graph.getSettings().getLayoutSettings().getAnimateLayout());
+      graph
+          .getView()
+          .focusView(
+              graph.getView().getZoom(),
+              new Point2D.Double(realizer.getCenterX(), realizer.getCenterY()),
+              graph.getSettings().getLayoutSettings().getAnimateLayout());
       graph.updateViews();
     }
   }
@@ -86,8 +93,9 @@ public class MoveFunctions {
     final Rectangle2D box = GraphHelpers.calculateBoundingBox(nodes);
 
     // Center the graph to make sure all nodes are visible.
-    graph.getView().setCenter(box.getX() + (box.getWidth() / 2.),
-        box.getY() + (box.getHeight() / 2.));
+    graph
+        .getView()
+        .setCenter(box.getX() + (box.getWidth() / 2.), box.getY() + (box.getHeight() / 2.));
 
     graph.updateViews();
   }

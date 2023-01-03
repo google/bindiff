@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,20 +18,18 @@ import com.google.security.zynamics.zylib.gui.zygraph.editmode.IStateAction;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.states.CBackgroundClickedLeftState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.awt.event.MouseEvent;
-
 
 /**
  * Default action that is executed on
- * 
+ *
  * @param <T> Type of the nodes in the graph.
  */
-public class CDefaultBackgroundClickedLeftAction<T extends ZyGraphNode<?>> implements
-    IStateAction<CBackgroundClickedLeftState<T>> {
+public class CDefaultBackgroundClickedLeftAction<T extends ZyGraphNode<?>>
+    implements IStateAction<CBackgroundClickedLeftState<T>> {
   /**
    * Unselects all nodes in the graph.
-   * 
+   *
    * @param graph The graph whose nodes are unselected.
    */
   protected void unselectAll(final AbstractZyGraph<T, ?> graph) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public final class JarResources {
   /**
    * creates a JarResources. It extracts all resources from a Jar into an internal hashtable, keyed
    * by resource names.
-   * 
+   *
    * @param jarFileName a jar or zip file
    */
   public JarResources(final String jarFileName) {
@@ -52,7 +52,7 @@ public final class JarResources {
 
   /**
    * Dumps a zip entry into a string.
-   * 
+   *
    * @param ze a ZipEntry
    */
   private String dumpZipEntry(final ZipEntry ze) {
@@ -131,8 +131,8 @@ public final class JarResources {
         htJarContents.put(ze.getName(), b);
 
         if (debugOn) {
-          System.out.println(ze.getName() + "  rb=" + rb + ",size=" + size + ",csize="
-              + ze.getCompressedSize());
+          System.out.println(
+              ze.getName() + "  rb=" + rb + ",size=" + size + ",csize=" + ze.getCompressedSize());
         }
       }
       zis.close();
@@ -147,11 +147,10 @@ public final class JarResources {
 
   /**
    * Extracts a jar resource as a blob.
-   * 
+   *
    * @param name a resource name.
    */
   public byte[] getResource(final String name) {
     return htJarContents.get(name);
   }
-
 } // End of JarResources class.

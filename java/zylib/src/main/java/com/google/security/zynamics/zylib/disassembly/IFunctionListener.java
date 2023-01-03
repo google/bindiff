@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ public interface IFunctionListener<CommentType> {
   /**
    * Invoked if a new comment has been added to the list of comments currently associated with this
    * function.
-   * 
+   *
    * @param function The function where the comment has been appended.
    * @param comment The comment which has been appended.
    */
@@ -29,7 +29,7 @@ public interface IFunctionListener<CommentType> {
 
   /**
    * Invoked if the description of a function has changed.
-   * 
+   *
    * @param function The function where the description has changed.
    * @param description The description which changed.
    */
@@ -37,7 +37,7 @@ public interface IFunctionListener<CommentType> {
 
   /**
    * Invoked if the name of a function has been changed.
-   * 
+   *
    * @param function The function whose name has been changed.
    * @param name The name which has been changed.
    */
@@ -45,21 +45,21 @@ public interface IFunctionListener<CommentType> {
 
   /**
    * Invoked if the function to which this function resolves to has been changed.
-   * 
+   *
    * @param function
    */
   void changedForwardedFunction(IFunction function);
 
   /**
    * Invoked if the function has been closed.
-   * 
+   *
    * @param function The function which has been closed.
    */
   void closed(IFunction function);
 
   /**
    * Invoked if a comment has been deleted from the list of comments associated with this function.
-   * 
+   *
    * @param function The function where this comment was deleted.
    * @param comment The comment that has been deleted.
    */
@@ -67,7 +67,7 @@ public interface IFunctionListener<CommentType> {
 
   /**
    * Invoked if a comment in the list of comments associated with this function has been edited.
-   * 
+   *
    * @param function The function where the comment was edited.
    * @param comment The comment which was edited.
    */
@@ -77,7 +77,7 @@ public interface IFunctionListener<CommentType> {
 
   /**
    * Invoked if a function has been loaded.
-   * 
+   *
    * @param function The function which has been loaded.
    */
   void loadedFunction(IFunction function);

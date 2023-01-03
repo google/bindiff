@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,16 +20,15 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CEdgeHighlighter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CEdgeLabelExitState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.view.EdgeRealizer;
 
-import java.awt.event.MouseEvent;
-
-public class CDefaultEdgeLabelExitAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultEdgeLabelExitAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CEdgeLabelExitState<NodeType, EdgeType>> {
   /**
    * Removes highlighting from the edges attached to a edge label.
-   * 
+   *
    * @param edge the EdgeRealizer of the edge
    */
   protected void unhighlightEdges(final EdgeRealizer edge) {
@@ -43,8 +42,8 @@ public class CDefaultEdgeLabelExitAction<NodeType extends ZyGraphNode<?>, EdgeTy
     if (state.getLabel() != null) {
       unhighlightEdges(state.getLabel().getOwner());
 
-      for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-          .getListeners()) {
+      for (final IZyEditModeListener<NodeType, EdgeType> listener :
+          state.getStateFactory().getListeners()) {
         try {
           listener.edgeLabelLeft(state.getLabel());
         } catch (final Exception exception) {
@@ -54,7 +53,5 @@ public class CDefaultEdgeLabelExitAction<NodeType extends ZyGraphNode<?>, EdgeTy
     }
 
     state.getGraph().updateViews();
-
   }
-
 }

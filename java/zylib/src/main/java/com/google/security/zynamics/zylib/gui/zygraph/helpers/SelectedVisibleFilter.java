@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,12 +19,10 @@ import com.google.security.zynamics.zylib.types.common.CollectionHelpers;
 import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.grouping.GroupHelpers;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.Collection;
 
-
-public class SelectedVisibleFilter<NodeType extends ZyGraphNode<? extends IViewNode<?>>> implements
-    ICollectionFilter<NodeType> {
+public class SelectedVisibleFilter<NodeType extends ZyGraphNode<? extends IViewNode<?>>>
+    implements ICollectionFilter<NodeType> {
   public static <NodeType extends ZyGraphNode<? extends IViewNode<?>>> Collection<NodeType> filter(
       final Collection<NodeType> collection) {
     return CollectionHelpers.filter(collection, new SelectedVisibleFilter<NodeType>());

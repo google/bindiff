@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,27 +14,25 @@
 
 package com.google.security.zynamics.zylib.gui.scripting;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.general.Pair;
 import com.google.security.zynamics.zylib.io.FileUtils;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 
 public class ScriptRunner {
   private static final ScriptEngineManager manager = new ScriptEngineManager();
 
   /**
    * Determines whether a file has the file extension of a valid script file.
-   * 
+   *
    * @param file
    * @return true if the there is a script engine that can handle the given extension, false
-   *         otherwise.
+   *     otherwise.
    */
   public static boolean canRun(final File file) {
     return manager.getEngineByExtension(FileUtils.getFileExtension(file)) != null;
@@ -42,19 +40,18 @@ public class ScriptRunner {
 
   /**
    * Executes a Python script.
-   * 
-   * Note that Jython does not honor stdout redirection automatically. If you don't want the output
-   * of the Python script to go to stdout you have to set this up manually. To do this you add a
-   * "ZYLIB_CONSOLE" => PythonWriter binding. In your script you can then do the following:
-   * 
-   * import sys sys.stdout = ZYLIB_CONSOLE
-   * 
-   * After execution of the Python script you can get the console output from the PythonWriter
+   *
+   * <p>Note that Jython does not honor stdout redirection automatically. If you don't want the
+   * output of the Python script to go to stdout you have to set this up manually. To do this you
+   * add a "ZYLIB_CONSOLE" => PythonWriter binding. In your script you can then do the following:
+   *
+   * <p>import sys sys.stdout = ZYLIB_CONSOLE
+   *
+   * <p>After execution of the Python script you can get the console output from the PythonWriter
    * object.
-   * 
+   *
    * @param script The script to execute.
    * @param bindings Java object bindings that can be used by the executed script.
-   * 
    * @throws ScriptException Thrown if the script caused an exception.
    */
   public static void runPythonScript(final String script, final List<Pair<String, Object>> bindings)
@@ -66,7 +63,7 @@ public class ScriptRunner {
 
   /**
    * Executes a script file. The language of the script is determined by the file extension.
-   * 
+   *
    * @param file
    * @param bindings
    * @throws ScriptException
@@ -75,23 +72,25 @@ public class ScriptRunner {
   public static void runScript(final File file, final List<Pair<String, Object>> bindings)
       throws ScriptException, IOException {
     final ScriptEngine engine = manager.getEngineByExtension(FileUtils.getFileExtension(file));
-    Preconditions.checkNotNull(engine, "Error: Script %s has an unknown extension.",
-        file.getAbsolutePath());
+    Preconditions.checkNotNull(
+        engine, "Error: Script %s has an unknown extension.", file.getAbsolutePath());
     final String script = FileUtils.readTextfile(file);
 
     runScript(engine, script, bindings);
   }
 
-  public static void runScript(final ScriptEngine engine, final File file,
-      final List<Pair<String, Object>> bindings) throws ScriptException, IOException {
-    Preconditions.checkNotNull(engine, "Error: Script %s has an unknown extension.",
-        file.getAbsolutePath());
+  public static void runScript(
+      final ScriptEngine engine, final File file, final List<Pair<String, Object>> bindings)
+      throws ScriptException, IOException {
+    Preconditions.checkNotNull(
+        engine, "Error: Script %s has an unknown extension.", file.getAbsolutePath());
     final String script = FileUtils.readTextfile(file);
     runScript(engine, script, bindings);
   }
 
-  public static Object runScript(final ScriptEngine engine, final String script,
-      final List<Pair<String, Object>> bindings) throws ScriptException {
+  public static Object runScript(
+      final ScriptEngine engine, final String script, final List<Pair<String, Object>> bindings)
+      throws ScriptException {
     for (final Pair<String, Object> pair : bindings) {
       engine.put(pair.first(), pair.second());
     }
@@ -99,8 +98,11 @@ public class ScriptRunner {
     return engine.eval(script);
   }
 
-  public static void runScript(final String languageName, final String script,
-      final List<Pair<String, Object>> bindings, final IScriptConsole console)
+  public static void runScript(
+      final String languageName,
+      final String script,
+      final List<Pair<String, Object>> bindings,
+      final IScriptConsole console)
       throws ScriptException {
     final ScriptEngine engine = manager.getEngineByName(languageName);
 

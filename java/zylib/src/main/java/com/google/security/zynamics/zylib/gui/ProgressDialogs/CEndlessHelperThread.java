@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ import com.google.security.zynamics.zylib.general.ListenerProvider;
 /**
  * This class is a helper thread to use with the CEndlessProgressDialog class. To use this class do
  * the following.
- * 
- * 1. Subclass this class and provide the implementation of runExpensiveCommand 2. Create an
+ *
+ * <p>1. Subclass this class and provide the implementation of runExpensiveCommand 2. Create an
  * instance (called for example thread) of the subclassed class. 3. Create the endless progress
  * dialog (dlg) and pass the instance to the dialog constructor 4. Execute thread.start() on the
  * instance from step #2 5. Execute dlg.setVisible(true)
  */
-public abstract class CEndlessHelperThread extends Thread implements IEndlessProgressModel,
-    IEndlessDescriptionUpdater {
+public abstract class CEndlessHelperThread extends Thread
+    implements IEndlessProgressModel, IEndlessDescriptionUpdater {
   private final ListenerProvider<IEndlessProgressListener> m_listeners =
       new ListenerProvider<IEndlessProgressListener>();
 
@@ -59,8 +59,7 @@ public abstract class CEndlessHelperThread extends Thread implements IEndlessPro
   }
 
   @Override
-  public void closeRequested() {
-  }
+  public void closeRequested() {}
 
   public Exception getException() {
     return m_exception;

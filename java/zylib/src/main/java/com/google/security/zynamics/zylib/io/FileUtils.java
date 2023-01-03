@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,16 +31,13 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-/**
- * Helper class that provides common file operations.
- */
+/** Helper class that provides common file operations. */
 public class FileUtils {
   /**
    * Calculates the MD5 value of a file.
    *
    * @param file The file in question.
    * @return A string that holds the MD5 sum of the file.
-   *
    * @throws IOException
    */
   public static String calcMD5(final File file) throws IOException {
@@ -267,7 +264,6 @@ public class FileUtils {
    *
    * @param file The file to read.
    * @return The text read from the file.
-   *
    * @throws IOException
    */
   public static String readTextfile(final File file) throws IOException {
@@ -296,7 +292,6 @@ public class FileUtils {
    *
    * @param filename The name of the text file.
    * @return The text read from the file.
-   *
    * @throws IOException
    */
   public static String readTextfile(final String filename) throws IOException {
@@ -312,7 +307,6 @@ public class FileUtils {
    *
    * @param file The file to write to.
    * @param data The data to write.
-   *
    * @throws IOException
    */
   public static void writeBinaryFile(final File file, final byte[] data) throws IOException {
@@ -330,7 +324,6 @@ public class FileUtils {
    *
    * @param file The {@link File file} to write to.
    * @param text The {@link String text} which to write.
-   *
    * @throws IOException if the text could not be written to the file.
    */
   public static void writeTextFile(final File file, final String text) throws IOException {

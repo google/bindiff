@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,13 +46,14 @@ public class GraphExporters {
     vpc.configure(exportView);
   }
 
-  private static void exportGraphPartToImageFileFormat(final Graph2D graph, final IOHandler ioh,
-      final String outFile) throws IOException {
+  private static void exportGraphPartToImageFileFormat(
+      final Graph2D graph, final IOHandler ioh, final String outFile) throws IOException {
     writeGraphToFile(graph, ioh, outFile);
   }
 
-  private static void exportGraphToImageFileFormat(final Graph2D graph, final IOHandler ioh,
-      final String outFile, final Graph2DView exportView) throws IOException {
+  private static void exportGraphToImageFileFormat(
+      final Graph2D graph, final IOHandler ioh, final String outFile, final Graph2DView exportView)
+      throws IOException {
     final Graph2DView originalView = replaceCurrentWithExportView(graph, exportView);
 
     configureExportView((Graph2DView) graph.getCurrentView());
@@ -64,8 +65,8 @@ public class GraphExporters {
     }
   }
 
-  private static Graph2DView replaceCurrentWithExportView(final Graph2D graph,
-      final Graph2DView exportView) {
+  private static Graph2DView replaceCurrentWithExportView(
+      final Graph2D graph, final Graph2DView exportView) {
     // Save the currently active view.
     final Graph2DView originalView = (Graph2DView) graph.getCurrentView();
 
@@ -86,8 +87,8 @@ public class GraphExporters {
     graph.setCurrentView(originalView);
   }
 
-  private static void writeGraphToFile(final Graph2D graph, final IOHandler ioh,
-      final String outFile) throws IOException {
+  private static void writeGraphToFile(
+      final Graph2D graph, final IOHandler ioh, final String outFile) throws IOException {
     ioh.write(graph, outFile);
   }
 
@@ -107,7 +108,6 @@ public class GraphExporters {
    *
    * @param zygraph The graph to export.
    * @param filename The name of the JPEG file.
-   *
    * @throws IOException Thrown if saving the file fails.
    */
   public static void exportAllAsGIF(final AbstractZyGraph<?, ?> zygraph, final String filename)
@@ -116,8 +116,8 @@ public class GraphExporters {
     gif.setAntialiasingEnabled(true);
 
     final Graph2DView view = zygraph.getView();
-    exportGraphToImageFileFormat(view.getGraph2D(), gif, filename,
-        gif.createDefaultGraph2DView(view.getGraph2D()));
+    exportGraphToImageFileFormat(
+        view.getGraph2D(), gif, filename, gif.createDefaultGraph2DView(view.getGraph2D()));
   }
 
   /**
@@ -125,7 +125,6 @@ public class GraphExporters {
    *
    * @param zygraph The graph to export.
    * @param filename The name of the JPEG file.
-   *
    * @throws IOException Thrown if saving the file fails.
    */
   public static void exportAllAsJPEG(final AbstractZyGraph<?, ?> zygraph, final String filename)
@@ -134,8 +133,8 @@ public class GraphExporters {
     jpg.setAntialiasingEnabled(true);
     jpg.setQuality(0.9f);
     final Graph2DView view = zygraph.getView();
-    exportGraphToImageFileFormat(view.getGraph2D(), jpg, filename,
-        jpg.createDefaultGraph2DView(view.getGraph2D()));
+    exportGraphToImageFileFormat(
+        view.getGraph2D(), jpg, filename, jpg.createDefaultGraph2DView(view.getGraph2D()));
   }
 
   // Warning on raw types on the following methods are suppressed. We need to use the raw type to
@@ -145,8 +144,8 @@ public class GraphExporters {
     final Graph2DView view = zygraph.getView();
     final ImageOutputHandler png = createPNGOutputHandler();
 
-    exportGraphToImageFileFormat(view.getGraph2D(), png, filename,
-        png.createDefaultGraph2DView(view.getGraph2D()));
+    exportGraphToImageFileFormat(
+        view.getGraph2D(), png, filename, png.createDefaultGraph2DView(view.getGraph2D()));
     return true;
   }
 
@@ -155,8 +154,8 @@ public class GraphExporters {
     final Graph2DView view = zygraph.getView();
     final SVGIOHandler svg = new SVGIOHandler();
 
-    exportGraphToImageFileFormat(view.getGraph2D(), svg, filename,
-        svg.createDefaultGraph2DView(view.getGraph2D()));
+    exportGraphToImageFileFormat(
+        view.getGraph2D(), svg, filename, svg.createDefaultGraph2DView(view.getGraph2D()));
     return true;
   }
 

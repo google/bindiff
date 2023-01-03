@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
 package com.google.security.zynamics.zylib.ZyTree;
 
 import com.google.security.zynamics.zylib.general.Pair;
-
 import java.util.Stack;
-
 
 public class InorderIterator {
   private final Stack<Pair<IZyTreeNode, Integer>> traversalStack =
@@ -70,13 +68,13 @@ public class InorderIterator {
           if (justProcessedNode.getChildren().size() == 0) {
             throw new RuntimeException("Error");
           } else if (justProcessedNode.getChildren().size() == 1) {
-            pushLongestPathFrom(justProcessed.first().getChildren()
-                .get(justProcessedChildrenProcessed));
+            pushLongestPathFrom(
+                justProcessed.first().getChildren().get(justProcessedChildrenProcessed));
           } else {
-            traversalStack.push(new Pair<IZyTreeNode, Integer>(justProcessed.first().getChildren()
-                .get(justProcessedChildrenProcessed), 0));
+            traversalStack.push(
+                new Pair<IZyTreeNode, Integer>(
+                    justProcessed.first().getChildren().get(justProcessedChildrenProcessed), 0));
           }
-
         }
       } else {
         if (justProcessedChildrenProcessed == justProcessedNode.getChildren().size()) {
@@ -86,17 +84,19 @@ public class InorderIterator {
           // We have to adjust the parent node though.
           final Pair<IZyTreeNode, Integer> parentProcessed = traversalStack.pop();
 
-          traversalStack.push(new Pair<IZyTreeNode, Integer>(parentProcessed.first(),
-              parentProcessed.second() + 1));
+          traversalStack.push(
+              new Pair<IZyTreeNode, Integer>(
+                  parentProcessed.first(), parentProcessed.second() + 1));
         } else {
           if (justProcessedNode.getChildren().size() == 0) {
             throw new RuntimeException("Error");
           } else if (justProcessedNode.getChildren().size() == 1) {
-            pushLongestPathFrom(justProcessed.first().getChildren()
-                .get(justProcessedChildrenProcessed));
+            pushLongestPathFrom(
+                justProcessed.first().getChildren().get(justProcessedChildrenProcessed));
           } else {
-            traversalStack.push(new Pair<IZyTreeNode, Integer>(justProcessed.first().getChildren()
-                .get(justProcessedChildrenProcessed), 0));
+            traversalStack.push(
+                new Pair<IZyTreeNode, Integer>(
+                    justProcessed.first().getChildren().get(justProcessedChildrenProcessed), 0));
           }
         }
       }
@@ -104,5 +104,4 @@ public class InorderIterator {
 
     return !traversalStack.empty();
   }
-
 }

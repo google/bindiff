@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,10 +33,7 @@ class MatchingStepFlowGraph;
 using MatchingSteps = std::list<MatchingStep*>;
 using MatchingStepsFlowGraph = std::list<MatchingStepFlowGraph*>;
 
-enum Direction {
-  kTopDown,
-  kBottomUp
-};
+enum Direction { kTopDown, kBottomUp };
 
 void UpdateFixedPointConfidence(FixedPoint& fixed_point);
 

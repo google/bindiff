@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,19 +19,19 @@ import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseState;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseStateChange;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
-
+import java.awt.event.MouseEvent;
+import javax.swing.SwingUtilities;
 import y.base.Edge;
 import y.base.Node;
 import y.view.Bend;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-import javax.swing.SwingUtilities;
-
 public class CMousePressedHandler {
-  public static IMouseStateChange handleMousePressed(final CStateFactory<?, ?> factory,
-      final IMouseState defaultState, final AbstractZyGraph<?, ?> graph, final MouseEvent event) {
+  public static IMouseStateChange handleMousePressed(
+      final CStateFactory<?, ?> factory,
+      final IMouseState defaultState,
+      final AbstractZyGraph<?, ?> graph,
+      final MouseEvent event) {
     final double x = graph.getEditMode().translateX(event.getX());
     final double y = graph.getEditMode().translateY(event.getY());
 

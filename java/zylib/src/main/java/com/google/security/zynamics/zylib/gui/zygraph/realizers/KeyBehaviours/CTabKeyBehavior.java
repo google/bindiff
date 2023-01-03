@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,9 @@
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
-
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import java.util.List;
-
 
 public class CTabKeyBehavior extends CAbstractKeyBehavior {
   public CTabKeyBehavior(final CUndoManager undoManager) {

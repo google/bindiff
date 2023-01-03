@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,8 +23,7 @@ namespace security::bindiff {
 
 const std::string* FindString(const std::string& name) {
   static const auto* const kStringPoolEmptyString = new std::string();
-  static const auto* const kStringPool =
-      []() -> std::vector<std::string>* {
+  static const auto* const kStringPool = []() -> std::vector<std::string>* {
     auto* pool = new std::vector<std::string>();
     try {
       Confidences confidences;

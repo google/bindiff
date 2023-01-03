@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.google.security.zynamics.zylib.gui.zygraph.helpers;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Rectangle2D.Double;
 
-
 /**
  * Nodes that implement this interface unlock {@link GraphHelpers} functions that require nodes that
  * can be displayed on the screen.
@@ -25,14 +24,14 @@ import java.awt.geom.Rectangle2D.Double;
 public interface IViewableNode {
   /**
    * Enlarges the given rectangle such that it will contain the bounding box of the node.
-   * 
+   *
    * @param rectangle The rectangle.
    */
   void calcUnionRect(Rectangle2D rectangle);
 
   /**
    * Returns the bounding box of the node.
-   * 
+   *
    * @return The bounding box of the node.
    */
   Double getBoundingBox();

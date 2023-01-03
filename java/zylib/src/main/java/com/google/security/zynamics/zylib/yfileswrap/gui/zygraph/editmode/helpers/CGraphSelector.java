@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,15 +20,13 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Sets.SetView;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.algo.Bfs;
-import y.base.Node;
-import y.base.NodeList;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import y.algo.Bfs;
+import y.base.Node;
+import y.base.NodeList;
 
 public class CGraphSelector {
   public static <NodeType extends ZyGraphNode<?>> void selectNode(
@@ -58,29 +56,30 @@ public class CGraphSelector {
    * four BFS runs: BFS 1 searches for all successors of the start nodes. BFS 2 searches for all
    * predecessors of the end nodes. BFS 2 searches for all predecessors of the start nodes. BFS 4
    * searches for all successors of the end nodes.
-   * 
-   * These four BFS runs are used in two sets: Set 1 is intersect of nodes reached through (BFS 1,
-   * BFS 2). Set 2 is intersect of nodes reached through (BFS 3, BFS 4).
-   * 
-   * Therefore Set 1 represents all nodes on paths if the set of start nodes contains parents of the
-   * newly selected node and Set 2 represents all nodes on paths if the set of start nodes contains
-   * child nodes of the newly selected node.
-   * 
-   * 
+   *
+   * <p>These four BFS runs are used in two sets: Set 1 is intersect of nodes reached through (BFS
+   * 1, BFS 2). Set 2 is intersect of nodes reached through (BFS 3, BFS 4).
+   *
+   * <p>Therefore Set 1 represents all nodes on paths if the set of start nodes contains parents of
+   * the newly selected node and Set 2 represents all nodes on paths if the set of start nodes
+   * contains child nodes of the newly selected node.
+   *
    * @param graph The graph in which the selection takes place.
    * @param alreadySelectedNodes The List of nodes already selected.
    * @param newlySelectedNode The node which is newly selected.
    */
   @SuppressWarnings("unchecked")
   public static <NodeType extends ZyGraphNode<?>> void selectPath(
-      final AbstractZyGraph<NodeType, ?> graph, final ArrayList<NodeType> alreadySelectedNodes,
+      final AbstractZyGraph<NodeType, ?> graph,
+      final ArrayList<NodeType> alreadySelectedNodes,
       final NodeType newlySelectedNode) {
-    final Function<NodeType, Node> function = new Function<NodeType, Node>() {
-      @Override
-      public Node apply(final NodeType input) {
-        return input.getNode();
-      }
-    };
+    final Function<NodeType, Node> function =
+        new Function<NodeType, Node>() {
+          @Override
+          public Node apply(final NodeType input) {
+            return input.getNode();
+          }
+        };
 
     final Collection<Node> foo = Collections2.transform(alreadySelectedNodes, function);
 
@@ -89,15 +88,23 @@ public class CGraphSelector {
 
     final Set<Node> startSuccSet = new HashSet<Node>();
     final NodeList[] nodeListsStartSucc =
-        Bfs.getLayers(graph.getGraph(), startNodes, Bfs.DIRECTION_SUCCESSOR, graph.getGraph()
-            .createNodeMap(), 0);
+        Bfs.getLayers(
+            graph.getGraph(),
+            startNodes,
+            Bfs.DIRECTION_SUCCESSOR,
+            graph.getGraph().createNodeMap(),
+            0);
     for (final NodeList nodeList : nodeListsStartSucc) {
       startSuccSet.addAll(nodeList);
     }
     final Set<Node> endPredSet = new HashSet<Node>();
     final NodeList[] nodeListsEndPred =
-        Bfs.getLayers(graph.getGraph(), endNodes, Bfs.DIRECTION_PREDECESSOR, graph.getGraph()
-            .createNodeMap(), 0);
+        Bfs.getLayers(
+            graph.getGraph(),
+            endNodes,
+            Bfs.DIRECTION_PREDECESSOR,
+            graph.getGraph().createNodeMap(),
+            0);
     for (final NodeList nodeList : nodeListsEndPred) {
       endPredSet.addAll(nodeList);
     }
@@ -111,16 +118,24 @@ public class CGraphSelector {
 
     final Set<Node> startPredSet = new HashSet<Node>();
     final NodeList[] nodeListsStartPred =
-        Bfs.getLayers(graph.getGraph(), startNodes, Bfs.DIRECTION_PREDECESSOR, graph.getGraph()
-            .createNodeMap(), 0);
+        Bfs.getLayers(
+            graph.getGraph(),
+            startNodes,
+            Bfs.DIRECTION_PREDECESSOR,
+            graph.getGraph().createNodeMap(),
+            0);
     for (final NodeList nodeList : nodeListsStartPred) {
       startPredSet.addAll(nodeList);
     }
 
     final Set<Node> endSuccSet = new HashSet<Node>();
     final NodeList[] nodeListsEndSucc =
-        Bfs.getLayers(graph.getGraph(), endNodes, Bfs.DIRECTION_SUCCESSOR, graph.getGraph()
-            .createNodeMap(), 0);
+        Bfs.getLayers(
+            graph.getGraph(),
+            endNodes,
+            Bfs.DIRECTION_SUCCESSOR,
+            graph.getGraph().createNodeMap(),
+            0);
     for (final NodeList nodeList : nodeListsEndSucc) {
       endSuccSet.addAll(nodeList);
     }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,9 +24,7 @@ import javax.swing.JTable;
 import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
-/**
- * Can be used to render cells using the default monospaced font.
- */
+/** Can be used to render cells using the default monospaced font. */
 public class CMonospaceRenderer extends JLabel implements TableCellRenderer {
   private static final Font INSTRUCTION_FONT = GuiHelper.getMonospacedFont();
 
@@ -38,8 +36,13 @@ public class CMonospaceRenderer extends JLabel implements TableCellRenderer {
   }
 
   @Override
-  public Component getTableCellRendererComponent(final JTable table, final Object value,
-      final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+  public Component getTableCellRendererComponent(
+      final JTable table,
+      final Object value,
+      final boolean isSelected,
+      final boolean hasFocus,
+      final int row,
+      final int column) {
     setFont(INSTRUCTION_FONT);
 
     setText(value.toString());
@@ -65,5 +68,4 @@ public class CMonospaceRenderer extends JLabel implements TableCellRenderer {
 
     return this;
   }
-
 }

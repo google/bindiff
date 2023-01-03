@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,24 +14,24 @@
 
 package com.google.security.zynamics.zylib.types.trees;
 
+import com.google.common.collect.Sets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
-
 public class TreeAlgorithms {
   /**
    * Tests whether a node dominates another node.
-   * 
+   *
    * @param node The node of the dominator tree where the search starts.
    * @param target The dominator node.
    * @param source The dominated node.
-   * 
    * @return True, if the dominator node dominates the dominated node. False, otherwise.
    */
-  public static <ObjectType> boolean dominates(final ITreeNode<ObjectType> node,
-      final ITreeNode<ObjectType> target, final ITreeNode<ObjectType> source) {
+  public static <ObjectType> boolean dominates(
+      final ITreeNode<ObjectType> node,
+      final ITreeNode<ObjectType> target,
+      final ITreeNode<ObjectType> source) {
     if (node.getObject() == source) {
       return false;
     } else if (node.getObject() == target) {
@@ -49,12 +49,13 @@ public class TreeAlgorithms {
 
   /**
    * Calculate the dominate relation of a tree node.
-   * 
+   *
    * @param treeNode The tree node for which the dominate relation is calculated.
    * @return A HashMap of the tree node with all nodes that dominate the tree node.
    */
-  public static <NodeType> HashMap<ITreeNode<NodeType>, Set<ITreeNode<NodeType>>> getDominateRelation(
-      final ITreeNode<NodeType> treeNode) {
+  public static <NodeType>
+      HashMap<ITreeNode<NodeType>, Set<ITreeNode<NodeType>>> getDominateRelation(
+          final ITreeNode<NodeType> treeNode) {
     final HashMap<ITreeNode<NodeType>, Set<ITreeNode<NodeType>>> dominationRelation =
         new HashMap<ITreeNode<NodeType>, Set<ITreeNode<NodeType>>>();
 
@@ -79,7 +80,7 @@ public class TreeAlgorithms {
 
   /**
    * Calculate the dominate relation of a tree node.
-   * 
+   *
    * @param treeNode The tree node for which the dominate relation is calculated.
    * @return A HashMap of the tree node with all nodes that dominate the tree node.
    */

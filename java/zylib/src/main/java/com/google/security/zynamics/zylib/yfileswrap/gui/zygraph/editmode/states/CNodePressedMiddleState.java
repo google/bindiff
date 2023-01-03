@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,8 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Node;
-
 import java.awt.event.MouseEvent;
+import y.base.Node;
 
 public class CNodePressedMiddleState implements IMouseState {
   private final CStateFactory<?, ?> m_factory;
@@ -33,8 +31,8 @@ public class CNodePressedMiddleState implements IMouseState {
 
   private final Node m_node;
 
-  public CNodePressedMiddleState(final CStateFactory<?, ?> factory,
-      final AbstractZyGraph<?, ?> graph, final Node node) {
+  public CNodePressedMiddleState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final Node node) {
     m_factory = factory;
     m_graph = graph;
     m_node = node;
@@ -65,7 +63,8 @@ public class CNodePressedMiddleState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     // a middle-click is complete
 
     return new CStateChange(m_factory.createNodeClickedMiddleState(m_node, event), true);

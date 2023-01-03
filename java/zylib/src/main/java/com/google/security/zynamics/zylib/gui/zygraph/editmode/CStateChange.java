@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.editmode;
 
-/**
- * Describes a single state change from one mouse state to another mouse state.
- */
+/** Describes a single state change from one mouse state to another mouse state. */
 public final class CStateChange implements IMouseStateChange {
-  /**
-   * The next mouse state.
-   */
+  /** The next mouse state. */
   private final IMouseState m_nextState;
 
-  /**
-   * True, to chain the event to yFiles.
-   */
+  /** True, to chain the event to yFiles. */
   private final boolean m_yfiles;
 
   /**
    * Creates a new state change object.
-   * 
+   *
    * @param nextState The next mouse state.
    * @param yfiles True, to chain the event to yFiles.
    */

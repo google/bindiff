@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,36 +26,28 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transf
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitEdgesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.view.EdgeLabel;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
 public class CEdgeLabelHoverState implements IMouseState {
-  /**
-   * Used to create the next state when a state change is necessary.
-   */
+  /** Used to create the next state when a state change is necessary. */
   private final CStateFactory<?, ?> m_factory;
 
-  /**
-   * The graph for which the mouse state is tracked.
-   */
+  /** The graph for which the mouse state is tracked. */
   private final AbstractZyGraph<?, ?> m_graph;
 
-  /**
-   * The node the mouse cursor is hovering over.
-   */
+  /** The node the mouse cursor is hovering over. */
   private final EdgeLabel m_label;
 
   /**
    * Creates a new state object.
-   * 
+   *
    * @param factory Used to create the next state when a state change is necessary.
    * @param graph The graph for which the mouse state is tracked.
    */
-  public CEdgeLabelHoverState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
-      final EdgeLabel label) {
+  public CEdgeLabelHoverState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final EdgeLabel label) {
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_label = Preconditions.checkNotNull(label, "Error: label argument can not be null");
@@ -148,7 +140,8 @@ public class CEdgeLabelHoverState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(this, true);
   }
 }

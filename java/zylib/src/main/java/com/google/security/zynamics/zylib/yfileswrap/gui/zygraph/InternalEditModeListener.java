@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,17 +16,12 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
+import java.awt.event.MouseEvent;
 import y.view.EdgeLabel;
 
-import java.awt.event.MouseEvent;
-
-
-/**
- * Listens on the edit mode and passes click events forward to the attached listeners.
- */
-public class InternalEditModeListener<NodeType, EdgeType> implements
-    IZyEditModeListener<NodeType, EdgeType> {
+/** Listens on the edit mode and passes click events forward to the attached listeners. */
+public class InternalEditModeListener<NodeType, EdgeType>
+    implements IZyEditModeListener<NodeType, EdgeType> {
   private final ListenerProvider<IZyGraphListener<NodeType, EdgeType>> m_graphListeners;
 
   public InternalEditModeListener(
@@ -35,8 +30,8 @@ public class InternalEditModeListener<NodeType, EdgeType> implements
   }
 
   @Override
-  public void edgeClicked(final EdgeType edge, final MouseEvent event, final double x,
-      final double y) {
+  public void edgeClicked(
+      final EdgeType edge, final MouseEvent event, final double x, final double y) {
     for (final IZyGraphListener<NodeType, EdgeType> listener : m_graphListeners) {
       try {
         listener.edgeClicked(edge, event, x, y);
@@ -69,8 +64,8 @@ public class InternalEditModeListener<NodeType, EdgeType> implements
   }
 
   @Override
-  public void nodeClicked(final NodeType node, final MouseEvent event, final double x,
-      final double y) {
+  public void nodeClicked(
+      final NodeType node, final MouseEvent event, final double x, final double y) {
     for (final IZyGraphListener<NodeType, EdgeType> listener : m_graphListeners) {
       try {
         listener.nodeClicked(node, event, x, y);
@@ -114,8 +109,8 @@ public class InternalEditModeListener<NodeType, EdgeType> implements
   }
 
   @Override
-  public void proximityBrowserNodeClicked(final ZyProximityNode<?> proximityNode,
-      final MouseEvent e, final double x, final double y) {
+  public void proximityBrowserNodeClicked(
+      final ZyProximityNode<?> proximityNode, final MouseEvent e, final double x, final double y) {
     for (final IZyGraphListener<NodeType, EdgeType> listener : m_graphListeners) {
       try {
         listener.proximityBrowserNodeClicked(proximityNode, e, x, y);

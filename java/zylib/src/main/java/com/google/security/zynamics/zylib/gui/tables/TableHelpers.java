@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,19 +15,15 @@
 package com.google.security.zynamics.zylib.gui.tables;
 
 import java.awt.event.MouseEvent;
-
 import javax.swing.JTable;
 
-/**
- * Contains helper functions for common JTable operations.
- */
+/** Contains helper functions for common JTable operations. */
 public class TableHelpers {
   /**
    * Converts between sorted row indices and raw row indices of the underlying data provider.
-   * 
+   *
    * @param sorter Table sorter used the conversion.
    * @param sortedRows Array of sorted row indices.
-   * 
    * @return Array of corresponding raw row indices.
    */
   @Deprecated
@@ -43,7 +39,7 @@ public class TableHelpers {
 
   /**
    * Selects a table row depending on a mouse event.
-   * 
+   *
    * @param table The table.
    * @param event The mouse event.
    */

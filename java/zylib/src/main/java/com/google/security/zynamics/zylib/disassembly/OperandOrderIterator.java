@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,42 +14,35 @@
 
 package com.google.security.zynamics.zylib.disassembly;
 
-import java.util.Stack;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.general.Pair;
+import java.util.Stack;
 
 /**
  * Tree iterator that can be used to iterate over trees in the order that gives you a printable
  * operand string assuming the tree is a standard Zynamics operand tree.
- * 
- * Usage:
- * 
- * OperandOrderIterator iterator = new OperandOrderIterator(rootNode);
- * 
- * while (iterator.next()) { IZyTreeNode currentNode = iterator.current(); // Do stuff with
+ *
+ * <p>Usage:
+ *
+ * <p>OperandOrderIterator iterator = new OperandOrderIterator(rootNode);
+ *
+ * <p>while (iterator.next()) { IZyTreeNode currentNode = iterator.current(); // Do stuff with
  * currentNode }
  */
 public class OperandOrderIterator {
-  /**
-   * The stack is used to create the proper iteration sequence.
-   */
+  /** The stack is used to create the proper iteration sequence. */
   private final Stack<Pair<IOperandTreeNode, Integer>> m_traversalStack =
       new Stack<Pair<IOperandTreeNode, Integer>>();
 
-  /**
-   * Root node of the tree to traverse.
-   */
+  /** Root node of the tree to traverse. */
   private final IOperandTreeNode m_root;
 
-  /**
-   * Flag that indicates whether the iteration process was started or not.
-   */
+  /** Flag that indicates whether the iteration process was started or not. */
   private boolean m_started = false;
 
   /**
    * Creates a new operand order iterator that can be used to iterate over trees.
-   * 
+   *
    * @param root The root node of the tree.
    */
   public OperandOrderIterator(final IOperandTreeNode root) {
@@ -62,10 +55,10 @@ public class OperandOrderIterator {
    * Pushes a path of nodes in correct traversal order onto the stack. The path stops either when a
    * leaf is reached or when a node with one child is reached since nodes with one child need to be
    * processed before its children are processed.
-   * 
-   * If a node with more than one child is found the left-most child is chosen because so far all
+   *
+   * <p>If a node with more than one child is found the left-most child is chosen because so far all
    * operands are commutative and it does not matter which child to chose first.
-   * 
+   *
    * @param node The start node of the path.
    */
   private void pushLongestPathFrom(final IOperandTreeNode node) {
@@ -86,7 +79,7 @@ public class OperandOrderIterator {
 
   /**
    * Returns the node the iterator currently points to.
-   * 
+   *
    * @return The node the iterator currently points to.
    */
   public IOperandTreeNode current() {
@@ -95,7 +88,7 @@ public class OperandOrderIterator {
 
   /**
    * Moves the iterator to the next node in the proper iteration order.
-   * 
+   *
    * @return False, if the iteration process is finished. True, otherwise.
    */
   public boolean next() {
@@ -167,8 +160,8 @@ public class OperandOrderIterator {
               // We found a node that still needs processing. Increase
               // its number of processed children and push it back onto
               // the stack.
-              m_traversalStack.push(new Pair<IOperandTreeNode, Integer>(parent.first(), parent
-                  .second() + 1));
+              m_traversalStack.push(
+                  new Pair<IOperandTreeNode, Integer>(parent.first(), parent.second() + 1));
 
               return true;
             }

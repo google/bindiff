@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,43 +25,43 @@ import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
-
 import javax.swing.JLabel;
 import javax.swing.border.Border;
 
 /**
  * Label class that can be used to launch URLs from Java.
- * 
- * Taken from http://forum.java.sun.com/thread.jspa?threadID=613854&messageID=9959263
+ *
+ * <p>Taken from http://forum.java.sun.com/thread.jspa?threadID=613854&messageID=9959263
  */
 public class UrlLabel extends JLabel {
   private static final long serialVersionUID = 1L;
 
-  private static MouseListener linker = new MouseAdapter() {
-    @Override
-    public void mouseClicked(final MouseEvent event) {
-      final UrlLabel self = (UrlLabel) event.getSource();
+  private static MouseListener linker =
+      new MouseAdapter() {
+        @Override
+        public void mouseClicked(final MouseEvent event) {
+          final UrlLabel self = (UrlLabel) event.getSource();
 
-      if (self.url == null) {
-        return;
-      }
+          if (self.url == null) {
+            return;
+          }
 
-      try {
-        Desktop.getDesktop().browse(self.url.toURI());
-      } catch (final URISyntaxException e) {
-        // TODO: This should be properly logged
-        System.out.println(e);
-      } catch (final IOException e) {
-        // TODO: This should be properly logged
-        System.out.println(e);
-      }
-    }
+          try {
+            Desktop.getDesktop().browse(self.url.toURI());
+          } catch (final URISyntaxException e) {
+            // TODO: This should be properly logged
+            System.out.println(e);
+          } catch (final IOException e) {
+            // TODO: This should be properly logged
+            System.out.println(e);
+          }
+        }
 
-    @Override
-    public void mouseEntered(final MouseEvent event) {
-      event.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    }
-  };
+        @Override
+        public void mouseEntered(final MouseEvent event) {
+          event.getComponent().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+      };
 
   private URL url;
 

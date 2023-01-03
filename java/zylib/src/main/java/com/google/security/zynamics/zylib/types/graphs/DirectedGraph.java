@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,35 +24,28 @@ import java.util.Set;
 
 /**
  * Simple directed graph class that contains nodes and directed edges.
- * 
+ *
  * @param <NodeType> Type of the nodes in the graph.
  * @param <EdgeType> Type of the edges in the graph.
  */
-public class DirectedGraph<NodeType extends IGraphNode<NodeType>, EdgeType extends IGraphEdge<NodeType>>
+public class DirectedGraph<
+        NodeType extends IGraphNode<NodeType>, EdgeType extends IGraphEdge<NodeType>>
     implements Iterable<NodeType>, IDirectedGraph<NodeType, EdgeType> {
-  /**
-   * Nodes of the graph.
-   */
+  /** Nodes of the graph. */
   private final List<NodeType> m_nodes;
 
-  /**
-   * Edges of the graph.
-   */
+  /** Edges of the graph. */
   private final List<EdgeType> m_edges;
 
-  /**
-   * Map of nodes to incoming edges.
-   */
+  /** Map of nodes to incoming edges. */
   private final SetMultimap<NodeType, EdgeType> m_incomingEdges = HashMultimap.create();
 
-  /**
-   * Map of nodes to outgoing edges.
-   */
+  /** Map of nodes to outgoing edges. */
   private final SetMultimap<NodeType, EdgeType> m_outgoingEdges = HashMultimap.create();
 
   /**
    * Creates a new directed edge object.
-   * 
+   *
    * @param nodes Nodes of the graph.
    * @param edges Edges of the graph.
    */

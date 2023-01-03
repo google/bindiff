@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,8 @@ public class TextHelpers {
     return root.getElementCount();
   }
 
-  public static void insert(final JTextComponent component, final int position, final String string) {
+  public static void insert(
+      final JTextComponent component, final int position, final String string) {
     final String old = component.getText();
 
     component.setText(old.substring(0, position) + string + old.substring(position));

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,19 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.layouters;
 
-
 public enum HierarchicStyle {
-  OCTLINEAR_OPTIMAL, ORTHOGONAL_OPTIMAL, POLYLINE_OPTIMAL, OCTLINEAR_TOPMOST, ORTHOGONAL_TOPMOST, POLYLINE_TOPMOST, OCTLINEAR_TIGHT_TREE, ORTHOGONAL_TIGHT_TREE, POLYLINE_TIGHT_TREE, OCTLINEAR_BFS, ORTHOGONAL_BFS, POLYLINE_BFS;
+  OCTLINEAR_OPTIMAL,
+  ORTHOGONAL_OPTIMAL,
+  POLYLINE_OPTIMAL,
+  OCTLINEAR_TOPMOST,
+  ORTHOGONAL_TOPMOST,
+  POLYLINE_TOPMOST,
+  OCTLINEAR_TIGHT_TREE,
+  ORTHOGONAL_TIGHT_TREE,
+  POLYLINE_TIGHT_TREE,
+  OCTLINEAR_BFS,
+  ORTHOGONAL_BFS,
+  POLYLINE_BFS;
 
   public static HierarchicStyle parseInt(final int style) {
     switch (style) {

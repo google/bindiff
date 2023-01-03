@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,7 @@ package com.google.security.zynamics.zylib.plugins;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-/**
- * Loads class bytes from a file.
- */
+/** Loads class bytes from a file. */
 public class FileClassLoader extends MultiClassLoader {
 
   private final String filePrefix;
@@ -27,7 +25,7 @@ public class FileClassLoader extends MultiClassLoader {
   /**
    * Attempts to load from a local file using the relative "filePrefix", ie starting at the current
    * directory. For example
-   * 
+   *
    * @param filePrefix could be "webSiteClasses\\site1\\".
    */
   public FileClassLoader(final String filePrefix) {

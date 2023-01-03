@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,37 +24,29 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CState
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CMousePressedHandler;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitEdgesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Edge;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
 public class CEdgeHoverState implements IMouseState {
-  /**
-   * Used to create the next state when a state change is necessary.
-   */
+  /** Used to create the next state when a state change is necessary. */
   private final CStateFactory<?, ?> m_factory;
 
-  /**
-   * The graph for which the mouse state is tracked.
-   */
+  /** The graph for which the mouse state is tracked. */
   private final AbstractZyGraph<?, ?> m_graph;
 
-  /**
-   * The node the mouse cursor is hovering over.
-   */
+  /** The node the mouse cursor is hovering over. */
   private final Edge m_edge;
 
   /**
    * Creates a new state object.
-   * 
+   *
    * @param factory Used to create the next state when a state change is necessary.
    * @param graph The graph for which the mouse state is tracked.
    * @param edge The Edge the mouse cursor is hovering over.
    */
-  public CEdgeHoverState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
-      final Edge edge) {
+  public CEdgeHoverState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final Edge edge) {
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_edge = Preconditions.checkNotNull(edge, "Error: edge argument can not be null");
@@ -92,7 +84,8 @@ public class CEdgeHoverState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(this, true);
   }
 }

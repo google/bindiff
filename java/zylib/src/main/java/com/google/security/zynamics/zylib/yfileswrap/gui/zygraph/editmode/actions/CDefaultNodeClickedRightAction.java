@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,15 +24,15 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ProximityHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 
-import java.awt.event.MouseEvent;
-
-public class CDefaultNodeClickedRightAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultNodeClickedRightAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodeClickedRightState<NodeType, EdgeType>> {
   @Override
-  public void execute(final CNodeClickedRightState<NodeType, EdgeType> state, final MouseEvent event) {
+  public void execute(
+      final CNodeClickedRightState<NodeType, EdgeType> state, final MouseEvent event) {
     CMouseCursorHelper.setDefaultCursor(state.getGraph());
 
     final AbstractZyGraph<NodeType, EdgeType> graph = state.getGraph();
@@ -55,8 +55,8 @@ public class CDefaultNodeClickedRightAction<NodeType extends ZyGraphNode<?>, Edg
       final ZyProximityNode<?> proximityNode =
           ProximityHelper.getProximityNode(graph.getGraph(), yNode);
 
-      for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-          .getListeners()) {
+      for (final IZyEditModeListener<NodeType, EdgeType> listener :
+          state.getStateFactory().getListeners()) {
         try {
           listener.proximityBrowserNodeClicked(proximityNode, event, x, y);
         } catch (final Exception exception) {
@@ -64,8 +64,8 @@ public class CDefaultNodeClickedRightAction<NodeType extends ZyGraphNode<?>, Edg
         }
       }
     } else {
-      for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-          .getListeners()) {
+      for (final IZyEditModeListener<NodeType, EdgeType> listener :
+          state.getStateFactory().getListeners()) {
         try {
           listener.nodeClicked(node, event, x, y);
         } catch (final Exception exception) {

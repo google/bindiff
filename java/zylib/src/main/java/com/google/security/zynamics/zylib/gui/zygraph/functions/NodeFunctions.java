@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.helpers.INodeCallback;
 import com.google.security.zynamics.zylib.types.common.IterationMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,13 +26,15 @@ public class NodeFunctions {
       final AbstractZyGraph<NodeType, ?> graph) {
     final ArrayList<NodeType> nodes = new ArrayList<NodeType>();
 
-    IteratorFunctions.iterateInvisible(graph, new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        nodes.add(node);
-        return IterationMode.CONTINUE;
-      }
-    });
+    IteratorFunctions.iterateInvisible(
+        graph,
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            nodes.add(node);
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
@@ -42,13 +43,15 @@ public class NodeFunctions {
       final AbstractZyGraph<NodeType, ?> graph) {
     final ArrayList<NodeType> nodes = new ArrayList<NodeType>();
 
-    IteratorFunctions.iterateVisible(graph, new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        nodes.add(node);
-        return IterationMode.CONTINUE;
-      }
-    });
+    IteratorFunctions.iterateVisible(
+        graph,
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            nodes.add(node);
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }

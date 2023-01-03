@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +14,6 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.editmode.states;
 
-import java.awt.event.MouseEvent;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.CStateChange;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseState;
@@ -25,14 +23,15 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CMousePressedHandler;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
+import java.awt.event.MouseEvent;
 
 public class CBackgroundPressedLeftState implements IMouseState {
   private final CStateFactory<?, ?> m_factory;
 
   private final AbstractZyGraph<?, ?> m_graph;
 
-  public CBackgroundPressedLeftState(final CStateFactory<?, ?> factory,
-      final AbstractZyGraph<?, ?> graph) {
+  public CBackgroundPressedLeftState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph) {
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
   }
@@ -62,7 +61,8 @@ public class CBackgroundPressedLeftState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     // a left click is complete
 
     return new CStateChange(m_factory.createBackgroundClickedLeftState(event), true);

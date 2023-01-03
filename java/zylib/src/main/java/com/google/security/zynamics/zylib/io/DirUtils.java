@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Comparator;
 
-/**
- * Helper class that provides common directory functions.
- */
+/** Helper class that provides common directory functions. */
 public class DirUtils {
   /**
    * Recursively traverses through a directory.
-   * 
+   *
    * @param directory The directory to traverse.
    * @param callback The callback to call for each file.
    */
@@ -32,8 +30,8 @@ public class DirUtils {
     traverse(directory, callback, true);
   }
 
-  public static void traverse(final File directory, final IDirectoryTraversalCallback callback,
-      final boolean recurse) {
+  public static void traverse(
+      final File directory, final IDirectoryTraversalCallback callback, final boolean recurse) {
     final File[] files = directory.listFiles();
 
     if (files == null) {
@@ -61,11 +59,13 @@ public class DirUtils {
 
   /**
    * Recursively traverses through a directory.
-   * 
+   *
    * @param directory The directory to traverse.
    * @param callback The callback to call for each file.
    */
-  public static void traverse(final File directory, final IDirectoryTraversalCallback callback,
+  public static void traverse(
+      final File directory,
+      final IDirectoryTraversalCallback callback,
       final Comparator<File> sorter) {
     final File[] files = directory.listFiles();
 

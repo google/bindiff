@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 package com.google.security.zynamics.zylib.types.graphs;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -21,36 +22,28 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Simple mutable directed graph class that contains nodes and directed edges.
- * 
+ *
  * @param <NodeType> Type of the nodes in the graph.
  * @param <EdgeType> Type of the edges in the graph.
  */
-public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType>> implements
-    IDirectedGraph<NodeType, EdgeType>, Iterable<NodeType> {
+public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType>>
+    implements IDirectedGraph<NodeType, EdgeType>, Iterable<NodeType> {
 
-  /**
-   * Nodes of the graph.
-   */
+  /** Nodes of the graph. */
   private final List<NodeType> m_nodes;
 
-  /**
-   * Edges of the graph.
-   */
+  /** Edges of the graph. */
   private final List<EdgeType> m_edges;
 
-  /**
-   * Map that keeps track what edges belong to a node.
-   */
+  /** Map that keeps track what edges belong to a node. */
   private final Map<NodeType, List<EdgeType>> m_nodeToEdges =
       new HashMap<NodeType, List<EdgeType>>();
 
   /**
    * Creates a new mutable directed graph.
-   * 
+   *
    * @param nodes The nodes of the graph.
    * @param edges The edges of the graph.
    */
@@ -87,7 +80,7 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
 
   /**
    * Adds an edge to the graph.
-   * 
+   *
    * @param edge The edge to add.
    */
   public void addEdge(final EdgeType edge) {
@@ -99,7 +92,7 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
 
   /**
    * Adds a node to the graph.
-   * 
+   *
    * @param node The node to add to the graph.
    */
   public void addNode(final NodeType node) {
@@ -116,7 +109,7 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
 
   /**
    * Returns an unmodifiable list of edges in the graph.
-   * 
+   *
    * @return Unmodifiable collection of edges.
    */
   @Override
@@ -126,7 +119,7 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
 
   /**
    * Returns an unmodifiable list of nodes in the graph.
-   * 
+   *
    * @return Unmodifiable collection of nodes.
    */
   @Override
@@ -146,7 +139,7 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
 
   /**
    * Removes an edge from the graph.
-   * 
+   *
    * @param edge The edge to remove.
    */
   public void removeEdge(final EdgeType edge) {
@@ -157,12 +150,12 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
 
   /**
    * Removes a node from the graph.
-   * 
+   *
    * @param node The node to remove.
    */
   public void removeNode(final NodeType node) {
-    Preconditions.checkArgument(m_nodes.remove(node),
-        String.format("Error: Node '%s' was not part of the graph", node));
+    Preconditions.checkArgument(
+        m_nodes.remove(node), String.format("Error: Node '%s' was not part of the graph", node));
     m_edges.removeAll(m_nodeToEdges.get(node));
     m_nodeToEdges.remove(node);
   }

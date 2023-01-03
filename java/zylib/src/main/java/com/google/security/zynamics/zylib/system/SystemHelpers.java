@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,8 +51,8 @@ public final class SystemHelpers {
   /**
    * Determines the machine-wide application data directory for the specified product in a
    * platform-independent way. Note that the directory returned by this method is usually not
-   * writable for users without administrative privileges, even on Windows. The path returned
-   * by this method always contains a trailing path separator.
+   * writable for users without administrative privileges, even on Windows. The path returned by
+   * this method always contains a trailing path separator.
    *
    * @param product the product name to use when building the directory name
    * @return the machine-wide application data directory

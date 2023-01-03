@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,72 +34,52 @@ import java.util.List;
 
 /**
  * This class describes a single row of content in a standard line node.
- * 
- * Note that this class can only work with monospaced fonts. Using other fonts results in undefined
- * behavior.
- * 
- * Note that there are a number of functions that modify part of the line. An example for such a
+ *
+ * <p>Note that this class can only work with monospaced fonts. Using other fonts results in
+ * undefined behavior.
+ *
+ * <p>Note that there are a number of functions that modify part of the line. An example for such a
  * function is setFont(position, length, font). The length argument of all of these functions can be
  * -1. This means that the modification is performed on all characters between the start position
  * and the end of the line.
  */
 public class ZyLineContent {
-  /**
-   * Used to generate text layouts from the line text.
-   */
+  /** Used to generate text layouts from the line text. */
   private static final FontRenderContext m_fontContext = new FontRenderContext(null, true, true);
 
-  /**
-   * Default alpha channel of the highlighter
-   */
-  private static final Composite DEFAULT_COMPOSITE = AlphaComposite.getInstance(
-      AlphaComposite.SRC_OVER, 0.3f);
+  /** Default alpha channel of the highlighter */
+  private static final Composite DEFAULT_COMPOSITE =
+      AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.3f);
 
-  /**
-   * Standard alpha channel of the highlighter
-   */
-  private static final Composite NORMAL_COMPOSITE = AlphaComposite.getInstance(
-      AlphaComposite.SRC_OVER, 1.0f);
+  /** Standard alpha channel of the highlighter */
+  private static final Composite NORMAL_COMPOSITE =
+      AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
 
-  /**
-   * Default border stroke
-   */
+  /** Default border stroke */
   private static final Stroke DEFAULT_BORDER_STROKE = new BasicStroke(1.2f);
 
-  /**
-   * Standard stroke
-   */
+  /** Standard stroke */
   private static final Stroke NORMAL_STROKE = new BasicStroke(1.0f);
 
-  /**
-   * Text that is displayed in the line.
-   */
+  /** Text that is displayed in the line. */
   private String m_text;
 
-  /**
-   * Text that is displayed in the line including all format information.
-   */
+  /** Text that is displayed in the line including all format information. */
   private AttributedString m_atext;
 
-  /**
-   * Assumed default character width that is used to calculate the line bounds.
-   */
+  /** Assumed default character width that is used to calculate the line bounds. */
   private double m_charWidth;
 
-  /**
-   * Assumed default character height that is used to calculate the line bounds.
-   */
+  /** Assumed default character height that is used to calculate the line bounds. */
   private double m_charHeight;
 
-  /**
-   * Text layout that is used to draw the line.
-   */
+  /** Text layout that is used to draw the line. */
   private TextLayout m_textLayout;
 
   /**
    * Highlighting information that is used when the line is drawn.
-   * 
-   * ATTENTION: Note that at any time this list must be sorted in the order in which the
+   *
+   * <p>ATTENTION: Note that at any time this list must be sorted in the order in which the
    * highlighting information is used during the drawing phase.
    */
   private final ArrayList<CHighlighting> m_highlighting = new ArrayList<CHighlighting>();
@@ -116,8 +96,11 @@ public class ZyLineContent {
     this(text, font, new ArrayList<CStyleRunData>(), model);
   }
 
-  public ZyLineContent(final String text, final Font font,
-      final List<CStyleRunData> textColorStyleRun, final IZyEditableObject model) {
+  public ZyLineContent(
+      final String text,
+      final Font font,
+      final List<CStyleRunData> textColorStyleRun,
+      final IZyEditableObject model) {
     Preconditions.checkNotNull(text, "Error: Text argument can't be null");
     Preconditions.checkNotNull(textColorStyleRun, "Error: Text color style run can't be null.");
 
@@ -135,10 +118,9 @@ public class ZyLineContent {
    * characters are changed. This parameter can be -1 to mean "until the end of the line". This
    * function takes the given length and converts it into the real number of characters to be
    * modified.
-   * 
+   *
    * @param position Character index where the modification begins.
    * @param length Number of characters to modify.
-   * 
    * @return The real number of characters to modify.
    */
   private int calculateRealLength(final int position, final int length) {
@@ -147,7 +129,7 @@ public class ZyLineContent {
 
   /**
    * Highlights the line.
-   * 
+   *
    * @param gfx The graphics context where the highlighting is drawn.
    * @param x The x position where the highlighting begins.
    * @param y The y position where the highlighting begins.
@@ -155,8 +137,13 @@ public class ZyLineContent {
    * @param height The height of the highlighting area.
    * @param color The color of the highlighting area.
    */
-  private void drawHighlighting(final Graphics2D gfx, final double x, final double y,
-      final double width, final double height, final Color color) {
+  private void drawHighlighting(
+      final Graphics2D gfx,
+      final double x,
+      final double y,
+      final double width,
+      final double height,
+      final Color color) {
     gfx.setColor(color);
 
     final int roundedX = (int) Math.round(x);
@@ -179,11 +166,11 @@ public class ZyLineContent {
     gfx.setStroke(NORMAL_STROKE);
   }
 
-  private void regenerateLine(final String text, final Font font,
-      final List<CStyleRunData> textColorStyleRun) {
+  private void regenerateLine(
+      final String text, final Font font, final List<CStyleRunData> textColorStyleRun) {
     m_text = Preconditions.checkNotNull(text, "Error: text argument can not be null");
-    Preconditions.checkNotNull(textColorStyleRun,
-        "Error: textColorStyleRun argument can not be null");
+    Preconditions.checkNotNull(
+        textColorStyleRun, "Error: textColorStyleRun argument can not be null");
 
     m_atext = new AttributedString(text);
 
@@ -200,8 +187,8 @@ public class ZyLineContent {
 
         validatePartialLineArguments(position, realLength);
 
-        m_atext.addAttribute(TextAttribute.FOREGROUND, data.getColor(), position, position
-            + realLength);
+        m_atext.addAttribute(
+            TextAttribute.FOREGROUND, data.getColor(), position, position + realLength);
 
         if (data.getLineObject() != null) {
           m_lineObjects.add(data.getLineObject());
@@ -222,7 +209,7 @@ public class ZyLineContent {
 
   /**
    * Updates the information that is used to calculate the line bounds.
-   * 
+   *
    * @param font The font which is taken to calculate the bounds.
    */
   private void updateCharBounds(final Font font) {
@@ -234,9 +221,9 @@ public class ZyLineContent {
 
   /**
    * Takes the position and length arguments passed to partial modification functions and checks
-   * them for validity. If one or both of the arguments are invalid, an
-   * {@link IllegalArgumentException} is thrown.
-   * 
+   * them for validity. If one or both of the arguments are invalid, an {@link
+   * IllegalArgumentException} is thrown.
+   *
    * @param position Position argument to be checked.
    * @param length Length argument to be checked.
    */
@@ -256,7 +243,7 @@ public class ZyLineContent {
 
   /**
    * Removes all highlighting information of the given level.
-   * 
+   *
    * @param level The highlighting level to clear.
    */
   public synchronized boolean clearHighlighting(final int level) {
@@ -276,7 +263,7 @@ public class ZyLineContent {
 
   /**
    * Draws the line onto a graphics context.
-   * 
+   *
    * @param gfx The graphics context to draw on.
    * @param x The x coordinate where the line is placed.
    * @param y The y coordinate where the line is placed.
@@ -301,10 +288,10 @@ public class ZyLineContent {
   }
 
   public List<CStyleRunData> getBackgroundStyleRunData(final int start, final int end) {
-    Preconditions.checkState((start >= 0) && (start <= end) && (start < m_text.length()),
-        "Illegal start value.");
-    Preconditions.checkState((end >= 0) && (end >= start) && (end < m_text.length()),
-        "Illegal end value.");
+    Preconditions.checkState(
+        (start >= 0) && (start <= end) && (start < m_text.length()), "Illegal start value.");
+    Preconditions.checkState(
+        (end >= 0) && (end >= start) && (end < m_text.length()), "Illegal end value.");
 
     final List<CStyleRunData> styleRun = new ArrayList<CStyleRunData>();
 
@@ -341,7 +328,7 @@ public class ZyLineContent {
 
   /**
    * Returns the bounds of the line.
-   * 
+   *
    * @return The bounds of the line.
    */
   public Rectangle2D getBounds() {
@@ -360,9 +347,9 @@ public class ZyLineContent {
   }
 
   /**
-   * Returns the {@link IZyEditableObject} at the position given as argument or the
-   * {@link IZyEditableObject} at the position + 1 if at position there was no object.
-   * 
+   * Returns the {@link IZyEditableObject} at the position given as argument or the {@link
+   * IZyEditableObject} at the position + 1 if at position there was no object.
+   *
    * @param xPos to position to look for the {@link IZyEditableObject} at.
    * @return The {@link IZyEditableObject} if found else null.
    */
@@ -409,7 +396,7 @@ public class ZyLineContent {
 
   /**
    * Returns the text of the line.
-   * 
+   *
    * @return The text of the line.
    */
   public String getText() {
@@ -435,7 +422,7 @@ public class ZyLineContent {
 
   /**
    * Returns the text layout of the line
-   * 
+   *
    * @return The text layout of the line
    */
   public TextLayout getTextLayout() {
@@ -476,7 +463,7 @@ public class ZyLineContent {
 
   /**
    * Changes the background color of the line.
-   * 
+   *
    * @param color The new background color.
    */
   public void setBackgroundColor(final Color color) {
@@ -491,7 +478,7 @@ public class ZyLineContent {
 
   /**
    * Changes the background color of a part of the line.
-   * 
+   *
    * @param position The index of the first character that gets the new background color.
    * @param length Number of characters that get the new background color.
    * @param color The new background color.
@@ -511,9 +498,9 @@ public class ZyLineContent {
 
   /**
    * Changes the font that is used to display the whole line.
-   * 
-   * Note that the font must be a monospaced font.
-   * 
+   *
+   * <p>Note that the font must be a monospaced font.
+   *
    * @param font The new font to be used.
    */
   public void setFont(final Font font) {
@@ -530,9 +517,9 @@ public class ZyLineContent {
 
   /**
    * Changes the font that is used to display part of the line.
-   * 
-   * Note that the font must be a monospaced font.
-   * 
+   *
+   * <p>Note that the font must be a monospaced font.
+   *
    * @param position The index of the first character that gets the new font.
    * @param length Number of characters that get the new font.
    * @param font The new font to be used.
@@ -557,7 +544,7 @@ public class ZyLineContent {
 
   /**
    * Adds a new highlighting setting to the line.
-   * 
+   *
    * @param level The highlighting level.
    * @param color The highlighting color.
    */
@@ -588,14 +575,14 @@ public class ZyLineContent {
 
   /**
    * Changes the highlighting for a part of the line.
-   * 
+   *
    * @param position The index of the first character that is highlighted.
    * @param length Number of characters that are highlighted.
    * @param level The highlighting level.
    * @param color The highlighting color.
    */
-  public synchronized void setHighlighting(final int position, final int length, final int level,
-      final Color color) {
+  public synchronized void setHighlighting(
+      final int position, final int length, final int level, final Color color) {
     Preconditions.checkNotNull(color, "Error: color argument can not be null");
 
     if (!isEmpty()) {
@@ -607,8 +594,8 @@ public class ZyLineContent {
         clearHighlighting(level);
       }
 
-      m_highlighting.add(new CHighlighting(level, position * m_charWidth, realLength * m_charWidth,
-          color));
+      m_highlighting.add(
+          new CHighlighting(level, position * m_charWidth, realLength * m_charWidth, color));
 
       Collections.sort(m_highlighting);
     }
@@ -616,7 +603,7 @@ public class ZyLineContent {
 
   /**
    * Adds a newly generated ObjectWrapper Object to the list of objects stored in the class.
-   * 
+   *
    * @param start the start of the objects string.
    * @param length the end of the objects string.
    * @param object the object itself.
@@ -628,7 +615,7 @@ public class ZyLineContent {
 
   /**
    * Changes the text color of the line.
-   * 
+   *
    * @param color The new text color.
    */
   public void setTextColor(final Color color) {
@@ -643,7 +630,7 @@ public class ZyLineContent {
 
   /**
    * Changes the text color of a part of the line.
-   * 
+   *
    * @param position The index of the first character that gets the new font color.
    * @param length Number of characters that get the new font color.
    * @param color The new text color.
@@ -668,9 +655,8 @@ public class ZyLineContent {
   /**
    * Represents an object within a line with a defined start index and length. The start index
    * specifies the nth character in the string representing the line content.
-   * 
+   *
    * @author jannewger@google.com (Jan Newger)
-   * 
    */
   public static class ObjectWrapper {
     private final int start;

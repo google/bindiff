@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,18 +39,12 @@ import y.view.Graph2D;
  * @param <RawNodeType> The raw node type.
  */
 public abstract class ZyGraphNode<RawNodeType extends IViewNode<?>>
-    implements
-    ISelectableNode,
-    IViewableNode {
+    implements ISelectableNode, IViewableNode {
 
-  /**
-   * The raw node that was used to generate the yfiles node.
-   */
+  /** The raw node that was used to generate the yfiles node. */
   private RawNodeType m_rawNode;
 
-  /**
-   * The yfiles node that was generated from the information of the raw node.
-   */
+  /** The yfiles node that was generated from the information of the raw node. */
   private final Node m_node;
 
   private final IZyNodeRealizer m_realizer;
@@ -225,8 +219,8 @@ public abstract class ZyGraphNode<RawNodeType extends IViewNode<?>>
    * @param length The number of characters to colorize.
    * @param color The color used to colorize the characters.
    */
-  public void setBackgroundColor(final int line, final int position, final int length,
-      final Color color) {
+  public void setBackgroundColor(
+      final int line, final int position, final int length, final Color color) {
     m_realizer.getNodeContent().getLineContent(line).setBackgroundColor(position, length, color);
 
     updateViews();
@@ -261,8 +255,8 @@ public abstract class ZyGraphNode<RawNodeType extends IViewNode<?>>
     }
   }
 
-  public void setHighlighting(final int level, final int line, final int start, final int length,
-      final Color color) {
+  public void setHighlighting(
+      final int level, final int line, final int start, final int length, final Color color) {
     final ZyLineContent lineContent = m_realizer.getNodeContent().getLineContent(line);
 
     lineContent.setHighlighting(start, length, level, color);
@@ -271,7 +265,8 @@ public abstract class ZyGraphNode<RawNodeType extends IViewNode<?>>
   }
 
   public void setRawNode(final RawNodeType rawNode) {
-    Preconditions.checkArgument(rawNode.getClass().equals(m_rawNode.getClass()),
+    Preconditions.checkArgument(
+        rawNode.getClass().equals(m_rawNode.getClass()),
         "Error: Old node and new node have different types");
     m_rawNode.removeListener(m_listener);
     m_rawNode = rawNode;
@@ -283,8 +278,8 @@ public abstract class ZyGraphNode<RawNodeType extends IViewNode<?>>
     updateViews();
   }
 
-  private class InternalListener implements IViewNodeListener,
-      IZyNodeRealizerListener<ZyGraphNode<RawNodeType>> {
+  private class InternalListener
+      implements IViewNodeListener, IZyNodeRealizerListener<ZyGraphNode<RawNodeType>> {
     private final Graph2D m_graph;
 
     private Node m_pnode;
@@ -351,29 +346,37 @@ public abstract class ZyGraphNode<RawNodeType extends IViewNode<?>>
 
       for (final IViewEdge<? extends IViewNode<?>> edge : node.getIncomingEdges()) {
         if (node.getParentGroup() == null) {
-          edge.setVisible(edge.getSource().isVisible() && edge.getTarget().isVisible()
-              && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
-              && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
+          edge.setVisible(
+              edge.getSource().isVisible()
+                  && edge.getTarget().isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
         } else if (node.getParentGroup().isCollapsed()) {
           edge.setVisible(node.getParentGroup().isVisible() && edge.getSource().isVisible());
         } else {
-          edge.setVisible(edge.getSource().isVisible() && edge.getTarget().isVisible()
-              && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
-              && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
+          edge.setVisible(
+              edge.getSource().isVisible()
+                  && edge.getTarget().isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
         }
       }
 
       for (final IViewEdge<? extends IViewNode<?>> edge : node.getOutgoingEdges()) {
         if (node.getParentGroup() == null) {
-          edge.setVisible(edge.getSource().isVisible() && edge.getTarget().isVisible()
-              && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
-              && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
+          edge.setVisible(
+              edge.getSource().isVisible()
+                  && edge.getTarget().isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
         } else if (node.getParentGroup().isCollapsed()) {
           edge.setVisible(node.getParentGroup().isVisible() && edge.getTarget().isVisible());
         } else {
-          edge.setVisible(edge.getSource().isVisible() && edge.getTarget().isVisible()
-              && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
-              && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
+          edge.setVisible(
+              edge.getSource().isVisible()
+                  && edge.getTarget().isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getTarget()).isVisible()
+                  && NodeHelpers.getVisibleNode(edge.getSource()).isVisible());
         }
       }
     }

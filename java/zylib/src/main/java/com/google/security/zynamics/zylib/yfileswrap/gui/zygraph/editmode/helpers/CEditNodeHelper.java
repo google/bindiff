@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,14 +19,11 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyRegenerateableNodeRealizer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 
-import java.awt.event.MouseEvent;
-
 public final class CEditNodeHelper {
-  private CEditNodeHelper() {
-  }
+  private CEditNodeHelper() {}
 
   public static void removeCaret(final AbstractZyGraph<?, ?> graph) {
     final CDefaultLabelEventHandler labelEventHandler = graph.getEditMode().getLabelEventHandler();
@@ -36,8 +33,8 @@ public final class CEditNodeHelper {
     }
   }
 
-  public static void select(final AbstractZyGraph<?, ?> graph, final Node node,
-      final MouseEvent event) {
+  public static void select(
+      final AbstractZyGraph<?, ?> graph, final Node node, final MouseEvent event) {
     final double mouseX = graph.getEditMode().translateX(event.getX());
     final double mouseY = graph.getEditMode().translateY(event.getY());
 
@@ -56,8 +53,8 @@ public final class CEditNodeHelper {
     }
   }
 
-  public static void setCaretEnd(final AbstractZyGraph<?, ?> graph, final Node node,
-      final MouseEvent event) {
+  public static void setCaretEnd(
+      final AbstractZyGraph<?, ?> graph, final Node node, final MouseEvent event) {
     final double mouseX = graph.getEditMode().translateX(event.getX());
     final double mouseY = graph.getEditMode().translateY(event.getY());
 
@@ -72,13 +69,13 @@ public final class CEditNodeHelper {
       final double nodeX = realizer.getRealizer().getX();
       final double nodeY = realizer.getRealizer().getY();
 
-      labelEventHandler.handleMouseReleasedEvent(nodeX, nodeY, mouseX, mouseY, zoom,
-          event.getClickCount());
+      labelEventHandler.handleMouseReleasedEvent(
+          nodeX, nodeY, mouseX, mouseY, zoom, event.getClickCount());
     }
   }
 
-  public static void setCaretStart(final AbstractZyGraph<?, ?> graph, final Node node,
-      final MouseEvent event) {
+  public static void setCaretStart(
+      final AbstractZyGraph<?, ?> graph, final Node node, final MouseEvent event) {
     final double mouseX = graph.getEditMode().translateX(event.getX());
     final double mouseY = graph.getEditMode().translateY(event.getY());
 
@@ -87,7 +84,9 @@ public final class CEditNodeHelper {
 
     final CDefaultLabelEventHandler labelEventHandler = graph.getEditMode().getLabelEventHandler();
 
-    graph.getEditMode().getLabelEventHandler()
+    graph
+        .getEditMode()
+        .getLabelEventHandler()
         .activateLabelContent(labelContent, new ZyRegenerateableNodeRealizer(realizer));
 
     if (labelContent.isSelectable()) {

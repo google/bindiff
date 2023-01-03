@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,18 +16,14 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers;
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
-
-import y.layout.LabelLayoutConstants;
-import y.view.EdgeLabel;
-
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import y.layout.LabelLayoutConstants;
+import y.view.EdgeLabel;
 
-/**
- * Edge label class that is used to display edge comments.
- */
+/** Edge label class that is used to display edge comments. */
 public class ZyEdgeLabel extends EdgeLabel {
   private static final int RECT_ARC_SIZE = 5;
 
@@ -62,8 +58,12 @@ public class ZyEdgeLabel extends EdgeLabel {
   }
 
   @Override
-  protected void paintBox(final Graphics2D gfx, final double x, final double y,
-      final double width1, final double height2) {
+  protected void paintBox(
+      final Graphics2D gfx,
+      final double x,
+      final double y,
+      final double width1,
+      final double height2) {
     final int roundedX = (int) (x - (m_width / 2));
     final int roundedY = (int) (y - (m_height / 2));
 
@@ -85,8 +85,12 @@ public class ZyEdgeLabel extends EdgeLabel {
   }
 
   @Override
-  protected void paintContent(final Graphics2D gfx, final double x, final double y,
-      final double width1, final double height1) {
+  protected void paintContent(
+      final Graphics2D gfx,
+      final double x,
+      final double y,
+      final double width1,
+      final double height1) {
     final int roundedX = (int) (x - (m_width / 2));
     final int roundedY = (int) (y - (m_height / 2));
 

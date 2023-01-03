@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
 package com.google.security.zynamics.zylib.gui.scripting.console;
 
 import java.awt.Color;
-
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
-/**
- * Document style for the syntax highlighted Python interpreter output.
- */
+/** Document style for the syntax highlighted Python interpreter output. */
 class PythonStdoutDocument extends DefaultStyledDocument {
   private static final long serialVersionUID = 4657150237257401496L;
 

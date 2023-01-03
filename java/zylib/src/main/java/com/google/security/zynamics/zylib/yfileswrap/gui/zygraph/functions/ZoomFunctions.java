@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,15 +21,13 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ZoomHelpers;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
-import y.geom.YRectangle;
-import y.view.EdgeLabel;
-import y.view.NodeRealizer;
-
 import java.awt.Rectangle;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
+import y.geom.YRectangle;
+import y.view.EdgeLabel;
+import y.view.NodeRealizer;
 
 public class ZoomFunctions {
   public static <EdgeType extends ZyGraphEdge<?, ?, ?>> void zoomToEdgeLabel(
@@ -49,8 +47,9 @@ public class ZoomFunctions {
     graph.getView().setZoom(oldZoom);
 
     final Point2D newCenter =
-        new Point2D.Double(labelBounds.getX() + (0.5 * labelBounds.getWidth()), labelBounds.getY()
-            + (0.5 * labelBounds.getHeight()));
+        new Point2D.Double(
+            labelBounds.getX() + (0.5 * labelBounds.getWidth()),
+            labelBounds.getY() + (0.5 * labelBounds.getHeight()));
 
     graph.getView().focusView(newZoom, newCenter, true);
 
@@ -59,7 +58,7 @@ public class ZoomFunctions {
 
   /**
    * Zooms to a single node.
-   * 
+   *
    * @param node The node in question.
    */
   public static <NodeType extends ZyGraphNode<?>> void zoomToNode(
@@ -77,9 +76,13 @@ public class ZoomFunctions {
     final double oldZoom = graph.getView().getZoom();
     final Point2D oldViewPoint = graph.getView().getViewPoint2D();
 
-    graph.getView().zoomToArea(realizer.getCenterX() - realizer.getWidth(),
-        realizer.getCenterY() - realizer.getHeight(), realizer.getWidth() * 2,
-        realizer.getHeight() * 2);
+    graph
+        .getView()
+        .zoomToArea(
+            realizer.getCenterX() - realizer.getWidth(),
+            realizer.getCenterY() - realizer.getHeight(),
+            realizer.getWidth() * 2,
+            realizer.getHeight() * 2);
     ZoomHelpers.keepZoomValid(graph.getView());
 
     final double newZoom = graph.getView().getZoom();
@@ -88,14 +91,17 @@ public class ZoomFunctions {
     graph.getView().setZoom(oldZoom);
     graph.getView().setViewPoint((int) oldViewPoint.getX(), (int) oldViewPoint.getY());
 
-    graph.getView().focusView(newZoom, newCenter,
-        graph.getSettings().getLayoutSettings().getAnimateLayout());
+    graph
+        .getView()
+        .focusView(newZoom, newCenter, graph.getSettings().getLayoutSettings().getAnimateLayout());
 
     graph.updateViews();
   }
 
   public static <NodeType extends ZyGraphNode<?>> void zoomToNode(
-      final AbstractZyGraph<NodeType, ?> graph, final NodeType node, final int line,
+      final AbstractZyGraph<NodeType, ?> graph,
+      final NodeType node,
+      final int line,
       final boolean animate) {
     Preconditions.checkNotNull(node, "Error: Node argument can't be null");
 
@@ -107,15 +113,21 @@ public class ZoomFunctions {
 
     final Point2D oldViewPoint = graph.getView().getViewPoint2D();
 
-    graph.getView().setCenter(realizer.getCenterX(),
-        (realizer.getCenterY() - (realizer.getHeight() / 2)) + offset);
+    graph
+        .getView()
+        .setCenter(
+            realizer.getCenterX(), (realizer.getCenterY() - (realizer.getHeight() / 2)) + offset);
 
     if (animate) {
       final Point2D newCenter = graph.getView().getCenter();
 
       graph.getView().setViewPoint((int) oldViewPoint.getX(), (int) oldViewPoint.getY());
-      graph.getView().focusView(graph.getView().getZoom(), newCenter,
-          graph.getSettings().getLayoutSettings().getAnimateLayout());
+      graph
+          .getView()
+          .focusView(
+              graph.getView().getZoom(),
+              newCenter,
+              graph.getSettings().getLayoutSettings().getAnimateLayout());
     }
 
     graph.updateViews();
@@ -123,7 +135,7 @@ public class ZoomFunctions {
 
   /**
    * Zooms the graph so far that all nodes in the list are visible.
-   * 
+   *
    * @param nodes List of nodes that should be displayed as big as possible.
    */
   public static <NodeType extends ZyGraphNode<?>> void zoomToNodes(
@@ -148,15 +160,14 @@ public class ZoomFunctions {
     graph.getView().setZoom(oldZoom);
     graph.getView().setViewPoint((int) oldViewPoint.getX(), (int) oldViewPoint.getY());
 
-    graph.getView().focusView(newZoom, newCenter,
-        graph.getSettings().getLayoutSettings().getAnimateLayout());
+    graph
+        .getView()
+        .focusView(newZoom, newCenter, graph.getSettings().getLayoutSettings().getAnimateLayout());
 
     graph.updateViews();
   }
 
-  /**
-   * Zooms the graph so far that all nodes are non-hidden nodes are visible on the screen.
-   */
+  /** Zooms the graph so far that all nodes are non-hidden nodes are visible on the screen. */
   public static void zoomToScreen(final AbstractZyGraph<?, ?> graph) {
     graph.getView().fitContent();
 

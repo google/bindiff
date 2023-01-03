@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * This class contains stream utility functions.
- * 
+ *
  * @author cblichmann@google.com (Christian Blichmann)
  */
 public class StreamUtils {
@@ -32,7 +32,7 @@ public class StreamUtils {
 
   /**
    * Reads lines of text from the specified {@link Reader}.
-   * 
+   *
    * @param reader the reader to read lines from
    * @return a list containing the lines read. This list may be empty if there was no data to read.
    * @throws IOException if an IO error occurs.

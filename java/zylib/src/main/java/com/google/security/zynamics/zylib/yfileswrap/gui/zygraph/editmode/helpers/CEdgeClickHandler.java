@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,24 +18,25 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.AbstractZyGraphSettings;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
-
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import y.base.Edge;
 import y.view.EdgeRealizer;
 import y.view.NodeRealizer;
-
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 
 public class CEdgeClickHandler {
   /**
    * Zooms to the source or target of an edge depending on what is farther away from the visible
    * part of the graph.
-   * 
+   *
    * @param graph The graph the edge belongs to.
    * @param edge The edge that provides the potential zoom targets.
    */
-  private static void zoomEdgeNode(final AbstractZyGraph<?, ?> graph, final Edge edge,
-      final double mouseX, final double mouseY) {
+  private static void zoomEdgeNode(
+      final AbstractZyGraph<?, ?> graph,
+      final Edge edge,
+      final double mouseX,
+      final double mouseY) {
     assert edge != null;
 
     final AbstractZyGraphSettings settings = graph.getSettings();
@@ -72,7 +73,7 @@ public class CEdgeClickHandler {
 
   /**
    * Handles clicks on edges.
-   * 
+   *
    * @param graph The graph the edge belongs to.
    * @param edge The edge that was clicked on.
    * @param event Description of the click event.

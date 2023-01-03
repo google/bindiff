@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -37,16 +37,15 @@ import java.util.Set;
 import y.base.Edge;
 import y.base.Node;
 
-/**
- * This class is used to generate the tooltips of nodes and edges of a graph.
- */
+/** This class is used to generate the tooltips of nodes and edges of a graph. */
 public final class TooltipGenerator {
   private static <NodeType extends ZyGraphNode<?>> String generateProximityNodeRealizer(
       final AbstractZyGraph<NodeType, ?> graph, final ZyProximityNode<?> node) {
     final Set<String> strings = new LinkedHashSet<String>();
 
     final List<? extends Object> nodes =
-        node.isIncoming() ? ((IGraphNode<?>) node.getRawNode().getAttachedNode()).getChildren()
+        node.isIncoming()
+            ? ((IGraphNode<?>) node.getRawNode().getAttachedNode()).getChildren()
             : ((IGraphNode<?>) node.getRawNode().getAttachedNode()).getParents();
 
     boolean cutoff = false;
@@ -54,12 +53,14 @@ public final class TooltipGenerator {
     int counter = 0;
 
     final int invisibleNodesCount =
-        CollectionHelpers.countIf(nodes, new ICollectionFilter<Object>() {
-          @Override
-          public boolean qualifies(final Object item) {
-            return !((IViewNode<?>) item).isVisible();
-          }
-        });
+        CollectionHelpers.countIf(
+            nodes,
+            new ICollectionFilter<Object>() {
+              @Override
+              public boolean qualifies(final Object item) {
+                return !((IViewNode<?>) item).isVisible();
+              }
+            });
 
     for (final Object child : nodes) {
       final IViewNode<?> childNode = (IViewNode<?>) child;
@@ -104,26 +105,24 @@ public final class TooltipGenerator {
 
   /**
    * Determines whether the first line of a tooltip should be displayed in bold-face or not.
-   * 
+   *
    * @param <NodeType> Type of the node.
-   * 
    * @param node The node the generated tooltip belongs to.
-   * 
    * @return True, if the first line should be printed in bold-face. False, otherwise.
    */
-  private static <NodeType extends ZyGraphNode<?>> boolean requiresBoldFirstLine(final NodeType node) {
+  private static <NodeType extends ZyGraphNode<?>> boolean requiresBoldFirstLine(
+      final NodeType node) {
     return (node != null)
-        && ((node.getRawNode() instanceof ICodeNode) || (node.getRawNode() instanceof IFunctionNode));
+        && ((node.getRawNode() instanceof ICodeNode)
+            || (node.getRawNode() instanceof IFunctionNode));
   }
 
   /**
    * Creates the tooltip for an edge in the graph.
-   * 
+   *
    * @param <NodeType> Type of the nodes in the graph.
-   * 
    * @param graph The graph the edge belongs to.
    * @param edge The edge the tooltip is created for.
-   * 
    * @return The generated tooltip text for the edge.
    */
   public static <NodeType extends ZyGraphNode<?>> String createTooltip(

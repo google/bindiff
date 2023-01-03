@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,15 +14,13 @@
 
 package com.google.security.zynamics.zylib.types.graphs.algorithms;
 
-/**
- * Exception that is used to signal that there is something wrong with the graph.
- */
+/** Exception that is used to signal that there is something wrong with the graph. */
 public class MalformedGraphException extends Exception {
   private static final long serialVersionUID = 7422498674681635996L;
 
   /**
    * Creates a new MalformedGraphException object.
-   * 
+   *
    * @param msg The exception message.
    */
   public MalformedGraphException(final String msg) {

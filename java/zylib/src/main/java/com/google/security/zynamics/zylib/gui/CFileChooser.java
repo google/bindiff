@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class CFileChooser extends JFileChooser {
   /**
    * Whether to ask for an existing file to be overwritten. Only makes sense in dialogs of type
    * <code>JFileChooser.SAVE_DIALOG</code> or <code>JFileChooser.CUSTOM_DIALOG</code>.
-   * 
+   *
    * @see JFileChooser#setDialogType(int)
    */
   private boolean askFileOverwrite = false;
@@ -118,15 +118,16 @@ public class CFileChooser extends JFileChooser {
     }
 
     final String selectedDir = result.getDirectory();
-    chooser
-        .setSelectedFile(new File(FileUtils.ensureTrailingSlash(selectedDir) + result.getFile()));
+    chooser.setSelectedFile(
+        new File(FileUtils.ensureTrailingSlash(selectedDir) + result.getFile()));
     return APPROVE_OPTION;
   }
 
   @Override
   public void approveSelection() {
     if (askFileOverwrite && getSelectedFile().exists()) {
-      if (CMessageBox.showYesNoQuestion(this, Constants.ASK_FILE_OVERWRITE) == JOptionPane.NO_OPTION) {
+      if (CMessageBox.showYesNoQuestion(this, Constants.ASK_FILE_OVERWRITE)
+          == JOptionPane.NO_OPTION) {
         return;
       }
     }
@@ -221,7 +222,8 @@ public class CFileChooser extends JFileChooser {
     private final List<String> fileExtensions;
     private final String fileDescription;
 
-    public FileNameExtensionFilter(final List<String> fileExtensions, final String fileDescription) {
+    public FileNameExtensionFilter(
+        final List<String> fileExtensions, final String fileDescription) {
       this.fileExtensions = fileExtensions;
       this.fileDescription = fileDescription;
     }

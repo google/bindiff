@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import com.google.security.zynamics.zylib.types.lists.IFilledList;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,28 +36,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * This class provides a number of helper functions that are useful when working with graphs.
- */
+/** This class provides a number of helper functions that are useful when working with graphs. */
 public class GraphHelpers {
-  public static <NodeType> boolean any(final IIterableGraph<NodeType> graph,
-      final INodeFilter<NodeType> filter) {
+  public static <NodeType> boolean any(
+      final IIterableGraph<NodeType> graph, final INodeFilter<NodeType> filter) {
     final ArrayList<Object> lameHack = new ArrayList<Object>();
 
-    graph.iterate(new INodeCallback<NodeType>() {
+    graph.iterate(
+        new INodeCallback<NodeType>() {
 
-      @Override
-      public IterationMode next(final NodeType item) {
-        if (filter.qualifies(item)) {
-          lameHack.add(item);
+          @Override
+          public IterationMode next(final NodeType item) {
+            if (filter.qualifies(item)) {
+              lameHack.add(item);
 
-          return IterationMode.STOP;
-        }
+              return IterationMode.STOP;
+            }
 
-        return IterationMode.CONTINUE;
-      }
-
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return lameHack.size() != 0;
   }
@@ -67,14 +64,11 @@ public class GraphHelpers {
    * Determines whether all children of a node are deselected.
    *
    * @param <NodeType> The type of the node and its children.
-   *
    * @param node The node in question.
-   *
    * @return True, if all children of the node are deselected. False, otherwise.
    */
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> boolean areAllChildrenDeselected(
-      final NodeType node) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      boolean areAllChildrenDeselected(final NodeType node) {
     final INodeFilter<NodeType> filter = StandardFilters.getSelectedFilter();
 
     return GraphAlgorithms.collectChildren(node, filter).size() == 0;
@@ -84,14 +78,11 @@ public class GraphHelpers {
    * Determines whether all parents of a node are deselected.
    *
    * @param <NodeType> The type of the node and its parents.
-   *
    * @param node The node in question.
-   *
    * @return True, if all parents of the node are deselected. False, otherwise.
    */
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> boolean areAllParentsDeselected(
-      final NodeType node) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      boolean areAllParentsDeselected(final NodeType node) {
     final INodeFilter<NodeType> filter = StandardFilters.getSelectedFilter();
 
     return GraphAlgorithms.collectParents(node, filter).size() == 0;
@@ -101,9 +92,7 @@ public class GraphHelpers {
    * Calculates the bounding box of a list of nodes.
    *
    * @param <NodeType> The type of the nodes in the list.
-   *
    * @param nodes The list of nodes.
-   *
    * @return The bounding box of the list of nodes.
    */
   public static <NodeType extends IViewableNode> Rectangle2D calculateBoundingBox(
@@ -125,7 +114,6 @@ public class GraphHelpers {
    * nodes are selected too.
    *
    * @param <NodeType> The node type of all nodes in the graph.
-   *
    * @param graph The graph where the current selection is expanded.
    */
   public static <NodeType extends IGraphNode<NodeType> & ISelectableNode> void expandSelectionDown(
@@ -135,14 +123,15 @@ public class GraphHelpers {
     final INodeFilter<NodeType> deselectedFilter = StandardFilters.getDeselectedFilter();
 
     // Collect all the nodes that must be selected
-    graph.iterateSelected(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        toSelect.addAll(GraphAlgorithms.collectChildren(node, deselectedFilter));
+    graph.iterateSelected(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            toSelect.addAll(GraphAlgorithms.collectChildren(node, deselectedFilter));
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     graph.selectNodes(toSelect, true);
   }
@@ -152,7 +141,6 @@ public class GraphHelpers {
    * are selected too.
    *
    * @param <NodeType> Type of the nodes in the graph.
-   *
    * @param graph The graph in question.
    */
   public static <NodeType extends IGraphNode<NodeType> & ISelectableNode> void expandSelectionUp(
@@ -161,15 +149,15 @@ public class GraphHelpers {
     final ArrayList<NodeType> toSelect = new ArrayList<NodeType>();
     final INodeFilter<NodeType> deselectedFilter = StandardFilters.getDeselectedFilter();
 
-    graph.iterateSelected(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        toSelect.addAll(GraphAlgorithms.collectParents(node, deselectedFilter));
+    graph.iterateSelected(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            toSelect.addAll(GraphAlgorithms.collectParents(node, deselectedFilter));
 
-        return IterationMode.CONTINUE;
-      }
-
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     graph.selectNodes(toSelect, true);
   }
@@ -178,10 +166,8 @@ public class GraphHelpers {
    * Returns a list of nodes that match the given filter.
    *
    * @param <NodeType> Type of the nodes in the graph.
-   *
    * @param graph The graph that provides the nodes.
    * @param filter The filter that selects the nodes.
-   *
    * @return The list of nodes that passes the filter.
    */
   public static <NodeType> List<NodeType> filter(
@@ -189,16 +175,17 @@ public class GraphHelpers {
       final ICollectionFilter<NodeType> filter) {
     final List<NodeType> items = new ArrayList<NodeType>();
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (filter.qualifies(node)) {
-          items.add(node);
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (filter.qualifies(node)) {
+              items.add(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return items;
   }
@@ -209,22 +196,23 @@ public class GraphHelpers {
     return getEdges(graph, trueFilter);
   }
 
-  public static <EdgeType> List<EdgeType> getEdges(final IEdgeIterableGraph<EdgeType> graph,
-      final INodeFilter<EdgeType> filter) {
+  public static <EdgeType> List<EdgeType> getEdges(
+      final IEdgeIterableGraph<EdgeType> graph, final INodeFilter<EdgeType> filter) {
     Preconditions.checkNotNull(graph, "Error: Graph argument can't be null");
     Preconditions.checkNotNull(filter, "Error: Filter argument can't be null");
     final ArrayList<EdgeType> nodes = new ArrayList<EdgeType>();
 
-    graph.iterateEdges(new IEdgeCallback<EdgeType>() {
-      @Override
-      public IterationMode nextEdge(final EdgeType node) {
-        if (filter.qualifies(node)) {
-          nodes.add(node);
-        }
+    graph.iterateEdges(
+        new IEdgeCallback<EdgeType>() {
+          @Override
+          public IterationMode nextEdge(final EdgeType node) {
+            if (filter.qualifies(node)) {
+              nodes.add(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
@@ -233,13 +221,14 @@ public class GraphHelpers {
       final IViewableGraph<NodeType> graph) {
     final ArrayList<NodeType> nodes = new ArrayList<NodeType>();
 
-    graph.iterateInvisible(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        nodes.add(node);
-        return IterationMode.CONTINUE;
-      }
-    });
+    graph.iterateInvisible(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            nodes.add(node);
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
@@ -248,9 +237,7 @@ public class GraphHelpers {
    * Returns all nodes in the graph.
    *
    * @param <NodeType> Type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return A list of all nodes in the graph.
    */
   public static <NodeType> List<NodeType> getNodes(final IIterableGraph<NodeType> graph) {
@@ -263,28 +250,27 @@ public class GraphHelpers {
    * Returns all nodes in the graph that pass a filter check.
    *
    * @param <NodeType> Type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return A list of all nodes in the graph that pass the filter check.
    */
-  public static <NodeType> List<NodeType> getNodes(final IIterableGraph<NodeType> graph,
-      final INodeFilter<NodeType> filter) {
+  public static <NodeType> List<NodeType> getNodes(
+      final IIterableGraph<NodeType> graph, final INodeFilter<NodeType> filter) {
     Preconditions.checkNotNull(graph, "Error: Graph argument can't be null");
     Preconditions.checkNotNull(filter, "Error: Filter argument can't be null");
 
     final ArrayList<NodeType> nodes = new ArrayList<NodeType>();
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (filter.qualifies(node)) {
-          nodes.add(node);
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (filter.qualifies(node)) {
+              nodes.add(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
@@ -293,14 +279,11 @@ public class GraphHelpers {
    * Returns the predecessors of the selected nodes of a graph.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return A collection of all predecessor nodes of the selected graph nodes.
    */
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> Collection<NodeType> getPredecessorsOfSelection(
-      final ISelectableGraph<NodeType> graph) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      Collection<NodeType> getPredecessorsOfSelection(final ISelectableGraph<NodeType> graph) {
     return GraphAlgorithms.getPredecessors(getSelectedNodes(graph));
   }
 
@@ -308,23 +291,25 @@ public class GraphHelpers {
       final AbstractZyGraph<NodeType, ?> graph) {
     final StringBuilder selection = new StringBuilder();
 
-    IteratorFunctions.iterateSelected(graph, new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        final IZyNodeRealizer realizer = node.getRealizer();
+    IteratorFunctions.iterateSelected(
+        graph,
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            final IZyNodeRealizer realizer = node.getRealizer();
 
-        final ZyLabelContent content = realizer.getNodeContent();
+            final ZyLabelContent content = realizer.getNodeContent();
 
-        for (final ZyLineContent line : content) {
-          selection.append(line.getText());
-          selection.append("\n");
-        }
+            for (final ZyLineContent line : content) {
+              selection.append(line.getText());
+              selection.append("\n");
+            }
 
-        selection.append("\n");
+            selection.append("\n");
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return selection.toString();
   }
@@ -333,9 +318,7 @@ public class GraphHelpers {
    * Creates a list of all selected nodes of the graph.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return All selected nodes of the graph.
    */
   @Deprecated // Use m_graph.getSelectedNodes
@@ -344,20 +327,20 @@ public class GraphHelpers {
     Preconditions.checkNotNull(graph, "Error: Graph argument can't be null");
     final IFilledList<NodeType> nodes = new FilledList<NodeType>();
 
-    graph.iterateSelected(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        nodes.add(node);
-        return IterationMode.CONTINUE;
-      }
-    });
+    graph.iterateSelected(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            nodes.add(node);
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
 
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> Collection<NodeType> getSuccessors(
-      final NodeType node) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      Collection<NodeType> getSuccessors(final NodeType node) {
     final List<NodeType> nodes = new ArrayList<NodeType>();
 
     nodes.add(node);
@@ -369,14 +352,11 @@ public class GraphHelpers {
    * Returns the successors of the selected nodes of a graph.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return A collection of all successor nodes of the selected graph nodes.
    */
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> Collection<NodeType> getSuccessorsOfSelection(
-      final ISelectableGraph<NodeType> graph) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      Collection<NodeType> getSuccessorsOfSelection(final ISelectableGraph<NodeType> graph) {
     return GraphAlgorithms.getSuccessors(getSelectedNodes(graph));
   }
 
@@ -384,9 +364,7 @@ public class GraphHelpers {
    * Creates a list of all unselected nodes of the graph.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return All selected nodes of the graph.
    */
   public static <NodeType extends ISelectableNode> List<NodeType> getUnselectedNodes(
@@ -395,16 +373,17 @@ public class GraphHelpers {
 
     final ArrayList<NodeType> nodes = new ArrayList<NodeType>();
 
-    graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        if (!node.isSelected()) {
-          nodes.add(node);
-        }
+    graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            if (!node.isSelected()) {
+              nodes.add(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
@@ -413,46 +392,45 @@ public class GraphHelpers {
    * Creates a list of all visible nodes of the graph.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
-   *
    * @return All visible nodes of the graph.
    */
   public static <NodeType extends ISelectableNode> Set<NodeType> getVisibleNodes(
       final IViewableGraph<NodeType> graph) {
     final Set<NodeType> nodes = new HashSet<NodeType>();
 
-    graph.iterateVisible(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        nodes.add(node);
-        return IterationMode.CONTINUE;
-      }
-    });
+    graph.iterateVisible(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            nodes.add(node);
+            return IterationMode.CONTINUE;
+          }
+        });
 
     return nodes;
   }
 
-  public static <ItemType,
-      CollectionType extends IIterableCollection<INodeCallback<ItemType>>> void iterate(
-      final CollectionType collection, final IFilteredItemCallback<ItemType> callback) {
-    collection.iterate(new INodeCallback<ItemType>() {
-      @Override
-      public IterationMode next(final ItemType node) {
-        if (callback.qualifies(node)) {
-          return callback.next(node);
-        }
+  public static <ItemType, CollectionType extends IIterableCollection<INodeCallback<ItemType>>>
+      void iterate(
+          final CollectionType collection, final IFilteredItemCallback<ItemType> callback) {
+    collection.iterate(
+        new INodeCallback<ItemType>() {
+          @Override
+          public IterationMode next(final ItemType node) {
+            if (callback.qualifies(node)) {
+              return callback.next(node);
+            }
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
   }
 
   /**
    * Selects all predecessors of a node.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
    */
   public static <NodeType extends IGraphNode<NodeType> & ISelectableNode> void selectPredecessors(
@@ -464,18 +442,17 @@ public class GraphHelpers {
    * Selects all predecessors of the selected nodes.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
    */
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> void selectPredecessorsOfSelection(
-      final ISelectableGraph<NodeType> graph) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      void selectPredecessorsOfSelection(final ISelectableGraph<NodeType> graph) {
     graph.selectNodes(getPredecessorsOfSelection(graph), true);
   }
 
-  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode,
-      GraphType extends ISelectableGraph<NodeType>> void selectSuccessors(final GraphType graph,
-      final NodeType node) {
+  public static <
+          NodeType extends IGraphNode<NodeType> & ISelectableNode,
+          GraphType extends ISelectableGraph<NodeType>>
+      void selectSuccessors(final GraphType graph, final NodeType node) {
     graph.selectNodes(GraphAlgorithms.getSuccessors(node), true);
   }
 
@@ -483,12 +460,10 @@ public class GraphHelpers {
    * Selects all successors of the selected nodes.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
    */
-  public static <
-      NodeType extends IGraphNode<NodeType> & ISelectableNode> void selectSuccessorsOfSelection(
-      final ISelectableGraph<NodeType> graph) {
+  public static <NodeType extends IGraphNode<NodeType> & ISelectableNode>
+      void selectSuccessorsOfSelection(final ISelectableGraph<NodeType> graph) {
     graph.selectNodes(getSuccessorsOfSelection(graph), true);
   }
 
@@ -497,28 +472,28 @@ public class GraphHelpers {
    * are unselected.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
    */
   public static <NodeType extends IGraphNode<NodeType> & ISelectableNode> void shrinkSelectionDown(
       final ISelectableGraph<NodeType> graph) {
     final ArrayList<NodeType> deselect = new ArrayList<NodeType>();
 
-    graph.iterateSelected(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        // Nodes without incoming edges into the subgraph formed by the selected nodes
-        // are unselected. Those are just the nodes which have no selected parents.
+    graph.iterateSelected(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            // Nodes without incoming edges into the subgraph formed by the selected nodes
+            // are unselected. Those are just the nodes which have no selected parents.
 
-        if (areAllParentsDeselected(node)) {
-          if (!deselect.contains(node)) {
-            deselect.add(node);
+            if (areAllParentsDeselected(node)) {
+              if (!deselect.contains(node)) {
+                deselect.add(node);
+              }
+            }
+
+            return IterationMode.CONTINUE;
           }
-        }
-
-        return IterationMode.CONTINUE;
-      }
-    });
+        });
 
     graph.selectNodes(deselect, false);
   }
@@ -528,28 +503,28 @@ public class GraphHelpers {
    * unselected.
    *
    * @param <NodeType> The type of the nodes in the graph.
-   *
    * @param graph The graph in question.
    */
   public static <NodeType extends IGraphNode<NodeType> & ISelectableNode> void shrinkSelectionUp(
       final ISelectableGraph<NodeType> graph) {
     final ArrayList<NodeType> deselect = new ArrayList<NodeType>();
 
-    graph.iterateSelected(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        // Nodes without outgoing edges into the subgraph formed by the selected nodes
-        // are unselected. Those are just the nodes which have no selected children.
+    graph.iterateSelected(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            // Nodes without outgoing edges into the subgraph formed by the selected nodes
+            // are unselected. Those are just the nodes which have no selected children.
 
-        if (areAllChildrenDeselected(node)) {
-          if (!deselect.contains(node)) {
-            deselect.add(node);
+            if (areAllChildrenDeselected(node)) {
+              if (!deselect.contains(node)) {
+                deselect.add(node);
+              }
+            }
+
+            return IterationMode.CONTINUE;
           }
-        }
-
-        return IterationMode.CONTINUE;
-      }
-    });
+        });
 
     graph.selectNodes(deselect, false);
   }
@@ -559,12 +534,12 @@ public class GraphHelpers {
    *
    * @param <NodeType> The type of the nodes in the graph.
    * @param <GraphType> The type of the graph.
-   *
    * @param graph The graph in question.
    */
-  public static <NodeType extends ISelectableNode,
-      GraphType extends ISelectableGraph<NodeType> & IZoomableGraph<NodeType>> void zoomToSelected(
-      final GraphType graph) {
+  public static <
+          NodeType extends ISelectableNode,
+          GraphType extends ISelectableGraph<NodeType> & IZoomableGraph<NodeType>>
+      void zoomToSelected(final GraphType graph) {
     final List<NodeType> selectedNodes = getSelectedNodes(graph);
 
     if (selectedNodes.size() == 0) {

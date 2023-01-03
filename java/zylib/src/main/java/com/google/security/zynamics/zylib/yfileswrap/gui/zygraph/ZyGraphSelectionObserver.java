@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,17 +16,13 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph;
 
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.zygraph.IZyGraphSelectionListener;
-
 import y.base.GraphEvent;
 import y.view.Graph2D;
 import y.view.Graph2DSelectionEvent;
 import y.view.Selections;
 
-
 public class ZyGraphSelectionObserver extends Selections.SelectionStateObserver {
-  /**
-   * List of listeners that are notified about selection events.
-   */
+  /** List of listeners that are notified about selection events. */
   private final ListenerProvider<IZyGraphSelectionListener> m_selectionListeners =
       new ListenerProvider<IZyGraphSelectionListener>();
 
@@ -54,9 +50,7 @@ public class ZyGraphSelectionObserver extends Selections.SelectionStateObserver 
   // We try to convert the multi-selection event into a single-
   // selection event by counting the events as they arrive.
 
-  /**
-   * Notifies all listeners about selection changes.
-   */
+  /** Notifies all listeners about selection changes. */
   private void notifySelectionListeners() {
     for (final IZyGraphSelectionListener listener : m_selectionListeners) {
       // ESCA-JAVA0166: Catch Exception because we are calling a listener function
@@ -75,7 +69,7 @@ public class ZyGraphSelectionObserver extends Selections.SelectionStateObserver 
 
   /**
    * Adds a graph selection listener that is notified when the selection of the graph changes.
-   * 
+   *
    * @param listener The listener to add.
    */
   public void addListener(final IZyGraphSelectionListener listener) {
@@ -130,7 +124,7 @@ public class ZyGraphSelectionObserver extends Selections.SelectionStateObserver 
 
   /**
    * Removes a selection listener from the graph.
-   * 
+   *
    * @param listener The listener to remove.
    */
   public void removeListener(final IZyGraphSelectionListener listener) {

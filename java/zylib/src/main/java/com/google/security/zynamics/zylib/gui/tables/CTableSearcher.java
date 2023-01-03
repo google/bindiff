@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
 
 package com.google.security.zynamics.zylib.gui.tables;
 
+import com.google.common.base.Preconditions;
 import java.awt.Window;
-
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
-import com.google.common.base.Preconditions;
-
-/**
- * Class that can extend the popup menu of a JTable component with a Search option.
- */
+/** Class that can extend the popup menu of a JTable component with a Search option. */
 public class CTableSearcher {
   private final JTable m_Table;
   private final Window m_Frame;
@@ -32,13 +28,13 @@ public class CTableSearcher {
 
   /**
    * Extends a popup menu of a JTable component with a Search menu.
-   * 
+   *
    * @param frame the parent frame that is used as the parent frame of the input box.
    * @param windowTitle the title of the input box
    * @param table the table to search through
    */
-  public CTableSearcher(final Window frame, final String windowTitle, final JTable table,
-      final int startRow) {
+  public CTableSearcher(
+      final Window frame, final String windowTitle, final JTable table, final int startRow) {
     Preconditions.checkNotNull(frame, "Internal Error: Parent window can't be null");
 
     Preconditions.checkNotNull(windowTitle, "Internal Error: Window title can't be null");
@@ -60,13 +56,14 @@ public class CTableSearcher {
       // searchText = JOptionPane.showInputDialog( m_Frame, "Search: ", searchText );
 
       searchText =
-          (String) JOptionPane.showInputDialog(m_Frame, "Search", m_title,
-              JOptionPane.QUESTION_MESSAGE, null, null, searchText);
+          (String)
+              JOptionPane.showInputDialog(
+                  m_Frame, "Search", m_title, JOptionPane.QUESTION_MESSAGE, null, null, searchText);
 
       if ((searchText != null) && (searchText.length() > 0)) {
         if (!search(searchText)) {
-          JOptionPane.showMessageDialog(m_Frame, "Search string not found", m_title,
-              JOptionPane.ERROR_MESSAGE);
+          JOptionPane.showMessageDialog(
+              m_Frame, "Search string not found", m_title, JOptionPane.ERROR_MESSAGE);
         }
       }
     } while ((searchText != null) && (searchText.length() > 0));
@@ -93,5 +90,4 @@ public class CTableSearcher {
 
     return false;
   }
-
 }

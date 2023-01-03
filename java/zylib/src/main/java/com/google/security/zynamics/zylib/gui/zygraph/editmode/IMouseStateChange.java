@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,20 +14,18 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.editmode;
 
-/**
- * Interface for objects that want to be used to describe mouse state changes.
- */
+/** Interface for objects that want to be used to describe mouse state changes. */
 public interface IMouseStateChange {
   /**
    * Returns the next state.
-   * 
+   *
    * @return The next state.
    */
   IMouseState getNextState();
 
   /**
    * Determines whether the event should be changed to yFiles.
-   * 
+   *
    * @return True, if the event should be chained to yFiles. False, otherwise.
    */
   boolean notifyYFiles();

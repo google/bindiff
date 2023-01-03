@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
 
 package com.google.security.zynamics.zylib.gui;
 
+import com.google.common.base.Preconditions;
 import javax.swing.JFormattedTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 
-import com.google.common.base.Preconditions;
-
 /**
  * Hex formatter that can be used to validate input for hexadecimal text fields. Taken from
  * http://forum.java.sun.com/thread.jspa?threadID=436233&messageID=3169976
- * 
- * Slightly modified.
+ *
+ * <p>Slightly modified.
  */
 public class CHexFormatter extends JFormattedTextField.AbstractFormatter {
   private static final long serialVersionUID = 6996845563062947862L;
@@ -34,8 +33,7 @@ public class CHexFormatter extends JFormattedTextField.AbstractFormatter {
 
   private int maxSize = Integer.MAX_VALUE;
 
-  public CHexFormatter() {
-  }
+  public CHexFormatter() {}
 
   public CHexFormatter(final int maxSize) {
     Preconditions.checkArgument(maxSize > 0, "Error: Maximum input size must be positive");
@@ -77,16 +75,25 @@ public class CHexFormatter extends JFormattedTextField.AbstractFormatter {
 
   private class HexFilter extends DocumentFilter {
     @Override
-    public void insertString(final DocumentFilter.FilterBypass fb, final int offset,
-        final String string, final AttributeSet attr) throws BadLocationException {
+    public void insertString(
+        final DocumentFilter.FilterBypass fb,
+        final int offset,
+        final String string,
+        final AttributeSet attr)
+        throws BadLocationException {
       if (isValid(string, 0)) {
         super.insertString(fb, offset, string, attr);
       }
     }
 
     @Override
-    public void replace(final DocumentFilter.FilterBypass fb, final int offset, final int length,
-        final String string, final AttributeSet attr) throws BadLocationException {
+    public void replace(
+        final DocumentFilter.FilterBypass fb,
+        final int offset,
+        final int length,
+        final String string,
+        final AttributeSet attr)
+        throws BadLocationException {
       if (isValid(string, length)) {
         super.replace(fb, offset, length, string, attr);
       }

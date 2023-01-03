@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
 
 public class CEndKeyBehavior extends CAbstractKeyBehavior {
   public CEndKeyBehavior(final CUndoManager undoManager) {
@@ -60,8 +60,13 @@ public class CEndKeyBehavior extends CAbstractKeyBehavior {
         mouseReleased_X -= 1;
       }
 
-      setCaret(getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), lastXPos,
-          mouseReleased_X, ypos);
+      setCaret(
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          lastXPos,
+          mouseReleased_X,
+          ypos);
     } else if (!isShiftPressed() && isCtrlPressed()) {
       final ZyLabelContent labelContent = getLabelContent();
 
@@ -74,8 +79,13 @@ public class CEndKeyBehavior extends CAbstractKeyBehavior {
       final int lastYPos = getLabelContent().getLineCount() - 1;
       final int lastXPos = getLabelContent().getLineContent(lastYPos).getText().length();
 
-      setCaret(getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), lastXPos,
-          lastXPos, lastYPos);
+      setCaret(
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          lastXPos,
+          lastXPos,
+          lastYPos);
     }
   }
 

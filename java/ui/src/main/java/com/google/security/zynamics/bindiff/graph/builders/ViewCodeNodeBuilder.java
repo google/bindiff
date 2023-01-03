@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -97,8 +97,7 @@ public class ViewCodeNodeBuilder {
     line.append(basicBlock.getFunctionName());
 
     final IZyEditableObject headlineObject = new BasicBlockHeadLineObject(basicBlock);
-    return new ZyLineContent(
-        line.toString(), Fonts.BOLD_FONT, styleRun, headlineObject);
+    return new ZyLineContent(line.toString(), Fonts.BOLD_FONT, styleRun, headlineObject);
   }
 
   private static void buildBasicblockComments(
@@ -114,8 +113,7 @@ public class ViewCodeNodeBuilder {
 
     if (secBasicblock != null) {
       maxInsertLinesCounter =
-          Math.max(
-              maxInsertLinesCounter, StringHelper.count(secBasicblock.getComment(), '\n'));
+          Math.max(maxInsertLinesCounter, StringHelper.count(secBasicblock.getComment(), '\n'));
     }
 
     final RawBasicBlock basicblock = side == ESide.PRIMARY ? priBasicblock : secBasicblock;
@@ -732,8 +730,7 @@ public class ViewCodeNodeBuilder {
           new InstructionObject(instruction, 0, line.length());
 
       lines.addAll(
-          buildTopComment(
-              instruction, instructionObject, aboveComment, topCommentLineCountMax));
+          buildTopComment(instruction, instructionObject, aboveComment, topCommentLineCountMax));
 
       lines.addAll(
           buildTrailingComment(

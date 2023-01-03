@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -227,26 +227,28 @@ public class SingleFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     final ESide side = getRootNode().getSide();
 
     final JMenuItem copyFunctionAddressItem =
-        new JMenuItem(new AbstractAction("Copy Function Address") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final FlowGraphViewData view = (FlowGraphViewData) getView();
-            ClipboardHelpers.copyToClipboard(view.getAddress(side).toHexString());
-          }
-        });
-    final JMenuItem copyFunctionNameItem = new JMenuItem(new AbstractAction("Copy Function Name") {
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final FlowGraphViewData view = (FlowGraphViewData) getView();
-        ClipboardHelpers.copyToClipboard(view.getFunctionName(side));
-      }
-    });
+        new JMenuItem(
+            new AbstractAction("Copy Function Address") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final FlowGraphViewData view = (FlowGraphViewData) getView();
+                ClipboardHelpers.copyToClipboard(view.getAddress(side).toHexString());
+              }
+            });
+    final JMenuItem copyFunctionNameItem =
+        new JMenuItem(
+            new AbstractAction("Copy Function Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final FlowGraphViewData view = (FlowGraphViewData) getView();
+                ClipboardHelpers.copyToClipboard(view.getFunctionName(side));
+              }
+            });
 
     popupMenu.add(copyFunctionAddressItem);
     popupMenu.add(copyFunctionNameItem);
 
     return popupMenu;
-
   }
 
   @Override
@@ -279,13 +281,16 @@ public class SingleFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     final ESide side = getRootNode().getSide();
     final RawFlowGraph flowgraph = view.getRawGraph(side);
 
-    return String.format("%s (%d / %d)", flowgraph.getName(), getChildCount(),
-        basicBlockTreeNodes.size());
+    return String.format(
+        "%s (%d / %d)", flowgraph.getName(), getChildCount(), basicBlockTreeNodes.size());
   }
 
   private class InternalMatchesChangeListener implements IMatchesChangeListener {
-    private void updateTree(final IAddress priFunctionAddr, final IAddress secFunctionAddr,
-        final IAddress priBasicblockAddr, final IAddress secBasicblockAddr) {
+    private void updateTree(
+        final IAddress priFunctionAddr,
+        final IAddress secFunctionAddr,
+        final IAddress priBasicblockAddr,
+        final IAddress secBasicblockAddr) {
       final IAddress priFctAddr = getRootNode().getView().getAddress(ESide.PRIMARY);
       final IAddress secFctAddr = getRootNode().getView().getAddress(ESide.SECONDARY);
 

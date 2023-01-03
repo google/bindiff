@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@ import java.lang.reflect.Method;
 
 public class ReflectionHelpers {
   public static Object getField(final Class<?> c, final Object object, final String field)
-      throws IllegalArgumentException, IllegalAccessException, SecurityException,
-      NoSuchFieldException {
+      throws IllegalArgumentException,
+          IllegalAccessException,
+          SecurityException,
+          NoSuchFieldException {
     final Field chap = c.getDeclaredField(field);
     chap.setAccessible(true);
 
@@ -28,8 +30,10 @@ public class ReflectionHelpers {
   }
 
   public static Object getField(final Object object, final String field)
-      throws IllegalArgumentException, IllegalAccessException, SecurityException,
-      NoSuchFieldException {
+      throws IllegalArgumentException,
+          IllegalAccessException,
+          SecurityException,
+          NoSuchFieldException {
     final Class<?> c = object.getClass();
 
     final Field chap = c.getDeclaredField(field);
@@ -38,9 +42,9 @@ public class ReflectionHelpers {
     return chap.get(object);
   }
 
-  public static Method getMethod(final Object object, final String methodName,
-      final Class<?>... arguments) throws IllegalArgumentException, SecurityException,
-      NoSuchMethodException {
+  public static Method getMethod(
+      final Object object, final String methodName, final Class<?>... arguments)
+      throws IllegalArgumentException, SecurityException, NoSuchMethodException {
     final Class<?> c = object.getClass();
 
     final Class<?>[] parameterTypes = new Class<?>[arguments.length];
@@ -56,9 +60,9 @@ public class ReflectionHelpers {
     return method;
   }
 
-  public static Object getMethod(final Object object, final String methodName,
-      final Object... arguments) throws IllegalArgumentException, SecurityException,
-      NoSuchMethodException {
+  public static Object getMethod(
+      final Object object, final String methodName, final Object... arguments)
+      throws IllegalArgumentException, SecurityException, NoSuchMethodException {
     final Class<?> c = object.getClass();
 
     final Class<?>[] parameterTypes = new Class<?>[arguments.length];
@@ -75,8 +79,10 @@ public class ReflectionHelpers {
   }
 
   public static Object getStaticField(final Class<?> c, final String field)
-      throws IllegalArgumentException, IllegalAccessException, SecurityException,
-      NoSuchFieldException {
+      throws IllegalArgumentException,
+          IllegalAccessException,
+          SecurityException,
+          NoSuchFieldException {
     final Field chap = c.getDeclaredField(field);
     chap.setAccessible(true);
 

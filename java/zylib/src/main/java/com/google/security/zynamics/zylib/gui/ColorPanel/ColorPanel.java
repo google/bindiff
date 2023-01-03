@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,19 +18,16 @@ import com.google.security.zynamics.zylib.general.Convert;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.CColorChooser;
 import com.google.security.zynamics.zylib.resources.Constants;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Set;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
-
 
 public class ColorPanel extends JPanel {
   private final ListenerProvider<IColorPanelListener> m_listeners =
@@ -71,7 +68,10 @@ public class ColorPanel extends JPanel {
     updateUI();
   }
 
-  public ColorPanel(final Color color, final boolean editable, final boolean showColorText,
+  public ColorPanel(
+      final Color color,
+      final boolean editable,
+      final boolean showColorText,
       final Set<Color> defaultColors) {
     this(color, editable, showColorText);
 
@@ -82,7 +82,10 @@ public class ColorPanel extends JPanel {
 
   private void chooseColor() {
     final Color col =
-        CColorChooser.showDialog(this, Constants.COLOR_CHOOSER, getBackground(),
+        CColorChooser.showDialog(
+            this,
+            Constants.COLOR_CHOOSER,
+            getBackground(),
             m_defaultColors == null ? null : m_defaultColors.toArray(new Color[0]));
     if (col != null) {
       setColor(col);
@@ -120,8 +123,13 @@ public class ColorPanel extends JPanel {
     setBackground(color);
     if (m_showColorText) {
       setTextColor(color);
-      m_textLabel.setText(String.format("#%s (%d, %d, %d)", Convert.colorToHexString(color)
-          .toUpperCase(), color.getRed(), color.getGreen(), color.getBlue()));
+      m_textLabel.setText(
+          String.format(
+              "#%s (%d, %d, %d)",
+              Convert.colorToHexString(color).toUpperCase(),
+              color.getRed(),
+              color.getGreen(),
+              color.getBlue()));
       m_textLabel.updateUI();
     }
 

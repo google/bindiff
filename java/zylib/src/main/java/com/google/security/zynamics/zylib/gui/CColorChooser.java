@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.gui;
 
 import com.google.security.zynamics.zylib.gui.ColorPanel.ColorPanel;
-
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -28,7 +27,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.Icon;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
@@ -39,7 +37,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.colorchooser.AbstractColorChooserPanel;
 import javax.swing.colorchooser.ColorSelectionModel;
 import javax.swing.colorchooser.DefaultColorSelectionModel;
-
 
 /**
  * @author cblichmann@google.com (Christian Blichmann)
@@ -79,21 +76,31 @@ public class CColorChooser extends JColorChooser {
     }
   }
 
-  public static JDialog createDialog(final Component parent, final String title,
-      final boolean modal, final CColorChooser chooserPane, final ActionListener okListener,
-      final ActionListener cancelListener) throws HeadlessException {
+  public static JDialog createDialog(
+      final Component parent,
+      final String title,
+      final boolean modal,
+      final CColorChooser chooserPane,
+      final ActionListener okListener,
+      final ActionListener cancelListener)
+      throws HeadlessException {
     // Just forward to ancestor
-    return JColorChooser
-        .createDialog(parent, title, modal, chooserPane, okListener, cancelListener);
+    return JColorChooser.createDialog(
+        parent, title, modal, chooserPane, okListener, cancelListener);
   }
 
-  public static Color showDialog(final Component parent, final String title,
-      final Color initialColor) throws HeadlessException {
+  public static Color showDialog(
+      final Component parent, final String title, final Color initialColor)
+      throws HeadlessException {
     return showDialog(parent, title, initialColor, null);
   }
 
-  public static Color showDialog(final Component parent, final String title,
-      final Color initialColor, final Color[] recentColors) throws HeadlessException {
+  public static Color showDialog(
+      final Component parent,
+      final String title,
+      final Color initialColor,
+      final Color[] recentColors)
+      throws HeadlessException {
     final CColorChooser pane = new CColorChooser(initialColor, recentColors);
     final SelectedColorActionListener ok = pane.new SelectedColorActionListener();
     final JDialog dlg = createDialog(parent, title, true, pane, ok, null);
@@ -113,15 +120,16 @@ public class CColorChooser extends JColorChooser {
 
       for (final Color col : m_recentColors) {
         final ColorPanel cp = new ColorPanel(col, false, true);
-        cp.addMouseListener(new MouseAdapter() {
-          @Override
-          public void mouseClicked(final MouseEvent e) {
-            if (e.getButton() != MouseEvent.BUTTON1) {
-              return;
-            }
-            getColorSelectionModel().setSelectedColor(col);
-          }
-        });
+        cp.addMouseListener(
+            new MouseAdapter() {
+              @Override
+              public void mouseClicked(final MouseEvent e) {
+                if (e.getButton() != MouseEvent.BUTTON1) {
+                  return;
+                }
+                getColorSelectionModel().setSelectedColor(col);
+              }
+            });
         cp.setPreferredSize(new Dimension(200, 25));
 
         final JPanel p = new JPanel();

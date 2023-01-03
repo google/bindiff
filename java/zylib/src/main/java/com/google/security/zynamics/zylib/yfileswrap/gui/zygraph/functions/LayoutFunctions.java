@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.SwingInvoker;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.settings.ILayoutSettings;
-
 import y.layout.BufferedLayouter;
 import y.layout.CanonicMultiStageLayouter;
 import y.layout.GraphLayout;
@@ -37,14 +36,13 @@ import y.view.LayoutMorpher;
 import y.view.NodeRealizerIntersectionCalculator;
 
 public class LayoutFunctions {
-  public final static int PREFERRED_ANIMATION_TIME_CONSTANT_FACTOR_MS = 100;
+  public static final int PREFERRED_ANIMATION_TIME_CONSTANT_FACTOR_MS = 100;
 
-  /**
-   * Layouts the graph using the last set layouter that was passed to setLayouter.
-   */
-  public static GraphLayout doLayout(final AbstractZyGraph<?, ?> graph,
-      final CanonicMultiStageLayouter layouter) {
-    Preconditions.checkNotNull(layouter,
+  /** Layouts the graph using the last set layouter that was passed to setLayouter. */
+  public static GraphLayout doLayout(
+      final AbstractZyGraph<?, ?> graph, final CanonicMultiStageLayouter layouter) {
+    Preconditions.checkNotNull(
+        layouter,
         "Internal Error: Can not layout the graph without initializing the layouter first");
 
     GraphLayout graphLayout = null;
@@ -53,17 +51,31 @@ public class LayoutFunctions {
 
     if (layoutSettings.getCurrentLayouter().getLayoutOrientation()
         == LayoutOrientation.TOP_TO_BOTTOM) {
-      graph.getGraph().addDataProvider(PortConstraintKeys.SOURCE_PORT_CONSTRAINT_KEY,
-          DataProviders.createConstantDataProvider(PortConstraint.create(PortConstraint.SOUTH)));
-      graph.getGraph().addDataProvider(PortConstraintKeys.TARGET_PORT_CONSTRAINT_KEY,
-          DataProviders.createConstantDataProvider(PortConstraint.create(PortConstraint.NORTH)));
+      graph
+          .getGraph()
+          .addDataProvider(
+              PortConstraintKeys.SOURCE_PORT_CONSTRAINT_KEY,
+              DataProviders.createConstantDataProvider(
+                  PortConstraint.create(PortConstraint.SOUTH)));
+      graph
+          .getGraph()
+          .addDataProvider(
+              PortConstraintKeys.TARGET_PORT_CONSTRAINT_KEY,
+              DataProviders.createConstantDataProvider(
+                  PortConstraint.create(PortConstraint.NORTH)));
     }
     if (layoutSettings.getCurrentLayouter().getLayoutOrientation()
         == LayoutOrientation.LEFT_TO_RIGHT) {
-      graph.getGraph().addDataProvider(PortConstraintKeys.SOURCE_PORT_CONSTRAINT_KEY,
-          DataProviders.createConstantDataProvider(PortConstraint.create(PortConstraint.EAST)));
-      graph.getGraph().addDataProvider(PortConstraintKeys.TARGET_PORT_CONSTRAINT_KEY,
-          DataProviders.createConstantDataProvider(PortConstraint.create(PortConstraint.WEST)));
+      graph
+          .getGraph()
+          .addDataProvider(
+              PortConstraintKeys.SOURCE_PORT_CONSTRAINT_KEY,
+              DataProviders.createConstantDataProvider(PortConstraint.create(PortConstraint.EAST)));
+      graph
+          .getGraph()
+          .addDataProvider(
+              PortConstraintKeys.TARGET_PORT_CONSTRAINT_KEY,
+              DataProviders.createConstantDataProvider(PortConstraint.create(PortConstraint.WEST)));
     }
 
     layouter.setLabelLayouter(new LabelLayoutTranslator());
@@ -78,8 +90,9 @@ public class LayoutFunctions {
 
         final LayoutMorpher layoutMorpher = new LayoutMorpher();
         layoutMorpher.setSmoothViewTransform(true);
-        layoutMorpher.setPreferredDuration(PREFERRED_ANIMATION_TIME_CONSTANT_FACTOR_MS
-            * graph.getSettings().getDisplaySettings().getAnimationSpeed());
+        layoutMorpher.setPreferredDuration(
+            PREFERRED_ANIMATION_TIME_CONSTANT_FACTOR_MS
+                * graph.getSettings().getDisplaySettings().getAnimationSpeed());
 
         final GraphLayout morpherLayout = graphLayout;
         new SwingInvoker() {
@@ -101,8 +114,9 @@ public class LayoutFunctions {
       LayoutTool.applyGraphLayout(graph.getGraph(), graphLayout);
 
       final LayoutMorpher layoutMorpher = new LayoutMorpher();
-      layoutMorpher.setPreferredDuration(PREFERRED_ANIMATION_TIME_CONSTANT_FACTOR_MS
-          * graph.getSettings().getDisplaySettings().getAnimationSpeed());
+      layoutMorpher.setPreferredDuration(
+          PREFERRED_ANIMATION_TIME_CONSTANT_FACTOR_MS
+              * graph.getSettings().getDisplaySettings().getAnimationSpeed());
 
       layoutMorpher.execute(graph.getView(), graphLayout);
     }
@@ -110,8 +124,8 @@ public class LayoutFunctions {
     return graphLayout;
   }
 
-  public static void recalculatePorts(final CanonicMultiStageLayouter layouter,
-      final Graph2D graph) {
+  public static void recalculatePorts(
+      final CanonicMultiStageLayouter layouter, final Graph2D graph) {
     // Effect: Ensures that ports are drawn onto node borders, and not onto the node center. (Only
     // Circular layout!)
     // Justification: Circular layout uses as the standard port the center of the node, this will be

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,14 +21,12 @@ package com.google.security.zynamics.zylib.general.memmanager;
 public interface IMemoryListener {
   /**
    * Invoked after the content of the memory changed.
-   * 
+   *
    * @param address The address of the first memory cell that changed.
    * @param size Number of consecutive bytes that changed.
    */
   void memoryChanged(long address, int size);
 
-  /**
-   * Invoked after the content of the memory was cleared.
-   */
+  /** Invoked after the content of the memory was cleared. */
   void memoryCleared();
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treen
 import com.google.security.zynamics.zylib.general.Pair;
 import java.util.Comparator;
 
-//TODO(cblichmann): Generalize into PairDoubleComparator
+// TODO(cblichmann): Generalize into PairDoubleComparator
 public class ConfidenceComparator implements Comparator<Pair<Double, Double>> {
   @Override
   public int compare(final Pair<Double, Double> o1, final Pair<Double, Double> o2) {

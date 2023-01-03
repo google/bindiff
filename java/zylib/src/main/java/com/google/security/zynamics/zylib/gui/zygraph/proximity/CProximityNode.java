@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.proximity;
 
-import java.awt.Color;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdge;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.CViewNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IGroupNode;
 import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
+import java.awt.Color;
 
 /**
  * Represents the raw node of a proximity node. That means this class provides background
@@ -28,14 +27,12 @@ import com.google.security.zynamics.zylib.gui.zygraph.nodes.IViewNode;
  */
 public class CProximityNode<T extends IViewNode<?>> extends CViewNode<IViewEdge<CProximityNode<T>>>
     implements IViewNode<IViewEdge<CProximityNode<T>>> {
-  /**
-   * Raw node the proximity node is connected to.
-   */
+  /** Raw node the proximity node is connected to. */
   private final T m_attachedNode;
 
   /**
    * Creates a new proximity node.
-   * 
+   *
    * @param attachedNode Raw node the proximity node is connected to.
    */
   public CProximityNode(final T attachedNode) {
@@ -47,7 +44,7 @@ public class CProximityNode<T extends IViewNode<?>> extends CViewNode<IViewEdge<
 
   /**
    * Returns the real graph node the proximity node is attached to.
-   * 
+   *
    * @return The real graph node the proximity node is attached to.
    */
   public T getAttachedNode() {
@@ -91,6 +88,7 @@ public class CProximityNode<T extends IViewNode<?>> extends CViewNode<IViewEdge<
 
   @Override
   public void setColor(final Color color) {
-    throw new UnsupportedOperationException("Error: Proximity browsing nodes can not change colors");
+    throw new UnsupportedOperationException(
+        "Error: Proximity browsing nodes can not change colors");
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ namespace security::bindiff {
 bool MatchingStepMdIndexRelaxed ::FindFixedPoints(
     FlowGraph* primary, FlowGraph* secondary, const VertexSet& vertices1,
     const VertexSet& vertices2, FixedPoint* fixed_point,
-    MatchingContext* context, MatchingStepsFlowGraph* matching_steps){
+    MatchingContext* context, MatchingStepsFlowGraph* matching_steps) {
   VertexDoubleMap vertex_map_1;
   VertexDoubleMap vertex_map_2;
   GetUnmatchedBasicBlocksByMdIndexRelaxed(primary, vertices1, &vertex_map_1);

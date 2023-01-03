@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ import java.util.Comparator;
 import java.util.Date;
 
 public class DateComparator implements Comparator<Date>, Serializable {
-  /**
-   * Used for serialization.
-   */
+  /** Used for serialization. */
   private static final long serialVersionUID = -846090338272302586L;
 
   @Override

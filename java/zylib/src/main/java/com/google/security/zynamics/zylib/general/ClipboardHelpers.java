@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.general;
 
 import com.google.common.base.Preconditions;
-
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -40,17 +39,19 @@ public final class ClipboardHelpers {
 
     final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-    clipboard.setContents(new StringSelection(string), new ClipboardOwner() {
-      @Override
-      public void lostOwnership(final Clipboard clipboard, final Transferable contents) {}
-    });
+    clipboard.setContents(
+        new StringSelection(string),
+        new ClipboardOwner() {
+          @Override
+          public void lostOwnership(final Clipboard clipboard, final Transferable contents) {}
+        });
   }
 
   /**
    * Returns the string that is currently stored in the system clipboard.
    *
    * @return The string from the system clipboard or null if there is no string currently stored in
-   *         the clipboard.
+   *     the clipboard.
    */
   public static String getClipboardString() {
 

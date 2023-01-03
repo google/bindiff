@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,50 +19,38 @@ import java.awt.Color;
 public abstract class ViewEdgeListenerAdapter implements IViewEdgeListener {
 
   @Override
-  public void addedBend(final IViewEdge<?> edge, final CBend path) {
-  }
+  public void addedBend(final IViewEdge<?> edge, final CBend path) {}
 
   @Override
-  public void changedColor(final CViewEdge<?> edge, final Color color) {
-  }
+  public void changedColor(final CViewEdge<?> edge, final Color color) {}
 
   @Override
-  public void changedSelection(final IViewEdge<?> edge, final boolean selected) {
-  }
+  public void changedSelection(final IViewEdge<?> edge, final boolean selected) {}
 
   @Override
-  public void changedSourceX(final CViewEdge<?> edge, final double sourceX) {
-  }
+  public void changedSourceX(final CViewEdge<?> edge, final double sourceX) {}
 
   @Override
-  public void changedSourceY(final CViewEdge<?> edge, final double sourceY) {
-  }
+  public void changedSourceY(final CViewEdge<?> edge, final double sourceY) {}
 
   @Override
-  public void changedTargetX(final CViewEdge<?> edge, final double targetX) {
-  }
+  public void changedTargetX(final CViewEdge<?> edge, final double targetX) {}
 
   @Override
-  public void changedTargetY(final CViewEdge<?> edge, final double targetY) {
-  }
+  public void changedTargetY(final CViewEdge<?> edge, final double targetY) {}
 
   @Override
-  public void changedType(final CViewEdge<?> edge, final EdgeType type) {
-  }
+  public void changedType(final CViewEdge<?> edge, final EdgeType type) {}
 
   @Override
-  public void changedVisibility(final IViewEdge<?> edge, final boolean visibility) {
-  }
+  public void changedVisibility(final IViewEdge<?> edge, final boolean visibility) {}
 
   @Override
-  public void clearedBends(final IViewEdge<?> edge) {
-  }
+  public void clearedBends(final IViewEdge<?> edge) {}
 
   @Override
-  public void insertedBend(final IViewEdge<?> edge, final int index, final CBend path) {
-  }
+  public void insertedBend(final IViewEdge<?> edge, final int index, final CBend path) {}
 
   @Override
-  public void removedBend(final CViewEdge<?> edge, final int index, final CBend path) {
-  }
+  public void removedBend(final CViewEdge<?> edge, final int index, final CBend path) {}
 }

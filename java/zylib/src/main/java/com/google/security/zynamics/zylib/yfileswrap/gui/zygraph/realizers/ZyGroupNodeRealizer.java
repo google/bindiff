@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.IRealizerUpdater
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyNodeRealizerListener;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import y.base.Node;
 import y.base.NodeCursor;
 import y.base.NodeList;
@@ -33,35 +35,23 @@ import y.view.ShapeNodeRealizer;
 import y.view.hierarchy.GroupNodeRealizer;
 import y.view.hierarchy.HierarchyManager;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-
 /**
  * Realizer class for default rectangular text nodes.
- * 
+ *
  * @param <NodeType>
  */
 public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupNodeRealizer
     implements IZyNodeRealizer {
-  /**
-   * Content that is displayed in the realizer.
-   */
+  /** Content that is displayed in the realizer. */
   private final ZyLabelContent m_content;
 
-  /**
-   * User-specific data that is associated with the realizer.
-   */
+  /** User-specific data that is associated with the realizer. */
   private ZyNodeData<?> m_userData;
 
-  /**
-   * Node updater class that is used to update the content of the realizer.
-   */
+  /** Node updater class that is used to update the content of the realizer. */
   private IRealizerUpdater<?> m_updater;
 
-  /**
-   * Listeners that are notified about changes in the node realizer.
-   */
+  /** Listeners that are notified about changes in the node realizer. */
   private final ListenerProvider<IZyNodeRealizerListener<?>> m_listeners =
       new ListenerProvider<IZyNodeRealizerListener<?>>();
 
@@ -77,8 +67,8 @@ public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupN
     setGroupClosed(collapsed);
   }
 
-  private void addChildren(final HierarchyManager hm, final Node groupNode,
-      final NodeList childNodes) {
+  private void addChildren(
+      final HierarchyManager hm, final Node groupNode, final NodeList childNodes) {
     for (final NodeCursor nc = hm.getChildren(groupNode); nc.ok(); nc.next()) {
       final Node n = nc.node();
 
@@ -101,8 +91,8 @@ public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupN
     moveNodes(graph, childNodes.nodes(), dx, dy);
   }
 
-  private void moveNodes(final Graph2D graph, final NodeCursor nodes, final double dx,
-      final double dy) {
+  private void moveNodes(
+      final Graph2D graph, final NodeCursor nodes, final double dx, final double dy) {
     for (; nodes.ok(); nodes.next()) {
       final NodeRealizer nr = graph.getRealizer(nodes.node());
 
@@ -133,7 +123,7 @@ public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupN
 
   /**
    * Returns the node content that is displayed by the realizer.
-   * 
+   *
    * @return The node content that is displayed by the realizer.
    */
   @Override
@@ -153,7 +143,7 @@ public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupN
 
   /**
    * Returns the user data associated with the realizer.
-   * 
+   *
    * @return The user data associated with the realizer.
    */
   @Override
@@ -297,7 +287,8 @@ public class ZyGroupNodeRealizer<NodeType extends ZyGraphNode<?>> extends GroupN
   @Override
   public void setUserData(final ZyNodeData<?> data) {
     Preconditions.checkNotNull(data, "Error: Invalid node data");
-    Preconditions.checkArgument((data.getNode().getRawNode() instanceof IGroupNode),
+    Preconditions.checkArgument(
+        (data.getNode().getRawNode() instanceof IGroupNode),
         "Error: User data does not contain a group node");
 
     m_userData = data;

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,28 +17,26 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.trans
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.CStateChange;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseStateChange;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
-
+import java.awt.event.MouseEvent;
 import y.view.Bend;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-/**
- * Utility class to encapsulate state changes for bends.
- */
+/** Utility class to encapsulate state changes for bends. */
 public class CHitBendsTransformer {
   /**
    * Changes the state of the bend depending on the current hitInfo.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
    * @param oldBend The bend which we come from.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static CStateChange changeBend(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo, final Bend oldBend) {
+  public static CStateChange changeBend(
+      final CStateFactory<?, ?> m_factory,
+      final MouseEvent event,
+      final HitInfo hitInfo,
+      final Bend oldBend) {
     final Bend bend = hitInfo.getHitBend();
 
     if (bend == oldBend) {
@@ -52,15 +50,14 @@ public class CHitBendsTransformer {
 
   /**
    * Changes the state to bend enter state.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static IMouseStateChange enterBend(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo) {
+  public static IMouseStateChange enterBend(
+      final CStateFactory<?, ?> m_factory, final MouseEvent event, final HitInfo hitInfo) {
     final Bend b = hitInfo.getHitBend();
 
     return new CStateChange(m_factory.createBendEnterState(b, event), true);

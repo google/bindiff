@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,25 +19,23 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNo
 
 /**
  * Interface that must be implemented by all classes that want to update the content of realizers.
- * 
+ *
  * @param <NodeType>
  */
 public interface IRealizerUpdater<NodeType extends ZyGraphNode<?>> {
-  /**
-   * Frees all allocated resources.
-   */
+  /** Frees all allocated resources. */
   void dispose();
 
   /**
    * Regenerates the content of the realizer.
-   * 
+   *
    * @param realizer The realizers whose content is updated.
    */
   void generateContent(IZyNodeRealizer realizer, ZyLabelContent content);
 
   /**
    * Called by the realizer to set the realizer updater.
-   * 
+   *
    * @param realizer The realizer to be updated.
    */
   void setRealizer(IZyNodeRealizer realizer);

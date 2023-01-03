@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -136,8 +136,6 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     getTree().updateUI();
   }
 
-
-
   @Override
   public void createChildren() {
     final CombinedFlowGraphRootTreeNode rootNode = getRootNode();
@@ -157,10 +155,8 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
 
     final FlowGraphViewData view = rootNode.getView();
 
-    final RawFlowGraph priFlowgraph =
-        view.getRawGraph(ESide.PRIMARY);
-    final RawFlowGraph secFlowgraph =
-        view.getRawGraph(ESide.SECONDARY);
+    final RawFlowGraph priFlowgraph = view.getRawGraph(ESide.PRIMARY);
+    final RawFlowGraph secFlowgraph = view.getRawGraph(ESide.SECONDARY);
 
     final RawFunction priFunction = GraphGetter.getFunction(getDiff(), priFlowgraph);
     final RawFunction secFunction = GraphGetter.getFunction(getDiff(), secFlowgraph);
@@ -190,38 +186,42 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
     final JPopupMenu popupMenu = new JPopupMenu();
 
     final JMenuItem copyPriFunctionAddressItem =
-        new JMenuItem(new AbstractAction("Copy Primary Function Address") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final FlowGraphViewData view = (FlowGraphViewData) getView();
-            ClipboardHelpers.copyToClipboard(view.getAddress(ESide.PRIMARY).toHexString());
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Primary Function Address") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final FlowGraphViewData view = (FlowGraphViewData) getView();
+                ClipboardHelpers.copyToClipboard(view.getAddress(ESide.PRIMARY).toHexString());
+              }
+            });
     final JMenuItem copyPriFunctionNameItem =
-        new JMenuItem(new AbstractAction("Copy Primary Function Name") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final FlowGraphViewData view = (FlowGraphViewData) getView();
-            ClipboardHelpers.copyToClipboard(view.getFunctionName(ESide.PRIMARY));
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Primary Function Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final FlowGraphViewData view = (FlowGraphViewData) getView();
+                ClipboardHelpers.copyToClipboard(view.getFunctionName(ESide.PRIMARY));
+              }
+            });
 
     final JMenuItem copySecFunctionAddressItem =
-        new JMenuItem(new AbstractAction("Copy Secondary Function Address") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final FlowGraphViewData view = (FlowGraphViewData) getView();
-            ClipboardHelpers.copyToClipboard(view.getAddress(ESide.SECONDARY).toHexString());
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Secondary Function Address") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final FlowGraphViewData view = (FlowGraphViewData) getView();
+                ClipboardHelpers.copyToClipboard(view.getAddress(ESide.SECONDARY).toHexString());
+              }
+            });
     final JMenuItem copySecFunctionNameItem =
-        new JMenuItem(new AbstractAction("Copy Secondary Function Name") {
-          @Override
-          public void actionPerformed(final ActionEvent e) {
-            final FlowGraphViewData view = (FlowGraphViewData) getView();
-            ClipboardHelpers.copyToClipboard(view.getFunctionName(ESide.SECONDARY));
-          }
-        });
+        new JMenuItem(
+            new AbstractAction("Copy Secondary Function Name") {
+              @Override
+              public void actionPerformed(final ActionEvent e) {
+                final FlowGraphViewData view = (FlowGraphViewData) getView();
+                ClipboardHelpers.copyToClipboard(view.getFunctionName(ESide.SECONDARY));
+              }
+            });
 
     popupMenu.add(copyPriFunctionAddressItem);
     popupMenu.add(copyPriFunctionNameItem);
@@ -265,10 +265,8 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
   @Override
   public String toString() {
     final FlowGraphViewData view = getRootNode().getView();
-    final RawFlowGraph priFlowgraph =
-        view.getRawGraph(ESide.PRIMARY);
-    final RawFlowGraph secFlowgraph =
-        view.getRawGraph(ESide.SECONDARY);
+    final RawFlowGraph priFlowgraph = view.getRawGraph(ESide.PRIMARY);
+    final RawFlowGraph secFlowgraph = view.getRawGraph(ESide.SECONDARY);
 
     String priFunctionName = "missing";
     String secFunctionName = "missing";
@@ -281,8 +279,9 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
       secFunctionName = secFlowgraph.getName();
     }
 
-    return String.format("%s \u2194 %s (%d / %d)", priFunctionName, secFunctionName,
-        getChildCount(), basicblockTreeNodes.size());
+    return String.format(
+        "%s \u2194 %s (%d / %d)",
+        priFunctionName, secFunctionName, getChildCount(), basicblockTreeNodes.size());
   }
 
   private class InternalMatchesChangeListener implements IMatchesChangeListener {
@@ -303,10 +302,14 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
         CombinedDiffNode newCombinedDiffNode = null;
 
         for (final CombinedDiffNode diffNode : getRootNode().getGraph().getNodes()) {
-          final IAddress priDiffAddr = diffNode.getPrimaryRawNode() == null ? null
-              : diffNode.getPrimaryRawNode().getAddress();
-          final IAddress secDiffAddr = diffNode.getSecondaryRawNode() == null ? null
-              : diffNode.getSecondaryRawNode().getAddress();
+          final IAddress priDiffAddr =
+              diffNode.getPrimaryRawNode() == null
+                  ? null
+                  : diffNode.getPrimaryRawNode().getAddress();
+          final IAddress secDiffAddr =
+              diffNode.getSecondaryRawNode() == null
+                  ? null
+                  : diffNode.getSecondaryRawNode().getAddress();
 
           if (priBasicblockAddr.equals(priDiffAddr) && secBasicblockAddr.equals(secDiffAddr)) {
             newCombinedDiffNode = diffNode;
@@ -377,10 +380,14 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
         CombinedDiffNode newSecCombinedDiffNode = null;
 
         for (final CombinedDiffNode diffNode : getRootNode().getGraph().getNodes()) {
-          final IAddress priDiffAddr = diffNode.getPrimaryRawNode() == null ? null
-              : diffNode.getPrimaryRawNode().getAddress();
-          final IAddress secDiffAddr = diffNode.getSecondaryRawNode() == null ? null
-              : diffNode.getSecondaryRawNode().getAddress();
+          final IAddress priDiffAddr =
+              diffNode.getPrimaryRawNode() == null
+                  ? null
+                  : diffNode.getPrimaryRawNode().getAddress();
+          final IAddress secDiffAddr =
+              diffNode.getSecondaryRawNode() == null
+                  ? null
+                  : diffNode.getSecondaryRawNode().getAddress();
 
           if (priBasicblockAddr.equals(priDiffAddr) && secDiffAddr == null) {
             newPriCombinedDiffNode = diffNode;
@@ -412,9 +419,9 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
               final CombinedFlowGraphBasicBlockTreeNode newSecTreeNode =
                   new CombinedFlowGraphBasicBlockTreeNode(getRootNode(), newSecCombinedDiffNode);
               insert(newPriTreeNode, index); // TODO: Test wether the insert call does call the
-                                             // substituted tree node's delete function. If not all
-                                             // listeneres attached to this old tree node are
-                                             // leaked.
+              // substituted tree node's delete function. If not all
+              // listeneres attached to this old tree node are
+              // leaked.
 
               final int insertIndex = basicblockTreeNodes.indexOf(treeNode);
               basicblockTreeNodes.set(insertIndex, newPriTreeNode);

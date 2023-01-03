@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@ package com.google.security.zynamics.zylib.gui.imagecombobox;
 
 import java.awt.Component;
 import java.awt.Font;
-
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -35,7 +34,8 @@ public class JImageComboBox extends JComboBox<ImageElement> {
   public JImageComboBox(final ImageElement[] items, final int labelAlignment) {
     super(items);
 
-    if ((labelAlignment != JLabel.LEFT) && (labelAlignment != JLabel.CENTER)
+    if ((labelAlignment != JLabel.LEFT)
+        && (labelAlignment != JLabel.CENTER)
         && (labelAlignment != JLabel.RIGHT)) {
       throw new IllegalArgumentException("Erorr: Label alignment in invalid.");
     }
@@ -73,8 +73,12 @@ public class JImageComboBox extends JComboBox<ImageElement> {
      * label, set up to display the text and image.
      */
     @Override
-    public Component getListCellRendererComponent(final JList<?> list, final Object value,
-        final int index, final boolean isSelected, final boolean cellHasFocus) {
+    public Component getListCellRendererComponent(
+        final JList<?> list,
+        final Object value,
+        final int index,
+        final boolean isSelected,
+        final boolean cellHasFocus) {
       final ImageElement element = (ImageElement) value;
 
       if (isSelected) {

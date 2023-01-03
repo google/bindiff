@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,28 +19,22 @@ import java.util.List;
 
 /**
  * Default tree node implementation.
- * 
+ *
  * @param <ObjectType> Type of the objects stored in the tree.
  */
 public class TreeNode<ObjectType> implements ITreeNode<ObjectType> {
-  /**
-   * Parent node of the tree node.
-   */
+  /** Parent node of the tree node. */
   private ITreeNode<ObjectType> m_parent = null;
 
-  /**
-   * Children of the tree node.
-   */
+  /** Children of the tree node. */
   private final List<ITreeNode<ObjectType>> m_children = new ArrayList<ITreeNode<ObjectType>>();
 
-  /**
-   * Object stored in the tree node.
-   */
+  /** Object stored in the tree node. */
   private final ObjectType m_object;
 
   /**
    * Creates a new tree node.
-   * 
+   *
    * @param object The object stored in the tree node.
    */
   public TreeNode(final ObjectType object) {

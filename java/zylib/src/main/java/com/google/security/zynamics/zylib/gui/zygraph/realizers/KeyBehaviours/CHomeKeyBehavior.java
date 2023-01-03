@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,7 +31,12 @@ public class CHomeKeyBehavior extends CAbstractKeyBehavior {
     if (!isShiftPressed() && !isCtrlPressed()) {
       setCaret(0, 0, getCaretMousePressedY(), 0, 0, getCaretMouseReleasedY());
     } else if (isShiftPressed() && !isCtrlPressed()) {
-      setCaret(getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), 0, 0,
+      setCaret(
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          0,
+          0,
           getCaretMouseReleasedY());
     } else if (!isShiftPressed() && isCtrlPressed()) {
       setCaret(0, 0, 0, 0, 0, 0);

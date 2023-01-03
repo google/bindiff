@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,11 +15,12 @@
 #ifndef IDA_STATISTICS_CHOOSER_H_
 #define IDA_STATISTICS_CHOOSER_H_
 
+#include "third_party/absl/base/macros.h"
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
-
-#include "third_party/absl/base/macros.h"
+// clang-format on
 
 namespace security::bindiff {
 

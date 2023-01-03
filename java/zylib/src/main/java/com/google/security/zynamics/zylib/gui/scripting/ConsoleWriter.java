@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
 
 package com.google.security.zynamics.zylib.gui.scripting;
 
+import com.google.security.zynamics.zylib.general.ListenerProvider;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-
-import com.google.security.zynamics.zylib.general.ListenerProvider;
-
 
 public class ConsoleWriter extends PrintWriter implements IScriptConsole {
   private final StringWriter m_writer;

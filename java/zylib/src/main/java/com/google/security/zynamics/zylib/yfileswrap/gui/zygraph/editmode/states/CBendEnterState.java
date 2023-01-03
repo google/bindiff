@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,13 +24,11 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CState
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitBendsTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.transformations.CHitNodesTransformer;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Edge;
 import y.view.Bend;
 import y.view.EdgeLabel;
 import y.view.HitInfo;
-
-import java.awt.event.MouseEvent;
 
 public class CBendEnterState implements IMouseState {
   private final CStateFactory<?, ?> m_factory;
@@ -39,8 +37,8 @@ public class CBendEnterState implements IMouseState {
 
   private final Bend m_bend;
 
-  public CBendEnterState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
-      final Bend b) {
+  public CBendEnterState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final Bend b) {
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_bend = Preconditions.checkNotNull(b, "Error: b argument can not be null");
@@ -108,7 +106,8 @@ public class CBendEnterState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     return new CStateChange(m_factory.createDefaultState(), true);
   }
 }

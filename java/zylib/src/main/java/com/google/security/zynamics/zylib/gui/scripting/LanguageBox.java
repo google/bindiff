@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.google.security.zynamics.zylib.gui.scripting;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 import javax.swing.JComboBox;
@@ -36,8 +35,8 @@ public class LanguageBox extends JComboBox<ScriptingLanguage> {
     for (final ScriptEngineFactory factory : factories) {
       // Disable Rhino scripting engine for JavaScript / ECMAScript.
       if (factory.getLanguageName().equals("python")) {
-        languages
-            .add(new ScriptingLanguage(factory.getLanguageName(), factory.getLanguageVersion()));
+        languages.add(
+            new ScriptingLanguage(factory.getLanguageName(), factory.getLanguageVersion()));
       }
     }
 

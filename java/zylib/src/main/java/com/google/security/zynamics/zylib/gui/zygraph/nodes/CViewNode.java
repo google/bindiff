@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,60 +14,43 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.nodes;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.general.ListenerProvider;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdge;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract base class for all nodes that are part of views. For most of its lifetime, this object
  * is a proxy object that forwards everything to the associated ZyGraphNode.
  */
-public abstract class CViewNode<EdgeType extends IViewEdge<? extends IViewNode<?>>> implements
-    IViewNode<EdgeType> {
-  /**
-   * ID of the node.
-   */
+public abstract class CViewNode<EdgeType extends IViewEdge<? extends IViewNode<?>>>
+    implements IViewNode<EdgeType> {
+  /** ID of the node. */
   private int m_id;
 
-  /**
-   * X position of the node in the view.
-   */
+  /** X position of the node in the view. */
   private double m_x;
 
-  /**
-   * Y position of the node in the view.
-   */
+  /** Y position of the node in the view. */
   private double m_y;
 
-  /**
-   * Background color of the node.
-   */
+  /** Background color of the node. */
   private Color m_color;
 
   private Color m_borderColor;
 
-  /**
-   * Indicates whether the node is selected or not.
-   */
+  /** Indicates whether the node is selected or not. */
   private boolean m_selected;
 
-  /**
-   * Indicates whether the view is visible or not.
-   */
+  /** Indicates whether the view is visible or not. */
   private boolean m_visible;
 
-  /**
-   * The incoming edges of the node.
-   */
+  /** The incoming edges of the node. */
   private final List<EdgeType> m_incomingEdges = new ArrayList<EdgeType>();
 
-  /**
-   * The outgoing edges of the node.
-   */
+  /** The outgoing edges of the node. */
   private final List<EdgeType> m_outgoingEdges = new ArrayList<EdgeType>();
 
   private final ListenerProvider<IViewNodeListener> m_listeners =
@@ -79,7 +62,7 @@ public abstract class CViewNode<EdgeType extends IViewEdge<? extends IViewNode<?
 
   /**
    * Creates a new view node object.
-   * 
+   *
    * @param id The ID of the node.
    * @param x The X position of the node in the view.
    * @param y The Y position of the node in the view.
@@ -87,11 +70,18 @@ public abstract class CViewNode<EdgeType extends IViewEdge<? extends IViewNode<?
    * @param selected Selection state of the node.
    * @param visible Visibility state of the node.
    */
-  public CViewNode(final int id, final double x, final double y, final double width,
-      final double height, final Color color, final Color borderColor, final boolean selected,
+  public CViewNode(
+      final int id,
+      final double x,
+      final double y,
+      final double width,
+      final double height,
+      final Color color,
+      final Color borderColor,
+      final boolean selected,
       final boolean visible) {
-    Preconditions.checkArgument(id >= -1,
-        "Error: Node ID must be positive or -1 for unsaved nodes.");
+    Preconditions.checkArgument(
+        id >= -1, "Error: Node ID must be positive or -1 for unsaved nodes.");
 
     // X and Y do not need to be bounds-checked.
 
@@ -115,7 +105,7 @@ public abstract class CViewNode<EdgeType extends IViewEdge<? extends IViewNode<?
 
   /**
    * Adds an incoming edge to the node.
-   * 
+   *
    * @param edge The new incoming edge.
    */
   public void addIncomingEdge(final EdgeType edge) {
@@ -131,13 +121,13 @@ public abstract class CViewNode<EdgeType extends IViewEdge<? extends IViewNode<?
 
   /**
    * Adds an outgoing edge to the node.
-   * 
+   *
    * @param edge The new outgoing edge.
    */
   public void addOutgoingEdge(final EdgeType edge) {
     Preconditions.checkNotNull(edge, "Error: Edge argument can not be null");
-    Preconditions.checkArgument(!m_outgoingEdges.contains(edge),
-        "Error: Outgoing edge was added before");
+    Preconditions.checkArgument(
+        !m_outgoingEdges.contains(edge), "Error: Outgoing edge was added before");
     m_outgoingEdges.add(edge);
   }
 

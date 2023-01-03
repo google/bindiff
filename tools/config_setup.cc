@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@
 #include <shlwapi.h>
 // clang-format on
 
-#undef StrCat    // shllwa
+#undef StrCat  // shllwa
 
 #else
 #include <unistd.h>  // symlink()
@@ -77,8 +77,8 @@ absl::Status CreateOrUpdateLinkWithFallback(const std::string& target,
   remove(link_path.c_str());
 
   if (symlink(canonical_target.c_str(), link_path.c_str()) == -1) {
-    return absl::UnknownError(absl::StrCat(
-        "Symlink creation of '", link_path, "': ", GetLastOsError()));
+    return absl::UnknownError(absl::StrCat("Symlink creation of '", link_path,
+                                           "': ", GetLastOsError()));
   }
   return absl::OkStatus();
 #else

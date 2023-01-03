@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,10 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
-
 import java.awt.event.KeyEvent;
-
 
 public class CCursorKeyBehavior extends CAbstractKeyBehavior {
   public CCursorKeyBehavior(final CUndoManager undoManager) {
@@ -118,12 +116,16 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
         mousePressed_X = startindex;
         mouseReleased_X = startindex;
         caretEndPos_X = startindex;
-
       }
 
       mouseReleased_X = correctMouseReleasedX(mouseReleased_X, mouseReleased_Y, mousePressed_Y);
 
-      setCaret(caretStartPos_X, mousePressed_X, mousePressed_Y, caretEndPos_X, mouseReleased_X,
+      setCaret(
+          caretStartPos_X,
+          mousePressed_X,
+          mousePressed_Y,
+          caretEndPos_X,
+          mouseReleased_X,
           mouseReleased_Y);
     } else if (ydelta != 0) {
       handleNotShiftAndNotCtrl(0, ydelta);
@@ -183,8 +185,9 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
         mousePressed_X = 0;
       }
 
-      if (mousePressed_X > (labelContent.getLineContent(mouseReleased_Y).getTextLayout()
-          .getCharacterCount() - 1)) {
+      if (mousePressed_X
+          > (labelContent.getLineContent(mouseReleased_Y).getTextLayout().getCharacterCount()
+              - 1)) {
         mousePressed_X =
             labelContent.getLineContent(mouseReleased_Y).getTextLayout().getCharacterCount();
       }
@@ -197,7 +200,12 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
 
     mouseReleased_X = correctMouseReleasedX(mouseReleased_X, mouseReleased_Y, mousePressed_Y);
 
-    setCaret(caretStartPos_X, mousePressed_X, mousePressed_Y, caretEndPos_X, mouseReleased_X,
+    setCaret(
+        caretStartPos_X,
+        mousePressed_X,
+        mousePressed_Y,
+        caretEndPos_X,
+        mouseReleased_X,
         mouseReleased_Y);
   }
 
@@ -282,10 +290,14 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
 
       mouseReleased_X = correctMouseReleasedX(mouseReleased_X, mouseReleased_Y, mousePressed_Y);
 
-      setCaret(caretStartPos_X, mousePressed_X, mousePressed_Y, caretEndPos_X, mouseReleased_X,
+      setCaret(
+          caretStartPos_X,
+          mousePressed_X,
+          mousePressed_Y,
+          caretEndPos_X,
+          mouseReleased_X,
           mouseReleased_Y);
     }
-
   }
 
   protected void handleShiftAndNotCtrl(final int xDelta, final int yDelta) {
@@ -332,8 +344,8 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
         mouseReleased_X = maxlength;
       }
 
-      if (mouseReleased_X <= labelContent.getLineContent(mouseReleased_Y).getTextLayout()
-          .getCharacterCount()) {
+      if (mouseReleased_X
+          <= labelContent.getLineContent(mouseReleased_Y).getTextLayout().getCharacterCount()) {
         caretEndPos_X = mouseReleased_X;
       } else {
         caretEndPos_X =
@@ -345,13 +357,17 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
 
     mouseReleased_X = correctMouseReleasedX(mouseReleased_X, mouseReleased_Y, mousePressed_Y);
 
-    setCaret(caretStartPos_X, mousePressed_X, mousePressed_Y, caretEndPos_X, mouseReleased_X,
+    setCaret(
+        caretStartPos_X,
+        mousePressed_X,
+        mousePressed_Y,
+        caretEndPos_X,
+        mouseReleased_X,
         mouseReleased_Y);
   }
 
   @Override
-  protected void initUndoHistory() {
-  }
+  protected void initUndoHistory() {}
 
   @Override
   protected void updateCaret() {
@@ -370,8 +386,7 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
   }
 
   @Override
-  protected void updateClipboard() {
-  }
+  protected void updateClipboard() {}
 
   @Override
   protected void updateLabelContent() {
@@ -379,10 +394,8 @@ public class CCursorKeyBehavior extends CAbstractKeyBehavior {
   }
 
   @Override
-  protected void updateSelection() {
-  }
+  protected void updateSelection() {}
 
   @Override
-  protected void updateUndoHistory() {
-  }
+  protected void updateUndoHistory() {}
 }

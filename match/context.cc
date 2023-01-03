@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -74,12 +74,10 @@ std::pair<FixedPoints::iterator, bool> MatchingContext::AddFixedPoint(
     assert(false && "inconsistent fixed point data");
     return std::make_pair(fixed_points_.end(), false);
   }
-  FixedPoint* new_fixed_point = const_cast<FixedPoint*>(
-      &*insert_position.first);
-  fixed_points_by_primary_[
-      primary->GetEntryPointAddress()] = new_fixed_point;
-  fixed_points_by_secondary_[
-      secondary->GetEntryPointAddress()] = new_fixed_point;
+  auto* new_fixed_point = const_cast<FixedPoint*>(&*insert_position.first);
+  fixed_points_by_primary_[primary->GetEntryPointAddress()] = new_fixed_point;
+  fixed_points_by_secondary_[secondary->GetEntryPointAddress()] =
+      new_fixed_point;
   CHECK(new_fixed_points_.insert(new_fixed_point).second);
   primary->SetFixedPoint(new_fixed_point);
   secondary->SetFixedPoint(new_fixed_point);

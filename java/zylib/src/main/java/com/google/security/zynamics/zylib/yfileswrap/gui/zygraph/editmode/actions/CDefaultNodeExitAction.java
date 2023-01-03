@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,19 +22,16 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helper
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CNodeHighlighter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeExitState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 
-import java.awt.event.MouseEvent;
-
-/**
- * Describes the default actions which are executed as soon as the mouse cursor exits a node.
- */
-public class CDefaultNodeExitAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+/** Describes the default actions which are executed as soon as the mouse cursor exits a node. */
+public class CDefaultNodeExitAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodeExitState<NodeType, EdgeType>> {
   /**
    * Clears the tool tip of a graph.
-   * 
+   *
    * @param graph The graph whose tool tip is cleared.
    */
   protected void clearTooltip(final AbstractZyGraph<?, ?> graph) {
@@ -43,7 +40,7 @@ public class CDefaultNodeExitAction<NodeType extends ZyGraphNode<?>, EdgeType ex
 
   /**
    * Removes highlighting from the edges attached to a node.
-   * 
+   *
    * @param node The node that was exited.
    */
   protected void unhighlightEdges(final Node node) {
@@ -52,7 +49,7 @@ public class CDefaultNodeExitAction<NodeType extends ZyGraphNode<?>, EdgeType ex
 
   /**
    * Removes highlighting from the node that was exited.
-   * 
+   *
    * @param node The node that was exited.
    */
   protected void unhighlightNode(final Node node) {
@@ -73,8 +70,8 @@ public class CDefaultNodeExitAction<NodeType extends ZyGraphNode<?>, EdgeType ex
     final NodeType node = state.getGraph().getNode(state.getNode());
 
     if (node != null) {
-      for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-          .getListeners()) {
+      for (final IZyEditModeListener<NodeType, EdgeType> listener :
+          state.getStateFactory().getListeners()) {
         // ESCA-JAVA0166: Catch Exception because we are calling a listener function
         try {
           listener.nodeLeft(node);
@@ -83,7 +80,6 @@ public class CDefaultNodeExitAction<NodeType extends ZyGraphNode<?>, EdgeType ex
         }
       }
     }
-
 
     state.getGraph().updateViews();
   }

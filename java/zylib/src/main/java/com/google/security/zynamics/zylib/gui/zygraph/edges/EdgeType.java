@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,13 +16,22 @@ package com.google.security.zynamics.zylib.gui.zygraph.edges;
 
 public enum EdgeType {
   // conditional jumps
-  JUMP_CONDITIONAL_TRUE, JUMP_CONDITIONAL_FALSE, JUMP_UNCONDITIONAL, JUMP_SWITCH,
+  JUMP_CONDITIONAL_TRUE,
+  JUMP_CONDITIONAL_FALSE,
+  JUMP_UNCONDITIONAL,
+  JUMP_SWITCH,
   // loops
-  JUMP_CONDITIONAL_TRUE_LOOP, JUMP_CONDITIONAL_FALSE_LOOP, JUMP_UNCONDITIONAL_LOOP,
+  JUMP_CONDITIONAL_TRUE_LOOP,
+  JUMP_CONDITIONAL_FALSE_LOOP,
+  JUMP_UNCONDITIONAL_LOOP,
   // inline
-  ENTER_INLINED_FUNCTION, LEAVE_INLINED_FUNCTION, INTER_MODULE, INTER_ADDRESSSPACE_EDGE,
+  ENTER_INLINED_FUNCTION,
+  LEAVE_INLINED_FUNCTION,
+  INTER_MODULE,
+  INTER_ADDRESSSPACE_EDGE,
   // misc
-  TEXTNODE_EDGE, DUMMY;
+  TEXTNODE_EDGE,
+  DUMMY;
   // INTER_FUNCTION,
 
   public static boolean isFalseEdge(final EdgeType type) {

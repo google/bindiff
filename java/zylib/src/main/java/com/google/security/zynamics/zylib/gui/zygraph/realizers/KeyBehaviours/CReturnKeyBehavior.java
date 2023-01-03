@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 
 public class CReturnKeyBehavior extends CAbstractKeyBehavior {
   private int m_caretY = -1;
@@ -50,10 +50,20 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
 
       text = getMultiLineComment(y);
 
-      udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-          lineObject, text, isAboveLineComment(y), isBehindLineComment(x, y), isLabelComment(y),
-          getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          lineContent.getLineObject().getPersistentModel(),
+          lineObject,
+          text,
+          isAboveLineComment(y),
+          isBehindLineComment(x, y),
+          isLabelComment(y),
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     } else {
       // Caret was not within a comment. Note: Line fragments are always single lined
 
@@ -68,8 +78,9 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
       boolean isLabelComment = false;
 
       IZyEditableObject editableObject =
-          nextModelLineContent == null ? getLabelContent().getModel() : nextModelLineContent
-              .getLineObject();
+          nextModelLineContent == null
+              ? getLabelContent().getModel()
+              : nextModelLineContent.getLineObject();
 
       if ((x == lineContent.getText().length()) && (getCaretMouseReleasedY() != 0)) {
         // Caret is at the end of a non-comment line. A new behind line comment will be created
@@ -99,10 +110,20 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
         return;
       }
 
-      udpateUndolist(getLabelContent(), editableObject.getPersistentModel(), editableObject, text,
-          isAboveLineComment, isBehindLineComment, isLabelComment, getCaretStartPosX(),
-          getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          editableObject.getPersistentModel(),
+          editableObject,
+          text,
+          isAboveLineComment,
+          isBehindLineComment,
+          isLabelComment,
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 
@@ -175,8 +196,9 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
         editableObject.update(changedLine);
       }
 
-      getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-          editableObject.getPersistentModel());
+      getLabelContent()
+          .getLineEditor()
+          .recreateLabelLines(getLabelContent(), editableObject.getPersistentModel());
     } else {
       // Caret was not within a comment. Create a new comment.
 
@@ -195,10 +217,12 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
 
         if (editableObject != null) {
           editableObject.updateComment("\r", ECommentPlacement.BEHIND_LINE);
-          getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-              editableObject.getPersistentModel());
+          getLabelContent()
+              .getLineEditor()
+              .recreateLabelLines(getLabelContent(), editableObject.getPersistentModel());
         }
-      } else if ((nextModelLineContent != null) && (nextModelLineContent.getLineObject() != null)
+      } else if ((nextModelLineContent != null)
+          && (nextModelLineContent.getLineObject() != null)
           && !isLabelComment(m_caretY)) {
         // There is a next model line, but it's not the label comment. Add a new comment line to the
         // front.
@@ -210,10 +234,13 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
           changedComment = "\n" + getMultiLineComment(m_caretY);
         }
 
-        nextModelLineContent.getLineObject().updateComment(changedComment,
-            ECommentPlacement.ABOVE_LINE);
-        getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-            nextModelLineContent.getLineObject().getPersistentModel());
+        nextModelLineContent
+            .getLineObject()
+            .updateComment(changedComment, ECommentPlacement.ABOVE_LINE);
+        getLabelContent()
+            .getLineEditor()
+            .recreateLabelLines(
+                getLabelContent(), nextModelLineContent.getLineObject().getPersistentModel());
       } else if ((nextModelLineContent != null) && isLabelComment(m_caretY)) {
         // There is a next model line content and it's the label comment. Add a new comment line to
         // the front.
@@ -223,8 +250,10 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
         changedComment += getMultiLineComment(m_caretY);
 
         getLabelContent().getModel().update(changedComment);
-        getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-            getLabelContent().getModel().getPersistentModel());
+        getLabelContent()
+            .getLineEditor()
+            .recreateLabelLines(
+                getLabelContent(), getLabelContent().getModel().getPersistentModel());
       } else {
         // There is no next model line content and there is still no label comment appended. Create
         // a new label comment.
@@ -235,8 +264,10 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
         m_caretY = y + 1;
 
         getLabelContent().getModel().update("\r");
-        getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-            getLabelContent().getModel().getPersistentModel());
+        getLabelContent()
+            .getLineEditor()
+            .recreateLabelLines(
+                getLabelContent(), getLabelContent().getModel().getPersistentModel());
       }
     }
   }
@@ -264,10 +295,20 @@ public class CReturnKeyBehavior extends CAbstractKeyBehavior {
         text = getMultiLineComment(y);
       }
 
-      udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-          editableObject, text, isAboveLineComment(y), isBehindLineComment(x, y),
-          isLabelComment(y), getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(),
-          getCaretEndPosX(), getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          lineContent.getLineObject().getPersistentModel(),
+          editableObject,
+          text,
+          isAboveLineComment(y),
+          isBehindLineComment(x, y),
+          isLabelComment(y),
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.google.security.zynamics.zylib.types.graphs.IGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.proximity.ZyProximityNode;
-
 import java.awt.Window;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,22 +34,28 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-
-public abstract class ProximityNodeFunctions<NodeType extends IViewNode<?> & IGraphNode<NodeType>, U extends ZyGraphNode<NodeType>, V extends AbstractZyGraph<U, ?>> {
+public abstract class ProximityNodeFunctions<
+    NodeType extends IViewNode<?> & IGraphNode<NodeType>,
+    U extends ZyGraphNode<NodeType>,
+    V extends AbstractZyGraph<U, ?>> {
   private Collection<U> filterVisibleNodes(final Collection<U> visibleNodes) {
-    return CollectionHelpers.filter(visibleNodes, new ICollectionFilter<U>() {
-      @Override
-      public boolean qualifies(final U node) {
-        return NodeHelpers.getVisibleNode((IViewNode<?>) node.getRawNode()) == node.getRawNode();
-      }
-    });
+    return CollectionHelpers.filter(
+        visibleNodes,
+        new ICollectionFilter<U>() {
+          @Override
+          public boolean qualifies(final U node) {
+            return NodeHelpers.getVisibleNode((IViewNode<?>) node.getRawNode())
+                == node.getRawNode();
+          }
+        });
   }
 
   @SuppressWarnings("unchecked")
   private Collection<U> getNeighborhood(final V graph, final ZyProximityNode<NodeType> zyNode) {
     final List<? extends NodeType> candidates =
-        zyNode.isIncoming() ? zyNode.getRawNode().getAttachedNode().getChildren() : zyNode
-            .getRawNode().getAttachedNode().getParents();
+        zyNode.isIncoming()
+            ? zyNode.getRawNode().getAttachedNode().getChildren()
+            : zyNode.getRawNode().getAttachedNode().getParents();
 
     final Set<NodeType> nodes = new LinkedHashSet<NodeType>();
 
@@ -96,8 +101,8 @@ public abstract class ProximityNodeFunctions<NodeType extends IViewNode<?> & IGr
 
   protected abstract void showNodes(Window parent, V graph, List<U> nodes, boolean visible);
 
-  public void showHiddenNodes(final Window parent, final V graph,
-      final ZyProximityNode<NodeType> zyNode) {
+  public void showHiddenNodes(
+      final Window parent, final V graph, final ZyProximityNode<NodeType> zyNode) {
     final Set<U> toShow = new LinkedHashSet<U>();
 
     // Use a temporary variable to work around OpenJDK build problem. Original code is:
@@ -128,8 +133,8 @@ public abstract class ProximityNodeFunctions<NodeType extends IViewNode<?> & IGr
     // showHiddenNodes(parent, graph, node);
   }
 
-  public void unhideChildren(final Window parent, final V graph,
-      final ZyProximityNode<NodeType> node) {
+  public void unhideChildren(
+      final Window parent, final V graph, final ZyProximityNode<NodeType> node) {
     final List<U> toShow = new ArrayList<U>();
 
     // Use a temporary variable to work around OpenJDK build problem. Original code is:
@@ -137,14 +142,15 @@ public abstract class ProximityNodeFunctions<NodeType extends IViewNode<?> & IGr
     final Set<U> nodes = GraphHelpers.getVisibleNodes(ViewableGraph.wrap(graph));
     toShow.addAll(nodes);
 
-    toShow.addAll(GraphConverters.convert(graph,
-        GraphAlgorithms.getSuccessors(node.getRawNode().getAttachedNode())));
+    toShow.addAll(
+        GraphConverters.convert(
+            graph, GraphAlgorithms.getSuccessors(node.getRawNode().getAttachedNode())));
 
     showNodes(parent, graph, toShow, true);
   }
 
-  public void unhideParents(final Window parent, final V graph,
-      final ZyProximityNode<NodeType> proximityNode) {
+  public void unhideParents(
+      final Window parent, final V graph, final ZyProximityNode<NodeType> proximityNode) {
     final List<U> toShow = new ArrayList<U>();
 
     // Use a temporary variable to work around OpenJDK build problem. Original code is:
@@ -152,8 +158,9 @@ public abstract class ProximityNodeFunctions<NodeType extends IViewNode<?> & IGr
     final Set<U> nodes = GraphHelpers.getVisibleNodes(ViewableGraph.wrap(graph));
     toShow.addAll(nodes);
 
-    toShow.addAll(GraphConverters.convert(graph,
-        GraphAlgorithms.getPredecessors(proximityNode.getRawNode().getAttachedNode())));
+    toShow.addAll(
+        GraphConverters.convert(
+            graph, GraphAlgorithms.getPredecessors(proximityNode.getRawNode().getAttachedNode())));
 
     showNodes(parent, graph, toShow, true);
   }

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,27 +14,19 @@
 
 package com.google.security.zynamics.zylib.general.memmanager;
 
+import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.google.common.base.Preconditions;
-
-/**
- * This class can be used to simulate memory.
- * 
- */
+/** This class can be used to simulate memory. */
 public class Memory {
-  /**
-   * List of memory chunks in the memory.
-   */
+  /** List of memory chunks in the memory. */
   private final LinkedList<MemoryChunk> m_chunks = new LinkedList<MemoryChunk>();
 
-  /**
-   * List of listeners that are notified about changes in memory.
-   */
+  /** List of listeners that are notified about changes in memory. */
   private final ArrayList<IMemoryListener> m_listeners = new ArrayList<IMemoryListener>();
 
   private final ReadWriteLock m_readWriteLock = new ReentrantReadWriteLock();
@@ -45,12 +37,10 @@ public class Memory {
 
   /**
    * Concatenates two byte arrays.
-   * 
+   *
    * @param data1 The first byte array.
    * @param data2 The second byte array.
-   * 
    * @return The concatenated byte array.
-   * 
    * @throws NullPointerException Thrown if either of the two source arrays is null.
    */
   private byte[] concat(final byte[] data1, final byte[] data2) {
@@ -65,20 +55,19 @@ public class Memory {
   /**
    * Connects two memory chunks, removes the two old chunks from memory, and inserts the new chunk
    * in their place.
-   * 
+   *
    * @param firstChunk The first memory chunk.
    * @param secondChunk The second memory chunk.
-   * 
    * @return The new memory chunk.
-   * 
    * @throws NullPointerException Thrown if either of the two input chunks is null.
    * @throws IllegalArgumentException Thrown if the start address of the second memory chunk is
-   *         smaller than or equal to the one of the first memory chunk.
+   *     smaller than or equal to the one of the first memory chunk.
    */
   private MemoryChunk connectChunks(final MemoryChunk firstChunk, final MemoryChunk secondChunk) {
     Preconditions.checkNotNull(firstChunk, "Error: First memory chunk can't be null");
     Preconditions.checkNotNull(secondChunk, "Error: Second memory chunk can't be null");
-    Preconditions.checkArgument(secondChunk.getAddress() > firstChunk.getAddress(),
+    Preconditions.checkArgument(
+        secondChunk.getAddress() > firstChunk.getAddress(),
         "Error: Second memory chunk must start after the first memory chunk");
 
     final long newAddress = firstChunk.getAddress();
@@ -119,7 +108,11 @@ public class Memory {
         // chunks, keep the data in the first chunk intact.
 
         System.arraycopy(firstChunk.getBytes(), 0, newData, 0, firstChunk.getLength());
-        System.arraycopy(secondChunk.getBytes(), -toFill, newData, firstChunk.getLength(),
+        System.arraycopy(
+            secondChunk.getBytes(),
+            -toFill,
+            newData,
+            firstChunk.getLength(),
             secondChunk.getLength() + toFill);
       }
 
@@ -137,11 +130,9 @@ public class Memory {
 
   /**
    * Finds the chunk that contains a given address.
-   * 
+   *
    * @param address The address to search for.
-   * 
    * @return The chunk the address belongs to or null if no such chunk exists.
-   * 
    * @throws IllegalArgumentException Thrown if the address is less than 0.
    */
   private MemoryChunk findChunk(final long address) {
@@ -159,11 +150,9 @@ public class Memory {
   /**
    * Finds the position of a chunk in the sorted list of memory chunks. The returned value is the
    * index of the list where the chunk would fit in.
-   * 
+   *
    * @param chunk The chunk ins question.
-   * 
    * @return The index where the chunk would fit into the list.
-   * 
    * @throws NullPointerException Thrown if the memory chunk is null.
    */
   private int findChunkPosition(final MemoryChunk chunk) {
@@ -194,9 +183,8 @@ public class Memory {
 
   /**
    * Inserts a chunk of memory into the list at the right position.
-   * 
+   *
    * @param chunk The chunk to insert into the list.
-   * 
    * @throws NullPointerException Thrown if the memory chunk is null.
    */
   private void insertChunk(final MemoryChunk chunk) {
@@ -207,9 +195,7 @@ public class Memory {
     m_chunks.add(index, chunk);
   }
 
-  /**
-   * Notifies all listeners that the memory changed.
-   */
+  /** Notifies all listeners that the memory changed. */
   private void notifyListeners(final long address, final int size) {
     for (final IMemoryListener listener : m_listeners) {
       listener.memoryChanged(address, size);
@@ -218,9 +204,8 @@ public class Memory {
 
   /**
    * Removes a memory chunk from memory.
-   * 
+   *
    * @param chunk The memory chunk in question.
-   * 
    * @throws NullPointerException Thrown if the memory chunk is null.
    */
   private void removeChunk(final MemoryChunk chunk) {
@@ -231,7 +216,7 @@ public class Memory {
 
   /**
    * Splits a chunk into two chunks.
-   * 
+   *
    * @param chunk The chunk to split.
    * @param address The split address.
    */
@@ -258,9 +243,8 @@ public class Memory {
 
   /**
    * Adds a listener that is notified about changes in the simulated memory.
-   * 
+   *
    * @param listener The listener to add to the nofification list.
-   * 
    * @throws NullPointerException Thrown if the listener is null.
    */
   public void addMemoryListener(final IMemoryListener listener) {
@@ -269,9 +253,7 @@ public class Memory {
     m_listeners.add(listener);
   }
 
-  /**
-   * Clears the simulated memory.
-   */
+  /** Clears the simulated memory. */
   public void clear() {
     m_writeLock.lock();
 
@@ -287,14 +269,12 @@ public class Memory {
   /**
    * Returns memory data. Note that it is necessary to call the function hasData before to make sure
    * that the data actually exists.
-   * 
+   *
    * @param address The start address of the memory data.
    * @param length The length of the retrieved data.
-   * 
    * @return The retrieved data.
-   * 
    * @throws IllegalArgumentException Thrown if the address is negative or if the length is not
-   *         positive.
+   *     positive.
    * @throws IllegalArgumentException Thrown if not all data is available.
    */
   public byte[] getData(final long address, final int length) {
@@ -361,7 +341,7 @@ public class Memory {
 
   /**
    * Returns the total size of the simulated memory.
-   * 
+   *
    * @return The total size of the simulated memory.
    */
   public int getMemorySize() {
@@ -380,7 +360,7 @@ public class Memory {
 
   /**
    * Returns the number of memory chunks in memory.
-   * 
+   *
    * @return The number of memory chunks in memory.
    */
   public int getNumberOfChunks() {
@@ -471,14 +451,12 @@ public class Memory {
 
   /**
    * Determines whether the memory has length bytes starting from the given address.
-   * 
+   *
    * @param address The start address.
    * @param length The length of the data.
-   * 
    * @return True, if all bytes in the given range are available. False, otherwise.
-   * 
    * @throws IllegalArgumentException Thrown if the address is negative or if the length is not
-   *         positive.
+   *     positive.
    */
   public boolean hasData(final long address, final int length) {
     Preconditions.checkArgument(address >= 0, "Error: Address can't be less than 0");
@@ -523,9 +501,7 @@ public class Memory {
     }
   }
 
-  /**
-   * Prints the content of the memory to stdout.
-   */
+  /** Prints the content of the memory to stdout. */
   public void printMemory() {
     m_readLock.lock();
 
@@ -538,7 +514,7 @@ public class Memory {
 
   /**
    * Removes a memory region from the memory.
-   * 
+   *
    * @param address Start of the memory region to remove.
    * @param length Length of the memory region to remove.
    */
@@ -649,10 +625,9 @@ public class Memory {
 
   /**
    * Stores new data at a given memory address.
-   * 
+   *
    * @param address The address where the data is stored.
    * @param data The data to store.
-   * 
    * @throws IllegalArgumentException Thrown if the address is less than 0.
    * @throws NullPointerException Thrown if the data object is null.
    */

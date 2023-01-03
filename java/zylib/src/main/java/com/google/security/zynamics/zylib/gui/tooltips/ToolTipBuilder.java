@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,9 +14,7 @@
 
 package com.google.security.zynamics.zylib.gui.tooltips;
 
-/**
- * This class can be used to build HTML tooltips which can be shown on random Swing objects.
- */
+/** This class can be used to build HTML tooltips which can be shown on random Swing objects. */
 public class ToolTipBuilder {
   private final StringBuilder toolTip = new StringBuilder();
 
@@ -25,16 +23,16 @@ public class ToolTipBuilder {
   }
 
   public ToolTipBuilder(final int borderWidth) {
-    toolTip.append("<html><table border=\"" + borderWidth
-        + "\" cellpadding=\"1\" cellspacing=\"0f\">");
+    toolTip.append(
+        "<html><table border=\"" + borderWidth + "\" cellpadding=\"1\" cellspacing=\"0f\">");
   }
 
   /**
    * Adds a cell to the current row in the tooltip table.
-   * 
-   * Note: Please make sure to escape the string before adding it. Otherwise the HTML code might get
-   * screwed up.
-   * 
+   *
+   * <p>Note: Please make sure to escape the string before adding it. Otherwise the HTML code might
+   * get screwed up.
+   *
    * @param cellContent
    */
   public void addCell(final String cellContent) {
@@ -44,8 +42,8 @@ public class ToolTipBuilder {
   }
 
   public void beginNewTable(final int borderWidth) {
-    toolTip.append("</table><table border=\"" + borderWidth
-        + "\" cellpadding=\"1\" cellspacing=\"0f\">");
+    toolTip.append(
+        "</table><table border=\"" + borderWidth + "\" cellpadding=\"1\" cellspacing=\"0f\">");
   }
 
   public void beginRow() {

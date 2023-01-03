@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 
 public class CCharKeyBehavior extends CAbstractKeyBehavior {
   private int m_caretX;
@@ -29,7 +29,6 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
   private boolean m_isBehindComment = false;
 
   private boolean m_wasUneditableSelection;
-
 
   public CCharKeyBehavior(final CUndoManager undoManager) {
     super(undoManager);
@@ -70,10 +69,20 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
         }
       }
 
-      udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-          editableObject, text, m_isAboveComment, m_isBehindComment, m_isLabelComment,
-          getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          lineContent.getLineObject().getPersistentModel(),
+          editableObject,
+          text,
+          m_isAboveComment,
+          m_isBehindComment,
+          m_isLabelComment,
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 
@@ -128,8 +137,9 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
 
       editableObject.update(changedText);
 
-      getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-          editableObject.getPersistentModel());
+      getLabelContent()
+          .getLineEditor()
+          .recreateLabelLines(getLabelContent(), editableObject.getPersistentModel());
     } else if (isEditable(x, y)) {
       // Editable line fragment object but Not a comment
 
@@ -142,11 +152,15 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
       if ((x == lineContent.getText().length()) && (lineContent.getLineObject() != null)) {
         // Create new behind line comment
 
-        lineContent.getLineObject().updateComment(Character.toString(getEvent().getKeyChar()),
-            ECommentPlacement.BEHIND_LINE);
+        lineContent
+            .getLineObject()
+            .updateComment(
+                Character.toString(getEvent().getKeyChar()), ECommentPlacement.BEHIND_LINE);
 
-        getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-            lineContent.getLineObject().getPersistentModel());
+        getLabelContent()
+            .getLineEditor()
+            .recreateLabelLines(
+                getLabelContent(), lineContent.getLineObject().getPersistentModel());
 
         m_caretX = getLineContent(y).getText().length();
       }
@@ -179,10 +193,20 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
           text = getMultiLineComment(y);
         }
 
-        udpateUndolist(getLabelContent(), lineContent.getLineObject().getPersistentModel(),
-            editableObject, text, m_isAboveComment, m_isBehindComment, m_isLabelComment,
-            getCaretStartPosX(), getCaretMousePressedX(), getCaretMousePressedY(),
-            getCaretEndPosX(), getCaretMouseReleasedX(), getCaretMouseReleasedY());
+        udpateUndolist(
+            getLabelContent(),
+            lineContent.getLineObject().getPersistentModel(),
+            editableObject,
+            text,
+            m_isAboveComment,
+            m_isBehindComment,
+            m_isLabelComment,
+            getCaretStartPosX(),
+            getCaretMousePressedX(),
+            getCaretMousePressedY(),
+            getCaretEndPosX(),
+            getCaretMouseReleasedX(),
+            getCaretMouseReleasedY());
       }
     }
   }

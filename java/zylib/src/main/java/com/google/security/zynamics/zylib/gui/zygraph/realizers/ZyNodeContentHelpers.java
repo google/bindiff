@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent.ObjectWrapper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.IZyNodeRealizer;
-
 import java.awt.geom.Rectangle2D;
 
 public class ZyNodeContentHelpers {
@@ -27,8 +26,8 @@ public class ZyNodeContentHelpers {
     return wrapper == null ? null : wrapper.getObject();
   }
 
-  public static ZyLineContent.ObjectWrapper getObjectWrapper(final ZyGraphNode<?> node,
-      final double x, final double y) {
+  public static ZyLineContent.ObjectWrapper getObjectWrapper(
+      final ZyGraphNode<?> node, final double x, final double y) {
     final IZyNodeRealizer realizer = node.getRealizer();
     final ZyLabelContent content = realizer.getNodeContent();
 

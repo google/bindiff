@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,13 +19,13 @@ import java.awt.event.MouseEvent;
 /**
  * Interface for all objects to be used as default actions that are executed as soon as a state
  * change was triggered.
- * 
+ *
  * @param <T> The type of the state change object.
  */
 public interface IStateAction<T> {
   /**
    * Executes an action.
-   * 
+   *
    * @param state The new state.
    * @param event The event that led to the new state.
    */

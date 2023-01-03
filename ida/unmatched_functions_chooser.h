@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
 #ifndef IDA_UNMATCHED_FUNCTIONS_CHOOSER_H_
 #define IDA_UNMATCHED_FUNCTIONS_CHOOSER_H_
 
+#include "third_party/absl/base/macros.h"
+#include "third_party/zynamics/bindiff/ida/results.h"
+// clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
-
-#include "third_party/absl/base/macros.h"
-#include "third_party/zynamics/bindiff/ida/results.h"
+// clang-format on
 
 namespace security::bindiff {
 namespace internal {
@@ -156,7 +157,7 @@ class UnmatchedChooserBase : public chooser_t {
   virtual Results::UnmatchedDescription GetDescription(size_t index) const = 0;
 
   void get_row(qstrvec_t* cols, int* icon_, chooser_item_attrs_t* attrs,
-               size_t n) const override{
+               size_t n) const override {
     internal::UnmatchedDescriptionToIdaRow(GetDescription(n), cols, icon_,
                                            attrs);
   }
@@ -170,8 +171,7 @@ class UnmatchedFunctionsAddMatchChooserPrimary
  private:
   friend class UnmatchedChooserBase<UnmatchedFunctionsAddMatchChooserPrimary>;
 
-  static constexpr const char kTitle[] =
-      "Select unmatched function in primary";
+  static constexpr const char kTitle[] = "Select unmatched function in primary";
 
   size_t get_count() const override;
 

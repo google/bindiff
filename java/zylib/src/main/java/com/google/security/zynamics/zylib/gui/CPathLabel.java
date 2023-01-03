@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.gui;
 
 import com.google.security.zynamics.zylib.io.FileUtils;
-
 import java.awt.FontMetrics;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
@@ -25,17 +24,15 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
-
 /**
  * A custom sub-class of JLabel that displays file names with path ellipses. It also features a
  * "Copy Path" popup menu item that copies the full path to clipboard.
- * 
+ *
  * @author cblichmann@google.com (Christian Blichmann)
  */
 public class CPathLabel extends JLabel {
@@ -65,48 +62,49 @@ public class CPathLabel extends JLabel {
 
     m_popup = new JPopupMenu();
     final JMenuItem copyPathMenuItem = new JMenuItem("Copy Path", 'C');
-    copyPathMenuItem.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(final ActionEvent e) {
-        final StringSelection data = new StringSelection(CPathLabel.super.getText());
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(data, data);
-      }
-    });
+    copyPathMenuItem.addActionListener(
+        new ActionListener() {
+          @Override
+          public void actionPerformed(final ActionEvent e) {
+            final StringSelection data = new StringSelection(CPathLabel.super.getText());
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(data, data);
+          }
+        });
     m_popup.add(copyPathMenuItem);
 
-    addComponentListener(new ComponentAdapter() {
-      @Override
-      public void componentResized(final ComponentEvent e) {
-        updatePathEllipsis();
-      }
-    });
+    addComponentListener(
+        new ComponentAdapter() {
+          @Override
+          public void componentResized(final ComponentEvent e) {
+            updatePathEllipsis();
+          }
+        });
 
-    addMouseListener(new MouseAdapter() {
-      private void handlePopupEvent(final MouseEvent e) {
-        if (e.isPopupTrigger()) {
-          m_popup.show(e.getComponent(), e.getX(), e.getY());
-        }
-      }
+    addMouseListener(
+        new MouseAdapter() {
+          private void handlePopupEvent(final MouseEvent e) {
+            if (e.isPopupTrigger()) {
+              m_popup.show(e.getComponent(), e.getX(), e.getY());
+            }
+          }
 
-      @Override
-      public void mousePressed(final MouseEvent e) {
-        handlePopupEvent(e);
-      }
+          @Override
+          public void mousePressed(final MouseEvent e) {
+            handlePopupEvent(e);
+          }
 
-      @Override
-      public void mouseReleased(final MouseEvent e) {
-        handlePopupEvent(e);
-      }
-    });
+          @Override
+          public void mouseReleased(final MouseEvent e) {
+            handlePopupEvent(e);
+          }
+        });
   }
 
   public CPathLabel(final String text, final int horizontalAlignment) {
     this(text, null, horizontalAlignment);
   }
 
-  /**
-   * Updates the shortened path string depending on the current width.
-   */
+  /** Updates the shortened path string depending on the current width. */
   protected void updatePathEllipsis() {
     if (getGraphics() == null) {
       return;

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -85,9 +85,9 @@ public class Quad<S, T, U, V> {
   public int hashCode() {
 
     return (m_first == null ? 1 : m_first.hashCode())
-        * (m_second == null ? 1 : m_second.hashCode()) * (m_third == null ? 1 : m_third.hashCode())
+        * (m_second == null ? 1 : m_second.hashCode())
+        * (m_third == null ? 1 : m_third.hashCode())
         * (m_fourth == null ? 1 : m_fourth.hashCode());
-
   }
 
   public T second() {

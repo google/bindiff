@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import java.util.Date;
 public interface IViewListener<ViewType> {
   /**
    * Invoked when the description of a view is changed.
-   * 
+   *
    * @param view The view where the description is changed.
    * @param description The description which is the new view description.
    */
@@ -28,7 +28,7 @@ public interface IViewListener<ViewType> {
 
   /**
    * Invoked when the modification date of a view is changed.
-   * 
+   *
    * @param view The view whose modification date is changed.
    * @param modificationDate The new modification date.
    */
@@ -36,7 +36,7 @@ public interface IViewListener<ViewType> {
 
   /**
    * Invoked if the name of a view has been changed.
-   * 
+   *
    * @param view The view whose name has been changed.
    * @param name The new name of the view.
    */
@@ -44,14 +44,14 @@ public interface IViewListener<ViewType> {
 
   /**
    * Invoked if the view is in the closing state.
-   * 
+   *
    * @return true = view can be closed.
    */
   boolean closingView(ViewType view);
 
   /**
    * Invoked if a view has been loaded.
-   * 
+   *
    * @param view The view that has just been loaded.
    */
   void loadedView(ViewType view);

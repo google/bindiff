@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,13 @@ public enum FunctionType {
   // the ordinal value of the enum members is used to sort the
   // functions in the function table.
 
-  NORMAL, LIBRARY, IMPORT, THUNK, ADJUSTOR_THUNK, INVALID, UNKNOWN;
+  NORMAL,
+  LIBRARY,
+  IMPORT,
+  THUNK,
+  ADJUSTOR_THUNK,
+  INVALID,
+  UNKNOWN;
 
   public static FunctionType parseInt(final int value) {
     switch (value) {
@@ -63,5 +69,4 @@ public enum FunctionType {
         throw new IllegalArgumentException("Internal Error: Invalid function type");
     }
   }
-
 }

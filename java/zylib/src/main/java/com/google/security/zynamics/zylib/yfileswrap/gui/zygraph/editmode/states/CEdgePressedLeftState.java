@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Edge;
-
 import java.awt.event.MouseEvent;
+import y.base.Edge;
 
 public class CEdgePressedLeftState implements IMouseState {
   private final CStateFactory<?, ?> m_factory;
@@ -34,8 +32,8 @@ public class CEdgePressedLeftState implements IMouseState {
 
   private final Edge m_edge;
 
-  public CEdgePressedLeftState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
-      final Edge edge) {
+  public CEdgePressedLeftState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final Edge edge) {
     m_factory = Preconditions.checkNotNull(factory, "Error: factory argument can not be null");
     m_graph = Preconditions.checkNotNull(graph, "Error: graph argument can not be null");
     m_edge = Preconditions.checkNotNull(edge, "Error: edge argument can not be null");
@@ -66,8 +64,8 @@ public class CEdgePressedLeftState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event,
-      final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     // A left-click is complete.
     return new CStateChange(m_factory.createEdgeClickedLeftState(m_edge, event), true);
   }

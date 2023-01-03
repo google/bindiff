@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,22 +18,19 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.StringTokenizer;
-
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-/**
- * Helper class that provides JTree functions that are often used.
- */
+/** Helper class that provides JTree functions that are often used. */
 public class TreeHelpers {
   private static void expandAll(final JTree tree, final TreePath parent, final boolean expand) {
     // Traverse children
     final TreeNode node = (TreeNode) parent.getLastPathComponent();
 
     if (node.getChildCount() >= 0) {
-      for (final Enumeration<?> e = node.children(); e.hasMoreElements();) {
+      for (final Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
         final TreeNode n = (TreeNode) e.nextElement();
         final TreePath path = parent.pathByAddingChild(n);
         expandAll(tree, path, expand);
@@ -64,10 +61,9 @@ public class TreeHelpers {
 
   /**
    * Tests whether a tree contains a given node.
-   * 
+   *
    * @param tree The tree to search.
    * @param node The node to search for.
-   * 
    * @return True, if the node is part of the tree. False, otherwise.
    */
   public static boolean contains(final JTree tree, final TreeNode node) {
@@ -129,11 +125,10 @@ public class TreeHelpers {
 
   /**
    * Finds the node at a given mouse cursor position.
-   * 
+   *
    * @param tree The tree where the node is located.
    * @param x The x coordinate of the mouse position.
    * @param y The y coordinate of the mouse position.
-   * 
    * @return The node at the given cursor position or null if there is no node at that position.
    */
   public static Object getNodeAt(final JTree tree, final int x, final int y) {
@@ -143,10 +138,9 @@ public class TreeHelpers {
 
   /**
    * Tests whether a given node is an ancestor node of another node.
-   * 
+   *
    * @param node The node to search for.
    * @param parent The parent node where the search begins.
-   * 
    * @return True, if the node is an ancestor of parent. False, otherwise.
    */
   public static boolean isAncestor(final TreeNode node, final TreeNode parent) {
@@ -163,8 +157,8 @@ public class TreeHelpers {
     return false;
   }
 
-  public static void restoreExpansionState(final JTree tree, final int row,
-      final String expansionState) {
+  public static void restoreExpansionState(
+      final JTree tree, final int row, final String expansionState) {
     final StringTokenizer stok = new StringTokenizer(expansionState, ",");
 
     while (stok.hasMoreTokens()) {

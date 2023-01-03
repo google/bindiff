@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ public class DoubleLabeledSlider extends JPanel {
   private final JSlider slider;
   private final JLabel rightLabel;
 
-  public DoubleLabeledSlider(final String leftText, final String rightText, final int min,
-      final int max) {
+  public DoubleLabeledSlider(
+      final String leftText, final String rightText, final int min, final int max) {
     setLayout(new BorderLayout());
 
     leftLabel = new JLabel(leftText);
@@ -43,8 +43,13 @@ public class DoubleLabeledSlider extends JPanel {
     add(rightLabel, BorderLayout.EAST);
   }
 
-  public DoubleLabeledSlider(final String leftText, final String rightText, final int min,
-      final int max, final boolean trackbar, final Border border) {
+  public DoubleLabeledSlider(
+      final String leftText,
+      final String rightText,
+      final int min,
+      final int max,
+      final boolean trackbar,
+      final Border border) {
     this(leftText, rightText, min, max);
 
     slider.setPaintTrack(trackbar);

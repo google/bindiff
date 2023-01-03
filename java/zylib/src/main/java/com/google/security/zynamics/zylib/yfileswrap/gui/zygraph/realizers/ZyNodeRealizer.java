@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.IRealizerUpdater
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyNodeRealizerListener;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import y.base.Edge;
 import y.base.Node;
 import y.geom.YPoint;
@@ -31,28 +33,16 @@ import y.view.LineType;
 import y.view.Port;
 import y.view.ShapeNodeRealizer;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.geom.Rectangle2D;
-
-/**
- * Realizer that is used to display graph nodes.
- */
+/** Realizer that is used to display graph nodes. */
 public abstract class ZyNodeRealizer<NodeType extends ZyGraphNode<?>> extends ShapeNodeRealizer
-implements IZyNodeRealizer {
-  /**
-   * User-specific data that is associated with the realizer.
-   */
+    implements IZyNodeRealizer {
+  /** User-specific data that is associated with the realizer. */
   private ZyNodeData<?> m_userData;
 
-  /**
-   * Node updater class that is used to update the content of the realizer.
-   */
+  /** Node updater class that is used to update the content of the realizer. */
   private IRealizerUpdater<?> m_updater;
 
-  /**
-   * Listeners that are notified about changes in the node realizer.
-   */
+  /** Listeners that are notified about changes in the node realizer. */
   private final ListenerProvider<IZyNodeRealizerListener<?>> m_listeners =
       new ListenerProvider<IZyNodeRealizerListener<?>>();
 
@@ -162,7 +152,7 @@ implements IZyNodeRealizer {
    *
    * @param y The y coordinate.
    * @return The number of the line shown at the y address or -1 if there is no line at the given
-   *         coordinates.
+   *     coordinates.
    */
   @Override
   public int positionToRow(final double y) {
@@ -178,9 +168,7 @@ implements IZyNodeRealizer {
     return row >= content.getLineCount() ? -1 : row;
   }
 
-  /**
-   * Regenerates the content of the realizer.
-   */
+  /** Regenerates the content of the realizer. */
   @Override
   public void regenerate() {
     final ZyLabelContent content = getNodeContent();
@@ -240,8 +228,11 @@ implements IZyNodeRealizer {
 
   @Override
   public void setLineType(final LineType linetype) {
-    m_isHighLighted = linetype == LineType.LINE_5 || linetype == LineType.DASHED_5
-        || linetype == LineType.DOTTED_5 || linetype == LineType.DASHED_DOTTED_5;
+    m_isHighLighted =
+        linetype == LineType.LINE_5
+            || linetype == LineType.DASHED_5
+            || linetype == LineType.DOTTED_5
+            || linetype == LineType.DASHED_DOTTED_5;
 
     super.setLineType(linetype);
   }

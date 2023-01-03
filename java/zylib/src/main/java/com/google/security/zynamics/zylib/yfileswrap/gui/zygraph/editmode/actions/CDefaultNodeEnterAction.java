@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,19 +23,16 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helper
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CTooltipUpdater;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CNodeEnterState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 
-import java.awt.event.MouseEvent;
-
-/**
- * Describes the default actions which are executed as soon as the mouse cursor enters a node.
- */
-public class CDefaultNodeEnterAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+/** Describes the default actions which are executed as soon as the mouse cursor enters a node. */
+public class CDefaultNodeEnterAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CNodeEnterState<NodeType, EdgeType>> {
   /**
    * Highlights the edges that are attached to the node that is entered.
-   * 
+   *
    * @param node The node that is entered.
    */
   protected void highlightEdges(final Node node) {
@@ -44,7 +41,7 @@ public class CDefaultNodeEnterAction<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Highlights the entered node.
-   * 
+   *
    * @param node The node that is entered.
    */
   protected void highlightNode(final Node node) {
@@ -53,7 +50,7 @@ public class CDefaultNodeEnterAction<NodeType extends ZyGraphNode<?>, EdgeType e
 
   /**
    * Updates the tooltip that is shown in the graph depending on the entered node.
-   * 
+   *
    * @param graph The graph that contains the node.
    * @param node The node that is entered.
    */
@@ -71,8 +68,8 @@ public class CDefaultNodeEnterAction<NodeType extends ZyGraphNode<?>, EdgeType e
 
     final NodeType node = graph.getNode(state.getNode());
 
-    for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-        .getListeners()) {
+    for (final IZyEditModeListener<NodeType, EdgeType> listener :
+        state.getStateFactory().getListeners()) {
       try {
         listener.nodeEntered(node, event);
       } catch (final Exception exception) {

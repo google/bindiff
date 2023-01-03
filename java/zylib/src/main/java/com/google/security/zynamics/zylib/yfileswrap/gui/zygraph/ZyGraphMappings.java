@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,19 +19,17 @@ import com.google.common.collect.Maps;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
+import java.util.Collection;
+import java.util.Map;
 import y.base.Edge;
 import y.base.Node;
 import y.view.Graph2D;
 
-import java.util.Collection;
-import java.util.Map;
-
-public class ZyGraphMappings<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>> {
-  /**
-   * This map provides a mapping between the yedge objects and the edge objects of the graph.
-   */
+public class ZyGraphMappings<
+    NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>> {
+  /** This map provides a mapping between the yedge objects and the edge objects of the graph. */
   private final Map<Edge, EdgeType> m_edgeMap;
+
   private final Map<Object, EdgeType> m_rawEdgeMap;
 
   /**
@@ -39,12 +37,13 @@ public class ZyGraphMappings<NodeType extends ZyGraphNode<?>, EdgeType extends Z
    * (Proximity info nodes are not included);
    */
   private final Map<Node, NodeType> m_nodeMap;
+
   private final Map<Object, NodeType> m_rawNodeMap;
 
   private final Graph2D m_graph;
 
-  public ZyGraphMappings(final Graph2D graph, final Map<Node, NodeType> nodeMap,
-      final Map<Edge, EdgeType> edgeMap) {
+  public ZyGraphMappings(
+      final Graph2D graph, final Map<Node, NodeType> nodeMap, final Map<Edge, EdgeType> edgeMap) {
     m_graph = graph;
 
     // Create a clone so that we have our own map that's not exposed to the outside.

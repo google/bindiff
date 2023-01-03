@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,28 +17,26 @@ package com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.trans
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.CStateChange;
 import com.google.security.zynamics.zylib.gui.zygraph.editmode.IMouseStateChange;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
-
+import java.awt.event.MouseEvent;
 import y.view.EdgeLabel;
 import y.view.HitInfo;
 
-import java.awt.event.MouseEvent;
-
-/**
- * Utility class to encapsulate state changes for edge labels.
- */
+/** Utility class to encapsulate state changes for edge labels. */
 public class CHitEdgeLabelsTransformer {
   /**
    * Changes the state of the edge label depending on the current hitInfo.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
    * @param oldLabel The edge label which we come from.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static CStateChange changeEdgeLabel(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo, final EdgeLabel oldLabel) {
+  public static CStateChange changeEdgeLabel(
+      final CStateFactory<?, ?> m_factory,
+      final MouseEvent event,
+      final HitInfo hitInfo,
+      final EdgeLabel oldLabel) {
     final EdgeLabel label = hitInfo.getHitEdgeLabel();
 
     if (label == oldLabel) {
@@ -52,15 +50,14 @@ public class CHitEdgeLabelsTransformer {
 
   /**
    * Changes the state to edge label enter state.
-   * 
+   *
    * @param m_factory The state factory for all states.
    * @param event The mouse event that caused the state change.
    * @param hitInfo The information about what was hit.
-   * 
    * @return The state object that describes the mouse state.
    */
-  public static IMouseStateChange enterEdgeLabel(final CStateFactory<?, ?> m_factory,
-      final MouseEvent event, final HitInfo hitInfo) {
+  public static IMouseStateChange enterEdgeLabel(
+      final CStateFactory<?, ?> m_factory, final MouseEvent event, final HitInfo hitInfo) {
     final EdgeLabel l = hitInfo.getHitEdgeLabel();
 
     return new CStateChange(m_factory.createEdgeLabelEnterState(l, event), true);

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 
 package com.google.security.zynamics.zylib.gui.JStackView;
 
+import com.google.common.base.Preconditions;
+import com.google.security.zynamics.zylib.gui.JHexPanel.JHexView.DefinitionStatus;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -23,27 +25,17 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseWheelEvent;
-
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 
-import com.google.common.base.Preconditions;
-import com.google.security.zynamics.zylib.gui.JHexPanel.JHexView.DefinitionStatus;
-
-/**
- * This class can be used to display the stack of a target process.
- */
+/** This class can be used to display the stack of a target process. */
 public final class JStackView extends JPanel {
   private static final long serialVersionUID = -7850318708757157383L;
 
-  /**
-   * Scrollbar that is used to scroll through the dataset.
-   */
+  /** Scrollbar that is used to scroll through the dataset. */
   private final JScrollBar m_scrollbar = new JScrollBar(JScrollBar.VERTICAL, 0, 1, 0, 1);
 
-  /**
-   * Default internal listener that is used to handle various events.
-   */
+  /** Default internal listener that is used to handle various events. */
   private final InternalListener m_listener = new InternalListener();
 
   private final IStackModel m_model;
@@ -54,7 +46,7 @@ public final class JStackView extends JPanel {
 
   /**
    * Creates a new stack view.
-   * 
+   *
    * @param model The model that provides the data displayed in the view.
    */
   public JStackView(final IStackModel model) {
@@ -80,9 +72,7 @@ public final class JStackView extends JPanel {
     addMouseWheelListener(new InternalMouseListener());
   }
 
-  /**
-   * Creates and initializes the scroll bar that is used to scroll through the data.
-   */
+  /** Creates and initializes the scroll bar that is used to scroll through the data. */
   private void initScrollbar() {
     m_scrollbar.addAdjustmentListener(m_listener);
     m_bottomScrollbar.addAdjustmentListener(m_listener);
@@ -94,8 +84,8 @@ public final class JStackView extends JPanel {
 
   private void setCurrentPosition(final long newPosition) {
     final int newFirstLine = (int) ((newPosition - m_model.getStartAddress()) / 4); // Avoid
-                                                                                    // notifying
-                                                                                    // twice
+    // notifying
+    // twice
 
     m_scrollbar.setValue(newFirstLine);
 
@@ -143,7 +133,7 @@ public final class JStackView extends JPanel {
 
   /**
    * Scrolls to the given offset.
-   * 
+   *
    * @param offset The offset to scroll to.
    */
   public void gotoOffset(final long offset) {
@@ -161,8 +151,8 @@ public final class JStackView extends JPanel {
     m_panel.repaint();
   }
 
-  private class InternalListener implements AdjustmentListener, ComponentListener,
-      IStackModelListener {
+  private class InternalListener
+      implements AdjustmentListener, ComponentListener, IStackModelListener {
     @Override
     public void adjustmentValueChanged(final AdjustmentEvent event) {
       if (event.getSource() == m_scrollbar) {

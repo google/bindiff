@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,10 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.helpers;
 
-
 /**
  * Graphs that implement this interface unlock {@link GraphHelpers} functions that require the
  * ability to iterate over visible nodes.
- * 
+ *
  * @param <NodeType> The type of the nodes in the graph.
  */
 public interface IViewableGraph<NodeType> {
@@ -26,7 +25,7 @@ public interface IViewableGraph<NodeType> {
 
   /**
    * Iterates over all visible nodes in the graph.
-   * 
+   *
    * @param callback Callback object that is called once for each visible node in the graph.
    */
   public void iterateVisible(final INodeCallback<NodeType> callback);

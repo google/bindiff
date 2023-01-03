@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,6 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.proximity;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.security.zynamics.zylib.gui.zygraph.helpers.GraphConverters;
@@ -33,10 +26,14 @@ import com.google.security.zynamics.zylib.types.common.CollectionHelpers;
 import com.google.security.zynamics.zylib.types.common.ICollectionFilter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
-/**
- * Used to calculate the proximity browsing neighborhood of nodes.
- */
+/** Used to calculate the proximity browsing neighborhood of nodes. */
 public final class ProximityRangeCalculator {
   private static Set<ViewNodeAdapter> getGroupMembers(final IGroupNode<?, ?> node) {
     final Set<ViewNodeAdapter> groupMembers = new HashSet<ViewNodeAdapter>();
@@ -48,8 +45,8 @@ public final class ProximityRangeCalculator {
     return groupMembers;
   }
 
-  private static <NodeType extends ZyGraphNode<? extends IViewNode<?>>> Set<ViewNodeAdapter> getParentGroups(
-      final NodeType node) {
+  private static <NodeType extends ZyGraphNode<? extends IViewNode<?>>>
+      Set<ViewNodeAdapter> getParentGroups(final NodeType node) {
     final Set<ViewNodeAdapter> parentGroups = new HashSet<ViewNodeAdapter>();
 
     IGroupNode<?, ?> parentGroup = ((IViewNode<?>) node.getRawNode()).getParentGroup();
@@ -82,10 +79,14 @@ public final class ProximityRangeCalculator {
     return nodes;
   }
 
-  private static void getPredecessorsInternal(final ViewNodeAdapter node, final int depth,
-      final Set<ViewNodeAdapter> nodes, final Set<ViewNodeAdapter> visited) {
+  private static void getPredecessorsInternal(
+      final ViewNodeAdapter node,
+      final int depth,
+      final Set<ViewNodeAdapter> nodes,
+      final Set<ViewNodeAdapter> visited) {
     for (final ViewNodeAdapter parent : node.getParents()) {
-      if (/* visited.contains(parent) || */(depth <= 0) && !(parent.getNode() instanceof ITextNode)) {
+      if (
+      /* visited.contains(parent) || */ (depth <= 0) && !(parent.getNode() instanceof ITextNode)) {
         // NH: see getSuccessorsInternal for comment
         continue;
       } else if (parent.getNode().getParentGroup() != null) {
@@ -126,8 +127,8 @@ public final class ProximityRangeCalculator {
     return depth == -1 ? Integer.MAX_VALUE : depth;
   }
 
-  private static List<ViewNodeAdapter> getSuccessors(final Iterable<ViewNodeAdapter> selectedNodes,
-      final int depth) {
+  private static List<ViewNodeAdapter> getSuccessors(
+      final Iterable<ViewNodeAdapter> selectedNodes, final int depth) {
     final List<ViewNodeAdapter> nodes = new ArrayList<ViewNodeAdapter>();
 
     for (final ViewNodeAdapter node : selectedNodes) {
@@ -145,10 +146,14 @@ public final class ProximityRangeCalculator {
     return nodes;
   }
 
-  private static void getSuccessorsInternal(final ViewNodeAdapter node, final int depth,
-      final Set<ViewNodeAdapter> nodes, final HashSet<ViewNodeAdapter> visited) {
+  private static void getSuccessorsInternal(
+      final ViewNodeAdapter node,
+      final int depth,
+      final Set<ViewNodeAdapter> nodes,
+      final HashSet<ViewNodeAdapter> visited) {
     for (final ViewNodeAdapter child : node.getChildren()) {
-      if (/* visited.contains(child) || */(depth <= 0) && !(child.getNode() instanceof ITextNode)) {
+      if (
+      /* visited.contains(child) || */ (depth <= 0) && !(child.getNode() instanceof ITextNode)) {
         // NH: "visited.contains(child) ||" in the if clause can lead to an incorrect Proximity
         // Browsing state, which does not really harm BinNavi
         // but do lead to exceptions in BinDiff because of asynchronous node visibilities in the
@@ -204,31 +209,33 @@ public final class ProximityRangeCalculator {
     }
   }
 
-  private static boolean visited(final Set<ViewNodeAdapter> visited,
-      final IGroupNode<?, ?> parentGroup) {
-    return CollectionHelpers.any(visited, new ICollectionFilter<ViewNodeAdapter>() {
-      @Override
-      public boolean qualifies(final ViewNodeAdapter adapter) {
-        return adapter.getNode() == parentGroup;
-      }
-    });
+  private static boolean visited(
+      final Set<ViewNodeAdapter> visited, final IGroupNode<?, ?> parentGroup) {
+    return CollectionHelpers.any(
+        visited,
+        new ICollectionFilter<ViewNodeAdapter>() {
+          @Override
+          public boolean qualifies(final ViewNodeAdapter adapter) {
+            return adapter.getNode() == parentGroup;
+          }
+        });
   }
 
   /**
    * Calculates the proximity browsing neighborhood of a given list of nodes.
-   * 
+   *
    * @param <NodeType> Node type of the nodes in the graph.
-   * 
    * @param graph The graph where the node is located.
    * @param nodes Nodes for which the neighborhood is calculated.
    * @param childDepth Depth of children for each input node.
    * @param parentDepth Depth of parents of each input node.
-   * 
    * @return The calculated proximity browsing neighborhood for the given nodes.
    */
   public static <NodeType extends ZyGraphNode<? extends IViewNode<?>>> Set<NodeType> getNeighbors(
-      final AbstractZyGraph<NodeType, ?> graph, final Collection<NodeType> nodes,
-      final int childDepth, final int parentDepth) {
+      final AbstractZyGraph<NodeType, ?> graph,
+      final Collection<NodeType> nodes,
+      final int childDepth,
+      final int parentDepth) {
     Preconditions.checkNotNull(graph, "Graph argument can not be null");
     Preconditions.checkNotNull(nodes, "Nodes argument can not be null");
 
@@ -252,8 +259,8 @@ public final class ProximityRangeCalculator {
       all.addAll(ViewNodeAdapter.unwrap(graph, getParentGroups(node)));
 
       if ((node.getRawNode() instanceof IGroupNode<?, ?>) && node.isSelected()) {
-        all.addAll(ViewNodeAdapter.unwrap(graph,
-            getGroupMembers((IGroupNode<?, ?>) node.getRawNode())));
+        all.addAll(
+            ViewNodeAdapter.unwrap(graph, getGroupMembers((IGroupNode<?, ?>) node.getRawNode())));
       }
       // End of handling for group nodes
 

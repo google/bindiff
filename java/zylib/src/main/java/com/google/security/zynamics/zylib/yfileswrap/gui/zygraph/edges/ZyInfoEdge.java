@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,15 +21,16 @@ import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdge;
 import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdgeListener;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
-import y.base.Edge;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import y.base.Edge;
 
 public class ZyInfoEdge extends ZyGraphEdge<ZyGraphNode<?>, ZyInfoEdge, IViewEdge<?>> {
-  public ZyInfoEdge(final ZyGraphNode<?> source, final ZyGraphNode<?> target, final Edge edge,
+  public ZyInfoEdge(
+      final ZyGraphNode<?> source,
+      final ZyGraphNode<?> target,
+      final Edge edge,
       final ZyEdgeRealizer<ZyInfoEdge> r) {
     super(source, target, edge, r, new CInfoEdge());
   }
@@ -179,8 +180,7 @@ public class ZyInfoEdge extends ZyGraphEdge<ZyGraphNode<?>, ZyInfoEdge, IViewEdg
     }
 
     @Override
-    public void setId(final int id) {
-    }
+    public void setId(final int id) {}
 
     @Override
     public void setSelected(final boolean selected) {

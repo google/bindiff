@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,14 +21,15 @@ import y.view.EdgeRealizer;
 import y.view.Graph2D;
 import y.view.NodeRealizer;
 
-public class ZyGraphFineGrainedRenderer<ViewType extends IFineGrainedSloppyGraph2DView> extends
-    DefaultGraph2DRenderer {
+public class ZyGraphFineGrainedRenderer<ViewType extends IFineGrainedSloppyGraph2DView>
+    extends DefaultGraph2DRenderer {
   /**
    * This class implements the more fine-grained rendering by overloading the regular "paint"
    * methods for nodes & edges. Within this function, the decision on whether to paint the
    * nodes/edges in sloppy or non-sloppy mode is then made.
    */
   protected ViewType m_view;
+
   private boolean m_drawEdges = true;
 
   public ZyGraphFineGrainedRenderer(final ViewType view) {

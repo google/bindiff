@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,30 +21,28 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CEdgeHighlighter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CEdgeLabelEnterState;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.view.EdgeLabel;
 
-import java.awt.event.MouseEvent;
-
-public class CDefaultEdgeLabelEnterAction<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CDefaultEdgeLabelEnterAction<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IStateAction<CEdgeLabelEnterState<NodeType, EdgeType>> {
-  /**
-   * Highlights the edges that are attached to the label that is entered.
-   */
+  /** Highlights the edges that are attached to the label that is entered. */
   protected void highlightEdge(final EdgeLabel label) {
     CEdgeHighlighter.highlightEdge(label.getOwner(), true);
   }
 
   @Override
-  public void execute(final CEdgeLabelEnterState<NodeType, EdgeType> state, final MouseEvent event) {
+  public void execute(
+      final CEdgeLabelEnterState<NodeType, EdgeType> state, final MouseEvent event) {
     highlightEdge(state.getLabel());
 
     final AbstractZyGraph<NodeType, EdgeType> graph = state.getGraph();
 
     final EdgeLabel label = state.getLabel();
 
-    for (final IZyEditModeListener<NodeType, EdgeType> listener : state.getStateFactory()
-        .getListeners()) {
+    for (final IZyEditModeListener<NodeType, EdgeType> listener :
+        state.getStateFactory().getListeners()) {
       try {
         listener.edgeLabelEntered(label, event);
       } catch (final Exception exception) {
@@ -53,7 +51,5 @@ public class CDefaultEdgeLabelEnterAction<NodeType extends ZyGraphNode<?>, EdgeT
     }
 
     graph.updateViews();
-
   }
-
 }

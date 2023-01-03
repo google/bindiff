@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ import com.google.security.zynamics.zylib.gui.zygraph.edges.IViewEdgeListener;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEdgeRealizerListener;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.realizers.ZyEdgeRealizer;
-
+import java.awt.Color;
+import java.util.ArrayList;
 import y.base.Edge;
 import y.base.Node;
 import y.geom.YPoint;
@@ -32,16 +33,15 @@ import y.view.Bend;
 import y.view.Graph2D;
 import y.view.hierarchy.HierarchyManager;
 
-import java.awt.Color;
-import java.util.ArrayList;
-
 /**
  * This class connects raw edges with with yfiles edges.
  *
  * @param <RawEdgeTypeT> The type of the raw edge.
  */
-public class ZyGraphEdge<NodeTypeT extends ZyGraphNode<?>,
-    EdgeTypeT extends ZyGraphEdge<?, ?, ?>, RawEdgeTypeT extends IViewEdge<?>> {
+public class ZyGraphEdge<
+    NodeTypeT extends ZyGraphNode<?>,
+    EdgeTypeT extends ZyGraphEdge<?, ?, ?>,
+    RawEdgeTypeT extends IViewEdge<?>> {
 
   private Edge m_edge;
   private RawEdgeTypeT m_rawEdge;
@@ -59,8 +59,12 @@ public class ZyGraphEdge<NodeTypeT extends ZyGraphNode<?>,
    * @param edge The yfiles edge.
    * @param rawEdge The raw edge.
    */
-  public ZyGraphEdge(final NodeTypeT source, final NodeTypeT target, final Edge edge,
-      final ZyEdgeRealizer<EdgeTypeT> realizer, final RawEdgeTypeT rawEdge) {
+  public ZyGraphEdge(
+      final NodeTypeT source,
+      final NodeTypeT target,
+      final Edge edge,
+      final ZyEdgeRealizer<EdgeTypeT> realizer,
+      final RawEdgeTypeT rawEdge) {
     Preconditions.checkNotNull(source, "Source node cannot be null");
     Preconditions.checkNotNull(target, "Target node cannot be null");
     Preconditions.checkNotNull(edge, "Edge argument cannot be null");
@@ -90,7 +94,6 @@ public class ZyGraphEdge<NodeTypeT extends ZyGraphNode<?>,
 
     realizer.addListener(m_listener);
     rawEdge.addListener(m_listener);
-
   }
 
   private static Graph2D getGraph(final Edge edge) {
@@ -224,8 +227,8 @@ public class ZyGraphEdge<NodeTypeT extends ZyGraphNode<?>,
     getRealizer(m_edge).setTargetPoint(new YPoint(getX2(), y2));
   }
 
-  private class InternalListener implements IZyEdgeRealizerListener<EdgeTypeT>, IViewEdgeListener,
-      IBendListener {
+  private class InternalListener
+      implements IZyEdgeRealizerListener<EdgeTypeT>, IViewEdgeListener, IBendListener {
     @Override
     public void addedBend(final double x, final double y) {
       // Bend was added to the realizer
@@ -318,9 +321,9 @@ public class ZyGraphEdge<NodeTypeT extends ZyGraphNode<?>,
     }
 
     @Override
-    public void changedType(final CViewEdge<?> edge,
-        final com.google.security.zynamics.zylib.gui.zygraph.edges.EdgeType type) {
-    }
+    public void changedType(
+        final CViewEdge<?> edge,
+        final com.google.security.zynamics.zylib.gui.zygraph.edges.EdgeType type) {}
 
     @Override
     public void changedVisibility(final IViewEdge<?> edge, final boolean visible) {
@@ -415,8 +418,7 @@ public class ZyGraphEdge<NodeTypeT extends ZyGraphNode<?>,
     }
 
     @Override
-    public void regenerated(final ZyEdgeRealizer<EdgeTypeT> realizer) {
-    }
+    public void regenerated(final ZyEdgeRealizer<EdgeTypeT> realizer) {}
 
     @Override
     public void removedBend(final CViewEdge<?> edge, final int index, final CBend bend) {

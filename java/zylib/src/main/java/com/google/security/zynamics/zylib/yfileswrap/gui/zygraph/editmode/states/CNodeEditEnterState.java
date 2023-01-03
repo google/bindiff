@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,36 +20,28 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 
-import java.awt.event.MouseEvent;
-
 public class CNodeEditEnterState implements IMouseState {
-  /**
-   * State factory that creates new state objects when necessary.
-   */
+  /** State factory that creates new state objects when necessary. */
   private final CStateFactory<?, ?> m_factory;
 
-  /**
-   * The graph the entered node belongs to.
-   */
+  /** The graph the entered node belongs to. */
   private final AbstractZyGraph<?, ?> m_graph;
 
-  /**
-   * The entered node.
-   */
+  /** The entered node. */
   private final Node m_node;
 
   /**
    * Creates a new state object.
-   * 
+   *
    * @param factory State factory that creates new state objects when necessary.
    * @param graph The graph the entered node belongs to.
    * @param node The entered node.
    */
-  public CNodeEditEnterState(final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph,
-      final Node node) {
+  public CNodeEditEnterState(
+      final CStateFactory<?, ?> factory, final AbstractZyGraph<?, ?> graph, final Node node) {
     m_factory = factory;
     m_graph = graph;
     m_node = node;
@@ -57,7 +49,7 @@ public class CNodeEditEnterState implements IMouseState {
 
   /**
    * Returns the graph the entered node belongs to.
-   * 
+   *
    * @return The graph the entered node belongs to.
    */
   public AbstractZyGraph<?, ?> getGraph() {
@@ -66,7 +58,7 @@ public class CNodeEditEnterState implements IMouseState {
 
   /**
    * Returns the entered node.
-   * 
+   *
    * @return The entered node.
    */
   public Node getNode() {
@@ -94,7 +86,8 @@ public class CNodeEditEnterState implements IMouseState {
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     throw new IllegalStateException("Not yet implemented");
   }
 }

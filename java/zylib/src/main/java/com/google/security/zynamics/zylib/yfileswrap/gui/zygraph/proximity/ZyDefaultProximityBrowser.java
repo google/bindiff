@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,9 +35,6 @@ import com.google.security.zynamics.zylib.types.common.IterationMode;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
-import y.base.Node;
-
 import java.awt.Color;
 import java.util.Collection;
 import java.util.HashMap;
@@ -46,8 +43,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import y.base.Node;
 
-public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IViewNode<?>>, EdgeType extends ZyGraphEdge<?, ?, ? extends IViewEdge<?>>> {
+public class ZyDefaultProximityBrowser<
+    NodeType extends ZyGraphNode<? extends IViewNode<?>>,
+    EdgeType extends ZyGraphEdge<?, ?, ? extends IViewEdge<?>>> {
   private boolean m_internallyDisabled = false;
 
   private final AbstractZyGraph<NodeType, EdgeType> m_graph;
@@ -70,8 +70,8 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
   private final Map<ZyProximityNode<?>, InternalNodeListener> m_nodeListeners =
       new HashMap<ZyProximityNode<?>, InternalNodeListener>();
 
-  public ZyDefaultProximityBrowser(final AbstractZyGraph<NodeType, EdgeType> graph,
-      final AbstractZyGraphSettings settings) {
+  public ZyDefaultProximityBrowser(
+      final AbstractZyGraph<NodeType, EdgeType> graph, final AbstractZyGraphSettings settings) {
     m_graph = graph;
 
     m_settings = settings.getProximitySettings();
@@ -81,9 +81,7 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
     addSettingsListener();
   }
 
-  /**
-   * Disables proximity browsing by unhiding all invisible nodes.
-   */
+  /** Disables proximity browsing by unhiding all invisible nodes. */
   private void disableProximityBrowsing() {
     // ATTENTION: THE FOLLOWING LINE DOES NOT WORK; WHAT IF A NODE WITHOUT CONNECTED
     // EDGES IS SELECTED? RELEVANT CASE: 1241
@@ -98,17 +96,19 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
   }
 
   private List<NodeType> filterGroupedNodes(final List<NodeType> allNodes) {
-    return CollectionHelpers.filter(allNodes, new ICollectionFilter<NodeType>() {
-      private boolean isOpenGroupNode(final NodeType node) {
-        return (node.getRawNode() instanceof IGroupNode<?, ?>)
-            && !((IGroupNode<?, ?>) node.getRawNode()).isCollapsed();
-      }
+    return CollectionHelpers.filter(
+        allNodes,
+        new ICollectionFilter<NodeType>() {
+          private boolean isOpenGroupNode(final NodeType node) {
+            return (node.getRawNode() instanceof IGroupNode<?, ?>)
+                && !((IGroupNode<?, ?>) node.getRawNode()).isCollapsed();
+          }
 
-      @Override
-      public boolean qualifies(final NodeType node) {
-        return (node == getVisibleNode(node)) && !isOpenGroupNode(node);
-      }
-    });
+          @Override
+          public boolean qualifies(final NodeType node) {
+            return (node == getVisibleNode(node)) && !isOpenGroupNode(node);
+          }
+        });
   }
 
   private NodeType getVisibleNode(final NodeType node) {
@@ -124,17 +124,17 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
   }
 
   private boolean hasAnyHiddenNodes() {
-    return GraphHelpers.any(m_graph, new INodeFilter<NodeType>() {
-      @Override
-      public boolean qualifies(final NodeType node) {
-        return !node.isVisible();
-      }
-    });
+    return GraphHelpers.any(
+        m_graph,
+        new INodeFilter<NodeType>() {
+          @Override
+          public boolean qualifies(final NodeType node) {
+            return !node.isVisible();
+          }
+        });
   }
 
-  /**
-   * Restarts proximity browsing by setting only the selected nodes visible.
-   */
+  /** Restarts proximity browsing by setting only the selected nodes visible. */
   private void restartProximityBrowsing() {
     // Note that is is not necessary to set the neighborhood of the
     // selected nodes visible. This is handled by the graph object.
@@ -166,23 +166,25 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
   }
 
   private void unhideEverything() {
-    m_graph.iterate(new INodeCallback<NodeType>() {
-      @Override
-      public IterationMode next(final NodeType node) {
-        ((IViewNode<?>) node.getRawNode()).setVisible(true);
+    m_graph.iterate(
+        new INodeCallback<NodeType>() {
+          @Override
+          public IterationMode next(final NodeType node) {
+            ((IViewNode<?>) node.getRawNode()).setVisible(true);
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
 
-    m_graph.iterateEdges(new IEdgeCallback<EdgeType>() {
-      @Override
-      public IterationMode nextEdge(final EdgeType edge) {
-        edge.getRawEdge().setVisible(true);
+    m_graph.iterateEdges(
+        new IEdgeCallback<EdgeType>() {
+          @Override
+          public IterationMode nextEdge(final EdgeType edge) {
+            edge.getRawEdge().setVisible(true);
 
-        return IterationMode.CONTINUE;
-      }
-    });
+            return IterationMode.CONTINUE;
+          }
+        });
   }
 
   private void updateProximityBrowsing(final Set<NodeType> toShow) {
@@ -246,8 +248,8 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
 
       if (invisibleIndegree > 0) {
         final ZyProximityNode<?> infoNode =
-            ProximityNodeCreator.createProximityNode(m_graph.getGraph(), node, invisibleIndegree,
-                false);
+            ProximityNodeCreator.createProximityNode(
+                m_graph.getGraph(), node, invisibleIndegree, false);
 
         final InternalNodeListener listener =
             new InternalNodeListener(node.getX(), node.getY(), infoNode);
@@ -256,8 +258,8 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
 
         m_proximityMap.put(infoNode.getNode(), infoNode);
 
-        ProximityNodeCreator
-            .insertProximityEdge(m_graph.getGraph(), infoNode, getVisibleNode(node));
+        ProximityNodeCreator.insertProximityEdge(
+            m_graph.getGraph(), infoNode, getVisibleNode(node));
       }
 
       // NH changed: Proximity node label displayed in the past the hidden outgoing edge count, but
@@ -272,8 +274,8 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
 
       if (invisibleOutdegree > 0) {
         final ZyProximityNode<?> infoNode =
-            ProximityNodeCreator.createProximityNode(m_graph.getGraph(), node, invisibleOutdegree,
-                true);
+            ProximityNodeCreator.createProximityNode(
+                m_graph.getGraph(), node, invisibleOutdegree, true);
 
         final InternalNodeListener listener =
             new InternalNodeListener(node.getX(), node.getY(), infoNode);
@@ -282,8 +284,8 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
 
         m_proximityMap.put(infoNode.getNode(), infoNode);
 
-        ProximityNodeCreator
-            .insertProximityEdge(m_graph.getGraph(), getVisibleNode(node), infoNode);
+        ProximityNodeCreator.insertProximityEdge(
+            m_graph.getGraph(), getVisibleNode(node), infoNode);
       }
     }
   }
@@ -306,9 +308,7 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
     m_graph.getGraph().removeNode(yProxyNode);
   }
 
-  /**
-   * Removes all proximity browsing nodes from the graph.
-   */
+  /** Removes all proximity browsing nodes from the graph. */
   protected void deleteProximityBrowsingNodes() {
     // each node deletion triggers the selection state listener
     // which updates proximity browsing automatically
@@ -322,8 +322,8 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
     m_proximityMap.clear();
 
     for (final Entry<ZyProximityNode<?>, InternalNodeListener> entry : m_nodeListeners.entrySet()) {
-      ((IViewNode<?>) entry.getKey().getRawNode().getAttachedNode()).removeListener(entry
-          .getValue());
+      ((IViewNode<?>) entry.getKey().getRawNode().getAttachedNode())
+          .removeListener(entry.getValue());
     }
 
     m_nodeListeners.clear();
@@ -337,13 +337,11 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
 
   protected void removeVisibilityListener() {
     m_graph.removeListener(m_visibilityListener);
-
   }
 
   public void dispose() {
     removeVisibilityListener();
     removeSettingsListener();
-
   }
 
   public void setEnabled(final boolean enable) {
@@ -366,28 +364,22 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
     }
 
     @Override
-    public void changedBorderColor(final IViewNode<?> node, final Color color) {
-    }
+    public void changedBorderColor(final IViewNode<?> node, final Color color) {}
 
     @Override
-    public void changedColor(final IViewNode<?> node, final Color color) {
-    }
+    public void changedColor(final IViewNode<?> node, final Color color) {}
 
     @Override
-    public void changedSelection(final IViewNode<?> node, final boolean selected) {
-    }
+    public void changedSelection(final IViewNode<?> node, final boolean selected) {}
 
     @Override
-    public void changedVisibility(final IViewNode<?> node, final boolean visible) {
-    }
+    public void changedVisibility(final IViewNode<?> node, final boolean visible) {}
 
     @Override
-    public void heightChanged(final IViewNode<?> node, final double height) {
-    }
+    public void heightChanged(final IViewNode<?> node, final double height) {}
 
     @Override
-    public void widthChanged(final IViewNode<?> node, final double width) {
-    }
+    public void widthChanged(final IViewNode<?> node, final double width) {}
 
     @Override
     public void xposChanged(final IViewNode<?> node, final double xpos) {
@@ -424,17 +416,13 @@ public class ZyDefaultProximityBrowser<NodeType extends ZyGraphNode<? extends IV
     }
 
     @Override
-    public void changedProximityBrowsingFrozen(final boolean value) {
-    }
+    public void changedProximityBrowsingFrozen(final boolean value) {}
 
     @Override
-    public void changedProximityBrowsingPreview(final boolean value) {
-    }
+    public void changedProximityBrowsingPreview(final boolean value) {}
   }
 
-  /**
-   * Refreshes proximity browsing nodes when the visibility of nodes in the graph changes.
-   */
+  /** Refreshes proximity browsing nodes when the visibility of nodes in the graph changes. */
   private class InternalVisibilityListener implements IZyGraphVisibilityListener {
     @Override
     public void nodeDeleted() {

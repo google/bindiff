@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@ package com.google.security.zynamics.zylib.general;
 
 import com.google.common.base.Preconditions;
 
-/**
- * Simple helper class for stacktrace related helper methods.
- */
+/** Simple helper class for stacktrace related helper methods. */
 public class StackTrace {
   /**
    * Converts a stack trace to a string.
-   * 
+   *
    * @param stackTrace The stack trace in question.
-   * 
    * @return The converted stack trace.
    */
   public static String toString(final StackTraceElement[] stackTrace) {

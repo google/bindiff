@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
 package com.google.security.zynamics.zylib.types.lists;
 
 import com.google.common.base.Preconditions;
-
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -26,11 +25,8 @@ import java.util.Collection;
  */
 public class FilledList<T> extends ArrayList<T> implements IFilledList<T> {
 
-  /**
-   * Creates an empty filled list.
-   */
-  public FilledList() {
-  }
+  /** Creates an empty filled list. */
+  public FilledList() {}
 
   /**
    * Creates a filled list from a collection.

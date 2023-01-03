@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,11 +16,9 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
-
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import java.util.List;
-
 
 public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
   private int m_caretX;
@@ -67,7 +65,8 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
     if (!isCommentDelimiter(x, y)) {
       // Caret is within a comment line and there is no delimiter on the caret's left hand side.
 
-      if ((lineText.length() > 0) && (lineText.length() == m_editableObject.getEnd())
+      if ((lineText.length() > 0)
+          && (lineText.length() == m_editableObject.getEnd())
           && (x == lineText.length())) {
         final char lastChar = lineText.charAt(lineText.length() - 1);
 
@@ -77,7 +76,9 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
       }
 
       changedText =
-          String.format("%s%s", lineText.substring(m_editableObject.getStart(), x - 1),
+          String.format(
+              "%s%s",
+              lineText.substring(m_editableObject.getStart(), x - 1),
               lineText.substring(x, m_editableObject.getEnd()));
 
       m_caretY = y;
@@ -123,8 +124,8 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
           final IZyEditableObject prevLineFragmentObject =
               prevLineContent.getLineFragmentObjectAt(prevLineText.length() - 1);
           changedText =
-              prevLineText.substring(prevLineFragmentObject.getStart(),
-                  prevLineFragmentObject.getEnd() - 1);
+              prevLineText.substring(
+                  prevLineFragmentObject.getStart(), prevLineFragmentObject.getEnd() - 1);
 
           m_caretY = y - 1;
           m_caretX = prevLineText.length() - 1;
@@ -153,8 +154,9 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
       m_editableObject.update(changedText);
     }
 
-    getLabelContent().getLineEditor().recreateLabelLines(getLabelContent(),
-        m_editableObject.getPersistentModel());
+    getLabelContent()
+        .getLineEditor()
+        .recreateLabelLines(getLabelContent(), m_editableObject.getPersistentModel());
   }
 
   private void handleTextFragment() {
@@ -168,9 +170,7 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
     IZyEditableObject leftNeighbourFragment =
         x > 0 ? leftNeighbourFragment = lineContent.getLineFragmentObjectAt(x - 1) : null;
 
-    return
-
-    ((fragment != null) && fragment.isCommentDelimiter())
+    return ((fragment != null) && fragment.isCommentDelimiter())
         || ((leftNeighbourFragment != null) && leftNeighbourFragment.isCommentDelimiter());
   }
 
@@ -200,10 +200,20 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
         text = getMultiLineComment(y);
       }
 
-      udpateUndolist(getLabelContent(), m_lineModel.getPersistentModel(), m_editableObject, text,
-          m_isAboveComment, m_isBehindComment, m_isLabelComment, getCaretStartPosX(),
-          getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-          getCaretMouseReleasedX(), getCaretMouseReleasedY());
+      udpateUndolist(
+          getLabelContent(),
+          m_lineModel.getPersistentModel(),
+          m_editableObject,
+          text,
+          m_isAboveComment,
+          m_isBehindComment,
+          m_isLabelComment,
+          getCaretStartPosX(),
+          getCaretMousePressedX(),
+          getCaretMousePressedY(),
+          getCaretEndPosX(),
+          getCaretMouseReleasedX(),
+          getCaretMouseReleasedY());
     }
   }
 
@@ -259,7 +269,8 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
 
     String text = "";
 
-    if ((lineContent == null) || (lineContent.getLineObject() == null)
+    if ((lineContent == null)
+        || (lineContent.getLineObject() == null)
         || (m_lineModel.getPersistentModel() != lineContent.getLineObject().getPersistentModel())) {
       if (!m_isLabelComment) {
         int offset = 0;
@@ -282,9 +293,19 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
       text = getMultiLineComment(y);
     }
 
-    udpateUndolist(getLabelContent(), m_lineModel.getPersistentModel(), m_lineModel, text,
-        m_isAboveComment, m_isBehindComment, m_isLabelComment, getCaretStartPosX(),
-        getCaretMousePressedX(), getCaretMousePressedY(), getCaretEndPosX(),
-        getCaretMouseReleasedX(), getCaretMouseReleasedY());
+    udpateUndolist(
+        getLabelContent(),
+        m_lineModel.getPersistentModel(),
+        m_lineModel,
+        text,
+        m_isAboveComment,
+        m_isBehindComment,
+        m_isLabelComment,
+        getCaretStartPosX(),
+        getCaretMousePressedX(),
+        getCaretMousePressedY(),
+        getCaretEndPosX(),
+        getCaretMouseReleasedX(),
+        getCaretMouseReleasedY());
   }
 }

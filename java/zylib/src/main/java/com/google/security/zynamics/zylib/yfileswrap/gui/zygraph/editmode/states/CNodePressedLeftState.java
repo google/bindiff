@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,12 +21,11 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEdge;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.CStateFactory;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
-
+import java.awt.event.MouseEvent;
 import y.base.Node;
 
-import java.awt.event.MouseEvent;
-
-public class CNodePressedLeftState<NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
+public class CNodePressedLeftState<
+        NodeType extends ZyGraphNode<?>, EdgeType extends ZyGraphEdge<?, ?, ?>>
     implements IMouseState {
   private final CStateFactory<NodeType, EdgeType> m_factory;
 
@@ -36,8 +35,11 @@ public class CNodePressedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
 
   private final Node m_node;
 
-  public CNodePressedLeftState(final CStateFactory<NodeType, EdgeType> factory,
-      final AbstractZyGraph<NodeType, EdgeType> graph, final Node node, final MouseEvent event) {
+  public CNodePressedLeftState(
+      final CStateFactory<NodeType, EdgeType> factory,
+      final AbstractZyGraph<NodeType, EdgeType> graph,
+      final Node node,
+      final MouseEvent event) {
     m_factory = factory;
     m_graph = graph;
     m_node = node;
@@ -71,8 +73,8 @@ public class CNodePressedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
 
       return new CStateChange(m_factory.createNodeExitState(m_node, event), true);
     } else {
-      return new CStateChange(m_factory.createNodeDraggedLeftState(m_node, event, distX, distY),
-          false);
+      return new CStateChange(
+          m_factory.createNodeDraggedLeftState(m_node, event, distX, distY), false);
     }
   }
 
@@ -87,7 +89,8 @@ public class CNodePressedLeftState<NodeType extends ZyGraphNode<?>, EdgeType ext
   }
 
   @Override
-  public IMouseStateChange mouseReleased(final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
+  public IMouseStateChange mouseReleased(
+      final MouseEvent event, final AbstractZyGraph<?, ?> graph) {
     // A left-click is complete.
 
     return new CStateChange(m_factory.createNodeClickedLeftState(m_node, event), false);

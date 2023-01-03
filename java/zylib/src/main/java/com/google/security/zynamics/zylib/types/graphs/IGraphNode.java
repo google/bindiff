@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,20 +18,20 @@ import java.util.List;
 
 /**
  * Interface for nodes in the graph.
- * 
+ *
  * @param <T> The concrete graph node type itself.
  */
 public interface IGraphNode<T> {
   /**
    * Returns the children of the graph node.
-   * 
+   *
    * @return The children of the graph node.
    */
   List<? extends T> getChildren();
 
   /**
    * Returns the parents of the graph node.
-   * 
+   *
    * @return The parents of the graph node.
    */
   List<? extends T> getParents();

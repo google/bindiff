@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ import com.google.security.zynamics.zylib.gui.zygraph.editmode.IStateAction;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.helpers.CEdgeHighlighter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.editmode.states.CEdgeExitState;
-
+import java.awt.event.MouseEvent;
 import y.base.Edge;
 import y.view.Graph2D;
-
-import java.awt.event.MouseEvent;
 
 public class CDefaultEdgeExitAction implements IStateAction<CEdgeExitState> {
   protected void clearTooltip(final AbstractZyGraph<?, ?> graph) {

@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,12 +22,13 @@ public abstract class SwingInvoker {
   public void invokeAndWait() {
     if (!SwingUtilities.isEventDispatchThread()) {
       try {
-        SwingUtilities.invokeAndWait(new Runnable() {
-          @Override
-          public void run() {
-            operation();
-          }
-        });
+        SwingUtilities.invokeAndWait(
+            new Runnable() {
+              @Override
+              public void run() {
+                operation();
+              }
+            });
       } catch (final Exception e) {
       }
     } else {
@@ -38,12 +39,13 @@ public abstract class SwingInvoker {
   public void invokeLater() {
     if (!SwingUtilities.isEventDispatchThread()) {
       try {
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            operation();
-          }
-        });
+        SwingUtilities.invokeLater(
+            new Runnable() {
+              @Override
+              public void run() {
+                operation();
+              }
+            });
       } catch (final Exception e) {
       }
     } else {

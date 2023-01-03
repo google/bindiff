@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@ package com.google.security.zynamics.zylib.plugins;
 
 /*
  * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- * 
+ *
  * Copyright (c) Non, Inc. 1999 -- All Rights Reserved
- * 
+ *
  * PACKAGE: JavaWorld FILE: JarClassLoader.java
- * 
+ *
  * AUTHOR: John D. Mitchell, Mar 3, 1999
- * 
+ *
  * REVISION HISTORY: Name Date Description ---- ---- ----------- JDM 99.03.03 Initial version.
- * 
+ *
  * %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  */
 
@@ -33,7 +33,7 @@ package com.google.security.zynamics.zylib.plugins;
  * which resides in a .jar file. <br>
  * <br>
  * * *
- * 
+ *
  * @author John D. Mitchell, Non, Inc., Mar 3, 1999 * *
  * @version 0.5 *
  */

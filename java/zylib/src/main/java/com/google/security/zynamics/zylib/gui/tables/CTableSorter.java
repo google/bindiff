@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -46,39 +46,39 @@ import javax.swing.table.TableModel;
  * the sorter (like getValueAt(row, col)) they are passed to the underlying model after the row
  * numbers have been translated via the internal mapping array. This way, the CTableSorter appears
  * to hold another copy of the table with the rows in a different order.
- * <p/>
- * CTableSorter registers itself as a listener to the underlying model, just as the JTable itself
+ *
+ * <p>CTableSorter registers itself as a listener to the underlying model, just as the JTable itself
  * would. Events recieved from the model are examined, sometimes manipulated (typically widened),
  * and then passed on to the CTableSorter's listeners (typically the JTable). If a change to the
  * model has invalidated the order of CTableSorter's rows, a note of this is made and the sorter
  * will resort the rows the next time a value is requested.
- * <p/>
- * When the tableHeader property is set, either by using the setTableHeader() method or the two
+ *
+ * <p>When the tableHeader property is set, either by using the setTableHeader() method or the two
  * argument constructor, the table header may be used as a complete UI for CTableSorter. The default
  * renderer of the tableHeader is decorated with a renderer that indicates the sorting status of
  * each column. In addition, a mouse listener is installed with the following behavior:
+ *
  * <ul>
- * <li>Mouse-click: Clears the sorting status of all other columns and advances the sorting status
- * of that column through three values: {NOT_SORTED, ASCENDING, DESCENDING} (then back to NOT_SORTED
- * again).
- * <li>SHIFT-mouse-click: Clears the sorting status of all other columns and cycles the sorting
- * status of the column through the same three values, in the opposite order: {NOT_SORTED,
- * DESCENDING, ASCENDING}.
- * <li>CONTROL-mouse-click and CONTROL-SHIFT-mouse-click: as above except that the changes to the
- * column do not cancel the statuses of columns that are already sorting - giving a way to initiate
- * a compound sort.
+ *   <li>Mouse-click: Clears the sorting status of all other columns and advances the sorting status
+ *       of that column through three values: {NOT_SORTED, ASCENDING, DESCENDING} (then back to
+ *       NOT_SORTED again).
+ *   <li>SHIFT-mouse-click: Clears the sorting status of all other columns and cycles the sorting
+ *       status of the column through the same three values, in the opposite order: {NOT_SORTED,
+ *       DESCENDING, ASCENDING}.
+ *   <li>CONTROL-mouse-click and CONTROL-SHIFT-mouse-click: as above except that the changes to the
+ *       column do not cancel the statuses of columns that are already sorting - giving a way to
+ *       initiate a compound sort.
  * </ul>
- * <p/>
- * This is a long overdue rewrite of a class of the same name that first appeared in the swing table
- * demos in 1997.
- * 
+ *
+ * <p>This is a long overdue rewrite of a class of the same name that first appeared in the swing
+ * table demos in 1997.
+ *
  * @author Philip Milne
  * @author Brendon McLean
  * @author Dan van Enckevort
  * @author Parwinder Sekhon
- * @version 2.0 02/27/04
- * @Deprecated CTableSorter should not be used anymore since standard classes, e.g. TableRowSorter,
- *             from the JDK replace this functionality in a much cleaner way.
+ * @version 2.0 02/27/04 @Deprecated CTableSorter should not be used anymore since standard classes,
+ *     e.g. TableRowSorter, from the JDK replace this functionality in a much cleaner way.
  */
 @Deprecated
 public class CTableSorter extends AbstractTableModel {
@@ -91,12 +91,13 @@ public class CTableSorter extends AbstractTableModel {
   public static final Directive EMPTY_DIRECTIVE = new Directive(-1, NOT_SORTED);
 
   @SuppressWarnings("unchecked")
-  public static final Comparator<Object> COMPARABLE_COMPARATOR = new Comparator<Object>() {
-    @Override
-    public int compare(final Object o1, final Object o2) {
-      return ((Comparable<Object>) o1).compareTo(o2);
-    }
-  };
+  public static final Comparator<Object> COMPARABLE_COMPARATOR =
+      new Comparator<Object>() {
+        @Override
+        public int compare(final Object o1, final Object o2) {
+          return ((Comparable<Object>) o1).compareTo(o2);
+        }
+      };
 
   protected TableModel tableModel;
 
@@ -106,8 +107,10 @@ public class CTableSorter extends AbstractTableModel {
   protected JTableHeader tableHeader;
   protected MouseListener mouseListener;
   protected TableModelListener tableModelListener;
+
   @SuppressWarnings("rawtypes")
   protected Map<Class, Comparator> columnComparators = new HashMap<Class, Comparator>();
+
   @SuppressWarnings("rawtypes")
   protected HashMap<Integer, Comparator> primaryColumnComparator =
       new HashMap<Integer, Comparator>();
@@ -272,8 +275,8 @@ public class CTableSorter extends AbstractTableModel {
     return 0;
   }
 
-  public void setColumnComparator(@SuppressWarnings("rawtypes") final Class type,
-      final Comparator<Object> comparator) {
+  public void setColumnComparator(
+      @SuppressWarnings("rawtypes") final Class type, final Comparator<Object> comparator) {
     if (comparator == null) {
       columnComparators.remove(type);
     } else {
@@ -281,8 +284,8 @@ public class CTableSorter extends AbstractTableModel {
     }
   }
 
-  public void setColumnComparator(final int column,
-      @SuppressWarnings("rawtypes") final Comparator comparator) {
+  public void setColumnComparator(
+      final int column, @SuppressWarnings("rawtypes") final Comparator comparator) {
     if (comparator != null) {
       primaryColumnComparator.put(column, comparator);
     }
@@ -304,15 +307,15 @@ public class CTableSorter extends AbstractTableModel {
       this.tableHeader.removeMouseListener(mouseListener);
       final TableCellRenderer defaultRenderer = this.tableHeader.getDefaultRenderer();
       if (defaultRenderer instanceof SortableHeaderRenderer) {
-        this.tableHeader
-            .setDefaultRenderer(((SortableHeaderRenderer) defaultRenderer).tableCellRenderer);
+        this.tableHeader.setDefaultRenderer(
+            ((SortableHeaderRenderer) defaultRenderer).tableCellRenderer);
       }
     }
     this.tableHeader = tableHeader;
     if (this.tableHeader != null) {
       this.tableHeader.addMouseListener(mouseListener);
-      this.tableHeader.setDefaultRenderer(new SortableHeaderRenderer(this.tableHeader
-          .getDefaultRenderer()));
+      this.tableHeader.setDefaultRenderer(
+          new SortableHeaderRenderer(this.tableHeader.getDefaultRenderer()));
     }
   }
 
@@ -477,11 +480,16 @@ public class CTableSorter extends AbstractTableModel {
     }
 
     @Override
-    public Component getTableCellRendererComponent(final JTable table, final Object value,
-        final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+    public Component getTableCellRendererComponent(
+        final JTable table,
+        final Object value,
+        final boolean isSelected,
+        final boolean hasFocus,
+        final int row,
+        final int column) {
       final Component c =
-          tableCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row,
-              column);
+          tableCellRenderer.getTableCellRendererComponent(
+              table, value, isSelected, hasFocus, row, column);
       if (c instanceof JLabel) {
         final JLabel l = (JLabel) c;
         l.setHorizontalTextPosition(SwingConstants.LEFT);
@@ -530,11 +538,13 @@ public class CTableSorter extends AbstractTableModel {
       // which can be a performance problem for large tables. The last
       // clause avoids this problem.
       final int column = e.getColumn();
-      if ((e.getFirstRow() == e.getLastRow()) && (column != TableModelEvent.ALL_COLUMNS)
-          && (getSortingStatus(column) == NOT_SORTED) && (modelToView != null)) {
+      if ((e.getFirstRow() == e.getLastRow())
+          && (column != TableModelEvent.ALL_COLUMNS)
+          && (getSortingStatus(column) == NOT_SORTED)
+          && (modelToView != null)) {
         final int viewIndex = getModelToView()[e.getFirstRow()];
-        fireTableChanged(new TableModelEvent(CTableSorter.this, viewIndex, viewIndex, column,
-            e.getType()));
+        fireTableChanged(
+            new TableModelEvent(CTableSorter.this, viewIndex, viewIndex, column, e.getType()));
         return;
       }
 

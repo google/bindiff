@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -87,8 +87,12 @@ public class ColoredRangeManager {
         // range and add a new range that contains the area that stays colorized.
 
         ranges.remove(range);
-        addRange(new ColoredRange(offset + size, range.getSize() - size, range.getColor(),
-            range.getBackgroundColor()));
+        addRange(
+            new ColoredRange(
+                offset + size,
+                range.getSize() - size,
+                range.getColor(),
+                range.getBackgroundColor()));
       }
     } else
     // if (offset > range.getStart())
@@ -115,14 +119,16 @@ public class ColoredRangeManager {
         final long newStartFirst = range.getStart();
         final int newSizeFirst = (int) (offset - range.getStart());
 
-        addRange(new ColoredRange(newStartFirst, newSizeFirst, range.getColor(),
-            range.getBackgroundColor()));
+        addRange(
+            new ColoredRange(
+                newStartFirst, newSizeFirst, range.getColor(), range.getBackgroundColor()));
 
         final long newStartLast = offset + size;
         final int newSizeLast = (int) ((range.getStart() + range.getSize()) - offset - size);
 
-        addRange(new ColoredRange(newStartLast, newSizeLast, range.getColor(),
-            range.getBackgroundColor()));
+        addRange(
+            new ColoredRange(
+                newStartLast, newSizeLast, range.getColor(), range.getBackgroundColor()));
       } else
       // if (offset + size > range.getStart() + range.getSize())
       {
@@ -135,7 +141,8 @@ public class ColoredRangeManager {
         final int newSize = (int) (offset - range.getStart());
 
         addRange(new ColoredRange(newStart, newSize, range.getColor(), range.getBackgroundColor()));
-        removeRange(range.getStart() + range.getSize(),
+        removeRange(
+            range.getStart() + range.getSize(),
             size - (int) ((range.getStart() + range.getSize()) - offset));
       }
     }

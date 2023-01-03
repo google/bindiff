@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.Un
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyCaret;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;
-
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
@@ -113,25 +112,25 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     m_keyBehaviourMap.put(KeyEvent.VK_LEFT, new CCursorKeyBehavior(m_undoManager));
     m_keyBehaviourMap.put(KeyEvent.VK_RIGHT, new CCursorKeyBehavior(m_undoManager));
     m_keyBehaviourMap.put(KeyEvent.VK_TAB, new CTabKeyBehavior(m_undoManager)); // jump to next/prev
-                                                                                // editable object
+    // editable object
     m_keyBehaviourMap.put(KeyEvent.VK_HOME, new CHomeKeyBehavior(m_undoManager));
     m_keyBehaviourMap.put(KeyEvent.VK_END, new CEndKeyBehavior(m_undoManager));
     m_keyBehaviourMap.put(KeyEvent.VK_INSERT, new CInsertKeyBehavior(m_undoManager)); // copy //
-                                                                                      // Ctrl-INS //
-                                                                                      // paste //
-                                                                                      // Shift-INS
+    // Ctrl-INS //
+    // paste //
+    // Shift-INS
     m_keyBehaviourMap.put(KeyEvent.VK_DELETE, new CDelKeyBehavior(m_undoManager)); // cut //
-                                                                                   // SHIFT-Del
+    // SHIFT-Del
     m_keyBehaviourMap.put(KeyEvent.VK_BACK_SPACE, new CBackspaceKeyBehavior(m_undoManager));
     m_keyBehaviourMap.put(KeyEvent.VK_ENTER, new CReturnKeyBehavior(m_undoManager));
     m_keyBehaviourMap.put(null, new CCharKeyBehavior(m_undoManager));
     m_ctrlKeyBehaviourMap.put(KeyEvent.VK_A, new CSelectAllKeyBehavior(m_undoManager)); // select
-                                                                                        // all //
-                                                                                        // Ctrl-A
+    // all //
+    // Ctrl-A
     m_ctrlKeyBehaviourMap.put(KeyEvent.VK_X, new CCutKeyBehavior(m_undoManager)); // cut // Ctrl-X
     m_ctrlKeyBehaviourMap.put(KeyEvent.VK_C, new CCopyKeyBehavior(m_undoManager)); // copy // Ctrl-C
     m_ctrlKeyBehaviourMap.put(KeyEvent.VK_V, new CPasteKeyBehavior(m_undoManager)); // paste //
-                                                                                    // Ctrl-V
+    // Ctrl-V
     m_ctrlKeyBehaviourMap.put(KeyEvent.VK_Y, new CRedoKeyBehavior(m_undoManager)); // redo // ctrl-Y
     m_ctrlKeyBehaviourMap.put(KeyEvent.VK_Z, new CUndoKeyBehavior(m_undoManager)); // undo // ctrl-Z
   }
@@ -140,8 +139,8 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     return m_graph;
   }
 
-  public void activateLabelContent(final ZyLabelContent labelContent,
-      final IZyRegenerateableRealizer activeRealizer) {
+  public void activateLabelContent(
+      final ZyLabelContent labelContent, final IZyRegenerateableRealizer activeRealizer) {
     if ((labelContent == null) || (activeRealizer == null)) {
       return; // should not happen
     }
@@ -168,8 +167,8 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     m_editModeListener.addListener(listener);
   }
 
-  public void addKeyBehaviour(final Integer keyCode, final CAbstractKeyBehavior behaviour,
-      final boolean ctrl) {
+  public void addKeyBehaviour(
+      final Integer keyCode, final CAbstractKeyBehavior behaviour, final boolean ctrl) {
     if (ctrl) {
       m_ctrlKeyBehaviourMap.put(keyCode, behaviour);
     } else {
@@ -198,8 +197,12 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     m_graph.removeViewFocusListener(m_focusListener);
   }
 
-  public void handleMouseDraggedEvent(final double labelParentX, final double labelParentY,
-      final double mouseX, final double mouseY, final double zoomFactor) {
+  public void handleMouseDraggedEvent(
+      final double labelParentX,
+      final double labelParentY,
+      final double mouseX,
+      final double mouseY,
+      final double zoomFactor) {
     final ZyCaret caret = getActiveLabelContent().getCaret();
 
     final int oldlr = caret.getYmouseReleased();
@@ -212,8 +215,12 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     }
   }
 
-  public void handleMousePressedEvent(final double labelParentX, final double labelParentY,
-      final double mouseX, final double mouseY, final double zoomFactor) {
+  public void handleMousePressedEvent(
+      final double labelParentX,
+      final double labelParentY,
+      final double mouseX,
+      final double mouseY,
+      final double zoomFactor) {
     final ZyCaret caret = getActiveLabelContent().getCaret();
 
     caret.setCaretStart(labelParentX, labelParentY, mouseX, mouseY, zoomFactor);
@@ -222,7 +229,8 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     m_activeRealizer.repaint();
   }
 
-  public void handleMouseReleasedEvent(final double labelParentX,
+  public void handleMouseReleasedEvent(
+      final double labelParentX,
       final double labelParentY,
       final double mouseX,
       final double mouseY,
@@ -271,7 +279,8 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
       return;
     }
 
-    if ((event.getKeyCode() == KeyEvent.VK_TAB) && (event.getModifiers() != 0)
+    if ((event.getKeyCode() == KeyEvent.VK_TAB)
+        && (event.getModifiers() != 0)
         && (event.getModifiers() != InputEvent.SHIFT_DOWN_MASK)) {
       return;
     }
@@ -291,8 +300,10 @@ public class CDefaultLabelEventHandler extends KeyAdapter {
     if (behaviour == null) {
       behaviour = m_keyBehaviourMap.get(event.getKeyCode());
 
-      if ((behaviour == null) && (event.getKeyChar() != KeyEvent.CHAR_UNDEFINED)
-          && !event.isControlDown() && getActiveLabelContent().isEditable()) {
+      if ((behaviour == null)
+          && (event.getKeyChar() != KeyEvent.CHAR_UNDEFINED)
+          && !event.isControlDown()
+          && getActiveLabelContent().isEditable()) {
         behaviour = m_keyBehaviourMap.get(null);
       }
     }

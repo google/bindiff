@@ -1,4 +1,4 @@
-// Copyright 2011-2022 Google LLC
+// Copyright 2011-2023 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -108,9 +108,8 @@ class DatabaseReader : public Reader {
                     FlowGraphInfos& flow_graphs1, FlowGraphInfos& flow_graphs2,
                     FixedPointInfos& fixed_points) override;
 
-  static void ReadFullMatches(SqliteDatabase* database,
-                              CallGraph* call_graph1, CallGraph* call_graph2,
-                              FlowGraphs* flow_graphs1,
+  static void ReadFullMatches(SqliteDatabase* database, CallGraph* call_graph1,
+                              CallGraph* call_graph2, FlowGraphs* flow_graphs1,
                               FlowGraphs* flow_graphs2,
                               FixedPoints* fixed_points);
 
