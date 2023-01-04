@@ -75,31 +75,66 @@ void SqliteDatabase::Disconnect() {
   database_ = nullptr;
 }
 
-std::unique_ptr<SqliteStatement> SqliteDatabase::Statement(
-    absl::string_view statement) {
-  return std::make_unique<SqliteStatement>(this, statement);
+SqliteStatement SqliteDatabase::StatementOrThrow(absl::string_view statement) {
+  auto stmt = SqliteStatement::Prepare(*this, statement);
+  if (!stmt.ok()) {
+    throw std::runtime_error(std::string(stmt.status().message()));
+  }
+  return std::move(*stmt);
 }
 
-void SqliteDatabase::Begin() { Statement("BEGIN TRANSACTION")->Execute(); }
+void SqliteDatabase::Begin() {
+  StatementOrThrow("BEGIN TRANSACTION").ExecuteOrThrow();
+}
 
-void SqliteDatabase::Commit() { Statement("COMMIT TRANSACTION")->Execute(); }
+void SqliteDatabase::Commit() {
+  StatementOrThrow("COMMIT TRANSACTION").ExecuteOrThrow();
+}
 
 void SqliteDatabase::Rollback() {
-  Statement("ROLLBACK TRANSACTION")->Execute();
+  StatementOrThrow("ROLLBACK TRANSACTION").ExecuteOrThrow();
 }
 
-SqliteStatement::SqliteStatement(SqliteDatabase* database,
-                                 absl::string_view statement)
-    : database_(database->database_) {
-  if (sqlite3_prepare_v2(database_, statement.data(), statement.size(),
-                         &statement_, nullptr) != SQLITE_OK) {
-    absl::Status status = Sqlite3ErrToStatus(
-        database_, absl::StrCat("preparing statement '", statement, "'"));
-    throw std::runtime_error(std::string(status.message()));
+SqliteStatement::SqliteStatement(SqliteStatement&& other) {
+  *this = std::move(other);
+}
+
+SqliteStatement& SqliteStatement::operator=(SqliteStatement&& other) {
+  if (this != &other) {
+    database_ = other.database_;
+    other.database_ = nullptr;
+    statement_ = other.statement_;
+    other.statement_ = nullptr;
+    column_ = other.column_;
+    other.column_ = 0;
+    parameter_ = other.parameter_;
+    other.parameter_ = 0;
+    got_data_ = other.got_data_;
+    other.got_data_ = false;
+  }
+  return *this;
+}
+
+SqliteStatement::~SqliteStatement() {
+  if (statement_ != nullptr) {
+    sqlite3_finalize(statement_);
   }
 }
 
-SqliteStatement::~SqliteStatement() { sqlite3_finalize(statement_); }
+absl::StatusOr<SqliteStatement> SqliteStatement::Prepare(
+    SqliteDatabase& database, absl::string_view statement) {
+  sqlite3_stmt* stmt_handle = nullptr;
+  if (sqlite3_prepare_v2(database.database_, statement.data(), statement.size(),
+                         &stmt_handle, nullptr) != SQLITE_OK) {
+    return Sqlite3ErrToStatus(
+        database.database_,
+        absl::StrCat("preparing statement '", statement, "'"));
+  }
+  SqliteStatement sqlite_statement;
+  sqlite_statement.database_ = database.database_;
+  sqlite_statement.statement_ = stmt_handle;
+  return sqlite_statement;
+}
 
 SqliteStatement& SqliteStatement::BindInt(int value) {
   sqlite3_bind_int(statement_, ++parameter_, value);
@@ -175,7 +210,7 @@ SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
   return *this;
 }
 
-SqliteStatement& SqliteStatement::Execute() {
+SqliteStatement& SqliteStatement::ExecuteOrThrow() {
   const int return_code = sqlite3_step(statement_);
   if (return_code != SQLITE_ROW && return_code != SQLITE_DONE) {
     absl::Status status = Sqlite3ErrToStatus(

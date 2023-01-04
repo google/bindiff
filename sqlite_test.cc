@@ -45,18 +45,20 @@ class SqliteTest : public ::testing::Test {
 };
 
 TEST_F(SqliteTest, BasicFunctionality) {
-  database_->Statement("CREATE TABLE t (id INT PRIMARY KEY, text TEXT)")
-      ->Execute();
-  database_->Statement("INSERT INTO t VALUES (:id, :text)")
-      ->BindInt(42)
+  database_->StatementOrThrow("CREATE TABLE t (id INT PRIMARY KEY, text TEXT)")
+      .ExecuteOrThrow();
+  database_->StatementOrThrow("INSERT INTO t VALUES (:id, :text)")
+      .BindInt(42)
       .BindText("answer")
-      .Execute();
+      .ExecuteOrThrow();
 
   int id = 0;
-  database_->Statement("SELECT id FROM t LIMIT 1")->Execute().Into(&id);
+  database_->StatementOrThrow("SELECT id FROM t LIMIT 1")
+      .ExecuteOrThrow()
+      .Into(&id);
   EXPECT_THAT(id, Eq(42));
 
-  database_->Statement("DROP TABLE t")->Execute();
+  database_->StatementOrThrow("DROP TABLE t").ExecuteOrThrow();
 }
 
 }  // namespace

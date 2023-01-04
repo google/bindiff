@@ -991,12 +991,12 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   // only if we cannot find the fixed point there we load from the original db
   int id = 0;
   temp_database_.GetDatabase()
-      ->Statement(
+      ->StatementOrThrow(
           "SELECT COALESCE(id, 0) FROM function WHERE function.address1 = "
           ":address1 AND function.address2 = :address2")
-      ->BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress())
+      .BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress())
       .BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress())
-      .Execute()
+      .ExecuteOrThrow()
       .Into(&id);
   absl::StatusOr<SqliteDatabase> original_database;
   SqliteDatabase* database;
@@ -1009,9 +1009,10 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
 
   absl::flat_hash_map<int, std::string> algorithms;
   {
-    SqliteStatement statement(database,
-                              "SELECT id, name FROM basicblockalgorithm");
-    for (statement.Execute(); statement.GotData(); statement.Execute()) {
+    SqliteStatement statement =
+        database->StatementOrThrow("SELECT id, name FROM basicblockalgorithm");
+    for (statement.ExecuteOrThrow(); statement.GotData();
+         statement.ExecuteOrThrow()) {
       int id;
       std::string name;
       statement.Into(&id).Into(&name);
@@ -1019,8 +1020,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
     }
   }
 
-  SqliteStatement statement(
-      database,
+  SqliteStatement statement = database->StatementOrThrow(
       "SELECT basicblock.address1, basicblock.address2, "
       "basicblock.algorithm "
       "FROM function "
@@ -1035,7 +1035,8 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   std::pair<Address, Address> last_basic_block(
       std::numeric_limits<Address>::max(), std::numeric_limits<Address>::max());
   int last_algorithm = -1;
-  for (statement.Execute(); statement.GotData(); statement.Execute()) {
+  for (statement.ExecuteOrThrow(); statement.GotData();
+       statement.ExecuteOrThrow()) {
     std::pair<Address, Address> basic_block;
     int algorithm;
     statement.Into(&basic_block.first)

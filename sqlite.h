@@ -49,7 +49,7 @@ class SqliteDatabase {
   void Commit();
   void Rollback();
 
-  std::unique_ptr<SqliteStatement> Statement(absl::string_view statement);
+  SqliteStatement StatementOrThrow(absl::string_view statement);
 
  private:
   friend class SqliteStatement;
@@ -61,12 +61,16 @@ class SqliteDatabase {
 
 class SqliteStatement {
  public:
-  explicit SqliteStatement(SqliteDatabase* database,
-                           absl::string_view statement);
-  ~SqliteStatement();
-
   SqliteStatement(const SqliteStatement&) = delete;
   SqliteStatement& operator=(const SqliteStatement&) = delete;
+
+  SqliteStatement(SqliteStatement&&);
+  SqliteStatement& operator=(SqliteStatement&&);
+
+  ~SqliteStatement();
+
+  static absl::StatusOr<SqliteStatement> Prepare(SqliteDatabase& database,
+                                                 absl::string_view statement);
 
   SqliteStatement& BindInt(int value);
   SqliteStatement& BindInt64(int64_t value);
@@ -80,12 +84,14 @@ class SqliteStatement {
   SqliteStatement& Into(double* value, bool* is_null = nullptr);
   SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
 
-  SqliteStatement& Execute();
+  SqliteStatement& ExecuteOrThrow();
   SqliteStatement& Reset();
   bool GotData() const;
 
  private:
-  sqlite3* database_;
+  SqliteStatement() = default;
+
+  sqlite3* database_ = nullptr;
   sqlite3_stmt* statement_ = nullptr;
   int parameter_ = 0;
   int column_ = 0;
