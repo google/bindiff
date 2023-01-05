@@ -22,8 +22,11 @@
 namespace security::bindiff {
 namespace {
 
+using ::not_absl::IsOk;
+using ::not_absl::StatusIs;
 using ::security::binexport::GetTestTempPath;
 using ::testing::Eq;
+using ::testing::IsFalse;
 
 class SqliteTest : public ::testing::Test {
  protected:
@@ -45,20 +48,52 @@ class SqliteTest : public ::testing::Test {
 };
 
 TEST_F(SqliteTest, BasicFunctionality) {
-  database_->StatementOrThrow("CREATE TABLE t (id INT PRIMARY KEY, text TEXT)")
-      .ExecuteOrThrow();
-  database_->StatementOrThrow("INSERT INTO t VALUES (:id, :text)")
-      .BindInt(42)
-      .BindText("answer")
-      .ExecuteOrThrow();
+  ASSERT_THAT(
+      database_->Execute("CREATE TABLE t1 (id INT PRIMARY KEY, text TEXT)"),
+      IsOk());
+  {
+    absl::StatusOr<SqliteStatement> stmt =
+        database_->Statement("INSERT INTO t1 VALUES (:id, :text)");
+    ASSERT_THAT(stmt, IsOk());
+    EXPECT_THAT(stmt->BindInt(42).BindText("answer").Execute(), IsOk());
+  }
+  {
+    int id = 0;
+    absl::StatusOr<SqliteStatement> stmt =
+        database_->Statement("SELECT id FROM t1 LIMIT 1");
+    ASSERT_THAT(stmt, IsOk());
+    EXPECT_THAT(stmt->Execute(), IsOk());
+    stmt->Into(&id);
+    EXPECT_THAT(id, Eq(42));
+  }
+  EXPECT_THAT(database_->Execute("DROP TABLE t1"), IsOk());
+}
 
+TEST_F(SqliteTest, InvalidSyntax) {
+  EXPECT_THAT(database_->Execute("NOTASQL STATEMENT"),
+              StatusIs(absl::StatusCode::kUnknown));
+}
+
+TEST_F(SqliteTest, RollbackTransaction) {
+  ASSERT_THAT(
+      database_->Execute("CREATE TABLE t2 (id INT PRIMARY KEY, text TEXT)"),
+      IsOk());
+  NA_ASSERT_OK_AND_ASSIGN(SqliteStatement stmt,
+                          database_->Statement("SELECT id FROM t2 LIMIT 1"));
+  ASSERT_THAT(database_->Begin(), IsOk());
+
+  EXPECT_THAT(database_->Execute(R"(INSERT INTO t2 VALUES (10, "ten"))"),
+              IsOk());
   int id = 0;
-  database_->StatementOrThrow("SELECT id FROM t LIMIT 1")
-      .ExecuteOrThrow()
-      .Into(&id);
-  EXPECT_THAT(id, Eq(42));
+  EXPECT_THAT(stmt.Execute(), IsOk());
+  stmt.Into(&id);
+  EXPECT_THAT(id, Eq(10));
+  EXPECT_THAT(database_->Rollback(), IsOk());
 
-  database_->StatementOrThrow("DROP TABLE t").ExecuteOrThrow();
+  EXPECT_THAT(stmt.Execute(), IsOk());
+  EXPECT_THAT(stmt.GotData(), IsFalse());
+
+  EXPECT_THAT(database_->Execute("DROP TABLE t2"), IsOk());
 }
 
 }  // namespace

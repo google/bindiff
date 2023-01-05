@@ -21,12 +21,14 @@
 #include "third_party/absl/container/btree_set.h"
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/log/log.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
+#include "third_party/zynamics/bindiff/sqlite.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -101,7 +103,9 @@ DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
     : filename_(path),
       options_(std::move(options)),
       database_(*SqliteDatabase::Connect(filename_)) {
-  PrepareDatabase();
+  if (absl::Status status = PrepareDatabase(); !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
 }
 
 DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate)
@@ -122,8 +126,13 @@ DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate)
       }()) {
   options_.include_function_names = false;
   if (recreate) {
-    PrepareDatabase();
-    WriteAlgorithms();
+    absl::Status status;
+    if (status = PrepareDatabase(); !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
+    if (status = WriteAlgorithms(); !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
   }
 }
 
@@ -157,7 +166,9 @@ void DatabaseWriter::WriteToTempDatabase(const FixedPoint& fixed_point) {
 
   FixedPoints fixed_points;
   fixed_points.insert(fixed_point);
-  WriteMatches(fixed_points);
+  if (absl::Status status = WriteMatches(fixed_points); !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
 }
 
 // Deletes a function match from the result database.
@@ -196,124 +207,103 @@ void DatabaseWriter::DeleteFromTempDatabase(Address primary,
       .ExecuteOrThrow();
 }
 
-void DatabaseWriter::PrepareDatabase() {
-  database_.StatementOrThrow("DROP TABLE IF EXISTS metadata").ExecuteOrThrow();
-  database_.StatementOrThrow("DROP TABLE IF EXISTS file").ExecuteOrThrow();
-  database_.StatementOrThrow("DROP TABLE IF EXISTS instruction")
-      .ExecuteOrThrow();
-  database_.StatementOrThrow("DROP TABLE IF EXISTS basicblock")
-      .ExecuteOrThrow();
-  database_.StatementOrThrow("DROP TABLE IF EXISTS basicblockalgorithm")
-      .ExecuteOrThrow();
-  database_.StatementOrThrow("DROP TABLE IF EXISTS function").ExecuteOrThrow();
-  database_.StatementOrThrow("DROP TABLE IF EXISTS functionalgorithm")
-      .ExecuteOrThrow();
+absl::Status DatabaseWriter::PrepareDatabase() {
+  NA_RETURN_IF_ERROR(database_.Execute("DROP TABLE IF EXISTS metadata"));
+  NA_RETURN_IF_ERROR(database_.Execute("DROP TABLE IF EXISTS file"));
+  NA_RETURN_IF_ERROR(database_.Execute("DROP TABLE IF EXISTS instruction"));
+  NA_RETURN_IF_ERROR(database_.Execute("DROP TABLE IF EXISTS basicblock"));
+  NA_RETURN_IF_ERROR(
+      database_.Execute("DROP TABLE IF EXISTS basicblockalgorithm"));
+  NA_RETURN_IF_ERROR(database_.Execute("DROP TABLE IF EXISTS function"));
+  NA_RETURN_IF_ERROR(
+      database_.Execute("DROP TABLE IF EXISTS functionalgorithm"));
 
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE basicblockalgorithm ("
-          "id SMALLINT PRIMARY KEY, "
-          "name TEXT"
-          ")")
-      .ExecuteOrThrow();
-
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE functionalgorithm ("
-          "id SMALLINT PRIMARY KEY, "
-          "name TEXT"
-          ")")
-      .ExecuteOrThrow();
-
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE file ("
-          "id INT,"
-          "filename TEXT,"
-          "exefilename TEXT,"
-          "hash CHARACTER(40),"
-          "functions INT,"
-          "libfunctions INT,"
-          "calls INT,"
-          "basicblocks INT,"
-          "libbasicblocks INT,"
-          "edges INT,"
-          "libedges INT,"
-          "instructions INT,"
-          "libinstructions INT"
-          ")")
-      .ExecuteOrThrow();
-
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE metadata ("
-          "version TEXT,"
-          "file1 INT,"
-          "file2 INT,"
-          "description TEXT,"
-          "created DATE,"
-          "modified DATE,"
-          "similarity DOUBLE PRECISION,"
-          "confidence DOUBLE PRECISION,"
-          "FOREIGN KEY(file1) REFERENCES file(id),"
-          "FOREIGN KEY(file2) REFERENCES file(id)"
-          ")")
-      .ExecuteOrThrow();
-
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE function ("
-          "id INT,"
-          "address1 BIGINT,"
-          "name1 TEXT,"
-          "address2 BIGINT,"
-          "name2 TEXT,"
-          "similarity DOUBLE PRECISION,"
-          "confidence DOUBLE PRECISION,"
-          "flags INTEGER,"
-          "algorithm SMALLINT,"
-          "evaluate BOOLEAN,"
-          "commentsported BOOLEAN,"
-          "basicblocks INTEGER,"
-          "edges INTEGER,"
-          "instructions INTEGER,"
-          "UNIQUE(address1, address2),"
-          "PRIMARY KEY(id),"
-          "FOREIGN KEY(algorithm) REFERENCES functionalgorithm(id)"
-          ")")
-      .ExecuteOrThrow();
-
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE basicblock ("
-          "id INT,"
-          "functionid INT,"
-          "address1 BIGINT,"
-          "address2 BIGINT,"
-          "algorithm SMALLINT,"
-          "evaluate BOOLEAN,"
-          "PRIMARY KEY(id),"
-          "FOREIGN KEY(functionid) REFERENCES function(id),"
-          "FOREIGN KEY(algorithm) REFERENCES basicblockalgorithm(id)"
-          ")")
-      .ExecuteOrThrow();
-
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE instruction ("
-          "basicblockid INT,"
-          "address1 BIGINT,"
-          "address2 BIGINT,"
-          "FOREIGN KEY(basicblockid) REFERENCES basicblock(id)"
-          ")")
-      .ExecuteOrThrow();
+  NA_RETURN_IF_ERROR(
+      database_.Execute("CREATE TABLE basicblockalgorithm ("
+                        "id SMALLINT PRIMARY KEY,"
+                        "name TEXT"
+                        ")"));
+  NA_RETURN_IF_ERROR(
+      database_.Execute("CREATE TABLE functionalgorithm ("
+                        "id SMALLINT PRIMARY KEY,"
+                        "name TEXT"
+                        ")"));
+  NA_RETURN_IF_ERROR(
+      database_.Execute("CREATE TABLE file ("
+                        "id INT,"
+                        "filename TEXT,"
+                        "exefilename TEXT,"
+                        "hash CHARACTER(40),"
+                        "functions INT,"
+                        "libfunctions INT,"
+                        "calls INT,"
+                        "basicblocks INT,"
+                        "libbasicblocks INT,"
+                        "edges INT,"
+                        "libedges INT,"
+                        "instructions INT,"
+                        "libinstructions INT"
+                        ")"));
+  NA_RETURN_IF_ERROR(
+      database_.Execute("CREATE TABLE metadata ("
+                        "version TEXT,"
+                        "file1 INT,"
+                        "file2 INT,"
+                        "description TEXT,"
+                        "created DATE,"
+                        "modified DATE,"
+                        "similarity DOUBLE PRECISION,"
+                        "confidence DOUBLE PRECISION,"
+                        "FOREIGN KEY(file1) REFERENCES file(id),"
+                        "FOREIGN KEY(file2) REFERENCES file(id)"
+                        ")"));
+  NA_RETURN_IF_ERROR(database_.Execute(
+      "CREATE TABLE function ("
+      "id INT,"
+      "address1 BIGINT,"
+      "name1 TEXT,"
+      "address2 BIGINT,"
+      "name2 TEXT,"
+      "similarity DOUBLE PRECISION,"
+      "confidence DOUBLE PRECISION,"
+      "flags INTEGER,"
+      "algorithm SMALLINT,"
+      "evaluate BOOLEAN,"
+      "commentsported BOOLEAN,"
+      "basicblocks INTEGER,"
+      "edges INTEGER,"
+      "instructions INTEGER,"
+      "UNIQUE(address1, address2),"
+      "PRIMARY KEY(id),"
+      "FOREIGN KEY(algorithm) REFERENCES functionalgorithm(id)"
+      ")"));
+  NA_RETURN_IF_ERROR(database_.Execute(
+      "CREATE TABLE basicblock ("
+      "id INT,"
+      "functionid INT,"
+      "address1 BIGINT,"
+      "address2 BIGINT,"
+      "algorithm SMALLINT,"
+      "evaluate BOOLEAN,"
+      "PRIMARY KEY(id),"
+      "FOREIGN KEY(functionid) REFERENCES function(id),"
+      "FOREIGN KEY(algorithm) REFERENCES basicblockalgorithm(id)"
+      ")"));
+  NA_RETURN_IF_ERROR(
+      database_.Execute("CREATE TABLE instruction ("
+                        "basicblockid INT,"
+                        "address1 BIGINT,"
+                        "address2 BIGINT,"
+                        "FOREIGN KEY(basicblockid) REFERENCES basicblock(id)"
+                        ")"));
+  return absl::OkStatus();
 }
 
-void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
-                                   const CallGraph& call_graph2,
-                                   const FlowGraphs& flow_graphs1,
-                                   const FlowGraphs& flow_graphs2,
-                                   const FixedPoints& fixed_points) {
+absl::Status DatabaseWriter::WriteMetadata(const CallGraph& call_graph1,
+                                           const CallGraph& call_graph2,
+                                           const FlowGraphs& flow_graphs1,
+                                           const FlowGraphs& flow_graphs2,
+                                           const FixedPoints& fixed_points) {
   Confidences confidences;
   Histogram histogram;
   Counts counts;
@@ -322,92 +312,108 @@ void DatabaseWriter::WriteMetaData(const CallGraph& call_graph1,
 
   int file1 = 1;
   int file2 = 2;
-  database_
-      .StatementOrThrow(
+  NA_ASSIGN_OR_RETURN(
+      SqliteStatement stmt,
+      database_.Statement(
           "INSERT INTO file VALUES ("
           ":id,:filename,:exefilename,:hash,:functions,:libfunctions,:calls,"
           ":basicblocks,:libbasicblocks,:edges,:libedges,:instructions,"
           ":libinstructions"
-          ")")
-      .BindInt(file1)
-      .BindText(call_graph1.GetFilename().c_str())
-      .BindText(call_graph1.GetExeFilename().c_str())
-      .BindText(call_graph1.GetExeHash().c_str())
-      .BindInt(counts[Counts::kFunctionsPrimaryNonLibrary])
-      .BindInt(counts[Counts::kFunctionsPrimaryLibrary])
-      .BindInt(boost::num_edges(call_graph1.GetGraph()))
-      .BindInt(counts[Counts::kBasicBlocksPrimaryNonLibrary])
-      .BindInt(counts[Counts::kBasicBlocksPrimaryLibrary])
-      .BindInt(counts[Counts::kFlowGraphEdgesPrimaryNonLibrary])
-      .BindInt(counts[Counts::kFlowGraphEdgesPrimaryLibrary])
-      .BindInt(counts[Counts::kInstructionsPrimaryNonLibrary])
-      .BindInt(counts[Counts::kInstructionsPrimaryLibrary])
-      .ExecuteOrThrow();
+          ")"));
+  NA_RETURN_IF_ERROR(
+      stmt.BindInt(file1)
+          .BindText(call_graph1.GetFilename().c_str())
+          .BindText(call_graph1.GetExeFilename().c_str())
+          .BindText(call_graph1.GetExeHash().c_str())
+          .BindInt(counts[Counts::kFunctionsPrimaryNonLibrary])
+          .BindInt(counts[Counts::kFunctionsPrimaryLibrary])
+          .BindInt(boost::num_edges(call_graph1.GetGraph()))
+          .BindInt(counts[Counts::kBasicBlocksPrimaryNonLibrary])
+          .BindInt(counts[Counts::kBasicBlocksPrimaryLibrary])
+          .BindInt(counts[Counts::kFlowGraphEdgesPrimaryNonLibrary])
+          .BindInt(counts[Counts::kFlowGraphEdgesPrimaryLibrary])
+          .BindInt(counts[Counts::kInstructionsPrimaryNonLibrary])
+          .BindInt(counts[Counts::kInstructionsPrimaryLibrary])
+          .Execute());
 
-  database_
-      .StatementOrThrow(
+  NA_ASSIGN_OR_RETURN(
+      stmt,
+      database_.Statement(
           "INSERT INTO file VALUES ("
           ":id,:filename,:exefilename,:hash,:functions,:libfunctions,:calls,"
           ":basicblocks,:libbasicblocks,:edges,:libedges,:instructions,"
           ":libinstructions"
-          ")")
-      .BindInt(file2)
-      .BindText(call_graph2.GetFilename().c_str())
-      .BindText(call_graph2.GetExeFilename().c_str())
-      .BindText(call_graph2.GetExeHash().c_str())
-      .BindInt(counts[Counts::kFunctionsSecondaryNonLibrary])
-      .BindInt(counts[Counts::kFunctionsSecondaryLibrary])
-      .BindInt(boost::num_edges(call_graph2.GetGraph()))
-      .BindInt(counts[Counts::kBasicBlocksSecondaryNonLibrary])
-      .BindInt(counts[Counts::kBasicBlocksSecondaryLibrary])
-      .BindInt(counts[Counts::kFlowGraphEdgesSecondaryNonLibrary])
-      .BindInt(counts[Counts::kFlowGraphEdgesSecondaryLibrary])
-      .BindInt(counts[Counts::kInstructionsSecondaryNonLibrary])
-      .BindInt(counts[Counts::kInstructionsSecondaryLibrary])
-      .ExecuteOrThrow();
+          ")"));
+  NA_RETURN_IF_ERROR(
+      stmt.BindInt(file2)
+          .BindText(call_graph2.GetFilename().c_str())
+          .BindText(call_graph2.GetExeFilename().c_str())
+          .BindText(call_graph2.GetExeHash().c_str())
+          .BindInt(counts[Counts::kFunctionsSecondaryNonLibrary])
+          .BindInt(counts[Counts::kFunctionsSecondaryLibrary])
+          .BindInt(boost::num_edges(call_graph2.GetGraph()))
+          .BindInt(counts[Counts::kBasicBlocksSecondaryNonLibrary])
+          .BindInt(counts[Counts::kBasicBlocksSecondaryLibrary])
+          .BindInt(counts[Counts::kFlowGraphEdgesSecondaryNonLibrary])
+          .BindInt(counts[Counts::kFlowGraphEdgesSecondaryLibrary])
+          .BindInt(counts[Counts::kInstructionsSecondaryNonLibrary])
+          .BindInt(counts[Counts::kInstructionsSecondaryLibrary])
+          .Execute());
 
-  database_
-      .StatementOrThrow(
-          "INSERT INTO metadata VALUES ("
-          ":version,:file1,:file2,:description,DATETIME('NOW'),"
-          "DATETIME('NOW'),:similarity,:confidence"
-          ")")
-      .BindText(absl::StrCat("BinDiff ", kBinDiffDetailedVersion))
-      .BindInt(file1)
-      .BindInt(file2)
-      .BindText("")
-      .BindDouble(
-          GetSimilarityScore(call_graph1, call_graph2, histogram, counts))
-      .BindDouble(GetConfidence(histogram, &confidences))
-      .ExecuteOrThrow();
+  NA_ASSIGN_OR_RETURN(
+      stmt,
+      database_.Statement("INSERT INTO metadata VALUES ("
+                          ":version,:file1,:file2,:description,DATETIME('NOW'),"
+                          "DATETIME('NOW'),:similarity,:confidence"
+                          ")"));
+  NA_RETURN_IF_ERROR(
+      stmt.BindText(absl::StrCat("BinDiff ", kBinDiffDetailedVersion))
+          .BindInt(file1)
+          .BindInt(file2)
+          .BindText("")
+          .BindDouble(
+              GetSimilarityScore(call_graph1, call_graph2, histogram, counts))
+          .BindDouble(GetConfidence(histogram, &confidences))
+          .Execute());
+  return absl::OkStatus();
 }
 
-void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
+absl::Status DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
   std::string temp;
-  database_.StatementOrThrow("SELECT COALESCE(MAX(id) + 1, 1) FROM function")
-      .ExecuteOrThrow()
-      .Into(&temp);
-
+  NA_ASSIGN_OR_RETURN(
+      SqliteStatement stmt,
+      database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM function"));
+  NA_RETURN_IF_ERROR(stmt.Execute());
+  stmt.Into(&temp);
   int function_id = std::stoi(temp);
-  database_.StatementOrThrow("SELECT COALESCE(MAX(id) + 1, 1) FROM basicblock")
-      .ExecuteOrThrow()
-      .Into(&temp);
 
+  NA_ASSIGN_OR_RETURN(
+      stmt,
+      database_.Statement("SELECT COALESCE(MAX(id) + 1, 1) FROM basicblock"));
+  NA_RETURN_IF_ERROR(stmt.Execute());
+  stmt.Into(&temp);
   int basic_block_id = std::stoi(temp);
 
-  SqliteStatement function_match_statement = database_.StatementOrThrow(
-      "INSERT INTO function VALUES ("
-      ":id,:primary,:name1,:secondary,:name2,:similarity,:confidence,:flags,"
-      ":step,:evaluate,:commentsported,:basicblocks,:edges,:instructions"
-      ")");
-  SqliteStatement basic_block_match_statement = database_.StatementOrThrow(
-      "INSERT INTO basicblock VALUES ("
-      ":id,:functionId,:primaryBB,:secondaryBB,:step,:evaluate"
-      ")");
-  SqliteStatement instruction_statement = database_.StatementOrThrow(
-      "INSERT INTO instruction VALUES ("
-      ":basicBlockId,:primaryInstruction,:secondaryInstruction"
-      ")");
+  NA_ASSIGN_OR_RETURN(
+      SqliteStatement function_match_statement,
+      database_.Statement(
+          "INSERT INTO function VALUES ("
+          ":id,:primary,:name1,:secondary,:name2,:similarity,:confidence,:"
+          "flags,"
+          ":step,:evaluate,:commentsported,:basicblocks,:edges,:instructions"
+          ")"));
+  NA_ASSIGN_OR_RETURN(
+      SqliteStatement basic_block_match_statement,
+      database_.Statement(
+          "INSERT INTO basicblock VALUES ("
+          ":id,:functionId,:primaryBB,:secondaryBB,:step,:evaluate"
+          ")"));
+  NA_ASSIGN_OR_RETURN(
+      SqliteStatement instruction_statement,
+      database_.Statement(
+          "INSERT INTO instruction VALUES ("
+          ":basicBlockId,:primaryInstruction,:secondaryInstruction"
+          ")"));
   for (auto i = fixed_points.cbegin(); i != fixed_points.cend();
        ++i, ++function_id) {
     int basic_block_count = 0;
@@ -427,98 +433,111 @@ void DatabaseWriter::WriteMatches(const FixedPoints& fixed_points) {
         secondary_name = secondary.GetName();
       }
     }
-    function_match_statement.BindInt(function_id)
-        .BindInt64(primary.GetEntryPointAddress())
-        .BindText(primary_name)
-        .BindInt64(secondary.GetEntryPointAddress())
-        .BindText(secondary_name)
-        .BindDouble(i->GetSimilarity())
-        .BindDouble(i->GetConfidence())
-        .BindInt(i->GetFlags())
-        .BindInt(function_steps_[i->GetMatchingStep()])
-        .BindInt(0)
-        .BindInt(i->GetCommentsPorted() ? 1 : 0)
-        .BindInt(basic_block_count)
-        .BindInt(edge_count)
-        .BindInt(instruction_count)
-        .ExecuteOrThrow()
-        .Reset();
+    NA_RETURN_IF_ERROR(function_match_statement.BindInt(function_id)
+                           .BindInt64(primary.GetEntryPointAddress())
+                           .BindText(primary_name)
+                           .BindInt64(secondary.GetEntryPointAddress())
+                           .BindText(secondary_name)
+                           .BindDouble(i->GetSimilarity())
+                           .BindDouble(i->GetConfidence())
+                           .BindInt(i->GetFlags())
+                           .BindInt(function_steps_[i->GetMatchingStep()])
+                           .BindInt(0)
+                           .BindInt(i->GetCommentsPorted() ? 1 : 0)
+                           .BindInt(basic_block_count)
+                           .BindInt(edge_count)
+                           .BindInt(instruction_count)
+                           .Execute());
+    function_match_statement.Reset();
 
     for (auto j = i->GetBasicBlockFixedPoints().cbegin(),
               jend = i->GetBasicBlockFixedPoints().cend();
          j != jend; ++j, ++basic_block_id) {
-      basic_block_match_statement.BindInt(basic_block_id)
-          .BindInt(function_id)
-          .BindInt64(primary.GetAddress(j->GetPrimaryVertex()))
-          .BindInt64(secondary.GetAddress(j->GetSecondaryVertex()))
-          .BindInt(basic_block_steps_[j->GetMatchingStep()])
-          .BindInt(0)
-          .ExecuteOrThrow()
-          .Reset();
+      NA_RETURN_IF_ERROR(
+          basic_block_match_statement.BindInt(basic_block_id)
+              .BindInt(function_id)
+              .BindInt64(primary.GetAddress(j->GetPrimaryVertex()))
+              .BindInt64(secondary.GetAddress(j->GetSecondaryVertex()))
+              .BindInt(basic_block_steps_[j->GetMatchingStep()])
+              .BindInt(0)
+              .Execute());
+      basic_block_match_statement.Reset();
 
       for (auto k = j->GetInstructionMatches().cbegin(),
                 kend = j->GetInstructionMatches().cend();
            k != kend; ++k) {
-        instruction_statement.BindInt(basic_block_id)
-            .BindInt64(k->first->GetAddress())
-            .BindInt64(k->second->GetAddress())
-            .ExecuteOrThrow()
-            .Reset();
+        NA_RETURN_IF_ERROR(instruction_statement.BindInt(basic_block_id)
+                               .BindInt64(k->first->GetAddress())
+                               .BindInt64(k->second->GetAddress())
+                               .Execute());
+        instruction_statement.Reset();
       }
     }
   }
+  return absl::OkStatus();
 }
 
-void DatabaseWriter::WriteAlgorithms() {
+absl::Status DatabaseWriter::WriteAlgorithms() {
   if (!basic_block_steps_.empty()) {
-    return;  // Assume we have already done this step.
+    return absl::OkStatus();  // Assume we have already done this step.
   }
 
   int id = 0;
   for (const auto* step : GetDefaultMatchingStepsBasicBlock()) {
     basic_block_steps_[step->name()] = ++id;
-    database_
-        .StatementOrThrow("INSERT INTO basicblockalgorithm VALUES (:id, :name)")
-        .BindInt(id)
-        .BindText(step->name().c_str())
-        .ExecuteOrThrow();
+    NA_ASSIGN_OR_RETURN(
+        SqliteStatement algorithm_statement,
+        database_.Statement(
+            "INSERT INTO basicblockalgorithm VALUES (:id, :name)"));
+    NA_RETURN_IF_ERROR(
+        algorithm_statement.BindInt(id).BindText(step->name()).Execute());
   }
   basic_block_steps_[MatchingStepFlowGraph::kBasicBlockPropagationName] = ++id;
-  database_
-      .StatementOrThrow("INSERT INTO basicblockalgorithm VALUES (:id, :name)")
-      .BindInt(id)
-      .BindText(MatchingStepFlowGraph::kBasicBlockPropagationName)
-      .ExecuteOrThrow();
+  NA_ASSIGN_OR_RETURN(
+      SqliteStatement algorithm_statement,
+      database_.Statement(
+          "INSERT INTO basicblockalgorithm VALUES (:id, :name)"));
+  NA_RETURN_IF_ERROR(
+      algorithm_statement.BindInt(id)
+          .BindText(MatchingStepFlowGraph::kBasicBlockPropagationName)
+          .Execute());
 
   basic_block_steps_[MatchingStepFlowGraph::kBasicBlockManualName] = ++id;
-  database_
-      .StatementOrThrow("INSERT INTO basicblockalgorithm VALUES (:id, :name)")
-      .BindInt(id)
-      .BindText(MatchingStepFlowGraph::kBasicBlockManualName)
-      .ExecuteOrThrow();
+  NA_ASSIGN_OR_RETURN(
+      algorithm_statement,
+      database_.Statement(
+          "INSERT INTO basicblockalgorithm VALUES (:id, :name)"));
+  NA_RETURN_IF_ERROR(algorithm_statement.BindInt(id)
+                         .BindText(MatchingStepFlowGraph::kBasicBlockManualName)
+                         .Execute());
 
   id = 0;
   for (const auto* step : GetDefaultMatchingSteps()) {
     function_steps_[step->name()] = ++id;
-    database_
-        .StatementOrThrow("INSERT INTO functionalgorithm VALUES (:id, :name)")
-        .BindInt(id)
-        .BindText(step->name().c_str())
-        .ExecuteOrThrow();
+    NA_ASSIGN_OR_RETURN(
+        algorithm_statement,
+        database_.Statement(
+            "INSERT INTO functionalgorithm VALUES (:id, :name)"));
+    NA_RETURN_IF_ERROR(algorithm_statement.BindInt(id)
+                           .BindText(step->name().c_str())
+                           .Execute());
   }
   function_steps_[MatchingStep::kFunctionCallReferenceName] = ++id;
-  database_
-      .StatementOrThrow("INSERT INTO functionalgorithm VALUES (:id, :name)")
-      .BindInt(id)
-      .BindText(MatchingStep::kFunctionCallReferenceName)
-      .ExecuteOrThrow();
+  NA_ASSIGN_OR_RETURN(
+      algorithm_statement,
+      database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)"));
+  NA_RETURN_IF_ERROR(algorithm_statement.BindInt(id)
+                         .BindText(MatchingStep::kFunctionCallReferenceName)
+                         .Execute());
 
   function_steps_[MatchingStep::kFunctionManualName] = ++id;
-  database_
-      .StatementOrThrow("INSERT INTO functionalgorithm VALUES (:id, :name)")
-      .BindInt(id)
-      .BindText(MatchingStep::kFunctionManualName)
-      .ExecuteOrThrow();
+  NA_ASSIGN_OR_RETURN(
+      algorithm_statement,
+      database_.Statement("INSERT INTO functionalgorithm VALUES (:id, :name)"));
+  NA_RETURN_IF_ERROR(algorithm_statement.BindInt(id)
+                         .BindText(MatchingStep::kFunctionManualName)
+                         .Execute());
+  return absl::OkStatus();
 }
 
 void DatabaseWriter::Write(const CallGraph& call_graph1,
@@ -527,15 +546,22 @@ void DatabaseWriter::Write(const CallGraph& call_graph1,
                            const FlowGraphs& flow_graphs2,
                            const FixedPoints& fixed_points) {
   try {
-    database_.Begin();
-    WriteMetaData(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                  fixed_points);
-    WriteAlgorithms();
-    WriteMatches(fixed_points);
+    auto status = [&]() -> absl::Status {
+      NA_RETURN_IF_ERROR(database_.Begin());
 
-    database_.Commit();
+      NA_RETURN_IF_ERROR(WriteMetadata(call_graph1, call_graph2, flow_graphs1,
+                                       flow_graphs2, fixed_points));
+      NA_RETURN_IF_ERROR(WriteAlgorithms());
+      NA_RETURN_IF_ERROR(WriteMatches(fixed_points));
+
+      NA_RETURN_IF_ERROR(database_.Commit());
+      return absl::OkStatus();
+    }();
+    if (!status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
   } catch (...) {
-    database_.Rollback();
+    database_.Rollback().IgnoreError();
     throw;
   }
 }
@@ -549,39 +575,43 @@ DatabaseTransmuter::DatabaseTransmuter(SqliteDatabase& database,
   }
 }
 
-void DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
+absl::Status DatabaseTransmuter::DeleteMatches(const TempFixedPoints& kill_me) {
   for (auto i = kill_me.cbegin(), end = kill_me.cend(); i != end; ++i) {
     const Address primary_address = i->first;
     const Address secondary_address = i->second;
-    database_
-        .StatementOrThrow(
+    NA_ASSIGN_OR_RETURN(
+        SqliteStatement match_delete_statement,
+        database_.Statement(
             "DELETE FROM instruction WHERE basicblockid IN ("
             "SELECT b.id FROM function AS f "
             "INNER JOIN basicblock AS b ON b.functionid = f.id "
             "WHERE f.address1 = :address1 AND f.address2 = :address2"
-            ")")
-        .BindInt64(primary_address)
-        .BindInt64(secondary_address)
-        .ExecuteOrThrow();
+            ")"));
+    NA_RETURN_IF_ERROR(match_delete_statement.BindInt64(primary_address)
+                           .BindInt64(secondary_address)
+                           .Execute());
 
-    database_
-        .StatementOrThrow(
+    NA_ASSIGN_OR_RETURN(
+        match_delete_statement,
+        database_.Statement(
             "DELETE FROM basicblock WHERE functionid IN ("
             "SELECT f.id FROM function AS f "
             "WHERE f.address1 = :address1 AND f.address2 = :address2"
-            ")")
-        .BindInt64(primary_address)
-        .BindInt64(secondary_address)
-        .ExecuteOrThrow();
+            ")"));
+    NA_RETURN_IF_ERROR(match_delete_statement.BindInt64(primary_address)
+                           .BindInt64(secondary_address)
+                           .Execute());
 
-    database_
-        .StatementOrThrow(
+    NA_ASSIGN_OR_RETURN(
+        match_delete_statement,
+        database_.Statement(
             "DELETE FROM function "
-            "WHERE address1 = :address1 AND address2 = :address2")
-        .BindInt64(primary_address)
-        .BindInt64(secondary_address)
-        .ExecuteOrThrow();
+            "WHERE address1 = :address1 AND address2 = :address2"));
+    NA_RETURN_IF_ERROR(match_delete_statement.BindInt64(primary_address)
+                           .BindInt64(secondary_address)
+                           .Execute());
   }
+  return absl::OkStatus();
 }
 
 absl::StatusOr<std::string> GetTempFileName() {
@@ -637,7 +667,9 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   std::set_difference(current_fixed_points.begin(), current_fixed_points.end(),
                       fixed_points_.begin(), fixed_points_.end(),
                       std::inserter(kill_me, kill_me.begin()));
-  DeleteMatches(kill_me);
+  if (absl::Status status = DeleteMatches(kill_me); !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
 
   // Step 2: Merge new matches from temp database.
   auto temp_file = GetTempFileName();

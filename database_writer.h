@@ -61,15 +61,17 @@ class DatabaseWriter : public Writer {
   SqliteDatabase* GetDatabase();
 
  private:
-  void PrepareDatabase();
-  void WriteMetaData(const CallGraph& call_graph1, const CallGraph& call_graph2,
-                     const FlowGraphs& flow_graphs1,
-                     const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points);
-  void WriteMatches(const FixedPoints& fixed_points);
-  void WriteAlgorithms();
-
   using NameToId = absl::btree_map<std::string, int>;
+
+  absl::Status PrepareDatabase();
+  absl::Status WriteMetadata(const CallGraph& call_graph1,
+                             const CallGraph& call_graph2,
+                             const FlowGraphs& flow_graphs1,
+                             const FlowGraphs& flow_graphs2,
+                             const FixedPoints& fixed_points);
+  absl::Status WriteMatches(const FixedPoints& fixed_points);
+  absl::Status WriteAlgorithms();
+
   NameToId basic_block_steps_;
   NameToId function_steps_;
   std::string filename_;
@@ -93,7 +95,7 @@ class DatabaseTransmuter : public Writer {
  private:
   using TempFixedPoints = std::set<std::pair<Address, Address>>;
 
-  void DeleteMatches(const TempFixedPoints& kill_me);
+  absl::Status DeleteMatches(const TempFixedPoints& kill_me);
 
   SqliteDatabase& database_;
   TempFixedPoints fixed_points_;

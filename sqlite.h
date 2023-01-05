@@ -45,11 +45,14 @@ class SqliteDatabase {
   static absl::StatusOr<SqliteDatabase> Connect(absl::string_view filename);
   void Disconnect();
 
-  void Begin();
-  void Commit();
-  void Rollback();
-
+  absl::StatusOr<SqliteStatement> Statement(absl::string_view statement);
   SqliteStatement StatementOrThrow(absl::string_view statement);
+
+  absl::Status Execute(absl::string_view statement);
+
+  absl::Status Begin();
+  absl::Status Commit();
+  absl::Status Rollback();
 
  private:
   friend class SqliteStatement;
@@ -84,7 +87,9 @@ class SqliteStatement {
   SqliteStatement& Into(double* value, bool* is_null = nullptr);
   SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
 
+  absl::Status Execute();
   SqliteStatement& ExecuteOrThrow();
+
   SqliteStatement& Reset();
   bool GotData() const;
 

@@ -21,6 +21,7 @@
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 namespace {
@@ -75,24 +76,30 @@ void SqliteDatabase::Disconnect() {
   database_ = nullptr;
 }
 
+absl::StatusOr<SqliteStatement> SqliteDatabase::Statement(
+    absl::string_view statement) {
+  return SqliteStatement::Prepare(*this, statement);
+}
+
 SqliteStatement SqliteDatabase::StatementOrThrow(absl::string_view statement) {
-  auto stmt = SqliteStatement::Prepare(*this, statement);
+  auto stmt = Statement(statement);
   if (!stmt.ok()) {
     throw std::runtime_error(std::string(stmt.status().message()));
   }
   return std::move(*stmt);
 }
 
-void SqliteDatabase::Begin() {
-  StatementOrThrow("BEGIN TRANSACTION").ExecuteOrThrow();
+absl::Status SqliteDatabase::Execute(absl::string_view statement) {
+  NA_ASSIGN_OR_RETURN(auto stmt, SqliteStatement::Prepare(*this, statement));
+  return stmt.Execute();
 }
 
-void SqliteDatabase::Commit() {
-  StatementOrThrow("COMMIT TRANSACTION").ExecuteOrThrow();
-}
+absl::Status SqliteDatabase::Begin() { return Execute("BEGIN TRANSACTION"); }
 
-void SqliteDatabase::Rollback() {
-  StatementOrThrow("ROLLBACK TRANSACTION").ExecuteOrThrow();
+absl::Status SqliteDatabase::Commit() { return Execute("COMMIT TRANSACTION"); }
+
+absl::Status SqliteDatabase::Rollback() {
+  return Execute("ROLLBACK TRANSACTION");
 }
 
 SqliteStatement::SqliteStatement(SqliteStatement&& other) {
@@ -210,18 +217,25 @@ SqliteStatement& SqliteStatement::Into(std::string* value, bool* is_null) {
   return *this;
 }
 
-SqliteStatement& SqliteStatement::ExecuteOrThrow() {
+absl::Status SqliteStatement::Execute() {
   const int return_code = sqlite3_step(statement_);
   if (return_code != SQLITE_ROW && return_code != SQLITE_DONE) {
-    absl::Status status = Sqlite3ErrToStatus(
+    return Sqlite3ErrToStatus(
         database_,
         absl::StrCat("executing statement '", sqlite3_sql(statement_), "'"));
-    throw std::runtime_error(std::string(status.message()));
   }
 
   parameter_ = 0;
   column_ = 0;
   got_data_ = return_code == SQLITE_ROW;
+  return absl::OkStatus();
+}
+
+SqliteStatement& SqliteStatement::ExecuteOrThrow() {
+  absl::Status status = Execute();
+  if (!status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
   return *this;
 }
 
