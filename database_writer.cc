@@ -99,46 +99,56 @@ absl::Status ReadInfos(const std::string& filename, CallGraph& call_graph,
   return absl::OkStatus();
 }
 
-DatabaseWriter::DatabaseWriter(const std::string& path, Options options)
-    : filename_(path),
-      options_(std::move(options)),
-      database_(*SqliteDatabase::Connect(filename_)) {
-  if (absl::Status status = PrepareDatabase(); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
+DatabaseWriter::DatabaseWriter(DatabaseWriter&& other)
+    : basic_block_steps_(std::move(other.basic_block_steps_)),
+      function_steps_(std::move(other.function_steps_)),
+      filename_(std::move(other.filename_)),
+      options_(std::move(other.options_)),
+      database_(std::move(other.database_)) {}
+
+DatabaseWriter& DatabaseWriter::operator=(DatabaseWriter&& other) {
+  if (this != &other) {
+    basic_block_steps_ = std::move(other.basic_block_steps_);
+    function_steps_ = std::move(other.function_steps_);
+    filename_ = std::move(other.filename_);
+    options_ = std::move(other.options_);
+    database_ = std::move(other.database_);
   }
+  return *this;
 }
 
-DatabaseWriter::DatabaseWriter(const std::string& path, bool recreate)
-    : database_([this, &path, recreate]() -> SqliteDatabase {
-        auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-        if (!temp_dir.ok()) {
-          throw std::runtime_error(std::string(temp_dir.status().message()));
-        }
-        filename_ = JoinPath(*temp_dir, Basename(path));
-        if (recreate) {
-          std::remove(filename_.c_str());
-        }
-        auto database = SqliteDatabase::Connect(filename_);
-        if (!database.ok()) {
-          throw std::runtime_error(std::string(database.status().message()));
-        }
-        return std::move(*database);
-      }()) {
-  options_.include_function_names = false;
+absl::StatusOr<std::unique_ptr<DatabaseWriter>> DatabaseWriter::Create(
+    const std::string& path, Options options) {
+  NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(path));
+  auto writer = absl::WrapUnique(
+      new DatabaseWriter(std::move(database), std::move(options)));
+  NA_RETURN_IF_ERROR(writer->PrepareDatabase());
+  return writer;
+}
+
+absl::StatusOr<std::unique_ptr<DatabaseWriter>> DatabaseWriter::Create(
+    const std::string& path, bool recreate) {
+  NA_ASSIGN_OR_RETURN(std::string temp_dir,
+                      GetOrCreateTempDirectory("BinDiff"));
+  std::string filename = JoinPath(temp_dir, Basename(path));
   if (recreate) {
-    absl::Status status;
-    if (status = PrepareDatabase(); !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-    if (status = WriteAlgorithms(); !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    std::remove(filename.c_str());
   }
+  const bool needs_init = !FileExists(filename);
+
+  NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(filename));
+  auto writer = absl::WrapUnique(new DatabaseWriter(
+      std::move(database), Options().set_include_function_names(false)));
+  if (needs_init) {
+    NA_RETURN_IF_ERROR(writer->PrepareDatabase());
+    NA_RETURN_IF_ERROR(writer->WriteAlgorithms());
+  }
+  return writer;
 }
 
 SqliteDatabase* DatabaseWriter::GetDatabase() { return &database_; }
 
-const std::string& DatabaseWriter::GetFilename() const { return filename_; }
+const std::string& DatabaseWriter::filename() const { return filename_; }
 
 void DatabaseWriter::Close() { database_.Disconnect(); }
 

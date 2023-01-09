@@ -655,10 +655,13 @@ absl::Status WriteResults(const std::string& path) {
   const std::string out_dir = Dirname(path);
 
   if (!results->IsIncomplete()) {
-    DatabaseWriter writer(
-        path, DatabaseWriter::Options().set_include_function_names(
-                  !config::Proto().binary_format().exclude_function_names()));
-    results->Write(&writer);
+    NA_ASSIGN_OR_RETURN(
+        auto writer,
+        DatabaseWriter::Create(
+            path,
+            DatabaseWriter::Options().set_include_function_names(
+                !config::Proto().binary_format().exclude_function_names())));
+    results->Write(writer.get());
   } else {
     // Results are incomplete (have been loaded). Copy original result file to
     // temp dir first, so we can overwrite the original if required.

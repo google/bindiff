@@ -173,7 +173,7 @@ class Results {
   void MarkPortedCommentsInTempDatabase();
 
   DatabaseWriter temp_database_;
-  bool incomplete_results_;
+  bool incomplete_results_ = false;  // Set when we have loaded from disk
 
  public:
   FlowGraphs flow_graphs1_;
@@ -186,13 +186,13 @@ class Results {
   IndexedFixedPoints indexed_fixed_points_;
   Histogram histogram_;
   Counts counts_;
-  double similarity_;
-  double confidence_;
-  bool dirty_;
+  double similarity_ = 0.0;
+  double confidence_ = 0.0;
+  bool dirty_ = false;
 
   // Whether choosers should reset their item selection
-  bool should_reset_selection_;
-  int diff_database_id_;
+  bool should_reset_selection_ = false;
+  int diff_database_id_ = 0;
 };
 
 }  // namespace security::bindiff

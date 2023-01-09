@@ -265,11 +265,11 @@ void DifferThread::operator()() {
               call_graph2.GetFilename(), ".results")));
         }
         if (g_output_binary) {
-          writer.Add(absl::make_unique<DatabaseWriter>(
+          writer.Add(*DatabaseWriter::Create(
               GetTruncatedFilename(out_path_ + kPathSeparator,
                                    call_graph1.GetFilename(), "_vs_",
                                    call_graph2.GetFilename(), ".BinDiff"),
-              DatabaseWriter::Options{}.set_include_function_names(
+              DatabaseWriter::Options().set_include_function_names(
                   !config::Proto().binary_format().exclude_function_names())));
         }
 
@@ -729,7 +729,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
             ".results")));
       }
       if (g_output_binary) {
-        writer.Add(absl::make_unique<DatabaseWriter>(GetTruncatedFilename(
+        writer.Add(*DatabaseWriter::Create(GetTruncatedFilename(
             absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
             ".BinDiff")));

@@ -35,6 +35,7 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/comment.h"
+#include "third_party/zynamics/bindiff/database_writer.h"
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 #include "third_party/zynamics/bindiff/ida/names.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
@@ -400,13 +401,8 @@ std::string GetMatchingStepDisplayName(absl::string_view name) {
 }  // namespace
 
 Results::Results()
-    : temp_database_{"temporary.database", true},
-      incomplete_results_{false},  // Set when we have loaded from disk.
-      similarity_{0.0},
-      confidence_{0.0},
-      dirty_{false},
-      should_reset_selection_{false},
-      diff_database_id_(0) {}
+    : temp_database_(std::move(
+          *DatabaseWriter::Create("temporary.database", true)->release())) {}
 
 Results::~Results() {
   // Need to close this explicitly here as otherwise the DeleteTemporaryFiles()
@@ -1138,10 +1134,10 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   } else {
     // TODO(cblichmann): This is insanely inefficient: every single call graph
     //                   diff recreates the full result.
-    DatabaseWriter writer(name, true);
-    writer.Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
-                 fixed_points_);
-    database_file = writer.GetFilename();
+    auto writer = *DatabaseWriter::Create(name, true);
+    writer->Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
+                  fixed_points_);
+    database_file = writer->filename();
   }
 
   *message = VisualDiffMessage(
@@ -1196,10 +1192,10 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 
   ++diff_database_id_;
   std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
-  DatabaseWriter writer(name, true);
-  writer.Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
-               fixed_points);
-  const std::string& database_file = writer.GetFilename();
+  auto writer = *DatabaseWriter::Create(name, true);
+  writer->Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
+                fixed_points);
+  const std::string& database_file = writer->filename();
 
   *message = VisualDiffMessage(
       /*call_graph_match=*/false, database_file, call_graph1_.GetFilePath(),

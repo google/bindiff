@@ -15,11 +15,16 @@
 #ifndef DATABASE_WRITER_H_
 #define DATABASE_WRITER_H_
 
+#include <memory>
 #include <string>
 
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/util/types.h"
@@ -39,11 +44,19 @@ class DatabaseWriter : public Writer {
  public:
   using Options = DatabaseWriterOptions;
 
-  // Regular constructor for creating result databases.
-  explicit DatabaseWriter(const std::string& path, Options options = {});
+  DatabaseWriter(const DatabaseWriter&) = delete;
+  DatabaseWriter& operator=(const DatabaseWriter&) = delete;
 
-  // Special constructor for creating the temporary database.
-  DatabaseWriter(const std::string& path, bool recreate);
+  DatabaseWriter(DatabaseWriter&& other);
+  DatabaseWriter& operator=(DatabaseWriter&& other);
+
+  // Creates a regular result database.
+  static absl::StatusOr<std::unique_ptr<DatabaseWriter>> Create(
+      const std::string& path, Options options = {});
+
+  // Creates a temporary database.
+  static absl::StatusOr<std::unique_ptr<DatabaseWriter>> Create(
+      const std::string& path, bool recreate);
 
   void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
              const FlowGraphs& flow_graphs1, const FlowGraphs& flow_graphs2,
@@ -52,7 +65,8 @@ class DatabaseWriter : public Writer {
   void Close();
   void WriteToTempDatabase(const FixedPoint& fixed_point);
   void DeleteFromTempDatabase(Address primary, Address secondary);
-  const std::string& GetFilename() const;
+  const std::string& GetFilename() const { return filename(); }
+  const std::string& filename() const;
 
   // Mark all matches in the database for which comments have been ported.
   void SetCommentsPorted(const FixedPointInfos& fixed_points);
@@ -62,6 +76,9 @@ class DatabaseWriter : public Writer {
 
  private:
   using NameToId = absl::btree_map<std::string, int>;
+
+  DatabaseWriter(SqliteDatabase database, Options options)
+      : options_(std::move(options)), database_(std::move(database)) {}
 
   absl::Status PrepareDatabase();
   absl::Status WriteMetadata(const CallGraph& call_graph1,
