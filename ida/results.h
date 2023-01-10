@@ -15,6 +15,7 @@
 #ifndef IDA_RESULTS_H_
 #define IDA_RESULTS_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -172,7 +173,7 @@ class Results {
   void ReadBasicblockMatches(FixedPoint* fixed_point);
   void MarkPortedCommentsInTempDatabase();
 
-  DatabaseWriter temp_database_;
+  std::unique_ptr<DatabaseWriter> temp_database_;
   bool incomplete_results_ = false;  // Set when we have loaded from disk
 
  public:

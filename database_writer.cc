@@ -99,24 +99,6 @@ absl::Status ReadInfos(const std::string& filename, CallGraph& call_graph,
   return absl::OkStatus();
 }
 
-DatabaseWriter::DatabaseWriter(DatabaseWriter&& other)
-    : basic_block_steps_(std::move(other.basic_block_steps_)),
-      function_steps_(std::move(other.function_steps_)),
-      filename_(std::move(other.filename_)),
-      options_(std::move(other.options_)),
-      database_(std::move(other.database_)) {}
-
-DatabaseWriter& DatabaseWriter::operator=(DatabaseWriter&& other) {
-  if (this != &other) {
-    basic_block_steps_ = std::move(other.basic_block_steps_);
-    function_steps_ = std::move(other.function_steps_);
-    filename_ = std::move(other.filename_);
-    options_ = std::move(other.options_);
-    database_ = std::move(other.database_);
-  }
-  return *this;
-}
-
 absl::StatusOr<std::unique_ptr<DatabaseWriter>> DatabaseWriter::Create(
     const std::string& path, Options options) {
   NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(path));
@@ -146,7 +128,7 @@ absl::StatusOr<std::unique_ptr<DatabaseWriter>> DatabaseWriter::Create(
   return writer;
 }
 
-SqliteDatabase* DatabaseWriter::GetDatabase() { return &database_; }
+SqliteDatabase* DatabaseWriter::database() { return &database_; }
 
 const std::string& DatabaseWriter::filename() const { return filename_; }
 

@@ -401,13 +401,12 @@ std::string GetMatchingStepDisplayName(absl::string_view name) {
 }  // namespace
 
 Results::Results()
-    : temp_database_(std::move(
-          *DatabaseWriter::Create("temporary.database", true)->release())) {}
+    : temp_database_(*DatabaseWriter::Create("temporary.database", true)) {}
 
 Results::~Results() {
   // Need to close this explicitly here as otherwise the DeleteTemporaryFiles()
   // call below will fail (on Windows) due to locked db file.
-  temp_database_.Close();
+  temp_database_->Close();
   DeleteFlowGraphs(&flow_graphs1_);
   DeleteFlowGraphs(&flow_graphs2_);
   DatabaseTransmuter::DeleteTempFile();
@@ -577,8 +576,8 @@ bool Results::IncrementalDiff() {
 
     primary->ResetMatches();
     secondary->ResetMatches();
-    temp_database_.DeleteFromTempDatabase(primary->GetEntryPointAddress(),
-                                          secondary->GetEntryPointAddress());
+    temp_database_->DeleteFromTempDatabase(primary->GetEntryPointAddress(),
+                                           secondary->GetEntryPointAddress());
   }
 
   // These will get refilled by ShowResults().
@@ -702,7 +701,7 @@ absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
     auto flow_graph_info_entry2 = flow_graph_infos2_.find(secondary_address);
     DCHECK(flow_graph_info_entry2 != flow_graph_infos2_.end());
 
-    temp_database_.DeleteFromTempDatabase(primary_address, secondary_address);
+    temp_database_->DeleteFromTempDatabase(primary_address, secondary_address);
 
     if (call_graph2_.IsLibrary(call_graph2_.GetVertex(secondary_address)) ||
         call_graph1_.IsLibrary(call_graph1_.GetVertex(primary_address))) {
@@ -834,7 +833,7 @@ absl::Status Results::AddMatch(Address primary, Address secondary) {
       fixed_point_info.similarity = fixed_point.GetSimilarity();
       fixed_point_info.flags = fixed_point.GetFlags();
 
-      temp_database_.WriteToTempDatabase(fixed_point);
+      temp_database_->WriteToTempDatabase(fixed_point);
 
       DeleteTemporaryFlowGraphs();
     } else {
@@ -986,7 +985,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   // (the user may have added fixed points manually)
   // only if we cannot find the fixed point there we load from the original db
   int id = 0;
-  temp_database_.GetDatabase()
+  temp_database_->database()
       ->StatementOrThrow(
           "SELECT COALESCE(id, 0) FROM function WHERE function.address1 = "
           ":address1 AND function.address2 = :address2")
@@ -997,7 +996,7 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   absl::StatusOr<SqliteDatabase> original_database;
   SqliteDatabase* database;
   if (id) {  // Found in temp db
-    database = temp_database_.GetDatabase();
+    database = temp_database_->database();
   } else {  // Load original
     original_database = SqliteDatabase::Connect(input_filename_);
     database = &*original_database;
@@ -1299,7 +1298,7 @@ void Results::CreateIndexedViews() {
 }
 
 void Results::MarkPortedCommentsInTempDatabase() {
-  temp_database_.SetCommentsPorted(fixed_point_infos_);
+  temp_database_->SetCommentsPorted(fixed_point_infos_);
 }
 
 // Transfer from temp db to real db.
@@ -1308,7 +1307,7 @@ void Results::MarkPortedCommentsInDatabase() {
     if (!input_filename_.empty()) {
       auto database = *SqliteDatabase::Connect(input_filename_);
       DatabaseTransmuter::MarkPortedComments(
-          &database, temp_database_.GetFilename().c_str(), fixed_point_infos_);
+          &database, temp_database_->filename().c_str(), fixed_point_infos_);
     }
   } catch (...) {
     // Swallow any errors here. The database may be read only or

@@ -47,9 +47,6 @@ class DatabaseWriter : public Writer {
   DatabaseWriter(const DatabaseWriter&) = delete;
   DatabaseWriter& operator=(const DatabaseWriter&) = delete;
 
-  DatabaseWriter(DatabaseWriter&& other);
-  DatabaseWriter& operator=(DatabaseWriter&& other);
-
   // Creates a regular result database.
   static absl::StatusOr<std::unique_ptr<DatabaseWriter>> Create(
       const std::string& path, Options options = {});
@@ -72,7 +69,7 @@ class DatabaseWriter : public Writer {
   void SetCommentsPorted(const FixedPointInfos& fixed_points);
 
   // Exposing internal details for use in the temporary database.
-  SqliteDatabase* GetDatabase();
+  SqliteDatabase* database();
 
  private:
   using NameToId = absl::btree_map<std::string, int>;
