@@ -110,6 +110,7 @@ SqliteStatement& SqliteStatement::operator=(SqliteStatement&& other) {
   if (this != &other) {
     database_ = other.database_;
     other.database_ = nullptr;
+    sqlite3_finalize(statement_);  // API is nullptr safe
     statement_ = other.statement_;
     other.statement_ = nullptr;
     column_ = other.column_;
@@ -123,23 +124,20 @@ SqliteStatement& SqliteStatement::operator=(SqliteStatement&& other) {
 }
 
 SqliteStatement::~SqliteStatement() {
-  if (statement_ != nullptr) {
-    sqlite3_finalize(statement_);
-  }
+  sqlite3_finalize(statement_);  // API is nullptr safe
 }
 
 absl::StatusOr<SqliteStatement> SqliteStatement::Prepare(
     SqliteDatabase& database, absl::string_view statement) {
-  sqlite3_stmt* stmt_handle = nullptr;
-  if (sqlite3_prepare_v2(database.database_, statement.data(), statement.size(),
-                         &stmt_handle, nullptr) != SQLITE_OK) {
+  SqliteStatement sqlite_statement;
+  sqlite_statement.database_ = database.database_;
+  if (sqlite3_prepare_v2(sqlite_statement.database_, statement.data(),
+                         statement.size(), &sqlite_statement.statement_,
+                         nullptr) != SQLITE_OK) {
     return Sqlite3ErrToStatus(
         database.database_,
         absl::StrCat("preparing statement '", statement, "'"));
   }
-  SqliteStatement sqlite_statement;
-  sqlite_statement.database_ = database.database_;
-  sqlite_statement.statement_ = stmt_handle;
   return sqlite_statement;
 }
 
