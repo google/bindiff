@@ -26,12 +26,14 @@
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/status_matchers.h"
 
 namespace security::bindiff {
 namespace {
 
 using binexport::GetTestFileContents;
 using binexport::GetTestTempPath;
+using ::not_absl::IsOk;
 using ::testing::IsTrue;
 
 #ifdef GTEST_USES_POSIX_RE
@@ -64,8 +66,10 @@ std::string RegexEscape(absl::string_view s) {
 TEST_F(LogWriterTest, Empty) {
   const std::string log = GetTestTempPath("empty.log");
   ResultsLogWriter writer(log);
-  writer.Write(primary_->call_graph, secondary_->call_graph,
-               primary_->flow_graphs, secondary_->flow_graphs, fixed_points_);
+  EXPECT_THAT(writer.Write(primary_->call_graph, secondary_->call_graph,
+                           primary_->flow_graphs, secondary_->flow_graphs,
+                           fixed_points_),
+              IsOk());
 
   ASSERT_THAT(FileExists(log), IsTrue());
   const std::string log_output =

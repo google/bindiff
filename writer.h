@@ -17,6 +17,7 @@
 
 #include <memory>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
@@ -25,14 +26,16 @@ namespace security::bindiff {
 
 class Writer {
  public:
-  virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
-                     const FlowGraphs& flow_graphs1,
-                     const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points) = 0;
   virtual ~Writer() = default;
 
   Writer(const Writer&) = delete;
   Writer& operator=(const Writer&) = delete;
+
+  virtual absl::Status Write(const CallGraph& call_graph1,
+                             const CallGraph& call_graph2,
+                             const FlowGraphs& flow_graphs1,
+                             const FlowGraphs& flow_graphs2,
+                             const FixedPoints& fixed_points) = 0;
 
  protected:
   Writer() = default;
@@ -40,13 +43,13 @@ class Writer {
 
 class ChainWriter : public Writer {
  public:
-  virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+  absl::Status Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
                      const FlowGraphs& flow_graphs1,
                      const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points);
+                     const FixedPoints& fixed_points) override;
 
   void Add(std::unique_ptr<Writer> writer);
-  bool IsEmpty() const;
+  bool empty() const;
 
  private:
   std::vector<std::unique_ptr<Writer>> writers_;

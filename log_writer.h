@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/writer.h"
 
 namespace security::bindiff {
@@ -26,10 +27,10 @@ class ResultsLogWriter : public Writer {
  public:
   explicit ResultsLogWriter(const std::string& filename);
 
-  virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+  absl::Status Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
                      const FlowGraphs& flow_graphs1,
                      const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points);
+                     const FixedPoints& fixed_points) override;
 
  private:
   std::string filename_;

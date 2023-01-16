@@ -531,11 +531,16 @@ bool Results::IncrementalDiff() {
         throw std::runtime_error(std::string(status.message()));
       }
 
-      auto database = *SqliteDatabase::Connect(incremental);
-      DatabaseTransmuter writer(database, fixed_point_infos_);
-      Write(&writer);
+      auto database = SqliteDatabase::Connect(incremental);
+      if (!database.ok()) {
+        throw std::runtime_error(std::string(database.status().message()));
+      }
+      DatabaseTransmuter writer(*database, fixed_point_infos_);
+      if (auto status = Write(&writer); !status.ok()) {
+        throw std::runtime_error(std::string(status.message()));
+      }
 
-      DatabaseReader::ReadFullMatches(&database, &call_graph1_, &call_graph2_,
+      DatabaseReader::ReadFullMatches(&*database, &call_graph1_, &call_graph2_,
                                       &flow_graphs1_, &flow_graphs2_,
                                       &fixed_points_);
     }
@@ -1138,10 +1143,18 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   } else {
     // TODO(cblichmann): This is insanely inefficient: every single call graph
     //                   diff recreates the full result.
-    auto writer = *DatabaseWriter::Create(name, true);
-    writer->Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
-                  fixed_points_);
-    database_file = writer->filename();
+    // TODO(cblichmann): This code is duplicated in PrepareVisualDiff().
+    auto database_writer = DatabaseWriter::Create(name, true);
+    if (!database_writer.ok()) {
+      throw std::runtime_error(std::string(database_writer.status().message()));
+    }
+    if (auto status = (*database_writer)
+                          ->Write(call_graph1_, call_graph2_, flow_graphs1_,
+                                  flow_graphs2_, fixed_points_);
+        !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
+    database_file = (*database_writer)->filename();
   }
 
   *message = VisualDiffMessage(
@@ -1158,7 +1171,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 
   const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
 
-  FlowGraphInfo empty{0};
+  FlowGraphInfo empty;
   const FlowGraphInfo& primary_info(
       flow_graph_infos1_.find(fixed_point_info.primary) !=
               flow_graph_infos1_.end()
@@ -1196,10 +1209,18 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
 
   ++diff_database_id_;
   std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
-  auto writer = *DatabaseWriter::Create(name, true);
-  writer->Write(call_graph1_, call_graph2_, flow_graphs1, flow_graphs2,
-                fixed_points);
-  const std::string& database_file = writer->filename();
+
+  auto database_writer = DatabaseWriter::Create(name, true);
+  if (!database_writer.ok()) {
+    throw std::runtime_error(std::string(database_writer.status().message()));
+  }
+  if (auto status = (*database_writer)
+                        ->Write(call_graph1_, call_graph2_, flow_graphs1_,
+                                flow_graphs2_, fixed_points_);
+      !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
+  const std::string& database_file = (*database_writer)->filename();
 
   *message = VisualDiffMessage(
       /*call_graph_match=*/false, database_file, call_graph1_.GetFilePath(),
@@ -1258,10 +1279,11 @@ void Results::Read(Reader* reader) {
   //                   block/instruction matches).
 }
 
-void Results::Write(Writer* writer) {
-  writer->Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
-                fixed_points_);
+absl::Status Results::Write(Writer* writer) {
+  NA_RETURN_IF_ERROR(writer->Write(call_graph1_, call_graph2_, flow_graphs1_,
+                                   flow_graphs2_, fixed_points_));
   modified_ = false;
+  return absl::OkStatus();
 }
 
 void Results::CreateIndexedViews() {

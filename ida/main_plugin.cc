@@ -661,7 +661,7 @@ absl::Status WriteResults(const std::string& path) {
             path,
             DatabaseWriter::Options().set_include_function_names(
                 !config::Proto().binary_format().exclude_function_names())));
-    results->Write(writer.get());
+    NA_RETURN_IF_ERROR(results->Write(writer.get()));
   } else {
     // Results are incomplete (have been loaded). Copy original result file to
     // temp dir first, so we can overwrite the original if required.
@@ -672,7 +672,7 @@ absl::Status WriteResults(const std::string& path) {
       NA_ASSIGN_OR_RETURN(auto database,
                           SqliteDatabase::Connect(input_bindiff));
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
-      results->Write(&writer);
+      NA_RETURN_IF_ERROR(results->Write(&writer));
     }
     std::remove(path.c_str());
     NA_RETURN_IF_ERROR(CopyFile(input_bindiff, path));
@@ -725,7 +725,9 @@ bool DoSaveResultsLog() {
   Timer<> timer;
   LOG(INFO) << "Writing to log...";
   ResultsLogWriter writer(filename);
-  results->Write(&writer);
+  if (absl::Status status = results->Write(&writer); !status.ok()) {
+    throw std::runtime_error(std::string(status.message()));
+  }
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                             ")");
   return true;
@@ -760,7 +762,13 @@ bool DoSaveResultsDebug() {
   GroundtruthWriter writer(filename, results->fixed_point_infos_,
                            results->flow_graph_infos1_,
                            results->flow_graph_infos2_);
-  results->Write(&writer);
+  if (absl::Status status = results->Write(&writer); !status.ok()) {
+    std::string message =
+        absl::StrCat("Error writing results: ", status.message());
+    LOG(INFO) << message;
+    warning("%s\n", message.c_str());
+    return false;
+  }
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                             ")");
 
@@ -772,44 +780,39 @@ bool DoSaveResults() {
     return false;
   }
 
-  try {
-    auto* results = Plugin::instance()->results();
-    // If we have loaded results, input_filename_ will be non-empty.
-    const std::string default_filename =
-        results->input_filename_.empty()
-            ? absl::StrCat(results->call_graph1_.GetFilename(), "_vs_",
-                           results->call_graph2_.GetFilename(), ".BinDiff")
-            : results->input_filename_;
-    const char* filename = ask_file(
-        /*for_saving=*/true, default_filename.c_str(), "%s",
-        absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files",
-                     kAllFilesFilter, "\nSave Results As")
-            .c_str());
-    if (!filename) {
-      return false;
-    }
+  auto* results = Plugin::instance()->results();
+  // If we have loaded results, input_filename_ will be non-empty.
+  const std::string default_filename =
+      results->input_filename_.empty()
+          ? absl::StrCat(results->call_graph1_.GetFilename(), "_vs_",
+                         results->call_graph2_.GetFilename(), ".BinDiff")
+          : results->input_filename_;
+  const char* filename = ask_file(
+      /*for_saving=*/true, default_filename.c_str(), "%s",
+      absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files",
+                   kAllFilesFilter, "\nSave Results As")
+          .c_str());
+  if (!filename) {
+    return false;
+  }
 #ifndef __APPLE__
-    // On macOS, the built-in file chooser asks for confirmation already.
-    if (FileExists(filename) &&
-        (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
-                filename) != ASKBTN_YES)) {
-      return false;
-    }
+  // On macOS, the built-in file chooser asks for confirmation already.
+  if (FileExists(filename) &&
+      (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
+              filename) != ASKBTN_YES)) {
+    return false;
+  }
 #endif
 
-    if (auto status = WriteResults(filename); !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-
-    return true;
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error writing results: " << message.what();
-    warning("Error writing results: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Error writing results.";
-    warning("Error writing results.\n");
+  if (auto status = WriteResults(filename); !status.ok()) {
+    std::string message =
+        absl::StrCat("Error writing results: ", status.message());
+    LOG(INFO) << message;
+    warning("%s\n", message.c_str());
+    return false;
   }
-  return false;
+
+  return true;
 }
 
 absl::Status Plugin::ClearResults() {

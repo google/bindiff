@@ -55,9 +55,10 @@ class DatabaseWriter : public Writer {
   static absl::StatusOr<std::unique_ptr<DatabaseWriter>> Create(
       const std::string& path, bool recreate);
 
-  void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
-             const FlowGraphs& flow_graphs1, const FlowGraphs& flow_graphs2,
-             const FixedPoints& fixed_points) override;
+  absl::Status Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+                     const FlowGraphs& flow_graphs1,
+                     const FlowGraphs& flow_graphs2,
+                     const FixedPoints& fixed_points) override;
 
   void Close();
   void WriteToTempDatabase(const FixedPoint& fixed_point);
@@ -96,10 +97,11 @@ class DatabaseWriter : public Writer {
 class DatabaseTransmuter : public Writer {
  public:
   DatabaseTransmuter(SqliteDatabase& database,
-                     const FixedPointInfos& fixed_points);
-  void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
-             const FlowGraphs& flow_graphs1, const FlowGraphs& flow_graphs2,
-             const FixedPoints& fixed_points) override;
+                     const FixedPointInfos& fixed_point_infos);
+  absl::Status Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+                     const FlowGraphs& flow_graphs1,
+                     const FlowGraphs& flow_graphs2,
+                     const FixedPoints& fixed_points) override;
 
   static void MarkPortedComments(SqliteDatabase* database,
                                  const char* temp_database,

@@ -27,6 +27,7 @@
 
 #include <string>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/writer.h"
 
@@ -44,16 +45,17 @@ class GroundtruthWriter : public Writer {
                     const FixedPointInfos& fixed_point_infos,
                     const FlowGraphInfos& primary,
                     const FlowGraphInfos& secondary);
-  virtual void Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
+
+  absl::Status Write(const CallGraph& call_graph1, const CallGraph& call_graph2,
                      const FlowGraphs& flow_graphs1,
                      const FlowGraphs& flow_graphs2,
-                     const FixedPoints& fixed_points);
+                     const FixedPoints& fixed_points) override;
 
  private:
   std::string filename_;
-  const FixedPointInfos* fixed_point_infos_;
-  const FlowGraphInfos* primary_;
-  const FlowGraphInfos* secondary_;
+  const FixedPointInfos* fixed_point_infos_ = nullptr;
+  const FlowGraphInfos* primary_ = nullptr;
+  const FlowGraphInfos* secondary_ = nullptr;
 };
 
 }  // namespace security::bindiff

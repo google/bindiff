@@ -532,38 +532,33 @@ absl::Status DatabaseWriter::WriteAlgorithms() {
   return absl::OkStatus();
 }
 
-void DatabaseWriter::Write(const CallGraph& call_graph1,
-                           const CallGraph& call_graph2,
-                           const FlowGraphs& flow_graphs1,
-                           const FlowGraphs& flow_graphs2,
-                           const FixedPoints& fixed_points) {
-  try {
-    auto status = [&]() -> absl::Status {
-      NA_RETURN_IF_ERROR(database_.Begin());
-
-      NA_RETURN_IF_ERROR(WriteMetadata(call_graph1, call_graph2, flow_graphs1,
-                                       flow_graphs2, fixed_points));
-      NA_RETURN_IF_ERROR(WriteAlgorithms());
-      NA_RETURN_IF_ERROR(WriteMatches(fixed_points));
-
-      NA_RETURN_IF_ERROR(database_.Commit());
-      return absl::OkStatus();
-    }();
-    if (!status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-  } catch (...) {
+absl::Status DatabaseWriter::Write(const CallGraph& call_graph1,
+                                   const CallGraph& call_graph2,
+                                   const FlowGraphs& flow_graphs1,
+                                   const FlowGraphs& flow_graphs2,
+                                   const FixedPoints& fixed_points) {
+  NA_RETURN_IF_ERROR(database_.Begin());
+  if (absl::Status status = [&]() {
+        NA_RETURN_IF_ERROR(WriteMetadata(call_graph1, call_graph2, flow_graphs1,
+                                         flow_graphs2, fixed_points));
+        NA_RETURN_IF_ERROR(WriteAlgorithms());
+        NA_RETURN_IF_ERROR(WriteMatches(fixed_points));
+        return absl::OkStatus();
+      }();
+      !status.ok()) {
     database_.Rollback().IgnoreError();
-    throw;
+    return status;
   }
+  return database_.Commit();
 }
 
 DatabaseTransmuter::DatabaseTransmuter(SqliteDatabase& database,
-                                       const FixedPointInfos& fixed_points)
-    : database_(database), fixed_points_(), fixed_point_infos_(fixed_points) {
-  for (auto i = fixed_points.cbegin(), end = fixed_points.cend(); i != end;
-       ++i) {
-    fixed_points_.insert(std::make_pair(i->primary, i->secondary));
+                                       const FixedPointInfos& fixed_point_infos)
+    : database_(database),
+      fixed_points_(),
+      fixed_point_infos_(fixed_point_infos) {
+  for (const FixedPointInfo& info : fixed_point_infos) {
+    fixed_points_.emplace(info.primary, info.secondary);
   }
 }
 
@@ -634,11 +629,11 @@ void DatabaseTransmuter::MarkPortedComments(
       .ExecuteOrThrow();
 }
 
-void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
-                               const CallGraph& /*call_graph2*/,
-                               const FlowGraphs& /*flow_graphs1*/,
-                               const FlowGraphs& /*flow_graphs2*/,
-                               const FixedPoints& /*fixed_points*/) {
+absl::Status DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
+                                       const CallGraph& /*call_graph2*/,
+                                       const FlowGraphs& /*flow_graphs1*/,
+                                       const FlowGraphs& /*flow_graphs2*/,
+                                       const FixedPoints& /*fixed_points*/) {
   // Step 1: Remove deleted matches.
   TempFixedPoints current_fixed_points;
 
@@ -730,6 +725,8 @@ void DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   // Step 4: Update last changed timestamp.
   database_.StatementOrThrow("UPDATE metadata SET modified=DATETIME('NOW')")
       .ExecuteOrThrow();
+
+  return absl::OkStatus();
 }
 
 DatabaseReader::DatabaseReader(SqliteDatabase& database,

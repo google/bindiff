@@ -109,7 +109,7 @@ class Results {
   bool PrepareVisualDiff(size_t index, std::string* message);
   bool PrepareVisualCallGraphDiff(size_t index, std::string* message);
   void Read(Reader* reader);
-  void Write(Writer* writer);
+  absl::Status Write(Writer* writer);
   void CreateIndexedViews();
 
   // Marks the matches indicated by the given indices as manually confirmed.

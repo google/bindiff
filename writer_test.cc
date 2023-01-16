@@ -18,11 +18,14 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "third_party/zynamics/binexport/call_graph.h"
+#include "third_party/absl/status/status.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
+#include "third_party/zynamics/binexport/util/status_matchers.h"
 
 namespace security::bindiff {
 namespace {
 
+using ::not_absl::IsOk;
 using ::testing::Eq;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
@@ -41,11 +44,13 @@ class CountingNopWriter : public Writer {
   explicit CountingNopWriter(int* counter) : counter_(counter) {}
 
  private:
-  void Write(const CallGraph& /*call_graph1*/, const CallGraph& /*call_graph2*/,
-             const FlowGraphs& /*flow_graphs1*/,
-             const FlowGraphs& /*flow_graphs2*/,
-             const FixedPoints& /*fixed_points*/) override {
+  absl::Status Write(const CallGraph& /*call_graph1*/,
+                     const CallGraph& /*call_graph2*/,
+                     const FlowGraphs& /*flow_graphs1*/,
+                     const FlowGraphs& /*flow_graphs2*/,
+                     const FixedPoints& /*fixed_points*/) override {
     ++*counter_;
+    return absl::OkStatus();
   }
 
   int* counter_;
@@ -53,9 +58,10 @@ class CountingNopWriter : public Writer {
 
 TEST_F(WriterTest, EmptyChainDoesNothing) {
   ChainWriter chain;
-  EXPECT_THAT(chain.IsEmpty(), IsTrue());
-  chain.Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
-              fixed_points_);
+  EXPECT_THAT(chain.empty(), IsTrue());
+  EXPECT_THAT(chain.Write(call_graph1_, call_graph2_, flow_graphs1_,
+                          flow_graphs2_, fixed_points_),
+              IsOk());
 }
 
 TEST_F(WriterTest, CanChainWriters) {
@@ -65,10 +71,11 @@ TEST_F(WriterTest, CanChainWriters) {
   chain.Add(absl::make_unique<CountingNopWriter>(&count));
   chain.Add(absl::make_unique<CountingNopWriter>(&count));
   chain.Add(absl::make_unique<CountingNopWriter>(&count));
-  EXPECT_THAT(chain.IsEmpty(), IsFalse());
+  EXPECT_THAT(chain.empty(), IsFalse());
 
-  chain.Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
-              fixed_points_);
+  EXPECT_THAT(chain.Write(call_graph1_, call_graph2_, flow_graphs1_,
+                          flow_graphs2_, fixed_points_),
+              IsOk());
   EXPECT_THAT(count, Eq(3));
 }
 

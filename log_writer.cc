@@ -18,6 +18,7 @@
 #include <iomanip>
 #include <memory>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include <boost/iterator/transform_iterator.hpp>
 #include "third_party/zynamics/bindiff/differ.h"
@@ -47,11 +48,11 @@ struct ProjectSecondary {
 ResultsLogWriter::ResultsLogWriter(const std::string& filename)
     : filename_(filename) {}
 
-void ResultsLogWriter::Write(const CallGraph& call_graph1,
-                             const CallGraph& call_graph2,
-                             const FlowGraphs& flow_graphs1,
-                             const FlowGraphs& flow_graphs2,
-                             const FixedPoints& fixed_points) {
+absl::Status ResultsLogWriter::Write(const CallGraph& call_graph1,
+                                     const CallGraph& call_graph2,
+                                     const FlowGraphs& flow_graphs1,
+                                     const FlowGraphs& flow_graphs2,
+                                     const FixedPoints& fixed_points) {
   Confidences confidences;
   Histogram histogram;
   Counts counts;
@@ -178,6 +179,7 @@ void ResultsLogWriter::Write(const CallGraph& call_graph1,
            << (*i)->IsLibrary() << "\t" << (*i)->GetMdIndex() << "\t"
            << (*i)->GetName() << "\n";
   }
+  return absl::OkStatus();
 }
 
 }  // namespace security::bindiff

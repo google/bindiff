@@ -118,24 +118,23 @@ void PrintErrorMessage(absl::string_view message) {
 
 // This function will try and create a fully specified filename no longer than
 // 250 characters. It'll truncate part1 and part2, leaving all other fragments
-// as is. If it is not possible to get a short enough name it'll throw an
-// exception.
-std::string GetTruncatedFilename(
+// as is. If it is not possible to get a short enough name it'll return an
+// error.
+absl::StatusOr<std::string> GetTruncatedFilename(
     const std::string& path /* Must include trailing slash */,
     const std::string& part1 /* Potentially truncated */,
     const std::string& middle,
     const std::string& part2 /* Potentially truncated */,
     const std::string& extension) {
-  enum { kMaxFilename = 250 };
+  constexpr size_t kMaxFilename = 250;
 
-  const std::string::size_type length = path.size() + part1.size() +
-                                        middle.size() + part2.size() +
-                                        extension.size();
+  const size_t length = path.size() + part1.size() + middle.size() +
+                        part2.size() + extension.size();
   if (length <= kMaxFilename) {
     return absl::StrCat(path, part1, middle, part2, extension);
   }
 
-  std::string::size_type overflow = length - kMaxFilename;
+  size_t overflow = length - kMaxFilename;
 
   // First, shorten the longer of the two strings.
   std::string one = part1;
@@ -158,10 +157,10 @@ std::string GetTruncatedFilename(
   // Second, if that still wasn't enough, shorten both strings equally.
   assert(one.size() == two.size());
   if (overflow / 2 >= one.size()) {
-    throw std::runtime_error(
+    return absl::InvalidArgumentError(
         absl::StrCat("Cannot create a valid filename, choose shorter input "
-                     "names/directories: '",
-                     path, part1, middle, part2, extension, "'"));
+                     "names/directories: ",
+                     path, part1, middle, part2, extension));
   }
   return absl::StrCat(path, part1.substr(0, one.size() - overflow / 2), middle,
                       part2.substr(0, two.size() - overflow / 2), extension);
@@ -260,23 +259,40 @@ void DifferThread::operator()() {
       {
         ChainWriter writer;
         if (g_output_log) {
-          writer.Add(absl::make_unique<ResultsLogWriter>(GetTruncatedFilename(
+          absl::StatusOr<std::string> filename = GetTruncatedFilename(
               out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
-              call_graph2.GetFilename(), ".results")));
+              call_graph2.GetFilename(), ".results");
+          if (!filename.ok()) {
+            throw std::runtime_error(std::string(filename.status().message()));
+          }
+          writer.Add(absl::make_unique<ResultsLogWriter>(*filename));
         }
         if (g_output_binary) {
-          writer.Add(*DatabaseWriter::Create(
-              GetTruncatedFilename(out_path_ + kPathSeparator,
-                                   call_graph1.GetFilename(), "_vs_",
-                                   call_graph2.GetFilename(), ".BinDiff"),
+          absl::StatusOr<std::string> filename = GetTruncatedFilename(
+              out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
+              call_graph2.GetFilename(), ".BinDiff");
+          if (!filename.ok()) {
+            throw std::runtime_error(std::string(filename.status().message()));
+          }
+          auto database_writer = DatabaseWriter::Create(
+              *filename,
               DatabaseWriter::Options().set_include_function_names(
-                  !config::Proto().binary_format().exclude_function_names())));
+                  !config::Proto().binary_format().exclude_function_names()));
+          if (!database_writer.ok()) {
+            throw std::runtime_error(
+                std::string(database_writer.status().message()));
+          }
+          writer.Add(std::move(*database_writer));
         }
 
-        if (!writer.IsEmpty()) {
+        if (!writer.empty()) {
           PrintMessage("Writing results");
-          writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                       fixed_points);
+          absl::Status status =
+              writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                           fixed_points);
+          if (!status.ok()) {
+            throw std::runtime_error(std::string(status.message()));
+          }
         }
 
         std::string result_message = absl::StrCat(
@@ -723,21 +739,39 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
 
       ChainWriter writer;
       if (g_output_log) {
-        writer.Add(absl::make_unique<ResultsLogWriter>(GetTruncatedFilename(
+        absl::StatusOr<std::string> filename = GetTruncatedFilename(
             absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
-            ".results")));
+            ".results");
+        if (!filename.ok()) {
+          throw std::runtime_error(std::string(filename.status().message()));
+        }
+        writer.Add(std::make_unique<ResultsLogWriter>(*filename));
       }
       if (g_output_binary) {
-        writer.Add(*DatabaseWriter::Create(GetTruncatedFilename(
+        absl::StatusOr<std::string> filename = GetTruncatedFilename(
             absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
             call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
-            ".BinDiff")));
+            ".BinDiff");
+        if (!filename.ok()) {
+          throw std::runtime_error(std::string(filename.status().message()));
+        }
+        auto database_writer = DatabaseWriter::Create(*filename);
+        if (!database_writer.ok()) {
+          throw std::runtime_error(
+              std::string(database_writer.status().message()));
+        }
+        writer.Add(std::move(*database_writer));
       }
 
-      if (!writer.IsEmpty()) {
-        writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
-                     fixed_points);
+      if (!writer.empty()) {
+        absl::Status status =
+            writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
+                         fixed_points);
+        if (!status.ok()) {
+          throw std::runtime_error(std::string(status.message()));
+        }
+
         PrintMessage(absl::StrCat("Writing results: ",
                                   HumanReadableDuration(timer.elapsed())));
       }

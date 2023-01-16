@@ -41,9 +41,10 @@ TEST_F(DatabaseWriterTest, SimpleDatabaseCreation) {
   const std::string db_path = GetTestTempPath("test_database_writer_1.sqlite");
   NA_ASSERT_OK_AND_ASSIGN(
       auto writer, DatabaseWriter::Create(db_path, DatabaseWriter::Options()));
-  EXPECT_NO_THROW(writer->Write(primary_->call_graph, secondary_->call_graph,
-                                primary_->flow_graphs, secondary_->flow_graphs,
-                                fixed_points_));
+  EXPECT_THAT(writer->Write(primary_->call_graph, secondary_->call_graph,
+                            primary_->flow_graphs, secondary_->flow_graphs,
+                            fixed_points_),
+              IsOk());
 
   NA_ASSERT_OK_AND_ASSIGN(auto database, SqliteDatabase::Connect(db_path));
   NA_ASSERT_OK_AND_ASSIGN(
