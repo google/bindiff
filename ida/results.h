@@ -25,6 +25,7 @@
 // clang-format on
 
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/types/span.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
@@ -78,8 +79,9 @@ class Results {
     int edge_count;
   };
 
-  Results();
   ~Results();
+
+  static absl::StatusOr<std::unique_ptr<Results>> Create();
 
   size_t GetNumUnmatchedPrimary() const;
   UnmatchedDescription GetUnmatchedDescriptionPrimary(size_t index) const;
@@ -108,7 +110,6 @@ class Results {
   bool PrepareVisualCallGraphDiff(size_t index, std::string* message);
   void Read(Reader* reader);
   void Write(Writer* writer);
-  void WriteFromIncompleteResults();
   void CreateIndexedViews();
 
   // Marks the matches indicated by the given indices as manually confirmed.
@@ -131,9 +132,11 @@ class Results {
                             Address end_address_target, double min_confidence,
                             double min_similarity);
 
-  bool IsIncomplete() const;
-  void SetDirty();
-  bool IsDirty() const;
+  bool is_incomplete() const;
+
+  void set_modified();
+  bool is_modified() const;
+
   bool IncrementalDiff();
   void MarkPortedCommentsInDatabase();
 
@@ -141,8 +144,6 @@ class Results {
   void set_should_reset_selection(bool value) {
     should_reset_selection_ = value;
   }
-
-  static void DeleteTemporaryFiles();
 
   CallGraph call_graph1_;
   CallGraph call_graph2_;
@@ -153,28 +154,28 @@ class Results {
   FlowGraphInfos flow_graph_infos2_;
 
  private:
-  friend bool Diff(ea_t, ea_t, ea_t, ea_t);
-
   using IndexedFlowGraphs = std::vector<FlowGraphInfo*>;
   using IndexedFixedPoints = std::vector<FixedPointInfo*>;
+
+  Results() = default;
+
+  static void DeleteTemporaryFiles();
 
   UnmatchedDescription GetUnmatchedDescription(
       const IndexedFlowGraphs& flow_graphs, size_t index) const;
   void InitializeIndexedVectors();
   void Count();
-  void SetupTemporaryFlowGraphs(
-      const FixedPointInfo& fixed_point_info,
-      FlowGraph& primary,       // NOLINT(runtime/references)
-      FlowGraph& secondary,     // NOLINT(runtime/references)
-      FixedPoint& fixed_point,  // NOLINT(runtime/references)
-      bool create_instruction_matches);
+  void SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
+                                FlowGraph& primary, FlowGraph& secondary,
+                                FixedPoint& fixed_point,
+                                bool create_instruction_matches);
   void DeleteTemporaryFlowGraphs();
   FixedPoint* FindFixedPoint(const FixedPointInfo& info);
   void ReadBasicblockMatches(FixedPoint* fixed_point);
   void MarkPortedCommentsInTempDatabase();
 
   std::unique_ptr<DatabaseWriter> temp_database_;
-  bool incomplete_results_ = false;  // Set when we have loaded from disk
+  bool incomplete_ = false;  // Set when we have loaded from disk
 
  public:
   FlowGraphs flow_graphs1_;
@@ -189,7 +190,7 @@ class Results {
   Counts counts_;
   double similarity_ = 0.0;
   double confidence_ = 0.0;
-  bool dirty_ = false;
+  bool modified_ = false;
 
   // Whether choosers should reset their item selection
   bool should_reset_selection_ = false;

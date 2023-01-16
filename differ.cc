@@ -189,14 +189,12 @@ void ResetMatches(FlowGraphs* flow_graphs) {
   }
 }
 
-void Diff(MatchingContext* context,
-          const MatchingSteps& default_call_graph_steps,
-          const MatchingStepsFlowGraph& default_basic_block_steps) {
+void Diff(MatchingContext* context, const MatchingSteps& call_graph_steps,
+          const MatchingStepsFlowGraph& basic_block_steps) {
   // The outer loop controls the rigorousness for initial matching while the
   // inner loop tries to resolve ambiguities by drilling down the matchingSteps
   // lists.
-  for (MatchingSteps matching_steps_for_current_level =
-           default_call_graph_steps;
+  for (MatchingSteps matching_steps_for_current_level = call_graph_steps;
        !matching_steps_for_current_level.empty();
        matching_steps_for_current_level.pop_front()) {
     context->new_fixed_points_.clear();
@@ -205,7 +203,7 @@ void Diff(MatchingContext* context,
     step->FindFixedPoints(
         nullptr /* primary_parent */, nullptr /* secondary_parent */,
         context->primary_flow_graphs_, context->secondary_flow_graphs_,
-        *context, matching_steps, default_basic_block_steps);
+        *context, matching_steps, basic_block_steps);
     matching_steps = matching_steps_for_current_level;
 
     bool more_fixed_points_discovered = false;
@@ -231,7 +229,7 @@ void Diff(MatchingContext* context,
           more_fixed_points_discovered |= step->FindFixedPoints(
               fixed_point.GetPrimary(), fixed_point.GetSecondary(),
               primary_children, secondary_children, *context, matching_steps,
-              default_basic_block_steps);
+              basic_block_steps);
         }
       }
 
@@ -249,7 +247,7 @@ void Diff(MatchingContext* context,
           more_fixed_points_discovered |= step->FindFixedPoints(
               fixed_point.GetPrimary(), fixed_point.GetSecondary(),
               primary_parents, secondary_parents, *context, matching_steps,
-              default_basic_block_steps);
+              basic_block_steps);
         }
       }
     } while (more_fixed_points_discovered);
@@ -257,8 +255,7 @@ void Diff(MatchingContext* context,
     // After collecting initial fixed points for this step: iterate over all of
     // them and find call reference fixed points.
     for (auto* fixed_point : context->new_fixed_points_) {
-      FindCallReferenceFixedPoints(fixed_point, context,
-                                   default_basic_block_steps);
+      FindCallReferenceFixedPoints(fixed_point, context, basic_block_steps);
     }
   }
   ClassifyChanges(context);

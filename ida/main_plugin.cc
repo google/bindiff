@@ -299,7 +299,7 @@ bool Plugin::DiscardResults(Plugin::DiscardResultsKind kind) {
     return true;
   }
 
-  if (kind != DiscardResultsKind::kDontSave && results_->IsDirty()) {
+  if (kind != DiscardResultsKind::kDontSave && results_->is_modified()) {
     const auto answer =
         ask_yn(ASKBTN_YES,
                "%sCurrent diff results have not been"
@@ -460,9 +460,9 @@ absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
         "Please close all other IDA instances and try again.");
   }
 
+  NA_RETURN_IF_ERROR(plugin.ClearResults());
   try {
-    plugin.set_results(new Results());
-    auto* results = plugin.results();
+    Results* results = plugin.results();
     Read(filename1, &results->call_graph1_, &results->flow_graphs1_,
          &results->flow_graph_infos1_, &results->instruction_cache_);
     Read(filename2, &results->call_graph2_, &results->flow_graphs2_,
@@ -478,14 +478,14 @@ absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
                     &context.secondary_flow_graphs_,
                     &results->flow_graph_infos2_);
 
-    const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
-    const MatchingStepsFlowGraph default_basicblock_steps(
-        GetDefaultMatchingStepsBasicBlock());
-    Diff(&context, default_callgraph_steps, default_basicblock_steps);
+    const MatchingSteps callgraph_steps = GetDefaultMatchingSteps();
+    const MatchingStepsFlowGraph basicblock_steps =
+        GetDefaultMatchingStepsBasicBlock();
+    Diff(&context, callgraph_steps, basicblock_steps);
     LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
                               " for matching.");
+    results->set_modified();
     plugin.ShowResults(Plugin::kResultsShowAll);
-    results->SetDirty();
 
     return true;
   } catch (const std::exception& e) {
@@ -654,7 +654,7 @@ absl::Status WriteResults(const std::string& path) {
                       GetOrCreateTempDirectory("BinDiff"));
   const std::string out_dir = Dirname(path);
 
-  if (!results->IsIncomplete()) {
+  if (!results->is_incomplete()) {
     NA_ASSIGN_OR_RETURN(
         auto writer,
         DatabaseWriter::Create(
@@ -699,7 +699,7 @@ bool DoSaveResultsLog() {
     return false;
   }
   auto* results = Plugin::instance()->results();
-  if (results->IsIncomplete()) {
+  if (results->is_incomplete()) {
     info("AUTOHIDE NONE\nSaving to log is not supported for loaded results.");
     return false;
   }
@@ -812,9 +812,14 @@ bool DoSaveResults() {
   return false;
 }
 
+absl::Status Plugin::ClearResults() {
+  NA_ASSIGN_OR_RETURN(results_, Results::Create());
+  return absl::OkStatus();
+}
+
 bool Plugin::LoadResults() {
   try {
-    if (results_ && results_->IsDirty()) {
+    if (results_ && results_->is_modified()) {
       const int answer = ask_yn(
           ASKBTN_YES,
           "Current diff results have not been saved - save before closing?");
@@ -840,11 +845,14 @@ bool Plugin::LoadResults() {
     WaitBox wait_box("Loading results...");
     Timer<> timer;
 
-    results_.reset(new Results());
+    auto status = ClearResults();
+    if (!status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
 
     auto temp_dir = GetOrCreateTempDirectory("BinDiff");
     if (!temp_dir.ok()) {
-      return false;
+      throw std::runtime_error(std::string(temp_dir.status().message()));
     }
 
     auto database = SqliteDatabase::Connect(filename);
@@ -855,7 +863,7 @@ bool Plugin::LoadResults() {
     results_->Read(&reader);
 
     auto sha256_or = GetInputFileSha256();
-    auto status = sha256_or.status();
+    status = sha256_or.status();
     std::string this_hash;
     if (status.ok()) {
       this_hash = std::move(sha256_or).value();

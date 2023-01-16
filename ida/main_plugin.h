@@ -45,11 +45,11 @@ class Plugin : public binexport::IdaPlugin<Plugin> {
   static constexpr char kHotKey[] = "CTRL-6";
 
   Results* results() { return results_.get(); }
-  void set_results(Results* value) { results_.reset(value); }
 
   bool alsologtostderr() const { return alsologtostderr_; }
   const std::string& log_filename() const { return log_filename_; }
 
+  absl::Status ClearResults();
   bool LoadResults();
   void ShowResults(ResultFlags flags);
 

@@ -36,9 +36,8 @@ using Confidences = absl::btree_map<std::string, double>;
 
 // Main entry point to the differ. Runs the core algorithm and produces a
 // (partial) matching between the two inputs.
-void Diff(MatchingContext* context,
-          const MatchingSteps& default_call_graph_steps,
-          const MatchingStepsFlowGraph& default_basic_block_steps);
+void Diff(MatchingContext* context, const MatchingSteps& call_graph_steps,
+          const MatchingStepsFlowGraph& basic_block_steps);
 
 class ScopedCleanup {
  public:

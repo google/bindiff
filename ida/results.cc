@@ -49,6 +49,7 @@
 #include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
@@ -400,9 +401,6 @@ std::string GetMatchingStepDisplayName(absl::string_view name) {
 
 }  // namespace
 
-Results::Results()
-    : temp_database_(*DatabaseWriter::Create("temporary.database", true)) {}
-
 Results::~Results() {
   // Need to close this explicitly here as otherwise the DeleteTemporaryFiles()
   // call below will fail (on Windows) due to locked db file.
@@ -413,19 +411,26 @@ Results::~Results() {
   DeleteTemporaryFiles();
 }
 
-void Results::SetDirty() { dirty_ = true; }
+absl::StatusOr<std::unique_ptr<Results>> Results::Create() {
+  auto results = absl::WrapUnique(new Results());
+  NA_ASSIGN_OR_RETURN(results->temp_database_,
+                      DatabaseWriter::Create("temporary.database", true));
+  return results;
+}
 
-bool Results::IsDirty() const { return dirty_; }
+void Results::set_modified() { modified_ = true; }
+
+bool Results::is_modified() const { return modified_; }
 
 void Results::DeleteTemporaryFiles() {
   // Extremely dangerous, make very sure GetDirectory _never_ returns something
   // like "C:".
-  auto temp_dir_or = GetTempDirectory("BinDiff");
-  if (!temp_dir_or.ok()) {
+  auto temp_dir = GetTempDirectory("BinDiff");
+  if (!temp_dir.ok()) {
     return;
   }
   // Don't care if this fails - only litters the temp dir a bit.
-  RemoveAll(temp_dir_or.value()).IgnoreError();
+  RemoveAll(*temp_dir).IgnoreError();
 }
 
 size_t Results::GetNumUnmatchedPrimary() const {
@@ -508,7 +513,7 @@ Address Results::GetMatchSecondaryAddress(size_t index) const {
 bool Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
-  if (IsIncomplete()) {
+  if (is_incomplete()) {
     auto temp_dir = GetOrCreateTempDirectory("BinDiff");
     if (!temp_dir.ok()) {
       return false;
@@ -536,7 +541,7 @@ bool Results::IncrementalDiff() {
     }
 
     std::remove(incremental.c_str());
-    incomplete_results_ = false;
+    incomplete_ = false;
   }
 
   Timer<> timer;
@@ -629,7 +634,7 @@ bool Results::IncrementalDiff() {
   LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
                             " for incremental matching.");
 
-  SetDirty();
+  set_modified();
   return true;
 }
 
@@ -727,7 +732,7 @@ absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
     }
 
     // TODO(cblichmann): Tree search, this is O(n^2) when deleting all matches.
-    if (!IsIncomplete()) {
+    if (!is_incomplete()) {
       for (auto it = fixed_points_.begin(), end = fixed_points_.end();
            it != end; ++it) {
         auto* primary_flow_graph = it->GetPrimary();
@@ -767,9 +772,9 @@ absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
                               indexed_fixed_points_.end());
   num_indexed_fixed_points = indexed_fixed_points_.size();
   DCHECK(num_indexed_fixed_points == fixed_point_infos_.size());
-  DCHECK(IsIncomplete() || num_indexed_fixed_points == fixed_points_.size());
+  DCHECK(is_incomplete() || num_indexed_fixed_points == fixed_points_.size());
 
-  SetDirty();
+  set_modified();
   should_reset_selection_ = true;
   return absl::OkStatus();
 }
@@ -800,7 +805,7 @@ absl::Status Results::AddMatch(Address primary, Address secondary) {
     fixed_point_info.comments_ported = false;
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed points.
-    if (IsIncomplete()) {
+    if (is_incomplete()) {
       FlowGraph primary_graph;
       FlowGraph secondary_graph;
       FixedPoint fixed_point;
@@ -925,7 +930,7 @@ absl::Status Results::AddMatch(Address primary, Address secondary) {
     indexed_flow_graphs2_.erase(std::find(indexed_flow_graphs2_.begin(),
                                           indexed_flow_graphs2_.end(),
                                           &secondary_info));
-    SetDirty();
+    set_modified();
   } catch (const std::exception& message) {
     return absl::InternalError(
         absl::StrCat("Error adding manual match: ", message.what()));
@@ -1128,7 +1133,7 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
   std::string database_file;
   // TODO(cblichmann): Bug: if matches have been manually modified in the
   //                   meantime we are hosed!
-  if (IsIncomplete()) {
+  if (is_incomplete()) {
     database_file = input_filename_;
   } else {
     // TODO(cblichmann): This is insanely inefficient: every single call graph
@@ -1176,7 +1181,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   FixedPoints fixed_points;
   FlowGraph primary;
   FlowGraph secondary;
-  if (IsIncomplete()) {
+  if (is_incomplete()) {
     LOG(INFO) << "Loading incomplete flow graphs";
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed_points.
@@ -1201,7 +1206,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
       fixed_point.GetPrimary()->GetEntryPointAddress(),
       call_graph2_.GetFilePath(),
       fixed_point.GetSecondary()->GetEntryPointAddress());
-  if (IsIncomplete()) {
+  if (is_incomplete()) {
     DeleteTemporaryFlowGraphs();
   }
   return true;
@@ -1229,7 +1234,7 @@ void Results::Read(Reader* reader) {
   indexed_flow_graphs2_.clear();
   indexed_fixed_points_.clear();
 
-  incomplete_results_ = true;
+  incomplete_ = true;
   if (auto status = reader->Read(call_graph1_, call_graph2_, flow_graph_infos1_,
                                  flow_graph_infos2_, fixed_point_infos_);
       !status.ok()) {
@@ -1246,7 +1251,7 @@ void Results::Read(Reader* reader) {
   Count();
   similarity_ = reader->similarity();
   confidence_ = reader->confidence();
-  dirty_ = false;
+  modified_ = false;
 
   // TODO(cblichmann): Iterate over all fixed points that have been added
   //                   manually by the Java UI and evaluate them (add basic
@@ -1256,7 +1261,7 @@ void Results::Read(Reader* reader) {
 void Results::Write(Writer* writer) {
   writer->Write(call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_,
                 fixed_points_);
-  dirty_ = false;
+  modified_ = false;
 }
 
 void Results::CreateIndexedViews() {
@@ -1325,7 +1330,7 @@ absl::Status Results::PortComments(Address start_address_source,
   try {
     for (auto* fixed_point_info : indexed_fixed_points_) {
       if (get_func(static_cast<ea_t>(fixed_point_info->primary))) {
-        if (IsIncomplete()) {
+        if (is_incomplete()) {
           FlowGraph primary;
           FlowGraph secondary;
           FixedPoint fixed_point;
@@ -1379,7 +1384,7 @@ absl::Status Results::PortComments(absl::Span<const size_t> indices,
         if (how == kAsExternalLib) {
           function->flags |= FUNC_LIB;
         }
-        if (IsIncomplete()) {
+        if (is_incomplete()) {
           FlowGraph primary;
           FlowGraph secondary;
           FixedPoint fixed_point;
@@ -1428,17 +1433,17 @@ absl::Status Results::ConfirmMatches(absl::Span<const size_t> indices) {
     FixedPointInfo* fixed_point_info(indexed_fixed_points_[index]);
     fixed_point_info->algorithm = FindString(MatchingStep::kFunctionManualName);
     fixed_point_info->confidence = 1.0;
-    if (!IsIncomplete()) {
+    if (!is_incomplete()) {
       FixedPoint* fixed_point(FindFixedPoint(*fixed_point_info));
       fixed_point->SetMatchingStep(*fixed_point_info->algorithm);
       fixed_point->SetConfidence(fixed_point_info->confidence);
     }
   }
-  SetDirty();
+  set_modified();
   return absl::OkStatus();
 }
 
-bool Results::IsIncomplete() const { return incomplete_results_; }
+bool Results::is_incomplete() const { return incomplete_; }
 
 void Results::InitializeIndexedVectors() {
   absl::flat_hash_set<Address> matched_primaries;
