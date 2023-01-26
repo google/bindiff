@@ -22,6 +22,7 @@
 
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
+#include <boost/iterator/reverse_iterator.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 
 namespace security::bindiff {
@@ -62,7 +63,7 @@ template <typename Iterator, typename OutIterator>
 void ComputeLcs(Iterator xo, Iterator xlo, Iterator xhi, Iterator yo,
                 Iterator ylo, Iterator yhi, OutIterator xout,
                 OutIterator yout) {
-  using ReverseIterator = std::reverse_iterator<Iterator>;
+  using ReverseIterator = boost::reverse_iterator<Iterator>;
   const auto nx = distance(xlo, xhi);
   if (nx == 0) {         // all done
   } else if (nx == 1) {  // single item in x range.
