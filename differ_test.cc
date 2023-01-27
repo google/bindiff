@@ -232,8 +232,8 @@ TEST_P(GroundtruthTest, Run) {
         GetTestTempPath(absl::StrCat(call_graph1.GetFilename(), "_vs_",
                                      call_graph2.GetFilename(), ".truth"));
     GroundtruthWriter writer(result_path);
-    writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                 fixed_points);
+    QCHECK_OK(writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                           fixed_points));
     CompareToGroundTruth(meta.name, result_path, meta.truth);
   } catch (const std::runtime_error& error) {
     FAIL() << meta.name << ": " << error.what();
