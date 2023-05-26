@@ -128,11 +128,11 @@ std::string FindFile(absl::string_view path, absl::string_view extension) {
 }
 
 bool CheckHaveIdbWithMessage() {
-  bool result = strlen(get_path(PATH_TYPE_IDB)) > 0;
-  if (!result) {
+  if (strlen(get_path(PATH_TYPE_IDB)) == 0) {
     info("AUTOHIDE NONE\nPlease open an IDB first.");
+    return false;
   }
-  return result;
+  return true;
 }
 
 bool CheckHaveResultsWithMessage() {
@@ -447,76 +447,70 @@ absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
   const std::string filename1 =
       FindFile(JoinPath(temp_dir, "primary"), ".BinExport");
   if (filename1.empty()) {
-    return absl::UnknownError(
+    return absl::FailedPreconditionError(
         "Exporting the primary (this) database failed.\n"
         "Please check whether the BinExport plugin is installed correctly.");
   }
   const std::string filename2 =
       FindFile(JoinPath(temp_dir, "secondary"), ".BinExport");
   if (filename2.empty()) {
-    return absl::UnknownError(
+    return absl::FailedPreconditionError(
         "Exporting the secondary database failed. "
         "Is it opened in another instance?\n"
         "Please close all other IDA instances and try again.");
   }
 
   NA_RETURN_IF_ERROR(plugin.ClearResults());
-  try {
-    Results* results = plugin.results();
-    Read(filename1, &results->call_graph1_, &results->flow_graphs1_,
-         &results->flow_graph_infos1_, &results->instruction_cache_);
-    Read(filename2, &results->call_graph2_, &results->flow_graphs2_,
-         &results->flow_graph_infos2_, &results->instruction_cache_);
-    MatchingContext context(results->call_graph1_, results->call_graph2_,
-                            results->flow_graphs1_, results->flow_graphs2_,
-                            results->fixed_points_);
-    FilterFunctions(start_address_source, end_address_source,
-                    &context.primary_call_graph_, &context.primary_flow_graphs_,
-                    &results->flow_graph_infos1_);
-    FilterFunctions(start_address_target, end_address_target,
-                    &context.secondary_call_graph_,
-                    &context.secondary_flow_graphs_,
-                    &results->flow_graph_infos2_);
 
-    const MatchingSteps callgraph_steps = GetDefaultMatchingSteps();
-    const MatchingStepsFlowGraph basicblock_steps =
-        GetDefaultMatchingStepsBasicBlock();
-    Diff(&context, callgraph_steps, basicblock_steps);
-    LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
-                              " for matching.");
-    results->set_modified();
-    plugin.ShowResults(Plugin::kResultsShowAll);
+  Results* results = plugin.results();
+  NA_RETURN_IF_ERROR(Read(filename1, &results->call_graph1_,
+                          &results->flow_graphs1_, &results->flow_graph_infos1_,
+                          &results->instruction_cache_));
+  NA_RETURN_IF_ERROR(Read(filename2, &results->call_graph2_,
+                          &results->flow_graphs2_, &results->flow_graph_infos2_,
+                          &results->instruction_cache_));
+  MatchingContext context(results->call_graph1_, results->call_graph2_,
+                          results->flow_graphs1_, results->flow_graphs2_,
+                          results->fixed_points_);
+  FilterFunctions(start_address_source, end_address_source,
+                  &context.primary_call_graph_, &context.primary_flow_graphs_,
+                  &results->flow_graph_infos1_);
+  FilterFunctions(
+      start_address_target, end_address_target, &context.secondary_call_graph_,
+      &context.secondary_flow_graphs_, &results->flow_graph_infos2_);
 
-    return true;
-  } catch (const std::exception& e) {
-    return absl::UnknownError(e.what());
-  } catch (...) {
-    return absl::UnknownError("Unknown error");
-  }
+  const MatchingSteps callgraph_steps = GetDefaultMatchingSteps();
+  const MatchingStepsFlowGraph basicblock_steps =
+      GetDefaultMatchingStepsBasicBlock();
+  Diff(&context, callgraph_steps, basicblock_steps);
+  LOG(INFO) << absl::StrCat(HumanReadableDuration(timer.elapsed()),
+                            " for matching.");
+  results->set_modified();
+  plugin.ShowResults(Plugin::kResultsShowAll);
+  return true;
 }
 
 bool DoRediffDatabase() {
-  try {
-    auto* results = Plugin::instance()->results();
-    if (!results) {
-      warning(
-          "You need to create a regular diff before diffing incrementally. "
-          "Either create or load one. Diffing incrementally will keep all "
-          "manually confirmed matches in the result and try to reassign all "
-          "other matches.");
-      return false;
-    }
-    const bool success = results->IncrementalDiff();
-    Plugin::instance()->ShowResults(Plugin::kResultsShowAll);
-    return success;
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error while diffing: " << message.what();
-    warning("Error while diffing: %s\n", message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while diffing.";
-    warning("Unknown error while diffing.");
+  auto* results = Plugin::instance()->results();
+  if (!results) {
+    warning(
+        "You need to create a regular diff before diffing incrementally. "
+        "Either create or load one. Diffing incrementally will keep all "
+        "manually confirmed matches in the result and try to reassign all "
+        "other matches.");
+    return false;
   }
-  return false;
+  if (absl::Status status = results->IncrementalDiff(); !status.ok()) {
+    if (!absl::IsCancelled(status)) {
+      const std::string message =
+          absl::StrCat("Error while diffing: ", status.message());
+      LOG(INFO) << message;
+      warning("%s\n", message.c_str());
+    }
+    return false;
+  }
+  Plugin::instance()->ShowResults(Plugin::kResultsShowAll);
+  return true;
 }
 
 bool DoDiffDatabase(bool filtered) {
@@ -550,9 +544,10 @@ bool DoDiffDatabase(bool filtered) {
       DiffAddressRange(start_address_source, end_address_source,
                        start_address_target, end_address_target);
   if (!diffed.ok()) {
-    const auto& message = diffed.status().message();
-    LOG(INFO) << "Error while diffing: " << message;
-    warning("Error while diffing: %s\n", std::string(message).c_str());
+    const std::string message =
+        absl::StrCat("Error while diffing: ", diffed.status().message());
+    LOG(INFO) << message;
+    warning("%s\n", message.c_str());
     return false;
   }
   return *diffed;

@@ -26,8 +26,12 @@
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
+
+using ::security::binexport::FormatAddress;
 
 // Return the immediate children of the call graph node denoted by
 // address. Skip nodes that have already been matched.
@@ -75,8 +79,11 @@ void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
   }
 }
 
-// This adds empty flow graphs for functions imported from dlls.
-void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
+// Adds empty flow graphs to all call graph vertices that don't already have one
+// attached. Returns an error if a flow graph already exists for a call graph
+// vertex.
+absl::Status AddSubsToCallGraph(CallGraph* call_graph,
+                                 FlowGraphs* flow_graphs) {
   for (auto [it, end] = boost::vertices(call_graph->GetGraph()); it != end;
        ++it) {
     const CallGraph::Vertex vertex = *it;
@@ -89,73 +96,75 @@ void AddSubsToCallGraph(CallGraph* call_graph, FlowGraphs* flow_graphs) {
     flow_graph = new FlowGraph(call_graph, address);
     call_graph->SetStub(vertex, true);
     call_graph->SetLibrary(vertex, true);
-    CHECK(flow_graphs->insert(flow_graph).second);
+    if (!flow_graphs->insert(flow_graph).second) {
+      return absl::FailedPreconditionError(
+          absl::StrCat("a flow graph exists at ", FormatAddress(address)));
+    }
   }
+  return absl::OkStatus();
 }
 
-void SetupGraphsFromProto(const BinExport2& proto, const std::string& filename,
-                          CallGraph* call_graph, FlowGraphs* flow_graphs,
-                          FlowGraphInfos* flow_graph_infos,
-                          Instruction::Cache* instruction_cache) {
-  if (auto status = call_graph->Read(proto, filename); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+absl::Status SetupGraphsFromProto(const BinExport2& proto,
+                                  const std::string& filename,
+                                  CallGraph* call_graph,
+                                  FlowGraphs* flow_graphs,
+                                  FlowGraphInfos* flow_graph_infos,
+                                  Instruction::Cache* instruction_cache) {
+  NA_RETURN_IF_ERROR(call_graph->Read(proto, filename));
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     if (proto_flow_graph.basic_block_index_size() == 0) {
       continue;
     }
     auto flow_graph = absl::make_unique<FlowGraph>();
-    if (auto status = flow_graph->Read(proto, proto_flow_graph, call_graph,
-                                       instruction_cache);
-        !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    NA_RETURN_IF_ERROR(flow_graph->Read(proto, proto_flow_graph, call_graph,
+                                        instruction_cache));
 
     Counts counts;
     Count(*flow_graph, &counts);
 
-    const auto address = flow_graph->GetEntryPointAddress();
-    auto& info = (*flow_graph_infos)[address];
-    info.address = address;
-    info.name = &flow_graph->GetName();
-    info.demangled_name = &flow_graph->GetDemangledName();
-    info.basic_block_count = counts[Counts::kBasicBlocksLibrary] +
-                             counts[Counts::kBasicBlocksNonLibrary];
-    info.edge_count =
-        counts[Counts::kEdgesLibrary] + counts[Counts::kEdgesNonLibrary];
-    info.instruction_count = counts[Counts::kInstructionsLibrary] +
-                             counts[Counts::kInstructionsNonLibrary];
-
+    if (flow_graph_infos) {
+      const auto address = flow_graph->GetEntryPointAddress();
+      auto& info = (*flow_graph_infos)[address];
+      info.address = address;
+      info.name = &flow_graph->GetName();
+      info.demangled_name = &flow_graph->GetDemangledName();
+      info.basic_block_count = counts[Counts::kBasicBlocksLibrary] +
+                               counts[Counts::kBasicBlocksNonLibrary];
+      info.edge_count =
+          counts[Counts::kEdgesLibrary] + counts[Counts::kEdgesNonLibrary];
+      info.instruction_count = counts[Counts::kInstructionsLibrary] +
+                               counts[Counts::kInstructionsNonLibrary];
+    }
     flow_graphs->insert(flow_graph.release());
   }
 
-  AddSubsToCallGraph(call_graph, flow_graphs);
+  return AddSubsToCallGraph(call_graph, flow_graphs);
 }
 
-void Read(const std::string& filename, CallGraph* call_graph,
-          FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
-          Instruction::Cache* instruction_cache) {
+absl::Status Read(const std::string& filename, CallGraph* call_graph,
+                  FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
+                  Instruction::Cache* instruction_cache) {
   call_graph->Reset();
   DeleteFlowGraphs(flow_graphs);
-  flow_graph_infos->clear();
-
-  enum { kMinFileSize = 8 };
-  auto file_size_or = GetFileSize(filename);
-  if (!file_size_or.ok()) {
-    throw std::runtime_error(std::string(file_size_or.status().message()));
+  if (flow_graph_infos) {
+    flow_graph_infos->clear();
   }
-  if (file_size_or.value() <= kMinFileSize) {
-    throw std::runtime_error(absl::StrCat("file too small: ", filename));
+
+  constexpr int64_t kMinFileSize = 8;
+  NA_ASSIGN_OR_RETURN(int64_t file_size, GetFileSize(filename));
+  if (file_size <= kMinFileSize) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("file too small: ", filename));
   }
 
   std::ifstream stream(filename, std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
-    throw std::runtime_error(
+    return absl::FailedPreconditionError(
         absl::StrCat("parsing failed for exported file: ", filename));
   }
-  SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
-                       flow_graph_infos, instruction_cache);
+  return SetupGraphsFromProto(proto, filename, call_graph, flow_graphs,
+                              flow_graph_infos, instruction_cache);
 }
 
 void DeleteFlowGraphs(FlowGraphs* flow_graphs) {

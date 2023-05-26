@@ -184,158 +184,151 @@ DifferThread::DifferThread(const std::string& path, const std::string& out_path,
     : file_queue_(files), path_(path), out_path_(out_path) {}
 
 void DifferThread::operator()() {
-  const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
-  const MatchingStepsFlowGraph default_basicblock_steps(
-      GetDefaultMatchingStepsBasicBlock());
-
+  const MatchingSteps call_graph_steps = GetDefaultMatchingSteps();
+  const MatchingStepsFlowGraph basic_block_steps =
+      GetDefaultMatchingStepsBasicBlock();
   Instruction::Cache instruction_cache;
   FlowGraphs flow_graphs1;
   FlowGraphs flow_graphs2;
   CallGraph call_graph1;
   CallGraph call_graph2;
+  std::string file1;
+  std::string file2;
   std::string last_file1;
   std::string last_file2;
   ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
-  do {
-    std::string file1;
-    std::string file2;
-    try {
-      Timer<> timer;
-      {
-        // Pop pair from todo queue.
-        absl::MutexLock lock{&g_queue_mutex};
-        if (file_queue_->empty()) {
-          break;
-        }
-        file1 = file_queue_->front().first;
-        file2 = file_queue_->front().second;
-        file_queue_->pop_front();
-      }
 
-      // We need to keep the cache around if one file stays the same
-      if (last_file1 != file1 && last_file2 != file2) {
-        instruction_cache.clear();
-      }
-
-      // Perform setup and diff.
-      // TODO(cblichmann): Consider inverted pairs as well, i.e. file1 ==
-      //                   last_file2.
-      if (last_file1 != file1) {
-        PrintMessage(absl::StrCat("Reading ", file1));
-        DeleteFlowGraphs(&flow_graphs1);
-        FlowGraphInfos infos;
-        Read(JoinPath(path_, file1), &call_graph1, &flow_graphs1, &infos,
-             &instruction_cache);
-      } else {
-        ResetMatches(&flow_graphs1);
-      }
-
-      if (last_file2 != file2) {
-        PrintMessage(absl::StrCat("Reading ", file2));
-        DeleteFlowGraphs(&flow_graphs2);
-        FlowGraphInfos infos;
-        Read(JoinPath(path_, file2), &call_graph2, &flow_graphs2, &infos,
-             &instruction_cache);
-      } else {
-        ResetMatches(&flow_graphs2);
-      }
-
-      PrintMessage(absl::StrCat("Diffing ", file1, " vs ", file2));
-
-      FixedPoints fixed_points;
-      MatchingContext context(call_graph1, call_graph2, flow_graphs1,
-                              flow_graphs2, fixed_points);
-      Diff(&context, default_callgraph_steps, default_basicblock_steps);
-
-      Histogram histogram;
-      Counts counts;
-      GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points,
-                            &histogram, &counts);
-      const double similarity =
-          GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
-      Confidences confidences;
-      const double confidence = GetConfidence(histogram, &confidences);
-
-      {
-        ChainWriter writer;
-        if (g_output_log) {
-          absl::StatusOr<std::string> filename = GetTruncatedFilename(
-              out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
-              call_graph2.GetFilename(), ".results");
-          if (!filename.ok()) {
-            throw std::runtime_error(std::string(filename.status().message()));
-          }
-          writer.Add(absl::make_unique<ResultsLogWriter>(*filename));
-        }
-        if (g_output_binary) {
-          absl::StatusOr<std::string> filename = GetTruncatedFilename(
-              out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
-              call_graph2.GetFilename(), ".BinDiff");
-          if (!filename.ok()) {
-            throw std::runtime_error(std::string(filename.status().message()));
-          }
-          auto database_writer = DatabaseWriter::Create(
-              *filename,
-              DatabaseWriter::Options().set_include_function_names(
-                  !config::Proto().binary_format().exclude_function_names()));
-          if (!database_writer.ok()) {
-            throw std::runtime_error(
-                std::string(database_writer.status().message()));
-          }
-          writer.Add(std::move(*database_writer));
-        }
-
-        if (!writer.empty()) {
-          PrintMessage("Writing results");
-          absl::Status status =
-              writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                           fixed_points);
-          if (!status.ok()) {
-            throw std::runtime_error(std::string(status.message()));
-          }
-        }
-
-        std::string result_message = absl::StrCat(
-            file1, " vs ", file2, " (", HumanReadableDuration(timer.elapsed()),
-            "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence);
-        for (int i = 0; i < counts.ui_entry_size(); ++i) {
-          const auto& [name, value] = counts.GetEntry(i);
-          absl::StrAppend(&result_message, "\n\t", name, ":\t", value);
-        }
-        PrintMessage(result_message);
-      }
-
-      last_file1 = file1;
-      last_file2 = file2;
-    } catch (const std::bad_alloc&) {
-      PrintErrorMessage(
-          absl::StrCat("out of memory diffing ", file1, " vs ", file2));
-      last_file1.clear();
-      last_file2.clear();
-    } catch (const std::exception& error) {
-      PrintErrorMessage(absl::StrCat("while diffing ", file1, " vs ", file2,
-                                     ": ", error.what()));
-
-      last_file1.clear();
-      last_file2.clear();
+  auto did_handle_error = [&](const absl::Status& status) {
+    if (status.ok()) {
+      return false;  // Error not handled
     }
+    PrintErrorMessage(absl::StrCat("while diffing ", file1, " vs ", file2, ": ",
+                                   status.message()));
+    last_file1.clear();
+    last_file2.clear();
+    return true;  // Error handled
+  };
+
+  do {
+    Timer<> timer;
+    {
+      // Pop pair from todo queue.
+      absl::MutexLock lock(&g_queue_mutex);
+      if (file_queue_->empty()) {
+        break;
+      }
+      std::tie(file1, file2) = file_queue_->front();
+      file_queue_->pop_front();
+    }
+
+    // We need to keep the cache around if one file stays the same
+    if (last_file1 != file1 && last_file2 != file2) {
+      instruction_cache.clear();
+    }
+
+    // Perform setup and diff.
+    // TODO(cblichmann): Consider inverted pairs as well, i.e. file1 ==
+    //                   last_file2.
+    if (last_file1 != file1) {
+      PrintMessage(absl::StrCat("Reading ", file1));
+      DeleteFlowGraphs(&flow_graphs1);
+      if (did_handle_error(Read(JoinPath(path_, file1), &call_graph1,
+                                &flow_graphs1, /*flow_graph_infos=*/nullptr,
+                                &instruction_cache))) {
+        continue;
+      }
+    } else {
+      ResetMatches(&flow_graphs1);
+    }
+
+    if (last_file2 != file2) {
+      PrintMessage(absl::StrCat("Reading ", file2));
+      DeleteFlowGraphs(&flow_graphs2);
+      if (did_handle_error(Read(JoinPath(path_, file2), &call_graph2,
+                                &flow_graphs2, /*flow_graph_infos=*/nullptr,
+                                &instruction_cache))) {
+        continue;
+      }
+    } else {
+      ResetMatches(&flow_graphs2);
+    }
+
+    PrintMessage(absl::StrCat("Diffing ", file1, " vs ", file2));
+
+    FixedPoints fixed_points;
+    MatchingContext context(call_graph1, call_graph2, flow_graphs1,
+                            flow_graphs2, fixed_points);
+    Diff(&context, call_graph_steps, basic_block_steps);
+
+    Histogram histogram;
+    Counts counts;
+    GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
+                          &counts);
+    const double similarity =
+        GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
+    Confidences confidences;
+    const double confidence = GetConfidence(histogram, &confidences);
+
+    ChainWriter writer;
+    if (g_output_log) {
+      absl::StatusOr<std::string> filename = GetTruncatedFilename(
+          out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
+          call_graph2.GetFilename(), ".results");
+      if (did_handle_error(filename.status())) {
+        continue;
+      }
+      writer.Add(absl::make_unique<ResultsLogWriter>(*filename));
+    }
+    if (g_output_binary) {
+      absl::StatusOr<std::string> filename = GetTruncatedFilename(
+          out_path_ + kPathSeparator, call_graph1.GetFilename(), "_vs_",
+          call_graph2.GetFilename(), ".BinDiff");
+      if (did_handle_error(filename.status())) {
+        continue;
+      }
+      auto database_writer = DatabaseWriter::Create(
+          *filename,
+          DatabaseWriter::Options().set_include_function_names(
+              !config::Proto().binary_format().exclude_function_names()));
+      if (did_handle_error(database_writer.status())) {
+        continue;
+      }
+      writer.Add(std::move(*database_writer));
+    }
+
+    if (!writer.empty()) {
+      PrintMessage("Writing results");
+      if (did_handle_error(writer.Write(call_graph1, call_graph2, flow_graphs1,
+                                        flow_graphs2, fixed_points))) {
+        continue;
+      }
+    }
+
+    std::string result_message = absl::StrCat(
+        file1, " vs ", file2, " (", HumanReadableDuration(timer.elapsed()),
+        "):\tsimilarity:\t", similarity, "\tconfidence:\t", confidence);
+    for (int i = 0; i < counts.ui_entry_size(); ++i) {
+      const auto& [name, value] = counts.GetEntry(i);
+      absl::StrAppend(&result_message, "\n\t", name, ":\t", value);
+    }
+    PrintMessage(result_message);
+
+    last_file1 = file1;
+    last_file2 = file2;
   } while (!g_wants_to_quit);
 }
 
-void ListFiles(const std::string& path) {
+absl::Status ListFiles(const std::string& path) {
   std::vector<std::string> entries;
   if (absl::Status status = GetDirectoryEntries(path, &entries); !status.ok()) {
-    PrintErrorMessage(absl::StrCat("error listing files: ", status.message()));
-    return;
+    return absl::FailedPreconditionError(
+        absl::StrCat("error listing files: ", status.message()));
   }
 
   for (const auto& entry : entries) {
-    const auto file_path(JoinPath(path, entry));
-    if (IsDirectory(file_path)) {
-      continue;
-    }
-    const auto extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
-    if (extension != ".BINEXPORT") {
+    const std::string file_path = JoinPath(path, entry);
+    if (IsDirectory(file_path) ||
+        absl::AsciiStrToUpper(GetFileExtension(file_path)) != ".BINEXPORT") {
       continue;
     }
     std::ifstream file(file_path, std::ios_base::binary);
@@ -347,23 +340,20 @@ void ListFiles(const std::string& path) {
                                      meta_information.executable_name(), ")"));
     }
   }
+  return absl::OkStatus();
 }
 
-void BatchDiff(const std::string& path, const std::string& reference_file,
-               const std::string& out_path) {
+absl::Status BatchDiff(const std::string& path,
+                       const std::string& reference_file,
+                       const std::string& out_path) {
   const std::string full_path = GetFullPathName(path);
   const std::string full_reference_file =
       !reference_file.empty() ? GetFullPathName(reference_file) : "";
   const std::string full_out_path = GetFullPathName(out_path);
 
-  std::vector<std::string> idbs;
   std::vector<std::string> binexports;
-  if (auto idbs_or = CollectIdbsToExport(full_path, &binexports);
-      !idbs_or.ok()) {
-    throw std::runtime_error(std::string(idbs_or.status().message()));
-  } else {
-    idbs = std::move(idbs_or).value();
-  }
+  NA_ASSIGN_OR_RETURN(std::vector<std::string> idbs,
+                      CollectIdbsToExport(full_path, &binexports));
 
   const auto& config = config::Proto();
   const int num_threads = config.num_threads() > 0
@@ -436,6 +426,7 @@ void BatchDiff(const std::string& path, const std::string& reference_file,
     PrintMessage(absl::StrCat(num_diffed, " pairs diffed in ",
                               HumanReadableDuration(diff_time)));
   }
+  return absl::OkStatus();
 }
 
 void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
@@ -451,20 +442,16 @@ void DumpMdIndices(const CallGraph& call_graph, const FlowGraphs& flow_graphs) {
   std::cout << std::endl;
 }
 
-void BatchDumpMdIndices(const std::string& path) {
+absl::Status BatchDumpMdIndices(const std::string& path) {
   std::vector<std::string> entries;
   if (absl::Status status = GetDirectoryEntries(path, &entries); !status.ok()) {
-    PrintErrorMessage(absl::StrCat("error listing files in `", path,
-                                   "`: ", status.message()));
-    return;
+    return absl::UnknownError(absl::StrCat("error listing files in `", path,
+                                           "`: ", status.message()));
   }
   for (const auto& entry : entries) {
-    auto file_path(JoinPath(path, entry));
-    if (IsDirectory(file_path)) {
-      continue;
-    }
-    auto extension = absl::AsciiStrToUpper(GetFileExtension(file_path));
-    if (extension != ".CALL_GRAPH") {
+    std::string file_path = JoinPath(path, entry);
+    if (IsDirectory(file_path) ||
+        absl::AsciiStrToUpper(GetFileExtension(file_path)) != ".CALL_GRAPH") {
       continue;
     }
 
@@ -473,9 +460,11 @@ void BatchDumpMdIndices(const std::string& path) {
     Instruction::Cache instruction_cache;
     ScopedCleanup cleanup(&flow_graphs, 0, &instruction_cache);
     FlowGraphInfos infos;
-    Read(file_path, &call_graph, &flow_graphs, &infos, &instruction_cache);
+    NA_RETURN_IF_ERROR(
+        Read(file_path, &call_graph, &flow_graphs, &infos, &instruction_cache));
     DumpMdIndices(call_graph, flow_graphs);
   }
+  return absl::OkStatus();
 }
 
 void SignalHandler(int code) {
@@ -653,18 +642,19 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
       // Primary from file system.
       FlowGraphInfos infos;
       call_graph1 = absl::make_unique<CallGraph>();
-      Read(primary, call_graph1.get(), &flow_graphs1, &infos,
-           &instruction_cache);
+      NA_RETURN_IF_ERROR(Read(primary, call_graph1.get(), &flow_graphs1, &infos,
+                              &instruction_cache));
     }
 
     if (IsDirectory(primary)) {
       // File system batch diff.
       if (absl::GetFlag(FLAGS_ls)) {
-        ListFiles(primary);
+        NA_RETURN_IF_ERROR(ListFiles(primary));
       } else if (absl::GetFlag(FLAGS_md_index)) {
-        BatchDumpMdIndices(primary);
+        NA_RETURN_IF_ERROR(BatchDumpMdIndices(primary));
       } else {
-        BatchDiff(primary, secondary, absl::GetFlag(FLAGS_output_dir));
+        NA_RETURN_IF_ERROR(
+            BatchDiff(primary, secondary, absl::GetFlag(FLAGS_output_dir)));
       }
       done_something = true;
     }
@@ -678,8 +668,8 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
       // secondary from filesystem
       FlowGraphInfos infos;
       call_graph2 = absl::make_unique<CallGraph>();
-      Read(secondary, call_graph2.get(), &flow_graphs2, &infos,
-           &instruction_cache);
+      NA_RETURN_IF_ERROR(Read(secondary, call_graph2.get(), &flow_graphs2,
+                              &infos, &instruction_cache));
     }
 
     if ((!done_something && !FileExists(primary) && !IsDirectory(primary)) ||
@@ -739,39 +729,30 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
 
       ChainWriter writer;
       if (g_output_log) {
-        absl::StatusOr<std::string> filename = GetTruncatedFilename(
-            absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
-            call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
-            ".results");
-        if (!filename.ok()) {
-          throw std::runtime_error(std::string(filename.status().message()));
-        }
-        writer.Add(std::make_unique<ResultsLogWriter>(*filename));
+        NA_ASSIGN_OR_RETURN(
+            std::string filename,
+            GetTruncatedFilename(
+                absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
+                call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
+                ".results"));
+        writer.Add(std::make_unique<ResultsLogWriter>(filename));
       }
       if (g_output_binary) {
-        absl::StatusOr<std::string> filename = GetTruncatedFilename(
-            absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
-            call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
-            ".BinDiff");
-        if (!filename.ok()) {
-          throw std::runtime_error(std::string(filename.status().message()));
-        }
-        auto database_writer = DatabaseWriter::Create(*filename);
-        if (!database_writer.ok()) {
-          throw std::runtime_error(
-              std::string(database_writer.status().message()));
-        }
-        writer.Add(std::move(*database_writer));
+        NA_ASSIGN_OR_RETURN(
+            std::string filename,
+            GetTruncatedFilename(
+                absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
+                call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
+                ".BinDiff"));
+        NA_ASSIGN_OR_RETURN(auto database_writer,
+                            DatabaseWriter::Create(filename));
+        writer.Add(std::move(database_writer));
       }
 
       if (!writer.empty()) {
-        absl::Status status =
-            writer.Write(*call_graph1, *call_graph2, flow_graphs1, flow_graphs2,
-                         fixed_points);
-        if (!status.ok()) {
-          throw std::runtime_error(std::string(status.message()));
-        }
-
+        NA_RETURN_IF_ERROR(writer.Write(*call_graph1, *call_graph2,
+                                        flow_graphs1, flow_graphs2,
+                                        fixed_points));
         PrintMessage(absl::StrCat("Writing results: ",
                                   HumanReadableDuration(timer.elapsed())));
       }

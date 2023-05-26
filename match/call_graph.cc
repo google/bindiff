@@ -235,9 +235,9 @@ bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
 }
 
 MatchingStep::MatchingStep(std::string name, std::string display_name)
-    : name_{std::move(name)},
-      display_name_{std::move(display_name)},
-      confidence_{GetConfidenceFromConfig(name_)} {}
+    : name_(std::move(name)),
+      display_name_(std::move(display_name)),
+      confidence_(GetConfidenceFromConfig(name_)) {}
 
 void BaseMatchingStepEdgesMdIndex::FeatureDestructor(EdgeFeatures* feature) {
   delete feature;

@@ -32,11 +32,13 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
+#include "third_party/zynamics/binexport/util/status_matchers.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
 namespace {
 
+using ::not_absl::IsOk;
 using ::security::binexport::GetTestFileContents;
 using ::security::binexport::GetTestSourcePath;
 using ::security::binexport::GetTestTempPath;
@@ -177,14 +179,16 @@ TEST_P(GroundtruthTest, Run) {
     FlowGraphInfos flow_graph_infos2;
 
     Timer<> timer;
-    Read(meta.primary, &call_graph1, &flow_graphs1, &flow_graph_infos1,
-         &instruction_cache);
+    ASSERT_THAT(Read(meta.primary, &call_graph1, &flow_graphs1,
+                     &flow_graph_infos1, &instruction_cache),
+                IsOk());
     const double time_primary = timer.elapsed();
     LOG(INFO) << PaddedStr("time primary:") << time_primary;
 
     timer.restart();
-    Read(meta.secondary, &call_graph2, &flow_graphs2, &flow_graph_infos2,
-         &instruction_cache);
+    ASSERT_THAT(Read(meta.secondary, &call_graph2, &flow_graphs2,
+                     &flow_graph_infos2, &instruction_cache),
+                IsOk());
     const double time_secondary = timer.elapsed();
     LOG(INFO) << PaddedStr("time secondary:") << time_secondary;
 

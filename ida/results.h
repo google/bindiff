@@ -137,7 +137,7 @@ class Results {
   void set_modified();
   bool is_modified() const;
 
-  bool IncrementalDiff();
+  absl::Status IncrementalDiff();
   void MarkPortedCommentsInDatabase();
 
   bool should_reset_selection() { return should_reset_selection_; }

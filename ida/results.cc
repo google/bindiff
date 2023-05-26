@@ -510,39 +510,32 @@ Address Results::GetMatchSecondaryAddress(size_t index) const {
   return indexed_fixed_points_[index]->secondary;
 }
 
-bool Results::IncrementalDiff() {
+absl::Status Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
   if (is_incomplete()) {
-    auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-    if (!temp_dir.ok()) {
-      return false;
-    }
-    const std::string incremental = JoinPath(*temp_dir, "incremental.BinDiff");
-    {
-      ::security::bindiff::Read(call_graph1_.GetFilePath(), &call_graph1_,
-                                &flow_graphs1_, &flow_graph_infos1_,
-                                &instruction_cache_);
-      ::security::bindiff::Read(call_graph2_.GetFilePath(), &call_graph2_,
-                                &flow_graphs2_, &flow_graph_infos2_,
-                                &instruction_cache_);
+    NA_ASSIGN_OR_RETURN(std::string temp_dir,
+                        GetOrCreateTempDirectory("BinDiff"));
+    const std::string incremental = JoinPath(temp_dir, "incremental.BinDiff");
+    NA_RETURN_IF_ERROR(::security::bindiff::Read(
+        call_graph1_.GetFilePath(), &call_graph1_, &flow_graphs1_,
+        &flow_graph_infos1_, &instruction_cache_));
+    NA_RETURN_IF_ERROR(::security::bindiff::Read(
+        call_graph2_.GetFilePath(), &call_graph2_, &flow_graphs2_,
+        &flow_graph_infos2_, &instruction_cache_));
 
-      if (auto status = CopyFile(input_filename_, incremental); !status.ok()) {
-        throw std::runtime_error(std::string(status.message()));
-      }
+    NA_RETURN_IF_ERROR(CopyFile(input_filename_, incremental));
 
-      auto database = SqliteDatabase::Connect(incremental);
-      if (!database.ok()) {
-        throw std::runtime_error(std::string(database.status().message()));
-      }
-      DatabaseTransmuter writer(*database, fixed_point_infos_);
-      if (auto status = Write(&writer); !status.ok()) {
-        throw std::runtime_error(std::string(status.message()));
-      }
+    NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(incremental));
+    DatabaseTransmuter writer(database, fixed_point_infos_);
+    NA_RETURN_IF_ERROR(Write(&writer));
 
-      DatabaseReader::ReadFullMatches(&*database, &call_graph1_, &call_graph2_,
+    try {
+      DatabaseReader::ReadFullMatches(&database, &call_graph1_, &call_graph2_,
                                       &flow_graphs1_, &flow_graphs2_,
                                       &fixed_points_);
+    } catch (const std::runtime_error& message) {
+      return absl::UnknownError(message.what());
     }
 
     std::remove(incremental.c_str());
@@ -555,11 +548,9 @@ bool Results::IncrementalDiff() {
 
   // Try to find any confirmed fixed points. If there aren't any just return.
   bool has_confirmed_fixedpoints = false;
-  for (auto i = fixed_points_.cbegin(), end = fixed_points_.cend(); i != end;
-       ++i) {
-    const FixedPoint& fixedpoint = *i;
-    if (fixedpoint.GetMatchingStep() ==
-        absl::string_view{MatchingStep::kFunctionManualName}) {
+  for (const FixedPoint& fixed_point : fixed_points_) {
+    if (fixed_point.GetMatchingStep() ==
+        absl::string_view(MatchingStep::kFunctionManualName)) {
       has_confirmed_fixedpoints = true;
       break;
     }
@@ -569,20 +560,20 @@ bool Results::IncrementalDiff() {
         "No manually confirmed fixed points found. Please add some matches "
         "or use the matched functions window context menu to confirm automatic "
         "matches before running an incremental diff");
-    return false;
+    return absl::CancelledError("");
   }
 
   // Remove all non-manual matches from current result
-  for (auto i = fixed_points_.begin(), end = fixed_points_.end(); i != end;) {
-    FixedPoint& fixed_point = const_cast<FixedPoint&>(*i);
+  for (auto it = fixed_points_.begin(), end = fixed_points_.end(); it != end;) {
+    FixedPoint& fixed_point = const_cast<FixedPoint&>(*it);
     FlowGraph* primary = fixed_point.GetPrimary();
     FlowGraph* secondary = fixed_point.GetSecondary();
     if (fixed_point.GetMatchingStep() ==
         absl::string_view{MatchingStep::kFunctionManualName}) {
-      ++i;
+      ++it;
       continue;  // Keep confirmed fixed points.
     }
-    fixed_points_.erase(i++);
+    fixed_points_.erase(it++);
 
     primary->ResetMatches();
     secondary->ResetMatches();
@@ -598,17 +589,15 @@ bool Results::IncrementalDiff() {
   counts_.clear();
 
   // Diff
-  const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
-  const MatchingStepsFlowGraph default_basicblock_steps(
-      GetDefaultMatchingStepsBasicBlock());
-  Diff(&context, default_callgraph_steps, default_basicblock_steps);
+  const MatchingSteps call_graph_steps = GetDefaultMatchingSteps();
+  const MatchingStepsFlowGraph basic_block_steps =
+      GetDefaultMatchingStepsBasicBlock();
+  Diff(&context, call_graph_steps, basic_block_steps);
 
   // Refill fixed point info.
   fixed_point_infos_.clear();
-  for (auto i = fixed_points_.cbegin(), end = fixed_points_.cend(); i != end;
-       ++i) {
+  for (const FixedPoint& fixed_point : fixed_points_) {
     FixedPointInfo info;
-    const FixedPoint& fixed_point = *i;
     info.algorithm = FindString(fixed_point.GetMatchingStep());
     info.confidence = fixed_point.GetConfidence();
     info.evaluate = false;
@@ -640,7 +629,7 @@ bool Results::IncrementalDiff() {
                             " for incremental matching.");
 
   set_modified();
-  return true;
+  return absl::OkStatus();
 }
 
 size_t Results::GetNumStatistics() const {
