@@ -15,7 +15,13 @@
 # CMake build file for BinDiff. This file relies on the open source version of
 # BinExport a lot.
 cmake_minimum_required(VERSION 3.14..3.24)
+
 cmake_policy(VERSION 3.14)
+
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)  # Set download timestamp to current time
+endif()
+
 project(bindiff VERSION 7)
 
 # BinDiff settings
