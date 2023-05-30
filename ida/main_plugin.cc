@@ -1330,9 +1330,15 @@ Plugin::LoadStatus Plugin::Init() {
     return PLUGIN_SKIP;
   }
 
-  if (config.ida().directory().empty()) {
-    config.mutable_ida()->set_directory(idadir(/*subdir=*/nullptr));
-    config::SaveUserConfig(config).IgnoreError();
+  // Update per-user config with most recent IDA directory. A directory mismatch
+  // happens when updating or running different versions of IDA Pro.
+  std::string ida_dir_in_config = config.ida().directory();
+  config.mutable_ida()->set_directory(idadir(/*subdir=*/nullptr));
+  if (config.ida().directory() != ida_dir_in_config) {
+    absl::Status status = config::SaveUserConfig(config);
+    if (!status.ok()) {
+      LOG(INFO) << "Cannot update per-user config: " << status.message();
+    }
   }
 
   InitActions();
