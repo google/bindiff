@@ -104,6 +104,7 @@ absl::StatusOr<std::unique_ptr<DatabaseWriter>> DatabaseWriter::Create(
   NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(path));
   auto writer = absl::WrapUnique(
       new DatabaseWriter(std::move(database), std::move(options)));
+  writer->filename_ = path;
   NA_RETURN_IF_ERROR(writer->PrepareDatabase());
   return writer;
 }
@@ -121,6 +122,7 @@ absl::StatusOr<std::unique_ptr<DatabaseWriter>> DatabaseWriter::Create(
   NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(filename));
   auto writer = absl::WrapUnique(new DatabaseWriter(
       std::move(database), Options().set_include_function_names(false)));
+  writer->filename_ = filename;
   if (needs_init) {
     NA_RETURN_IF_ERROR(writer->PrepareDatabase());
     NA_RETURN_IF_ERROR(writer->WriteAlgorithms());
