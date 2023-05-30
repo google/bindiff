@@ -31,6 +31,7 @@ namespace security::bindiff {
 
 // Parses a hex color triplet in value into a number.
 absl::optional<int32_t> HexColorToInt(absl::string_view value) {
+  value = absl::StripPrefix(absl::StripAsciiWhitespace(value), "#");
   uint32_t v;
   if (!absl::SimpleHexAtoi(value, &v)) {
     return absl::nullopt;
