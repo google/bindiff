@@ -127,6 +127,15 @@ std::string FindFile(absl::string_view path, absl::string_view extension) {
   return "";
 }
 
+bool CheckHaveBinExportWithMessage() {
+  addon_info_t addon_info;
+  if (!get_addon_info("com.google.binexport", &addon_info)) {
+    warning("Required BinExport plugin is missing.");
+    return false;
+  }
+  return true;
+}
+
 bool CheckHaveIdbWithMessage() {
   if (strlen(get_path(PATH_TYPE_IDB)) == 0) {
     info("AUTOHIDE NONE\nPlease open an IDB first.");
@@ -304,7 +313,7 @@ bool Plugin::DiscardResults(Plugin::DiscardResultsKind kind) {
         ask_yn(ASKBTN_YES,
                "%sCurrent diff results have not been"
                " saved - save before closing?",
-               kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
+        kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
     if (answer == ASKBTN_YES) {
       DoSaveResults();
     } else if (answer == ASKBTN_CANCEL) {
@@ -514,7 +523,8 @@ bool DoRediffDatabase() {
 }
 
 bool DoDiffDatabase(bool filtered) {
-  if (!Plugin::instance()->DiscardResults(
+  if (!CheckHaveBinExportWithMessage() ||
+      !Plugin::instance()->DiscardResults(
           Plugin::DiscardResultsKind::kAskSaveCancellable)) {
     return false;
   }
@@ -1435,13 +1445,7 @@ bool Plugin::Run(size_t /* argument */) {
 #endif
       "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n");
 
-  addon_info_t addon_info;
-  if (!get_addon_info("com.google.binexport", &addon_info)) {
-    warning("Required BinExport plugin is missing.");
-    return false;
-  }
-
-  if (!CheckHaveIdbWithMessage()) {
+  if (!CheckHaveBinExportWithMessage() || !CheckHaveIdbWithMessage()) {
     return false;
   }
 
