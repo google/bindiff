@@ -56,8 +56,8 @@ void GetUnmatchedChildren(const CallGraph& call_graph, CallGraph::Vertex vertex,
   }
 }
 
-// Return the immediate parents of the call graph node denoted by
-// address. Skip nodes that have already been matched.
+// Returns the immediate parents of the call graph node denoted by address.
+// Skips nodes that have already been matched.
 void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
                          FlowGraphs* parents) {
   for (auto [edge_it, edge_end] =
@@ -80,8 +80,8 @@ void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
 }
 
 // Adds empty flow graphs to all call graph vertices that don't already have one
-// attached. Returns an error if a flow graph already exists for a call graph
-// vertex.
+// attached (for example for DLL stub functions). Returns an error if a flow
+// graph already exists for a call graph vertex.
 absl::Status AddSubsToCallGraph(CallGraph* call_graph,
                                  FlowGraphs* flow_graphs) {
   for (auto [it, end] = boost::vertices(call_graph->GetGraph()); it != end;

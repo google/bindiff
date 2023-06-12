@@ -1287,7 +1287,7 @@ void Plugin::TermMenus() {
   delete_menu("bindiff:view_bindiff");
 }
 
-Plugin::LoadStatus Plugin::Init() {
+bool Plugin::Init() {
   auto& config = config::Proto();
 
   alsologtostderr_ =
@@ -1302,7 +1302,7 @@ Plugin::LoadStatus Plugin::Init() {
                                 absl::make_unique<IdaLogSink>());
       !status.ok()) {
     msg("Error initializing logging, skipping BinDiff plugin\n");
-    return PLUGIN_SKIP;
+    return false;
   }
 
   LOG(INFO) << kBinDiffName << " " << kBinDiffDetailedVersion << ", "
@@ -1322,12 +1322,12 @@ Plugin::LoadStatus Plugin::Init() {
       !hook_to_notification_point(HT_IDB, IdbHook, /*user_data=*/nullptr) ||
       !hook_to_notification_point(HT_UI, UiHook, /*user_data=*/nullptr)) {
     LOG(INFO) << "Internal error: hook_to_notification_point() failed";
-    return PLUGIN_SKIP;
+    return false;
   }
 
   if (!add_idc_func(kBinDiffDatabaseIdcFunc)) {
     LOG(INFO) << "Error registering IDC extension, skipping BinDiff plugin";
-    return PLUGIN_SKIP;
+    return false;
   }
 
   // Update per-user config with most recent IDA directory. A directory mismatch
@@ -1345,7 +1345,7 @@ Plugin::LoadStatus Plugin::Init() {
   InitMenus();
   init_done_ = true;
 
-  return PLUGIN_KEEP;
+  return true;
 }
 
 void Plugin::Terminate() {
@@ -1480,10 +1480,10 @@ using security::bindiff::Plugin;
 
 plugin_t PLUGIN = {
     IDP_INTERFACE_VERSION,
-    PLUGIN_FIX,  // Plugin flags
-    []() { return Plugin::instance()->Init(); },
-    []() { Plugin::instance()->Terminate(); },
-    [](size_t argument) { return Plugin::instance()->Run(argument); },
+    PLUGIN_MULTI | PLUGIN_FIX,  // Plugin flags
+    Plugin::Register,
+    nullptr,                          // Obsolete terminate callback
+    nullptr,                          // Obsolete run callback
     Plugin::kComment,                 // Statusline text
     nullptr,                          // Multiline help about the plugin, unused
     security::bindiff::kBinDiffName,  // Preferred short name of the plugin
