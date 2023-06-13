@@ -175,28 +175,32 @@ absl::StatusOr<bool> ExportIdbs() {
   NA_ASSIGN_OR_RETURN(std::string temp_dir,
                       GetOrCreateTempDirectory("BinDiff"));
 
-  const char* secondary_idb = ask_file(
-      /*for_saving=*/false, "*.idb;*.i64", "%s",
-      absl::StrCat("FILTER IDA Databases|*.idb;*.i64|All files|",
-                   kAllFilesFilter, "\nSelect Database")
-          .c_str());
-  if (!secondary_idb) {
+  absl::StatusOr<std::string> secondary_idb = GetSaveFilename(
+      "Select Secondary Database", "*.i64;*.idb",
+      {{"IDA Databases", "*.i64;*.idb"}, {"All files", kAllFilesFilter}});
+  if (!secondary_idb.ok()) {
     return false;
   }
+  std::string secondary_idb_path = std::move(*secondary_idb);
 
   const std::string primary_idb_path(get_path(PATH_TYPE_IDB));
-  std::string secondary_idb_path(secondary_idb);
   if (primary_idb_path == secondary_idb_path) {
     return absl::FailedPreconditionError(
         "You cannot open the same database twice. Please copy and rename one "
         "if you want to diff it against itself.");
   }
-  if (ReplaceFileExtension(primary_idb_path, "") ==
-      ReplaceFileExtension(secondary_idb_path, "")) {
+  if ((Dirname(primary_idb_path) == Dirname(secondary_idb_path)) &&
+      (ReplaceFileExtension(primary_idb_path, "") ==
+       ReplaceFileExtension(secondary_idb_path, ""))) {
     return absl::FailedPreconditionError(
-        "You cannot open an idb and an i64 with the same base filename in the "
-        "same directory. Please rename or move one of the files.");
+        "You cannot open a 64-bit database and a 32-bit database with the "
+        "same name in the same directory. Please rename or move one of the "
+        "files.");
   }
+
+#ifndef __EA64__
+  // This can only happen with a primary IDA Pro instance that is not 64-bit
+  // address aware.
   if (absl::AsciiStrToUpper(GetFileExtension(primary_idb_path)) == ".IDB" &&
       absl::AsciiStrToUpper(GetFileExtension(secondary_idb_path)) == ".I64") {
     if (ask_yn(ASKBTN_YES,
@@ -206,10 +210,11 @@ absl::StatusOr<bool> ExportIdbs() {
                "range they will be truncated.\n"
                "To fix this problem please start 64-bit aware IDA and diff "
                "the other way around, i.e. 64-bit vs. 32-bit.\n"
-               "Continue anyways?") != 1) {
+               "Continue anyways?") != ASKBTN_YES) {
       return false;
     }
   }
+#endif
 
   LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
             << Basename(secondary_idb_path);
@@ -648,22 +653,20 @@ constexpr ext_idcfunc_t kBinDiffDatabaseIdcFunc = {
     "BinDiffDatabase", IdcBinDiffDatabase, kBinDiffDatabaseArgs, nullptr, 0,
     EXTFUN_BASE};
 
-absl::Status WriteResults(const std::string& path) {
-  WaitBox wait_box("Writing results...");
-  Timer<> timer;
+absl::Status WriteResults(const std::string& filename) {
   LOG(INFO) << "Writing results...";
   auto* results = Plugin::instance()->results();
   const std::string export1 = results->call_graph1_.GetFilePath();
   const std::string export2 = results->call_graph2_.GetFilePath();
   NA_ASSIGN_OR_RETURN(const std::string temp_dir,
                       GetOrCreateTempDirectory("BinDiff"));
-  const std::string out_dir = Dirname(path);
+  const std::string out_dir = Dirname(filename);
 
   if (!results->is_incomplete()) {
     NA_ASSIGN_OR_RETURN(
         auto writer,
         DatabaseWriter::Create(
-            path,
+            filename,
             DatabaseWriter::Options().set_include_function_names(
                 !config::Proto().binary_format().exclude_function_names())));
     NA_RETURN_IF_ERROR(results->Write(writer.get()));
@@ -679,8 +682,8 @@ absl::Status WriteResults(const std::string& path) {
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
       NA_RETURN_IF_ERROR(results->Write(&writer));
     }
-    std::remove(path.c_str());
-    NA_RETURN_IF_ERROR(CopyFile(input_bindiff, path));
+    std::remove(filename.c_str());
+    NA_RETURN_IF_ERROR(CopyFile(input_bindiff, filename));
     std::remove(input_bindiff.c_str());
   }
   if (const std::string new_export1 = JoinPath(out_dir, Basename(export1));
@@ -694,9 +697,16 @@ absl::Status WriteResults(const std::string& path) {
     NA_RETURN_IF_ERROR(CopyFile(export2, new_export2));
   }
 
-  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
-                            ")");
   return absl::OkStatus();
+}
+
+absl::Status WriteGroundTruth(const std::string& filename) {
+  LOG(INFO) << "Writing to debug ground truth file...";
+  auto* results = Plugin::instance()->results();
+  GroundtruthWriter writer(filename, results->fixed_point_infos_,
+                           results->flow_graph_infos1_,
+                           results->flow_graph_infos2_);
+  return results->Write(&writer);
 }
 
 bool DoSaveResultsLog() {
@@ -709,74 +719,26 @@ bool DoSaveResultsLog() {
     return false;
   }
 
-  const std::string default_filename(
-      results->call_graph1_.GetFilename() + "_vs_" +
-      results->call_graph2_.GetFilename() + ".results");
-  const char* filename = ask_file(
-      /*for_saving=*/true, default_filename.c_str(), "%s",
-      absl::StrCat("FILTER BinDiff Result Log files|*.results|All files",
-                   kAllFilesFilter, "\nSave Log As")
-          .c_str());
-  if (!filename) {
-    return false;
-  }
-
-  if (FileExists(filename) &&
-      (ask_yn(ASKBTN_YES, "File exists - overwrite?") != 1)) {
+  const std::string default_filename =
+      absl::StrCat(results->call_graph1_.GetFilename(), "_vs_",
+                   results->call_graph2_.GetFilename(), ".results");
+  absl::StatusOr<std::string> filename =
+      GetSaveFilename("Save Log As", default_filename,
+                      {{"BinDiff Result Log files", "*.results"},
+                       {"All files", kAllFilesFilter}});
+  if (!filename.ok()) {
     return false;
   }
 
   WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing to log...";
-  ResultsLogWriter writer(filename);
+  ResultsLogWriter writer(*filename);
   if (absl::Status status = results->Write(&writer); !status.ok()) {
     throw std::runtime_error(std::string(status.message()));
   }
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                             ")");
-  return true;
-}
-
-bool DoSaveResultsDebug() {
-  if (!CheckHaveResultsWithMessage()) {
-    return false;
-  }
-
-  auto* results = Plugin::instance()->results();
-  const std::string default_filename(
-      results->call_graph1_.GetFilename() + "_vs_" +
-      results->call_graph2_.GetFilename() + ".truth");
-  const char* filename = ask_file(
-      /*for_saving=*/true, default_filename.c_str(), "%s",
-      absl::StrCat("FILTER Groundtruth files|*.truth|All files|",
-                   kAllFilesFilter, "\nSave Groundtruth As")
-          .c_str());
-  if (!filename) {
-    return false;
-  }
-
-  if (FileExists(filename) &&
-      (ask_yn(ASKBTN_YES, "File exists - overwrite?") != 1)) {
-    return false;
-  }
-
-  WaitBox wait_box("Writing results...");
-  Timer<> timer;
-  LOG(INFO) << "Writing to debug ground truth file...";
-  GroundtruthWriter writer(filename, results->fixed_point_infos_,
-                           results->flow_graph_infos1_,
-                           results->flow_graph_infos2_);
-  if (absl::Status status = results->Write(&writer); !status.ok()) {
-    std::string message =
-        absl::StrCat("Error writing results: ", status.message());
-    LOG(INFO) << message;
-    warning("%s\n", message.c_str());
-    return false;
-  }
-  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
-                            ")");
-
   return true;
 }
 
@@ -792,24 +754,26 @@ bool DoSaveResults() {
           ? absl::StrCat(results->call_graph1_.GetFilename(), "_vs_",
                          results->call_graph2_.GetFilename(), ".BinDiff")
           : results->input_filename_;
-  const char* filename = ask_file(
-      /*for_saving=*/true, default_filename.c_str(), "%s",
-      absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files",
-                   kAllFilesFilter, "\nSave Results As")
-          .c_str());
-  if (!filename) {
+  absl::StatusOr<std::string> filename =
+      GetSaveFilename("Save Results As", default_filename,
+                      {{"BinDiff Result files", "*.BinDiff"},
+                       {"BinDiff Groundtruth files", "*.truth"}
+                       });
+  if (!filename.ok()) {
     return false;
   }
-#ifndef __APPLE__
-  // On macOS, the built-in file chooser asks for confirmation already.
-  if (FileExists(filename) &&
-      (ask_yn(ASKBTN_YES, "File\n'%s'\nalready exists - overwrite?",
-              filename) != ASKBTN_YES)) {
-    return false;
-  }
-#endif
 
-  if (auto status = WriteResults(filename); !status.ok()) {
+  WaitBox wait_box("Writing results...");
+  Timer<> timer;
+
+  absl::Status status;
+  if (absl::AsciiStrToLower(GetFileExtension(*filename)) == ".TRUTH") {
+    status = WriteGroundTruth(*filename);
+  } else {
+    status = WriteResults(*filename);
+  }
+
+  if (!status.ok()) {
     std::string message =
         absl::StrCat("Error writing results: ", status.message());
     LOG(INFO) << message;
@@ -817,6 +781,8 @@ bool DoSaveResults() {
     return false;
   }
 
+  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
+                            ")");
   return true;
 }
 
@@ -838,36 +804,32 @@ bool Plugin::LoadResults() {
       }
     }
 
-    const char* filename = ask_file(
-        /*for_saving=*/false, "*.BinDiff", "%s",
-        absl::StrCat("FILTER BinDiff Result files|*.BinDiff|All files|",
-                     kAllFilesFilter, "\nLoad Results")
-            .c_str());
-    if (!filename) {
+    absl::StatusOr<std::string> filename =
+        GetOpenFilename("Load Results", "*.BinDiff",
+                        {{"BinDiff Result files", "*.BinDiff"},
+                         {"All files", kAllFilesFilter}});
+    if (!filename.ok()) {
       return false;
     }
-
-    std::string path = Dirname(filename);
 
     LOG(INFO) << "Loading results...";
     WaitBox wait_box("Loading results...");
     Timer<> timer;
-
-    auto status = ClearResults();
-    if (!status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
 
     auto temp_dir = GetOrCreateTempDirectory("BinDiff");
     if (!temp_dir.ok()) {
       throw std::runtime_error(std::string(temp_dir.status().message()));
     }
 
-    auto database = SqliteDatabase::Connect(filename);
+    auto database = SqliteDatabase::Connect(*filename);
     if (!database.ok()) {
       throw std::runtime_error(std::string(database.status().message()));
     }
-    DatabaseReader reader(*database, filename, *temp_dir);
+    DatabaseReader reader(*database, *filename, *temp_dir);
+    auto status = ClearResults();
+    if (!status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
     results_->Read(&reader);
 
     auto sha256_or = GetInputFileSha256();
@@ -966,13 +928,6 @@ void idaapi ButtonSaveResultsCallback(int /* button_code */,
 void idaapi ButtonSaveResultsLogCallback(int /* button_code */,
                                          form_actions_t& actions) {
   if (DoSaveResultsLog()) {
-    actions.close(/*close_normally=*/1);
-  }
-}
-
-void idaapi ButtonSaveResultsDebugCallback(int /* button_code */,
-                                           form_actions_t& actions) {
-  if (DoSaveResultsDebug()) {
     actions.close(/*close_normally=*/1);
   }
 }
@@ -1440,7 +1395,6 @@ bool Plugin::Run(size_t /* argument */) {
       "<L~o~ad Results...:B:1:30::>\n"
       "<~S~ave Results...:B:1:30::>\n"
 #ifdef _DEBUG
-      "<Save ~G~round Truth results...:B:1:30::>\n"
       "<Save Results ~L~og...:B:1:30::>\n"
 #endif
       "\n<Im~p~ort Symbols and Comments...:B:1:30::>\n\n");
@@ -1471,7 +1425,7 @@ bool Plugin::Run(size_t /* argument */) {
              ButtonDiffDatabaseFilteredCallback, ButtonRediffDatabaseCallback,
              ButtonLoadResultsCallback, ButtonSaveResultsCallback,
 #ifdef _DEBUG
-             ButtonSaveResultsDebugCallback, ButtonSaveResultsLogCallback,
+             ButtonSaveResultsLogCallback,
 #endif
              ButtonPortCommentsCallback);
   }
