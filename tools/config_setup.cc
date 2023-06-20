@@ -12,20 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0600
-#define VC_EXTRALEAN
-// clang-format off
-#include <windows.h>
-#include <shlwapi.h>
-// clang-format on
-
-#undef StrCat  // shllwa
-
-#else
-#include <unistd.h>  // symlink()
-#endif
-
 #include <cstdint>
 #include <cstdio>
 #include <fstream>
@@ -59,72 +45,6 @@ namespace security::bindiff {
 
 using ::security::binexport::GetLastOsError;
 using ::security::binexport::GetOrCreateAppDataDirectory;
-
-absl::Status CreateOrUpdateLinkWithFallback(const std::string& target,
-                                            const std::string& link_path) {
-#ifndef _WIN32
-  std::unique_ptr<char, void (*)(char*)> canonical_path(
-      nullptr, [](char* p) { free(p); });
-  if (canonical_path.reset(realpath(target.c_str(), nullptr));
-      !canonical_path) {
-    return absl::NotFoundError(
-        absl::StrCat("Cannot read '", target, "': ", GetLastOsError()));
-  }
-  const std::string canonical_target = canonical_path.get();
-
-  // symlink() will not overwrite, so remove first. Since remove can fail for
-  // many reasons, the error is ignored here and symlink() will fail below.
-  remove(link_path.c_str());
-
-  if (symlink(canonical_target.c_str(), link_path.c_str()) == -1) {
-    return absl::UnknownError(absl::StrCat("Symlink creation of '", link_path,
-                                           "': ", GetLastOsError()));
-  }
-  return absl::OkStatus();
-#else
-  std::string canonical_target(MAX_PATH, '\0');
-  if (!PathCanonicalize(&canonical_target[0], target.c_str()) ||
-      !PathFileExists(canonical_target.c_str())) {
-    return absl::FailedPreconditionError(
-        absl::StrCat("Cannot read '", target, "': ", GetLastOsError()));
-  }
-  canonical_target.resize(strlen(canonical_target.c_str()));  // Right-trim NULs
-
-  std::string canonical_path(MAX_PATH, '\0');
-  if (!PathCanonicalize(&canonical_path[0], link_path.c_str())) {
-    return absl::FailedPreconditionError(
-        absl::StrCat("Path '", link_path, "' invalid: ", GetLastOsError()));
-  }
-  canonical_path.resize(strlen(canonical_path.c_str()));
-
-  // Remove existing file first
-  if (PathFileExists(canonical_path.c_str()) &&
-      !DeleteFile(canonical_path.c_str())) {
-    return absl::UnknownError(absl::StrCat(
-        "Cannot remove existing '", canonical_path, "': ", GetLastOsError()));
-  }
-  if (CreateSymbolicLink(canonical_path.c_str(), canonical_target.c_str(),
-                         SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE)) {
-    return absl::OkStatus();
-  }
-  // Symlink creation failed. Either "Developer Mode" is not enabled, or the
-  // user does not have elevated privileges.
-  // Try to create a hard link instead.
-  if (CreateHardLink(canonical_path.c_str(), canonical_target.c_str(),
-                     /*lpSecurityAttributes=*/nullptr)) {
-    return absl::OkStatus();
-  }
-  // Not on NTFS, or on a network share without support for hard links, copy
-  // the file instead.
-  if (CopyFileA(canonical_target.c_str(), canonical_path.c_str(),
-                /*bFailIfExists=*/true)) {
-    return absl::OkStatus();
-  }
-  return absl::UnknownError(absl::StrCat("Copying '", canonical_target,
-                                         "' to '", canonical_path,
-                                         "' failed: ", GetLastOsError()));
-#endif
-}
 
 absl::StatusOr<std::string> GetOrCreateIdaProUserPluginsDirectory() {
   std::string idapro_app_data;
