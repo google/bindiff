@@ -21,7 +21,7 @@
            UpgradeCode="DFAC8553-6E4B-48b9-8D9D-8CC97D67F726"
            Name="BinDiff"
            Language="1033"
-           Version="7.0.0"
+           Version="8.0.0"
            Manufacturer="Google LLC">
     <Package Id="*"
              Keywords="Installer"
@@ -253,8 +253,8 @@
             <Directory Id="BinDiff_Plugins_IDA_Pro" Name="IDA Pro">
               <Component Id="Ida_Plugins" Win64="yes"
                          Guid="E2F631C8-DF7A-48AC-BAAB-578D9FB107F3">
-                <File Name="bindiff7_ida.dll" />
-                <File Name="bindiff7_ida64.dll" KeyPath="yes" />
+                <File Name="bindiff8_ida.dll" />
+                <File Name="bindiff8_ida64.dll" KeyPath="yes" />
                 <File Name="binexport12_ida.dll" />
                 <File Name="binexport12_ida64.dll" />
               </Component>

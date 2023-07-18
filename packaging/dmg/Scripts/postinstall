@@ -3,7 +3,7 @@
 # Exit on error, unbound variables
 set -eu
 
-bindiff_release=7
+bindiff_release=8
 binexport_release=12
 
 function log() {

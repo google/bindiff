@@ -22,7 +22,7 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)  # Set download timestamp to current time
 endif()
 
-project(bindiff VERSION 7)
+project(bindiff VERSION 8)
 
 # BinDiff settings
 set(BINDIFF_BINARY_DIR "${PROJECT_BINARY_DIR}" CACHE INTERNAL "" FORCE)

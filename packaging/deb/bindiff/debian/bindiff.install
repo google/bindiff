@@ -8,8 +8,8 @@ files/opt/bindiff/extra/ghidra/README opt/bindiff/extra/ghidra
 files/opt/bindiff/libexec/bindiff_config_setup opt/bindiff/libexec
 files/opt/bindiff/plugins/binaryninja/README opt/bindiff/plugins/binaryninja
 files/opt/bindiff/plugins/binaryninja/binexport12_binaryninja.so opt/bindiff/plugins/binaryninja
-files/opt/bindiff/plugins/idapro/bindiff7_ida.so opt/bindiff/plugins/idapro
-files/opt/bindiff/plugins/idapro/bindiff7_ida64.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/bindiff8_ida.so opt/bindiff/plugins/idapro
+files/opt/bindiff/plugins/idapro/bindiff8_ida64.so opt/bindiff/plugins/idapro
 files/opt/bindiff/plugins/idapro/binexport12_ida.so opt/bindiff/plugins/idapro
 files/opt/bindiff/plugins/idapro/binexport12_ida64.so opt/bindiff/plugins/idapro
 files/opt/bindiff/roboto-mono-font-license.txt opt/bindiff
