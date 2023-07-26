@@ -19,6 +19,7 @@
 #include <limits>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <thread>  // NOLINT(build/c++11)
 
 // clang-format off
@@ -175,7 +176,7 @@ absl::StatusOr<bool> ExportIdbs() {
   NA_ASSIGN_OR_RETURN(std::string temp_dir,
                       GetOrCreateTempDirectory("BinDiff"));
 
-  absl::StatusOr<std::string> secondary_idb = GetSaveFilename(
+  absl::StatusOr<std::string> secondary_idb = GetOpenFilename(
       "Select Secondary Database", "*.i64;*.idb",
       {{"IDA Databases", "*.i64;*.idb"}, {"All files", kAllFilesFilter}});
   if (!secondary_idb.ok()) {
