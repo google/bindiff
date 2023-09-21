@@ -91,7 +91,7 @@ The following build dependencies are required:
 *   GCC 9 or a recent version of Clang on Linux/macOS. On Windows, use the
     Visual Studio 2019 compiler and the Windows SDK for Windows 10.
 *   Git 1.8 or higher
-*   IDA Pro only: IDA SDK 7.6 (unpack into `deps/idasdk`)
+*   IDA Pro only: IDA SDK 8.0 or higher (unpack into `deps/idasdk`)
 *   Dependencies that will be downloaded:
     *   Abseil, GoogleTest, Protocol Buffers (3.14), and SQLite3
     *   Binary Ninja SDK
@@ -104,7 +104,7 @@ Download dependencies that won't be downloaded automatically:
 ```bash
 mkdir -p build/out
 git clone https://github.com/google/binexport build/binexport
-unzip -q <path/to/idasdk76.zip> -d -d build/
+unzip -q <path/to/idasdk_pro80.zip> -d build/idasdk
 ```
 
 Next, configure the build directory and generate build files:
@@ -114,7 +114,7 @@ cmake -S . -B build/out -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=build/out \
   -DBINDIFF_BINEXPORT_DIR=build/binexport \
-  "-DIdaSdk_ROOT_DIR=${PWD}build/idasdk76"
+  "-DIdaSdk_ROOT_DIR=${PWD}build/idasdk"
 ```
 
 Finally, invoke the actual build. Binaries will be placed in
@@ -146,7 +146,7 @@ Then invoke Gradle to download external dependencies and build:
 
 Windows:
 ```
-set YFILES_DIR=<path\to\yfiles_2.15>
+set YFILES_DIR=<path\to\yfiles_2.17>
 cd java
 gradle shadowJar
 ```
@@ -154,7 +154,7 @@ gradle shadowJar
 Linux or macOS:
 
 ```
-export YFILES_DIR=<path/to/yfiles_2.15>
+export YFILES_DIR=<path/to/yfiles_2.17>
 cd java
 gradle shadowJar
 ```
