@@ -2,6 +2,7 @@ bindiff (8) unstable; urgency=medium
 
   * See the manual at https://www.zynamics.com/bindiff/manual/index.html
     for a detailed list of changes.
+  * BinDiff is now open source: http://github.com/google/bindiff
 
  -- Christian Blichmann <cblichmann@google.com>  Fri, 14 Jul 2023 19:21:05 +0200
 

@@ -25,7 +25,7 @@ case "$1" in
 
     if [ -d /run/systemd/system ]; then
       # Note: deb-systemd-invoke does not know about --global
-      systemctl --global disable bindiff-plugins.service
+      systemctl --global disable bindiff-plugins.service || true
       systemctl --system daemon-reload >/dev/null || true
     fi
   ;;
