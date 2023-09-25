@@ -305,7 +305,7 @@ The confidence value displayed by BinDiff is the average algorithm confidence
 function. The values aren't simply averaged because few single weak matches in
 an otherwise perfectly matched function/binary shouldn't drag the confidence
 down too much. Analogously, even a few strong matches will not "rescue" a
-binary pair matched primarily by address sequence and similarily weak
+binary pair matched primarily by address sequence and similarly weak
 algorithms.
 
 The similarity value for a function is a weighted sum taking the following

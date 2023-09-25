@@ -58,7 +58,7 @@ available in the [`docs/` directory](docs/README.md).
 BinDiff contains the following components:
 
 * [`cmake`](cmake) - CMake build files declaring external dependencies
-* [`fixtures`](fixtures) - A collection of test files to excercise the BinDiff
+* [`fixtures`](fixtures) - A collection of test files to exercise the BinDiff
   core engine
 * [`ida`](ida) - Integration with the IDA Pro disassembler
 * [`java`](java) - Java source code. This contains the the BinDiff visual diff
