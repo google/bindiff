@@ -175,11 +175,16 @@ The original papers outlining the general ideas behind BinDiff:
   [dimva_paper2.pdf](docs/papers/dimva_paper2.pdf). pp 161-173. Detection of
   Intrusions and Malware & Vulnerability Assessment. 2004.3-88579-375-X.
 
-Other tools in the same problem domain:
+Other tools in the same problem space:
 
 * [Diaphora](https://github.com/joxeankoret/diaphora), an advanced program
   diffing tool implementing many of the same ideas.
 * [TurboDiff](https://www.coresecurity.com/core-labs/open-source-tools/turbodiff-cs), a now-defunct program diffing plugin for IDA Pro.
+
+Projects using BinDiff:
+
+* [VxSig](https://github.com/google/vxsig), a tool to automatically generate
+  AV byte signatures from sets of similar binaries.
 
 ## License
 
