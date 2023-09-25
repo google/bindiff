@@ -40,7 +40,7 @@ public class RawCombinedBasicBlock extends CombinedViewNode {
 
     if (primaryBasicblock == null && secondaryBasicblock == null) {
       throw new IllegalArgumentException(
-          "Primary basic block and seconday basic block cannot both be null.");
+          "Primary basic block and secondary basic block cannot both be null.");
     }
     if (primaryFunctionAddr == null && secondaryFunctionAddr == null) {
       throw new IllegalArgumentException(

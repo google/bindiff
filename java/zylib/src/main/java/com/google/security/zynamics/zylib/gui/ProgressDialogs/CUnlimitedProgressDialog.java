@@ -50,7 +50,7 @@ public class CUnlimitedProgressDialog extends JDialog implements IProgressDescri
       final boolean isCancelable) {
     super(parent, title, ModalityType.DOCUMENT_MODAL);
 
-    Preconditions.checkNotNull(command, "Error: Comand can't be null.");
+    Preconditions.checkNotNull(command, "Error: Command can't be null.");
 
     m_isCancelable = isCancelable;
 

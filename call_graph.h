@@ -195,7 +195,7 @@ class CallGraph {
   const std::string& GetExeHash() const { return exe_hash_; }
   void SetExeHash(std::string hash);
 
-  // Accesses comments. The call graph stores theses globally even for operands
+  // Accesses comments. The call graph stores these globally even for operands
   // because we don't want to store them multiple times for shared basic blocks.
   CommentsByOperatorId& GetComments() { return comments_; }
   const CommentsByOperatorId& GetComments() const { return comments_; }

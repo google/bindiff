@@ -135,7 +135,7 @@ public final class Convert {
     Preconditions.checkNotNull(hexString, "Error: Unicode string can't be null");
     Preconditions.checkArgument(
         isHexString(hexString),
-        String.format("Error: Hex string '%s' is not a vaild hex string", hexString));
+        String.format("Error: Hex string '%s' is not a valid hex string", hexString));
 
     if ((hexString.length() == 16) && (hexString.charAt(0) >= 8)) {
       // Reason: Long.parseLong(x, 16) throws NumberFormatException when

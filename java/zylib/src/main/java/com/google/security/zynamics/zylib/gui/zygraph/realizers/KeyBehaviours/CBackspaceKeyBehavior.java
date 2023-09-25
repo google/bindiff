@@ -59,7 +59,7 @@ public class CBackspaceKeyBehavior extends CAbstractKeyBehavior {
     String changedText = "";
 
     // TODO: Remove debug code left-over
-    // System.out.println("Backspace behavior befor: " + lineText.replace("\r",
+    // System.out.println("Backspace behavior before: " + lineText.replace("\r",
     // "<cr>").replace("\n", "<br>"));
 
     if (!isCommentDelimiter(x, y)) {

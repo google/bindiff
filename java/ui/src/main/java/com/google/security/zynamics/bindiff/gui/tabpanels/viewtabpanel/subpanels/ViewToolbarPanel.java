@@ -377,7 +377,7 @@ public class ViewToolbarPanel extends JPanel {
     button.setIcon(autoLayout ? AUTOLAYOUT_ON_UP : AUTOLAYOUT_OFF_UP);
     button.setRolloverIcon(autoLayout ? AUTOLAYOUT_ON_HOVER : AUTOLAYOUT_OFF_HOVER);
     button.setPressedIcon(autoLayout ? AUTOLAYOUT_ON_DOWN : AUTOLAYOUT_OFF_DOWN);
-    button.setToolTipText("Toogle Autolayout");
+    button.setToolTipText("Toggle Autolayout");
 
     final boolean proximityBrowsing = settings.getProximitySettings().getProximityBrowsing();
     button = groupModes.add(new ToggleProximityBrowsingAction(controller));
@@ -388,7 +388,7 @@ public class ViewToolbarPanel extends JPanel {
         proximityBrowsing ? PROXIMITY_BROWSING_ON_HOVER : PROXIMITY_BROWSING_OFF_HOVER);
     button.setPressedIcon(
         proximityBrowsing ? PROXIMITY_BROWSING_ON_DOWN : PROXIMITY_BROWSING_OFF_DOWN);
-    button.setToolTipText("Toogle Proximity Browsing");
+    button.setToolTipText("Toggle Proximity Browsing");
 
     final boolean proximityFrozen = settings.getProximitySettings().getProximityBrowsingFrozen();
     button = groupModes.add(new ToggleProximityFreezeModeAction(controller));
@@ -407,7 +407,7 @@ public class ViewToolbarPanel extends JPanel {
       button.setPressedIcon(
           proximityFrozen ? PROXIMITY_FREEZE_ON_DOWN_GRAY : PROXIMITY_FREEZE_OFF_DOWN_GRAY);
     }
-    button.setToolTipText("Toogle Proximity Freeze");
+    button.setToolTipText("Toggle Proximity Freeze");
 
     // selection
     button = groupSelection.add(new SelectByCriteriaAction(controller));
@@ -568,7 +568,7 @@ public class ViewToolbarPanel extends JPanel {
     graphSyncButton.setRolloverIcon(
         settings.isSync() ? SYNC_GRAPHS_ON_HOVER : SYNC_GRAPHS_OFF_HOVER);
     graphSyncButton.setPressedIcon(settings.isSync() ? SYNC_GRAPHS_OFF_DOWN : SYNC_GRAPHS_ON_DOWN);
-    graphSyncButton.setToolTipText("Toogle Graph Synchronization");
+    graphSyncButton.setToolTipText("Toggle Graph Synchronization");
 
     final JPanel innerPanel = new JPanel(new BorderLayout());
     innerPanel.setBorder(new EmptyBorder(5, 5, 5, 5));

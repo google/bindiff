@@ -35,7 +35,7 @@ bool FindCallReferenceFixedPoints(FixedPoint* fixed_point,
 // deriving class gets called to find yet-unknown fixed points (new associations
 // between the two binaries). The name is a bit of a misnomer, since all steps
 // based on MatchingStep really only work on a per-function level.
-// Note: Since adding new fixed points may lead to discovery of addtional fixed
+// Note: Since adding new fixed points may lead to discovery of additional fixed
 //       points, the methods of this class must be reentrant. I.e. if execution
 //       of FindFixedPoints() in turn calls global ::FindFixedPoints(), it may
 //       be called by the latter in a mutually recursive way. Hence, deriving

@@ -194,7 +194,7 @@ void CallGraph::DetachFlowGraph(FlowGraph* flow_graph) {
   auto vertex = GetVertex(entry_point_address);
   if (vertex == kInvalidVertex) {
     LOG(INFO) << absl::StrCat(
-        "DetachFlowGraph: coudn't find call graph node for flow graph ",
+        "DetachFlowGraph: couldn't find call graph node for flow graph ",
         FormatAddress(entry_point_address));
   } else {
     graph_[vertex].flow_graph_ = nullptr;
