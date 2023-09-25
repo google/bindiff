@@ -25,7 +25,7 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 /**
- * JarResources: JarResources maps all resources included in a Zip or Jar file. Additionaly, it
+ * JarResources: JarResources maps all resources included in a Zip or Jar file. Additionally, it
  * provides a method to extract one as a blob.
  */
 public final class JarResources {

@@ -403,7 +403,7 @@ public class CodeDisplay extends JComponent {
   private boolean fillCoordinateFromXY(int x, int y, CodeDisplayCoordinate newCoordinate) {
     Map.Entry<Integer, CodeDisplayCoordinate> coordinate = yCoordinateToRowAndLine.floorEntry(y);
     if (coordinate == null) {
-      // If the click went outside the last row or behind the last colum, return an appropriate
+      // If the click went outside the last row or behind the last column, return an appropriate
       // coordinate.
       newCoordinate.setRow(2);
       newCoordinate.setColumn(1);

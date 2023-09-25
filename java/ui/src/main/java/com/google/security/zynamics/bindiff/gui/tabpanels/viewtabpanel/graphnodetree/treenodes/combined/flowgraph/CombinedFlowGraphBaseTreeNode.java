@@ -418,9 +418,9 @@ public class CombinedFlowGraphBaseTreeNode extends AbstractBaseTreeNode {
                   new CombinedFlowGraphBasicBlockTreeNode(getRootNode(), newPriCombinedDiffNode);
               final CombinedFlowGraphBasicBlockTreeNode newSecTreeNode =
                   new CombinedFlowGraphBasicBlockTreeNode(getRootNode(), newSecCombinedDiffNode);
-              insert(newPriTreeNode, index); // TODO: Test wether the insert call does call the
+              insert(newPriTreeNode, index); // TODO: Test whether the insert call does call the
               // substituted tree node's delete function. If not all
-              // listeneres attached to this old tree node are
+              // listeners attached to this old tree node are
               // leaked.
 
               final int insertIndex = basicblockTreeNodes.indexOf(treeNode);

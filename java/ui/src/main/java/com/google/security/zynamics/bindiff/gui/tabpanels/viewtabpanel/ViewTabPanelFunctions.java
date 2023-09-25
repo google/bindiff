@@ -120,7 +120,7 @@ public class ViewTabPanelFunctions extends TabPanelFunctions {
   private CriteriaDialog selectByCriteriaDialog = null;
   private GraphSettingsDialog settingsDialog = null;
 
-  // Indicates whether the use made savable changes (which haven't been saved yet)
+  // Indicates whether the use made saveable changes (which haven't been saved yet)
   private boolean hasChangedMatches = false;
   private boolean hasChangedComments = false;
 

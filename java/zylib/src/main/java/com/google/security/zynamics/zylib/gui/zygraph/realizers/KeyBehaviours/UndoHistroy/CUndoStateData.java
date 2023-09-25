@@ -55,7 +55,7 @@ public class CUndoStateData {
       final int caretMouseReleasedY) {
     Preconditions.checkNotNull(labelContent, "Error: Label content can't be null.");
     Preconditions.checkNotNull(persistentModel, "Error: Persistent model can't be null.");
-    Preconditions.checkNotNull(editableObject, "Error: Editable object cant be null.");
+    Preconditions.checkNotNull(editableObject, "Error: Editable object can't be null.");
     Preconditions.checkNotNull(text, "Error: Text can't be null.");
 
     m_labelContent = labelContent;

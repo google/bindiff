@@ -58,7 +58,7 @@ import java.util.Map.Entry;
 public class ViewCodeNodeBuilder {
   private static final String ABOVE_INSTRUCTION_COMMENT_ESCAPE_STRING = "// ";
   private static final String BEHIND_INSTRUCTION_COMMENT_ESCAPE_STRING = " // ";
-  private static final String BASICBLOCK_COMMENT_HEADLINE_STRING = "// Basic Block Commment: ";
+  private static final String BASICBLOCK_COMMENT_HEADLINE_STRING = "// Basic Block Comment: ";
   private static final String BASICBLOCK_COMMENT_ESCAPE_STRING = "// ";
 
   public static final int MAX_MNEMONIC_SIZE = 12;

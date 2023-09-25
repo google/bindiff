@@ -37,7 +37,7 @@ public class CFilenameFormatter extends JFormattedTextField.AbstractFormatter {
    *     -a-file-name-is-valid
    */
   public CFilenameFormatter(final File directory) {
-    Preconditions.checkArgument(directory.exists(), "Error: Direcctory must exist.");
+    Preconditions.checkArgument(directory.exists(), "Error: Directory must exist.");
     m_directory = directory;
   }
 

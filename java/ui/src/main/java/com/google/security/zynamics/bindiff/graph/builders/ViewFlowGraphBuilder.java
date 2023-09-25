@@ -412,7 +412,7 @@ public class ViewFlowGraphBuilder {
     final BasicBlockLineObject basicBlockObject =
         new BasicBlockLineObject(combinedBasicBlock.getRawNode(side));
 
-    // TODO(cblichmann): Reenable editability sometime after 4.0 release
+    // TODO(cblichmann): Re-enable editability sometime after 4.0 release
     final ZyLabelContent basicBlockContent = new DiffLabelContent(basicBlockObject, true, false);
 
     ViewCodeNodeBuilder.buildSingleCodeNodeContent(

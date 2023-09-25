@@ -68,7 +68,7 @@ public class ConsoleCodeDocument extends CodeDocumentPython {
   /**
    * Insert pending characters.
    *
-   * <p>In order to handle multiline pasting, everytime a newline character is found in the inserted
+   * <p>In order to handle multiline pasting, every time a newline character is found in the inserted
    * string, a "Enter" key event is sent and the remaining input string at that point saved in order
    * to be processesed after the key event is handled. Processing of such text is done by calling
    * this method.
@@ -144,7 +144,7 @@ public class ConsoleCodeDocument extends CodeDocumentPython {
    * character by character if longer than 1 char.
    *
    * @param offs the position in the document
-   * @param str the String containig source code
+   * @param str the String containing source code
    * @param attr the attributes to set
    */
   @Override

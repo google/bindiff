@@ -56,13 +56,13 @@ public class ProcessOutputStreamReader implements Runnable {
         logger.atInfo().log("[%s] %s", name, line);
       }
     } catch (final Exception e) {
-      logger.atSevere().withCause(e).log("Could't read process output stream");
+      logger.atSevere().withCause(e).log("Couldn't read process output stream");
     } finally {
       if (inStream != null) {
         try {
           inStream.close();
         } catch (final IOException e) {
-          logger.atSevere().withCause(e).log("Could't close process output stream");
+          logger.atSevere().withCause(e).log("Couldn't close process output stream");
         }
       }
     }

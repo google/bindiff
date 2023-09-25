@@ -194,7 +194,7 @@ Instruction::Instruction(Cache* cache, Address address,
         prime_to_mnemonic->second != mnemonic) {
       // Test for empty mnemonics as one of the VxClass space optimizations is
       // to omit the actual mnemonic strings. If you then diff a file containing
-      // strings against one that doesnt, you'll get spurious warnings.
+      // strings against one that doesn't, you'll get spurious warnings.
       LOG(INFO) << "Hash collision detected! Mnemonics '"
                 << prime_to_mnemonic->second << "' and '" << mnemonic
                 << "', hash: " << prime;

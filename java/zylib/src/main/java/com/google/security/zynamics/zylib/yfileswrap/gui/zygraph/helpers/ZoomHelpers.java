@@ -56,7 +56,7 @@ public class ZoomHelpers {
     // in the next line
     final double minZoom = view.getZoom();
     view.setZoom(zoomlevel); // why? => to reset the original zoom level after the minimum zoom
-    // level was calulated
+    // level was calculated
     view.setViewPoint2D(viewPoint.getX(), viewPoint.getY()); // why? => to reset the original view
     // point
     return minZoom - (minZoom / 2);

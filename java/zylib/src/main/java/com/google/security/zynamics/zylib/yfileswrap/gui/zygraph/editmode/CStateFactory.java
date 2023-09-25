@@ -193,7 +193,7 @@ public final class CStateFactory<
   /**
    * Creates a new state object when the bend is entered
    *
-   * @param b The bend wich is entered.
+   * @param b The bend which is entered.
    * @param event The mouse event that caused the state change.
    * @return The state object that describes the mouse state.
    */

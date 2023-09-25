@@ -42,7 +42,7 @@ class MatchingContext {
   // MatchingContext is used as location for storing cached data for differ
   // steps (which cannot keep such data for themselves). If such a caching is
   // not desirable, such as in the IDA plugin, we may not use it.
-  // Each cached resourse is identified by a FeatureId element, so that
+  // Each cached resource is identified by a FeatureId element, so that
   // different consumers will never conflict on slots assignment.
   enum FeatureId {
     kFlowGraphMdIndexPrimary = 0,

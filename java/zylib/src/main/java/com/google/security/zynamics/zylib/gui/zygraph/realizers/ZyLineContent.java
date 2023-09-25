@@ -489,7 +489,7 @@ public class ZyLineContent {
 
       validatePartialLineArguments(position, realLength);
 
-      // needs to be tested: if color = null, no text background is set? Thats what i expect!
+      // needs to be tested: if color = null, no text background is set? That's what i expect!
       m_atext.addAttribute(TextAttribute.BACKGROUND, color, position, position + realLength);
 
       m_textLayout = new TextLayout(m_atext.getIterator(), m_fontContext);

@@ -169,7 +169,7 @@ public class ConsolePane extends AbstractScriptPanel {
 
     int currentPosition;
 
-    // First invokation
+    // First invocation
     if (position == 0) {
       currentPosition = 0;
     } else {

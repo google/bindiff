@@ -37,7 +37,7 @@ public class JImageComboBox extends JComboBox<ImageElement> {
     if ((labelAlignment != JLabel.LEFT)
         && (labelAlignment != JLabel.CENTER)
         && (labelAlignment != JLabel.RIGHT)) {
-      throw new IllegalArgumentException("Erorr: Label alignment in invalid.");
+      throw new IllegalArgumentException("Error: Label alignment in invalid.");
     }
 
     setRenderer(new ComboBoxRenderer(labelAlignment));
