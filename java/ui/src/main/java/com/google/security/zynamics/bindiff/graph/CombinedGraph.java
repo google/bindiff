@@ -132,15 +132,9 @@ public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, Combined
       final SingleDiffNode secondaryDiffNode,
       final SuperDiffNode superDiffNode,
       final RawCombinedBasicBlock combinedBasicblock) {
-    ZyLabelContent primaryNodeContent = null;
-    if (primaryDiffNode != null) {
-      primaryNodeContent = primaryDiffNode.getRealizer().getNodeContent();
-    }
+    ZyLabelContent primaryNodeContent=getZyLabelContent(primaryDiffNode);
 
-    ZyLabelContent secondaryNodeContent = null;
-    if (secondaryDiffNode != null) {
-      secondaryNodeContent = secondaryDiffNode.getRealizer().getNodeContent();
-    }
+    ZyLabelContent secondaryNodeContent=getZyLabelContent(secondaryDiffNode);
 
     final CombinedNodeRealizer combinedNodeRealizer =
         new CombinedNodeRealizer(primaryNodeContent, secondaryNodeContent);
@@ -156,6 +150,14 @@ public final class CombinedGraph extends BinDiffGraph<CombinedDiffNode, Combined
     combinedNodeRealizer.setUserData(new ZyNodeData<>(combinedDiffNode));
 
     return combinedDiffNode;
+  }
+
+  private static ZyLabelContent getZyLabelContent(SingleDiffNode primaryDiffNode) {
+    ZyLabelContent primaryNodeContent=null;
+    if (primaryDiffNode != null) {
+      primaryNodeContent=primaryDiffNode.getRealizer().getNodeContent();
+    }
+    return primaryNodeContent;
   }
 
   @Override

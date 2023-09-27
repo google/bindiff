@@ -183,6 +183,11 @@ public abstract class GraphViewSettingsConfigItem {
   }
 
   public final void setDefaultGraphLayout(final EGraphLayout defaultGraphLayout) {
+    GraphLayout layout=getGraphLayout(defaultGraphLayout);
+    getGraphLayoutOptionsBuilder().setLayout(layout);
+  }
+
+  private GraphLayout getGraphLayout(EGraphLayout defaultGraphLayout) {
     GraphLayout layout = GraphLayout.HIERARCHICAL;
     switch (defaultGraphLayout) {
       case ORTHOGONAL:
@@ -194,7 +199,7 @@ public abstract class GraphViewSettingsConfigItem {
       case HIERARCHICAL:
         break;
     }
-    getGraphLayoutOptionsBuilder().setLayout(layout);
+    return layout;
   }
 
   public final void setAutoLayouting(final boolean autoLayouting) {
@@ -245,6 +250,11 @@ public abstract class GraphViewSettingsConfigItem {
   }
 
   public final void setHierarchicalOrientation(final ELayoutOrientation hierarchicalOrientation) {
+    LayoutOrientation orientation=getLayoutOrientation(hierarchicalOrientation);
+    getGraphLayoutOptionsBuilder().getHierarchicalOptionsBuilder().setOrientation(orientation);
+  }
+
+  private LayoutOrientation getLayoutOrientation(ELayoutOrientation hierarchicalOrientation) {
     LayoutOrientation orientation = LayoutOrientation.HORIZONTAL;
     switch (hierarchicalOrientation) {
       case HORIZONTAL:
@@ -253,7 +263,7 @@ public abstract class GraphViewSettingsConfigItem {
         orientation = LayoutOrientation.VERTICAL;
         break;
     }
-    getGraphLayoutOptionsBuilder().getHierarchicalOptionsBuilder().setOrientation(orientation);
+    return orientation;
   }
 
   public final void setHierarchicalMinimumLayerDistance(
@@ -270,6 +280,11 @@ public abstract class GraphViewSettingsConfigItem {
   }
 
   public final void setOrthogonalLayoutStyle(final EOrthogonalLayoutStyle orthogonalLayoutStyle) {
+    OrthogonalLayoutStyle style=getOrthogonalLayoutStyle(orthogonalLayoutStyle);
+    getGraphLayoutOptionsBuilder().getOrthogonalOptionsBuilder().setStyle(style);
+  }
+
+  private OrthogonalLayoutStyle getOrthogonalLayoutStyle(EOrthogonalLayoutStyle orthogonalLayoutStyle) {
     OrthogonalLayoutStyle style = OrthogonalLayoutStyle.DEFAULT;
     switch (orthogonalLayoutStyle) {
       case NORMAL:
@@ -278,10 +293,15 @@ public abstract class GraphViewSettingsConfigItem {
         style = OrthogonalLayoutStyle.TREE;
         break;
     }
-    getGraphLayoutOptionsBuilder().getOrthogonalOptionsBuilder().setStyle(style);
+    return style;
   }
 
   public final void setOrthogonalOrientation(final ELayoutOrientation orthogonalOrientation) {
+    LayoutOrientation orientation=getLayoutOrientation(orthogonalOrientation);
+    getGraphLayoutOptionsBuilder().getOrthogonalOptionsBuilder().setOrientation(orientation);
+  }
+
+  private LayoutOrientation getLayoutOrientation(ELayoutOrientation orthogonalOrientation) {
     LayoutOrientation orientation = LayoutOrientation.HORIZONTAL;
     switch (orthogonalOrientation) {
       case HORIZONTAL:
@@ -290,7 +310,7 @@ public abstract class GraphViewSettingsConfigItem {
         orientation = LayoutOrientation.VERTICAL;
         break;
     }
-    getGraphLayoutOptionsBuilder().getOrthogonalOptionsBuilder().setOrientation(orientation);
+    return orientation;
   }
 
   public final void setOrthogonalMinimumNodeDistance(final int orthogonalMinimumNodeDistance) {
@@ -300,21 +320,26 @@ public abstract class GraphViewSettingsConfigItem {
   }
 
   public final void setCircularLayoutStyle(final ECircularLayoutStyle circularLayoutStyle) {
-    CircularLayoutStyle style = CircularLayoutStyle.COMPACT;
-    switch (circularLayoutStyle) {
-      case COMPACT:
-        break;
-      case ISOLATED:
-        style = CircularLayoutStyle.ISOLATED;
-        break;
-      case SINGLE_CYCLE:
-        style = CircularLayoutStyle.SINGLE_CIRCLE;
-        break;
-    }
-    getGraphLayoutOptionsBuilder().getCircularOptionsBuilder().setStyle(style);
+      CircularLayoutStyle style=getCircularLayoutStyle(circularLayoutStyle);
+      getGraphLayoutOptionsBuilder().getCircularOptionsBuilder().setStyle(style);
   }
 
-  public final void setCircularMinimumNodeDistance(final int circularMinimumNodeDistance) {
+    private CircularLayoutStyle getCircularLayoutStyle(ECircularLayoutStyle circularLayoutStyle) {
+        CircularLayoutStyle style = CircularLayoutStyle.COMPACT;
+        switch (circularLayoutStyle) {
+          case COMPACT:
+            break;
+          case ISOLATED:
+            style = CircularLayoutStyle.ISOLATED;
+            break;
+          case SINGLE_CYCLE:
+            style = CircularLayoutStyle.SINGLE_CIRCLE;
+            break;
+        }
+        return style;
+    }
+
+    public final void setCircularMinimumNodeDistance(final int circularMinimumNodeDistance) {
     getGraphLayoutOptionsBuilder()
         .getCircularOptionsBuilder()
         .setMinNodeDistance(circularMinimumNodeDistance);
@@ -329,6 +354,11 @@ public abstract class GraphViewSettingsConfigItem {
   }
 
   public final void setMouseWheelAction(final EMouseAction mouseWheelAction) {
+    MouseWheelAction action=getMouseWheelAction(mouseWheelAction);
+    getGraphLayoutOptionsBuilder().setWheelAction(action);
+  }
+
+  private MouseWheelAction getMouseWheelAction(EMouseAction mouseWheelAction) {
     MouseWheelAction action = MouseWheelAction.SCROLL;
     switch (mouseWheelAction) {
       case ZOOM:
@@ -337,7 +367,7 @@ public abstract class GraphViewSettingsConfigItem {
       case SCROLL:
         break;
     }
-    getGraphLayoutOptionsBuilder().setWheelAction(action);
+    return action;
   }
 
   public final void setViewSynchronization(final boolean viewSynchronization) {
