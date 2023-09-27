@@ -68,10 +68,7 @@ public class ThemeConfigItem {
       return similarityColorRamp;
     }
 
-    List<String> ramp = theme.getSimilarityRampList();
-    if (ramp.isEmpty()) {
-      ramp = DEFAULT_THEME.getSimilarityRampList();
-    }
+    List<String> ramp=getStringList();
 
     List<Color> colors;
     try {
@@ -88,6 +85,14 @@ public class ThemeConfigItem {
       similarityColorRamp = colors.toArray(new Color[0]);
     }
     return similarityColorRamp;
+  }
+
+  private List<String> getStringList() {
+    List<String> ramp = theme.getSimilarityRampList();
+    if (ramp.isEmpty()) {
+      ramp = DEFAULT_THEME.getSimilarityRampList();
+    }
+    return ramp;
   }
 
   public void setSimilarityColorRamp(final Color[] colors) {
