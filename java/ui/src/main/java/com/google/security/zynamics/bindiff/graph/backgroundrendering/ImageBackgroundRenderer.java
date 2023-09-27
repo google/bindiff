@@ -61,16 +61,21 @@ public class ImageBackgroundRenderer extends DefaultBackgroundRenderer {
 
   private int getX(final int viewWidth, final int objectWidth) {
     if (type == EGraph.SECONDARY_GRAPH) {
-      int offset = OFFSET;
-
-      if (graphView.getVerticalScrollBarPolicy() == ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS) {
-        offset += 15;
-      }
+      int offset=getOffset();
 
       return viewWidth - objectWidth - offset;
     }
 
     return OFFSET;
+  }
+
+  private int getOffset() {
+    int offset = OFFSET;
+
+    if (graphView.getVerticalScrollBarPolicy() == ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS) {
+      offset += 15;
+    }
+    return offset;
   }
 
   @Override

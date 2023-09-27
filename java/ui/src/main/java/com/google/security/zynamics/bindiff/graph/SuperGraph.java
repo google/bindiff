@@ -234,15 +234,13 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
     double secHeight = 0.;
 
     if (primaryDiffNode != null) {
-      primaryYnode = primaryDiffNode.getNode();
-      primaryNodeRealizer = primaryGraph.getGraph().getRealizer(primaryYnode);
+      primaryNodeRealizer=getNodeRealizer(primaryGraph, primaryDiffNode);
 
       priWidth = primaryNodeRealizer.getWidth();
       priHeight = primaryNodeRealizer.getHeight();
     }
     if (secondaryDiffNode != null) {
-      secondaryYnode = secondaryDiffNode.getNode();
-      secondaryNodeRealizer = secondaryGraph.getGraph().getRealizer(secondaryYnode);
+      NodeRealizer secondaryNodeRealizer=getNodeRealizer(secondaryGraph, secondaryDiffNode);
 
       secWidth = secondaryNodeRealizer.getWidth();
       secHeight = secondaryNodeRealizer.getHeight();
@@ -265,5 +263,13 @@ public class SuperGraph extends BinDiffGraph<SuperDiffNode, SuperDiffEdge> {
       secondaryNodeRealizer.setWidth(superNodeRealizer.getWidth());
       secondaryNodeRealizer.setHeight(superNodeRealizer.getHeight());
     }
+  }
+
+  private NodeRealizer getNodeRealizer(SingleGraph primaryGraph, SingleDiffNode primaryDiffNode) {
+    Node primaryYnode;
+    NodeRealizer primaryNodeRealizer;
+    primaryYnode=primaryDiffNode.getNode();
+    primaryNodeRealizer=primaryGraph.getGraph().getRealizer(primaryYnode);
+    return primaryNodeRealizer;
   }
 }

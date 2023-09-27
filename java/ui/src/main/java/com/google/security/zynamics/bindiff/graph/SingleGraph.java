@@ -104,6 +104,13 @@ public class SingleGraph extends BinDiffGraph<SingleDiffNode, SingleDiffEdge> {
       return null;
     }
 
+    diffEdge=getSingleDiffEdge(diffGraph, diffEdge, rawSourceNode, rawTargetNode, rawJump);
+
+    return diffEdge;
+  }
+
+  private static SingleDiffEdge getSingleDiffEdge(com.google.security.zynamics.bindiff.graph.SingleGraph diffGraph, SingleDiffEdge diffEdge, RawBasicBlock rawSourceNode, RawBasicBlock rawTargetNode, RawJump rawJump) {
+    Edge yEdge;
     SingleEdgeRealizer edgeRealizer = null;
 
     if (rawSourceNode != null && rawTargetNode != null && rawJump != null) {
@@ -146,7 +153,6 @@ public class SingleGraph extends BinDiffGraph<SingleDiffNode, SingleDiffEdge> {
         }
       }
     }
-
     return diffEdge;
   }
 
@@ -157,8 +163,14 @@ public class SingleGraph extends BinDiffGraph<SingleDiffNode, SingleDiffEdge> {
           flowgraph,
       final RawCombinedBasicBlock combinedBasicblock) {
     SingleDiffNode diffNode = null;
-    diffNode=getSingleDiffNode(singleGraph, functionMatch, flowgraph, combinedBasicblock, diffNode);
+    diffNode=getSingleDiffNode((com.google.security.zynamics.bindiff.graph.SingleGraph) singleGraph, functionMatch, flowgraph, combinedBasicblock, diffNode);
 
+    return diffNode;
+  }
+
+  private static SingleDiffNode getSingleDiffNode(com.google.security.zynamics.bindiff.graph.SingleGraph singleGraph, FunctionMatchData functionMatch, RawCombinedFlowGraph<RawCombinedBasicBlock, RawCombinedJump<RawCombinedBasicBlock>> flowgraph, RawCombinedBasicBlock combinedBasicblock, SingleDiffNode diffNode) {
+    Graph2D graph2D;
+    diffNode=getSingleDiffNode(singleGraph, functionMatch, flowgraph, combinedBasicblock, diffNode);
     return diffNode;
   }
 
