@@ -297,6 +297,11 @@ public abstract class GraphViewSettingsConfigItem {
   }
 
   public final void setOrthogonalOrientation(final ELayoutOrientation orthogonalOrientation) {
+    LayoutOrientation orientation=getLayoutOrientation(orthogonalOrientation);
+    getGraphLayoutOptionsBuilder().getOrthogonalOptionsBuilder().setOrientation(orientation);
+  }
+
+  private LayoutOrientation getLayoutOrientation(ELayoutOrientation orthogonalOrientation) {
     LayoutOrientation orientation = LayoutOrientation.HORIZONTAL;
     switch (orthogonalOrientation) {
       case HORIZONTAL:
@@ -305,7 +310,7 @@ public abstract class GraphViewSettingsConfigItem {
         orientation = LayoutOrientation.VERTICAL;
         break;
     }
-    getGraphLayoutOptionsBuilder().getOrthogonalOptionsBuilder().setOrientation(orientation);
+    return orientation;
   }
 
   public final void setOrthogonalMinimumNodeDistance(final int orthogonalMinimumNodeDistance) {
