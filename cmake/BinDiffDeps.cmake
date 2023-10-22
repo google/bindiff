@@ -29,6 +29,6 @@ if(NOT sqlite_POPULATED)
 endif()
 
 # Setup IDA SDK. Uses FindIdaSdk.cmake from BinExport
-find_package(IdaSdk REQUIRED)
+find_package(IdaSdk)
 
 find_package(Protobuf 3.14 REQUIRED) # Make protobuf_generate_cpp available
