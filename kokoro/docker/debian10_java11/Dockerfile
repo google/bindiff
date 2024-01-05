@@ -1,4 +1,6 @@
-# Dockerfile for a Debian 10 container with Java 11 installed.
+# Dockerfile for a Debian 10 container with Java 17 installed.
+# TODO(cblichmann): Rename container to not include Java version
+#
 # Rebuild and upload with
 #   ./rebuild.sh
 #   podman push gcr.io/zynamics-build/debian10-java11:latest
@@ -15,9 +17,9 @@ ENTRYPOINT ["/bin/bash"]
 
 RUN \
     [[ "$(wget -qO - \
-            https://services.gradle.org/distributions/gradle-7.4.2-bin.zip | \
+            https://services.gradle.org/distributions/gradle-8.5-bin.zip | \
             tee gradle.zip | sha256sum | cut '-d ' -f1)" == \
-        "29e49b10984e585d8118b7d0bc452f944e386458df27371b49b4ac1dec4b7fda" ]] && \
+        "9d926787066a081739e8200858338b4a69e837c3a821a33aca9db09dd4a41026" ]] && \
     unzip -q gradle.zip && \
     cp -R gradle-*/{bin,lib} /usr/local && \
     ln -s /usr/local/bin/gradle /usr/bin && \

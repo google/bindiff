@@ -17,10 +17,14 @@ import proguard.gradle.ProGuardTask
 buildscript {
     dependencies {
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.13'
+        classpath 'com.github.johnrengelman:shadow:8.1.1'
+        classpath 'com.guardsquare:proguard-gradle:7.2.2'
     }
 }
 
 apply plugin: 'com.google.protobuf'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
 
 protobuf {
     // Configure the protoc executable
@@ -70,20 +74,10 @@ dependencies {
     implementation project(':zylib')
 }
 
-buildscript {
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:6.1.0'
-        classpath 'com.guardsquare:proguard-gradle:7.2.2'
-    }
-}
-
-apply plugin: 'application'
-apply plugin: 'com.github.johnrengelman.shadow'
-
 mainClassName = 'com.google.security.zynamics.bindiff.BinDiff'
 
 shadowJar {
-    baseName = 'bindiff-ui'
+    archiveBaseName = 'bindiff-ui'
     // Exclude non-essential files from jar
     exclude('META-INF/LICENSE*',
             'META-INF/NOTICE*',
