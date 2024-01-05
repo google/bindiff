@@ -639,7 +639,7 @@ FlowGraph::Vertex FlowGraph::GetVertex(Address address) const {
     LOG(QFATAL) << absl::StrCat(
         "Invalid flow graph address (first: ", first, ", last: ", last,
         ", address: ", FormatAddress(address),
-        ", first adress in flow graph: ", FormatAddress(GetAddress(first)),
+        ", first address in flow graph: ", FormatAddress(GetAddress(first)),
         ")");
   }
   return first;
