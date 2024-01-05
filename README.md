@@ -91,10 +91,12 @@ The following build dependencies are required:
 *   GCC 9 or a recent version of Clang on Linux/macOS. On Windows, use the
     Visual Studio 2019 compiler and the Windows SDK for Windows 10.
 *   Git 1.8 or higher
-*   IDA Pro only: IDA SDK 8.0 or higher (unpack into `deps/idasdk`)
 *   Dependencies that will be downloaded:
     *   Abseil, GoogleTest, Protocol Buffers (3.14), and SQLite3
     *   Binary Ninja SDK
+
+The following build dependencies are optional:
+*   IDA Pro only: IDA SDK 8.0 or higher (unpack into `deps/idasdk`)
 
 The general build steps are the same on Windows, Linux and macOS. The following
 shows the commands for Linux.
@@ -124,6 +126,18 @@ Finally, invoke the actual build. Binaries will be placed in
 cmake --build build/out --config Release
 (cd build/out; ctest --build-config Release --output-on-failure)
 cmake --install build/out --config Release
+```
+
+### Building without IDA
+
+To build without IDA, simply change the above configuration step to
+
+```bash
+cmake -S . -B build/out -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=build/out \
+  -DBINDIFF_BINEXPORT_DIR=build/binexport \
+  -DBINEXPORT_ENABLE_IDAPRO=OFF
 ```
 
 ### Java GUI and yFiles

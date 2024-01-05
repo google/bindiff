@@ -370,7 +370,9 @@ endif()
 install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
 
 # IDA Pro plugins
-add_subdirectory(ida)
+if(IdaSdk_FOUND)
+  add_subdirectory(ida)
+endif(IdaSdk_FOUND)
 
 # Utility programs. For now, only contains a tool to modify the BinDiff
 # config from the installer/package scripts.
