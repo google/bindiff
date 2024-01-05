@@ -38,7 +38,7 @@ export JAVA_HOME=${build_dir}/zulu16.30.15-ca-jdk16.0.1-macosx_x64/zulu-16.jdk/C
 "${JAVA_HOME}/bin/jpackage" \
   --type app-image \
   --app-version "${bindiff_release}" \
-  --copyright '(c)2004-2011 zynamics GmbH, (c)2011-2023 Google LLC' \
+  --copyright '(c)2004-2011 zynamics GmbH, (c)2011-2024 Google LLC' \
   --description 'Find similarities and differences in disassembled code' \
   --name BinDiff \
   --dest packaging/dmg/Package/Applications/BinDiff \
