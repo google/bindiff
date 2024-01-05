@@ -16,9 +16,9 @@ import proguard.gradle.ProGuardTask
 
 buildscript {
     dependencies {
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.13'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.9.4'
         classpath 'com.github.johnrengelman:shadow:8.1.1'
-        classpath 'com.guardsquare:proguard-gradle:7.2.2'
+        classpath 'com.guardsquare:proguard-gradle:7.4.1'
     }
 }
 
@@ -29,15 +29,13 @@ apply plugin: 'com.github.johnrengelman.shadow'
 protobuf {
     // Configure the protoc executable
     protoc {
-        // Note: protoc does not ship an 'artifact' for M1 Macs yet. Use an
-        //       absolute 'path' there instead.
+        // To manually specify the compiler binary, use:
         // path = '/path/to/protoc'
-        artifact = 'com.google.protobuf:protoc:3.15.6'
+        artifact = 'com.google.protobuf:protoc:3.25.1'
     }
     plugins {
         grpc {
-            // Note: See 'protoc' comment above.
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.33.0'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.60.1'
         }
     }
     generateProtoTasks {
@@ -52,25 +50,26 @@ dependencies {
     implementation ':y:'
     implementation ':ysvg:'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'com.google.errorprone:error_prone_annotations:2.4.0'
-    implementation 'com.google.flogger:flogger-system-backend:0.4'
-    implementation 'com.google.flogger:flogger:0.4'
-    implementation 'com.google.guava:guava:28.1-jre'
-    implementation 'com.google.protobuf:protobuf-java-util:3.15.6'
-    implementation 'com.google.protobuf:protobuf-java:3.15.6'
-    implementation 'commons-cli:commons-cli:1.4'
-    implementation 'io.grpc:grpc-netty-shaded:1.32.1'
-    implementation 'io.grpc:grpc-protobuf:1.32.1'
-    implementation 'io.grpc:grpc-stub:1.32.1'
+    implementation 'com.google.errorprone:error_prone_annotations:2.24.1'
+    implementation 'com.google.flogger:flogger-system-backend:0.8'
+    implementation 'com.google.flogger:flogger:0.8'
+    implementation 'com.google.guava:guava:33.0.0-jre'
+    implementation 'com.google.protobuf:protobuf-java-util:3.25.1'
+    implementation 'com.google.protobuf:protobuf-java:3.25.1'
+    implementation 'commons-cli:commons-cli:1.6.0'
+    implementation 'io.grpc:grpc-netty-shaded:1.60.1'
+    implementation 'io.grpc:grpc-protobuf:1.60.1'
+    implementation 'io.grpc:grpc-stub:1.60.1'
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
-    implementation 'org.apache.xmlgraphics:batik-anim:1.11'
-    implementation 'org.apache.xmlgraphics:batik-bridge:1.11'
-    implementation 'org.apache.xmlgraphics:batik-gvt:1.11'
-    implementation 'org.apache.xmlgraphics:batik-svggen:1.11'
+    implementation 'org.apache.xmlgraphics:batik-anim:1.17'
+    implementation 'org.apache.xmlgraphics:batik-bridge:1.17'
+    implementation 'org.apache.xmlgraphics:batik-gvt:1.17'
+    implementation 'org.apache.xmlgraphics:batik-svggen:1.17'
+    implementation 'org.slf4j:slf4j-nop:2.0.10'
     implementation 'org.jfree:jcommon:1.0.24'
     implementation 'org.jfree:jfreechart:1.0.19'
     implementation 'org.xerial.thirdparty:nestedvm:1.0'
-    implementation 'org.xerial:sqlite-jdbc:3.34.0'
+    implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
     implementation project(':zylib')
 }
 
@@ -131,6 +130,7 @@ task obfuscatedJar(type: ProGuardTask) {
     dontwarn 'java.**'
     dontwarn 'javax.**'
     dontwarn 'jdk.**'
+    dontwarn 'sun.**'
 
     // Class unexpectedly contains class
     dontwarn 'javax.xml.bind.ModuleUtil'

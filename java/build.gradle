@@ -16,7 +16,9 @@ allprojects {
     apply plugin: 'java'
     apply plugin: 'idea'
 
-    sourceCompatibility = '11'
+    java {
+        sourceCompatibility = JavaVersion.VERSION_11
+    }
 
     tasks.withType(AbstractArchiveTask) {
         preserveFileTimestamps = false
@@ -57,7 +59,6 @@ subprojects {
         }
         mavenCentral()
     }
-
 }
 
 // Downloads all projects dependencies from the repository
