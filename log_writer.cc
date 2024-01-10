@@ -14,13 +14,14 @@
 
 #include "third_party/zynamics/bindiff/log_writer.h"
 
+#include <boost/iterator/transform_iterator.hpp>  // NOLINT
 #include <fstream>
 #include <iomanip>
 #include <memory>
+#include <string>
 
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
-#include <boost/iterator/transform_iterator.hpp>
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/binexport/util/format.h"

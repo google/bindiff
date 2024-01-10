@@ -15,12 +15,16 @@
 #ifndef GRAPH_UTIL_H_
 #define GRAPH_UTIL_H_
 
+#include <algorithm>
+#include <boost/graph/adjacency_list.hpp>               // NOLINT
+#include <boost/graph/breadth_first_search.hpp>         // NOLINT
+#include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
+#include <cassert>
+#include <cmath>
+#include <cstddef>
 #include <numeric>
 #include <queue>
-
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/compressed_sparse_row_graph.hpp>
+#include <vector>
 
 enum vertex_flags_t { vertex_flags };
 enum vertex_bfs_index_t { vertex_bfs_index };

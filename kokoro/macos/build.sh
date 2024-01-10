@@ -49,6 +49,7 @@ cmake "${src_dir}/bindiff" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_RULE_MESSAGES=OFF \
   "-DCMAKE_INSTALL_PREFIX=${out_dir}" \
+  "-DBOOST_ROOT=${KOKORO_PIPER_DIR}/google3/third_party/boost/do_not_include_from_google3_only_third_party/boost" \
   "-DIdaSdk_ROOT_DIR=${KOKORO_PIPER_DIR}/google3/third_party/idasdk"
 cmake --build . --config Release -- "-j$(sysctl -n hw.logicalcpu)"
 ctest --build-config Release --output-on-failure -R '^[A-Z]'

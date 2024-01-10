@@ -15,6 +15,10 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 
 #include <algorithm>
+#include <boost/graph/breadth_first_search.hpp>  // NOLINT
+#include <boost/graph/dominator_tree.hpp>        // NOLINT
+#include <boost/graph/filtered_graph.hpp>        // NOLINT
+#include <boost/graph/iteration_macros.hpp>      // NOLINT
 #include <cassert>
 #include <cstdint>
 #include <sstream>
@@ -22,10 +26,6 @@
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/strings/str_cat.h"
-#include <boost/graph/breadth_first_search.hpp>
-#include <boost/graph/dominator_tree.hpp>
-#include <boost/graph/filtered_graph.hpp>
-#include <boost/graph/iteration_macros.hpp>
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"

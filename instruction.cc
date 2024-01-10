@@ -15,15 +15,18 @@
 #include "third_party/zynamics/bindiff/instruction.h"
 
 #include <algorithm>
+#include <boost/iterator/reverse_iterator.hpp>    // NOLINT
+#include <boost/iterator/transform_iterator.hpp>  // NOLINT
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <iterator>
 #include <list>
+#include <string>
+#include <vector>
 
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
-#include <boost/iterator/reverse_iterator.hpp>
-#include <boost/iterator/transform_iterator.hpp>
 
 namespace security::bindiff {
 namespace {
