@@ -15,19 +15,24 @@
 #include "third_party/zynamics/bindiff/config.h"
 
 #ifdef BINDIFF_GOOGLE
+#include "third_party/protobuf/json/json.h"
 #include "third_party/protobuf/util/json_util.h"
 #else
+#include <google/protobuf/json/json.h>
 #include <google/protobuf/util/json_util.h>
 #endif
 
-#include <algorithm>
+#include <cstddef>
 #include <fstream>
+#include <iosfwd>
 #include <string>
-#include <vector>
+#include <utility>
 
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/zynamics/bindiff/config_defaults.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
@@ -40,7 +45,7 @@ namespace util = ::proto2::util;
 }  // namespace google::protobuf
 #endif
 
-using google::protobuf::util::JsonOptions;
+using google::protobuf::util::JsonPrintOptions;
 using google::protobuf::util::JsonParseOptions;
 using google::protobuf::util::JsonStringToMessage;
 using google::protobuf::util::MessageToJsonString;
@@ -121,9 +126,9 @@ absl::StatusOr<Config> LoadFromFile(const std::string& filename) {
 
 std::string AsJsonString(const Config& config) {
   std::string data;
-  JsonOptions options;
+  JsonPrintOptions options;
   options.add_whitespace = true;
-  options.always_print_primitive_fields = true;
+  options.always_print_fields_with_no_presence = true;
   options.preserve_proto_field_names = true;
   // For the Config proto, this should never fail to serialize.
   if (!MessageToJsonString(config, &data, options).ok()) {
