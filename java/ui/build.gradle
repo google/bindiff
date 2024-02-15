@@ -88,11 +88,15 @@ shadowJar {
             // Unsupported platforms: FreeBSD/DragonFly, remove 32-bit
             'org/sqlite/native/DragonFlyBSD/**',
             'org/sqlite/native/FreeBSD/**',
-            'org/sqlite/native/Linux/android-arm/**',
+            'org/sqlite/native/Linux-Android/**',
             'org/sqlite/native/Linux/arm/**',
+            'org/sqlite/native/Linux/armv6/**',
             'org/sqlite/native/Linux/armv7/**',
             'org/sqlite/native/Linux/ppc64/**',
             'org/sqlite/native/Linux/x86/**',
+            'org/sqlite/native/Linux-Musl/x86/**',
+            'org/sqlite/native/Windows/aarch64/**',
+            'org/sqlite/native/Windows/armv7/**',
             'org/sqlite/native/Windows/x86/**')
 }
 

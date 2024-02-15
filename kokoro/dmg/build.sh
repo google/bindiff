@@ -125,8 +125,8 @@ if [[ $1 == release ]]; then
     --entitlements packaging/dmg/BinDiff.entitlements \
     --sign "Developer ID Application: Google LLC (EQHXZ8M8AV)" \
     --keychain "${HOME}/Library/Keychains/MacApplicationSigning.keychain" \
-    jardir/org/sqlite/native/Mac/aarch64/libsqlitejdbc.jnilib \
-    jardir/org/sqlite/native/Mac/x86_64/libsqlitejdbc.jnilib \
+    jardir/org/sqlite/native/Mac/aarch64/libsqlitejdbc.dylib \
+    jardir/org/sqlite/native/Mac/x86_64/libsqlitejdbc.dylib \
     "${app_dir}/BinDiff.app/Contents/runtime-arm64/Contents/MacOS/libjli.dylib" \
     "${app_dir}/BinDiff.app/Contents/runtime-x86_64/Contents/MacOS/libjli.dylib"
   (cd jardir; jar -c -m META-INF/MANIFEST.MF -f \
