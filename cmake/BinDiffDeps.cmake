@@ -14,8 +14,8 @@
 
 # SQLite embedded database, underlies the .BinDiff file format
 FetchContent_Declare(sqlite
-  URL      https://sqlite.org/2022/sqlite-amalgamation-3380500.zip
-  URL_HASH SHA3_256=bfad5c42b767520a546251b9876e4a4b127fb651c437b968b149070e09252807
+  URL      https://sqlite.org/2024/sqlite-amalgamation-3450100.zip
+  URL_HASH SHA3_256=e311198775d5d5b2889d5fabe1d9a490567a14e605591d6a9e4c833804a8b4cb
 )
 FetchContent_GetProperties(sqlite)
 if(NOT sqlite_POPULATED)
