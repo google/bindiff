@@ -147,7 +147,7 @@ if [[ $1 == release ]]; then
   zip -q --symlinks -r \
     "${build_dir}/BinDiff.zip" \
     "${app_dir}/BinDiff.app"
-  /usr/bin/python \
+  python \
     "$KOKORO_PIPER_DIR/google3/apps/drive/fs/distribution/osx/notarize.py" \
     --file=${build_dir}/BinDiff.zip \
     --primary-bundle-id=com.google.bindiff
@@ -182,7 +182,7 @@ if [[ $1 == release ]]; then
     "${build_dir}/bindiff.pkg"
 
   echo "Notarization..."
-  /usr/bin/python \
+  python \
     "$KOKORO_PIPER_DIR/google3/apps/drive/fs/distribution/osx/notarize.py" \
     --file=${build_dir}/bindiff.pkg \
     --primary-bundle-id=com.google.bindiff
