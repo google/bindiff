@@ -11,19 +11,8 @@ set SIGNTOOL="%ProgramFiles(x86)%\Windows kits\10\bin\x86\signtool.exe"
 set BUILD_DIR=%cd%\build
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
-:: Hermetic VS2022 (Community) toolchain using CMake and Ninja
-unzip -q "%KOKORO_GFILE_DIR%\cmake-3.25.2-windows-x86_64.zip" -d "%BUILD_DIR%" || exit /b
-unzip -q "%KOKORO_GFILE_DIR%\ninja-win.zip" -d "%BUILD_DIR%" || exit /b
-unzip -q "%KOKORO_GFILE_DIR%\vs2022.zip" -d "%BUILD_DIR%" || exit /b
-set CMAKE_BIN=%BUILD_DIR%\cmake-3.25.2-windows-x86_64\bin
-set VS_PATH=%BUILD_DIR%\vs2022\14.33.31629
-set SDK_PATH=%ProgramFiles(x86)%\Windows Kits\10
-set SDK_VER=10.0.16299.0
-set PATH=%SystemRoot%\system32;%VS_PATH%\bin\HostX64\x64;%SDK_PATH%\bin\%SDK_VER%\x64;%BUILD_DIR%;%CMAKE_BIN%;%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin
-set LIB=%VS_PATH%\lib\x64;%SDK_PATH%\Lib\%SDK_VER%\um\x64;%SDK_PATH%\Lib\%SDK_VER%\ucrt\x64;
-set INCLUDE=%VS_PATH%\include;%SDK_PATH%\Include\%SDK_VER%\ucrt;%SDK_PATH%\Include\%SDK_VER%\um;%SDK_PATH%\Include\%SDK_VER%\shared;%SDK_PATH%\Include\%SDK_VER%\winrt;%SDK_PATH%\Include\%SDK_VER%\cppwinrt
-
-:: Build BinDiff
+:: Build BinDiff, this script is using a Docker container built from
+:: //devtools/kokoro/container_bakery/zynamics/win2019-buildtools/Dockerfile
 set SRC_DIR=%KOKORO_ARTIFACTS_DIR%/git
 set OUT_DIR=%BUILD_DIR%
 set DEPS_DIR=%BUILD_DIR%
@@ -32,6 +21,9 @@ set DEPS_DIR=%BUILD_DIR%
 xcopy /q /s /e ^
   "%KOKORO_PIPER_DIR%\google3\third_party\jsoncpp" ^
   "%KOKORO_PIPER_DIR%\google3\third_party\binaryninja_api\third_party\jsoncpp\"
+
+:: Set up Visual Studio
+call C:\VS\VC\Auxiliary\Build\vcvarsall.bat x64
 
 pushd "%OUT_DIR%"
 cmake "%SRC_DIR%/bindiff" ^
