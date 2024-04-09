@@ -41,7 +41,10 @@ size_t UnmatchedFunctionsChooserPrimary::get_count() const {
 }
 
 ea_t UnmatchedFunctionsChooserPrimary::get_ea(size_t n) const {
-  return Plugin::instance()->results()->GetMatchDescription(n).address_primary;
+  return Plugin::instance()
+      ->results()
+      ->GetUnmatchedDescriptionPrimary(n)
+      .address;
 }
 
 Results::UnmatchedDescription UnmatchedFunctionsChooserPrimary::GetDescription(
