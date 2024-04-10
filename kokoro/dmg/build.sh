@@ -16,6 +16,8 @@ build_dir=${PWD}/build
 bindiff_pkg_root=${PWD}/packaging/dmg/Package
 app_dir=${bindiff_pkg_root}/Applications/BinDiff
 
+notarize=$KOKORO_BLAZE_DIR/notarize/blaze-bin/devtools/kokoro/notarizationproxy/client/cmd/notarize
+
 mkdir -p "${build_dir}"
 
 # Verify/extract dependencies
@@ -147,10 +149,8 @@ if [[ $1 == release ]]; then
   zip -q --symlinks -r \
     "${build_dir}/BinDiff.zip" \
     "${app_dir}/BinDiff.app"
-  python \
-    "$KOKORO_PIPER_DIR/google3/apps/drive/fs/distribution/osx/notarize.py" \
-    --file=${build_dir}/BinDiff.zip \
-    --primary-bundle-id=com.google.bindiff
+  "${notarize}" \
+    --file=${build_dir}/BinDiff.zip
 
   echo "Stapling..."
   xcrun stapler staple -v "${app_dir}/BinDiff.app"
@@ -182,10 +182,8 @@ if [[ $1 == release ]]; then
     "${build_dir}/bindiff.pkg"
 
   echo "Notarization..."
-  python \
-    "$KOKORO_PIPER_DIR/google3/apps/drive/fs/distribution/osx/notarize.py" \
-    --file=${build_dir}/bindiff.pkg \
-    --primary-bundle-id=com.google.bindiff
+  "${notarize}" \
+    --file=${build_dir}/bindiff.pkg
 
   echo "Stapling..."
   xcrun stapler staple -v "${build_dir}/bindiff.pkg"
