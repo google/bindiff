@@ -12,14 +12,14 @@ fi
 bindiff_release=8
 
 # Set Xcode version to well-known value
-export DEVELOPER_DIR=/Applications/Xcode_15.1.app/Contents/Developer
+export DEVELOPER_DIR=/Applications/Xcode_15.3.app/Contents/Developer
 
 build_dir=${PWD}/build
 mkdir -p "${build_dir}"
 
 # Verify/extract dependencies
 pushd "${KOKORO_GFILE_DIR}"
-cat << 'EOF' | shasum -c
+cat << 'EOF' | shasum -cventura
 0b5def3f77617b2ce0ec6701f96e4123a7b14bd0b8a5674ab0556c364ff7cb52  cmake-3.25.2-macos-universal.tar.gz
 EOF
 popd
