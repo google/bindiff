@@ -23,6 +23,9 @@ CONFIG_FILE="/Library/Application Support/BinDiff/bindiff.json"
 LOGGED_IN_UID=$(id -u "${USER}")
 log "LOGGED_IN_UID: ${LOGGED_IN_UID}"
 
+# If the /usr/local/bin directory does not exist, create it.
+ls /usr/local/bin || mkdir /usr/local/bin
+
 BUNDLE_DIR="${APP_DIR}/BinDiff.app/Contents"
 for exe in \
   bindiff \
