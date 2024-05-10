@@ -19,12 +19,12 @@ mkdir -p "${build_dir}"
 
 # Verify/extract dependencies
 pushd "${KOKORO_GFILE_DIR}"
-cat << 'EOF' | shasum -cventura
-0b5def3f77617b2ce0ec6701f96e4123a7b14bd0b8a5674ab0556c364ff7cb52  cmake-3.25.2-macos-universal.tar.gz
+cat << 'EOF' | shasum -c
+81db032983a33dbd8da0315df4488e19999ffb63c5a900fb1c0741b14a7b78ef  cmake-3.29.3-macos-universal.tar.gz
 EOF
 popd
 tar --strip-components=3 -C "${build_dir}" -xzf \
-  "${KOKORO_GFILE_DIR}/cmake-3.25.2-macos-universal.tar.gz"
+  "${KOKORO_GFILE_DIR}/cmake-3.29.3-macos-universal.tar.gz"
 export PATH=${build_dir}/bin:${PATH}
 
 # Build BinDiff
