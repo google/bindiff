@@ -35,6 +35,10 @@ unzip -q "%KOKORO_GFILE_DIR%\zulu16.28.11-ca-jdk16.0.0-win_x64.zip" ^
 unzip -q "%KOKORO_GFILE_DIR%\wix311-binaries.zip" ^
   -d "%BUILD_DIR%\wix" || exit /b
 
+:: Code-sign release artifacts
+if "%1" neq "release" ^
+  call :codesign "%KOKORO_GFILE_DIR%\*.exe" "%KOKORO_GFILE_DIR%\*.dll"
+
 :: Copy latest release artifacts.
 for %%I in (bindiff.exe ^
             bindiff_config_setup.exe ^
@@ -104,16 +108,20 @@ copy /Y ^
   "%BUILD_DIR%\Jre.wixobj" ^
   "%BUILD_DIR%\Setup.wixobj" || exit /b
 
-if "%1" neq "release" exit /b
-
 :: Release build, code sign the artifacts
-echo Code signing artifacts...
+if "%1" neq "release" call :codesign "%BUILD_DIR%\*.msi"
 
-set ARTIFACTS=^
-  "%BUILD_DIR%\*.msi"
+exit /b
 
-%SIGNTOOL% sign /v /tr http://timestamp.digicert.com /n "Google" /a /fd sha256 ^
-  /td sha256 %ARTIFACTS% || exit /b
+
+:: Code-signs the specified artifacts and verifies them
+:: %* artifacts to sign
+:codesign
+
+set ARTIFACTS=%*
+
+ksigntool sign GOOGLE_EXTERNAL /v /debug /t http://timestamp.digicert.com ^
+  %ARTIFACTS% || exit /b
 %SIGNTOOL% verify /pa /all %ARTIFACTS% || exit /b
 
 exit /b

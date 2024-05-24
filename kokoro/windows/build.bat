@@ -6,8 +6,6 @@ if "%1" == "release" (
 
 echo on
 
-set SIGNTOOL="%ProgramFiles(x86)%\Windows kits\10\bin\x86\signtool.exe"
-
 set BUILD_DIR=%cd%\build
 if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
 
@@ -43,17 +41,3 @@ cmake --build . --config Release || exit /b
 ctest --build-config Release --output-on-failure -R "^[A-Z]" || exit /b
 cmake --install . --config Release --strip || exit /b
 popd
-
-if "%1" neq "release" exit /b
-
-:: Release build, code sign the artifacts
-echo Code signing artifacts...
-
-set ARTIFACTS=^
-  "%OUT_DIR%\bindiff-prefix\bindiff.exe" ^
-  "%OUT_DIR%\bindiff-prefix\bindiff_config_setup.exe" ^
-  "%OUT_DIR%\bindiff-prefix\bindiff*.dll"
-
-%SIGNTOOL% sign /v /tr http://timestamp.digicert.com /n "Google" /a /fd sha256 ^
-  /td sha256 %ARTIFACTS% || exit /b
-%SIGNTOOL% verify /pa /all %ARTIFACTS% || exit /b
