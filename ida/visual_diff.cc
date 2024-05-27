@@ -34,8 +34,11 @@
 #include <iterator>
 #include <map>
 #include <sstream>
-#include <thread>  // NOLINT
+#include <stdexcept>  // NOLINT
+#include <thread>     // NOLINT
 
+#include "third_party/absl/cleanup/cleanup.h"
+#include "third_party/absl/functional/function_ref.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
@@ -46,18 +49,20 @@
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/start_ui.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 
-bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
-                         absl::string_view arguments) {
+absl::Status DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
+                                 absl::string_view arguments) {
 #ifdef _WIN32
   static int winsock_status = []() -> int {
     WSADATA wsa_data;
     return WSAStartup(MAKEWORD(2, 2), &wsa_data);
   }();
   if (winsock_status != 0) {
-    return false;
+    return absl::UnknownError(
+        absl::StrCat("WSAStartup failed with error: ", winsock_status));
   }
 
   // Use the original BSD names for these.
@@ -67,7 +72,7 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   };
 #endif
 
-  uint32_t packet_size(arguments.size());
+  uint32_t packet_size = arguments.size();
   std::string packet(reinterpret_cast<const uint8_t*>(&packet_size),
                      reinterpret_cast<const uint8_t*>(&packet_size) + 4);
   absl::StrAppend(&packet, arguments);
@@ -81,9 +86,8 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
   auto err = getaddrinfo(std::string(server).c_str(),
                          absl::StrCat(port).c_str(), &hints, &address_info);
   if (err != 0) {
-    // TODO(cblichmann): This function should return a absl::Status and use
-    //                   gai_strerror(err).
-    return false;
+    return absl::UnknownError(
+        absl::StrCat("getaddrinfo(): ", gai_strerror(err)));
   }
   std::unique_ptr<struct addrinfo, decltype(&freeaddrinfo)>
       address_info_deleter(address_info, freeaddrinfo);
@@ -102,46 +106,48 @@ bool DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
     close(socket_fd);
   }
   if (!connected) {
-    return false;
+    return absl::UnknownError(
+        absl::StrCat("Cannot connect to ", server, ":", port));
   }
 
-  bool success =
-      write(socket_fd, packet.data(), packet.size()) == packet.size();
-  close(socket_fd);
-  return success;
+  absl::Cleanup socked_closer([socket_fd] { close(socket_fd); });
+
+  ssize_t bytes_written = write(socket_fd, packet.data(), packet.size());
+  if (bytes_written != packet.size()) {
+    return absl::UnknownError(
+        absl::StrCat("Failed to send ", packet.size(), " bytes to UI"));
+  }
+  return absl::OkStatus();
 }
 
-bool SendGuiMessage(int retries, absl::string_view bindiff_dir,
-                    absl::string_view server, uint16_t port,
-                    absl::string_view arguments,
-                    std::function<void()> callback) {
-  if (DoSendGuiMessageTCP(server, port, arguments)) {
-    return true;
+absl::Status SendGuiMessage(const Config& config, absl::string_view arguments,
+                            absl::FunctionRef<void()> on_retry_callback) {
+  const auto& ui_config = config.ui();
+  const std::string server =
+      !ui_config.server().empty() ? ui_config.server() : "127.0.0.1";
+  const uint16_t port = ui_config.port() != 0 ? ui_config.port() : 2000;
+  if (DoSendGuiMessageTCP(server, port, arguments).ok()) {
+    return absl::OkStatus();
   }
-  const auto& ui_config = config::Proto().ui();
-  absl::Status status = StartUiWithOptions(
-      /*extra_args=*/{}, StartUiOptions{}
-                             .set_java_binary(ui_config.java_binary())
-                             .set_java_vm_options(ui_config.java_vm_option())
-                             .set_max_heap_size_mb(ui_config.max_heap_size_mb())
-                             .set_bindiff_dir(std::string(bindiff_dir)));
-  if (!status.ok()) {
-    throw std::runtime_error{absl::StrCat(
-        "Cannot launch BinDiff user interface. Process creation failed: ",
-        status.message())};
-  }
+  NA_RETURN_IF_ERROR(StartUiWithOptions(
+      /*extra_args=*/{},
+      StartUiOptions{}
+          .set_java_binary(ui_config.java_binary())
+          .set_java_vm_options(ui_config.java_vm_option())
+          .set_max_heap_size_mb(ui_config.max_heap_size_mb())
+          .set_bindiff_dir(config::GetBinDiffDirOrDefault(config))));
 
+  const int retries = ui_config.retries() != 0 ? ui_config.retries() : 20;
+  absl::Status status;
   for (int retry = 0; retry < retries * 10; ++retry) {
-    if (DoSendGuiMessageTCP(server, port, arguments)) {
-      return true;
+    if (status = DoSendGuiMessageTCP(server, port, arguments); status.ok()) {
+      return absl::OkStatus();
     }
 
     absl::SleepFor(absl::Milliseconds(100));
-    if (callback) {
-      callback();
-    }
+    on_retry_callback();
   }
-  return false;
+  return status;
 }
 
 }  // namespace security::bindiff

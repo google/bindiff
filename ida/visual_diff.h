@@ -18,15 +18,18 @@
 #include <cstdint>
 #include <functional>
 
+#include "third_party/absl/functional/function_ref.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/string_view.h"
+#include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
-bool SendGuiMessage(int retries, absl::string_view bindiff_dir,
-                    absl::string_view server, uint16_t port,
-                    absl::string_view arguments,
-                    std::function<void()> callback);
+// Sends a one-shot message to the Java UI, starting it if it is not already
+// open.
+absl::Status SendGuiMessage(const Config& config, absl::string_view arguments,
+                            absl::FunctionRef<void()> on_retry_callback);
 
 }  // namespace security::bindiff
 

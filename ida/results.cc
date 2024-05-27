@@ -1120,7 +1120,7 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
     return false;
   }
 
-  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
+  const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
   ++diff_database_id_;
   std::string name =
       absl::StrCat("visual_diff", diff_database_id_, ".database");
@@ -1158,19 +1158,16 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
     return false;
   }
 
-  const FixedPointInfo& fixed_point_info(*indexed_fixed_points_[index]);
+  const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
 
-  FlowGraphInfo empty;
-  const FlowGraphInfo& primary_info(
-      flow_graph_infos1_.find(fixed_point_info.primary) !=
-              flow_graph_infos1_.end()
-          ? flow_graph_infos1_.find(fixed_point_info.primary)->second
-          : empty);
-  const FlowGraphInfo& secondary_info(
-      flow_graph_infos2_.find(fixed_point_info.secondary) !=
-              flow_graph_infos2_.end()
-          ? flow_graph_infos2_.find(fixed_point_info.secondary)->second
-          : empty);
+  FlowGraphInfo empty{0};
+  auto primary_entry = flow_graph_infos1_.find(fixed_point_info.primary);
+  const FlowGraphInfo& primary_info =
+      primary_entry != flow_graph_infos1_.end() ? primary_entry->second : empty;
+  auto secondary_entry = flow_graph_infos2_.find(fixed_point_info.secondary);
+  const FlowGraphInfo& secondary_info =
+      secondary_entry != flow_graph_infos2_.end() ? secondary_entry->second
+                                                  : empty;
   if (primary_info.instruction_count == 0 &&
       secondary_info.instruction_count == 0) {
     warning("Both functions are empty, nothing to display!");
@@ -1233,7 +1230,7 @@ FixedPoint* Results::FindFixedPoint(const FixedPointInfo& fixed_point_info) {
       return const_cast<FixedPoint*>(&fixed_point);
     }
   }
-  return 0;
+  return nullptr;
 }
 
 void Results::Read(Reader* reader) {

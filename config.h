@@ -15,6 +15,8 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
+#include <string>
+
 #include "third_party/absl/base/attributes.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/statusor.h"
@@ -50,6 +52,8 @@ absl::Status SaveUserConfig(const Config& config);
 // intelligently merges the matching algorithms, where order and uniqueness
 // matter.
 void MergeInto(const Config& from, Config& config);
+
+std::string GetBinDiffDirOrDefault(const Config& from);
 
 }  // namespace security::bindiff::config
 

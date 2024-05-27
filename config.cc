@@ -45,12 +45,13 @@ namespace util = ::proto2::util;
 }  // namespace google::protobuf
 #endif
 
-using google::protobuf::util::JsonPrintOptions;
 using google::protobuf::util::JsonParseOptions;
+using google::protobuf::util::JsonPrintOptions;
 using google::protobuf::util::JsonStringToMessage;
 using google::protobuf::util::MessageToJsonString;
 using security::binexport::GetCommonAppDataDirectory;
 using security::binexport::GetOrCreateAppDataDirectory;
+using security::binexport::GetProgramFilesDirectory;
 
 namespace security::bindiff::config {
 
@@ -183,6 +184,21 @@ void MergeInto(const Config& from, Config& config) {
   if (names.empty() || names.size() != config.basic_block_matching_size()) {
     *config.mutable_basic_block_matching() = std::move(basic_block_matching);
   }
+}
+
+std::string GetBinDiffDirOrDefault(const Config& from) {
+  if (!from.directory().empty()) {
+    return from.directory();
+  }
+#if defined(_WIN32)
+  return JoinPath(GetProgramFilesDirectory().value_or(R"(C:\Program Files)"),
+                  absl::StrCat("BinDiff ", kBinDiffRelease));
+#elif defined(__APPLE__)
+  return JoinPath(*GetProgramFilesDirectory(),
+                  "BinDiff/BinDiff.app/Contents/MacOS");
+#else
+  return JoinPath(*GetProgramFilesDirectory(), "bindiff");
+#endif
 }
 
 }  // namespace security::bindiff::config

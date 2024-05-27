@@ -15,6 +15,7 @@
 #include "third_party/zynamics/bindiff/ida/main_plugin.h"
 
 #include <cstdio>
+#include <exception>
 #include <fstream>
 #include <limits>
 #include <memory>
@@ -283,26 +284,17 @@ void Plugin::VisualDiff(uint32_t index, bool call_graph_diff) {
     }
 
     LOG(INFO) << "Sending result to BinDiff GUI...";
-    const auto& config = config::Proto();
-    const auto& ui_config = config.ui();
-
-    const std::string default_bindiff_dir =
-#if defined(_WIN32)
-        absl::StrCat("C:\\Program Files\\BinDiff ", kBinDiffRelease);
-#elif defined(__APPLE__)
-        "/Applications/BinDiff/BinDiff.app/Contents/MacOS";
-#else
-        "/opt/bindiff";
-#endif
-    SendGuiMessage(
-        ui_config.retries() != 0 ? ui_config.retries() : 20,
-        !config.directory().empty() ? config.directory() : default_bindiff_dir,
-        !ui_config.server().empty() ? ui_config.server() : "127.0.0.1",
-        ui_config.port() != 0 ? ui_config.port() : 2000, message,
-        /*callback=*/nullptr);
-  } catch (const std::runtime_error& message) {
-    LOG(INFO) << "Error while calling BinDiff UI: " << message.what();
-    warning("Error while calling BinDiff UI: %s\n", message.what());
+    if (absl::Status status = SendGuiMessage(config::Proto(), message, [] {});
+        !status.ok()) {
+      const std::string error_message = absl::StrCat(
+          "Cannot launch BinDiff user interface. Process creation failed: ",
+          status.message());
+      LOG(INFO) << error_message;
+      warning("%s\n", error_message.c_str());
+    }
+  } catch (const std::runtime_error& error_message) {
+    LOG(INFO) << "Error while calling BinDiff UI: " << error_message.what();
+    warning("Error while calling BinDiff UI: %s\n", error_message.what());
   } catch (...) {
     LOG(INFO) << "Unknown error while calling BinDiff UI";
     warning("Unknown error while calling BinDiff UI\n");
@@ -319,7 +311,7 @@ bool Plugin::DiscardResults(Plugin::DiscardResultsKind kind) {
         ask_yn(ASKBTN_YES,
                "%sCurrent diff results have not been"
                " saved - save before closing?",
-        kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
+               kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
     if (answer == ASKBTN_YES) {
       DoSaveResults();
     } else if (answer == ASKBTN_CANCEL) {
@@ -560,10 +552,10 @@ bool DoDiffDatabase(bool filtered) {
       DiffAddressRange(start_address_source, end_address_source,
                        start_address_target, end_address_target);
   if (!diffed.ok()) {
-    const std::string message =
+    const std::string error_message =
         absl::StrCat("Error while diffing: ", diffed.status().message());
-    LOG(INFO) << message;
-    warning("%s\n", message.c_str());
+    LOG(INFO) << error_message;
+    warning("%s\n", error_message.c_str());
     return false;
   }
   return *diffed;
@@ -625,9 +617,9 @@ bool DoPortComments() {
       start_address_source, end_address_source, start_address_target,
       end_address_target, min_confidence, min_similarity);
   if (!status.ok()) {
-    const std::string message(status.message());
-    LOG(INFO) << "Error: " << message;
-    warning("Error: %s\n", message.c_str());
+    const std::string error_message(status.message());
+    LOG(INFO) << "Error: " << error_message;
+    warning("Error: %s\n", error_message.c_str());
     return false;
   }
   MatchedFunctionsChooser::Refresh();
@@ -758,8 +750,7 @@ bool DoSaveResults() {
   absl::StatusOr<std::string> filename =
       GetSaveFilename("Save Results As", default_filename,
                       {{"BinDiff Result files", "*.BinDiff"},
-                       {"BinDiff Groundtruth files", "*.truth"}
-                       });
+                       {"BinDiff Groundtruth files", "*.truth"}});
   if (!filename.ok()) {
     return false;
   }
@@ -775,10 +766,10 @@ bool DoSaveResults() {
   }
 
   if (!status.ok()) {
-    std::string message =
+    std::string error_message =
         absl::StrCat("Error writing results: ", status.message());
-    LOG(INFO) << message;
-    warning("%s\n", message.c_str());
+    LOG(INFO) << error_message;
+    warning("%s\n", error_message.c_str());
     return false;
   }
 
@@ -879,9 +870,9 @@ bool Plugin::LoadResults() {
     LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                               ")");
     return true;
-  } catch (const std::exception& message) {
-    LOG(INFO) << "Error loading results: " << message.what();
-    warning("Error loading results: %s\n", message.what());
+  } catch (const std::exception& error_message) {
+    LOG(INFO) << "Error loading results: " << error_message.what();
+    warning("Error loading results: %s\n", error_message.what());
   } catch (...) {
     LOG(INFO) << "Error loading results.";
     warning("Error loading results.");
@@ -1021,9 +1012,9 @@ int HandleImportSymbolsComments(action_activation_ctx_t* context,
   absl::Status status = results->PortComments(
       absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()), kind);
   if (!status.ok()) {
-    const std::string message(status.message());
-    LOG(INFO) << "Error: " << message;
-    warning("Error: %s\n", message.c_str());
+    const std::string error_message(status.message());
+    LOG(INFO) << "Error: " << error_message;
+    warning("Error: %s\n", error_message.c_str());
     return 0;
   }
   // Need to refresh all choosers
@@ -1053,9 +1044,9 @@ int idaapi ConfirmMatchesAction::activate(action_activation_ctx_t* context) {
   absl::Status status = results->ConfirmMatches(
       absl::MakeConstSpan(&ida_selection.front(), ida_selection.size()));
   if (!status.ok()) {
-    const std::string message(status.message());
-    LOG(INFO) << "Error: " << message;
-    warning("Error: %s\n", message.c_str());
+    const std::string error_message(status.message());
+    LOG(INFO) << "Error: " << error_message;
+    warning("Error: %s\n", error_message.c_str());
     return 0;
   }
   MatchedFunctionsChooser::Refresh();
@@ -1065,9 +1056,9 @@ int idaapi ConfirmMatchesAction::activate(action_activation_ctx_t* context) {
 int HandleCopyAddress(Address address) {
   absl::Status status = CopyToClipboard(FormatAddress(address));
   if (!status.ok()) {
-    const std::string message(status.message());
-    LOG(INFO) << "Error: " << message;
-    warning("Error: %s\n", message.c_str());
+    const std::string error_message(status.message());
+    LOG(INFO) << "Error: " << error_message;
+    warning("Error: %s\n", error_message.c_str());
     return 0;
   }
   return 1;
@@ -1139,9 +1130,9 @@ class AddMatchAction : public ActionHandler<AddMatchAction> {
         results->AddMatch(results->GetPrimaryAddress(index_primary),
                           results->GetSecondaryAddress(index_secondary));
     if (!status.ok()) {
-      const std::string message(status.message());
-      LOG(INFO) << "Error: " << message;
-      warning("Error: %s\n", message.c_str());
+      const std::string error_message(status.message());
+      LOG(INFO) << "Error: " << error_message;
+      warning("Error: %s\n", error_message.c_str());
       return 0;
     }
     MatchedFunctionsChooser::Refresh();
@@ -1199,13 +1190,15 @@ void Plugin::InitActions() {
 
   MatchedFunctionsChooser::RegisterActions();
 
-  // Unmatched choosers
+  // Primary unmatched chooser
   register_action(CopyAddressAction::MakeActionDesc(
       UnmatchedFunctionsChooserPrimary::kCopyAddressAction, "Copy ~a~ddress",
       /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
   register_action(AddMatchAction::MakeActionDesc(
       UnmatchedFunctionsChooserPrimary::kAddMatchAction, "Add ~m~atch",
       /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
+
+  // Secondary unmatched chooser
   register_action(CopyAddressAction::MakeActionDesc(
       UnmatchedFunctionsChooserSecondary::kCopyAddressAction, "Copy ~a~ddress",
       /*shortcut=*/"", /*tooltip=*/"", /*icon=*/-1));
