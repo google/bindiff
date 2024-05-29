@@ -53,6 +53,11 @@
 
 namespace security::bindiff {
 
+#ifdef _WIN32
+// Use the original BSD names for this
+int(__stdcall* close)(SOCKET) = closesocket;
+#endif
+
 absl::Status DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
                                  absl::string_view arguments) {
 #ifdef _WIN32
@@ -64,12 +69,6 @@ absl::Status DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
     return absl::UnknownError(
         absl::StrCat("WSAStartup failed with error: ", winsock_status));
   }
-
-  // Use the original BSD names for these.
-  int(__stdcall * close)(SOCKET) = closesocket;
-  auto write = [](SOCKET socket, const char* buf, int len) -> int {
-    return send(socket, buf, len, /* flags = */ 0);
-  };
 #endif
 
   uint32_t packet_size = arguments.size();
@@ -112,10 +111,10 @@ absl::Status DoSendGuiMessageTCP(absl::string_view server, uint16_t port,
 
   absl::Cleanup socked_closer([socket_fd] { close(socket_fd); });
 
-  ssize_t bytes_written = write(socket_fd, packet.data(), packet.size());
-  if (bytes_written != packet.size()) {
+  if (auto packet_size = packet.size();
+      send(socket_fd, packet.data(), packet_size, /*flags=*/0) != packet_size) {
     return absl::UnknownError(
-        absl::StrCat("Failed to send ", packet.size(), " bytes to UI"));
+        absl::StrCat("Failed to send ", packet_size, " bytes to UI"));
   }
   return absl::OkStatus();
 }
