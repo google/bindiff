@@ -84,7 +84,7 @@ The following build dependencies are required:
 
 *   [BinExport](https://github.com/google/binexport) 12, the companion plugin
     to BinDiff that also contains a lot of shared code
-*   Boost 1.71.0 or higher (a partial copy of 1.71.0 ships with BinExport and
+*   Boost 1.83.0 or higher (a partial copy of 1.83.0 ships with BinExport and
     will be used automatically)
 *   [CMake](https://cmake.org/download/) 3.14 or higher
 *   [Ninja](https://ninja-build.org/) for speedy builds
@@ -96,7 +96,7 @@ The following build dependencies are required:
     *   Binary Ninja SDK
 
 The following build dependencies are optional:
-*   IDA Pro only: IDA SDK 8.0 or higher (unpack into `deps/idasdk`)
+*   IDA Pro only: IDA SDK 8.2 or higher (unpack into `deps/idasdk`)
 
 The general build steps are the same on Windows, Linux and macOS. The following
 shows the commands for Linux.
