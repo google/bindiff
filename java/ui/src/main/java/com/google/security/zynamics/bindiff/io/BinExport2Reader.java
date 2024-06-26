@@ -14,8 +14,12 @@
 
 package com.google.security.zynamics.bindiff.io;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.flogger.FluentLogger;
 import com.google.security.zynamics.BinExport.BinExport2;
 import com.google.security.zynamics.BinExport.BinExport2.Comment;
@@ -76,6 +80,10 @@ public class BinExport2Reader {
 
       // Cache instruction comments
       for (final BinExport2.Comment comment : binexport.getCommentList()) {
+        // Expression comments are rendered in-place.
+        if (comment.hasOperandExpressionIndex()) {
+          continue;
+        }
         final IAddress address = new CAddress(getInstructionAddress(comment.getInstructionIndex()));
         final String text = binexport.getStringTable(comment.getStringTableIndex());
         comments.put(
@@ -196,12 +204,14 @@ public class BinExport2Reader {
       final BinExport2 proto,
       final BinExport2.Operand operand,
       int index,
+      ImmutableMap<Integer, String> operandComments,
       final StringBuilder output) {
     // Note: Keep this code in sync with the versions in binexport/instruction.cc and
     //       binexport/tools/binexport2dump.cc.
     final int expressionIndex = operand.getExpressionIndex(index);
     final BinExport2.Expression expression = proto.getExpression(expressionIndex);
-    final String expressionSymbol = expression.getSymbol();
+    final String expressionSymbol =
+        operandComments.containsKey(index) ? operandComments.get(index) : expression.getSymbol();
     final boolean longMode = proto.getMetaInformation().getArchitectureName().endsWith("64");
     switch (expression.getType()) {
       case OPERATOR:
@@ -218,7 +228,7 @@ public class BinExport2Reader {
           if ("{".equals(expressionSymbol)) { // ARM Register lists
             output.append("{");
             for (int i = 0; i < numChildren; i++) {
-              renderExpression(proto, operand, children.get(i), output);
+              renderExpression(proto, operand, children.get(i), operandComments, output);
               if (i != numChildren - 1) {
                 output.append(highlightChar(EInstructionHighlighting.TYPE_NEWOPERAND_COMMA));
                 output.append(",");
@@ -229,11 +239,11 @@ public class BinExport2Reader {
             // Only a single child, treat expression as prefix operator (like 'ss:').
             output.append(highlightChar(EInstructionHighlighting.TYPE_OPERATOR));
             output.append(expressionSymbol);
-            renderExpression(proto, operand, children.get(0), output);
+            renderExpression(proto, operand, children.get(0), operandComments, output);
           } else if (numChildren > 1) {
             // Multiple children, treat expression as infix operator ('+' or '*').
             for (int i = 0; i < numChildren; i++) {
-              renderExpression(proto, operand, children.get(i), output);
+              renderExpression(proto, operand, children.get(i), operandComments, output);
               if (i != numChildren - 1) {
                 final BinExport2.Expression childExpression =
                     proto.getExpression(operand.getExpressionIndex(children.get(i + 1)));
@@ -274,13 +284,13 @@ public class BinExport2Reader {
           output.append(expressionSymbol);
           output.append(" ");
         }
-        renderExpression(proto, operand, index + 1, output);
+        renderExpression(proto, operand, index + 1, operandComments, output);
         break;
       case DEREFERENCE:
         output.append(highlightChar(EInstructionHighlighting.TYPE_DEREFERENCE));
         output.append("[");
         if (index + 1 < operand.getExpressionIndexCount()) {
-          renderExpression(proto, operand, index + 1, output);
+          renderExpression(proto, operand, index + 1, operandComments, output);
         }
         output.append(highlightChar(EInstructionHighlighting.TYPE_DEREFERENCE));
         output.append("]");
@@ -309,12 +319,25 @@ public class BinExport2Reader {
   private static String renderInstructionOperands(
       final BinExport2 proto, final BinExport2.Instruction instruction) {
     final StringBuilder disassembly = new StringBuilder();
+    final ImmutableList<BinExport2.Comment> instructionComments =
+        instruction.getCommentIndexList().stream()
+            .map(proto::getComment)
+            .collect(toImmutableList());
     for (int i = 0; i < instruction.getOperandIndexCount(); i++) {
       final BinExport2.Operand operand = proto.getOperand(instruction.getOperandIndex(i));
+      final int operandIndex = i;
+      final ImmutableMap<Integer, String> operandComments =
+          instructionComments.stream()
+              .filter(comment -> comment.getInstructionOperandIndex() == operandIndex)
+              .collect(
+                  toImmutableMap(
+                      Comment::getOperandExpressionIndex,
+                      comment -> proto.getStringTable(comment.getStringTableIndex())));
+
       for (int j = 0; j < operand.getExpressionIndexCount(); j++) {
         final BinExport2.Expression expression = proto.getExpression(operand.getExpressionIndex(j));
         if (!expression.hasParentIndex()) {
-          renderExpression(proto, operand, j, disassembly);
+          renderExpression(proto, operand, j, operandComments, disassembly);
         }
       }
       if (i != instruction.getOperandIndexCount() - 1) {
