@@ -20,21 +20,30 @@
 #include <boost/graph/filtered_graph.hpp>        // NOLINT
 #include <boost/graph/iteration_macros.hpp>      // NOLINT
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
-#include <sstream>
+#include <iterator>
+#include <limits>
+#include <numeric>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
 #include "third_party/zynamics/binexport/binexport.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/hash.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

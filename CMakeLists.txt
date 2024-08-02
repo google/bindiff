@@ -255,6 +255,8 @@ target_link_libraries(bindiff_shared
   absl::btree
   absl::flat_hash_map
   absl::hash
+  absl::memory
+  absl::nullability
   absl::str_format
   absl::strings
   absl::status

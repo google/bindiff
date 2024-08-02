@@ -14,16 +14,33 @@
 
 #include "third_party/zynamics/bindiff/ida/results.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
+#include <cstdio>
+#include <exception>
 #include <fstream>
+#include <ios>
+#include <limits>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <bytes.hpp>                                            // NOLINT
+#include <funcs.hpp>                                            // NOLINT
 #include <frame.hpp>                                            // NOLINT
 #include <enum.hpp>                                             // NOLINT
+#include <ida.hpp>                                              // NOLINT
+#include <kernwin.hpp>                                          // NOLINT
+#include <lines.hpp>                                            // NOLINT
+#include <netnode.hpp>                                          // NOLINT
 #include <name.hpp>                                             // NOLINT
 #include <struct.hpp>                                           // NOLINT
 #include <ua.hpp>                                               // NOLINT
+#include <xref.hpp>                                             // NOLINT
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
@@ -31,18 +48,26 @@
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
+#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/absl/time/time.h"
+#include "third_party/absl/strings/string_view.h"
+#include "third_party/absl/types/span.h"
+#include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/comment.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
-#include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
+#include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/ida/names.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
-#include "third_party/zynamics/bindiff/match_colors.h"
+#include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
+#include "third_party/zynamics/bindiff/statistics.h"
+#include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/ida/names.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
@@ -51,6 +76,7 @@
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

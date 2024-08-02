@@ -15,6 +15,7 @@
 #ifndef IDA_RESULTS_H_
 #define IDA_RESULTS_H_
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <vector>
@@ -30,9 +31,11 @@
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
 #include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/reader.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/util/types.h"
 

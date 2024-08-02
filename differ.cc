@@ -14,20 +14,34 @@
 
 #include "third_party/zynamics/bindiff/differ.h"
 
-#include <exception>
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
 #include <fstream>
-#include <iomanip>
+#include <ios>
 #include <memory>
+#include <string>
 
+#include "third_party/absl/base/nullability.h"
+#include "third_party/absl/log/check.h"
 #include "third_party/absl/memory/memory.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
+#include "third_party/zynamics/bindiff/change_classifier.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
+#include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
+#include "third_party/zynamics/bindiff/reader.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/status_macros.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
@@ -36,7 +50,7 @@ using ::security::binexport::FormatAddress;
 // Return the immediate children of the call graph node denoted by
 // address. Skip nodes that have already been matched.
 void GetUnmatchedChildren(const CallGraph& call_graph, CallGraph::Vertex vertex,
-                          FlowGraphs* children) {
+                          absl::Nonnull<FlowGraphs*> children) {
   for (auto [edge_it, edge_end] =
            boost::out_edges(vertex, call_graph.GetGraph());
        edge_it != edge_end; ++edge_it) {
@@ -59,7 +73,7 @@ void GetUnmatchedChildren(const CallGraph& call_graph, CallGraph::Vertex vertex,
 // Returns the immediate parents of the call graph node denoted by address.
 // Skips nodes that have already been matched.
 void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
-                         FlowGraphs* parents) {
+                         absl::Nonnull<FlowGraphs*> parents) {
   for (auto [edge_it, edge_end] =
            boost::in_edges(vertex, call_graph.GetGraph());
        edge_it != edge_end; ++edge_it) {
@@ -82,8 +96,8 @@ void GetUnmatchedParents(const CallGraph& call_graph, CallGraph::Vertex vertex,
 // Adds empty flow graphs to all call graph vertices that don't already have one
 // attached (for example for DLL stub functions). Returns an error if a flow
 // graph already exists for a call graph vertex.
-absl::Status AddSubsToCallGraph(CallGraph* call_graph,
-                                 FlowGraphs* flow_graphs) {
+absl::Status AddSubsToCallGraph(absl::Nonnull<CallGraph*> call_graph,
+                                absl::Nonnull<FlowGraphs*> flow_graphs) {
   for (auto [it, end] = boost::vertices(call_graph->GetGraph()); it != end;
        ++it) {
     const CallGraph::Vertex vertex = *it;
@@ -104,12 +118,12 @@ absl::Status AddSubsToCallGraph(CallGraph* call_graph,
   return absl::OkStatus();
 }
 
-absl::Status SetupGraphsFromProto(const BinExport2& proto,
-                                  const std::string& filename,
-                                  CallGraph* call_graph,
-                                  FlowGraphs* flow_graphs,
-                                  FlowGraphInfos* flow_graph_infos,
-                                  Instruction::Cache* instruction_cache) {
+absl::Status SetupGraphsFromProto(
+    const BinExport2& proto, const std::string& filename,
+    absl::Nonnull<CallGraph*> call_graph,
+    absl::Nonnull<FlowGraphs*> flow_graphs,
+    absl::Nullable<FlowGraphInfos*> flow_graph_infos,
+    absl::Nonnull<Instruction::Cache*> instruction_cache) {
   NA_RETURN_IF_ERROR(call_graph->Read(proto, filename));
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     if (proto_flow_graph.basic_block_index_size() == 0) {
@@ -141,9 +155,11 @@ absl::Status SetupGraphsFromProto(const BinExport2& proto,
   return AddSubsToCallGraph(call_graph, flow_graphs);
 }
 
-absl::Status Read(const std::string& filename, CallGraph* call_graph,
-                  FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
-                  Instruction::Cache* instruction_cache) {
+absl::Status Read(const std::string& filename,
+                  absl::Nonnull<CallGraph*> call_graph,
+                  absl::Nonnull<FlowGraphs*> flow_graphs,
+                  absl::Nullable<FlowGraphInfos*> flow_graph_infos,
+                  absl::Nonnull<Instruction::Cache*> instruction_cache) {
   call_graph->Reset();
   DeleteFlowGraphs(flow_graphs);
   if (flow_graph_infos) {
@@ -167,7 +183,7 @@ absl::Status Read(const std::string& filename, CallGraph* call_graph,
                               flow_graph_infos, instruction_cache);
 }
 
-void DeleteFlowGraphs(FlowGraphs* flow_graphs) {
+void DeleteFlowGraphs(absl::Nullable<FlowGraphs*> flow_graphs) {
   if (!flow_graphs) {
     return;
   }
@@ -178,8 +194,10 @@ void DeleteFlowGraphs(FlowGraphs* flow_graphs) {
   flow_graphs->clear();
 }
 
-ScopedCleanup::ScopedCleanup(FlowGraphs* flow_graphs1, FlowGraphs* flow_graphs2,
-                             Instruction::Cache* instruction_cache)
+ScopedCleanup::ScopedCleanup(
+    absl::Nonnull<FlowGraphs*> flow_graphs1,
+    absl::Nonnull<FlowGraphs*> flow_graphs2,
+    absl::Nullable<Instruction::Cache*> instruction_cache)
     : flow_graphs1_(flow_graphs1),
       flow_graphs2_(flow_graphs2),
       instruction_cache_(instruction_cache) {}
@@ -192,13 +210,14 @@ ScopedCleanup::~ScopedCleanup() {
   }
 }
 
-void ResetMatches(FlowGraphs* flow_graphs) {
+void ResetMatches(absl::Nonnull<FlowGraphs*> flow_graphs) {
   for (auto* flow_graph : *flow_graphs) {
     flow_graph->ResetMatches();
   }
 }
 
-void Diff(MatchingContext* context, const MatchingSteps& call_graph_steps,
+void Diff(absl::Nonnull<MatchingContext*> context,
+          const MatchingSteps& call_graph_steps,
           const MatchingStepsFlowGraph& basic_block_steps) {
   // The outer loop controls the rigorousness for initial matching while the
   // inner loop tries to resolve ambiguities by drilling down the matchingSteps
@@ -270,13 +289,13 @@ void Diff(MatchingContext* context, const MatchingSteps& call_graph_steps,
   ClassifyChanges(context);
 }
 
-void Count(const FlowGraph& flow_graph, Counts* counts) {
+void Count(const FlowGraph& flow_graph, absl::Nonnull<Counts*> counts) {
   FlowGraphs flow_graphs;
   CHECK(flow_graphs.insert(&const_cast<FlowGraph&>(flow_graph)).second);
   Count(flow_graphs, counts);
 }
 
-void Count(const FlowGraphs& flow_graphs, Counts* counts) {
+void Count(const FlowGraphs& flow_graphs, absl::Nonnull<Counts*> counts) {
   uint64_t num_functions = 0;
   uint64_t num_basic_blocks = 0;
   uint64_t num_instructions = 0;
@@ -394,7 +413,8 @@ double GetConfidence(const Histogram& histogram, Confidences* confidences) {
 void GetCountsAndHistogram(const FlowGraphs& flow_graphs1,
                            const FlowGraphs& flow_graphs2,
                            const FixedPoints& fixed_points,
-                           Histogram* histogram, Counts* counts) {
+                           absl::Nonnull<Histogram*> histogram,
+                           absl::Nonnull<Counts*> counts) {
   Counts counts1;
   Counts counts2;
   Count(flow_graphs1, &counts1);

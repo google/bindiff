@@ -15,14 +15,16 @@
 #ifndef DIFFER_H_
 #define DIFFER_H_
 
-#include <array>
+#include <cstddef>
 #include <string>
 
+#include "third_party/absl/base/nullability.h"
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/statistics.h"
@@ -37,13 +39,15 @@ using Confidences = absl::btree_map<std::string, double>;
 
 // Main entry point to the differ, runs the core algorithm and produces a
 // (partial) matching between the two inputs.
-void Diff(MatchingContext* context, const MatchingSteps& call_graph_steps,
+void Diff(absl::Nonnull<MatchingContext*> context,
+          const MatchingSteps& call_graph_steps,
           const MatchingStepsFlowGraph& basic_block_steps);
 
 class ScopedCleanup {
  public:
-  ScopedCleanup(FlowGraphs* flow_graphs1, FlowGraphs* flow_graphs2,
-                Instruction::Cache* instruction_cache);
+  ScopedCleanup(absl::Nonnull<FlowGraphs*> flow_graphs1,
+                absl::Nonnull<FlowGraphs*> flow_graphs2,
+                absl::Nullable<Instruction::Cache*> instruction_cache);
   ~ScopedCleanup();
 
  private:
@@ -52,16 +56,18 @@ class ScopedCleanup {
   Instruction::Cache* instruction_cache_;
 };
 
-void DeleteFlowGraphs(FlowGraphs* flow_graphs);
+void DeleteFlowGraphs(absl::Nullable<FlowGraphs*> flow_graphs);
 
 // Removes all fixed point assignments from flow graphs so they can be used
 // again for a different comparison.
-void ResetMatches(FlowGraphs* flow_graphs);
+void ResetMatches(absl::Nonnull<FlowGraphs*> flow_graphs);
 
 // Loads a .BinExport file into the internal data structures.
-absl::Status Read(const std::string& filename, CallGraph* call_graph,
-                  FlowGraphs* flow_graphs, FlowGraphInfos* flow_graph_infos,
-                  Instruction::Cache* instruction_cache);
+absl::Status Read(const std::string& filename,
+                  absl::Nonnull<CallGraph*> call_graph,
+                  absl::Nonnull<FlowGraphs*> flow_graphs,
+                  absl::Nullable<FlowGraphInfos*> flow_graph_infos,
+                  absl::Nonnull<Instruction::Cache*> instruction_cache);
 
 // Gets the similarity score for two full binaries.
 double GetSimilarityScore(const CallGraph& call_graph1,
@@ -80,12 +86,14 @@ double GetConfidence(const Histogram& histogram, Confidences* confidences);
 void GetCountsAndHistogram(const FlowGraphs& flow_graphs1,
                            const FlowGraphs& flow_graphs2,
                            const FixedPoints& fixed_points,
-                           Histogram* histogram, Counts* counts);
+                           absl::Nonnull<Histogram*> histogram,
+                           absl::Nonnull<Counts*> counts);
 
 // Collects various statistics (no of instructions/edges/basic blocks).
-void Count(const FlowGraphs& flow_graphs, Counts* counts);
-void Count(const FlowGraph& flow_graph, Counts* counts);
-void Count(const FixedPoint& fixed_point, Counts* counts, Histogram* histogram);
+void Count(const FlowGraphs& flow_graphs, absl::Nonnull<Counts*> counts);
+void Count(const FlowGraph& flow_graph, absl::Nonnull<Counts*> counts);
+void Count(const FixedPoint& fixed_point, absl::Nonnull<Counts*> counts,
+           absl::Nonnull<Histogram*> histogram);
 
 }  // namespace security::bindiff
 

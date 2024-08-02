@@ -15,12 +15,21 @@
 #include "third_party/zynamics/bindiff/ida/matched_functions_chooser.h"
 
 #include <cstring>
-#include <vector>
+#include <string>
 
+// clang-format off
+#include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
+#include <kernwin.hpp>                                          // NOLINT
+#include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
+// clang-format on
+
+#include "third_party/absl/base/macros.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
+#include "third_party/absl/types/span.h"
+#include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/ida/main_plugin.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/bindiff/ida/statistics_chooser.h"

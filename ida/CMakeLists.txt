@@ -45,6 +45,8 @@ ida_target_link_libraries(${bindiff_ida_plugin_name}
   bindiff_shared
   absl::cleanup
   absl::function_ref
+  absl::memory
+  absl::nullability
   absl::str_format
   absl::time
 )
