@@ -39,7 +39,7 @@ jobs:
         mv binexport/ida/idasdk/idasdk*.gpg \
            ida/idasdk/
         binexport/.github/scripts/decrypt_secret.sh
-        unzip -q "${{ runner.workspace }}/build/idasdk_teams80.zip" \
+        unzip -q "${{ runner.workspace }}/build/idasdk_teams82.zip" \
               -d "${{ runner.workspace }}/build/"
 
     - name: Enable Developer Command Prompt (Windows)
@@ -56,7 +56,7 @@ jobs:
       run: |
         cmake "${{ github.workspace }}/bindiff" -G Ninja \
           "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
-          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk_teams80"
+          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk_teams82"
 
     - name: Build
       working-directory: ${{ runner.workspace }}/build
