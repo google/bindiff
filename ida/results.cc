@@ -465,7 +465,7 @@ Results::UnmatchedDescription Results::GetUnmatchedDescription(
   }
 
   const std::string* name = flow_graph_info.demangled_name;
-  if (name == nullptr) {
+  if (name == nullptr || name->empty()) {
     name = flow_graph_info.name;
   }
 
