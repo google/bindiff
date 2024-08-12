@@ -324,6 +324,7 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
 
   add_executable(sqlite_test sqlite_test.cc)
   target_link_libraries(sqlite_test
+    absl::status_matchers
     bindiff_test_base
     bindiff_test_util
     bindiff_shared
@@ -335,6 +336,7 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
     writer_test.cc
   )
   target_link_libraries(writer_test
+    absl::status_matchers
     bindiff_test_base
     bindiff_test_util
     bindiff_shared

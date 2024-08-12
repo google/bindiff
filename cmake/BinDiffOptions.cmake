@@ -12,8 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+  set(BINDIFF_TOP_LEVEL TRUE)
+endif()
+
+# If unset, force a default value for this standard option
+if(NOT BUILD_TESTING)
+  set(BUILD_TESTING OFF)
+endif()
+
 option(BINDIFF_BUILD_TESTING
-       "If ON, this will build all of BinDiff's own tests" ON)
+       "If ON, this will build all of BinDiff's own tests" ${BINDIFF_TOP_LEVEL})
 option(BINDIFF_BUILD_BENCHMARK
        "If this and BINDIFF_BUILD_TESTING is ON, build benchmark tests" OFF)
 

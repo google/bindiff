@@ -16,6 +16,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/status/status_matchers.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_replace.h"
@@ -26,14 +27,13 @@
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
-#include "third_party/zynamics/binexport/util/status_matchers.h"
 
 namespace security::bindiff {
 namespace {
 
+using ::absl_testing::IsOk;
 using binexport::GetTestFileContents;
 using binexport::GetTestTempPath;
-using ::not_absl::IsOk;
 using ::testing::IsTrue;
 
 #ifdef GTEST_USES_POSIX_RE

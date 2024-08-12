@@ -16,14 +16,15 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/status/status_matchers.h"
 #include "third_party/zynamics/binexport/testing.h"
-#include "third_party/zynamics/binexport/util/status_matchers.h"
+#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 namespace {
 
-using ::not_absl::IsOk;
-using ::not_absl::StatusIs;
+using ::absl_testing::IsOk;
+using ::absl_testing::StatusIs;
 using ::security::binexport::GetTestTempPath;
 using ::testing::Eq;
 using ::testing::IsFalse;

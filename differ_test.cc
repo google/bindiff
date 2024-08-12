@@ -22,6 +22,7 @@
 #include "gtest/gtest.h"
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
+#include "third_party/absl/status/status_matchers.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/strings/string_view.h"
@@ -32,13 +33,12 @@
 #include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
-#include "third_party/zynamics/binexport/util/status_matchers.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 
 namespace security::bindiff {
 namespace {
 
-using ::not_absl::IsOk;
+using ::absl_testing::IsOk;
 using ::security::binexport::GetTestFileContents;
 using ::security::binexport::GetTestSourcePath;
 using ::security::binexport::GetTestTempPath;
