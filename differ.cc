@@ -195,8 +195,8 @@ void DeleteFlowGraphs(absl::Nullable<FlowGraphs*> flow_graphs) {
 }
 
 ScopedCleanup::ScopedCleanup(
-    absl::Nonnull<FlowGraphs*> flow_graphs1,
-    absl::Nonnull<FlowGraphs*> flow_graphs2,
+    absl::Nullable<FlowGraphs*> flow_graphs1,
+    absl::Nullable<FlowGraphs*> flow_graphs2,
     absl::Nullable<Instruction::Cache*> instruction_cache)
     : flow_graphs1_(flow_graphs1),
       flow_graphs2_(flow_graphs2),

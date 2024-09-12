@@ -45,8 +45,8 @@ void Diff(absl::Nonnull<MatchingContext*> context,
 
 class ScopedCleanup {
  public:
-  ScopedCleanup(absl::Nonnull<FlowGraphs*> flow_graphs1,
-                absl::Nonnull<FlowGraphs*> flow_graphs2,
+  ScopedCleanup(absl::Nullable<FlowGraphs*> flow_graphs1,
+                absl::Nullable<FlowGraphs*> flow_graphs2,
                 absl::Nullable<Instruction::Cache*> instruction_cache);
   ~ScopedCleanup();
 
