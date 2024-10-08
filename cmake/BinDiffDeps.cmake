@@ -31,4 +31,4 @@ endif()
 # Setup IDA SDK. Uses FindIdaSdk.cmake from BinExport
 find_package(IdaSdk)
 
-find_package(Protobuf 3.14 REQUIRED) # Make protobuf_generate_cpp available
+find_package(Protobuf 4.25 REQUIRED) # Make protobuf_generate_cpp available
