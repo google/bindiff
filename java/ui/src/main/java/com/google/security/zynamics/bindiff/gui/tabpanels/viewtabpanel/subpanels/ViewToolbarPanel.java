@@ -16,7 +16,6 @@ package com.google.security.zynamics.bindiff.gui.tabpanels.viewtabpanel.subpanel
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.security.zynamics.bindiff.enums.EDiffViewMode;
 import com.google.security.zynamics.bindiff.enums.ESide;
 import com.google.security.zynamics.bindiff.graph.searchers.GraphSearcherFunctions;
 import com.google.security.zynamics.bindiff.graph.settings.GraphLayoutSettings;
@@ -313,35 +312,17 @@ public class ViewToolbarPanel extends JPanel {
     button = groupView.add(new SwitchToNormalViewModeAction(controller));
     button.setMargin(new Insets(0, 0, 0, 0));
     button.setRolloverEnabled(true);
-    button.setIcon(
-        settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW
-            ? VIEW_MODE_NORMAL_UP
-            : VIEW_MODE_NORMAL_UP);
-    button.setRolloverIcon(
-        settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW
-            ? VIEW_MODE_NORMAL_HOVER
-            : VIEW_MODE_NORMAL_HOVER);
-    button.setPressedIcon(
-        settings.getDiffViewMode() == EDiffViewMode.NORMAL_VIEW
-            ? VIEW_MODE_NORMAL_DOWN
-            : VIEW_MODE_NORMAL_DOWN);
+    button.setIcon(VIEW_MODE_NORMAL_UP);
+    button.setRolloverIcon(VIEW_MODE_NORMAL_HOVER);
+    button.setPressedIcon(VIEW_MODE_NORMAL_DOWN);
     button.setToolTipText("Switch to Normal View Mode");
 
     button = groupView.add(new SwitchToCombinedViewModeAction(controller));
     button.setMargin(new Insets(0, 0, 0, 0));
     button.setRolloverEnabled(true);
-    button.setIcon(
-        settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW
-            ? VIEW_MODE_COMBINED_UP
-            : VIEW_MODE_COMBINED_UP);
-    button.setRolloverIcon(
-        settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW
-            ? VIEW_MODE_COMBINED_HOVER
-            : VIEW_MODE_COMBINED_HOVER);
-    button.setPressedIcon(
-        settings.getDiffViewMode() == EDiffViewMode.COMBINED_VIEW
-            ? VIEW_MODE_COMBINED_DOWN
-            : VIEW_MODE_COMBINED_DOWN);
+    button.setIcon(VIEW_MODE_COMBINED_UP);
+    button.setRolloverIcon(VIEW_MODE_COMBINED_HOVER);
+    button.setPressedIcon(VIEW_MODE_COMBINED_DOWN);
     button.setToolTipText("Switch to Combined View Mode");
 
     // layout
