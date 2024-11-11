@@ -1,4 +1,4 @@
-# Dockerfile for a Debian 10 container with Java 17 installed.
+# Dockerfile for a Debian 12 container with Java 21 installed.
 # TODO(cblichmann): Rename container to not include Java version
 #
 # Rebuild and upload with
@@ -8,14 +8,27 @@
 # If you modify this container, push it to gcr.io and update our Kokoro builds
 # to reference it.
 
-FROM openjdk:17-jdk-bullseye@sha256:0d66ca8d9f5bb7ec86daf28f84bebc732f71a94ecb26be7209770b475d189f23
+FROM debian:bookworm
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 WORKDIR /build
 ENTRYPOINT ["/bin/bash"]
 
-RUN \
+ADD azul.gpg /etc/apt/trusted.gpg.d/
+RUN chmod 644 /etc/apt/trusted.gpg.d/azul.gpg && \
+    apt-get update && \
+    apt-get install -qy --no-install-recommends ca-certificates && \
+    echo "deb https://repos.azul.com/zulu/deb stable main" \
+        > /etc/apt/sources.list.d/azul.list && \
+    apt-get update && \
+    apt-get -qy install --no-install-recommends \
+        unzip \
+        wget \
+        zulu21-jdk-headless \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     [[ "$(wget -qO - \
             https://services.gradle.org/distributions/gradle-8.5-bin.zip | \
             tee gradle.zip | sha256sum | cut '-d ' -f1)" == \
