@@ -10,7 +10,7 @@
 
 FROM debian:bookworm
 
-ENV DEBIAN_FRONTEND=noninteractive
+ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 WORKDIR /build
 ENTRYPOINT ["/bin/bash"]
@@ -37,9 +37,10 @@ RUN chmod 644 /etc/apt/trusted.gpg.d/azul.gpg && \
     cp -R gradle-*/{bin,lib} /usr/local && \
     ln -s /usr/local/bin/gradle /usr/bin && \
     rm -rf gradle*
+
 ADD third_party /build/src/third_party
 
-ENV GHIDRA_INSTALL_DIR=/build/src/third_party/ghidra \
+ARG GHIDRA_INSTALL_DIR=/build/src/third_party/ghidra \
     YFILES_DIR=/build/src/third_party/java/yfiles/v2_17
 RUN cd src/third_party/zynamics/binexport/java && \
     gradle && \
