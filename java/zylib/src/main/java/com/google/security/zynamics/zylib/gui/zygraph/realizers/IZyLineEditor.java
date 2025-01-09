@@ -15,7 +15,7 @@
 package com.google.security.zynamics.zylib.gui.zygraph.realizers;
 
 public interface IZyLineEditor {
-  void recreateLabelLines(ZyLabelContent labelContent, Object persistantModel);
+  void recreateLabelLines(ZyLabelContent labelContent, Object persistentModel);
 
-  void refreshSize(ZyLabelContent labelContent, Object persistantModel);
+  void refreshSize(ZyLabelContent labelContent, Object persistentModel);
 }

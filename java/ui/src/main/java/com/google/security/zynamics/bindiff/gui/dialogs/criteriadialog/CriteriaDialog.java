@@ -69,9 +69,9 @@ public final class CriteriaDialog extends BaseDialog {
 
     final ConditionBox selectionBox = new ConditionBox(criteria);
 
-    final AddConditionButtonListener addConditionButtonListner =
+    final AddConditionButtonListener addConditionButtonListener =
         new AddConditionButtonListener(jtree, selectionBox, actionProvider);
-    final JButton addConditionButton = new JButton(addConditionButtonListner);
+    final JButton addConditionButton = new JButton(addConditionButtonListener);
 
     final CPanelTwoButtons okCancelPanel =
         new CPanelTwoButtons(new InternalOkCancelButtonListener(), "Execute", "Cancel");

@@ -16,7 +16,7 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 import java.awt.Point;
 
@@ -83,7 +83,7 @@ public class CInsertKeyBehavior extends CAbstractKeyBehavior {
           }
         }
 
-        udpateUndolist(
+        updateUndolist(
             getLabelContent(),
             lineContent.getLineObject().getPersistentModel(),
             lineFragmentObject,
@@ -163,7 +163,7 @@ public class CInsertKeyBehavior extends CAbstractKeyBehavior {
             text = getMultiLineComment(y);
           }
 
-          udpateUndolist(
+          updateUndolist(
               getLabelContent(),
               lineContent.getLineObject().getPersistentModel(),
               lineFragmentObject,

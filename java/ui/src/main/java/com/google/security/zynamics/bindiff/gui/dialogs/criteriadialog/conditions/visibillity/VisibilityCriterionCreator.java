@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.visibillity;
+package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.visibility;
 
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.Criterion;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;

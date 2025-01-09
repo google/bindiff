@@ -53,14 +53,14 @@ public class FunctionTypeCellRenderer extends AbstractTableCellRenderer {
     setFont(!isBoldFont(table, row) ? NORMAL_FONT : BOLD_FONT);
 
     if (value instanceof EFunctionType) {
-      final boolean accessable = !value.toString().equals(EFunctionType.UNKNOWN.toString());
+      final boolean accessible = !value.toString().equals(EFunctionType.UNKNOWN.toString());
 
       setIcon(
           new BackgroundIcon(
-              accessable ? value.toString() : NON_ACCESSIBLE_TEXT,
+              accessible ? value.toString() : NON_ACCESSIBLE_TEXT,
               SwingConstants.CENTER,
               Colors.GRAY32,
-              accessable ? calcColor((EFunctionType) value) : NON_ACCESSIBLE_COLOR,
+              accessible ? calcColor((EFunctionType) value) : NON_ACCESSIBLE_COLOR,
               table.getSelectionBackground(),
               selected,
               0 - 1,

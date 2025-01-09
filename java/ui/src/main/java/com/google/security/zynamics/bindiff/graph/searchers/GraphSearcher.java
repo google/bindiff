@@ -49,10 +49,10 @@ public class GraphSearcher {
   private List<Object> objectResults = new ArrayList<>();
 
   private List<ZyGraphEdge<?, ?, ?>> filterValidEdgesNodes(
-      final List<? extends ZyGraphEdge<?, ?, ?>> egdes) {
+      final List<? extends ZyGraphEdge<?, ?, ?>> edges) {
     final List<ZyGraphEdge<?, ?, ?>> validEdges = new ArrayList<>();
 
-    for (final ZyGraphEdge<?, ?, ?> edge : egdes) {
+    for (final ZyGraphEdge<?, ?, ?> edge : edges) {
       if (edge instanceof SingleDiffEdge
           || edge instanceof CombinedDiffEdge
           || edge instanceof SuperDiffEdge) {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy;
+package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
@@ -43,7 +43,7 @@ public class CUndoManager {
 
   public void addUndoState(
       final ZyLabelContent labelContent,
-      final Object persistantModel,
+      final Object persistentModel,
       final IZyEditableObject editableObject,
       final String changedText,
       final boolean isAboveLineComment,
@@ -55,7 +55,7 @@ public class CUndoManager {
       final int caretEndX,
       final int caretMouseReleasedX,
       final int caretMouseReleasedY) {
-    if (persistantModel == null) {
+    if (persistentModel == null) {
       // Must be a placeholder object without label content text.
       return;
     }
@@ -66,7 +66,7 @@ public class CUndoManager {
       final CUndoStateData undoData =
           new CUndoStateData(
               labelContent,
-              persistantModel,
+              persistentModel,
               editableObject,
               changedText,
               isAboveLineComment,

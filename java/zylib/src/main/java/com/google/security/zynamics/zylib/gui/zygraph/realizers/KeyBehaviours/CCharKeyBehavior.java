@@ -16,7 +16,7 @@ package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
 
 public class CCharKeyBehavior extends CAbstractKeyBehavior {
@@ -69,7 +69,7 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
         }
       }
 
-      udpateUndolist(
+      updateUndolist(
           getLabelContent(),
           lineContent.getLineObject().getPersistentModel(),
           editableObject,
@@ -193,7 +193,7 @@ public class CCharKeyBehavior extends CAbstractKeyBehavior {
           text = getMultiLineComment(y);
         }
 
-        udpateUndolist(
+        updateUndolist(
             getLabelContent(),
             lineContent.getLineObject().getPersistentModel(),
             editableObject,

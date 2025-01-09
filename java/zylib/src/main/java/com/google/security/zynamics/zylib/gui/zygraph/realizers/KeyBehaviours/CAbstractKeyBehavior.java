@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.IZyEditableObject;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyCaret;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLineContent;
@@ -698,9 +698,9 @@ public abstract class CAbstractKeyBehavior {
             mouseReleased_Y);
   }
 
-  protected void udpateUndolist(
+  protected void updateUndolist(
       final ZyLabelContent labelContent,
-      final Object persistantModel,
+      final Object persistentModel,
       final IZyEditableObject editableObject,
       final String changedText,
       final boolean isAboveLineComment,
@@ -714,7 +714,7 @@ public abstract class CAbstractKeyBehavior {
       final int caretMouseReleasedY) {
     m_undoManager.addUndoState(
         labelContent,
-        persistantModel,
+        persistentModel,
         editableObject,
         changedText,
         isAboveLineComment,

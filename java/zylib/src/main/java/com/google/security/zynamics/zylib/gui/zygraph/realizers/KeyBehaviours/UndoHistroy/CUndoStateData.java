@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy;
+package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory;
 
 import com.google.common.base.Preconditions;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ECommentPlacement;
