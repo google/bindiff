@@ -54,7 +54,7 @@ public class SingleGraphMouseListener implements IZyGraphListener<SingleDiffNode
 
   @Override
   public void edgeClicked(
-      final SingleDiffEdge egde, final MouseEvent event, final double x, final double y) {}
+      final SingleDiffEdge edge, final MouseEvent event, final double x, final double y) {}
 
   @Override
   public void edgeLabelEntered(final EdgeLabel label, final MouseEvent event) {}

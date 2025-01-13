@@ -190,17 +190,17 @@ public class NewWorkspaceDialog extends BaseDialog {
     @Override
     public void actionPerformed(final ActionEvent event) {
       if (event.getSource() == workspaceDirectoryPanel.getButton()) {
-        final DirectoryChooser selecter = new DirectoryChooser("Select workspace location");
-        selecter.setSelectedFile(new File(workspaceDirectoryPanel.getText()));
+        final DirectoryChooser selector = new DirectoryChooser("Select workspace location");
+        selector.setSelectedFile(new File(workspaceDirectoryPanel.getText()));
 
-        if (selecter.showOpenDialog(NewWorkspaceDialog.this) == DirectoryChooser.APPROVE_OPTION) {
-          final File workspaceDir = selecter.getSelectedFile();
+        if (selector.showOpenDialog(NewWorkspaceDialog.this) == DirectoryChooser.APPROVE_OPTION) {
+          final File workspaceDir = selector.getSelectedFile();
 
           if (workspaceDir.exists()) {
-            workspaceDirectoryPanel.setText(selecter.getSelectedFile().getAbsolutePath());
+            workspaceDirectoryPanel.setText(selector.getSelectedFile().getAbsolutePath());
           } else {
             CMessageBox.showError(
-                selecter, "Workspace directory does not exist. Please choose a valid one.");
+                selector, "Workspace directory does not exist. Please choose a valid one.");
           }
         }
 

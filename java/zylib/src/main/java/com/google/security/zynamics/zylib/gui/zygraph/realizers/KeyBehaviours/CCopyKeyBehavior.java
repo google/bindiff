@@ -15,7 +15,7 @@
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
 import com.google.security.zynamics.zylib.general.ClipboardHelpers;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory.CUndoManager;
 
 public class CCopyKeyBehavior extends CAbstractKeyBehavior {
   public CCopyKeyBehavior(final CUndoManager undoManager) {

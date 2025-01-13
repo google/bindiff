@@ -47,7 +47,7 @@ public class PercentageTwoBarIcon implements Icon {
 
   private final boolean selected;
 
-  private boolean showAdditionalPercetageValues = false;
+  private boolean showAdditionalPercentageValues = false;
 
   public PercentageTwoBarIcon(
       final PercentageTwoBarCellData data,
@@ -85,7 +85,7 @@ public class PercentageTwoBarIcon implements Icon {
   private void buildTexts() {
     leftText = Integer.toString(leftValue);
     rightText = Integer.toString(rightValue);
-    if (showAdditionalPercetageValues && leftValue + rightValue > 0) {
+    if (showAdditionalPercentageValues && leftValue + rightValue > 0) {
       final double pl = leftValue / (double) (leftValue + rightValue) * 100.;
       final double pr = 100. - pl;
       leftText += String.format(" (%.1f%s)", pl, "%");
@@ -225,8 +225,8 @@ public class PercentageTwoBarIcon implements Icon {
     this.width = width;
   }
 
-  public void showAdditionalPercetageValues(final boolean show) {
-    showAdditionalPercetageValues = show;
+  public void showAdditionalPercentageValues(final boolean show) {
+    showAdditionalPercentageValues = show;
 
     buildTexts();
   }

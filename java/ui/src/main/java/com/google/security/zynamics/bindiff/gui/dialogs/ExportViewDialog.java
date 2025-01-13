@@ -150,11 +150,11 @@ public class ExportViewDialog extends BaseDialog {
   }
 
   private String selectDirectory(final Window parent) {
-    final DirectoryChooser selecter = new DirectoryChooser("Choose Destination Directory");
-    selecter.setCurrentDirectory(new File(destinationChooserPanel.getText()));
+    final DirectoryChooser selector = new DirectoryChooser("Choose Destination Directory");
+    selector.setCurrentDirectory(new File(destinationChooserPanel.getText()));
 
-    if (selecter.showOpenDialog(parent) == DirectoryChooser.APPROVE_OPTION) {
-      return selecter.getSelectedFile().getAbsolutePath();
+    if (selector.showOpenDialog(parent) == DirectoryChooser.APPROVE_OPTION) {
+      return selector.getSelectedFile().getAbsolutePath();
     }
 
     return null;

@@ -14,7 +14,7 @@
 
 package com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours;
 
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory.CUndoManager;
 
 public class CRedoKeyBehavior extends CAbstractKeyBehavior {
   public CRedoKeyBehavior(final CUndoManager undoManager) {

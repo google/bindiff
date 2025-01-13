@@ -72,7 +72,7 @@ public class SelectionHistoryTreeCellRenderer extends DefaultTreeCellRenderer {
 
       if (!treeNode.isRoot()) {
         int countAll = 0;
-        int countVisbleSelected = 0;
+        int countVisibleSelected = 0;
         int countVisibleUnselected = 0;
         int countInvisible = 0;
 
@@ -83,7 +83,7 @@ public class SelectionHistoryTreeCellRenderer extends DefaultTreeCellRenderer {
 
           if (graphNode.isVisible()) {
             if (graphNode.isSelected()) {
-              countVisbleSelected++;
+              countVisibleSelected++;
             } else {
               countVisibleUnselected++;
             }
@@ -93,7 +93,7 @@ public class SelectionHistoryTreeCellRenderer extends DefaultTreeCellRenderer {
           }
         }
 
-        if (countAll == countVisbleSelected) {
+        if (countAll == countVisibleSelected) {
           setForeground(SELECTED_FONT_COLOR);
         } else if (countAll == countVisibleUnselected) {
           setForeground(NORMAL_FONT_COLOR);

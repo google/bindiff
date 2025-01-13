@@ -24,7 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class IoWriterUtils {
-  public static void writeByteArrary(final OutputStream stream, final byte[] bytes)
+  public static void writeByteArray(final OutputStream stream, final byte[] bytes)
       throws IOException {
     stream.write(bytes);
   }

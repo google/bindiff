@@ -44,7 +44,7 @@ public class PercentageTwoBarLabel extends JLabel {
             1,
             labelHeight - 1);
 
-    matchBarIcon.showAdditionalPercetageValues(true);
+    matchBarIcon.showAdditionalPercentageValues(true);
     setIcon(matchBarIcon);
     setBorder(new LineBorder(Color.black));
   }

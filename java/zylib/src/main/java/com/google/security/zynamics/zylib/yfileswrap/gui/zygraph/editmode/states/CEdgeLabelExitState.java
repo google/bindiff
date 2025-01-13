@@ -48,7 +48,7 @@ public class CEdgeLabelExitState<
    *
    * @param factory a CStateFactory that creates new state objects when necessary.
    * @param graph the graph the entered node belongs to
-   * @param label the associated egde label
+   * @param label the associated edge label
    */
   public CEdgeLabelExitState(
       final CStateFactory<NodeType, EdgeType> factory,

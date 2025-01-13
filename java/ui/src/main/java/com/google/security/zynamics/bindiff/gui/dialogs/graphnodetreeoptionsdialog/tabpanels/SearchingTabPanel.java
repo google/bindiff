@@ -29,7 +29,7 @@ public class SearchingTabPanel extends JPanel {
   private final JCheckBox secondarySideCheckBox;
 
   private final JCheckBox useTempResultsCheckBox;
-  private final JCheckBox hightlightGraphNodesCheckBox;
+  private final JCheckBox highlightGraphNodesCheckBox;
 
   private boolean initialRegEx;
 
@@ -52,7 +52,7 @@ public class SearchingTabPanel extends JPanel {
     secondarySideCheckBox = new JCheckBox("Secondary Side");
 
     useTempResultsCheckBox = new JCheckBox("Search in last temporary Results");
-    hightlightGraphNodesCheckBox = new JCheckBox("Highlight Graph Nodes");
+    highlightGraphNodesCheckBox = new JCheckBox("Highlight Graph Nodes");
 
     add(createPanel(isCombinedView), BorderLayout.CENTER);
 
@@ -79,7 +79,7 @@ public class SearchingTabPanel extends JPanel {
     final JPanel gridPanel_2 = new JPanel(new GridLayout(2, 1));
     gridPanel_2.setBorder(new TitledBorder("Result options"));
     gridPanel_2.add(useTempResultsCheckBox);
-    gridPanel_2.add(hightlightGraphNodesCheckBox);
+    gridPanel_2.add(highlightGraphNodesCheckBox);
 
     searchOptionsPanel.add(gridPanel_1, BorderLayout.NORTH);
     resultOptionsPanel.add(gridPanel_2, BorderLayout.NORTH);
@@ -95,7 +95,7 @@ public class SearchingTabPanel extends JPanel {
   }
 
   public boolean getHighlightGraphNodes() {
-    return hightlightGraphNodesCheckBox.isSelected();
+    return highlightGraphNodesCheckBox.isSelected();
   }
 
   public boolean getPrimarySide() {
@@ -120,7 +120,7 @@ public class SearchingTabPanel extends JPanel {
     primarySideCheckBox.setSelected(initialPrimarySide);
     secondarySideCheckBox.setSelected(initialSecondarySide);
 
-    hightlightGraphNodesCheckBox.setSelected(initialHighlightGraphNode);
+    highlightGraphNodesCheckBox.setSelected(initialHighlightGraphNode);
     useTempResultsCheckBox.setSelected(initialUseTempResults);
   }
 
@@ -130,7 +130,7 @@ public class SearchingTabPanel extends JPanel {
     primarySideCheckBox.setSelected(true);
     secondarySideCheckBox.setSelected(true);
 
-    hightlightGraphNodesCheckBox.setSelected(true);
+    highlightGraphNodesCheckBox.setSelected(true);
     useTempResultsCheckBox.setSelected(false);
   }
 

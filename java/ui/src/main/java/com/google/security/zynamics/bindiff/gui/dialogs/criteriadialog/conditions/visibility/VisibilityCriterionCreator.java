@@ -12,14 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.visibillity;
+package com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.visibility;
 
-public enum VisibilityState {
-  VISIBLE,
-  UNVISIBLE;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.Criterion;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
+
+public class VisibilityCriterionCreator implements CriterionCreator {
+  @Override
+  public Criterion createCriterion() {
+    return new VisibilityCriterion();
+  }
 
   @Override
-  public String toString() {
-    return this == VISIBLE ? "visible" : "invisible";
+  public String getCriterionDescription() {
+    return "Select Nodes by Visibility";
   }
 }

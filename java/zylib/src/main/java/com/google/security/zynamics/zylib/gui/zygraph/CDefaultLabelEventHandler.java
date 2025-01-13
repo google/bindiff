@@ -32,7 +32,7 @@ import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.CR
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.CSelectAllKeyBehavior;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.CTabKeyBehavior;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.CUndoKeyBehavior;
-import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistroy.CUndoManager;
+import com.google.security.zynamics.zylib.gui.zygraph.realizers.KeyBehaviours.UndoHistory.CUndoManager;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyCaret;
 import com.google.security.zynamics.zylib.gui.zygraph.realizers.ZyLabelContent;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.AbstractZyGraph;

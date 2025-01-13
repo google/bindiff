@@ -23,7 +23,7 @@ import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.condition
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.recursion.RecursionCriterionCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.selection.SelectionCriterionCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.text.TextCriterionCreator;
-import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.visibillity.VisibilityCriterionCreator;
+import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.conditions.visibility.VisibilityCriterionCreator;
 import com.google.security.zynamics.bindiff.gui.dialogs.criteriadialog.criterion.CriterionCreator;
 import java.util.ArrayList;
 import java.util.List;
