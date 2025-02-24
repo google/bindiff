@@ -21,6 +21,7 @@ cmake_policy(VERSION 3.20)
 foreach(_bindiff_policy IN ITEMS
   CMP0135  # Set download timestamp to current time
   CMP0144  # Use upper-case <PACKAGENAME>_ROOT variables
+  CMP0167  # Drop the FindBoost module
 )
   if(POLICY ${_bindiff_policy})
     cmake_policy(SET ${_bindiff_policy} NEW)
