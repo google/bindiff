@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copyright 2011-2024 Google LLC
+  Copyright 2011-2025 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -244,8 +244,7 @@
             <Directory Id="BinDiff_Plugins_Binary_Ninja" Name="Binary Ninja">
               <Component Id="BinaryNinja_Plugins" Win64="yes"
                          Guid="34E0F912-2193-4EDC-B417-A5C92A1151F8">
-                <File Name="binexport12_binaryninja.dll" KeyPath="yes" />
-                <File Id="BinaryNinja_Plugins_ReadmeTXT" Name="Readme.txt" />
+                <File Id="BinaryNinja_Plugins_ReadmeTXT" Name="Readme.txt" KeyPath="yes" />
               </Component>
             </Directory>
 

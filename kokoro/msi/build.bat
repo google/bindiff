@@ -19,7 +19,6 @@ for %%I in ("%BUILD_DIR%\wix" ^
             "%APP_DIR%\bin" ^
             "%APP_DIR%\Extra\Config" ^
             "%APP_DIR%\Extra\Ghidra" ^
-            "%APP_DIR%\Plugins\Binary Ninja" ^
             "%APP_DIR%\Plugins\IDA Pro") do if not exist "%%I" mkdir "%%I"
 
 :: Set tool paths
@@ -46,9 +45,6 @@ for %%I in (bindiff.exe ^
             binexport2dump.exe) do copy /Y ^
   "%KOKORO_GFILE_DIR%\%%I" ^
   "%APP_DIR%\bin\" || exit /b
-copy /Y ^
-  "%KOKORO_GFILE_DIR%\binexport%BINEXPORT_RELEASE%_binaryninja.dll" ^
-  "%APP_DIR%\Plugins\Binary Ninja\" || exit /b
 :: Omitting "\" in the "-d" argument below is intentional
 unzip -q ^
   "%KOKORO_GFILE_DIR%\ghidra_BinExport.zip" ^
@@ -109,19 +105,19 @@ copy /Y ^
   "%BUILD_DIR%\Setup.wixobj" || exit /b
 
 :: Release build, code sign the artifacts
-if "%1" neq "release" call :codesign "%BUILD_DIR%\*.msi"
-
-exit /b
-
-
-:: Code-signs the specified artifacts and verifies them
-:: %* artifacts to sign
-:codesign
-
-set ARTIFACTS=%*
-
-ksigntool sign GOOGLE_EXTERNAL /v /debug /t http://timestamp.digicert.com ^
-  %ARTIFACTS% || exit /b
-%SIGNTOOL% verify /pa /all %ARTIFACTS% || exit /b
+@REM TODO(cblichmann): Re-enable code signing using a separate job.
+@REM if "%1" neq "release" call :codesign "%BUILD_DIR%\*.msi"
+@REM
+@REM exit /b
+@REM
+@REM :: Code-signs the specified artifacts and verifies them
+@REM :: %* artifacts to sign
+@REM :codesign
+@REM
+@REM set ARTIFACTS=%*
+@REM
+@REM ksigntool sign GOOGLE_EXTERNAL /v /debug /t http://timestamp.digicert.com ^
+@REM   %ARTIFACTS% || exit /b
+@REM %SIGNTOOL% verify /pa /all %ARTIFACTS% || exit /b
 
 exit /b

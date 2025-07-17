@@ -27,8 +27,6 @@ docker run \
   -v "${KOKORO_ARTIFACTS_DIR}/git/absl":/build/out/_deps/absl-src \
   -v "${KOKORO_ARTIFACTS_DIR}/git/googletest":/build/out/_deps/googletest-src \
   -v "${KOKORO_ARTIFACTS_DIR}/git/protobuf":/build/out/_deps/protobuf-src \
-  -v "${KOKORO_PIPER_DIR}/google3/third_party/binaryninja_api":/build/out/_deps/binaryninjaapi-src \
-  -v "${KOKORO_PIPER_DIR}/google3/third_party/jsoncpp":/build/out/_deps/binaryninjaapi-src/third_party/jsoncpp \
   -v "${KOKORO_PIPER_DIR}/google3/third_party/sqlite/src":/build/out/_deps/sqlite-src \
   -v "${build_dir}/out":/build/out \
   -v "${KOKORO_ARTIFACTS_DIR}":/build/src \

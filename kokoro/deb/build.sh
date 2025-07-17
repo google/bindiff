@@ -53,7 +53,6 @@ mkdir -p \
   "${app_dir}/extra/config" \
   "${app_dir}/extra/ghidra" \
   "${app_dir}/libexec" \
-  "${app_dir}/plugins/binaryninja" \
   "${app_dir}/plugins/idapro"
 cp \
   "${KOKORO_GFILE_DIR}/bindiff.jar" \
@@ -68,9 +67,6 @@ cp \
   "${app_dir}/extra/config/bindiff_config.proto"
 (cd "${app_dir}/extra/ghidra/" && \
   unzip -q "${KOKORO_GFILE_DIR}/ghidra_BinExport.zip")
-cp \
-  "${KOKORO_GFILE_DIR}/binexport${binexport_release}_binaryninja.so" \
-  "${app_dir}/plugins/binaryninja/"
 cp \
   "${KOKORO_GFILE_DIR}/bindiff${bindiff_release}_ida.so" \
   "${KOKORO_GFILE_DIR}/bindiff${bindiff_release}_ida64.so" \
