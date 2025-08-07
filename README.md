@@ -137,7 +137,8 @@ cmake -S . -B build/out -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=build/out \
   -DBINDIFF_BINEXPORT_DIR=build/binexport \
-  -DBINEXPORT_ENABLE_IDAPRO=OFF
+  -DBINEXPORT_ENABLE_IDAPRO=OFF \
+  -DBINDIFF_ENABLE_IDAPRO=OFF
 ```
 
 ### Java GUI and yFiles
