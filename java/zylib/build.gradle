@@ -15,6 +15,6 @@
 dependencies {
     implementation ':y:'
     implementation ':ysvg:'
-    implementation 'com.google.guava:guava:33.0.0-jre'
+    implementation 'com.google.guava:guava:33.4.8-jre'
     implementation group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.1'
 }
