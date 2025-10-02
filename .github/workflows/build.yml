@@ -1,0 +1,220 @@
+name: build
+
+on:
+  push:
+    branches: [main, ci-gha]
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main]
+
+permissions: read-all
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      # for upload to release
+      contents: write
+    name: IDA ${{ matrix.environment.ida_version }} on ${{ matrix.environment.os_name }}
+    runs-on: ${{ matrix.environment.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          #
+          # 9.2
+          #
+          - os: ubuntu-latest
+            os_name: "linux"
+            ida_version: "9.2"
+            sdk_slug: "release/9.2/sdk-and-utilities/idasdk92.zip"
+            sdk_subdir: "src/"
+
+          - os: windows-latest
+            os_name: "windows"
+            ida_version: "9.2"
+            sdk_slug: "release/9.2/sdk-and-utilities/idasdk92.zip"
+            sdk_subdir: "src/"
+
+          - os: macos-latest
+            os_name: "macos"
+            ida_version: "9.2"
+            sdk_slug: "release/9.2/sdk-and-utilities/idasdk92.zip"
+            sdk_subdir: "src/"
+
+          #
+          # 9.1
+          #
+          - os: ubuntu-latest
+            os_name: "linux"
+            ida_version: "9.1"
+            sdk_slug: "release/9.1/sdk-and-utilities/idasdk91.zip"
+            sdk_subdir: "idasdk91/"
+
+          - os: windows-latest
+            os_name: "windows"
+            ida_version: "9.1"
+            sdk_slug: "release/9.1/sdk-and-utilities/idasdk91.zip"
+            sdk_subdir: "idasdk91/"
+
+          - os: macos-latest
+            os_name: "macos"
+            ida_version: "9.1"
+            sdk_slug: "release/9.1/sdk-and-utilities/idasdk91.zip"
+            sdk_subdir: "idasdk91/"
+
+          #
+          # 9.0
+          #
+          - os: ubuntu-latest
+            os_name: "linux"
+            ida_version: "9.0"
+            sdk_slug: "release/9.0/sdk-and-utilities/idasdk90.zip"
+            sdk_subdir: "idasdk90/"
+
+          - os: windows-latest
+            os_name: "windows"
+            ida_version: "9.0"
+            sdk_slug: "release/9.0/sdk-and-utilities/idasdk90.zip"
+            sdk_subdir: "idasdk90/"
+
+          - os: macos-latest
+            os_name: "macos"
+            ida_version: "9.0"
+            sdk_slug: "release/9.0/sdk-and-utilities/idasdk90.zip"
+            sdk_subdir: "idasdk90/"
+
+    steps:
+      - name: Setup MSBuild
+        if: matrix.environment.os_name == 'windows'
+        uses: microsoft/setup-msbuild@v1.1
+  
+      - name: Setup Visual Studio 2022
+        if: matrix.environment.os_name == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: 2022
+
+      - name: Setup uv
+        # on act, need use v5 instead of v6, due to:
+        # https://github.com/astral-sh/setup-uv/issues/535
+        # (ultimately an issue with act images)
+        uses: astral-sh/setup-uv@v5
+
+      - name: Download IDA SDK ${{ matrix.environment.ida_version }}
+        run: |
+          uvx --from ida-hcli hcli --disable-updates download ${{ matrix.environment.sdk_slug }}
+          unzip idasdk*.zip -d ./ida-temp/
+          mv ./ida-temp/${{ matrix.environment.sdk_subdir }} ./ida-sdk
+        shell: bash
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_API_KEY }}
+
+      - name: Setup IDA SDK environment
+        if: matrix.environment.os_name == 'windows'
+        working-directory: ./ida-sdk/
+        run: |
+          # via: https://hex-rays.com/blog/building-ida-python-on-windows
+          set __EA64__=1
+          set NDEBUG=1
+          make env
+
+      - name: Checkout bindiff
+        # on act, need use v4 instead of v5 due to node24 reference
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: "recursive"
+          path: bindiff
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28.x'
+
+      - name: Install Ninja
+        run: uv tool install ninja
+
+      - name: Checkout BinExport
+        uses: actions/checkout@v4
+        with:
+          repository: google/binexport
+          path: binexport
+          ref: main
+
+      # There's a bug in BinExport's IDA 9+ support on macOS
+      # reported here: https://github.com/google/binexport/issues/159
+      - name: Patch BinExport for IDA SDK 9.x on macOS
+        if: matrix.environment.os_name == 'macos'
+        shell: bash
+        run: |
+          cd binexport
+          git apply --verbose ../bindiff/.github/patches/binexport-bdb8c4430549e69d4a9a7531c59b197f3a0757e6.patch
+
+      - name: Configure BinDiff build
+        working-directory: ./bindiff/
+        shell: bash
+        run: |
+          # Build universal binaries on macOS (both arm64 and x86_64)
+          if [ "${{ matrix.environment.os_name }}" = "macos" ]; then
+            CMAKE_EXTRA_FLAGS="-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+          else
+            CMAKE_EXTRA_FLAGS=""
+          fi
+
+          cmake -S . -B ../build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=../install \
+            -DBINDIFF_BINEXPORT_DIR=../binexport \
+            "-DIdaSdk_ROOT_DIR=$PWD/../ida-sdk" \
+            $CMAKE_EXTRA_FLAGS
+
+      - name: Build BinDiff
+        shell: bash
+        run: |
+          cmake --build build --config Release --parallel 4
+
+      - name: Run tests
+        shell: bash
+        run: ctest --test-dir build --build-config Release --output-on-failure
+
+      - name: Install BinDiff
+        shell: bash
+        run: cmake --install build --config Release
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp -v install/bindiff-prefix/* artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindiff-ida${{ matrix.environment.ida_version }}-${{ matrix.environment.os_name }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*.zip
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
