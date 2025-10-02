@@ -130,12 +130,43 @@ jobs:
           submodules: "recursive"
           path: bindiff
 
-      # TODO(ai): fill in here: building bindiff
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28.x'
+
+      - name: Install Ninja
+        run: uv tool install ninja
+
+      - name: Checkout BinExport
+        uses: actions/checkout@v4
+        with:
+          repository: google/binexport
+          path: binexport
+          ref: main
+
+      - name: Configure BinDiff build
+        working-directory: ./bindiff/
+        run: |
+          cmake -S . -B ../build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=../install \
+            -DBINDIFF_BINEXPORT_DIR=../binexport \
+            "-DIdaSdk_ROOT_DIR=$PWD/../ida-sdk"
+
+      - name: Build BinDiff
+        run: cmake --build build --config Release --parallel 2
+
+      - name: Run tests
+        run: ctest --test-dir build --build-config Release --output-on-failure
+
+      - name: Install BinDiff
+        run: cmake --install build --config Release
 
       - name: Collect artifacts
         run: |
           mkdir -p artifacts
-          # TODO(ai): fill in here
+          cp -v install/bindiff-prefix/* artifacts/
   
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
