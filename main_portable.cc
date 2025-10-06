@@ -213,7 +213,7 @@ void DifferThread::operator()() {
     Timer<> timer;
     {
       // Pop pair from todo queue.
-      absl::MutexLock lock(&g_queue_mutex);
+      absl::MutexLock lock(g_queue_mutex);
       if (file_queue_->empty()) {
         break;
       }
