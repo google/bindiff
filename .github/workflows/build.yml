@@ -117,6 +117,7 @@ jobs:
       - name: Setup IDA SDK environment
         if: matrix.environment.os_name == 'windows'
         working-directory: ./ida-sdk/
+        shell: cmd
         run: |
           # via: https://hex-rays.com/blog/building-ida-python-on-windows
           set __EA64__=1
@@ -187,10 +188,12 @@ jobs:
         run: cmake --install build --config Release
 
       - name: Collect artifacts
+        working-directory: ./bindiff/
         shell: bash
         run: |
-          mkdir -p artifacts
-          cp -v install/bindiff-prefix/* artifacts/
+          mkdir -p ../artifacts
+          cp -v ../install/bindiff-prefix/* ../artifacts/
+          jq '.plugin.idaVersions = "==${{ matrix.environment.ida_version }}"' ida/ida-plugin.json > ../artifacts/ida-plugin.json
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -205,16 +208,41 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    name: release for IDA ${{ matrix.ida.version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        ida:
+          - version: "9.2"
+          - version: "9.1"
+          - version: "9.0"
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
+          pattern: bindiff-ida${{ matrix.ida.version }}-*
+          merge-multiple: true
+
+      - name: Remove extras
+        shell: bash
+        run: |
+          rm -f artifacts/bindiff artifacts/bindiff.exe
+          rm -f artifacts/bindiff_config_setup*
+          rm -f artifacts/bindiff_launcher_macos
+
+      - name: Create archive
+        shell: bash
+        run: |
+          cd artifacts
+          zip -r ../bindiff-ida${{ matrix.ida.version }}.zip *
+          cd ..
+          mv bindiff-ida${{ matrix.ida.version }}.zip artifacts/
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.zip
+          files: artifacts/*.zip
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
