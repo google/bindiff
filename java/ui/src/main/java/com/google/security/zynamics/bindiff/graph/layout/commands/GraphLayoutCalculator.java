@@ -38,6 +38,7 @@ import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.edges.ZyGraphEd
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.helpers.ProximityHelper;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.layouters.ZyGraphLayouter;
 import com.google.security.zynamics.zylib.yfileswrap.gui.zygraph.nodes.ZyGraphNode;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -309,7 +310,7 @@ public class GraphLayoutCalculator implements ICancelableCommand {
   // internal layout threads!
   private void cancelLayoutCalculation() {
     if (superLayoutThread != null && superLayoutThread.isAlive()) {
-      superLayoutThread.stop();
+      threadStop(superLayoutThread);
       superLayoutThread = null;
 
       doneLatch.countDown();
@@ -317,13 +318,29 @@ public class GraphLayoutCalculator implements ICancelableCommand {
 
     if (combinedLayoutThread != null && combinedLayoutThread.isAlive()) {
 
-      combinedLayoutThread.stop();
+      threadStop(combinedLayoutThread);
       combinedLayoutThread = null;
 
       doneLatch.countDown();
     }
 
     setCanceled();
+  }
+
+  private static void threadStop(Thread thread) {
+    // TODO: b/447223240 - clean up obsolete references to Thread.stop.
+    // Thread#stop has been deprecated since JDK 1.2. Starting in JDK 20 it always throws
+    // UnsupportedOperationException, and in JDK 26 the method has been removed.
+    try {
+      Thread.class.getMethod("stop").invoke(thread);
+    } catch (InvocationTargetException e) {
+      if (e.getCause() instanceof UnsupportedOperationException) {
+        throw (UnsupportedOperationException) e.getCause();
+      }
+      throw new UnsupportedOperationException(e);
+    } catch (ReflectiveOperationException e) {
+      throw new UnsupportedOperationException(e);
+    }
   }
 
   private CanonicMultiStageLayouter createSecondThreadLayouter(

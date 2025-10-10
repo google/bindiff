@@ -15,6 +15,7 @@
 package com.google.security.zynamics.zylib.gui.ProgressDialogs;
 
 import com.google.security.zynamics.zylib.general.ListenerProvider;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class is a helper thread to use with the CEndlessProgressDialog class. To use this class do
@@ -42,7 +43,23 @@ public abstract class CStandardHelperThread extends Thread
   protected void finish() {
     notifyListeners();
 
-    stop();
+    threadStop(this);
+  }
+
+  private static void threadStop(Thread thread) {
+    // TODO: b/447223240 - clean up obsolete references to Thread.stop.
+    // Thread#stop has been deprecated since JDK 1.2. Starting in JDK 20 it always throws
+    // UnsupportedOperationException, and in JDK 26 the method has been removed.
+    try {
+      Thread.class.getMethod("stop").invoke(thread);
+    } catch (InvocationTargetException e) {
+      if (e.getCause() instanceof UnsupportedOperationException) {
+        throw (UnsupportedOperationException) e.getCause();
+      }
+      throw new UnsupportedOperationException(e);
+    } catch (ReflectiveOperationException e) {
+      throw new UnsupportedOperationException(e);
+    }
   }
 
   protected abstract void runExpensiveCommand() throws Exception;
