@@ -8,7 +8,7 @@
 # If you modify this container, push it to gcr.io and update our Kokoro builds
 # to reference it.
 
-FROM debian:bookworm
+FROM debian:trixie
 
 ARG DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
@@ -42,11 +42,14 @@ ADD third_party /build/src/third_party
 
 ARG GHIDRA_INSTALL_DIR=/build/src/third_party/ghidra \
     YFILES_DIR=/build/src/third_party/java/yfiles/v2_17
-RUN cd src/third_party/zynamics/binexport/java && \
-    gradle && \
-    gradle clean && gradle --stop
-RUN cd src/third_party/zynamics/bindiff/java && \
+RUN pushd src/third_party/zynamics/binexport/java && \
+    (gradle || true) && \
     gradle clean && \
-    gradle :zylib:build :ui:obfuscatedJar && \
-    gradle clean && gradle --stop && \
+    popd && \
+    pushd src/third_party/zynamics/bindiff/java && \
+    (gradle :zylib:build :ui:obfuscatedJar || true) && \
+    gradle clean && \
+    gradle --stop && \
+    popd && \
     rm -rf /build/*
+

@@ -15,7 +15,6 @@ cmake "${src_dir}/bindiff/" \
   -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
   -DCMAKE_BUILD_TYPE=Release \
   "-DCMAKE_INSTALL_PREFIX=${out_dir}" \
-  "-DBOOST_ROOT=${deps_dir}/boost" \
   "-DIdaSdk_ROOT_DIR=${deps_dir}/idasdk"
 cmake --build . --config Release
 ctest --build-config Release --output-on-failure -R '^[A-Z]'

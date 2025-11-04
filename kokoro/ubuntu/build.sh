@@ -23,7 +23,6 @@ docker run \
   -e "KOKORO_PIPER_CHANGELIST=${KOKORO_PIPER_CHANGELIST}" \
   -v "${KOKORO_ARTIFACTS_DIR}/git/binexport":/build/deps/binexport \
   -v "${KOKORO_PIPER_DIR}/google3/third_party/idasdk":/build/deps/idasdk \
-  -v "${KOKORO_PIPER_DIR}/google3/third_party/boost/do_not_include_from_google3_only_third_party/boost":/build/deps/boost \
   -v "${KOKORO_ARTIFACTS_DIR}/git/absl":/build/out/_deps/absl-src \
   -v "${KOKORO_ARTIFACTS_DIR}/git/googletest":/build/out/_deps/googletest-src \
   -v "${KOKORO_ARTIFACTS_DIR}/git/protobuf":/build/out/_deps/protobuf-src \
