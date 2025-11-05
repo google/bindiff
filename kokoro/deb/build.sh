@@ -94,9 +94,11 @@ popd
 [ "$1" != "release" ] && exit 0
 
 # Release build, code sign the artifacts
-echo "Code signing artifacts..."
+# TODO(cblichmann): Re-enable code signing using a separate job.
+# echo "Code signing artifacts..."
+#
+# chmod 777 "${build_dir}"
+# chmod 666 "${build_dir}"/*.deb
+# /escalated_sign/escalated_sign.py -j /escalated_sign_jobs -t linux_gpg_sign \
+#   "${build_dir}/"bindiff_*.deb
 
-chmod 777 "${build_dir}"
-chmod 666 "${build_dir}"/*.deb
-/escalated_sign/escalated_sign.py -j /escalated_sign_jobs -t linux_gpg_sign \
-  "${build_dir}/"bindiff_*.deb
