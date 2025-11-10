@@ -155,7 +155,7 @@ public class MutableDirectedGraph<NodeType, EdgeType extends IGraphEdge<NodeType
    */
   public void removeNode(final NodeType node) {
     Preconditions.checkArgument(
-        m_nodes.remove(node), String.format("Error: Node '%s' was not part of the graph", node));
+        m_nodes.remove(node), "Error: Node '%s' was not part of the graph", node);
     m_edges.removeAll(m_nodeToEdges.get(node));
     m_nodeToEdges.remove(node);
   }
