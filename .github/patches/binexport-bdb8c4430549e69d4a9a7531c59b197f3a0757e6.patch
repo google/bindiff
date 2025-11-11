@@ -1,0 +1,25 @@
+diff --git a/cmake/FindIdaSdk.cmake b/cmake/FindIdaSdk.cmake
+index 9e0cfa1..811fa7b 100644
+--- a/cmake/FindIdaSdk.cmake
++++ b/cmake/FindIdaSdk.cmake
+@@ -99,6 +99,7 @@ else()
+ endif()
+
+ message(STATUS "IDA_SDK_VERSION = ${IDA_SDK_VERSION}")
++add_compile_definitions(IDA_SDK_VERSION=${IDA_SDK_VERSION})
+
+ # Define some platform specific variables for later use.
+ set(_so "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+@@ -213,9 +214,9 @@ if(APPLE)
+                     -output "${_ida64_universal_lib}"
+       )
+     endif()
+-    add_library(ida SHARED IMPORTED)
+-    add_dependencies(ida ida64_universal)
+-    set_target_properties(ida PROPERTIES
++    add_library(ida64 SHARED IMPORTED)
++    add_dependencies(ida64 ida64_universal)
++    set_target_properties(ida64 PROPERTIES
+       IMPORTED_LOCATION "${_ida64_universal_lib}"
+     )
+
