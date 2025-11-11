@@ -25,6 +25,8 @@ option(BINDIFF_BUILD_TESTING
        "If ON, this will build all of BinDiff's own tests" ${BINDIFF_TOP_LEVEL})
 option(BINDIFF_BUILD_BENCHMARK
        "If this and BINDIFF_BUILD_TESTING is ON, build benchmark tests" OFF)
+option(BINDIFF_ENABLE_IDAPRO
+       "If ON, enable building the IDA Pro plugin" ON)
 
 if(BINDIFF_BUILD_TESTING)
   # Have BinExport download GoogleTest/Benchmark for us
