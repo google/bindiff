@@ -32,7 +32,7 @@ struct FlowGraphInfo {
   int edge_count = 0;
   int instruction_count = 0;
 };
-using FlowGraphInfos = absl::btree_map<Address, FlowGraphInfo>;
+using FlowGraphInfos = std::map<Address, FlowGraphInfo>;
 
 struct FixedPointInfo {
   friend bool operator==(const FixedPointInfo& lhs, const FixedPointInfo& rhs) {
@@ -69,7 +69,7 @@ struct FixedPointInfo {
   bool evaluate;
   bool comments_ported;
 };
-using FixedPointInfos = absl::btree_set<FixedPointInfo>;
+using FixedPointInfos = std::set<FixedPointInfo>;
 
 bool operator<(const FixedPointInfo& one, const FixedPointInfo& two);
 

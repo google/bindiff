@@ -34,7 +34,7 @@ namespace security::bindiff {
 class MatchingContext;
 
 // These need to be sorted
-using Histogram = absl::btree_map<std::string, size_t>;
+using Histogram = std::map<std::string, size_t>;
 using Confidences = absl::btree_map<std::string, double>;
 
 // Main entry point to the differ, runs the core algorithm and produces a
