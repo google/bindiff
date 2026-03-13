@@ -7,6 +7,7 @@ on:
       - "v*"
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 permissions: read-all
 
@@ -15,86 +16,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      versions: ${{ steps.get-versions.outputs.versions }}
+    steps:
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          ignore-empty-workdir: true
+          enable-cache: false
+
+      - name: Discover available IDA versions
+        id: get-versions
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_API_KEY }}
+        shell: bash
+        run: |
+          # List all available tags and extract unique IDA 9.x+ version numbers,
+          # excluding "latest", service packs (sp), and test builds.
+          versions=$(uvx --from ida-hcli hcli --disable-updates download --list-tags 2>/dev/null \
+            | grep -oP 'ida-pro:\K[0-9]+\.[0-9]+(?=:)' \
+            | sort -Vu \
+            | awk -F. '$1 >= 9' \
+            | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "versions=$versions" >> "$GITHUB_OUTPUT"
+          echo "Discovered IDA versions: $versions"
+
   build:
+    needs: discover
     permissions:
-      # for upload to release
       contents: write
-    name: IDA ${{ matrix.environment.ida_version }} on ${{ matrix.environment.os_name }}
-    runs-on: ${{ matrix.environment.os }}
+    name: IDA ${{ matrix.ida_version }} on ${{ matrix.os_name }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        environment:
-          #
-          # 9.2
-          #
+        ida_version: ${{ fromJson(needs.discover.outputs.versions) }}
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        include:
           - os: ubuntu-latest
             os_name: "linux"
-            ida_version: "9.2"
-            sdk_slug: "release/9.2/sdk-and-utilities/idasdk92.zip"
-            sdk_subdir: "src/"
-
           - os: windows-latest
             os_name: "windows"
-            ida_version: "9.2"
-            sdk_slug: "release/9.2/sdk-and-utilities/idasdk92.zip"
-            sdk_subdir: "src/"
-
           - os: macos-latest
             os_name: "macos"
-            ida_version: "9.2"
-            sdk_slug: "release/9.2/sdk-and-utilities/idasdk92.zip"
-            sdk_subdir: "src/"
-
-          #
-          # 9.1
-          #
-          - os: ubuntu-latest
-            os_name: "linux"
-            ida_version: "9.1"
-            sdk_slug: "release/9.1/sdk-and-utilities/idasdk91.zip"
-            sdk_subdir: "idasdk91/"
-
-          - os: windows-latest
-            os_name: "windows"
-            ida_version: "9.1"
-            sdk_slug: "release/9.1/sdk-and-utilities/idasdk91.zip"
-            sdk_subdir: "idasdk91/"
-
-          - os: macos-latest
-            os_name: "macos"
-            ida_version: "9.1"
-            sdk_slug: "release/9.1/sdk-and-utilities/idasdk91.zip"
-            sdk_subdir: "idasdk91/"
-
-          #
-          # 9.0
-          #
-          - os: ubuntu-latest
-            os_name: "linux"
-            ida_version: "9.0"
-            sdk_slug: "release/9.0/sdk-and-utilities/idasdk90.zip"
-            sdk_subdir: "idasdk90/"
-
-          - os: windows-latest
-            os_name: "windows"
-            ida_version: "9.0"
-            sdk_slug: "release/9.0/sdk-and-utilities/idasdk90.zip"
-            sdk_subdir: "idasdk90/"
-
-          - os: macos-latest
-            os_name: "macos"
-            ida_version: "9.0"
-            sdk_slug: "release/9.0/sdk-and-utilities/idasdk90.zip"
-            sdk_subdir: "idasdk90/"
 
     steps:
       - name: Setup MSBuild
-        if: matrix.environment.os_name == 'windows'
+        if: matrix.os_name == 'windows'
         uses: microsoft/setup-msbuild@v1.1
-  
+
       - name: Setup Visual Studio 2022
-        if: matrix.environment.os_name == 'windows'
+        if: matrix.os_name == 'windows'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           vsversion: 2022
@@ -105,21 +82,27 @@ jobs:
         # (ultimately an issue with act images)
         uses: astral-sh/setup-uv@v5
 
-      - name: Download IDA SDK ${{ matrix.environment.ida_version }}
-        run: |
-          uvx --from ida-hcli hcli --disable-updates download ${{ matrix.environment.sdk_slug }}
-          unzip idasdk*.zip -d ./ida-temp/
-          mv ./ida-temp/${{ matrix.environment.sdk_subdir }} ./ida-sdk
+      - name: Download IDA SDK ${{ matrix.ida_version }}
         shell: bash
         env:
           HCLI_API_KEY: ${{ secrets.HCLI_API_KEY }}
+        run: |
+          SDK_COMPACT=$(echo "${{ matrix.ida_version }}" | tr -d '.')
+          SDK_SLUG="release/${{ matrix.ida_version }}/sdk-and-utilities/idasdk${SDK_COMPACT}.zip"
+          echo "Downloading SDK: $SDK_SLUG"
+
+          uvx --from ida-hcli hcli --disable-updates download "$SDK_SLUG"
+          unzip idasdk*.zip -d ./ida-temp/
+
+          SDK_ROOT=$(dirname "$(find ./ida-temp/ -maxdepth 3 -name allmake.mak | head -1)")
+          mv "$SDK_ROOT" ./ida-sdk
 
       - name: Setup IDA SDK environment
-        if: matrix.environment.os_name == 'windows'
+        if: matrix.os_name == 'windows'
         working-directory: ./ida-sdk/
         shell: cmd
         run: |
-          # via: https://hex-rays.com/blog/building-ida-python-on-windows
+          REM via: https://hex-rays.com/blog/building-ida-python-on-windows
           set __EA64__=1
           set NDEBUG=1
           make env
@@ -150,7 +133,7 @@ jobs:
       # There's a bug in BinExport's IDA 9+ support on macOS
       # reported here: https://github.com/google/binexport/issues/159
       - name: Patch BinExport for IDA SDK 9.x on macOS
-        if: matrix.environment.os_name == 'macos'
+        if: matrix.os_name == 'macos'
         shell: bash
         run: |
           cd binexport
@@ -161,7 +144,7 @@ jobs:
         shell: bash
         run: |
           # Build universal binaries on macOS (both arm64 and x86_64)
-          if [ "${{ matrix.environment.os_name }}" = "macos" ]; then
+          if [ "${{ matrix.os_name }}" = "macos" ]; then
             CMAKE_EXTRA_FLAGS="-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
           else
             CMAKE_EXTRA_FLAGS=""
@@ -193,56 +176,54 @@ jobs:
         run: |
           mkdir -p ../artifacts
           cp -v ../install/bindiff-prefix/* ../artifacts/
-          jq '.plugin.idaVersions = "==${{ matrix.environment.ida_version }}"' ida/ida-plugin.json > ../artifacts/ida-plugin.json
+          jq '.plugin.idaVersions = "==${{ matrix.ida_version }}"' ida/ida-plugin.json > ../artifacts/ida-plugin.json
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: bindiff-ida${{ matrix.environment.ida_version }}-${{ matrix.environment.os_name }}
+          name: bindiff-ida${{ matrix.ida_version }}-${{ matrix.os_name }}
           path: artifacts/*
           if-no-files-found: error
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
+    needs: [discover, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    name: release for IDA ${{ matrix.ida.version }}
-    strategy:
-      fail-fast: false
-      matrix:
-        ida:
-          - version: "9.2"
-          - version: "9.1"
-          - version: "9.0"
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          pattern: bindiff-ida${{ matrix.ida.version }}-*
-          merge-multiple: true
 
-      - name: Remove extras
+      - name: Create per-version archives
         shell: bash
         run: |
-          rm -f artifacts/bindiff artifacts/bindiff.exe
-          rm -f artifacts/bindiff_config_setup*
-          rm -f artifacts/bindiff_launcher_macos
+          versions='${{ needs.discover.outputs.versions }}'
+          for version in $(echo "$versions" | jq -r '.[]'); do
+            echo "Creating archive for IDA $version..."
+            mkdir -p "stage-${version}"
 
-      - name: Create archive
-        shell: bash
-        run: |
-          cd artifacts
-          zip -r ../bindiff-ida${{ matrix.ida.version }}.zip *
-          cd ..
-          mv bindiff-ida${{ matrix.ida.version }}.zip artifacts/
+            # Merge artifacts from all OSes for this version
+            for dir in artifacts/bindiff-ida${version}-*/; do
+              [ -d "$dir" ] && cp -v "$dir"/* "stage-${version}/"
+            done
+
+            # Remove non-plugin files
+            rm -f "stage-${version}/bindiff" "stage-${version}/bindiff.exe"
+            rm -f "stage-${version}"/bindiff_config_setup*
+            rm -f "stage-${version}"/bindiff_launcher_macos
+
+            cd "stage-${version}"
+            zip -r "../bindiff-ida${version}.zip" *
+            cd ..
+          done
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*.zip
+          files: bindiff-ida*.zip
           fail_on_unmatched_files: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
