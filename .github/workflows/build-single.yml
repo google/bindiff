@@ -1,0 +1,279 @@
+name: build-single
+
+on:
+  workflow_dispatch:
+    inputs:
+      ida_version:
+        description: "IDA version to build for (e.g. 9.3 or latest)"
+        required: false
+        default: "latest"
+        type: string
+      release_tag:
+        description: "Existing release tag to append the artifact to (e.g. v8.0.0, latest, or none to skip release)"
+        required: false
+        default: "none"
+        type: string
+  repository_dispatch:
+    types: [build-single]
+
+permissions: read-all
+
+concurrency:
+  group: build-single-${{ github.event.inputs.ida_version || github.event.client_payload.ida_version || 'latest' }}
+  cancel-in-progress: true
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      ida_version: ${{ steps.resolve.outputs.ida_version }}
+      release_tag: ${{ steps.resolve.outputs.release_tag }}
+    steps:
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          ignore-empty-workdir: true
+          enable-cache: false
+
+      - name: Resolve inputs
+        id: resolve
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_VERSION: ${{ github.event.inputs.ida_version || github.event.client_payload.ida_version || 'latest' }}
+          INPUT_TAG: ${{ github.event.inputs.release_tag || github.event.client_payload.release_tag || 'latest' }}
+        shell: bash
+        run: |
+          # Resolve IDA version
+          if [ "$INPUT_VERSION" = "latest" ]; then
+            version=$(uvx --from ida-hcli hcli --disable-updates download --list-tags 2>/dev/null \
+              | grep -oP 'ida-pro:\K[0-9]+\.[0-9]+(?=:)' \
+              | sort -Vu \
+              | awk -F. '$1 >= 9' \
+              | tail -1)
+            if [ -z "$version" ]; then
+              echo "ERROR: Could not resolve latest IDA version from hcli"
+              exit 1
+            fi
+            echo "Resolved IDA version 'latest' to $version"
+          else
+            version="$INPUT_VERSION"
+            # Verify the requested version exists
+            available=$(uvx --from ida-hcli hcli --disable-updates download --list-tags 2>/dev/null \
+              | grep -oP 'ida-pro:\K[0-9]+\.[0-9]+(?=:)' \
+              | sort -Vu)
+            if ! echo "$available" | grep -qx "$version"; then
+              echo "ERROR: IDA version $version not found. Available versions:"
+              echo "$available"
+              exit 1
+            fi
+          fi
+          echo "ida_version=$version" >> "$GITHUB_OUTPUT"
+
+          # Resolve release tag
+          if [ "$INPUT_TAG" = "none" ]; then
+            tag="none"
+            echo "Release: skipped"
+          elif [ "$INPUT_TAG" = "latest" ]; then
+            tag=$(gh release list --repo "${{ github.repository }}" --limit 1 --json tagName -q '.[0].tagName')
+            if [ -z "$tag" ]; then
+              echo "ERROR: No releases found in this repository"
+              exit 1
+            fi
+            echo "Resolved release tag 'latest' to $tag"
+          else
+            tag="$INPUT_TAG"
+            # Verify the release exists
+            if ! gh release view "$tag" --repo "${{ github.repository }}" > /dev/null 2>&1; then
+              echo "ERROR: Release $tag not found"
+              exit 1
+            fi
+          fi
+          echo "release_tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version already exists in release
+        if: steps.resolve.outputs.release_tag != 'none'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.resolve.outputs.release_tag }}
+          IDA_VERSION: ${{ steps.resolve.outputs.ida_version }}
+        shell: bash
+        run: |
+          if gh release view "$RELEASE_TAG" --repo "${{ github.repository }}" --json assets -q '.assets[].name' \
+            | grep -qx "bindiff-ida${IDA_VERSION}.zip"; then
+            echo "ERROR: bindiff-ida${IDA_VERSION}.zip already exists in release $RELEASE_TAG"
+            exit 1
+          fi
+
+  build:
+    needs: resolve
+    permissions:
+      contents: write
+    name: IDA ${{ needs.resolve.outputs.ida_version }} on ${{ matrix.os_name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        include:
+          - os: ubuntu-latest
+            os_name: "linux"
+          - os: windows-latest
+            os_name: "windows"
+          - os: macos-latest
+            os_name: "macos"
+    env:
+      IDA_VERSION: ${{ needs.resolve.outputs.ida_version }}
+
+    steps:
+      - name: Setup MSBuild
+        if: matrix.os_name == 'windows'
+        uses: microsoft/setup-msbuild@v1.1
+
+      - name: Setup Visual Studio 2022
+        if: matrix.os_name == 'windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          vsversion: 2022
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Download IDA SDK
+        shell: bash
+        env:
+          HCLI_API_KEY: ${{ secrets.HCLI_API_KEY }}
+        run: |
+          SDK_COMPACT=$(echo "$IDA_VERSION" | tr -d '.')
+          SDK_SLUG="release/${IDA_VERSION}/sdk-and-utilities/idasdk${SDK_COMPACT}.zip"
+          echo "Downloading SDK: $SDK_SLUG"
+
+          uvx --from ida-hcli hcli --disable-updates download "$SDK_SLUG"
+          unzip idasdk*.zip -d ./ida-temp/
+
+          SDK_ROOT=$(dirname "$(find ./ida-temp/ -maxdepth 3 -name allmake.mak | head -1)")
+          mv "$SDK_ROOT" ./ida-sdk
+
+      - name: Setup IDA SDK environment
+        if: matrix.os_name == 'windows'
+        working-directory: ./ida-sdk/
+        shell: cmd
+        run: |
+          REM via: https://hex-rays.com/blog/building-ida-python-on-windows
+          set __EA64__=1
+          set NDEBUG=1
+          make env
+
+      - name: Checkout bindiff
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: "recursive"
+          path: bindiff
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.28.x'
+
+      - name: Install Ninja
+        run: uv tool install ninja
+
+      - name: Checkout BinExport
+        uses: actions/checkout@v4
+        with:
+          repository: google/binexport
+          path: binexport
+          ref: main
+
+      - name: Patch BinExport for IDA SDK 9.x on macOS
+        if: matrix.os_name == 'macos'
+        shell: bash
+        run: |
+          cd binexport
+          git apply --verbose ../bindiff/.github/patches/binexport-bdb8c4430549e69d4a9a7531c59b197f3a0757e6.patch
+
+      - name: Configure BinDiff build
+        working-directory: ./bindiff/
+        shell: bash
+        run: |
+          if [ "${{ matrix.os_name }}" = "macos" ]; then
+            CMAKE_EXTRA_FLAGS="-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64"
+          else
+            CMAKE_EXTRA_FLAGS=""
+          fi
+
+          cmake -S . -B ../build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=../install \
+            -DBINDIFF_BINEXPORT_DIR=../binexport \
+            "-DIdaSdk_ROOT_DIR=$PWD/../ida-sdk" \
+            $CMAKE_EXTRA_FLAGS
+
+      - name: Build BinDiff
+        shell: bash
+        run: cmake --build build --config Release --parallel 4
+
+      - name: Run tests
+        shell: bash
+        run: ctest --test-dir build --build-config Release --output-on-failure
+
+      - name: Install BinDiff
+        shell: bash
+        run: cmake --install build --config Release
+
+      - name: Collect artifacts
+        working-directory: ./bindiff/
+        shell: bash
+        run: |
+          mkdir -p ../artifacts
+          cp -v ../install/bindiff-prefix/* ../artifacts/
+          jq ".plugin.idaVersions = \"==${IDA_VERSION}\"" ida/ida-plugin.json > ../artifacts/ida-plugin.json
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindiff-ida${{ env.IDA_VERSION }}-${{ matrix.os_name }}
+          path: artifacts/*
+          if-no-files-found: error
+
+  release:
+    if: needs.resolve.outputs.release_tag != 'none'
+    needs: [resolve, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      IDA_VERSION: ${{ needs.resolve.outputs.ida_version }}
+      RELEASE_TAG: ${{ needs.resolve.outputs.release_tag }}
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create archive
+        shell: bash
+        run: |
+          mkdir -p stage
+          for dir in artifacts/bindiff-ida${IDA_VERSION}-*/; do
+            [ -d "$dir" ] && cp -v "$dir"/* stage/
+          done
+
+          rm -f stage/bindiff stage/bindiff.exe
+          rm -f stage/bindiff_config_setup*
+          rm -f stage/bindiff_launcher_macos
+
+          cd stage
+          zip -r "../bindiff-ida${IDA_VERSION}.zip" *
+
+      - name: Append to release
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$RELEASE_TAG" "bindiff-ida${IDA_VERSION}.zip" \
+            --repo "${{ github.repository }}"
