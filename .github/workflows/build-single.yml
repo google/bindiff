@@ -173,6 +173,7 @@ jobs:
           fetch-depth: 0
           submodules: "recursive"
           path: bindiff
+          ref: ${{ needs.resolve.outputs.release_tag != 'none' && needs.resolve.outputs.release_tag || '' }}
 
       - name: Setup CMake
         uses: jwlawson/actions-setup-cmake@v2
