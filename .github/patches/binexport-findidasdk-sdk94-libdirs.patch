@@ -1,0 +1,24 @@
+diff --git a/cmake/FindIdaSdk.cmake b/cmake/FindIdaSdk.cmake
+index 9e0cfa1..ac692e8 100644
+--- a/cmake/FindIdaSdk.cmake
++++ b/cmake/FindIdaSdk.cmake
+@@ -111,10 +111,16 @@ set(_llx "${CMAKE_SHARED_LIBRARY_SUFFIX}")
+ set(_llx64 "64${CMAKE_SHARED_LIBRARY_SUFFIX}")  # An additional "64"
+ 
+ function(_ida_get_libpath_suffixes var basename)
+-  # IDA SDK 8.3 introduced lib path suffixes per edition
+-  foreach(_suffix IN ITEMS "" "_teams" "_pro" "_home")
+-    list(APPEND _suffixes "${basename}${_suffix}")
++  # The open-sourced SDK (9.4+) drops the compiler token from lib dir names,
++  # e.g. x64_mac_64 instead of x64_mac_clang_64. Search both spellings.
++  string(REGEX REPLACE "_(clang|gcc|vc)_" "_" _basename_nocompiler "${basename}")
++  foreach(_base IN ITEMS "${basename}" "${_basename_nocompiler}")
++    # IDA SDK 8.3 introduced lib path suffixes per edition
++    foreach(_suffix IN ITEMS "" "_teams" "_pro" "_home")
++      list(APPEND _suffixes "${_base}${_suffix}")
++    endforeach()
+   endforeach()
++  list(REMOVE_DUPLICATES _suffixes)
+   set("${var}" "${_suffixes}" PARENT_SCOPE)
+ endfunction()
+ 

@@ -55,12 +55,12 @@ jobs:
         ida_version: ${{ fromJson(needs.discover.outputs.versions) }}
         os:
           - ubuntu-latest
-          - windows-latest
+          - windows-2022
           - macos-latest
         include:
           - os: ubuntu-latest
             os_name: "linux"
-          - os: windows-latest
+          - os: windows-2022
             os_name: "windows"
           - os: macos-latest
             os_name: "macos"
@@ -92,13 +92,20 @@ jobs:
           echo "Downloading SDK: $SDK_SLUG"
 
           uvx --from ida-hcli hcli --disable-updates download "$SDK_SLUG"
-          unzip idasdk*.zip -d ./ida-temp/
+          unzip -q idasdk*.zip -d ./ida-temp/
 
-          SDK_ROOT=$(dirname "$(find ./ida-temp/ -maxdepth 3 -name allmake.mak | head -1)")
+          PRO_H=$(find ./ida-temp -path '*/include/pro.h' | head -1)
+          if [ -z "$PRO_H" ]; then
+            echo "ERROR: could not locate include/pro.h in the downloaded SDK"
+            find ./ida-temp -maxdepth 3 -type d
+            exit 1
+          fi
+          SDK_ROOT=$(dirname "$(dirname "$PRO_H")")
+          echo "SDK root: $SDK_ROOT"
           mv "$SDK_ROOT" ./ida-sdk
 
       - name: Setup IDA SDK environment
-        if: matrix.os_name == 'windows'
+        if: matrix.os_name == 'windows' && hashFiles('ida-sdk/allmake.mak') != ''
         working-directory: ./ida-sdk/
         shell: cmd
         run: |
@@ -128,7 +135,13 @@ jobs:
         with:
           repository: google/binexport
           path: binexport
-          ref: main
+          ref: 644786690fcb6bcf6d42a76e7d8b65056176054d
+
+      - name: Patch BinExport FindIdaSdk for open-sourced SDK (9.4+) lib dirs
+        shell: bash
+        run: |
+          cd binexport
+          git apply --verbose ../bindiff/.github/patches/binexport-findidasdk-sdk94-libdirs.patch
 
       # There's a bug in BinExport's IDA 9+ support on macOS
       # reported here: https://github.com/google/binexport/issues/159
