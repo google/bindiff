@@ -295,7 +295,7 @@ void BaseMatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
   }
   CallGraph::EdgeIterator edge;
   CallGraph::EdgeIterator end;
-  auto edge_features = absl::make_unique<EdgeFeatures>();
+  auto edge_features = std::make_unique<EdgeFeatures>();
   for (auto [edge, end] = boost::edges(call_graph.GetGraph()); edge != end;
        ++edge) {
     // TODO(cblichmann): Refactor. There is a (near) identical copy of the

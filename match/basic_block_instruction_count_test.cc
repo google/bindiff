@@ -45,7 +45,7 @@ class FlowGraphMatchBasicBlockInstructionCountTest : public BinDiffTest {
 };
 
 TEST_F(FlowGraphMatchBasicBlockInstructionCountTest, DefaultFlowGraphMatches) {
-  auto step = absl::make_unique<MatchingStepInstructionCount>();
+  auto step = std::make_unique<MatchingStepInstructionCount>();
   MatchingStepsFlowGraph steps = {step.get()};
 
   MatchingContext context(primary_->call_graph, secondary_->call_graph,
