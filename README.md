@@ -116,7 +116,7 @@ cmake -S . -B build/out -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX=build/out \
   -DBINDIFF_BINEXPORT_DIR=build/binexport \
-  "-DIdaSdk_ROOT_DIR=${PWD}build/idasdk"
+  "-DIdaSdk_DIR=${PWD}/build/idasdk"
 ```
 
 Finally, invoke the actual build. Binaries will be placed in
