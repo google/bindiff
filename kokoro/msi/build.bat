@@ -50,9 +50,7 @@ unzip -q ^
   "%KOKORO_GFILE_DIR%\ghidra_BinExport.zip" ^
   -d "%APP_DIR%\Extra\Ghidra" || exit /b
 for %%I in ("bindiff%BINDIFF_RELEASE%_ida.dll" ^
-            "bindiff%BINDIFF_RELEASE%_ida64.dll" ^
-            "binexport%BINEXPORT_RELEASE%_ida.dll" ^
-            "binexport%BINEXPORT_RELEASE%_ida64.dll") do copy /Y ^
+            "binexport%BINEXPORT_RELEASE%_ida.dll") do copy /Y ^
   "%KOKORO_GFILE_DIR%\%%I" ^
   "%APP_DIR%\Plugins\IDA Pro\" || exit /b
 copy /Y ^

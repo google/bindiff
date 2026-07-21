@@ -69,9 +69,7 @@ cp \
   unzip -q "${KOKORO_GFILE_DIR}/ghidra_BinExport.zip")
 cp \
   "${KOKORO_GFILE_DIR}/bindiff${bindiff_release}_ida.so" \
-  "${KOKORO_GFILE_DIR}/bindiff${bindiff_release}_ida64.so" \
   "${KOKORO_GFILE_DIR}/binexport${binexport_release}_ida.so" \
-  "${KOKORO_GFILE_DIR}/binexport${binexport_release}_ida64.so" \
   "${app_dir}/plugins/idapro/"
 cp \
   bindiff.json \

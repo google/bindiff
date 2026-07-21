@@ -40,7 +40,7 @@ export JAVA_HOME=${build_dir}/zulu16.30.15-ca-jdk16.0.1-macosx_x64/zulu-16.jdk/C
 "${JAVA_HOME}/bin/jpackage" \
   --type app-image \
   --app-version "${bindiff_release}" \
-  --copyright '(c)2004-2011 zynamics GmbH, (c)2011-2025 Google LLC' \
+  --copyright '(c)2004-2011 zynamics GmbH, (c)2011-2026 Google LLC' \
   --description 'Find similarities and differences in disassembled code' \
   --name BinDiff \
   --dest packaging/dmg/Package/Applications/BinDiff \
@@ -100,9 +100,7 @@ cp \
   unzip -q "${KOKORO_GFILE_DIR}/ghidra_BinExport.zip")
 cp \
   "${KOKORO_GFILE_DIR}/bindiff${bindiff_release}_ida.dylib" \
-  "${KOKORO_GFILE_DIR}/bindiff${bindiff_release}_ida64.dylib" \
   "${KOKORO_GFILE_DIR}/binexport${binexport_release}_ida.dylib" \
-  "${KOKORO_GFILE_DIR}/binexport${binexport_release}_ida64.dylib" \
   "${app_dir}/Plugins/IDA Pro/"
 cp \
   bindiff.json \

@@ -37,6 +37,7 @@ cmake "${src_dir}/bindiff" \
   -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
   "-DFETCHCONTENT_SOURCE_DIR_ABSL=${KOKORO_ARTIFACTS_DIR}/git/absl" \
   "-DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=${KOKORO_ARTIFACTS_DIR}/git/googletest" \
+  "-DFETCHCONTENT_SOURCE_DIR_IDASDK=${deps_dir}/idasdk" \
   "-DFETCHCONTENT_SOURCE_DIR_PROTOBUF=${KOKORO_ARTIFACTS_DIR}/git/protobuf" \
   "-DFETCHCONTENT_SOURCE_DIR_SQLITE=${KOKORO_PIPER_DIR}/google3/third_party/sqlite/src" \
   "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" \
@@ -62,5 +63,4 @@ codesign --force \
   "${out_dir}/bindiff-prefix/bindiff" \
   "${out_dir}/bindiff-prefix/bindiff_config_setup" \
   "${out_dir}/bindiff-prefix/bindiff_launcher_macos" \
-  "${out_dir}/bindiff-prefix/bindiff${bindiff_release}_ida.dylib" \
-  "${out_dir}/bindiff-prefix/bindiff${bindiff_release}_ida64.dylib"
+  "${out_dir}/bindiff-prefix/bindiff${bindiff_release}_ida.dylib"
