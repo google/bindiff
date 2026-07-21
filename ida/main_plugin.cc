@@ -1265,7 +1265,7 @@ bool Plugin::Init() {
   if (auto status = InitLogging(LoggingOptions{}
                                     .set_alsologtostderr(alsologtostderr_)
                                     .set_log_filename(log_filename_),
-                                absl::make_unique<IdaLogSink>());
+                                std::make_unique<IdaLogSink>());
       !status.ok()) {
     msg("Error initializing logging, skipping BinDiff plugin\n");
     return false;
