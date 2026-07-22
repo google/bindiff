@@ -1,0 +1,47 @@
+{
+  "IDAMetadataDescriptorVersion": 1,
+  "plugin": {
+    "name": "bindiff",
+    "entryPoint": "bindiff8_ida64",
+    "version": "8.0.0",
+    "idaVersions": ["9.0", "9.1", "9.2"],
+    "platforms": [
+      "windows-x86_64",
+      "linux-x86_64",
+      "macos-x86_64",
+      "macos-aarch64"
+    ],
+    "description": "Compare binary files to quickly find differences and similarities in disassembled code",
+    "license": "Apache-2.0",
+    "categories": [
+      "integration-with-third-parties-interoperability",
+      "collaboration-and-productivity"
+    ],
+    "keywords": [
+      "bindiff",
+      "binary-diffing",
+      "comparison",
+      "vulnerability-research",
+      "patch-analysis"
+    ],
+    "urls": {
+      "repository": "https://github.com/HexRays-plugin-contributions/bindiff"
+    },
+    "authors": [
+      {
+        "name": "Christian Blichmann",
+        "email": "cblichmann@google.com"
+      },
+      {
+        "name": "BinDiff Authors",
+        "email": "bindiff-team@google.com"
+      }
+    ],
+    "maintainers": [
+      {
+        "name": "Willi Ballenthin",
+        "email": "wballenthin@hex-rays.com"
+      }
+    ]
+  }
+}
