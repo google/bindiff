@@ -1,4 +1,4 @@
-# Copyright 2011-2024 Google LLC
+# Copyright 2011-2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -378,12 +378,13 @@ if(NOT MSVC)
     INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
   )
 endif()
-install(TARGETS bindiff RUNTIME DESTINATION bindiff-prefix)
+install(TARGETS BinDiff
+        RUNTIME DESTINATION ${CMAKE_BINARY_DIR})
 
 # IDA Pro plugins
-if(IdaSdk_FOUND)
+if(idasdk_FOUND)
   add_subdirectory(ida)
-endif(IdaSdk_FOUND)
+endif(idasdk_FOUND)
 
 # Utility programs. For now, only contains a tool to modify the BinDiff
 # config from the installer/package scripts.

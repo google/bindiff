@@ -1,4 +1,5 @@
 # Version History
+<!-- disableFinding("Ninja") -->
 
 This page provides information about the changes in each release of BinDiff up
 to version 7.
@@ -33,25 +34,24 @@ For information on later versions, please refer to the
 -   User configuration now uses JSON format, making future changes easier and
     fixes some long-standing serialization issues
 -   macOS: Notarized binaries/package compatible with macOS 11 "Big Sur"
--   macOS: Universal Binaries supporting ARM64 (aka "Apple Sillicon") and
+-   macOS: Universal Binaries supporting ARM64 (aka "Apple Silicon") and
     x86-64
 -   Fixed a security issue where a specially crafted .BinExport file could lead
     to an out-of-bounds memory access. Thanks to Mickey Jin of Trend Micro
     Mobile Security Research Team for the report.
 
-
 ### Deprecated/Removed
 
 -   **Deprecated** Plugins for 32-bit address versions of IDA Pro are
     deprecated. Future versions of BinDiff may eventually only ship with plugins
-    for the 64-bit address aware version. <p> If you are starting a new reverse
+    for the 64-bit address aware version.
+    If you are starting a new reverse
     engineering effort, even if the binary you are analyzing is 32-bit, using
     the 64-bit address aware version of IDA Pro (`ida64.exe` on Windows,
     `ida64` on Linux/macOS) is highly recommended.
 -   Removed export to PostgreSQL databases from the BinExport plugin. If you
     need this (for example for BinNavi), the previous version of BinExport can
     be used.
-
 
 ## BinDiff 6
 

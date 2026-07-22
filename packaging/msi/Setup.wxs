@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Copyright 2011-2025 Google LLC
+  Copyright 2011-2026 Google LLC
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -252,10 +252,8 @@
             <Directory Id="BinDiff_Plugins_IDA_Pro" Name="IDA Pro">
               <Component Id="Ida_Plugins" Win64="yes"
                          Guid="E2F631C8-DF7A-48AC-BAAB-578D9FB107F3">
-                <File Name="bindiff8_ida.dll" />
-                <File Name="bindiff8_ida64.dll" KeyPath="yes" />
+                <File Name="bindiff8_ida.dll" KeyPath="yes" />
                 <File Name="binexport12_ida.dll" />
-                <File Name="binexport12_ida64.dll" />
               </Component>
             </Directory>
           </Directory>

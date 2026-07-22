@@ -11,68 +11,63 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - os: ubuntu-22.04
-        - os: macos-12
-        - os: windows-2022
+        - os: ubuntu-26.04
+        - os: ubuntu-26.04-arm
+        - os: macOS-26
+        - os: windows-2025
+        - os: windows-11-arm
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        path: bindiff
-    - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v6
+
+    - name: Checkout BinExport
+      uses: actions/checkout@v6
       with:
         repository: google/binexport
-        path: binexport
+        path: build/binexport
 
-    - name: Install ninja-build tool
-      uses: turtlesec-no/get-ninja@1.1.0
-
-    - name: Create Build Environment
-      env:
-        IDASDK_SECRET: ${{ secrets.IDASDK_SECRET }}
-      working-directory: ${{ github.workspace }}
-      shell: bash
-      run: |
-        mkdir -p "${{ runner.workspace }}/build" \
-                 ida/idasdk
-        mv binexport/ida/idasdk/idasdk*.gpg \
-           ida/idasdk/
-        binexport/.github/scripts/decrypt_secret.sh
-        unzip -q "${{ runner.workspace }}/build/idasdk_teams82.zip" \
-              -d "${{ runner.workspace }}/build/"
-
-    - name: Enable Developer Command Prompt (Windows)
-      if: matrix.os == 'windows-2022'
-      uses: ilammy/msvc-dev-cmd@v1.12.1
+   - name: Set up MSVC
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: ${{ runner.arch == 'ARM64' && 'arm64' || 'x64' }}
 
     - name: Enable mold linker (Linux)
-      if: matrix.os == 'ubuntu-22.04'
+      if: runner.os == 'Linux'
       uses: rui314/setup-mold@v1
 
+    - name: Install CMake and Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        cmakeVersion: "~4.4.0"
+        ninjaVersion: "~1.13.1"
+
     - name: Configure CMake
-      working-directory: ${{ runner.workspace }}/build
+      working-directory: ${{ github.workspace }}/build
       shell: bash
       run: |
-        cmake "${{ github.workspace }}/bindiff" -G Ninja \
+        cmake "${GITHUB_WORKSPACE}" -G Ninja \
           "-DCMAKE_BUILD_TYPE=${BUILD_TYPE}" \
-          "-DIdaSdk_ROOT_DIR=${{ runner.workspace }}/build/idasdk_teams82"
+          "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" \
+          "-DBINDIFF_BINEXPORT_DIR=${GITHUB_WORKSPACE}/build/binexport"
 
     - name: Build
-      working-directory: ${{ runner.workspace }}/build
+      working-directory: ${{ github.workspace }}/build
       shell: bash
       run: cmake --build . --config "${BUILD_TYPE}"
 
     - name: Test
-      working-directory: ${{ runner.workspace }}/build
+      working-directory: ${{ github.workspace }}/build
       shell: bash
       run: ctest --build-config "${BUILD_TYPE}" --output-on-failure -R '^[A-Z]'
 
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v3.1.2
+      uses: actions/upload-artifact@v6
       with:
-        name: BinDiff-${{ runner.os }}
+        name: BinDiff-${{ matrix.os }}
         path: |
-          ${{ runner.workspace }}/build/bindiff
-          ${{ runner.workspace }}/build/ida/bindiff*
-          ${{ runner.workspace }}/build/tools/bindiff*
+          ${{ github.workspace }}/build/bindiff
+          ${{ github.workspace }}/build/ida/bindiff*
+          ${{ github.workspace }}/build/tools/bindiff*

@@ -20,10 +20,10 @@ outline the level of functionality to be expected:
 
 | Support Tier | Disassembler | License | Minimum Version |
 | - | - | - | - |
-| 1 | Hex-Rays [IDA Pro](https://hex-rays.com/ida-pro/)/[Home](https://hex-rays.com/ida-home/) | Commercial, Hobbyist | 7.5 |
-| 2 | Hex-Rays [IDA Freeware](https://hex-rays.com/ida-free/)¹ | Non-commercial use | 7.6 |
-| 4 | [Binary Ninja](https://binary.ninja/) | Commercial, Educational | 2.4 |
-| 4 | [Ghidra](https://ghidra-sre.org/) | Apache 2.0 | 9.2 |
+| 1 | Hex-Rays [IDA Pro](https://hex-rays.com/ida-pro/)/[Home](https://hex-rays.com/ida-home/) | Commercial, Hobbyist | 9.4 |
+| 2 | Hex-Rays [IDA Freeware](https://hex-rays.com/ida-free/)¹ | Non-commercial use | 9.4 |
+| 4 | [Binary Ninja](https://binary.ninja/) | Commercial, Educational | 3.5 |
+| 4 | [Ghidra](https://ghidra-sre.org/) | Apache 2.0 | 10 |
 
 ¹ *Does not include Python scripting, so some BinDiff functionality may be*
 *unavailable*.

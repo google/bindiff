@@ -1,6 +1,6 @@
 ![BinDiff Logo](images/bindiff-lockup-vertical.png)
 
-Copyright 2011-2024 Google LLC.
+Copyright 2011-2026 Google LLC.
 
 # BinDiff Documentation
 

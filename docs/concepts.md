@@ -16,7 +16,10 @@ configured in the config file.
 
 ## Introduction
 
-BinDiff works on the abstract structure of an executable, ignoring the concrete assembly-level instructions in the disassembly. Every function gets a signature, based on the structure of the (normalized) flow graph of the function. The signature consists of:
+BinDiff works on the abstract structure of an executable, ignoring the concrete
+assembly-level instructions in the disassembly. Every function gets a signature,
+based on the structure of the (normalized) flow graph of the function. The
+signature consists of:
 
 -   Number of basic blocks
 -   Number of edges between basic blocks
@@ -31,7 +34,7 @@ After this step, call graphs (graphs which contain information about the
 *calls-to* relations between functions) are used to generate more matches: If a
 match is known, the subsets of all functions called from a matched function are
 examined. These subsets are significantly smaller than the set of all functions,
-thus the propability for finding new unique matches is a lot higher. This
+thus the probability for finding new unique matches is a lot higher. This
 process is repeated until no new matches can be found.
 
 This means that after running the BinDiff algorithm, the result is a list of

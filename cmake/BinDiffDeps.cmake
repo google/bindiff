@@ -1,4 +1,4 @@
-# Copyright 2011-2024 Google LLC
+# Copyright 2011-2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,11 @@
 
 # SQLite embedded database, underlies the .BinDiff file format
 FetchContent_Declare(sqlite
-  URL      https://sqlite.org/2024/sqlite-amalgamation-3450100.zip
-  URL_HASH SHA3_256=e311198775d5d5b2889d5fabe1d9a490567a14e605591d6a9e4c833804a8b4cb
+  URL      https://sqlite.org/2026/sqlite-amalgamation-3530300.zip
+  URL_HASH SHA3_256=d45c688a8cb23f68611a894a756a12d7eb6ab6e9e2468ca70adbeab3808b5ab9
 )
-FetchContent_GetProperties(sqlite)
-if(NOT sqlite_POPULATED)
-  FetchContent_Populate(sqlite)
+FetchContent_MakeAvailable(sqlite)
+if(NOT TARGET sqlite)
   add_library(sqlite STATIC
     ${sqlite_SOURCE_DIR}/sqlite3.c
   )
@@ -28,7 +27,6 @@ if(NOT sqlite_POPULATED)
   endif()
 endif()
 
-# Setup IDA SDK. Uses FindIdaSdk.cmake from BinExport
-find_package(IdaSdk)
+find_package(idasdk)
 
 find_package(Protobuf 3.14 REQUIRED) # Make protobuf_generate_cpp available

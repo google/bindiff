@@ -1,4 +1,4 @@
-# Copyright 2011-2024 Google LLC
+# Copyright 2011-2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,7 +24,8 @@ target_link_libraries(bindiff_config_setup
   binexport_shared
   bindiff_base
 )
-install(TARGETS bindiff_config_setup RUNTIME DESTINATION bindiff-prefix)
+install(TARGETS bindiff_config_setup
+        RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/tools)
 
 if(APPLE)
   add_executable(bindiff_launcher_macos launcher_macos.cc)
@@ -32,5 +33,6 @@ if(APPLE)
     binexport_shared
     bindiff_base
   )
-  install(TARGETS bindiff_launcher_macos RUNTIME DESTINATION bindiff-prefix)
+  install(TARGETS bindiff_launcher_macos
+          RUNTIME DESTINATION ${CMAKE_BINARY_DIR}/tools)
 endif()

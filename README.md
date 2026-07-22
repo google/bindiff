@@ -1,6 +1,7 @@
 ![BinDiff Logo](docs/images/bindiff-lockup-vertical.png)
+<!-- disableFinding("Ninja") -->
 
-Copyright 2011-2024 Google LLC.
+Copyright 2011-2026 Google LLC.
 
 # BinDiff
 
@@ -88,44 +89,29 @@ The following build dependencies are required:
     will be used automatically)
 *   [CMake](https://cmake.org/download/) 3.14 or higher
 *   [Ninja](https://ninja-build.org/) for speedy builds
-*   GCC 9 or a recent version of Clang on Linux/macOS. On Windows, use the
-    Visual Studio 2019 compiler and the Windows SDK for Windows 10.
+*   GCC 15 or a recent version of Clang on Linux/macOS. On Windows, use the
+    Visual Studio 2022 compiler and the Windows SDK for Windows 11.
 *   Git 1.8 or higher
 *   Dependencies that will be downloaded:
     *   Abseil, GoogleTest, Protocol Buffers (3.14), and SQLite3
     *   Binary Ninja SDK
-
-The following build dependencies are optional:
-*   IDA Pro only: IDA SDK 8.2 or higher (unpack into `deps/idasdk`)
+    *   IDA SDK
 
 The general build steps are the same on Windows, Linux and macOS. The following
 shows the commands for Linux.
 
-Download dependencies that won't be downloaded automatically:
-
-```bash
-mkdir -p build/out
-git clone https://github.com/google/binexport build/binexport
-unzip -q <path/to/idasdk_pro80.zip> -d build/idasdk
-```
-
 Next, configure the build directory and generate build files:
 
 ```bash
-cmake -S . -B build/out -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX=build/out \
-  -DBINDIFF_BINEXPORT_DIR=build/binexport \
-  "-DIdaSdk_ROOT_DIR=${PWD}build/idasdk"
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 ```
 
-Finally, invoke the actual build. Binaries will be placed in
-`build/out/bindiff-prefix`:
+Finally, invoke the actual build. Binaries will be placed in `build/`:
 
 ```bash
-cmake --build build/out --config Release
-(cd build/out; ctest --build-config Release --output-on-failure)
-cmake --install build/out --config Release
+cmake --build build --config Release
+(cd build; ctest --build-config Release --output-on-failure)
+cmake --install build --config Release
 ```
 
 ### Building without IDA
@@ -133,10 +119,7 @@ cmake --install build/out --config Release
 To build without IDA, simply change the above configuration step to
 
 ```bash
-cmake -S . -B build/out -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX=build/out \
-  -DBINDIFF_BINEXPORT_DIR=build/binexport \
+cmake -S . -B build/out -G Ninja -DCMAKE_BUILD_TYPE=Release \
   -DBINEXPORT_ENABLE_IDAPRO=OFF
 ```
 
