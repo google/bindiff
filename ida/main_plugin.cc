@@ -52,6 +52,7 @@
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/match.h"
@@ -87,7 +88,6 @@
 #include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/logging.h"
 #include "third_party/zynamics/binexport/util/process.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
@@ -181,8 +181,8 @@ absl::StatusOr<bool> ExportIdbs() {
     return false;
   }
 
-  NA_ASSIGN_OR_RETURN(std::string temp_dir,
-                      GetOrCreateTempDirectory("BinDiff"));
+  ABSL_ASSIGN_OR_RETURN(std::string temp_dir,
+                        GetOrCreateTempDirectory("BinDiff"));
 
   absl::StatusOr<std::string> secondary_idb = GetOpenFilename(
       "Select Secondary Database", "*.i64;*.idb",
@@ -231,11 +231,11 @@ absl::StatusOr<bool> ExportIdbs() {
 
   const std::string primary_temp_dir = JoinPath(temp_dir, "primary");
   RemoveAll(primary_temp_dir).IgnoreError();
-  NA_RETURN_IF_ERROR(CreateDirectories(primary_temp_dir));
+  ABSL_RETURN_IF_ERROR(CreateDirectories(primary_temp_dir));
 
   const std::string secondary_temp_dir = JoinPath(temp_dir, "secondary");
   RemoveAll(secondary_temp_dir).IgnoreError();
-  NA_RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
+  ABSL_RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
 
   {
     const auto& config = config::Proto();
@@ -439,7 +439,7 @@ absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
   plugin.DiscardResults(Plugin::DiscardResultsKind::kDontSave);
   Timer<> timer;
 
-  NA_ASSIGN_OR_RETURN(const bool exported, ExportIdbs());
+  ABSL_ASSIGN_OR_RETURN(bool exported, ExportIdbs());
   if (!exported) {
     return false;
   }
@@ -456,8 +456,8 @@ absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
   WaitBox wait_box("Performing diff...");
   // TODO(cblichmann): Create directory with random suffix, so that multiple
   //                   invocations don't interfere with each other.
-  NA_ASSIGN_OR_RETURN(const std::string temp_dir,
-                      GetOrCreateTempDirectory("BinDiff"));
+  ABSL_ASSIGN_OR_RETURN(std::string temp_dir,
+                        GetOrCreateTempDirectory("BinDiff"));
   const std::string filename1 =
       FindFile(JoinPath(temp_dir, "primary"), ".BinExport");
   if (filename1.empty()) {
@@ -474,15 +474,15 @@ absl::StatusOr<bool> DiffAddressRange(ea_t start_address_source,
         "Please close all other IDA instances and try again.");
   }
 
-  NA_RETURN_IF_ERROR(plugin.ClearResults());
+  ABSL_RETURN_IF_ERROR(plugin.ClearResults());
 
   Results* results = plugin.results();
-  NA_RETURN_IF_ERROR(Read(filename1, &results->call_graph1_,
-                          &results->flow_graphs1_, &results->flow_graph_infos1_,
-                          &results->instruction_cache_));
-  NA_RETURN_IF_ERROR(Read(filename2, &results->call_graph2_,
-                          &results->flow_graphs2_, &results->flow_graph_infos2_,
-                          &results->instruction_cache_));
+  ABSL_RETURN_IF_ERROR(
+      Read(filename1, &results->call_graph1_, &results->flow_graphs1_,
+           &results->flow_graph_infos1_, &results->instruction_cache_));
+  ABSL_RETURN_IF_ERROR(
+      Read(filename2, &results->call_graph2_, &results->flow_graphs2_,
+           &results->flow_graph_infos2_, &results->instruction_cache_));
   MatchingContext context(results->call_graph1_, results->call_graph2_,
                           results->flow_graphs1_, results->flow_graphs2_,
                           results->fixed_points_);
@@ -658,43 +658,43 @@ absl::Status WriteResults(const std::string& filename) {
   auto* results = Plugin::instance()->results();
   const std::string export1 = results->call_graph1_.GetFilePath();
   const std::string export2 = results->call_graph2_.GetFilePath();
-  NA_ASSIGN_OR_RETURN(const std::string temp_dir,
-                      GetOrCreateTempDirectory("BinDiff"));
+  ABSL_ASSIGN_OR_RETURN(std::string temp_dir,
+                        GetOrCreateTempDirectory("BinDiff"));
   const std::string out_dir = Dirname(filename);
 
   if (!results->is_incomplete()) {
-    NA_ASSIGN_OR_RETURN(
+    ABSL_ASSIGN_OR_RETURN(
         auto writer,
         DatabaseWriter::Create(
             filename,
             DatabaseWriter::Options().set_include_function_names(
                 !config::Proto().binary_format().exclude_function_names())));
-    NA_RETURN_IF_ERROR(results->Write(writer.get()));
+    ABSL_RETURN_IF_ERROR(results->Write(writer.get()));
   } else {
     // Results are incomplete (have been loaded). Copy original result file to
     // temp dir first, so we can overwrite the original if required.
     const std::string input_bindiff = JoinPath(temp_dir, "input.BinDiff");
     std::remove(input_bindiff.c_str());
-    NA_RETURN_IF_ERROR(CopyFile(results->input_filename_, input_bindiff));
+    ABSL_RETURN_IF_ERROR(CopyFile(results->input_filename_, input_bindiff));
     {
-      NA_ASSIGN_OR_RETURN(auto database,
-                          SqliteDatabase::Connect(input_bindiff));
+      ABSL_ASSIGN_OR_RETURN(auto database,
+                            SqliteDatabase::Connect(input_bindiff));
       DatabaseTransmuter writer(database, results->fixed_point_infos_);
-      NA_RETURN_IF_ERROR(results->Write(&writer));
+      ABSL_RETURN_IF_ERROR(results->Write(&writer));
     }
     std::remove(filename.c_str());
-    NA_RETURN_IF_ERROR(CopyFile(input_bindiff, filename));
+    ABSL_RETURN_IF_ERROR(CopyFile(input_bindiff, filename));
     std::remove(input_bindiff.c_str());
   }
   if (const std::string new_export1 = JoinPath(out_dir, Basename(export1));
       export1 != new_export1) {
     std::remove(new_export1.c_str());
-    NA_RETURN_IF_ERROR(CopyFile(export1, new_export1));
+    ABSL_RETURN_IF_ERROR(CopyFile(export1, new_export1));
   }
   if (const std::string new_export2 = JoinPath(out_dir, Basename(export2));
       export2 != new_export2) {
     std::remove(new_export2.c_str());
-    NA_RETURN_IF_ERROR(CopyFile(export2, new_export2));
+    ABSL_RETURN_IF_ERROR(CopyFile(export2, new_export2));
   }
 
   return absl::OkStatus();
@@ -786,7 +786,7 @@ bool DoSaveResults() {
 }
 
 absl::Status Plugin::ClearResults() {
-  NA_ASSIGN_OR_RETURN(results_, Results::Create());
+  ABSL_ASSIGN_OR_RETURN(results_, Results::Create());
   return absl::OkStatus();
 }
 

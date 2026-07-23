@@ -17,11 +17,11 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/status/status_matchers.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 namespace {
@@ -40,15 +40,15 @@ class DatabaseWriterTest : public BinDiffTest {
 
 TEST_F(DatabaseWriterTest, SimpleDatabaseCreation) {
   const std::string db_path = GetTestTempPath("test_database_writer_1.sqlite");
-  NA_ASSERT_OK_AND_ASSIGN(
+  ABSL_ASSERT_OK_AND_ASSIGN(
       auto writer, DatabaseWriter::Create(db_path, DatabaseWriter::Options()));
   EXPECT_THAT(writer->Write(primary_->call_graph, secondary_->call_graph,
                             primary_->flow_graphs, secondary_->flow_graphs,
                             fixed_points_),
               IsOk());
 
-  NA_ASSERT_OK_AND_ASSIGN(auto database, SqliteDatabase::Connect(db_path));
-  NA_ASSERT_OK_AND_ASSIGN(
+  ABSL_ASSERT_OK_AND_ASSIGN(auto database, SqliteDatabase::Connect(db_path));
+  ABSL_ASSERT_OK_AND_ASSIGN(
       auto stmt,
       database.Statement(
           "SELECT COUNT(*) FROM functionalgorithm WHERE name = :name"));
@@ -58,7 +58,7 @@ TEST_F(DatabaseWriterTest, SimpleDatabaseCreation) {
   stmt.Into(&count);
   EXPECT_THAT(count, Eq(1));
 
-  NA_ASSERT_OK_AND_ASSIGN(
+  ABSL_ASSERT_OK_AND_ASSIGN(
       stmt,
       database.Statement("SELECT a.name FROM function AS f, functionalgorithm "
                          "AS a WHERE f.algorithm = a.id LIMIT 1"));

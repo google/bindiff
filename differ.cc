@@ -26,6 +26,8 @@
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
@@ -40,7 +42,6 @@
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
@@ -123,14 +124,14 @@ absl::Status SetupGraphsFromProto(
     CallGraph* absl_nonnull call_graph, FlowGraphs* absl_nonnull flow_graphs,
     FlowGraphInfos* absl_nullable flow_graph_infos,
     Instruction::Cache* absl_nonnull instruction_cache) {
-  NA_RETURN_IF_ERROR(call_graph->Read(proto, filename));
+  ABSL_RETURN_IF_ERROR(call_graph->Read(proto, filename));
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     if (proto_flow_graph.basic_block_index_size() == 0) {
       continue;
     }
     auto flow_graph = absl::make_unique<FlowGraph>();
-    NA_RETURN_IF_ERROR(flow_graph->Read(proto, proto_flow_graph, call_graph,
-                                        instruction_cache));
+    ABSL_RETURN_IF_ERROR(flow_graph->Read(proto, proto_flow_graph, call_graph,
+                                          instruction_cache));
 
     Counts counts;
     Count(*flow_graph, &counts);
@@ -166,7 +167,7 @@ absl::Status Read(const std::string& filename,
   }
 
   constexpr int64_t kMinFileSize = 8;
-  NA_ASSIGN_OR_RETURN(int64_t file_size, GetFileSize(filename));
+  ABSL_ASSIGN_OR_RETURN(int64_t file_size, GetFileSize(filename));
   if (file_size <= kMinFileSize) {
     return absl::FailedPreconditionError(
         absl::StrCat("file too small: ", filename));

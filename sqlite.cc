@@ -19,9 +19,10 @@
 #include <stdexcept>
 
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/sqlite/src/sqlite3.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 namespace {
@@ -90,7 +91,7 @@ SqliteStatement SqliteDatabase::StatementOrThrow(absl::string_view statement) {
 }
 
 absl::Status SqliteDatabase::Execute(absl::string_view statement) {
-  NA_ASSIGN_OR_RETURN(auto stmt, SqliteStatement::Prepare(*this, statement));
+  ABSL_ASSIGN_OR_RETURN(auto stmt, SqliteStatement::Prepare(*this, statement));
   return stmt.Execute();
 }
 

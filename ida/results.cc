@@ -55,6 +55,8 @@
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/types/span.h"
@@ -79,7 +81,6 @@
 #include "third_party/zynamics/binexport/ida/util.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
@@ -473,8 +474,8 @@ Results::~Results() {
 
 absl::StatusOr<std::unique_ptr<Results>> Results::Create() {
   auto results = absl::WrapUnique(new Results());
-  NA_ASSIGN_OR_RETURN(results->temp_database_,
-                      DatabaseWriter::Create("temporary.database", true));
+  ABSL_ASSIGN_OR_RETURN(results->temp_database_,
+                        DatabaseWriter::Create("temporary.database", true));
   return results;
 }
 
@@ -574,21 +575,21 @@ absl::Status Results::IncrementalDiff() {
   WaitBox wait_box("Performing incremental diff...");
 
   if (is_incomplete()) {
-    NA_ASSIGN_OR_RETURN(std::string temp_dir,
-                        GetOrCreateTempDirectory("BinDiff"));
+    ABSL_ASSIGN_OR_RETURN(std::string temp_dir,
+                          GetOrCreateTempDirectory("BinDiff"));
     const std::string incremental = JoinPath(temp_dir, "incremental.BinDiff");
-    NA_RETURN_IF_ERROR(::security::bindiff::Read(
+    ABSL_RETURN_IF_ERROR(::security::bindiff::Read(
         call_graph1_.GetFilePath(), &call_graph1_, &flow_graphs1_,
         &flow_graph_infos1_, &instruction_cache_));
-    NA_RETURN_IF_ERROR(::security::bindiff::Read(
+    ABSL_RETURN_IF_ERROR(::security::bindiff::Read(
         call_graph2_.GetFilePath(), &call_graph2_, &flow_graphs2_,
         &flow_graph_infos2_, &instruction_cache_));
 
-    NA_RETURN_IF_ERROR(CopyFile(input_filename_, incremental));
+    ABSL_RETURN_IF_ERROR(CopyFile(input_filename_, incremental));
 
-    NA_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(incremental));
+    ABSL_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(incremental));
     DatabaseTransmuter writer(database, fixed_point_infos_);
-    NA_RETURN_IF_ERROR(Write(&writer));
+    ABSL_RETURN_IF_ERROR(Write(&writer));
 
     try {
       DatabaseReader::ReadFullMatches(&database, &call_graph1_, &call_graph2_,
@@ -1326,8 +1327,8 @@ void Results::Read(Reader* reader) {
 }
 
 absl::Status Results::Write(Writer* writer) {
-  NA_RETURN_IF_ERROR(writer->Write(call_graph1_, call_graph2_, flow_graphs1_,
-                                   flow_graphs2_, fixed_points_));
+  ABSL_RETURN_IF_ERROR(writer->Write(call_graph1_, call_graph2_, flow_graphs1_,
+                                     flow_graphs2_, fixed_points_));
   modified_ = false;
   return absl::OkStatus();
 }

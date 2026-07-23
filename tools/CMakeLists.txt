@@ -17,6 +17,7 @@ target_link_libraries(bindiff_config_setup
   absl::flags_parse
   absl::str_format
   absl::status
+  absl::status_macros
   absl::statusor
   absl::strings
   bindiff_config

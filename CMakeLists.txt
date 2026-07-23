@@ -155,6 +155,7 @@ target_link_libraries(bindiff_config
   absl::flat_hash_map
   absl::hash
   absl::status
+  absl::status_macros
 )
 set_target_properties(bindiff_config PROPERTIES
   INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO})
@@ -262,6 +263,7 @@ target_link_libraries(bindiff_shared
   absl::str_format
   absl::strings
   absl::status
+  absl::status_macros
   binexport_shared
   sqlite
   bindiff_version

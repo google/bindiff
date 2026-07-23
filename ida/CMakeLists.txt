@@ -51,6 +51,7 @@ target_link_libraries(${bindiff_ida_plugin_name}
          absl::function_ref
          absl::memory
          absl::nullability
+         absl::status_macros
          absl::str_format
          absl::time
 )

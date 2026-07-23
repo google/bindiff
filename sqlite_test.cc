@@ -17,8 +17,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/status/status_matchers.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/zynamics/binexport/testing.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 
 namespace security::bindiff {
 namespace {
@@ -32,7 +32,7 @@ using ::testing::IsFalse;
 class SqliteTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    NA_ASSERT_OK_AND_ASSIGN(
+    ABSL_ASSERT_OK_AND_ASSIGN(
         auto database,
         SqliteDatabase::Connect(GetTestTempPath("test_db.sqlite")));
     database_ = new SqliteDatabase(std::move(database));
@@ -79,8 +79,8 @@ TEST_F(SqliteTest, RollbackTransaction) {
   ASSERT_THAT(
       database_->Execute("CREATE TABLE t2 (id INT PRIMARY KEY, text TEXT)"),
       IsOk());
-  NA_ASSERT_OK_AND_ASSIGN(SqliteStatement stmt,
-                          database_->Statement("SELECT id FROM t2 LIMIT 1"));
+  ABSL_ASSERT_OK_AND_ASSIGN(SqliteStatement stmt,
+                            database_->Statement("SELECT id FROM t2 LIMIT 1"));
   ASSERT_THAT(database_->Begin(), IsOk());
 
   EXPECT_THAT(database_->Execute(R"(INSERT INTO t2 VALUES (10, "ten"))"),

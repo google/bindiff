@@ -24,6 +24,8 @@
 #include "third_party/absl/flags/usage.h"
 #include "third_party/absl/flags/usage_config.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
@@ -31,7 +33,6 @@
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/process.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 
 ABSL_FLAG(std::string, config, "", "Config file name to use. Required");
 ABSL_FLAG(bool, print_only, false,
@@ -50,7 +51,7 @@ absl::StatusOr<std::string> GetOrCreateIdaProUserPluginsDirectory() {
   std::string idapro_app_data;
 #if defined(_WIN32)
   constexpr absl::string_view kIdaPro = R"(Hex-Rays\IDA Pro)";
-  NA_ASSIGN_OR_RETURN(idapro_app_data, GetOrCreateAppDataDirectory(kIdaPro));
+  ABSL_ASSIGN_OR_RETURN(idapro_app_data, GetOrCreateAppDataDirectory(kIdaPro));
 #elif defined(__APPLE__)
   // On macOS, IDA Pro stores its settings directly in the user's home folder
   // under ".idapro" instead of "Library/Application Support/idapro", which
@@ -63,11 +64,11 @@ absl::StatusOr<std::string> GetOrCreateIdaProUserPluginsDirectory() {
   idapro_app_data = JoinPath(home_dir, kIdaPro);
 #else
   constexpr absl::string_view kIdaPro = "idapro";
-  NA_ASSIGN_OR_RETURN(idapro_app_data, GetOrCreateAppDataDirectory(kIdaPro));
+  ABSL_ASSIGN_OR_RETURN(idapro_app_data, GetOrCreateAppDataDirectory(kIdaPro));
 #endif
   std::string idapro_app_data_plugin_path =
       JoinPath(idapro_app_data, "plugins");
-  NA_RETURN_IF_ERROR(CreateDirectories(idapro_app_data_plugin_path));
+  ABSL_RETURN_IF_ERROR(CreateDirectories(idapro_app_data_plugin_path));
   return idapro_app_data_plugin_path;
 }
 
@@ -111,11 +112,11 @@ absl::Status PerUserSetup(const Config& config) {
 #endif
 
   // Binary Ninja
-  NA_ASSIGN_OR_RETURN(const std::string binaryninja_app_data,
-                      GetOrCreateAppDataDirectory(kBinaryNinja));
+  ABSL_ASSIGN_OR_RETURN(std::string binaryninja_app_data,
+                        GetOrCreateAppDataDirectory(kBinaryNinja));
   const std::string binaryninja_app_data_plugin_path =
       JoinPath(binaryninja_app_data, "plugins");
-  NA_RETURN_IF_ERROR(CreateDirectories(binaryninja_app_data_plugin_path));
+  ABSL_RETURN_IF_ERROR(CreateDirectories(binaryninja_app_data_plugin_path));
 
   std::string plugin_basename = absl::StrFormat(
       "binexport%s_binaryninja%s", kBinDiffBinExportRelease, kLibrarySuffix);
@@ -130,29 +131,29 @@ absl::Status PerUserSetup(const Config& config) {
   }
 
   // IDA Pro
-  NA_ASSIGN_OR_RETURN(const std::string idapro_app_data_plugin_path,
-                      GetOrCreateIdaProUserPluginsDirectory());
-  NA_RETURN_IF_ERROR(CreateDirectories(idapro_app_data_plugin_path));
+  ABSL_ASSIGN_OR_RETURN(std::string idapro_app_data_plugin_path,
+                        GetOrCreateIdaProUserPluginsDirectory());
+  ABSL_RETURN_IF_ERROR(CreateDirectories(idapro_app_data_plugin_path));
 
   plugin_basename =
       absl::StrFormat("bindiff%s_ida%s", kBinDiffRelease, kLibrarySuffix);
-  NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
+  ABSL_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
       JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
   plugin_basename =
       absl::StrFormat("bindiff%s_ida64%s", kBinDiffRelease, kLibrarySuffix);
-  NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
+  ABSL_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
       JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
 
   plugin_basename = absl::StrFormat("binexport%s_ida%s",
                                     kBinDiffBinExportRelease, kLibrarySuffix);
-  NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
+  ABSL_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
       JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
   plugin_basename = absl::StrFormat("binexport%s_ida64%s",
                                     kBinDiffBinExportRelease, kLibrarySuffix);
-  NA_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
+  ABSL_RETURN_IF_ERROR(CreateOrUpdateLinkWithFallback(
       JoinPath(bindiff_dir, kBinDiffIdaProPluginsPrefix, plugin_basename),
       JoinPath(idapro_app_data_plugin_path, plugin_basename)));
 
@@ -251,12 +252,12 @@ absl::Status ConfigSetupMain(int argc, char* argv[]) {
           "Missing config file argument, specify `--config`");
     }
   } else {
-    NA_ASSIGN_OR_RETURN(auto loaded_config,
-                        config::LoadFromFile(config_filename));
+    ABSL_ASSIGN_OR_RETURN(auto loaded_config,
+                          config::LoadFromFile(config_filename));
     config::MergeInto(loaded_config, config);
   }
 
-  NA_RETURN_IF_ERROR(ApplySettings(positional, string_settings));
+  ABSL_RETURN_IF_ERROR(ApplySettings(positional, string_settings));
 
   const std::string serialized = config::AsJsonString(config);
   if (serialized.empty()) {

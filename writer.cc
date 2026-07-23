@@ -17,7 +17,7 @@
 #include <memory>
 
 #include "third_party/absl/status/status.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
+#include "third_party/absl/status/status_macros.h"
 
 namespace security::bindiff {
 
@@ -27,8 +27,8 @@ absl::Status ChainWriter::Write(const CallGraph& call_graph1,
                                 const FlowGraphs& flow_graphs2,
                                 const FixedPoints& fixed_points) {
   for (auto& writer : writers_) {
-    NA_RETURN_IF_ERROR(writer->Write(call_graph1, call_graph2, flow_graphs1,
-                                     flow_graphs2, fixed_points));
+    ABSL_RETURN_IF_ERROR(writer->Write(call_graph1, call_graph2, flow_graphs1,
+                                       flow_graphs2, fixed_points));
   }
   return absl::OkStatus();
 }

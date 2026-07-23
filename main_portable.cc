@@ -44,6 +44,8 @@
 #include "third_party/absl/log/initialize.h"
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/match.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -65,7 +67,6 @@
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/idb_export.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 #include "third_party/zynamics/binexport/util/timer.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
@@ -352,8 +353,8 @@ absl::Status BatchDiff(const std::string& path,
   const std::string full_out_path = GetFullPathName(out_path);
 
   std::vector<std::string> binexports;
-  NA_ASSIGN_OR_RETURN(std::vector<std::string> idbs,
-                      CollectIdbsToExport(full_path, &binexports));
+  ABSL_ASSIGN_OR_RETURN(std::vector<std::string> idbs,
+                        CollectIdbsToExport(full_path, &binexports));
 
   const auto& config = config::Proto();
   const int num_threads = config.num_threads() > 0
@@ -460,7 +461,7 @@ absl::Status BatchDumpMdIndices(const std::string& path) {
     Instruction::Cache instruction_cache;
     ScopedCleanup cleanup(&flow_graphs, 0, &instruction_cache);
     FlowGraphInfos infos;
-    NA_RETURN_IF_ERROR(
+    ABSL_RETURN_IF_ERROR(
         Read(file_path, &call_graph, &flow_graphs, &infos, &instruction_cache));
     DumpMdIndices(call_graph, flow_graphs);
   }
@@ -544,8 +545,8 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
 
   auto& config = config::Proto();
   if (!absl::GetFlag(FLAGS_config).empty()) {
-    NA_ASSIGN_OR_RETURN(auto loaded_config,
-                        config::LoadFromFile(absl::GetFlag(FLAGS_config)));
+    ABSL_ASSIGN_OR_RETURN(auto loaded_config,
+                          config::LoadFromFile(absl::GetFlag(FLAGS_config)));
     config = config::Defaults();
     config::MergeInto(loaded_config, config);
   }
@@ -563,7 +564,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
 
   // Launch Java UI if requested
   if (binary_name == "bindiff_ui" || absl::GetFlag(FLAGS_ui)) {
-    NA_RETURN_IF_ERROR(StartUiWithOptions(
+    ABSL_RETURN_IF_ERROR(StartUiWithOptions(
         positional, StartUiOptions{}
                         .set_java_binary(config.ui().java_binary())
                         .set_java_vm_options(config.ui().java_vm_option())
@@ -642,18 +643,18 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
       // Primary from file system.
       FlowGraphInfos infos;
       call_graph1 = absl::make_unique<CallGraph>();
-      NA_RETURN_IF_ERROR(Read(primary, call_graph1.get(), &flow_graphs1, &infos,
-                              &instruction_cache));
+      ABSL_RETURN_IF_ERROR(Read(primary, call_graph1.get(), &flow_graphs1,
+                                &infos, &instruction_cache));
     }
 
     if (IsDirectory(primary)) {
       // File system batch diff.
       if (absl::GetFlag(FLAGS_ls)) {
-        NA_RETURN_IF_ERROR(ListFiles(primary));
+        ABSL_RETURN_IF_ERROR(ListFiles(primary));
       } else if (absl::GetFlag(FLAGS_md_index)) {
-        NA_RETURN_IF_ERROR(BatchDumpMdIndices(primary));
+        ABSL_RETURN_IF_ERROR(BatchDumpMdIndices(primary));
       } else {
-        NA_RETURN_IF_ERROR(
+        ABSL_RETURN_IF_ERROR(
             BatchDiff(primary, secondary, absl::GetFlag(FLAGS_output_dir)));
       }
       done_something = true;
@@ -668,8 +669,8 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
       // secondary from filesystem
       FlowGraphInfos infos;
       call_graph2 = absl::make_unique<CallGraph>();
-      NA_RETURN_IF_ERROR(Read(secondary, call_graph2.get(), &flow_graphs2,
-                              &infos, &instruction_cache));
+      ABSL_RETURN_IF_ERROR(Read(secondary, call_graph2.get(), &flow_graphs2,
+                                &infos, &instruction_cache));
     }
 
     if ((!done_something && !FileExists(primary) && !IsDirectory(primary)) ||
@@ -729,7 +730,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
 
       ChainWriter writer;
       if (g_output_log) {
-        NA_ASSIGN_OR_RETURN(
+        ABSL_ASSIGN_OR_RETURN(
             std::string filename,
             GetTruncatedFilename(
                 absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
@@ -738,21 +739,21 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
         writer.Add(std::make_unique<ResultsLogWriter>(filename));
       }
       if (g_output_binary) {
-        NA_ASSIGN_OR_RETURN(
+        ABSL_ASSIGN_OR_RETURN(
             std::string filename,
             GetTruncatedFilename(
                 absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
                 call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
                 ".BinDiff"));
-        NA_ASSIGN_OR_RETURN(auto database_writer,
-                            DatabaseWriter::Create(filename));
+        ABSL_ASSIGN_OR_RETURN(auto database_writer,
+                              DatabaseWriter::Create(filename));
         writer.Add(std::move(database_writer));
       }
 
       if (!writer.empty()) {
-        NA_RETURN_IF_ERROR(writer.Write(*call_graph1, *call_graph2,
-                                        flow_graphs1, flow_graphs2,
-                                        fixed_points));
+        ABSL_RETURN_IF_ERROR(writer.Write(*call_graph1, *call_graph2,
+                                          flow_graphs1, flow_graphs2,
+                                          fixed_points));
         PrintMessage(absl::StrCat("Writing results: ",
                                   HumanReadableDuration(timer.elapsed())));
       }

@@ -30,14 +30,14 @@
 
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/absl/status/statusor.h"
 #include "third_party/zynamics/bindiff/config_defaults.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/process.h"
-#include "third_party/zynamics/binexport/util/status_macros.h"
 
 #ifdef BINDIFF_GOOGLE
 namespace google::protobuf {
@@ -116,12 +116,12 @@ absl::StatusOr<Config> LoadFromJson(absl::string_view data) {
 
   JsonParseOptions options;
   options.ignore_unknown_fields = true;
-  NA_RETURN_IF_ERROR(JsonStringToMessage(data, &config, options));
+  ABSL_RETURN_IF_ERROR(JsonStringToMessage(data, &config, options));
   return config;
 }
 
 absl::StatusOr<Config> LoadFromFile(const std::string& filename) {
-  NA_ASSIGN_OR_RETURN(std::string data, ReadFileToString(filename));
+  ABSL_ASSIGN_OR_RETURN(std::string data, ReadFileToString(filename));
   return LoadFromJson(data);
 }
 
@@ -139,8 +139,8 @@ std::string AsJsonString(const Config& config) {
 }
 
 absl::Status SaveUserConfig(const Config& config) {
-  NA_ASSIGN_OR_RETURN(const std::string path,
-                      GetOrCreateAppDataDirectory(kBinDiffName));
+  ABSL_ASSIGN_OR_RETURN(std::string path,
+                        GetOrCreateAppDataDirectory(kBinDiffName));
   const std::string filename = JoinPath(path, kConfigName);
 
   const std::string data = AsJsonString(config);
