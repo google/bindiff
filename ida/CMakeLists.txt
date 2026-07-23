@@ -39,7 +39,8 @@ ida_add_plugin(${bindiff_ida_plugin_name}
           visual_diff.h
 )
 target_compile_definitions(${bindiff_ida_plugin_name}
-  PUBLIC USE_DANGEROUS_FUNCTIONS  # snprintf is safe in our code
+  PUBLIC USE_DANGEROUS_FUNCTIONS
+         USE_STANDARD_FILE_FUNCTIONS
 )
 target_link_libraries(${bindiff_ida_plugin_name}
   PUBLIC binexport_core

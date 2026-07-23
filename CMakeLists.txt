@@ -378,7 +378,7 @@ if(NOT MSVC)
     INTERPROCEDURAL_OPTIMIZATION ${BINDIFF_ENABLE_IPO}
   )
 endif()
-install(TARGETS BinDiff
+install(TARGETS bindiff
         RUNTIME DESTINATION ${CMAKE_BINARY_DIR})
 
 # IDA Pro plugins
