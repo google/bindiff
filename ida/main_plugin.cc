@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -42,15 +42,10 @@
 #include <name.hpp>                                             // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include <xref.hpp>                                             // NOLINT
-#if IDP_INTERFACE_VERSION < 900
-#include <enum.hpp>                                             // NOLINT
-#include <struct.hpp>                                           // NOLINT
-#endif
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
 #include "third_party/absl/log/log.h"
-#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/status_macros.h"
 #include "third_party/absl/status/statusor.h"
@@ -1438,13 +1433,13 @@ bool Plugin::Run(size_t /* argument */) {
 using security::bindiff::Plugin;
 
 plugin_t PLUGIN = {
-    IDP_INTERFACE_VERSION,
-    PLUGIN_MULTI | PLUGIN_FIX,  // Plugin flags
-    Plugin::Register,
-    nullptr,                          // Obsolete terminate callback
-    nullptr,                          // Obsolete run callback
-    Plugin::kComment,                 // Statusline text
-    nullptr,                          // Multiline help about the plugin, unused
-    security::bindiff::kBinDiffName,  // Preferred short name of the plugin
-    Plugin::kHotKey                   // Preferred hotkey to run the plugin
+    .version = IDP_INTERFACE_VERSION,
+    .flags = PLUGIN_MULTI | PLUGIN_FIX,
+    .init = Plugin::Register,
+    .term = nullptr,
+    .run = nullptr,
+    .comment = Plugin::kComment,  // Statusline text
+    .help = nullptr,              // Multiline help about the plugin, unused
+    .wanted_name = security::bindiff::kBinDiffName,  // Preferred short name
+    .wanted_hotkey = Plugin::kHotKey                 // Preferred hotkey
 };

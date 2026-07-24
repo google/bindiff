@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <cstdint>
 #include <cstdio>
 #include <exception>
 #include <fstream>
@@ -40,12 +39,7 @@
 #include <name.hpp>                                             // NOLINT
 #include <ua.hpp>                                               // NOLINT
 #include <xref.hpp>                                             // NOLINT
-#if IDP_INTERFACE_VERSION >= 900
 #include <typeinf.hpp>                                          // NOLINT
-#else
-#include <enum.hpp>                                             // NOLINT
-#include <struct.hpp>                                           // NOLINT
-#endif
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
@@ -215,7 +209,6 @@ size_t SetComments(Address source, Address target,
                 comment.repeatable);
         break;
       case Comment::ENUM: {
-#if IDP_INTERFACE_VERSION >= 900
         if (is_enum0(get_full_flags(static_cast<ea_t>(address))) ||
             is_enum1(get_full_flags(static_cast<ea_t>(address)))) {
           tinfo_t tif;
@@ -223,25 +216,6 @@ size_t SetComments(Address source, Address target,
             tif.rename_type(comment.comment.c_str());
           }
         }
-#else
-        uint8_t serial;
-        if (is_enum0(get_full_flags(static_cast<ea_t>(address))) &&
-            operand_id == 0) {
-          const auto id =
-              get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
-          if (id != BADNODE) {
-            set_enum_name(id, comment.comment.c_str());
-          }
-        }
-        if (is_enum1(get_full_flags(static_cast<ea_t>(address))) &&
-            operand_id == 1) {
-          const auto id =
-              get_enum_id(&serial, static_cast<ea_t>(address), operand_id);
-          if (id != BADNODE) {
-            set_enum_name(id, comment.comment.c_str());
-          }
-        }
-#endif
         break;
       }
       case Comment::FUNCTION:
@@ -291,7 +265,6 @@ size_t SetComments(Address source, Address target,
         if (!function) {
           break;
         }
-#if IDP_INTERFACE_VERSION >= 900
         tinfo_t frame_tif;
         if (!get_func_frame(&frame_tif, function)) {
           break;
@@ -300,12 +273,6 @@ size_t SetComments(Address source, Address target,
         if (!frame_tif.get_udt_details(&udt_data)) {
           break;
         }
-#else
-        struc_t* frame = get_frame(function);
-        if (!frame) {
-          break;
-        }
-#endif
         insn_t instruction;
         if (decode_insn(&instruction, address) <= 0) {
           break;
@@ -318,15 +285,11 @@ size_t SetComments(Address source, Address target,
           }
 
           if (operand_num == operand_id - UA_MAXOP - 2048) {
-#if IDP_INTERFACE_VERSION >= 900
             udm_t udm;
             udm.offset = offset;
             if (auto idx = frame_tif.find_udm(&udm, STRMEM_AUTO); idx != -1) {
               frame_tif.rename_udm(idx, comment.comment.c_str());
             }
-#else
-            set_member_name(frame, offset, comment.comment.c_str());
-#endif
           }
         }
         break;

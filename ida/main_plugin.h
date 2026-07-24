@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,12 @@
 #ifndef IDA_MAIN_PLUGIN_H_
 #define IDA_MAIN_PLUGIN_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <string>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/zynamics/bindiff/ida/results.h"
 #include "third_party/zynamics/binexport/ida/plugin.h"
 
