@@ -28,7 +28,7 @@ jobs:
         repository: google/binexport
         path: build/binexport
 
-   - name: Set up MSVC
+    - name: Set up MSVC
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
       with:
