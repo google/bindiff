@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <fstream>
 #include <ios>
 #include <memory>
+#include <stdexcept>
 #include <string>
 
 #include "third_party/absl/base/nullability.h"
@@ -27,7 +28,6 @@
 #include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/status_macros.h"
-#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/change_classifier.h"
@@ -103,15 +103,21 @@ absl::Status AddSubsToCallGraph(CallGraph* absl_nonnull call_graph,
        ++it) {
     const CallGraph::Vertex vertex = *it;
     const Address address = call_graph->GetAddress(vertex);
-    FlowGraph* flow_graph = call_graph->GetFlowGraph(vertex);
-    if (flow_graph) {
+    if (call_graph->GetFlowGraph(vertex)) {
       continue;
     }
 
-    flow_graph = new FlowGraph(call_graph, address);
+    std::unique_ptr<FlowGraph> flow_graph;
+    // Temporary try-catch block. A follow-up change will refactor to
+    // absl::StatusOr<std::unique_ptr<FlowGraph>>.
+    try {
+      flow_graph = std::make_unique<FlowGraph>(call_graph, address);
+    } catch (const std::runtime_error& e) {
+      return absl::FailedPreconditionError(e.what());
+    }
     call_graph->SetStub(vertex, true);
     call_graph->SetLibrary(vertex, true);
-    if (!flow_graphs->insert(flow_graph).second) {
+    if (!flow_graphs->insert(flow_graph.release()).second) {
       return absl::FailedPreconditionError(
           absl::StrCat("a flow graph exists at ", FormatAddress(address)));
     }

@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,12 +62,20 @@ void DeleteFlowGraphs(FlowGraphs* absl_nullable flow_graphs);
 // again for a different comparison.
 void ResetMatches(FlowGraphs* absl_nonnull flow_graphs);
 
-// Loads a .BinExport file into the internal data structures.
+// Loads a .BinExport file into the internal data structures. Parses filename
+// and then calls SetupGraphsFromProto with the contents of the file.
 absl::Status Read(const std::string& filename,
                   CallGraph* absl_nonnull call_graph,
                   FlowGraphs* absl_nonnull flow_graphs,
                   FlowGraphInfos* absl_nullable flow_graph_infos,
                   Instruction::Cache* absl_nonnull instruction_cache);
+
+// Loads a .BinExport proto into the internal data structures.
+absl::Status SetupGraphsFromProto(
+    const BinExport2& proto, const std::string& filename,
+    CallGraph* absl_nonnull call_graph, FlowGraphs* absl_nonnull flow_graphs,
+    FlowGraphInfos* absl_nullable flow_graph_infos,
+    Instruction::Cache* absl_nonnull instruction_cache);
 
 // Gets the similarity score for two full binaries.
 double GetSimilarityScore(const CallGraph& call_graph1,
