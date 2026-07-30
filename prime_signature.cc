@@ -15,6 +15,7 @@
 #include "third_party/zynamics/bindiff/prime_signature.h"
 
 #include <cassert>
+#include <iterator>
 
 #include "third_party/absl/base/macros.h"
 
@@ -12540,7 +12541,7 @@ static constexpr uint32_t kPrimes[] = {
     1299721, 1299743, 1299763, 1299791, 1299811, 1299817, 1299821, 1299827};
 
 constexpr size_t GetPrimeTableSize() {
-  static_assert(100003 <= ABSL_ARRAYSIZE(kPrimes),
+  static_assert(100003 <= std::size(kPrimes),
                 "Table size should be prime to avoid collisions");
   // There are 100008 primes in the table, the largest prime < 100008 is 100003.
   // 100003 is at index 9592.
