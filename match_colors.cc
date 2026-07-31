@@ -34,10 +34,10 @@ absl::optional<int32_t> HexColorToInt(absl::string_view value) {
   value = absl::StripPrefix(absl::StripAsciiWhitespace(value), "#");
   uint32_t v;
   if (!absl::SimpleHexAtoi(value, &v)) {
-    return absl::nullopt;
+    return std::nullopt;
   }
   if (v > 0xFFFFFF /* 16M colors */) {
-    return absl::nullopt;
+    return std::nullopt;
   }
   return v;
 }
