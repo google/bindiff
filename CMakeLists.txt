@@ -259,6 +259,7 @@ target_link_libraries(bindiff_shared
   absl::flat_hash_map
   absl::hash
   absl::memory
+  absl::no_destructor
   absl::nullability
   absl::str_format
   absl::strings
@@ -291,6 +292,7 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
     bindiff_test_util
     bindiff_test_base
     bindiff_shared
+    binexport_shared
   )
   gtest_discover_tests(call_graph_test)
 
@@ -341,6 +343,8 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
   )
   target_link_libraries(writer_test
     absl::status_matchers
+    absl::memory
+    absl::status
     bindiff_test_base
     bindiff_test_util
     bindiff_shared
@@ -356,6 +360,7 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
     )
     target_link_libraries(differ_benchmark
       bindiff_base
+      absl::check
       benchmark::benchmark_main
       gtest
       gmock

@@ -15,7 +15,8 @@
 #ifndef IDA_MATCHED_FUNCTIONS_CHOOSER_H_
 #define IDA_MATCHED_FUNCTIONS_CHOOSER_H_
 
-#include <functional>
+#include <cstddef>
+#include <iterator>
 
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
@@ -23,7 +24,6 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "third_party/absl/base/macros.h"
 #include "third_party/zynamics/binexport/ida/ui.h"
 
 namespace security::bindiff {
@@ -74,6 +74,8 @@ class MatchedFunctionsChooser : public chooser_multi_t {
       "Matched Instructions", "Instructions Primary", "Instructions Secondary",
       "Matched Edges",        "Edges Primary",        "Edges Secondary",
   };
+  static_assert(std::size(kColumnWidths) == std::size(kColumnNames));
+
   static constexpr const char kTitle[] = "Matched Functions";
 
   const void* idaapi get_obj_id(size_t* len) const override;

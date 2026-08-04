@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/status_matchers.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 
 namespace security::bindiff {
 namespace {

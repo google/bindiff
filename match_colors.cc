@@ -14,15 +14,14 @@
 
 #include "third_party/zynamics/bindiff/match_colors.h"
 
-#include <cerrno>
-#include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <limits>
+#include <vector>
 
 #include "third_party/absl/strings/ascii.h"
 #include "third_party/absl/strings/numbers.h"
-#include "third_party/absl/strings/str_cat.h"
-#include "third_party/absl/strings/str_replace.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/strings/strip.h"
 #include "third_party/absl/types/optional.h"
 #include "third_party/zynamics/bindiff/config.h"

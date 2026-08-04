@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,39 +14,44 @@
 
 #include "third_party/zynamics/bindiff/fixed_points.h"
 
+#include <algorithm>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "third_party/absl/base/no_destructor.h"
+#include "third_party/zynamics/bindiff/change_classifier.h"
 #include "third_party/zynamics/bindiff/differ.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 
 namespace security::bindiff {
 
 const std::string* FindString(const std::string& name) {
-  static const auto* const kStringPoolEmptyString = new std::string();
-  static const auto* const kStringPool = []() -> std::vector<std::string>* {
-    auto* pool = new std::vector<std::string>();
-    try {
-      Confidences confidences;
-      Histogram histogram;
-      GetConfidence(histogram, &confidences);
-      pool->reserve(confidences.size());
-      for (const auto& [key, _] : confidences) {
-        pool->push_back(key);
-      }
-    } catch (...) {
-      // May throw if config file is missing.
+  static absl::NoDestructor<std::string> string_pool_empty;
+  static absl::NoDestructor<std::vector<std::string>> string_pool([]() {
+    std::vector<std::string> pool;
+    Confidences confidences;
+    Histogram histogram;
+    // Will CHECK-fail if no matching algorithms are registered.
+    GetConfidence(histogram, &confidences);
+    pool.reserve(confidences.size());
+    for (const auto& [key, _] : confidences) {
+      pool.push_back(key);
     }
 
-    pool->push_back(MatchingStep::kFunctionManualName);
-    std::sort(pool->begin(), pool->end());
+    pool.push_back(MatchingStep::kFunctionManualName);
+    std::sort(pool.begin(), pool.end());
     return pool;
-  }();
+  }());
 
-  auto it = std::lower_bound(kStringPool->begin(), kStringPool->end(), name);
-  if (it != kStringPool->end() && *it == name) {
+  auto it = std::lower_bound(string_pool->begin(), string_pool->end(), name);
+  if (it != string_pool->end() && *it == name) {
     return &(*it);
   }
-  return kStringPoolEmptyString;
+  return &*string_pool_empty;
 }
 
 BasicBlockFixedPoint::BasicBlockFixedPoint(

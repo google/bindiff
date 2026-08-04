@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,19 @@
 
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 
-#include <iomanip>
+#include <algorithm>
+#include <cstddef>
+#include <initializer_list>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <utility>
 
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
-#include "third_party/absl/memory/memory.h"
 #include "third_party/zynamics/bindiff/config.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"

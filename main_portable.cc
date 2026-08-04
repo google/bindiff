@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,22 +21,23 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <exception>
 #include <fstream>
 #include <functional>
 #include <iomanip>
 #include <iostream>  // NOLINT
+#include <list>
 #include <memory>
-#include <sstream>  // NOLINT
-#include <stdexcept>
 #include <string>
 #include <thread>  // NOLINT
+#include <tuple>
 #include <utility>
 #include <vector>
 
 #include "third_party/absl/base/const_init.h"
-#include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/flags/flag.h"
 #include "third_party/absl/flags/internal/usage.h"
+#include "third_party/absl/base/log_severity.h"
 #include "third_party/absl/flags/parse.h"
 #include "third_party/absl/flags/usage.h"
 #include "third_party/absl/flags/usage_config.h"
@@ -51,24 +52,29 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
+#include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/synchronization/mutex.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/config.h"
 #include "third_party/zynamics/bindiff/database_writer.h"
 #include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/log_writer.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
+#include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/start_ui.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/bindiff/version.h"
+#include "third_party/zynamics/bindiff/writer.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
 #include "third_party/zynamics/binexport/util/idb_export.h"
 #include "third_party/zynamics/binexport/util/timer.h"
-#include "third_party/zynamics/binexport/util/types.h"
 
 ABSL_FLAG(bool, logo, true, "display version/copyright information");
 ABSL_FLAG(bool, ui, false, "launch the BinDiff UI");
@@ -97,7 +103,7 @@ using ::security::binexport::HumanReadableDuration;
 using ::security::binexport::IdbExporter;
 using ::security::binexport::kBinExportExtension;
 
-ABSL_CONST_INIT absl::Mutex g_queue_mutex(absl::kConstInit);
+constinit absl::Mutex g_queue_mutex(absl::kConstInit);
 std::atomic<bool> g_wants_to_quit = ATOMIC_VAR_INIT(false);
 
 bool g_output_binary = false;

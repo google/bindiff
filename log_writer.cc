@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +14,24 @@
 
 #include "third_party/zynamics/bindiff/log_writer.h"
 
+#include <algorithm>
 #include <boost/iterator/transform_iterator.hpp>  // NOLINT
+#include <cstddef>
 #include <fstream>
 #include <iomanip>
-#include <memory>
+#include <ios>
+#include <iterator>
 #include <string>
 
 #include "third_party/absl/status/status.h"
-#include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/instruction.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
@@ -62,6 +69,7 @@ absl::Status ResultsLogWriter::Write(const CallGraph& call_graph1,
 
   std::ofstream result(filename_.c_str());
   result.precision(16);
+  // TODO(cblichmann): Use absl::StreamFormat
   result << std::dec << call_graph1.GetFilename() << "\n"
          << call_graph2.GetFilename() << "\n"
          << "call graph1 MD index " << call_graph1.GetMdIndex() << "\n"

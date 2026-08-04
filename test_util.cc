@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2021-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 
 #include <initializer_list>
 #include <memory>
-#include <tuple>
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/container/flat_hash_set.h"
@@ -29,6 +30,7 @@
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
+#include "third_party/zynamics/bindiff/match/flow_graph.h"
 #include "third_party/zynamics/bindiff/prime_signature.h"
 
 namespace security::bindiff {

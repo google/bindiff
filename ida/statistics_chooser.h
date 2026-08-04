@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,9 @@
 #ifndef IDA_STATISTICS_CHOOSER_H_
 #define IDA_STATISTICS_CHOOSER_H_
 
-#include "third_party/absl/base/macros.h"
+#include <cstddef>
+#include <iterator>
+
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
@@ -27,8 +29,8 @@ namespace security::bindiff {
 class StatisticsChooser : public chooser_t {
  public:
   StatisticsChooser()
-      : chooser_t{CH_ATTRS, ABSL_ARRAYSIZE(kColumnWidths), kColumnWidths,
-                  kColumnNames, kTitle} {}
+      : chooser_t(CH_ATTRS, std::size(kColumnWidths), kColumnWidths,
+                  kColumnNames, kTitle) {}
 
   // Refreshes the display of this chooser if visible. Does nothing otherwise.
   static void Refresh() { refresh_chooser(kTitle); }
@@ -42,6 +44,8 @@ class StatisticsChooser : public chooser_t {
       20 | CHCOL_DEC,  // Value
   };
   static constexpr const char* const kColumnNames[] = {"Name", "Value"};
+  static_assert(std::size(kColumnWidths) == std::size(kColumnNames));
+
   static constexpr const char kTitle[] = "Statistics";
 
   const void* get_obj_id(size_t* len) const override;

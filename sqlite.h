@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,8 +19,9 @@
 #define SQLITE_H_
 
 #include <cstdint>
-#include <memory>
+#include <string>
 
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/zynamics/binexport/util/types.h"
@@ -46,6 +47,8 @@ class SqliteDatabase {
   void Disconnect();
 
   absl::StatusOr<SqliteStatement> Statement(absl::string_view statement);
+
+  [[deprecated("Use Statement instead")]]
   SqliteStatement StatementOrThrow(absl::string_view statement);
 
   absl::Status Execute(absl::string_view statement);
@@ -78,7 +81,11 @@ class SqliteStatement {
   SqliteStatement& BindInt(int value);
   SqliteStatement& BindInt64(int64_t value);
   SqliteStatement& BindDouble(double value);
+
+  // Binds a string value to the next parameter in the statement. This creates a
+  // copy of the string which may well be undesired/inefficient.
   SqliteStatement& BindText(absl::string_view value);
+
   SqliteStatement& BindNull();
 
   SqliteStatement& Into(int* value, bool* is_null = nullptr);
@@ -88,7 +95,8 @@ class SqliteStatement {
   SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
 
   absl::Status Execute();
-  SqliteStatement& ExecuteOrThrow();
+
+  [[deprecated("Use Execute instead")]] SqliteStatement& ExecuteOrThrow();
 
   SqliteStatement& Reset();
   bool GotData() const;

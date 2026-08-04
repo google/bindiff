@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
 #ifndef IDA_UNMATCHED_FUNCTIONS_CHOOSER_H_
 #define IDA_UNMATCHED_FUNCTIONS_CHOOSER_H_
 
-#include "third_party/absl/base/macros.h"
+#include <cstddef>
+#include <iterator>
+
 #include "third_party/zynamics/bindiff/ida/results.h"
+
 // clang-format off
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <kernwin.hpp>                                          // NOLINT
@@ -33,10 +36,11 @@ static constexpr const int kUnmatchedChooserColumnWidths[] = {
     6 | CHCOL_DEC,   // Instructions
     5 | CHCOL_DEC,   // Edges
 };
-
 static constexpr const char* const kUnmatchedChooserColumnNames[] = {
     "EA", "Name", "Basic Blocks", "Instructions", "Edges",
 };
+static_assert(std::size(kUnmatchedChooserColumnWidths) ==
+              std::size(kUnmatchedChooserColumnNames));
 
 void UnmatchedDescriptionToIdaRow(const Results::UnmatchedDescription& desc,
                                   qstrvec_t* cols, int* icon,
@@ -62,7 +66,7 @@ class UnmatchedChooserMultiBase : public chooser_multi_t {
 
   UnmatchedChooserMultiBase()
       : chooser_multi_t{
-            CH_ATTRS, ABSL_ARRAYSIZE(internal::kUnmatchedChooserColumnWidths),
+            CH_ATTRS, std::size(internal::kUnmatchedChooserColumnWidths),
             internal::kUnmatchedChooserColumnWidths,
             internal::kUnmatchedChooserColumnNames, ChooserT::kTitle} {}
 
@@ -149,7 +153,7 @@ class UnmatchedChooserBase : public chooser_t {
  public:
   UnmatchedChooserBase()
       : chooser_t{CH_MODAL | CH_KEEP,
-                  ABSL_ARRAYSIZE(internal::kUnmatchedChooserColumnWidths),
+                  std::size(internal::kUnmatchedChooserColumnWidths),
                   internal::kUnmatchedChooserColumnWidths,
                   internal::kUnmatchedChooserColumnNames, ChooserT::kTitle} {}
 

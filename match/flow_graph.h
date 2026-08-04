@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
 #ifndef MATCH_FLOW_GRAPH_H_
 #define MATCH_FLOW_GRAPH_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <set>
 #include <string>
 
-#include "third_party/absl/base/macros.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
-#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
@@ -53,15 +54,9 @@ class MatchingStepFlowGraph {
                                MatchingContext* context,
                                MatchingStepsFlowGraph* matching_steps) = 0;
 
-  ABSL_DEPRECATED("Use name() instead")
-  const std::string& GetName() const { return name_; }
-
   const std::string& name() const { return name_; }
 
   const std::string& display_name() const { return display_name_; }
-
-  ABSL_DEPRECATED("Use confidence() instead")
-  double GetConfidence() const { return confidence_; }
 
   double confidence() const { return confidence_; }
 
@@ -86,7 +81,7 @@ bool FindFixedPointsBasicBlockInternal(FlowGraph* primary, FlowGraph* secondary,
                                        FixedPoint* fixed_point,
                                        MatchingContext* context,
                                        MatchingStepsFlowGraph* matching_steps) {
-  const std::string name = matching_steps->front()->GetName();
+  const std::string name = matching_steps->front()->name();
   matching_steps->pop_front();
 
   bool fix_points_discovered = false;
@@ -165,7 +160,7 @@ bool FindFixedPointsBasicBlockEdgeInternal(
     EdgeMap* edges1, EdgeMap* edges2, FlowGraph* flow_graph1,
     FlowGraph* flow_graph2, FixedPoint* fixed_point, MatchingContext* context,
     MatchingStepsFlowGraph* matching_steps) {
-  const std::string name = matching_steps->front()->GetName();
+  const std::string name = matching_steps->front()->name();
   matching_steps->pop_front();
   const size_t step_index = matching_steps->size();
 

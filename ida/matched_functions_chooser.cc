@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@
 #include "third_party/zynamics/binexport/ida/end_idasdk.inc"    // NOLINT
 // clang-format on
 
-#include "third_party/absl/base/macros.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -64,7 +63,7 @@ int idaapi DeleteMatchesAction::activate(action_activation_ctx_t* context) {
 }
 
 MatchedFunctionsChooser::MatchedFunctionsChooser()
-    : chooser_multi_t{CH_ATTRS | CH_CAN_DEL, ABSL_ARRAYSIZE(kColumnWidths),
+    : chooser_multi_t{CH_ATTRS | CH_CAN_DEL, std::size(kColumnWidths),
                       kColumnWidths, kColumnNames, kTitle} {
   popup_names[POPUP_DEL] = DeleteMatchesAction::kLabel;
 }

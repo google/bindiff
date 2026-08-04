@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -143,7 +143,7 @@ class CallGraph {
   void DetachFlowGraph(FlowGraph* flow_graph);
   // TODO(cblichmann): Remove!!!
   FlowGraph* GetFlowGraph(Address address) const;
-  inline FlowGraph* GetFlowGraph(Vertex vertex) const {
+  FlowGraph* GetFlowGraph(Vertex vertex) const {
     return graph_[vertex].flow_graph_;
   }
 
@@ -155,7 +155,7 @@ class CallGraph {
   // often in a call graph when one function calls another one multiple times.
   // We often don't care about all but the first call.
   void SetDuplicate(const Edge& edge, bool duplicate);
-  inline bool IsDuplicate(const Edge& edge) const {
+  bool IsDuplicate(const Edge& edge) const {
     return graph_[edge].flags_ & EDGE_DUPLICATE;
   }
 
@@ -163,7 +163,8 @@ class CallGraph {
   bool IsLibrary(Vertex vertex) const;
   void SetLibrary(Vertex vertex, bool library);
 
-  // Is this vertex a stub function? TODO(soerenme) define stub
+  // Is this vertex a stub function?
+  // TODO(soerenme): define stub
   bool IsStub(Vertex vertex) const;
   void SetStub(Vertex vertex, bool stub);
 

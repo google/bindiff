@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,15 +45,16 @@ namespace util = ::proto2::util;
 }  // namespace google::protobuf
 #endif
 
-using google::protobuf::util::JsonParseOptions;
-using google::protobuf::util::JsonPrintOptions;
-using google::protobuf::util::JsonStringToMessage;
-using google::protobuf::util::MessageToJsonString;
-using security::binexport::GetCommonAppDataDirectory;
-using security::binexport::GetOrCreateAppDataDirectory;
-using security::binexport::GetProgramFilesDirectory;
 
 namespace security::bindiff::config {
+
+using ::google::protobuf::util::JsonParseOptions;
+using ::google::protobuf::util::JsonPrintOptions;
+using ::google::protobuf::util::JsonStringToMessage;
+using ::google::protobuf::util::MessageToJsonString;
+using ::security::binexport::GetCommonAppDataDirectory;
+using ::security::binexport::GetOrCreateAppDataDirectory;
+using ::security::binexport::GetProgramFilesDirectory;
 
 namespace {
 

@@ -543,8 +543,8 @@ double GetSimilarityScore(const FlowGraph& flow_graph1,
                 (1.0 + flow_graph1.GetMdIndex() + flow_graph2.GetMdIndex());
   similarity /= 2.0;
 
-  // TODO(soerenme) Investigate this:
-  //     Disable this because a 1.0 match gets voted down due to low confidence.
+  // TODO(soerenme): Investigate this
+  // Disable this because a 1.0 match gets voted down due to low confidence.
   Confidences confidences;
   similarity *= GetConfidence(histogram, &confidences);
   return similarity;

@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
 #ifndef READER_H_
 #define READER_H_
 
+#include <string>
+
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/container/btree_set.h"
 #include "third_party/absl/status/status.h"
-#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/binexport/util/types.h"
 
@@ -35,17 +36,7 @@ struct FlowGraphInfo {
 using FlowGraphInfos = absl::btree_map<Address, FlowGraphInfo>;
 
 struct FixedPointInfo {
-  friend bool operator==(const FixedPointInfo& lhs, const FixedPointInfo& rhs) {
-    // TODO(cblichmann): Use defaulted operator==() once we're on C++20.
-    return lhs.primary == rhs.primary && lhs.secondary == rhs.secondary &&
-           lhs.basic_block_count == rhs.basic_block_count &&
-           lhs.edge_count == rhs.edge_count &&
-           lhs.instruction_count == rhs.instruction_count &&
-           lhs.similarity == rhs.similarity &&
-           lhs.confidence == rhs.confidence && lhs.flags == rhs.flags &&
-           lhs.algorithm == rhs.algorithm && lhs.evaluate == rhs.evaluate &&
-           lhs.comments_ported == rhs.comments_ported;
-  }
+  bool operator==(const FixedPointInfo& rhs) const = default;
 
   template <typename H>
   friend H AbslHashValue(H h, const FixedPointInfo& info) {
@@ -57,17 +48,17 @@ struct FixedPointInfo {
 
   bool IsManual() const;
 
-  Address primary;
-  Address secondary;
-  int basic_block_count;
-  int edge_count;
-  int instruction_count;
-  double similarity;
-  double confidence;
-  int flags;
-  const std::string* algorithm;
-  bool evaluate;
-  bool comments_ported;
+  Address primary = 0;
+  Address secondary = 0;
+  int basic_block_count = 0;
+  int edge_count = 0;
+  int instruction_count = 0;
+  double similarity = 0.0;
+  double confidence = 0.0;
+  int flags = 0;
+  const std::string* algorithm = nullptr;
+  bool evaluate = false;
+  bool comments_ported = false;
 };
 using FixedPointInfos = absl::btree_set<FixedPointInfo>;
 

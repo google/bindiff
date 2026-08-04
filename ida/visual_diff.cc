@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,16 +26,9 @@
 #include <unistd.h>
 #endif
 
-#include <algorithm>
 #include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <iomanip>
-#include <iterator>
-#include <map>
-#include <sstream>
-#include <stdexcept>  // NOLINT
-#include <thread>     // NOLINT
+#include <memory>
+#include <string>
 
 #include "third_party/absl/cleanup/cleanup.h"
 #include "third_party/absl/functional/function_ref.h"
@@ -44,18 +37,15 @@
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/absl/strings/string_view.h"
 #include "third_party/absl/time/clock.h"
+#include "third_party/absl/time/time.h"
 #include "third_party/zynamics/bindiff/config.h"
-#include "third_party/zynamics/bindiff/differ.h"
-#include "third_party/zynamics/bindiff/flow_graph.h"
-#include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/start_ui.h"
-#include "third_party/zynamics/binexport/util/filesystem.h"
 
 namespace security::bindiff {
 
 #ifdef _WIN32
 // Use the original BSD names for this
-int(__stdcall* close)(SOCKET) = closesocket;
+int(__stdcall* close)(SOCKET) = closesocket;  // NOLINT
 #endif
 
 absl::Status DoSendGuiMessageTCP(absl::string_view server, uint16_t port,

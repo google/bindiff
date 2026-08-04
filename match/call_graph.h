@@ -16,12 +16,17 @@
 #define MATCH_CALL_GRAPH_H_
 
 #include <cstdint>
+#include <functional>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
-#include "third_party/absl/base/macros.h"
 #include "third_party/absl/log/check.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
-#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

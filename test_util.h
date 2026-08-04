@@ -1,4 +1,4 @@
-// Copyright 2021 Google LLC
+// Copyright 2021-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
 #ifndef TEST_UTIL_H_
 #define TEST_UTIL_H_
 
+#include <cstdint>
+#include <initializer_list>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 #include "third_party/absl/container/btree_map.h"
@@ -25,6 +28,7 @@
 #include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 

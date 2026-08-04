@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,9 +16,12 @@
 #define FLOW_GRAPH_H_
 
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
+#include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "third_party/absl/status/status.h"
@@ -46,8 +49,8 @@ class FlowGraph {
         std::numeric_limits<uint32_t>::max();  // Start index of instructions in
                                                // instruction vector
     uint32_t call_target_start_ =
-        std::numeric_limits<uint32_t>::max();  // Start index of calltargets in
-                                               // calltarget vector
+        std::numeric_limits<uint32_t>::max();  // Start index of call targets in
+                                               // call target vector
     BasicBlockFixedPoint* fixed_point_ = nullptr;  // Basic block match (if any)
     uint16_t bfs_top_down_ = 0;                    // BFS level top down
     uint16_t bfs_bottom_up_ = 0;                   // BFS level bottom up
@@ -104,8 +107,8 @@ class FlowGraph {
   Vertex GetVertex(Address address) const;
 
   // O(1) return cached MD index calculated from top down or bottom up BFS.
-  inline double GetMdIndex() const { return md_index_; }
-  inline double GetMdIndexInverted() const { return md_index_inverted_; }
+  double GetMdIndex() const { return md_index_; }
+  double GetMdIndexInverted() const { return md_index_inverted_; }
   void SetMdIndex(double index);
   void SetMdIndexInverted(double index);
 
@@ -135,7 +138,7 @@ class FlowGraph {
 
   // The function's entry point address.
   // This actually showed up in profiles as a significant (16.9%) chunk.
-  inline Address GetEntryPointAddress() const { return entry_point_address_; }
+  Address GetEntryPointAddress() const { return entry_point_address_; }
 
   // Calculates the "level" for every call in the flow graph. Level is defined
   // as the shortest path from function entry point to the call. Multiple calls
@@ -148,8 +151,7 @@ class FlowGraph {
   Level GetLevelForCallAddress(Address address) const;
 
   // O(1) return the function matched to us if any. nullptr for no match.
-  // I've put the code in the header because it actually showed up in profiles.
-  inline FixedPoint* GetFixedPoint() const { return fixed_point_; }
+  FixedPoint* GetFixedPoint() const { return fixed_point_; }
   void SetFixedPoint(FixedPoint* fixed_point);
 
   // Returns the basic block matched to the one at vertex. nullptr for none.

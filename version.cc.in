@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,17 +14,15 @@
 
 #include "third_party/zynamics/bindiff/version.h"
 
-#include "third_party/absl/base/attributes.h"
-
 namespace security::bindiff {
 
-ABSL_CONST_INIT const char* kBinDiffName = "BinDiff";
+constinit const char* kBinDiffName = "BinDiff";
 
-ABSL_CONST_INIT const char* kBinDiffRelease = "@bindiff_VERSION_MAJOR@";
+constinit const char* kBinDiffRelease = "@bindiff_VERSION_MAJOR@";
 
-ABSL_CONST_INIT const char* kBinDiffBinExportRelease = "@bindiff_BINEXPORT_RELEASE@";
+constinit const char* kBinDiffBinExportRelease = "@bindiff_BINEXPORT_RELEASE@";
 
-ABSL_CONST_INIT const char* kBinDiffDetailedVersion =
+constinit const char* kBinDiffDetailedVersion =
     "@bindiff_VERSION_MAJOR@ (@"
     "@REVISION@, "
     __DATE__
@@ -33,7 +31,7 @@ ABSL_CONST_INIT const char* kBinDiffDetailedVersion =
 #endif
     ")";
 
-ABSL_CONST_INIT const char* kBinDiffCopyright =
+constinit const char* kBinDiffCopyright =
     "(c)2004-2011 zynamics GmbH, (c)2011-2024 Google LLC.";
 
 }  // namespace security::bindiff

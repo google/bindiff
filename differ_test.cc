@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,20 +17,30 @@
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
+#include <stdexcept>
+#include <string>
+#include <system_error>  // NOLINT(build/c++11)
+#include <utility>
 #include <vector>
 
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status_matchers.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/absl/strings/str_format.h"
 #include "third_party/absl/strings/str_split.h"
 #include "third_party/absl/strings/string_view.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/context.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
 #include "third_party/zynamics/bindiff/reader.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
 #include "third_party/zynamics/binexport/util/timer.h"
@@ -171,8 +181,10 @@ TEST_P(GroundtruthTest, Run) {
       GetDefaultMatchingStepsBasicBlock();
 
   Instruction::Cache instruction_cache;
-  CallGraph call_graph1, call_graph2;
-  FlowGraphs flow_graphs1, flow_graphs2;
+  CallGraph call_graph1;
+  CallGraph call_graph2;
+  FlowGraphs flow_graphs1;
+  FlowGraphs flow_graphs2;
   ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
   try {
     FlowGraphInfos flow_graph_infos1;

@@ -15,11 +15,14 @@
 #include "third_party/zynamics/bindiff/groundtruth_writer.h"
 
 #include <fstream>
-#include <iomanip>
+#include <string>
 
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
-#include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::bindiff {

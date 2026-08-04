@@ -14,8 +14,11 @@
 
 #include "third_party/zynamics/bindiff/sqlite.h"
 
+#include <utility>
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/absl/status/status.h"
 #include "third_party/absl/status/status_matchers.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/zynamics/binexport/testing.h"

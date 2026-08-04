@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,26 +14,41 @@
 
 #include "third_party/zynamics/bindiff/database_writer.h"
 
+#include <algorithm>
+#include <cstdint>
 #include <cstdio>
+#include <exception>
 #include <fstream>
+#include <ios>
+#include <iterator>
 #include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 #include "third_party/absl/container/btree_set.h"
 #include "third_party/absl/container/flat_hash_set.h"
 #include "third_party/absl/log/log.h"
+#include "third_party/absl/memory/memory.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/status/status_macros.h"
 #include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
+#include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/differ.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
+#include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/match/call_graph.h"
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
+#include "third_party/zynamics/bindiff/reader.h"
 #include "third_party/zynamics/bindiff/sqlite.h"
+#include "third_party/zynamics/bindiff/statistics.h"
 #include "third_party/zynamics/bindiff/version.h"
 #include "third_party/zynamics/binexport/binexport2.pb.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
 #include "third_party/zynamics/binexport/util/format.h"
+#include "third_party/zynamics/binexport/util/types.h"
 
 namespace security::bindiff {
 
@@ -41,7 +56,8 @@ using ::security::binexport::FormatAddress;
 
 void GetCounts(const FixedPoint& fixed_point, int& basic_blocks, int& edges,
                int& instructions) {
-  FlowGraphs flow1, flow2;
+  FlowGraphs flow1;
+  FlowGraphs flow2;
   flow1.insert(fixed_point.GetPrimary());
   flow2.insert(fixed_point.GetSecondary());
   FixedPoints fix;

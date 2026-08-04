@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@
 
 #include "third_party/zynamics/bindiff/match/flow_graph.h"
 
-#include <map>
-#include <unordered_map>
+#include <algorithm>
+#include <cstddef>
+#include <initializer_list>
+#include <string>
+#include <utility>
 
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/zynamics/bindiff/config.h"
+#include "third_party/zynamics/bindiff/fixed_points.h"
 #include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/match/basic_block_call_refs.h"
 #include "third_party/zynamics/bindiff/match/basic_block_edges_lengauer_tarjan.h"
@@ -101,7 +105,8 @@ void FindFixedPointsBasicBlock(FixedPoint* fixed_point,
                                const MatchingStepsFlowGraph& default_steps) {
   FlowGraph* primary = fixed_point->GetPrimary();
   FlowGraph* secondary = fixed_point->GetSecondary();
-  VertexSet vertices1, vertices2;
+  VertexSet vertices1;
+  VertexSet vertices2;
   for (MatchingStepsFlowGraph matching_steps_for_current_level = default_steps;
        !matching_steps_for_current_level.empty();
        matching_steps_for_current_level.pop_front()) {

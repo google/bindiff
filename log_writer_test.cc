@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,18 @@
 
 #include "third_party/zynamics/bindiff/log_writer.h"
 
+#include <string>
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "third_party/absl/status/status_matchers.h"
 #include "third_party/absl/strings/ascii.h"
-#include "third_party/absl/strings/str_cat.h"
-#include "third_party/absl/strings/str_replace.h"
+#include "third_party/absl/strings/str_cat.h"      // IWYU pragma: keep
+#include "third_party/absl/strings/str_replace.h"  // IWYU pragma: keep
 #include "third_party/absl/strings/string_view.h"
-#include "third_party/zynamics/bindiff/match/call_graph.h"
-#include "third_party/zynamics/bindiff/match/flow_graph.h"
-#include "third_party/zynamics/bindiff/statistics.h"
+#include "third_party/zynamics/bindiff/match/call_graph.h"  // IWYU pragma: keep
+#include "third_party/zynamics/bindiff/match/flow_graph.h"  // IWYU pragma: keep
+#include "third_party/zynamics/bindiff/statistics.h"        // IWYU pragma: keep
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/testing.h"
 #include "third_party/zynamics/binexport/util/filesystem.h"
