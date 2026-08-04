@@ -135,7 +135,7 @@ absl::Status SetupGraphsFromProto(
     if (proto_flow_graph.basic_block_index_size() == 0) {
       continue;
     }
-    auto flow_graph = absl::make_unique<FlowGraph>();
+    auto flow_graph = std::make_unique<FlowGraph>();
     ABSL_RETURN_IF_ERROR(flow_graph->Read(proto, proto_flow_graph, call_graph,
                                           instruction_cache));
 

@@ -284,7 +284,7 @@ void DifferThread::operator()() {
       if (did_handle_error(filename.status())) {
         continue;
       }
-      writer.Add(absl::make_unique<ResultsLogWriter>(*filename));
+      writer.Add(std::make_unique<ResultsLogWriter>(*filename));
     }
     if (g_output_binary) {
       absl::StatusOr<std::string> filename = GetTruncatedFilename(
@@ -648,7 +648,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     if (FileExists(primary)) {
       // Primary from file system.
       FlowGraphInfos infos;
-      call_graph1 = absl::make_unique<CallGraph>();
+      call_graph1 = std::make_unique<CallGraph>();
       ABSL_RETURN_IF_ERROR(Read(primary, call_graph1.get(), &flow_graphs1,
                                 &infos, &instruction_cache));
     }
@@ -674,7 +674,7 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     if (!secondary.empty() && FileExists(secondary)) {
       // secondary from filesystem
       FlowGraphInfos infos;
-      call_graph2 = absl::make_unique<CallGraph>();
+      call_graph2 = std::make_unique<CallGraph>();
       ABSL_RETURN_IF_ERROR(Read(secondary, call_graph2.get(), &flow_graphs2,
                                 &infos, &instruction_cache));
     }
