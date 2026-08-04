@@ -42,19 +42,29 @@ class BinDiffEnvironment : public ::testing::Environment {
   void SetUp() override;
 };
 
-// Call graph class that exposes more parts of its internal API for testing.
-class TestCallGraph : public CallGraph {
- public:
-  using CallGraph::CallGraph;
-  using CallGraph::Init;
+// Helper class to access private members of CallGraph for testing.
+struct CallGraphPeer {
+  explicit CallGraphPeer(CallGraph& call_graph) : call_graph(call_graph) {}
+
+  void Init() { call_graph.Init(); }
+
+  void set_filename(absl::string_view filename) {
+    call_graph.filename_ = filename;
+  }
+
+  CallGraph& call_graph;
 };
 
-// Similar to TestCallGraph, a flow graph class exposing protected members.
-class TestFlowGraph : public FlowGraph {
- public:
-  using FlowGraph::FlowGraph;
-  using FlowGraph::Init;
-  using FlowGraph::instructions_;
+// Helper class to access private members of FlowGraph for testing, similar to
+// CallGraphPeer.
+struct FlowGraphPeer {
+  explicit FlowGraphPeer(FlowGraph& flow_graph) : flow_graph(flow_graph) {}
+
+  void Init() { flow_graph.Init(); }
+
+  Instructions& instructions() { return flow_graph.instructions_; }
+
+  FlowGraph& flow_graph;
 };
 
 class InstructionBuilder {
@@ -126,8 +136,8 @@ class FunctionBuilder {
     return *this;
   }
 
-  std::unique_ptr<FlowGraph> Build(TestCallGraph* call_graph,
-                                   Instruction::Cache* cache);
+  std::unique_ptr<FlowGraph> Build(CallGraph& call_graph,
+                                   Instruction::Cache& cache);
 
  private:
   friend class DiffBinaryBuilder;
@@ -145,7 +155,7 @@ struct DiffBinary {
   ~DiffBinary();
 
   Instruction::Cache* cache;
-  TestCallGraph call_graph;
+  CallGraph call_graph;
   FlowGraphs flow_graphs;
 };
 
@@ -157,7 +167,7 @@ class DiffBinaryBuilder {
     return *this;
   }
 
-  std::unique_ptr<DiffBinary> Build(Instruction::Cache* cache);
+  std::unique_ptr<DiffBinary> Build(Instruction::Cache& cache);
 
  private:
   std::vector<FunctionBuilder> functions_;
@@ -165,7 +175,7 @@ class DiffBinaryBuilder {
 
 class BinDiffTest : public ::testing::Test {
  protected:
-  // Sets up this test with BinDiff strutures corresponding to two simple
+  // Sets up this test with BinDiff structures corresponding to two simple
   // functions that are matched using "manual" matching.
   // This can be used in tests that just need simple BinDiff context ensure
   // basic functionality works.

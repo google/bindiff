@@ -121,8 +121,8 @@ void FunctionBuilder::InitInstructions() {
   }
 }
 
-std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
-                                                  Instruction::Cache* cache) {
+std::unique_ptr<FlowGraph> FunctionBuilder::Build(CallGraph& call_graph,
+                                                  Instruction::Cache& cache) {
   using Graph = FlowGraph::Graph;
   using VertexInfo = FlowGraph::VertexInfo;
   using EdgeInfo = FlowGraph::EdgeInfo;
@@ -131,7 +131,13 @@ std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
   std::vector<VertexInfo> vertices;
 
   InitInstructions();
-  auto flow_graph = absl::make_unique<TestFlowGraph>(call_graph, entry_point_);
+  std::unique_ptr<FlowGraph> flow_graph;
+  if (auto graph = FlowGraph::Create(call_graph, entry_point_); graph.ok()) {
+    flow_graph = std::move(*graph);
+  } else {
+    return nullptr;
+  }
+  FlowGraphPeer flow_graph_peer(*flow_graph);
 
   std::vector<std::pair<Graph::edges_size_type, Graph::edges_size_type>> edges;
   std::vector<EdgeInfo> properties;
@@ -145,9 +151,9 @@ std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
     labels[basic_block.label_] = label_id++;
     for (auto& instruction : basic_block.instructions_) {
       ++instruction_offset;
-      flow_graph->instructions_.emplace_back(cache, instruction.address_,
-                                             instruction.mnemonic_,
-                                             instruction.prime_);
+      flow_graph_peer.instructions().emplace_back(&cache, instruction.address_,
+                                                  instruction.mnemonic_,
+                                                  instruction.prime_);
       vertex->prime_ += instruction.prime_;
     }
   }
@@ -176,12 +182,12 @@ std::unique_ptr<FlowGraph> FunctionBuilder::Build(TestCallGraph* call_graph,
     graph[*it] = vertices[j];
   }
 
-  flow_graph->Init();
+  flow_graph_peer.Init();
   return flow_graph;
 }
 
 std::unique_ptr<DiffBinary> DiffBinaryBuilder::Build(
-    Instruction::Cache* cache) {
+    Instruction::Cache& cache) {
   using Graph = CallGraph::Graph;
   using EdgeInfo = CallGraph::EdgeInfo;
 
@@ -225,11 +231,12 @@ std::unique_ptr<DiffBinary> DiffBinaryBuilder::Build(
     vertex.address_ = func_it->entry_point_;
     vertex.name_ = std::move(func_it->name_);
   }
-  diff_binary->call_graph.Init();
+  CallGraphPeer call_graph_peer(diff_binary->call_graph);
+  call_graph_peer.Init();
 
   for (auto& function : functions_) {
     diff_binary->flow_graphs.insert(
-        function.Build(&diff_binary->call_graph, cache).release());
+        function.Build(diff_binary->call_graph, cache).release());
   }
   return diff_binary;
 }
@@ -257,7 +264,7 @@ void BinDiffTest::SetUpBasicFunctions() {
                             .SetFlow("loc_10005"),
                         BasicBlockBuilder("loc_10005")
                             .AddInstructions({InstructionBuilder("ret")})})})
-          .Build(&cache_);
+          .Build(cache_);
   secondary_ =
       DiffBinaryBuilder()
           .AddFunctions(
@@ -280,7 +287,7 @@ void BinDiffTest::SetUpBasicFunctions() {
                             .SetFlow("loc_20005"),
                         BasicBlockBuilder("loc_20005")
                             .AddInstructions({InstructionBuilder("ret")})})})
-          .Build(&cache_);
+          .Build(cache_);
 }
 
 void BinDiffTest::SetUpBasicFunctionMatch() {

@@ -89,21 +89,19 @@ using binexport::ToStringView;
 
 namespace {
 
-absl::Status ReadTemporaryFlowGraph(Address address,
-                                    const FlowGraphInfos& flow_graph_infos,
-                                    CallGraph* call_graph,
-                                    FlowGraph* flow_graph,
-                                    Instruction::Cache* instruction_cache) {
+absl::StatusOr<std::unique_ptr<FlowGraph>> ReadTemporaryFlowGraph(
+    Address address, const FlowGraphInfos& flow_graph_infos,
+    CallGraph& call_graph, Instruction::Cache& instruction_cache) {
   auto info = flow_graph_infos.find(address);
   if (info == flow_graph_infos.end()) {
     return absl::NotFoundError(absl::StrCat("Flow graph not found for address",
                                             FormatAddress(address)));
   }
-  std::ifstream stream(call_graph->GetFilePath(), std::ios::binary);
+  std::ifstream stream(call_graph.GetFilePath(), std::ios::binary);
   BinExport2 proto;
   if (!proto.ParseFromIstream(&stream)) {
     return absl::UnknownError(absl::StrCat(
-        "Failed parsing protocol buffer for ", call_graph->GetFilePath()));
+        "Failed parsing protocol buffer for ", call_graph.GetFilePath()));
   }
   for (const auto& proto_flow_graph : proto.flow_graph()) {
     // Entry point address is always set.
@@ -115,9 +113,11 @@ absl::Status ReadTemporaryFlowGraph(Address address,
                     .begin_index())
             .address();
     if (address == info->second.address) {
-      flow_graph->SetCallGraph(call_graph);
-      return flow_graph->Read(proto, proto_flow_graph, call_graph,
-                              instruction_cache);
+      ABSL_ASSIGN_OR_RETURN(
+          auto flow_graph, FlowGraph::FromProto(proto, proto_flow_graph,
+                                                call_graph, instruction_cache));
+      flow_graph->SetCallGraph(&call_graph);
+      return flow_graph;
     }
   }
   return absl::UnknownError(
@@ -824,25 +824,28 @@ absl::Status Results::AddMatch(Address primary, Address secondary) {
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed points.
     if (is_incomplete()) {
-      FlowGraph primary_graph;
-      FlowGraph secondary_graph;
       FixedPoint fixed_point;
-      SetupTemporaryFlowGraphs(fixed_point_info, primary_graph, secondary_graph,
-                               fixed_point, true);
+      std::unique_ptr<FlowGraph> primary_graph;
+      std::unique_ptr<FlowGraph> secondary_graph;
+      ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+          fixed_point_info, fixed_point, primary_graph, secondary_graph,
+          /*create_instruction_matches=*/true));
 
       Counts counts;
       Histogram histogram;
-      FlowGraphs dummy1;
-      dummy1.insert(&primary_graph);
-      FlowGraphs dummy2;
-      dummy2.insert(&secondary_graph);
-      FixedPoints dummy3;
-      dummy3.insert(fixed_point);
-      GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
+      FlowGraphs hist_flow_graphs_primary;
+      hist_flow_graphs_primary.insert(primary_graph.get());
+      FlowGraphs hist_flow_graphs_secondary;
+      hist_flow_graphs_secondary.insert(secondary_graph.get());
+      FixedPoints hist_fixed_points;
+      hist_fixed_points.insert(fixed_point);
+      GetCountsAndHistogram(hist_flow_graphs_primary,
+                            hist_flow_graphs_secondary, hist_fixed_points,
+                            &histogram, &counts);
 
       fixed_point.SetMatchingStep(MatchingStep::kFunctionManualName);
       fixed_point.SetSimilarity(GetSimilarityScore(
-          primary_graph, secondary_graph, histogram, counts));
+          *primary_graph, *secondary_graph, histogram, counts));
       ClassifyChanges(&fixed_point);
       fixed_point_info.basic_block_count =
           counts[Counts::kBasicBlockMatchesLibrary] +
@@ -1088,49 +1091,44 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   }
 }
 
-void Results::SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
-                                       FlowGraph& primary, FlowGraph& secondary,
-                                       FixedPoint& fixed_point,
-                                       bool create_instruction_matches) {
-  // TODO(cblichmann): Cache the temporary flow graphs. Comment porting should
-  //                   not need to re-parse the full BinExport2 for each match.
-  //                   In the BinExport1 format, it was necessary and efficient
-  //                   to it this way.
-  instruction_cache_.clear();
-  if (auto status =
-          ReadTemporaryFlowGraph(fixed_point_info.primary, flow_graph_infos1_,
-                                 &call_graph1_, &primary, &instruction_cache_);
-      !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
-  if (auto status = ReadTemporaryFlowGraph(fixed_point_info.secondary,
-                                           flow_graph_infos2_, &call_graph2_,
-                                           &secondary, &instruction_cache_);
-      !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
-  fixed_point.Create(&primary, &secondary);
+absl::Status Results::SetupTemporaryFlowGraphs(
+    const FixedPointInfo& fixed_point_info, FixedPoint& fixed_point,
+    std::unique_ptr<FlowGraph>& primary, std::unique_ptr<FlowGraph>& secondary,
+    bool create_instruction_matches) {
+  ABSL_ASSIGN_OR_RETURN(
+      primary,
+      ReadTemporaryFlowGraph(fixed_point_info.primary, flow_graph_infos1_,
+                             call_graph1_, instruction_cache_));
+  ABSL_ASSIGN_OR_RETURN(
+      secondary,
+      ReadTemporaryFlowGraph(fixed_point_info.secondary, flow_graph_infos2_,
+                             call_graph2_, instruction_cache_));
+
+  fixed_point.Create(primary.get(), secondary.get());
   MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
                           flow_graphs2_, fixed_points_);
   flow_graphs1_.clear();
-  flow_graphs1_.insert(&primary);
+  flow_graphs1_.insert(primary.get());
   flow_graphs2_.clear();
-  flow_graphs2_.insert(&secondary);
+  flow_graphs2_.insert(secondary.get());
   fixed_points_.clear();
   fixed_point.SetConfidence(fixed_point_info.confidence);
   fixed_point.SetSimilarity(fixed_point_info.similarity);
   fixed_point.SetFlags(fixed_point_info.flags);
   fixed_point.SetMatchingStep(*fixed_point_info.algorithm);
-  std::pair<FixedPoints::iterator, bool> fixed_point_it =
-      fixed_points_.insert(fixed_point);
-  primary.SetFixedPoint(const_cast<FixedPoint*>(&*fixed_point_it.first));
-  secondary.SetFixedPoint(const_cast<FixedPoint*>(&*fixed_point_it.first));
+
+  auto [it, inserted] = fixed_points_.insert(fixed_point);
+  primary->SetFixedPoint(const_cast<FixedPoint*>(&*it));
+  secondary->SetFixedPoint(const_cast<FixedPoint*>(&*it));
+
   if (create_instruction_matches) {
     FindFixedPointsBasicBlock(&fixed_point, &context,
                               GetDefaultMatchingStepsBasicBlock());
   } else {
     ReadBasicblockMatches(&fixed_point);
   }
+
+  return absl::OkStatus();
 }
 
 void Results::DeleteTemporaryFlowGraphs() {
@@ -1202,14 +1200,18 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   FlowGraphs flow_graphs1;
   FlowGraphs flow_graphs2;
   FixedPoints fixed_points;
-  FlowGraph primary;
-  FlowGraph secondary;
   if (is_incomplete()) {
     LOG(INFO) << "Loading incomplete flow graphs";
     // Results have been loaded: we need to reload flow graphs and recreate
     // basic block fixed_points.
-    SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary, fixed_point,
-                             /*create_instruction_matches=*/false);
+    std::unique_ptr<FlowGraph> primary;
+    std::unique_ptr<FlowGraph> secondary;
+    if (auto status = SetupTemporaryFlowGraphs(
+            fixed_point_info, fixed_point, primary, secondary,
+            /*create_instruction_matches=*/false);
+        !status.ok()) {
+      throw std::runtime_error(std::string(status.message()));
+    }
   } else {
     fixed_point = *FindFixedPoint(fixed_point_info);
   }
@@ -1363,14 +1365,13 @@ absl::Status Results::PortComments(Address start_address_source,
     for (auto* fixed_point_info : indexed_fixed_points_) {
       if (get_func(static_cast<ea_t>(fixed_point_info->primary))) {
         if (is_incomplete()) {
-          FlowGraph primary;
-          FlowGraph secondary;
           FixedPoint fixed_point;
-          SetupTemporaryFlowGraphs(*fixed_point_info, primary, secondary,
-                                   fixed_point,
-                                   /*create_instruction_matches=*/false);
-
-          SetComments(&fixed_point, call_graph2_.GetComments(),
+          std::unique_ptr<FlowGraph> primary;
+          std::unique_ptr<FlowGraph> secondary;
+          ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+              *fixed_point_info, fixed_point, primary, secondary,
+              /*create_instruction_matches=*/false));
+          SetComments(&fixed_point, call_graph2_.comments(),
                       start_address_target, end_address_target,
                       start_address_source, end_address_source, min_confidence,
                       min_similarity);
@@ -1378,7 +1379,7 @@ absl::Status Results::PortComments(Address start_address_source,
           DeleteTemporaryFlowGraphs();
         } else {
           SetComments(FindFixedPoint(*fixed_point_info),
-                      call_graph2_.GetComments(), start_address_target,
+                      call_graph2_.comments(), start_address_target,
                       end_address_target, start_address_source,
                       end_address_source, min_confidence, min_similarity);
         }
@@ -1417,26 +1418,25 @@ absl::Status Results::PortComments(absl::Span<const size_t> indices,
           function->flags |= FUNC_LIB;
         }
         if (is_incomplete()) {
-          FlowGraph primary;
-          FlowGraph secondary;
           FixedPoint fixed_point;
+          std::unique_ptr<FlowGraph> primary;
+          std::unique_ptr<FlowGraph> secondary;
           // TODO(cblichmann): See comment in SetupTemporaryFlowGraphs(), cache
           //                   the BinExport2.
-          SetupTemporaryFlowGraphs(fixed_point_info, primary, secondary,
-                                   fixed_point,
-                                   /*create_instruction_matches=*/false);
-
-          SetComments(&fixed_point, call_graph2_.GetComments(),
+          ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+              fixed_point_info, fixed_point, primary, secondary,
+              /*create_instruction_matches=*/false));
+          SetComments(&fixed_point, call_graph2_.comments(),
                       start_address_target, end_address_target,
                       start_address_source, end_address_source,
                       /*min_confidence=*/0.0, /*min_similarity=*/0.0);
 
           DeleteTemporaryFlowGraphs();
         } else {
-          SetComments(FindFixedPoint(fixed_point_info),
-                      call_graph2_.GetComments(), start_address_target,
-                      end_address_target, start_address_source,
-                      end_address_source, /*min_confidence=*/0.0,
+          SetComments(FindFixedPoint(fixed_point_info), call_graph2_.comments(),
+                      start_address_target, end_address_target,
+                      start_address_source, end_address_source,
+                      /*min_confidence=*/0.0,
                       /*min_similarity=*/0.0);
         }
       }

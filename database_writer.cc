@@ -94,17 +94,17 @@ absl::Status ReadInfos(const std::string& filename, CallGraph& call_graph,
   for (const auto& flow_graph_proto : proto.flow_graph()) {
     // Create an ephemeral FlowGraph instance to update the instruction cache
     // and to use it to parse the BinExport2 information.
-    FlowGraph flow_graph;
-    ABSL_RETURN_IF_ERROR(flow_graph.Read(proto, flow_graph_proto, &call_graph,
-                                         &instruction_cache));
+    ABSL_ASSIGN_OR_RETURN(std::unique_ptr<FlowGraph> flow_graph,
+                          FlowGraph::FromProto(proto, flow_graph_proto,
+                                               call_graph, instruction_cache));
 
     Counts counts;
-    Count(flow_graph, &counts);
-    Address address = flow_graph.GetEntryPointAddress();
+    Count(*flow_graph, &counts);
+    Address address = flow_graph->GetEntryPointAddress();
     FlowGraphInfo& info = flow_graph_infos[address];
     info.address = address;
-    info.name = &flow_graph.GetName();
-    info.demangled_name = &flow_graph.GetDemangledName();
+    info.name = &flow_graph->GetName();
+    info.demangled_name = &flow_graph->GetDemangledName();
     info.basic_block_count = counts[Counts::kBasicBlocksLibrary] +
                              counts[Counts::kBasicBlocksNonLibrary];
     info.edge_count =

@@ -102,19 +102,13 @@ absl::Status AddSubsToCallGraph(CallGraph* absl_nonnull call_graph,
   for (auto [it, end] = boost::vertices(call_graph->GetGraph()); it != end;
        ++it) {
     const CallGraph::Vertex vertex = *it;
-    const Address address = call_graph->GetAddress(vertex);
     if (call_graph->GetFlowGraph(vertex)) {
       continue;
     }
+    const Address address = call_graph->GetAddress(vertex);
 
-    std::unique_ptr<FlowGraph> flow_graph;
-    // Temporary try-catch block. A follow-up change will refactor to
-    // absl::StatusOr<std::unique_ptr<FlowGraph>>.
-    try {
-      flow_graph = std::make_unique<FlowGraph>(call_graph, address);
-    } catch (const std::runtime_error& e) {
-      return absl::FailedPreconditionError(e.what());
-    }
+    ABSL_ASSIGN_OR_RETURN(std::unique_ptr<FlowGraph> flow_graph,
+                          FlowGraph::Create(*call_graph, address));
     call_graph->SetStub(vertex, true);
     call_graph->SetLibrary(vertex, true);
     if (!flow_graphs->insert(flow_graph.release()).second) {
@@ -135,10 +129,10 @@ absl::Status SetupGraphsFromProto(
     if (proto_flow_graph.basic_block_index_size() == 0) {
       continue;
     }
-    auto flow_graph = std::make_unique<FlowGraph>();
-    ABSL_RETURN_IF_ERROR(flow_graph->Read(proto, proto_flow_graph, call_graph,
-                                          instruction_cache));
-
+    ABSL_ASSIGN_OR_RETURN(
+        std::unique_ptr<FlowGraph> flow_graph,
+        FlowGraph::FromProto(proto, proto_flow_graph, *call_graph,
+                             *instruction_cache));
     Counts counts;
     Count(*flow_graph, &counts);
 

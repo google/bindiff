@@ -18,6 +18,7 @@
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -80,15 +81,19 @@ class CallGraph {
   // A constant denoting a non-existent vertex.
   static constexpr Vertex kInvalidVertex = std::numeric_limits<Vertex>::max();
 
+  // Reads and initializes the call graph from "proto". "filename" is passed in
+  // and remembered for informational purposes only (we want to be able to
+  // construct default save filenames with it for example).
+  static absl::StatusOr<std::unique_ptr<CallGraph>> FromProto(
+    const BinExport2& proto, const std::string& filename);
+
+  // Like FromProto, but initializes an existing (possibly empty) call graph.
+  absl::Status Read(const BinExport2& proto, const std::string& filename);
+
   // Constructs an empty call graph.
   CallGraph() = default;
 
   virtual ~CallGraph() = default;
-
-  // Reads and initializes the call graph from "proto". "filename" is passed in
-  // and remembered for informational purposes only (we want to be able to
-  // construct default save filenames with it for example).
-  absl::Status Read(const BinExport2& proto, const std::string& filename);
 
   // Gets just the filename part (without path or extension) passed into Read().
   std::string GetFilename() const;
@@ -139,8 +144,9 @@ class CallGraph {
 
   // Associates the given flow graph with the corresponding call graph vertex.
   // The call graph will _not_ take ownership of the flow graph!
-  void AttachFlowGraph(FlowGraph* flow_graph);
-  void DetachFlowGraph(FlowGraph* flow_graph);
+  absl::Status AttachFlowGraph(FlowGraph& flow_graph);
+  absl::Status DetachFlowGraph(FlowGraph& flow_graph);
+
   // TODO(cblichmann): Remove!!!
   FlowGraph* GetFlowGraph(Address address) const;
   FlowGraph* GetFlowGraph(Vertex vertex) const {
@@ -200,8 +206,8 @@ class CallGraph {
 
   // Accesses comments. The call graph stores these globally even for operands
   // because we don't want to store them multiple times for shared basic blocks.
-  CommentsByOperatorId& GetComments() { return comments_; }
-  const CommentsByOperatorId& GetComments() const { return comments_; }
+  CommentsByOperatorId& comments() { return comments_; }
+  const CommentsByOperatorId& comments() const { return comments_; }
 
   // Reduces the graph to the immediate vicinity of "edge" and recalculates MD
   // indices on that subgraph. The idea is to become resilient against non-local
@@ -214,6 +220,8 @@ class CallGraph {
   void DeleteVertices(Address from, Address to);
 
  protected:
+  friend class CallGraphPeer;
+
   void Init();
   double CalculateProximityMdIndex(Edge edge);
 

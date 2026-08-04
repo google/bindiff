@@ -169,11 +169,15 @@ class Results {
       const IndexedFlowGraphs& flow_graphs, size_t index) const;
   void InitializeIndexedVectors();
   void Count();
-  void SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
-                                FlowGraph& primary, FlowGraph& secondary,
-                                FixedPoint& fixed_point,
-                                bool create_instruction_matches);
+
+  absl::Status SetupTemporaryFlowGraphs(const FixedPointInfo& fixed_point_info,
+                                        FixedPoint& fixed_point,
+                                        std::unique_ptr<FlowGraph>& primary,
+                                        std::unique_ptr<FlowGraph>& secondary,
+                                        bool create_instruction_matches);
+
   void DeleteTemporaryFlowGraphs();
+
   FixedPoint* FindFixedPoint(const FixedPointInfo& info);
   void ReadBasicblockMatches(FixedPoint* fixed_point);
   void MarkPortedCommentsInTempDatabase();

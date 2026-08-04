@@ -17,7 +17,6 @@
 #include <boost/graph/compressed_sparse_row_graph.hpp>  // NOLINT
 #include <limits>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -60,21 +59,13 @@ TEST(EmptyCallGraphTest, Construction) {
   call_graph.SetMdIndex(47.0);
   EXPECT_THAT(call_graph.GetMdIndex(), Eq(47.0));
 
-  EXPECT_THAT(call_graph.GetComments(), IsEmpty());
-}
-
-TEST(EmptyCallGraphTest, AddOrRemoveNullFlowGraphThrows) {
-  CallGraph call_graph;  // Empty
-
-  EXPECT_THROW(call_graph.AttachFlowGraph(nullptr), std::runtime_error);
-  EXPECT_THROW(call_graph.DetachFlowGraph(nullptr), std::runtime_error);
+  EXPECT_THAT(call_graph.comments(), IsEmpty());
 }
 
 TEST(EmptyCallGraphDeathTest, QueryingVerticesCrashes) {
   CallGraph call_graph;  // Empty
 
-  // These should fail in all builds
-  // TODO(cblichmann): Implement bound checks in debug mode.
+  // These should fail in all builds.
   EXPECT_DEATH_IF_SUPPORTED(call_graph.GetAddress(CallGraph::kInvalidVertex),
                             "");
   EXPECT_DEATH_IF_SUPPORTED(call_graph.GetMdIndex(CallGraph::kInvalidVertex),
@@ -84,21 +75,19 @@ TEST(EmptyCallGraphDeathTest, QueryingVerticesCrashes) {
 }
 
 TEST(EmptyCallGraphTest, CrossPlatformFileBasenames) {
-  class CallGraphForTesting : public CallGraph {
-   public:
-    void set_filename(std::string value) { filename_ = std::move(value); }
-  } call_graph;  // Empty
+  CallGraph call_graph;  // Empty
+  CallGraphPeer call_graph_peer(call_graph);
 
   // Plain filename
-  call_graph.set_filename("primary.v1.test.exe");
+  call_graph_peer.set_filename("primary.v1.test.exe");
   EXPECT_THAT(call_graph.GetFilename(), StrEq("primary.v1.test"));
 
   // Windows style
-  call_graph.set_filename(R"(C:\TEMP\RE.project\primary.v1.test.exe)");
+  call_graph_peer.set_filename(R"(C:\TEMP\RE.project\primary.v1.test.exe)");
   EXPECT_THAT(call_graph.GetFilename(), StrEq("primary.v1.test"));
 
   // Posix style
-  call_graph.set_filename(R"(/tmp/RE.project/primary.v1.test.exe)");
+  call_graph_peer.set_filename(R"(/tmp/RE.project/primary.v1.test.exe)");
   EXPECT_THAT(call_graph.GetFilename(), StrEq("primary.v1.test"));
 }
 
@@ -133,7 +122,7 @@ class SimpleCallGraphTest : public ::testing::Test {
                                      {InstructionBuilder("call func_a")
                                           .SetCallsFunction("func_a"),
                                       InstructionBuilder("ret")})})})
-                    .Build(&cache_)),
+                    .Build(cache_)),
         call_graph_(binary_->call_graph) {}
 
   Instruction::Cache cache_;

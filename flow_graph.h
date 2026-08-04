@@ -19,12 +19,14 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/graph_util.h"
 #include "third_party/zynamics/bindiff/instruction.h"
@@ -35,8 +37,6 @@ namespace security::bindiff {
 
 class FixedPoint;
 class BasicBlockFixedPoint;
-
-bool IsSorted(const std::vector<Address>& addresses);
 
 class FlowGraph {
  public:
@@ -91,17 +91,25 @@ class FlowGraph {
     // The lower bits are used to indicate matching steps.
   };
 
-  FlowGraph();
-  FlowGraph(CallGraph* call_graph, Address entry_point);
-  virtual ~FlowGraph();
+  static absl::StatusOr<std::unique_ptr<FlowGraph>> Create(
+      CallGraph& call_graph, Address entry_point);
 
-  // Read and initialize flow graph from given proto message. The instruction
+  // Reads and initializes flow graph from given proto message. The instruction
   // cache should be shared between flow graphs and stores mnemonic strings and
   // operand trees.
-  absl::Status Read(const BinExport2& proto,
-                    const BinExport2::FlowGraph& proto_flow_graph,
-                    CallGraph* call_graph,
-                    Instruction::Cache* instruction_cache);
+  static absl::StatusOr<std::unique_ptr<FlowGraph>> FromProto(
+      const BinExport2& proto, const BinExport2::FlowGraph& proto_flow_graph,
+      CallGraph& call_graph, Instruction::Cache& instruction_cache);
+
+  FlowGraph() = default;
+
+  FlowGraph(const FlowGraph&) = delete;
+  FlowGraph& operator=(const FlowGraph&) = delete;
+
+  FlowGraph(FlowGraph&&) = delete;
+  FlowGraph& operator=(FlowGraph&&) = delete;
+
+  virtual ~FlowGraph();
 
   // O(logn) binary search for the vertex (==basic block) starting at "address".
   Vertex GetVertex(Address address) const;
@@ -232,23 +240,25 @@ class FlowGraph {
  protected:
   using AddressToLevelMap = std::vector<std::pair<Address, Level>>;
 
+  friend class FlowGraphPeer;
+
   void Init();
   void MarkLoops();
 
   Graph graph_;
   AddressToLevelMap level_for_call_;
-  CallGraph* call_graph_;
+  CallGraph* call_graph_ = nullptr;
   CallGraph::Vertex call_graph_vertex_;
-  double md_index_;
-  double md_index_inverted_;
-  Address entry_point_address_;
-  FixedPoint* fixed_point_;
-  uint64_t prime_;
-  uint32_t byte_hash_;
-  uint32_t string_references_;
+  double md_index_ = 0.0;
+  double md_index_inverted_ = 0.0;
+  Address entry_point_address_ = 0;
+  FixedPoint* fixed_point_ = nullptr;
+  uint64_t prime_ = 0;
+  uint32_t byte_hash_ = 1;
+  uint32_t string_references_ = 1;
   Instructions instructions_;
   CallTargets call_targets_;
-  uint16_t num_loops_;
+  uint16_t num_loops_ = 0;
 };
 
 struct SortByAddress {

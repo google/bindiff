@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <iterator>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <string>
 #include <utility>
@@ -32,6 +33,8 @@
 #include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
+#include "third_party/absl/status/status_macros.h"
+#include "third_party/absl/status/statusor.h"
 #include "third_party/absl/strings/str_cat.h"
 #include "third_party/zynamics/bindiff/call_graph.h"
 #include "third_party/zynamics/bindiff/comment.h"
@@ -47,8 +50,8 @@
 
 namespace security::bindiff {
 
-using binexport::FormatAddress;
-using binexport::GetInstructionAddress;
+using ::security::binexport::FormatAddress;
+using ::security::binexport::GetInstructionAddress;
 
 namespace {
 
@@ -98,46 +101,23 @@ FlowGraph::Vertex FindVertex(const std::vector<Address>& addresses,
   return FlowGraph::Vertex(std::distance(addresses.begin(), it));
 }
 
-FlowGraph::FlowGraph(CallGraph* call_graph, Address entry_point)
-    : graph_(),
-      level_for_call_(),
-      call_graph_(call_graph),
-      call_graph_vertex_(call_graph->GetVertex(entry_point)),
-      md_index_(0),
-      md_index_inverted_(0),
-      entry_point_address_(entry_point),
-      fixed_point_(0),
-      prime_(0),
-      byte_hash_(1),
-      string_references_(1),
-      instructions_(),
-      call_targets_(),
-      num_loops_(0) {
-  call_graph_->AttachFlowGraph(this);
+// We ned to mutate call_graph, so we can't make it const here.
+absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::Create(
+    CallGraph& call_graph, Address entry_point) {
+  auto flow_graph = std::make_unique<FlowGraph>();
+  flow_graph->call_graph_ = &call_graph;
+  flow_graph->call_graph_vertex_ = call_graph.GetVertex(entry_point);
+  flow_graph->entry_point_address_ = entry_point;
+  ABSL_RETURN_IF_ERROR(call_graph.AttachFlowGraph(*flow_graph));
+  return flow_graph;
 }
-
-// instruction_cache needs to be passed in (it used to be a static member)
-// because otherwise flow graphs wouldn't be thread safe. The cache has to
-// be a thread local object.
-FlowGraph::FlowGraph()
-    : graph_(),
-      level_for_call_(),
-      call_graph_(),
-      call_graph_vertex_(0),
-      md_index_(0),
-      md_index_inverted_(0),
-      entry_point_address_(0),
-      fixed_point_(0),
-      prime_(0),
-      byte_hash_(1),
-      string_references_(1),
-      instructions_(),
-      call_targets_(),
-      num_loops_(0) {}
 
 FlowGraph::~FlowGraph() {
   if (call_graph_) {
-    call_graph_->DetachFlowGraph(this);
+    if (absl::Status status = call_graph_->DetachFlowGraph(*this);
+        !status.ok()) {
+      LOG(ERROR) << status;
+    }
   }
 }
 
@@ -226,26 +206,30 @@ int GetInternalCommentOperandNum(int operand_num, Comment::Type type,
   return operand_num;
 }
 
-absl::Status FlowGraph::Read(const BinExport2& proto,
-                             const BinExport2::FlowGraph& proto_flow_graph,
-                             CallGraph* call_graph,
-                             Instruction::Cache* instruction_cache) {
-  entry_point_address_ =
-      proto
-          .instruction(
-              proto.basic_block(proto_flow_graph.entry_basic_block_index())
-                  .instruction_index(0)
-                  .begin_index())
-          .address();
-  call_graph_ = call_graph;
-  call_graph_->AttachFlowGraph(this);
-  call_graph_vertex_ = call_graph_->GetVertex(entry_point_address_);
+// instruction_cache needs to be passed in because otherwise flow graphs
+// wouldn't be thread safe. The cache has to be a thread local object.
+absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
+    const BinExport2& proto, const BinExport2::FlowGraph& proto_flow_graph,
+    CallGraph& call_graph, Instruction::Cache& instruction_cache) {
+  ABSL_ASSIGN_OR_RETURN(
+      auto flow_graph,
+      FlowGraph::Create(
+          call_graph,
+          proto
+              .instruction(
+                  proto.basic_block(proto_flow_graph.entry_basic_block_index())
+                      .instruction_index(0)
+                      .begin_index())
+              .address()));
 
-  prime_ = 0;  // Sum of basic block primes.
+  flow_graph->call_graph_vertex_ =
+      call_graph.GetVertex(flow_graph->entry_point_address_);
 
-  // TODO(cblichmann): We don't export string references yet (BinDetego doesn't
+  flow_graph->prime_ = 0;  // Sum of basic block primes.
+
+  // TODO(cblichmann): We don't export string references (BinDetego doesn't
   //                   have them, only the IDA plugin).
-  string_references_ = 1;
+  flow_graph->string_references_ = 1;
 
   Address computed_instruction_address = 0;
   int last_instruction_index = 0;
@@ -253,7 +237,7 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
   std::vector<VertexInfo> temp_vertices(
       proto_flow_graph.basic_block_index_size());
   std::vector<Address> temp_addresses(temp_vertices.size());
-  auto& comments = call_graph_->GetComments();
+  auto& comments = call_graph.comments();
   for (int basic_block_index = 0;
        basic_block_index < proto_flow_graph.basic_block_index_size();
        ++basic_block_index) {
@@ -262,7 +246,7 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
     std::string basic_block_bytes;
 
     VertexInfo& vertex_info(temp_vertices[basic_block_index]);
-    vertex_info.instruction_start_ = instructions_.size();
+    vertex_info.instruction_start_ = flow_graph->instructions_.size();
     vertex_info.prime_ = 0;        // Sum of instruction primes.
     vertex_info.fixed_point_ = 0;  // Not a fixed point yet...
 
@@ -301,17 +285,18 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
             proto.mnemonic(proto_instruction.mnemonic_index()).name());
         const uint32_t instruction_prime = bindiff::GetPrime(mnemonic);
         vertex_info.prime_ += instruction_prime;
-        instructions_.emplace_back(instruction_cache, instruction_address,
-                                   mnemonic, instruction_prime);
+        flow_graph->instructions_.emplace_back(&instruction_cache,
+                                               instruction_address, mnemonic,
+                                               instruction_prime);
         basic_block_bytes += proto_instruction.raw_bytes();
 
         if (proto_instruction.call_target_size() > 0 &&
             vertex_info.call_target_start_ ==
                 std::numeric_limits<uint32_t>::max()) {
-          vertex_info.call_target_start_ = call_targets_.size();
+          vertex_info.call_target_start_ = flow_graph->call_targets_.size();
         }
         for (int i = 0; i < proto_instruction.call_target_size(); ++i) {
-          call_targets_.push_back(proto_instruction.call_target(i));
+          flow_graph->call_targets_.push_back(proto_instruction.call_target(i));
         }
 
         for (const auto& comment_index : proto_instruction.comment_index()) {
@@ -333,13 +318,13 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
     }
 
     temp_addresses[basic_block_index] =
-        instructions_[vertex_info.instruction_start_].GetAddress();
-    prime_ += vertex_info.prime_;
+        flow_graph->instructions_[vertex_info.instruction_start_].GetAddress();
+    flow_graph->prime_ += vertex_info.prime_;
     vertex_info.basic_block_hash_ = GetSdbmHash(basic_block_bytes);
     function_bytes += basic_block_bytes;
   }
 
-  byte_hash_ = GetSdbmHash(function_bytes);
+  flow_graph->byte_hash_ = GetSdbmHash(function_bytes);
 
   if (!std::is_sorted(temp_addresses.begin(), temp_addresses.end())) {
     return absl::FailedPreconditionError("Basic blocks not sorted by address");
@@ -367,27 +352,28 @@ absl::Status FlowGraph::Read(const BinExport2& proto,
   // This leaves prime, byte hash etc unaffected. It's debatable whether that is
   // good or bad. It doesn't reflect the current reality of the loaded graph
   // after truncation, but it does reflect the actual disassembly.
-  if (instructions_.size() >= kMaxFunctionInstructions ||
+  if (flow_graph->instructions_.size() >= kMaxFunctionInstructions ||
       edges.size() >= kMaxFunctionEdges ||
       temp_addresses.size() >= kMaxFunctionBasicBlocks) {
     LOG(WARNING) << absl::StrCat(
-        "Function ", FormatAddress(entry_point_address_),
+        "Function ", FormatAddress(flow_graph->entry_point_address_),
         " is excessively large: ", temp_addresses.size(), " basic blocks, ",
-        edges.size(), " edges, ", instructions_.size(),
+        edges.size(), " edges, ", flow_graph->instructions_.size(),
         " instructions. Discarding.");
   } else {
     Graph temp_graph(boost::edges_are_unsorted_multi_pass, edges.begin(),
                      edges.end(), edge_properties.begin(),
                      temp_addresses.size());
-    std::swap(graph_, temp_graph);
+    std::swap(flow_graph->graph_, temp_graph);
 
     int j = 0;
-    for (auto [it, end] = boost::vertices(graph_); it != end; ++it, ++j)
-      graph_[*it] = temp_vertices[j];
+    for (auto [it, end] = boost::vertices(flow_graph->graph_); it != end;
+         ++it, ++j)
+      flow_graph->graph_[*it] = temp_vertices[j];
   }
 
-  Init();
-  return absl::OkStatus();
+  flow_graph->Init();
+  return flow_graph;
 }
 
 void FlowGraph::Init() {

@@ -20,11 +20,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <numeric>
-#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "third_party/absl/log/check.h"
 #include "third_party/absl/log/log.h"
 #include "third_party/absl/status/status.h"
 #include "third_party/absl/strings/str_cat.h"
@@ -173,45 +173,42 @@ absl::Status CallGraph::Read(const BinExport2& proto,
   return absl::OkStatus();
 }
 
-void CallGraph::AttachFlowGraph(FlowGraph* flow_graph) {
-  if (!flow_graph) {
-    throw std::runtime_error(
-        "AttachFlowGraph: invalid flow graph (null pointer)");
-  }
-
-  auto entry_point_address = flow_graph->GetEntryPointAddress();
+absl::Status CallGraph::AttachFlowGraph(FlowGraph& flow_graph) {
+  auto entry_point_address = flow_graph.GetEntryPointAddress();
   auto vertex = GetVertex(entry_point_address);
   if (vertex == kInvalidVertex) {
-    throw std::runtime_error(absl::StrCat(
-        "AttachFlowGraph: couldn't find call graph node for flow graph ",
-        FormatAddress(entry_point_address)));
+    return absl::FailedPreconditionError(
+        absl::StrCat("AttachFlowGraph: couldn't find call graph node for flow "
+                     "graph ",
+                     FormatAddress(entry_point_address)));
   }
 
   if (graph_[vertex].flow_graph_ != nullptr) {
-    throw std::runtime_error(
+    return absl::FailedPreconditionError(
         absl::StrCat("AttachFlowGraph: flow graph already attached ",
                      FormatAddress(entry_point_address)));
   }
 
-  graph_[vertex].flow_graph_ = flow_graph;
-  flow_graph->SetCallGraph(this);
+  graph_[vertex].flow_graph_ = &flow_graph;
+  flow_graph.SetCallGraph(this);
+  return absl::OkStatus();
 }
 
-void CallGraph::DetachFlowGraph(FlowGraph* flow_graph) {
-  if (!flow_graph || flow_graph->GetCallGraph() != this) {
-    throw std::runtime_error("DetachFlowGraph: invalid graph");
+absl::Status CallGraph::DetachFlowGraph(FlowGraph& flow_graph) {
+  if (flow_graph.GetCallGraph() != this) {
+    return absl::InternalError("DetachFlowGraph: invalid graph");
   }
 
-  auto entry_point_address = flow_graph->GetEntryPointAddress();
-  auto vertex = GetVertex(entry_point_address);
-  if (vertex == kInvalidVertex) {
+  auto entry_point_address = flow_graph.GetEntryPointAddress();
+  if (auto vertex = GetVertex(entry_point_address); vertex == kInvalidVertex) {
     LOG(INFO) << absl::StrCat(
         "DetachFlowGraph: couldn't find call graph node for flow graph ",
         FormatAddress(entry_point_address));
   } else {
     graph_[vertex].flow_graph_ = nullptr;
   }
-  flow_graph->SetCallGraph(nullptr);
+  flow_graph.SetCallGraph(nullptr);
+  return absl::OkStatus();
 }
 
 CallGraph::Vertex CallGraph::GetVertex(Address address) const {
