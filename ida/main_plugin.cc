@@ -202,24 +202,6 @@ absl::StatusOr<bool> ExportIdbs() {
         "files.");
   }
 
-#ifndef __EA64__
-  // This can only happen with a primary IDA Pro instance that is not 64-bit
-  // address aware.
-  if (absl::AsciiStrToUpper(GetFileExtension(primary_idb_path)) == ".IDB" &&
-      absl::AsciiStrToUpper(GetFileExtension(secondary_idb_path)) == ".I64") {
-    if (ask_yn(ASKBTN_YES,
-               "Warning: You requested to diff a 32-bit binary vs. a 64-bit "
-               "binary.\n"
-               "If the 64-bit binary contains addresses outside the 32-bit "
-               "range they will be truncated.\n"
-               "To fix this problem please start 64-bit aware IDA and diff "
-               "the other way around, i.e. 64-bit vs. 32-bit.\n"
-               "Continue anyways?") != ASKBTN_YES) {
-      return false;
-    }
-  }
-#endif
-
   LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
             << Basename(secondary_idb_path);
   WaitBox wait_box("Exporting idbs...");
