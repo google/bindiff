@@ -18,16 +18,16 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
-#include <exception>
 #include <limits>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <thread>  // NOLINT(build/c++11)
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 // clang-format off
+#include "third_party/absl/cleanup/cleanup.h"
 #include "third_party/zynamics/binexport/ida/begin_idasdk.inc"  // NOLINT
 #include <bytes.hpp>                                            // NOLINT
 #include <diskio.hpp>                                           // NOLINT
@@ -117,6 +117,28 @@ std::string GetLogFilename(const bindiff::Config& config,
   }
   return JoinPath(log_dir, basename);
 }
+
+template <typename T>
+struct ShowWarningAndReturn {
+  typename std::conditional_t<std::is_void_v<T>, int, T> value;
+  std::string message_prefix;
+
+  T operator()(const absl::Status& status) && {
+    std::string error_message;
+    if (!message_prefix.empty()) {
+      absl::StrAppend(&error_message, message_prefix, ": ");
+    }
+    absl::StrAppend(&error_message, status.message());
+
+    LOG(INFO) << error_message;
+    warning("%s\n", error_message.c_str());
+    if constexpr (std::is_void_v<T>) {
+      return;
+    } else {
+      return value;
+    }
+  }
+};
 
 bool DoSaveResults();
 
@@ -257,32 +279,19 @@ void Plugin::VisualDiff(uint32_t index, bool call_graph_diff) {
   if (!results_) {
     return;
   }
-  try {
-    std::string message;
-    const bool result =
-        !call_graph_diff
-            ? results_->PrepareVisualDiff(index, &message)
-            : results_->PrepareVisualCallGraphDiff(index, &message);
-    if (!result) {
-      return;
-    }
 
-    LOG(INFO) << "Sending result to BinDiff GUI...";
-    if (absl::Status status = SendGuiMessage(config::Proto(), message, [] {});
-        !status.ok()) {
-      const std::string error_message = absl::StrCat(
-          "Cannot launch BinDiff user interface. Process creation failed: ",
-          status.message());
-      LOG(INFO) << error_message;
-      warning("%s\n", error_message.c_str());
-    }
-  } catch (const std::runtime_error& error_message) {
-    LOG(INFO) << "Error while calling BinDiff UI: " << error_message.what();
-    warning("Error while calling BinDiff UI: %s\n", error_message.what());
-  } catch (...) {
-    LOG(INFO) << "Unknown error while calling BinDiff UI";
-    warning("Unknown error while calling BinDiff UI\n");
-  }
+  ABSL_ASSIGN_OR_RETURN(
+      std::string message,
+      call_graph_diff ? results_->PrepareVisualCallGraphDiff(index)
+                      : results_->PrepareVisualDiff(index),
+      _.With(ShowWarningAndReturn<void>{.message_prefix =
+                                            "Error while calling BinDiff UI"}));
+
+  LOG(INFO) << "Sending result to BinDiff GUI...";
+  ABSL_RETURN_IF_ERROR(SendGuiMessage(config::Proto(), message, [] {}))
+      .With(ShowWarningAndReturn<void>{
+          .message_prefix = "Cannot launch BinDiff user interface. Process "
+                            "creation failed"});
 }
 
 bool Plugin::DiscardResults(Plugin::DiscardResultsKind kind) {
@@ -291,12 +300,12 @@ bool Plugin::DiscardResults(Plugin::DiscardResultsKind kind) {
   }
 
   if (kind != DiscardResultsKind::kDontSave && results_->is_modified()) {
-    const auto answer =
-        ask_yn(ASKBTN_YES,
-               "%sCurrent diff results have not been"
-               " saved - save before closing?",
-               kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
-    if (answer == ASKBTN_YES) {
+    if (int answer =
+            ask_yn(ASKBTN_YES,
+                   "%sCurrent diff results have not been"
+                   " saved - save before closing?",
+                   kind == DiscardResultsKind::kAskSave ? "HIDECANCEL\n" : "");
+        answer == ASKBTN_YES) {
       DoSaveResults();
     } else if (answer == ASKBTN_CANCEL) {
       return false;
@@ -532,17 +541,12 @@ bool DoDiffDatabase(bool filtered) {
     }
   }
 
-  absl::StatusOr<bool> diffed =
+  ABSL_ASSIGN_OR_RETURN(
+      bool diffed,
       DiffAddressRange(start_address_source, end_address_source,
-                       start_address_target, end_address_target);
-  if (!diffed.ok()) {
-    const std::string error_message =
-        absl::StrCat("Error while diffing: ", diffed.status().message());
-    LOG(INFO) << error_message;
-    warning("%s\n", error_message.c_str());
-    return false;
-  }
-  return *diffed;
+                       start_address_target, end_address_target),
+      _.With(ShowWarningAndReturn<bool>{false, "Error while diffing"}));
+  return diffed;
 }
 
 bool DoPortComments() {
@@ -699,21 +703,19 @@ bool DoSaveResultsLog() {
   const std::string default_filename =
       absl::StrCat(results->call_graph1_.GetFilename(), "_vs_",
                    results->call_graph2_.GetFilename(), ".results");
-  absl::StatusOr<std::string> filename =
+  ABSL_ASSIGN_OR_RETURN(
+      std::string filename,
       GetSaveFilename("Save Log As", default_filename,
                       {{"BinDiff Result Log files", "*.results"},
-                       {"All files", kAllFilesFilter}});
-  if (!filename.ok()) {
-    return false;
-  }
+                       {"All files", kAllFilesFilter}}),
+      _.With(ShowWarningAndReturn<bool>{false}));
 
   WaitBox wait_box("Writing results...");
   Timer<> timer;
   LOG(INFO) << "Writing to log...";
-  ResultsLogWriter writer(*filename);
-  if (absl::Status status = results->Write(&writer); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+  ResultsLogWriter writer(filename);
+  ABSL_RETURN_IF_ERROR(results->Write(&writer))
+      .With(ShowWarningAndReturn<bool>{false});
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                             ")");
   return true;
@@ -735,9 +737,12 @@ bool DoSaveResults() {
       GetSaveFilename("Save Results As", default_filename,
                       {{"BinDiff Result files", "*.BinDiff"},
                        {"BinDiff Groundtruth files", "*.truth"}});
-  if (!filename.ok()) {
+  if (absl::IsCancelled(filename.status()) ||
+      absl::IsAlreadyExists(filename.status())) {
     return false;
   }
+  ABSL_RETURN_IF_ERROR(filename.status())
+      .With(ShowWarningAndReturn<bool>{false});
 
   WaitBox wait_box("Writing results...");
   Timer<> timer;
@@ -749,13 +754,8 @@ bool DoSaveResults() {
     status = WriteResults(*filename);
   }
 
-  if (!status.ok()) {
-    std::string error_message =
-        absl::StrCat("Error writing results: ", status.message());
-    LOG(INFO) << error_message;
-    warning("%s\n", error_message.c_str());
-    return false;
-  }
+  ABSL_RETURN_IF_ERROR(status).With(
+      ShowWarningAndReturn<bool>{false, "Error writing results"});
 
   LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
                             ")");
@@ -768,101 +768,90 @@ absl::Status Plugin::ClearResults() {
 }
 
 bool Plugin::LoadResults() {
-  try {
-    if (results_ && results_->is_modified()) {
-      const int answer = ask_yn(
-          ASKBTN_YES,
-          "Current diff results have not been saved - save before closing?");
-      if (answer == 1) {  // yes
-        DoSaveResults();
-      } else if (answer == -1) {  // cancel
-        return false;
-      }
-    }
-
-    absl::StatusOr<std::string> filename =
-        GetOpenFilename("Load Results", "*.BinDiff",
-                        {{"BinDiff Result files", "*.BinDiff"},
-                         {"All files", kAllFilesFilter}});
-    if (!filename.ok()) {
+  if (results_ && results_->is_modified()) {
+    if (int answer = ask_yn(ASKBTN_YES,
+                            "Current diff results have not been saved - save "
+                            "before closing?");
+        answer == ASKBTN_YES) {
+      DoSaveResults();
+    } else if (answer == ASKBTN_CANCEL) {
       return false;
     }
-
-    LOG(INFO) << "Loading results...";
-    WaitBox wait_box("Loading results...");
-    Timer<> timer;
-
-    auto temp_dir = GetOrCreateTempDirectory("BinDiff");
-    if (!temp_dir.ok()) {
-      throw std::runtime_error(std::string(temp_dir.status().message()));
-    }
-
-    auto database = SqliteDatabase::Connect(*filename);
-    if (!database.ok()) {
-      throw std::runtime_error(std::string(database.status().message()));
-    }
-    DatabaseReader reader(*database, *filename, *temp_dir);
-    auto status = ClearResults();
-    if (!status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-    results_->Read(&reader);
-
-    auto sha256_or = GetInputFileSha256();
-    status = sha256_or.status();
-    std::string this_hash;
-    if (status.ok()) {
-      this_hash = std::move(sha256_or).value();
-    } else {
-      auto md5_or = GetInputFileMd5();
-      status = md5_or.status();
-      if (status.ok()) {
-        this_hash = std::move(md5_or).value();
-      }
-    }
-    if (this_hash.empty()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-    if (this_hash !=
-        absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
-      const std::string result_primary_hash =
-          results_->call_graph1_.GetExeHash();
-      const std::string result_primary_filename =
-          results_->call_graph1_.GetExeFilename();
-      LOG(INFO) << "The original file hash from the database that is currently "
-                   "loaded is different";
-      LOG(INFO) << "from the primary one in the result file:";
-      LOG(INFO) << "  " << this_hash << " (this IDB)";
-      LOG(INFO) << "  " << result_primary_hash << " ("
-                << result_primary_filename << ", to be loaded)";
-      if (ask_buttons("Continue", "Cancel", "", ASKBTN_BTN1,
-                      "HIDECANCEL\n"
-                      "The original file hash from the database that is "
-                      "currently loaded is different\n"
-                      "from the primary one in the result file:\n"
-                      "  %s (this IDB)\n"
-                      "  %s (%s, to be loaded)\n\n"
-                      "If you continue, the results will likely be inaccurate.",
-                      this_hash.c_str(), result_primary_hash.c_str(),
-                      result_primary_filename.c_str()) != ASKBTN_BTN1) {
-        return false;
-      }
-    }
-
-    ShowResults(kResultsShowAll);
-
-    LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
-                              ")");
-    return true;
-  } catch (const std::exception& error_message) {
-    LOG(INFO) << "Error loading results: " << error_message.what();
-    warning("Error loading results: %s\n", error_message.what());
-  } catch (...) {
-    LOG(INFO) << "Error loading results.";
-    warning("Error loading results.");
   }
-  results_.reset();
-  return false;
+
+  absl::StatusOr<std::string> filename = GetOpenFilename(
+      "Load Results", "*.BinDiff",
+      {{"BinDiff Result files", "*.BinDiff"}, {"All files", kAllFilesFilter}});
+  if (absl::IsCancelled(filename.status())) {
+    return false;
+  }
+  ABSL_RETURN_IF_ERROR(filename.status())
+      .With(ShowWarningAndReturn<bool>{false});
+
+  LOG(INFO) << "Loading results...";
+  WaitBox wait_box("Loading results...");
+  Timer<> timer;
+
+  ABSL_ASSIGN_OR_RETURN(std::string temp_dir,
+                        GetOrCreateTempDirectory("BinDiff"),
+                        _.With(ShowWarningAndReturn<bool>{false}));
+
+  ABSL_ASSIGN_OR_RETURN(auto database, SqliteDatabase::Connect(*filename),
+                        _.With(ShowWarningAndReturn<bool>{false}));
+  DatabaseReader reader(database, *filename, temp_dir);
+  ABSL_RETURN_IF_ERROR(ClearResults())
+      .With(ShowWarningAndReturn<bool>{false, "Error loading results"});
+
+  absl::Cleanup results_cleanup = [this] { results_.reset(); };
+
+  ABSL_RETURN_IF_ERROR(results_->Read(&reader))
+      .With(ShowWarningAndReturn<bool>{false, "Error loading results"});
+
+  std::string this_hash;
+  if (absl::StatusOr<std::string> sha256 = GetInputFileSha256(); sha256.ok()) {
+    this_hash = *std::move(sha256);
+    // TODO(cblichmann): Check if IDA 9.x even keeps MD5 in databases.
+  } else if (absl::StatusOr<std::string> md5 = GetInputFileMd5(); md5.ok()) {
+    this_hash = *std::move(md5);
+  } else {
+    const std::string error_message =
+        "Error loading results: Failed to load SHA256 or MD5 hash of input "
+        "file";
+    LOG(INFO) << error_message;
+    warning("%s\n", error_message.c_str());
+    return false;
+  }
+  if (this_hash != absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
+    const std::string result_primary_hash = results_->call_graph1_.GetExeHash();
+    const std::string result_primary_filename =
+        results_->call_graph1_.GetExeFilename();
+    LOG(INFO) << "The original file hash from the database that is currently "
+                 "loaded is different";
+    LOG(INFO) << "from the primary one in the result file:";
+    LOG(INFO) << "  " << this_hash << " (this IDB)";
+    LOG(INFO) << "  " << result_primary_hash << " (" << result_primary_filename
+              << ", to be loaded)";
+    if (ask_buttons("Continue", "Cancel", "", ASKBTN_BTN1,
+                    "HIDECANCEL\n"
+                    "The original file hash from the database that is "
+                    "currently loaded is different\n"
+                    "from the primary one in the result file:\n"
+                    "  %s (this IDB)\n"
+                    "  %s (%s, to be loaded)\n\n"
+                    "If you continue, the results will likely be inaccurate.",
+                    this_hash.c_str(), result_primary_hash.c_str(),
+                    result_primary_filename.c_str()) !=
+        ASKBTN_BTN1 /* Continue */) {
+      return false;
+    }
+  }
+
+  ShowResults(kResultsShowAll);
+  std::move(results_cleanup).Cancel();
+
+  LOG(INFO) << absl::StrCat("done (", HumanReadableDuration(timer.elapsed()),
+                            ")");
+  return true;
 }
 
 void idaapi ButtonDiffDatabaseCallback(int /* button_code */,
@@ -1384,12 +1373,9 @@ bool Plugin::Run(size_t /* argument */) {
   if (results_) {
     // We may have to unload a previous result if the input IDB has changed in
     // the meantime
-    auto sha256_or = GetInputFileSha256();
-    if (!sha256_or.ok()) {
-      throw std::runtime_error{std::string(sha256_or.status().message())};
-    }
-    if (sha256_or.value() !=
-        absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
+    ABSL_ASSIGN_OR_RETURN(std::string sha256, GetInputFileSha256(),
+                          _.With(ShowWarningAndReturn<bool>{false}));
+    if (sha256 != absl::AsciiStrToLower(results_->call_graph1_.GetExeHash())) {
       warning("Discarding current results since the input IDB has changed.");
       DiscardResults(DiscardResultsKind::kDontSave);
     }

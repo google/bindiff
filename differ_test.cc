@@ -186,76 +186,69 @@ TEST_P(GroundtruthTest, Run) {
   FlowGraphs flow_graphs1;
   FlowGraphs flow_graphs2;
   ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
-  try {
-    FlowGraphInfos flow_graph_infos1;
-    FlowGraphInfos flow_graph_infos2;
+  FlowGraphInfos flow_graph_infos1;
+  FlowGraphInfos flow_graph_infos2;
 
-    Timer<> timer;
-    ASSERT_THAT(Read(meta.primary, &call_graph1, &flow_graphs1,
-                     &flow_graph_infos1, &instruction_cache),
-                IsOk());
-    const double time_primary = timer.elapsed();
-    LOG(INFO) << PaddedStr("time primary:") << time_primary;
+  Timer<> timer;
+  ASSERT_THAT(Read(meta.primary, &call_graph1, &flow_graphs1,
+                   &flow_graph_infos1, &instruction_cache),
+              IsOk());
+  const double time_primary = timer.elapsed();
+  LOG(INFO) << PaddedStr("time primary:") << time_primary;
 
-    timer.restart();
-    ASSERT_THAT(Read(meta.secondary, &call_graph2, &flow_graphs2,
-                     &flow_graph_infos2, &instruction_cache),
-                IsOk());
-    const double time_secondary = timer.elapsed();
-    LOG(INFO) << PaddedStr("time secondary:") << time_secondary;
+  timer.restart();
+  ASSERT_THAT(Read(meta.secondary, &call_graph2, &flow_graphs2,
+                   &flow_graph_infos2, &instruction_cache),
+              IsOk());
+  const double time_secondary = timer.elapsed();
+  LOG(INFO) << PaddedStr("time secondary:") << time_secondary;
 
-    timer.restart();
-    FixedPoints fixed_points;
-    MatchingContext context(call_graph1, call_graph2, flow_graphs1,
-                            flow_graphs2, fixed_points);
-    Diff(&context, default_call_graph_steps, default_basicblock_steps);
+  timer.restart();
+  FixedPoints fixed_points;
+  MatchingContext context(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                          fixed_points);
+  Diff(&context, default_call_graph_steps, default_basicblock_steps);
 
-    Histogram histogram;
-    Counts counts;
-    GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
-                          &counts);
+  Histogram histogram;
+  Counts counts;
+  GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
+                        &counts);
 
-    const double similarity =
-        GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
-    Confidences confidences;
-    const double confidence = GetConfidence(histogram, &confidences);
-    LOG(INFO) << PaddedStr("diff time:") << timer.elapsed();
-    // TODO(cblichmann): Collect maximum amount of memory used
-    LOG(INFO) << PaddedStr("max memory:");
-    LOG(INFO) << PaddedStr("similarity:") << similarity;
-    LOG(INFO) << PaddedStr("confidence:") << confidence;
-    LOG(INFO) << PaddedStr("total functions:") << flow_graphs1.size() << " vs "
-              << flow_graphs2.size();
-    LOG(INFO) << PaddedStr("non-library functions:")
-              << counts[Counts::kFunctionsPrimaryNonLibrary] << " vs "
-              << counts[Counts::kFunctionsSecondaryNonLibrary];
-    LOG(INFO) << PaddedStr("matched functions:")
-              << counts[Counts::kFunctionMatchesLibrary] +
-                     counts[Counts::kFunctionMatchesNonLibrary];
-    LOG(INFO) << PaddedStr("matched basic blocks:")
-              << counts[Counts::kBasicBlockMatchesLibrary] +
-                     counts[Counts::kBasicBlockMatchesNonLibrary];
-    LOG(INFO) << PaddedStr("matched instructions:")
-              << counts[Counts::kInstructionMatchesLibrary] +
-                     counts[Counts::kInstructionMatchesNonLibrary];
-    LOG(INFO) << PaddedStr("matched edges:")
-              << counts[Counts::kFlowGraphEdgeMatchesLibrary] +
-                     counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
-    LOG(INFO) << PaddedStr("call graph MD indices:") << call_graph1.GetMdIndex()
-              << " vs " << call_graph2.GetMdIndex();
+  const double similarity =
+      GetSimilarityScore(call_graph1, call_graph2, histogram, counts);
+  Confidences confidences;
+  const double confidence = GetConfidence(histogram, &confidences);
+  LOG(INFO) << PaddedStr("diff time:") << timer.elapsed();
+  // TODO(cblichmann): Collect maximum amount of memory used
+  LOG(INFO) << PaddedStr("max memory:");
+  LOG(INFO) << PaddedStr("similarity:") << similarity;
+  LOG(INFO) << PaddedStr("confidence:") << confidence;
+  LOG(INFO) << PaddedStr("total functions:") << flow_graphs1.size() << " vs "
+            << flow_graphs2.size();
+  LOG(INFO) << PaddedStr("non-library functions:")
+            << counts[Counts::kFunctionsPrimaryNonLibrary] << " vs "
+            << counts[Counts::kFunctionsSecondaryNonLibrary];
+  LOG(INFO) << PaddedStr("matched functions:")
+            << counts[Counts::kFunctionMatchesLibrary] +
+                   counts[Counts::kFunctionMatchesNonLibrary];
+  LOG(INFO) << PaddedStr("matched basic blocks:")
+            << counts[Counts::kBasicBlockMatchesLibrary] +
+                   counts[Counts::kBasicBlockMatchesNonLibrary];
+  LOG(INFO) << PaddedStr("matched instructions:")
+            << counts[Counts::kInstructionMatchesLibrary] +
+                   counts[Counts::kInstructionMatchesNonLibrary];
+  LOG(INFO) << PaddedStr("matched edges:")
+            << counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+                   counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
+  LOG(INFO) << PaddedStr("call graph MD indices:") << call_graph1.GetMdIndex()
+            << " vs " << call_graph2.GetMdIndex();
 
-    const std::string result_path =
-        GetTestTempPath(absl::StrCat(call_graph1.GetFilename(), "_vs_",
-                                     call_graph2.GetFilename(), ".truth"));
-    GroundtruthWriter writer(result_path);
-    QCHECK_OK(writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
-                           fixed_points));
-    CompareToGroundTruth(meta.name, result_path, meta.truth);
-  } catch (const std::runtime_error& error) {
-    FAIL() << meta.name << ": " << error.what();
-  } catch (...) {
-    FAIL() << meta.name << ": unknown exception";
-  }
+  const std::string result_path = GetTestTempPath(absl::StrCat(
+      call_graph1.GetFilename(), "_vs_", call_graph2.GetFilename(), ".truth"));
+  GroundtruthWriter writer(result_path);
+  QCHECK_OK(writer.Write(call_graph1, call_graph2, flow_graphs1, flow_graphs2,
+                         fixed_points));
+  CompareToGroundTruth(meta.name, result_path, meta.truth);
   LOG(INFO) << ">>>";
 }
 

@@ -623,159 +623,153 @@ absl::Status BinDiffMain(int argc, char* argv[]) {
     return absl::InvalidArgumentError("Need primary input (--primary)");
   }
 
-  try {
-    Timer<> timer;
-    bool done_something = false;
+  Timer<> timer;
+  bool done_something = false;
 
-    std::unique_ptr<CallGraph> call_graph1;
-    std::unique_ptr<CallGraph> call_graph2;
-    Instruction::Cache instruction_cache;
-    FlowGraphs flow_graphs1;
-    FlowGraphs flow_graphs2;
-    ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
+  std::unique_ptr<CallGraph> call_graph1;
+  std::unique_ptr<CallGraph> call_graph2;
+  Instruction::Cache instruction_cache;
+  FlowGraphs flow_graphs1;
+  FlowGraphs flow_graphs2;
+  ScopedCleanup cleanup(&flow_graphs1, &flow_graphs2, &instruction_cache);
 
-    if (absl::GetFlag(FLAGS_output_dir) == current_path /* Defaulted */ &&
-        IsDirectory(primary)) {
-      absl::SetFlag(&FLAGS_output_dir, primary);
+  if (absl::GetFlag(FLAGS_output_dir) == current_path /* Defaulted */ &&
+      IsDirectory(primary)) {
+    absl::SetFlag(&FLAGS_output_dir, primary);
+  }
+
+  if (!IsDirectory(absl::GetFlag(FLAGS_output_dir))) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Output parameter (--output_dir) must be a writable directory: ",
+        absl::GetFlag(FLAGS_output_dir)));
+  }
+
+  if (FileExists(primary)) {
+    // Primary from file system.
+    FlowGraphInfos infos;
+    call_graph1 = std::make_unique<CallGraph>();
+    ABSL_RETURN_IF_ERROR(Read(primary, call_graph1.get(), &flow_graphs1, &infos,
+                              &instruction_cache));
+  }
+
+  if (IsDirectory(primary)) {
+    // File system batch diff.
+    if (absl::GetFlag(FLAGS_ls)) {
+      ABSL_RETURN_IF_ERROR(ListFiles(primary));
+    } else if (absl::GetFlag(FLAGS_md_index)) {
+      ABSL_RETURN_IF_ERROR(BatchDumpMdIndices(primary));
+    } else {
+      ABSL_RETURN_IF_ERROR(
+          BatchDiff(primary, secondary, absl::GetFlag(FLAGS_output_dir)));
+    }
+    done_something = true;
+  }
+
+  if (absl::GetFlag(FLAGS_md_index) && call_graph1 != nullptr) {
+    DumpMdIndices(*call_graph1, flow_graphs1);
+    done_something = true;
+  }
+
+  if (!secondary.empty() && FileExists(secondary)) {
+    // secondary from filesystem
+    FlowGraphInfos infos;
+    call_graph2 = std::make_unique<CallGraph>();
+    ABSL_RETURN_IF_ERROR(Read(secondary, call_graph2.get(), &flow_graphs2,
+                              &infos, &instruction_cache));
+  }
+
+  if ((!done_something && !FileExists(primary) && !IsDirectory(primary)) ||
+      (!secondary.empty() && !FileExists(secondary) &&
+       !IsDirectory(secondary))) {
+    return absl::FailedPreconditionError(
+        "Invalid inputs, --primary and --secondary must point to valid "
+        "files/directories.");
+  }
+
+  if (call_graph1.get() && call_graph2.get()) {
+    const int edges1 = num_edges(call_graph1->GetGraph());
+    const int vertices1 = num_vertices(call_graph1->GetGraph());
+    const int edges2 = num_edges(call_graph2->GetGraph());
+    const int vertices2 = num_vertices(call_graph2->GetGraph());
+    PrintMessage(
+        absl::StrCat("Setup: ", HumanReadableDuration(timer.elapsed())));
+    PrintMessage(absl::StrCat("primary:   ", call_graph1->GetFilename(), ": ",
+                              vertices1, " functions, ", edges1, " calls"));
+    PrintMessage(absl::StrCat("secondary: ", call_graph2->GetFilename(), ": ",
+                              vertices2, " functions, ", edges2, " calls"));
+    timer.restart();
+
+    const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
+    const MatchingStepsFlowGraph default_basicblock_steps(
+        GetDefaultMatchingStepsBasicBlock());
+    FixedPoints fixed_points;
+    MatchingContext context(*call_graph1, *call_graph2, flow_graphs1,
+                            flow_graphs2, fixed_points);
+    Diff(&context, default_callgraph_steps, default_basicblock_steps);
+
+    Histogram histogram;
+    Counts counts;
+    GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
+                          &counts);
+    Confidences confidences;
+    const double confidence = GetConfidence(histogram, &confidences);
+    const double similarity =
+        GetSimilarityScore(*call_graph1, *call_graph2, histogram, counts);
+
+    PrintMessage(
+        absl::StrCat("Matching: ", HumanReadableDuration(timer.elapsed())));
+    timer.restart();
+
+    PrintMessage(absl::StrCat(
+        "matched: ", fixed_points.size(), " of ", flow_graphs1.size(), "/",
+        flow_graphs2.size(), " (primary/secondary, ",
+        counts[Counts::kFunctionsPrimaryNonLibrary], "/",
+        counts[Counts::kFunctionsSecondaryNonLibrary], " non-library)"));
+
+    PrintMessage(absl::StrCat("call graph MD index: primary   ",
+                              call_graph1->GetMdIndex()));
+    PrintMessage(absl::StrCat("                     secondary ",
+                              call_graph2->GetMdIndex()));
+    PrintMessage(absl::StrCat("Similarity: ", similarity * 100,
+                              "% (Confidence: ", confidence * 100, "%)"));
+
+    ChainWriter writer;
+    if (g_output_log) {
+      ABSL_ASSIGN_OR_RETURN(
+          std::string filename,
+          GetTruncatedFilename(absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
+                               call_graph1->GetFilename(), "_vs_",
+                               call_graph2->GetFilename(), ".results"));
+      writer.Add(std::make_unique<ResultsLogWriter>(filename));
+    }
+    if (g_output_binary) {
+      ABSL_ASSIGN_OR_RETURN(
+          std::string filename,
+          GetTruncatedFilename(absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
+                               call_graph1->GetFilename(), "_vs_",
+                               call_graph2->GetFilename(), ".BinDiff"));
+      ABSL_ASSIGN_OR_RETURN(auto database_writer,
+                            DatabaseWriter::Create(filename));
+      writer.Add(std::move(database_writer));
     }
 
-    if (!IsDirectory(absl::GetFlag(FLAGS_output_dir))) {
-      return absl::FailedPreconditionError(absl::StrCat(
-          "Output parameter (--output_dir) must be a writable directory: ",
-          absl::GetFlag(FLAGS_output_dir)));
+    if (!writer.empty()) {
+      ABSL_RETURN_IF_ERROR(writer.Write(*call_graph1, *call_graph2,
+                                        flow_graphs1, flow_graphs2,
+                                        fixed_points));
+      PrintMessage(absl::StrCat("Writing results: ",
+                                HumanReadableDuration(timer.elapsed())));
     }
+    timer.restart();
+    done_something = true;
+  }
 
-    if (FileExists(primary)) {
-      // Primary from file system.
-      FlowGraphInfos infos;
-      call_graph1 = std::make_unique<CallGraph>();
-      ABSL_RETURN_IF_ERROR(Read(primary, call_graph1.get(), &flow_graphs1,
-                                &infos, &instruction_cache));
-    }
-
-    if (IsDirectory(primary)) {
-      // File system batch diff.
-      if (absl::GetFlag(FLAGS_ls)) {
-        ABSL_RETURN_IF_ERROR(ListFiles(primary));
-      } else if (absl::GetFlag(FLAGS_md_index)) {
-        ABSL_RETURN_IF_ERROR(BatchDumpMdIndices(primary));
-      } else {
-        ABSL_RETURN_IF_ERROR(
-            BatchDiff(primary, secondary, absl::GetFlag(FLAGS_output_dir)));
-      }
-      done_something = true;
-    }
-
-    if (absl::GetFlag(FLAGS_md_index) && call_graph1 != nullptr) {
-      DumpMdIndices(*call_graph1, flow_graphs1);
-      done_something = true;
-    }
-
-    if (!secondary.empty() && FileExists(secondary)) {
-      // secondary from filesystem
-      FlowGraphInfos infos;
-      call_graph2 = std::make_unique<CallGraph>();
-      ABSL_RETURN_IF_ERROR(Read(secondary, call_graph2.get(), &flow_graphs2,
-                                &infos, &instruction_cache));
-    }
-
-    if ((!done_something && !FileExists(primary) && !IsDirectory(primary)) ||
-        (!secondary.empty() && !FileExists(secondary) &&
-         !IsDirectory(secondary))) {
-      return absl::FailedPreconditionError(
-          "Invalid inputs, --primary and --secondary must point to valid "
-          "files/directories.");
-    }
-
-    if (call_graph1.get() && call_graph2.get()) {
-      const int edges1 = num_edges(call_graph1->GetGraph());
-      const int vertices1 = num_vertices(call_graph1->GetGraph());
-      const int edges2 = num_edges(call_graph2->GetGraph());
-      const int vertices2 = num_vertices(call_graph2->GetGraph());
-      PrintMessage(
-          absl::StrCat("Setup: ", HumanReadableDuration(timer.elapsed())));
-      PrintMessage(absl::StrCat("primary:   ", call_graph1->GetFilename(), ": ",
-                                vertices1, " functions, ", edges1, " calls"));
-      PrintMessage(absl::StrCat("secondary: ", call_graph2->GetFilename(), ": ",
-                                vertices2, " functions, ", edges2, " calls"));
-      timer.restart();
-
-      const MatchingSteps default_callgraph_steps(GetDefaultMatchingSteps());
-      const MatchingStepsFlowGraph default_basicblock_steps(
-          GetDefaultMatchingStepsBasicBlock());
-      FixedPoints fixed_points;
-      MatchingContext context(*call_graph1, *call_graph2, flow_graphs1,
-                              flow_graphs2, fixed_points);
-      Diff(&context, default_callgraph_steps, default_basicblock_steps);
-
-      Histogram histogram;
-      Counts counts;
-      GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points,
-                            &histogram, &counts);
-      Confidences confidences;
-      const double confidence = GetConfidence(histogram, &confidences);
-      const double similarity =
-          GetSimilarityScore(*call_graph1, *call_graph2, histogram, counts);
-
-      PrintMessage(
-          absl::StrCat("Matching: ", HumanReadableDuration(timer.elapsed())));
-      timer.restart();
-
-      PrintMessage(absl::StrCat(
-          "matched: ", fixed_points.size(), " of ", flow_graphs1.size(), "/",
-          flow_graphs2.size(), " (primary/secondary, ",
-          counts[Counts::kFunctionsPrimaryNonLibrary], "/",
-          counts[Counts::kFunctionsSecondaryNonLibrary], " non-library)"));
-
-      PrintMessage(absl::StrCat("call graph MD index: primary   ",
-                                call_graph1->GetMdIndex()));
-      PrintMessage(absl::StrCat("                     secondary ",
-                                call_graph2->GetMdIndex()));
-      PrintMessage(absl::StrCat("Similarity: ", similarity * 100,
-                                "% (Confidence: ", confidence * 100, "%)"));
-
-      ChainWriter writer;
-      if (g_output_log) {
-        ABSL_ASSIGN_OR_RETURN(
-            std::string filename,
-            GetTruncatedFilename(
-                absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
-                call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
-                ".results"));
-        writer.Add(std::make_unique<ResultsLogWriter>(filename));
-      }
-      if (g_output_binary) {
-        ABSL_ASSIGN_OR_RETURN(
-            std::string filename,
-            GetTruncatedFilename(
-                absl::GetFlag(FLAGS_output_dir) + kPathSeparator,
-                call_graph1->GetFilename(), "_vs_", call_graph2->GetFilename(),
-                ".BinDiff"));
-        ABSL_ASSIGN_OR_RETURN(auto database_writer,
-                              DatabaseWriter::Create(filename));
-        writer.Add(std::move(database_writer));
-      }
-
-      if (!writer.empty()) {
-        ABSL_RETURN_IF_ERROR(writer.Write(*call_graph1, *call_graph2,
-                                          flow_graphs1, flow_graphs2,
-                                          fixed_points));
-        PrintMessage(absl::StrCat("Writing results: ",
-                                  HumanReadableDuration(timer.elapsed())));
-      }
-      timer.restart();
-      done_something = true;
-    }
-
-    if (!done_something) {
-      absl::flags_internal::FlagsHelp(
-          std::cout, "", absl::flags_internal::HelpFormat::kHumanReadable,
-          usage);
-    }
-  } catch (const std::exception& error) {
-    return absl::UnknownError(error.what());
-  } catch (...) {
-    return absl::UnknownError("An unknown error occurred");
+  if (!done_something) {
+    // NOLINTNEXTLINE(abseil-no-internal-dependencies)
+    absl::flags_internal::FlagsHelp(
+        std::cout, "",
+        // NOLINTNEXTLINE(abseil-no-internal-dependencies)
+        absl::flags_internal::HelpFormat::kHumanReadable, usage);
   }
   return absl::OkStatus();
 }

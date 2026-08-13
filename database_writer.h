@@ -16,7 +16,9 @@
 #define DATABASE_WRITER_H_
 
 #include <memory>
+#include <set>
 #include <string>
+#include <utility>
 
 #include "third_party/absl/container/btree_map.h"
 #include "third_party/absl/status/status.h"
@@ -61,13 +63,13 @@ class DatabaseWriter : public Writer {
                      const FixedPoints& fixed_points) override;
 
   void Close();
-  void WriteToTempDatabase(const FixedPoint& fixed_point);
-  void DeleteFromTempDatabase(Address primary, Address secondary);
+  absl::Status WriteToTempDatabase(const FixedPoint& fixed_point);
+  absl::Status DeleteFromTempDatabase(Address primary, Address secondary);
   const std::string& GetFilename() const { return filename(); }
   const std::string& filename() const;
 
   // Mark all matches in the database for which comments have been ported.
-  void SetCommentsPorted(const FixedPointInfos& fixed_points);
+  absl::Status SetCommentsPorted(const FixedPointInfos& fixed_points);
 
   // Exposing internal details for use in the temporary database.
   SqliteDatabase* database();
@@ -103,9 +105,8 @@ class DatabaseTransmuter : public Writer {
                      const FlowGraphs& flow_graphs2,
                      const FixedPoints& fixed_points) override;
 
-  static void MarkPortedComments(SqliteDatabase* database,
-                                 const char* temp_database,
-                                 const FixedPointInfos& fixed_points);
+  static absl::Status MarkPortedComments(SqliteDatabase& database,
+                                         const char* temp_database);
   static void DeleteTempFile();
 
  private:
@@ -126,10 +127,10 @@ class DatabaseReader : public Reader {
                     FlowGraphInfos& flow_graphs1, FlowGraphInfos& flow_graphs2,
                     FixedPointInfos& fixed_points) override;
 
-  static void ReadFullMatches(SqliteDatabase* database, CallGraph* call_graph1,
-                              CallGraph* call_graph2, FlowGraphs* flow_graphs1,
-                              FlowGraphs* flow_graphs2,
-                              FixedPoints* fixed_points);
+  static absl::Status ReadFullMatches(SqliteDatabase& database,
+                                      CallGraph& call_graph1,
+                                      CallGraph& call_graph2,
+                                      FixedPoints& fixed_points);
 
   std::string GetInputFilename() const;
   std::string GetPrimaryFilename() const;

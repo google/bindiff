@@ -48,9 +48,6 @@ class SqliteDatabase {
 
   absl::StatusOr<SqliteStatement> Statement(absl::string_view statement);
 
-  [[deprecated("Use Statement instead")]]
-  SqliteStatement StatementOrThrow(absl::string_view statement);
-
   absl::Status Execute(absl::string_view statement);
 
   absl::Status Begin();
@@ -95,8 +92,6 @@ class SqliteStatement {
   SqliteStatement& Into(std::string* value, bool* is_null = nullptr);
 
   absl::Status Execute();
-
-  [[deprecated("Use Execute instead")]] SqliteStatement& ExecuteOrThrow();
 
   SqliteStatement& Reset();
   bool GotData() const;

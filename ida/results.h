@@ -110,10 +110,12 @@ class Results {
   size_t GetNumMatches() const;
   MatchDescription GetMatchDescription(size_t index) const;
 
-  bool PrepareVisualDiff(size_t index, std::string* message);
-  bool PrepareVisualCallGraphDiff(size_t index, std::string* message);
-  void Read(Reader* reader);
+  absl::StatusOr<std::string> PrepareVisualDiff(size_t index);
+  absl::StatusOr<std::string> PrepareVisualCallGraphDiff(size_t index);
+
+  absl::Status Read(Reader* reader);
   absl::Status Write(Writer* writer);
+
   void CreateIndexedViews();
 
   // Marks the matches indicated by the given indices as manually confirmed.
@@ -179,8 +181,8 @@ class Results {
   void DeleteTemporaryFlowGraphs();
 
   FixedPoint* FindFixedPoint(const FixedPointInfo& info);
-  void ReadBasicblockMatches(FixedPoint* fixed_point);
-  void MarkPortedCommentsInTempDatabase();
+  absl::Status ReadBasicBlockMatches(FixedPoint& fixed_point);
+  absl::Status MarkPortedCommentsInTempDatabase();
 
   std::unique_ptr<DatabaseWriter> temp_database_;
   bool incomplete_ = false;  // Set when we have loaded from disk

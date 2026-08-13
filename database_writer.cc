@@ -152,69 +152,78 @@ const std::string& DatabaseWriter::filename() const { return filename_; }
 
 void DatabaseWriter::Close() { database_.Disconnect(); }
 
-void DatabaseWriter::SetCommentsPorted(const FixedPointInfos& fixed_points) {
-  database_
-      .StatementOrThrow(
-          "CREATE TABLE IF NOT EXISTS commentsported ("
-          "address BIGINT PRIMARY KEY)")
-      .ExecuteOrThrow();
-  database_.StatementOrThrow("DELETE FROM commentsported").ExecuteOrThrow();
+absl::Status DatabaseWriter::SetCommentsPorted(
+    const FixedPointInfos& fixed_points) {
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement statement,
+      database_.Statement("CREATE TABLE IF NOT EXISTS commentsported ("
+                          "address BIGINT PRIMARY KEY"
+                          ")"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+
+  ABSL_ASSIGN_OR_RETURN(statement,
+                        database_.Statement("DELETE FROM commentsported"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+
   // We don't have to account for address2 because every function can only be
   // matched once.
-  SqliteStatement statement = database_.StatementOrThrow(
-      "INSERT INTO commentsported VALUES (:address)");
+  ABSL_ASSIGN_OR_RETURN(
+      statement,
+      database_.Statement("INSERT INTO commentsported VALUES (:address)"));
   for (const auto& fixed_point : fixed_points) {
     if (fixed_point.comments_ported) {
-      statement.BindInt64(fixed_point.primary).ExecuteOrThrow().Reset();
+      ABSL_RETURN_IF_ERROR(statement.BindInt64(fixed_point.primary).Execute());
+      statement.Reset();
     }
   }
+  return absl::OkStatus();
 }
 
-void DatabaseWriter::WriteToTempDatabase(const FixedPoint& fixed_point) {
-  DeleteFromTempDatabase(fixed_point.GetPrimary()->GetEntryPointAddress(),
-                         fixed_point.GetSecondary()->GetEntryPointAddress());
+absl::Status DatabaseWriter::WriteToTempDatabase(
+    const FixedPoint& fixed_point) {
+  ABSL_RETURN_IF_ERROR(DeleteFromTempDatabase(
+      fixed_point.GetPrimary()->GetEntryPointAddress(),
+      fixed_point.GetSecondary()->GetEntryPointAddress()));
 
   FixedPoints fixed_points;
   fixed_points.insert(fixed_point);
-  if (absl::Status status = WriteMatches(fixed_points); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+  return WriteMatches(fixed_points);
 }
 
 // Deletes a function match from the result database.
-void DatabaseWriter::DeleteFromTempDatabase(Address primary,
-                                            Address secondary) {
+absl::Status DatabaseWriter::DeleteFromTempDatabase(Address primary,
+                                                    Address secondary) {
   // Delete instructions
-  database_
-      .StatementOrThrow(
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement statement,
+      database_.Statement(
           "DELETE FROM instruction WHERE basicblockid IN ("
           "SELECT b.id FROM function AS f "
           "INNER JOIN basicblock AS b ON b.functionid = f.id "
           "WHERE f.address1 = :address1 AND f.address2 = :address2"
-          ")")
-      .BindInt64(primary)
-      .BindInt64(secondary)
-      .ExecuteOrThrow();
+          ")"));
+  ABSL_RETURN_IF_ERROR(
+      statement.BindInt64(primary).BindInt64(secondary).Execute());
 
   // Delete basic blocks
-  database_
-      .StatementOrThrow(
-          "DELETE FROM basicblock WHERE functionid IN ("
-          "SELECT f.id FROM function AS f "
-          "WHERE f.address1 = :address1 AND f.address2 = :address2"
-          ")")
-      .BindInt64(primary)
-      .BindInt64(secondary)
-      .ExecuteOrThrow();
+  ABSL_ASSIGN_OR_RETURN(
+      statement, database_.Statement(
+                     "DELETE FROM basicblock WHERE functionid IN ("
+                     "SELECT f.id FROM function AS f "
+                     "WHERE f.address1 = :address1 AND f.address2 = :address2"
+                     ")"));
+  ABSL_RETURN_IF_ERROR(
+      statement.BindInt64(primary).BindInt64(secondary).Execute());
 
   // Delete functions
-  database_
-      .StatementOrThrow(
-          "DELETE FROM function "
-          "WHERE address1 = :address1 AND address2 = :address2")
-      .BindInt64(primary)
-      .BindInt64(secondary)
-      .ExecuteOrThrow();
+  ABSL_ASSIGN_OR_RETURN(
+      statement, database_.Statement(
+                     "DELETE FROM function "
+                     "WHERE address1 = :address1 AND address2 = :address2"));
+  ABSL_RETURN_IF_ERROR(
+      statement.BindInt64(primary).BindInt64(secondary).Execute());
+
+  return absl::OkStatus();
 }
 
 absl::Status DatabaseWriter::PrepareDatabase() {
@@ -629,24 +638,25 @@ absl::StatusOr<std::string> GetTempFileName() {
 
 void DatabaseTransmuter::DeleteTempFile() {
   if (GetTempDirectory("BinDiff").ok()) {
-    std::remove(GetTempFileName().value().c_str());
+    std::remove(GetTempFileName()->c_str());
   }
 }
 
-void DatabaseTransmuter::MarkPortedComments(
-    SqliteDatabase* database, const char* temp_database,
-    const FixedPointInfos& /* fixed_points */) {
-  database->StatementOrThrow("ATTACH :filename AS ported")
-      .BindText(temp_database)
-      .ExecuteOrThrow();
+absl::Status DatabaseTransmuter::MarkPortedComments(SqliteDatabase& database,
+                                                    const char* temp_database) {
+  ABSL_ASSIGN_OR_RETURN(SqliteStatement attach_statement,
+                        database.Statement("ATTACH :filename AS ported"));
+  ABSL_RETURN_IF_ERROR(attach_statement.BindText(temp_database).Execute());
 
-  database
-      ->StatementOrThrow(
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement update_statement,
+      database.Statement(
           "UPDATE function SET commentsported = EXISTS("
           "SELECT * FROM ported.commentsported WHERE address = address1"
           ") "
-          "WHERE commentsported = 0")
-      .ExecuteOrThrow();
+          "WHERE commentsported = 0"));
+  ABSL_RETURN_IF_ERROR(update_statement.Execute());
+  return absl::OkStatus();
 }
 
 absl::Status DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
@@ -657,94 +667,100 @@ absl::Status DatabaseTransmuter::Write(const CallGraph& /*call_graph1*/,
   // Step 1: Remove deleted matches.
   TempFixedPoints current_fixed_points;
 
-  {
-    SqliteStatement statement =
-        database_.StatementOrThrow("SELECT address1, address2 FROM function");
-    statement.ExecuteOrThrow();
-    for (; statement.GotData(); statement.ExecuteOrThrow()) {
-      int64_t primary;
-      int64_t secondary;
-      statement.Into(&primary).Into(&secondary);
-      current_fixed_points.insert(std::make_pair(
-          static_cast<Address>(primary), static_cast<Address>(secondary)));
-    }
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement statement,
+      database_.Statement("SELECT address1, address2 FROM function"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  while (statement.GotData()) {
+    int64_t primary;
+    int64_t secondary;
+    statement.Into(&primary).Into(&secondary);
+    current_fixed_points.insert(std::make_pair(
+        static_cast<Address>(primary), static_cast<Address>(secondary)));
+    ABSL_RETURN_IF_ERROR(statement.Execute());
   }
 
-  TempFixedPoints kill_me;
+  TempFixedPoints to_remove;
   std::set_difference(current_fixed_points.begin(), current_fixed_points.end(),
                       fixed_points_.begin(), fixed_points_.end(),
-                      std::inserter(kill_me, kill_me.begin()));
-  if (absl::Status status = DeleteMatches(kill_me); !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+                      std::inserter(to_remove, to_remove.begin()));
+  ABSL_RETURN_IF_ERROR(DeleteMatches(to_remove));
 
   // Step 2: Merge new matches from temp database.
-  auto temp_file = GetTempFileName();
-  if (!temp_file.ok()) {
-    // TODO(cblichmann): Refactor Writer interface to return absl::Status.
-    throw std::runtime_error(std::string(temp_file.status().message()));
-  }
-  if (FileExists(*temp_file)) {
-    database_.StatementOrThrow("ATTACH :filename AS newmatches")
-        .BindText(temp_file->c_str())
-        .ExecuteOrThrow();
-    int function_id = 0, basic_block_id = 0;
-    database_.StatementOrThrow("SELECT COALESCE(MAX(id), 0) FROM function")
-        .ExecuteOrThrow()
-        .Into(&function_id);
-    database_.StatementOrThrow("SELECT COALESCE(MAX(id), 0) FROM basicblock")
-        .ExecuteOrThrow()
-        .Into(&basic_block_id);
-    database_
-        .StatementOrThrow(
+  ABSL_ASSIGN_OR_RETURN(std::string temp_file, GetTempFileName());
+  if (FileExists(temp_file)) {
+    ABSL_ASSIGN_OR_RETURN(
+        statement, database_.Statement("ATTACH :filename AS newmatches"));
+    ABSL_RETURN_IF_ERROR(statement.BindText(temp_file).Execute());
+
+    int function_id = 0;
+    int basic_block_id = 0;
+    ABSL_ASSIGN_OR_RETURN(
+        statement,
+        database_.Statement("SELECT COALESCE(MAX(id), 0) FROM function"));
+    ABSL_RETURN_IF_ERROR(statement.Execute());
+    statement.Into(&function_id);
+
+    ABSL_ASSIGN_OR_RETURN(
+        statement,
+        database_.Statement("SELECT COALESCE(MAX(id), 0) FROM basicblock"));
+    ABSL_RETURN_IF_ERROR(statement.Execute());
+    statement.Into(&basic_block_id);
+
+    ABSL_ASSIGN_OR_RETURN(
+        statement,
+        database_.Statement(
             "INSERT INTO function SELECT "
             "id + :id, address1, name1, address2, name2, similarity, "
             "confidence, flags, algorithm, evaluate, commentsported, "
             "basicblocks, edges, instructions "
-            "FROM newmatches.function")
-        .BindInt(function_id)
-        .ExecuteOrThrow();
-    database_
-        .StatementOrThrow(
+            "FROM newmatches.function"));
+    ABSL_RETURN_IF_ERROR(statement.BindInt(function_id).Execute());
+
+    ABSL_ASSIGN_OR_RETURN(
+        statement,
+        database_.Statement(
             "INSERT INTO basicblock SELECT "
             "id + :id, functionId + :fid, address1, address2, algorithm, "
             "evaluate "
-            "FROM newmatches.basicblock")
-        .BindInt(basic_block_id)
-        .BindInt(function_id)
-        .ExecuteOrThrow();
-    database_
-        .StatementOrThrow(
-            "INSERT INTO instruction SELECT "
-            "basicblockid + :id, address1, address2 "
-            "FROM newmatches.instruction")
-        .BindInt(basic_block_id)
-        .ExecuteOrThrow();
+            "FROM newmatches.basicblock"));
+    ABSL_RETURN_IF_ERROR(
+        statement.BindInt(basic_block_id).BindInt(function_id).Execute());
+
+    ABSL_ASSIGN_OR_RETURN(
+        statement, database_.Statement("INSERT INTO instruction SELECT "
+                                       "basicblockid + :id, address1, address2 "
+                                       "FROM newmatches.instruction"));
+    ABSL_RETURN_IF_ERROR(statement.BindInt(basic_block_id).Execute());
   }
 
   // Step 3: Update changed matches (user set algorithm type to "manual").
   int algorithm = 0;
-  database_.StatementOrThrow("SELECT MAX(id) FROM functionalgorithm")
-      .ExecuteOrThrow()
-      .Into(&algorithm);
-  SqliteStatement statement = database_.StatementOrThrow(
-      "UPDATE function SET confidence=1.0, algorithm=:algorithm "
-      "WHERE address1=:address1 AND address2=:address2");
-  for (auto i = fixed_point_infos_.cbegin(), end = fixed_point_infos_.cend();
-       i != end; ++i) {
-    if (!i->IsManual()) {
+  ABSL_ASSIGN_OR_RETURN(
+      statement, database_.Statement("SELECT MAX(id) FROM functionalgorithm"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  statement.Into(&algorithm);
+
+  ABSL_ASSIGN_OR_RETURN(
+      statement, database_.Statement(
+                     "UPDATE function SET confidence=1.0, algorithm=:algorithm "
+                     "WHERE address1=:address1 AND address2=:address2"));
+  for (const FixedPointInfo& info : fixed_point_infos_) {
+    if (!info.IsManual()) {
       continue;
     }
-    statement.BindInt(algorithm)
-        .BindInt64(i->primary)
-        .BindInt64(i->secondary)
-        .ExecuteOrThrow()
-        .Reset();
+    ABSL_RETURN_IF_ERROR(statement.BindInt(algorithm)
+                             .BindInt64(info.primary)
+                             .BindInt64(info.secondary)
+                             .Execute());
+    statement.Reset();
   }
 
   // Step 4: Update last changed timestamp.
-  database_.StatementOrThrow("UPDATE metadata SET modified=DATETIME('NOW')")
-      .ExecuteOrThrow();
+  ABSL_ASSIGN_OR_RETURN(
+      statement,
+      database_.Statement("UPDATE metadata SET modified=DATETIME('NOW')"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
 
   return absl::OkStatus();
 }
@@ -780,27 +796,27 @@ const Histogram& DatabaseReader::GetBasicBlockFixedPointInfo() const {
   return basic_block_fixed_point_info_;
 }
 
-void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
-                                     CallGraph* call_graph1,
-                                     CallGraph* call_graph2,
-                                     FlowGraphs* /*flow_graphs1*/,
-                                     FlowGraphs* /*flow_graphs2*/,
-                                     FixedPoints* fixed_points) {
-  SqliteStatement statement = database->StatementOrThrow(
-      "SELECT "
-      " function.address1, function.address2, functionalgorithm.name, "
-      " function.similarity, function.confidence, "
-      " basicblock.address1, basicblock.address2, basicblockalgorithm.name "
-      "FROM function "
-      "INNER JOIN functionalgorithm "
-      " ON functionalgorithm.id = function.algorithm "
-      "LEFT JOIN basicblock "
-      " ON basicblock.functionid = function.id "
-      "LEFT JOIN basicblockalgorithm "
-      " ON basicblockalgorithm.id = basicblock.algorithm "
-      "ORDER BY function.address1, basicblock.address1");
-  for (statement.ExecuteOrThrow(); statement.GotData();
-       statement.ExecuteOrThrow()) {
+absl::Status DatabaseReader::ReadFullMatches(SqliteDatabase& database,
+                                             CallGraph& call_graph1,
+                                             CallGraph& call_graph2,
+                                             FixedPoints& fixed_points) {
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement statement,
+      database.Statement(
+          "SELECT"
+          " function.address1, function.address2, functionalgorithm.name, "
+          " function.similarity, function.confidence, "
+          " basicblock.address1, basicblock.address2, basicblockalgorithm.name "
+          "FROM function "
+          "INNER JOIN functionalgorithm"
+          " ON functionalgorithm.id = function.algorithm "
+          "LEFT JOIN basicblock"
+          " ON basicblock.functionid = function.id "
+          "LEFT JOIN basicblockalgorithm"
+          " ON basicblockalgorithm.id = basicblock.algorithm "
+          "ORDER BY function.address1, basicblock.address1"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  while (statement.GotData()) {
     FixedPoint* fixed_point = nullptr;
     Address function1 = 0;
     Address function2 = 0;
@@ -819,26 +835,28 @@ void DatabaseReader::ReadFullMatches(SqliteDatabase* database,
         .Into(&basic_block1, &basic_block_is_null)
         .Into(&basic_block2)
         .Into(&basic_block_algorithm);
-    auto* flow_graph1 = call_graph1->GetFlowGraph(function1);
+    FlowGraph* flow_graph1 = call_graph1.GetFlowGraph(function1);
     if (!fixed_point || flow_graph1 != fixed_point->GetPrimary()) {
-      auto* flow_graph2 = call_graph2->GetFlowGraph(function2);
+      FlowGraph* flow_graph2 = call_graph2.GetFlowGraph(function2);
       FixedPoint new_fixed_point;
       new_fixed_point.Create(flow_graph1, flow_graph2);
       new_fixed_point.SetMatchingStep(function_algorithm);
       new_fixed_point.SetSimilarity(similarity);
       new_fixed_point.SetConfidence(confidence);
-      fixed_point = const_cast<FixedPoint*>(
-          &*fixed_points->insert(new_fixed_point).first);
+      fixed_point =
+          const_cast<FixedPoint*>(&*fixed_points.insert(new_fixed_point).first);
       flow_graph1->SetFixedPoint(fixed_point);
       flow_graph2->SetFixedPoint(fixed_point);
     }
     if (!basic_block_is_null) {
-      auto* flow_graph2 = call_graph2->GetFlowGraph(function2);
-      const auto primary_vertex = flow_graph1->GetVertex(basic_block1);
-      const auto secondary_vertex = flow_graph2->GetVertex(basic_block2);
+      FlowGraph* flow_graph2 = call_graph2.GetFlowGraph(function2);
+      Address primary_vertex = flow_graph1->GetVertex(basic_block1);
+      Address secondary_vertex = flow_graph2->GetVertex(basic_block2);
       fixed_point->Add(primary_vertex, secondary_vertex, basic_block_algorithm);
     }
+    ABSL_RETURN_IF_ERROR(statement.Execute());
   }
+  return absl::OkStatus();
 }
 
 absl::Status DatabaseReader::Read(CallGraph& call_graph1,
@@ -847,67 +865,71 @@ absl::Status DatabaseReader::Read(CallGraph& call_graph1,
                                   FlowGraphInfos& flow_graphs2,
                                   FixedPointInfos& fixed_points) {
   absl::flat_hash_set<FixedPointInfo> database_fixed_points;
-  try {
-    database_
-        .StatementOrThrow(
-            "SELECT "
-            " file1.filename AS filename1, file2.filename AS filename2, "
-            " similarity, confidence "
-            "FROM metadata "
-            "INNER JOIN file AS file1 ON file1.id = file1 "
-            "INNER JOIN file AS file2 ON file2.id = file2")
-        .ExecuteOrThrow()
-        .Into(&primary_filename_)
-        .Into(&secondary_filename_)
-        .Into(&similarity_)
-        .Into(&confidence_);
 
-    {  // Function matches
-      SqliteStatement statement = database_.StatementOrThrow(
-          "SELECT address1, address2, similarity, confidence, flags, a.name, "
-          "evaluate, commentsported, basicblocks, edges, instructions "
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement statement,
+      database_.Statement(
+          "SELECT"
+          " file1.filename AS filename1, file2.filename AS filename2,"
+          " similarity, confidence "
+          "FROM metadata"
+          " INNER JOIN file AS file1 ON file1.id = file1"
+          " INNER JOIN file AS file2 ON file2.id = file2"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  statement.Into(&primary_filename_)
+      .Into(&secondary_filename_)
+      .Into(&similarity_)
+      .Into(&confidence_);
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+
+  // Function matches
+  ABSL_ASSIGN_OR_RETURN(
+      statement,
+      database_.Statement(
+          "SELECT"
+          " address1, address2, similarity, confidence, flags, a.name,"
+          " evaluate, commentsported, basicblocks, edges, instructions "
           "FROM function AS f "
-          "INNER JOIN functionalgorithm AS a ON a.id = f.algorithm");
-      for (statement.ExecuteOrThrow(); statement.GotData();
-           statement.ExecuteOrThrow()) {
-        std::string algorithm;
-        FixedPointInfo fixed_point;
-        int evaluate = 0;
-        int comments_ported = 0;
-        statement.Into(&fixed_point.primary)
-            .Into(&fixed_point.secondary)
-            .Into(&fixed_point.similarity)
-            .Into(&fixed_point.confidence)
-            .Into(&fixed_point.flags)
-            .Into(&algorithm)
-            .Into(&evaluate)
-            .Into(&comments_ported)
-            .Into(&fixed_point.basic_block_count)
-            .Into(&fixed_point.edge_count)
-            .Into(&fixed_point.instruction_count);
-        fixed_point.algorithm = FindString(algorithm);
-        fixed_point.evaluate = evaluate != 0;
-        fixed_point.comments_ported = comments_ported != 0;
-        database_fixed_points.insert(fixed_point);
-      }
-    }
-    {  // Basic block matches
-      SqliteStatement statement = database_.StatementOrThrow(
-          "SELECT a.name, COUNT(*) FROM basicblock AS b INNER JOIN "
-          "basicblockalgorithm AS a ON a.id = b.algorithm GROUP BY "
-          "b.algorithm");
-      for (statement.ExecuteOrThrow(); statement.GotData();
-           statement.ExecuteOrThrow()) {
-        std::string algorithm_name;
-        int count = 0;
-        statement.Into(&algorithm_name).Into(&count);
-        basic_block_fixed_point_info_[algorithm_name] = count;
-      }
-    }
-  } catch (const std::exception& error) {
-    return absl::UnknownError(error.what());
-  } catch (...) {
-    return absl::UnknownError("Unknown error querying matches database");
+          "INNER JOIN functionalgorithm AS a"
+          " ON a.id = f.algorithm"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  while (statement.GotData()) {
+    std::string algorithm;
+    FixedPointInfo fixed_point;
+    int evaluate = 0;
+    int comments_ported = 0;
+    statement.Into(&fixed_point.primary)
+        .Into(&fixed_point.secondary)
+        .Into(&fixed_point.similarity)
+        .Into(&fixed_point.confidence)
+        .Into(&fixed_point.flags)
+        .Into(&algorithm)
+        .Into(&evaluate)
+        .Into(&comments_ported)
+        .Into(&fixed_point.basic_block_count)
+        .Into(&fixed_point.edge_count)
+        .Into(&fixed_point.instruction_count);
+    fixed_point.algorithm = FindString(algorithm);
+    fixed_point.evaluate = evaluate != 0;
+    fixed_point.comments_ported = comments_ported != 0;
+    database_fixed_points.insert(fixed_point);
+    ABSL_RETURN_IF_ERROR(statement.Execute());
+  }
+
+  // Basic block matches
+  ABSL_ASSIGN_OR_RETURN(
+      statement, database_.Statement("SELECT"
+                                     " a.name, COUNT(*) FROM basicblock AS b "
+                                     "INNER JOIN basicblockalgorithm AS a"
+                                     " ON a.id = b.algorithm "
+                                     "GROUP BY b.algorithm"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  while (statement.GotData()) {
+    std::string algorithm_name;
+    int count = 0;
+    statement.Into(&algorithm_name).Into(&count);
+    basic_block_fixed_point_info_[algorithm_name] = count;
+    ABSL_RETURN_IF_ERROR(statement.Execute());
   }
 
   ABSL_RETURN_IF_ERROR(
@@ -919,7 +941,7 @@ absl::Status DatabaseReader::Read(CallGraph& call_graph1,
 
   // Check consistency between BinExport data and results
   bool inconsistent = false;
-  for (const auto& fixed_point : database_fixed_points) {
+  for (const FixedPointInfo& fixed_point : database_fixed_points) {
     if (call_graph1.GetVertex(fixed_point.primary) ==
         CallGraph::kInvalidVertex) {
       LOG(ERROR) << "Address " << FormatAddress(fixed_point.primary)

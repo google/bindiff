@@ -17,12 +17,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
-#include <exception>
 #include <fstream>
 #include <ios>
 #include <limits>
 #include <memory>
-#include <stdexcept>
 #include <string>
 #include <utility>
 
@@ -554,13 +552,8 @@ absl::Status Results::IncrementalDiff() {
     DatabaseTransmuter writer(database, fixed_point_infos_);
     ABSL_RETURN_IF_ERROR(Write(&writer));
 
-    try {
-      DatabaseReader::ReadFullMatches(&database, &call_graph1_, &call_graph2_,
-                                      &flow_graphs1_, &flow_graphs2_,
-                                      &fixed_points_);
-    } catch (const std::runtime_error& message) {
-      return absl::UnknownError(message.what());
-    }
+    ABSL_RETURN_IF_ERROR(DatabaseReader::ReadFullMatches(
+        database, call_graph1_, call_graph2_, fixed_points_));
 
     std::remove(incremental.c_str());
     incomplete_ = false;
@@ -589,11 +582,11 @@ absl::Status Results::IncrementalDiff() {
 
   // Remove all non-manual matches from current result
   for (auto it = fixed_points_.begin(), end = fixed_points_.end(); it != end;) {
-    FixedPoint& fixed_point = const_cast<FixedPoint&>(*it);
+    auto& fixed_point = const_cast<FixedPoint&>(*it);
     FlowGraph* primary = fixed_point.GetPrimary();
     FlowGraph* secondary = fixed_point.GetSecondary();
     if (fixed_point.GetMatchingStep() ==
-        absl::string_view{MatchingStep::kFunctionManualName}) {
+        absl::string_view(MatchingStep::kFunctionManualName)) {
       ++it;
       continue;  // Keep confirmed fixed points.
     }
@@ -601,8 +594,8 @@ absl::Status Results::IncrementalDiff() {
 
     primary->ResetMatches();
     secondary->ResetMatches();
-    temp_database_->DeleteFromTempDatabase(primary->GetEntryPointAddress(),
-                                           secondary->GetEntryPointAddress());
+    ABSL_RETURN_IF_ERROR(temp_database_->DeleteFromTempDatabase(
+        primary->GetEntryPointAddress(), secondary->GetEntryPointAddress()));
   }
 
   // These will get refilled by ShowResults().
@@ -724,7 +717,8 @@ absl::Status Results::DeleteMatches(absl::Span<const size_t> indices) {
     auto flow_graph_info_entry2 = flow_graph_infos2_.find(secondary_address);
     DCHECK(flow_graph_info_entry2 != flow_graph_infos2_.end());
 
-    temp_database_->DeleteFromTempDatabase(primary_address, secondary_address);
+    ABSL_RETURN_IF_ERROR(temp_database_->DeleteFromTempDatabase(
+        primary_address, secondary_address));
 
     if (call_graph2_.IsLibrary(call_graph2_.GetVertex(secondary_address)) ||
         call_graph1_.IsLibrary(call_graph1_.GetVertex(primary_address))) {
@@ -809,155 +803,152 @@ FlowGraph* FindGraph(FlowGraphs& graphs,  // NOLINT(runtime/references)
 }
 
 absl::Status Results::AddMatch(Address primary, Address secondary) {
-  try {
-    FixedPointInfo fixed_point_info;
-    fixed_point_info.algorithm = FindString(MatchingStep::kFunctionManualName);
-    fixed_point_info.confidence = 1.0;
-    fixed_point_info.basic_block_count = 0;
-    fixed_point_info.edge_count = 0;
-    fixed_point_info.instruction_count = 0;
-    fixed_point_info.primary = primary;
-    fixed_point_info.secondary = secondary;
-    fixed_point_info.similarity = 0.0;
-    fixed_point_info.flags = 0;
-    fixed_point_info.comments_ported = false;
-    // Results have been loaded: we need to reload flow graphs and recreate
-    // basic block fixed points.
-    if (is_incomplete()) {
-      FixedPoint fixed_point;
-      std::unique_ptr<FlowGraph> primary_graph;
-      std::unique_ptr<FlowGraph> secondary_graph;
-      ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
-          fixed_point_info, fixed_point, primary_graph, secondary_graph,
-          /*create_instruction_matches=*/true));
+  FixedPointInfo fixed_point_info = {
+      .primary = primary,
+      .secondary = secondary,
+      .basic_block_count = 0,
+      .edge_count = 0,
+      .instruction_count = 0,
+      .similarity = 0.0,
+      .confidence = 1.0,
+      .flags = 0,
+      .algorithm = FindString(MatchingStep::kFunctionManualName),
+      .comments_ported = false,
+  };
+  // Results have been loaded: we need to reload flow graphs and recreate
+  // basic block fixed points.
+  if (is_incomplete()) {
+    FixedPoint fixed_point;
+    std::unique_ptr<FlowGraph> primary_graph;
+    std::unique_ptr<FlowGraph> secondary_graph;
+    ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+        fixed_point_info, fixed_point, primary_graph, secondary_graph,
+        /*create_instruction_matches=*/true));
 
-      Counts counts;
-      Histogram histogram;
-      FlowGraphs hist_flow_graphs_primary;
-      hist_flow_graphs_primary.insert(primary_graph.get());
-      FlowGraphs hist_flow_graphs_secondary;
-      hist_flow_graphs_secondary.insert(secondary_graph.get());
-      FixedPoints hist_fixed_points;
-      hist_fixed_points.insert(fixed_point);
-      GetCountsAndHistogram(hist_flow_graphs_primary,
-                            hist_flow_graphs_secondary, hist_fixed_points,
-                            &histogram, &counts);
+    Counts counts;
+    Histogram histogram;
+    FlowGraphs hist_flow_graphs_primary;
+    hist_flow_graphs_primary.insert(primary_graph.get());
+    FlowGraphs hist_flow_graphs_secondary;
+    hist_flow_graphs_secondary.insert(secondary_graph.get());
+    FixedPoints hist_fixed_points;
+    hist_fixed_points.insert(fixed_point);
+    GetCountsAndHistogram(hist_flow_graphs_primary, hist_flow_graphs_secondary,
+                          hist_fixed_points, &histogram, &counts);
 
-      fixed_point.SetMatchingStep(MatchingStep::kFunctionManualName);
-      fixed_point.SetSimilarity(GetSimilarityScore(
-          *primary_graph, *secondary_graph, histogram, counts));
-      ClassifyChanges(&fixed_point);
-      fixed_point_info.basic_block_count =
-          counts[Counts::kBasicBlockMatchesLibrary] +
-          counts[Counts::kBasicBlockMatchesNonLibrary];
-      fixed_point_info.instruction_count =
-          counts[Counts::kInstructionMatchesLibrary] +
-          counts[Counts::kInstructionMatchesNonLibrary];
-      fixed_point_info.edge_count =
-          counts[Counts::kFlowGraphEdgeMatchesLibrary] +
-          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
-      fixed_point_info.similarity = fixed_point.GetSimilarity();
-      fixed_point_info.flags = fixed_point.GetFlags();
+    fixed_point.SetMatchingStep(MatchingStep::kFunctionManualName);
+    fixed_point.SetSimilarity(GetSimilarityScore(
+        *primary_graph, *secondary_graph, histogram, counts));
+    ClassifyChanges(&fixed_point);
+    fixed_point_info.basic_block_count =
+        counts[Counts::kBasicBlockMatchesLibrary] +
+        counts[Counts::kBasicBlockMatchesNonLibrary];
+    fixed_point_info.instruction_count =
+        counts[Counts::kInstructionMatchesLibrary] +
+        counts[Counts::kInstructionMatchesNonLibrary];
+    fixed_point_info.edge_count =
+        counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+        counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
+    fixed_point_info.similarity = fixed_point.GetSimilarity();
+    fixed_point_info.flags = fixed_point.GetFlags();
 
-      temp_database_->WriteToTempDatabase(fixed_point);
+    ABSL_RETURN_IF_ERROR(temp_database_->WriteToTempDatabase(fixed_point))
+            .SetPrepend()
+        << "Error adding manual match: ";
 
-      DeleteTemporaryFlowGraphs();
-    } else {
-      FlowGraph* primary_graph = FindGraph(flow_graphs1_, primary);
-      FlowGraph* secondary_graph = FindGraph(flow_graphs2_, secondary);
-      if (!primary_graph || primary_graph->GetEntryPointAddress() != primary ||
-          !secondary_graph ||
-          secondary_graph->GetEntryPointAddress() != secondary) {
-        return absl::InternalError("Invalid graphs in AddMatch()");
-      }
-      FixedPoint& fixed_point(const_cast<FixedPoint&>(
-          *fixed_points_
-               .insert(FixedPoint(primary_graph, secondary_graph,
-                                  MatchingStep::kFunctionManualName))
-               .first));
-      MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
-                              flow_graphs2_, fixed_points_);
-      primary_graph->SetFixedPoint(&fixed_point);
-      secondary_graph->SetFixedPoint(&fixed_point);
-      FindFixedPointsBasicBlock(&fixed_point, &context,
-                                GetDefaultMatchingStepsBasicBlock());
-
-      Counts counts;
-      Histogram histogram;
-      FlowGraphs dummy1;
-      dummy1.insert(primary_graph);
-      FlowGraphs dummy2;
-      dummy2.insert(secondary_graph);
-      FixedPoints dummy3;
-      dummy3.insert(fixed_point);
-      GetCountsAndHistogram(dummy1, dummy2, dummy3, &histogram, &counts);
-
-      fixed_point.SetSimilarity(GetSimilarityScore(
-          *primary_graph, *secondary_graph, histogram, counts));
-      fixed_point.SetConfidence(fixed_point_info.confidence);
-      ClassifyChanges(&fixed_point);
-      fixed_point_info.basic_block_count =
-          counts[Counts::kBasicBlockMatchesLibrary] +
-          counts[Counts::kBasicBlockMatchesNonLibrary];
-      fixed_point_info.instruction_count =
-          counts[Counts::kInstructionMatchesLibrary] +
-          counts[Counts::kInstructionMatchesNonLibrary];
-      fixed_point_info.edge_count =
-          counts[Counts::kFlowGraphEdgeMatchesLibrary] +
-          counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
-      fixed_point_info.similarity = fixed_point.GetSimilarity();
-      fixed_point_info.flags = fixed_point.GetFlags();
+    DeleteTemporaryFlowGraphs();
+  } else {
+    FlowGraph* primary_graph = FindGraph(flow_graphs1_, primary);
+    FlowGraph* secondary_graph = FindGraph(flow_graphs2_, secondary);
+    if (!primary_graph || primary_graph->GetEntryPointAddress() != primary ||
+        !secondary_graph ||
+        secondary_graph->GetEntryPointAddress() != secondary) {
+      return absl::InternalError("Invalid graphs in AddMatch()");
     }
+    FixedPoint& fixed_point(const_cast<FixedPoint&>(
+        *fixed_points_
+             .insert(FixedPoint(primary_graph, secondary_graph,
+                                MatchingStep::kFunctionManualName))
+             .first));
+    MatchingContext context(call_graph1_, call_graph2_, flow_graphs1_,
+                            flow_graphs2_, fixed_points_);
+    primary_graph->SetFixedPoint(&fixed_point);
+    secondary_graph->SetFixedPoint(&fixed_point);
+    FindFixedPointsBasicBlock(&fixed_point, &context,
+                              GetDefaultMatchingStepsBasicBlock());
 
-    fixed_point_infos_.insert(fixed_point_info);
-    indexed_fixed_points_.push_back(const_cast<FixedPointInfo*>(
-        &*fixed_point_infos_.find(fixed_point_info)));
-    std::sort(indexed_fixed_points_.begin(), indexed_fixed_points_.end(),
-              &SortBySimilarity);
+    Counts counts;
+    Histogram histogram;
+    FlowGraphs flow_graphs1;
+    flow_graphs1.insert(primary_graph);
+    FlowGraphs flow_graphs2;
+    flow_graphs2.insert(secondary_graph);
+    FixedPoints fixed_points;
+    fixed_points.insert(fixed_point);
+    GetCountsAndHistogram(flow_graphs1, flow_graphs2, fixed_points, &histogram,
+                          &counts);
 
-    if (call_graph2_.IsLibrary(
-            call_graph2_.GetVertex(fixed_point_info.secondary)) ||
-        flow_graph_infos2_.find(fixed_point_info.secondary) ==
-            flow_graph_infos2_.end() ||
-        call_graph1_.IsLibrary(
-            call_graph1_.GetVertex(fixed_point_info.primary)) ||
-        flow_graph_infos1_.find(fixed_point_info.primary) ==
-            flow_graph_infos1_.end()) {
-      counts_[Counts::kFunctionMatchesLibrary] += 1;
-      counts_[Counts::kBasicBlockMatchesLibrary] +=
-          fixed_point_info.basic_block_count;
-      counts_[Counts::kInstructionMatchesLibrary] +=
-          fixed_point_info.instruction_count;
-      counts_[Counts::kFlowGraphEdgeMatchesLibrary] +=
-          fixed_point_info.edge_count;
-    } else {
-      counts_[Counts::kFunctionMatchesNonLibrary] += 1;
-      counts_[Counts::kBasicBlockMatchesNonLibrary] +=
-          fixed_point_info.basic_block_count;
-      counts_[Counts::kInstructionMatchesNonLibrary] +=
-          fixed_point_info.instruction_count;
-      counts_[Counts::kFlowGraphEdgeMatchesNonLibrary] +=
-          fixed_point_info.edge_count;
-    }
-    histogram_[*fixed_point_info.algorithm]++;
-
-    FlowGraphInfo& primary_info(
-        flow_graph_infos1_.find(fixed_point_info.primary)->second);
-    FlowGraphInfo& secondary_info(
-        flow_graph_infos2_.find(fixed_point_info.secondary)->second);
-    indexed_flow_graphs1_.erase(std::find(indexed_flow_graphs1_.begin(),
-                                          indexed_flow_graphs1_.end(),
-                                          &primary_info));
-    indexed_flow_graphs2_.erase(std::find(indexed_flow_graphs2_.begin(),
-                                          indexed_flow_graphs2_.end(),
-                                          &secondary_info));
-    set_modified();
-  } catch (const std::exception& message) {
-    return absl::InternalError(
-        absl::StrCat("Error adding manual match: ", message.what()));
-  } catch (...) {
-    return absl::UnknownError("Error adding manual match");
+    fixed_point.SetSimilarity(GetSimilarityScore(
+        *primary_graph, *secondary_graph, histogram, counts));
+    fixed_point.SetConfidence(fixed_point_info.confidence);
+    ClassifyChanges(&fixed_point);
+    fixed_point_info.basic_block_count =
+        counts[Counts::kBasicBlockMatchesLibrary] +
+        counts[Counts::kBasicBlockMatchesNonLibrary];
+    fixed_point_info.instruction_count =
+        counts[Counts::kInstructionMatchesLibrary] +
+        counts[Counts::kInstructionMatchesNonLibrary];
+    fixed_point_info.edge_count =
+        counts[Counts::kFlowGraphEdgeMatchesLibrary] +
+        counts[Counts::kFlowGraphEdgeMatchesNonLibrary];
+    fixed_point_info.similarity = fixed_point.GetSimilarity();
+    fixed_point_info.flags = fixed_point.GetFlags();
   }
+
+  fixed_point_infos_.insert(fixed_point_info);
+  indexed_fixed_points_.push_back(
+      const_cast<FixedPointInfo*>(&*fixed_point_infos_.find(fixed_point_info)));
+  std::sort(indexed_fixed_points_.begin(), indexed_fixed_points_.end(),
+            &SortBySimilarity);
+
+  if (call_graph2_.IsLibrary(
+          call_graph2_.GetVertex(fixed_point_info.secondary)) ||
+      flow_graph_infos2_.find(fixed_point_info.secondary) ==
+          flow_graph_infos2_.end() ||
+      call_graph1_.IsLibrary(
+          call_graph1_.GetVertex(fixed_point_info.primary)) ||
+      flow_graph_infos1_.find(fixed_point_info.primary) ==
+          flow_graph_infos1_.end()) {
+    counts_[Counts::kFunctionMatchesLibrary] += 1;
+    counts_[Counts::kBasicBlockMatchesLibrary] +=
+        fixed_point_info.basic_block_count;
+    counts_[Counts::kInstructionMatchesLibrary] +=
+        fixed_point_info.instruction_count;
+    counts_[Counts::kFlowGraphEdgeMatchesLibrary] +=
+        fixed_point_info.edge_count;
+  } else {
+    counts_[Counts::kFunctionMatchesNonLibrary] += 1;
+    counts_[Counts::kBasicBlockMatchesNonLibrary] +=
+        fixed_point_info.basic_block_count;
+    counts_[Counts::kInstructionMatchesNonLibrary] +=
+        fixed_point_info.instruction_count;
+    counts_[Counts::kFlowGraphEdgeMatchesNonLibrary] +=
+        fixed_point_info.edge_count;
+  }
+  histogram_[*fixed_point_info.algorithm]++;
+
+  FlowGraphInfo& primary_info(
+      flow_graph_infos1_.find(fixed_point_info.primary)->second);
+  FlowGraphInfo& secondary_info(
+      flow_graph_infos2_.find(fixed_point_info.secondary)->second);
+  indexed_flow_graphs1_.erase(std::find(indexed_flow_graphs1_.begin(),
+                                        indexed_flow_graphs1_.end(),
+                                        &primary_info));
+  indexed_flow_graphs2_.erase(std::find(indexed_flow_graphs2_.begin(),
+                                        indexed_flow_graphs2_.end(),
+                                        &secondary_info));
+  set_modified();
+
   return absl::OkStatus();
 }
 
@@ -1006,19 +997,25 @@ Results::MatchDescription Results::GetMatchDescription(size_t index) const {
   return desc;
 }
 
-void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
-  // we need to check the temporary database first to get up to date data
+absl::Status Results::ReadBasicBlockMatches(FixedPoint& fixed_point) {
+  // We need to check the temporary database first to get up to date data
   // (the user may have added fixed points manually)
   // only if we cannot find the fixed point there we load from the original db
   int id = 0;
-  temp_database_->database()
-      ->StatementOrThrow(
-          "SELECT COALESCE(id, 0) FROM function WHERE function.address1 = "
-          ":address1 AND function.address2 = :address2")
-      .BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress())
-      .BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress())
-      .ExecuteOrThrow()
-      .Into(&id);
+  ABSL_ASSIGN_OR_RETURN(
+      SqliteStatement statement,
+      temp_database_->database()->Statement("SELECT COALESCE(id, 0) "
+                                            "FROM function "
+                                            "WHERE"
+                                            " function.address1 = :address1 AND"
+                                            " function.address2 = :address2"));
+  statement.BindInt64(fixed_point.GetPrimary()->GetEntryPointAddress())
+      .BindInt64(fixed_point.GetSecondary()->GetEntryPointAddress());
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  if (statement.GotData()) {
+    statement.Into(&id);
+  }
+
   absl::StatusOr<SqliteDatabase> original_database;
   SqliteDatabase* database;
   if (id) {  // Found in temp db
@@ -1029,35 +1026,38 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
   }
 
   absl::flat_hash_map<int, std::string> algorithms;
-  {
-    SqliteStatement statement =
-        database->StatementOrThrow("SELECT id, name FROM basicblockalgorithm");
-    for (statement.ExecuteOrThrow(); statement.GotData();
-         statement.ExecuteOrThrow()) {
-      int id;
-      std::string name;
-      statement.Into(&id).Into(&name);
-      algorithms[id] = name;
-    }
+  ABSL_ASSIGN_OR_RETURN(
+      statement,
+      database->Statement("SELECT id, name FROM basicblockalgorithm"));
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  while (statement.GotData()) {
+    int id;
+    std::string name;
+    statement.Into(&id).Into(&name);
+    algorithms[id] = name;
+    ABSL_RETURN_IF_ERROR(statement.Execute());
   }
 
-  SqliteStatement statement = database->StatementOrThrow(
-      "SELECT basicblock.address1, basicblock.address2, "
-      "basicblock.algorithm "
-      "FROM function "
-      "INNER JOIN basicblock ON functionid = function.id "
-      "INNER JOIN instruction ON basicblockid = basicblock.id "
-      "WHERE function.address1 = :address1 AND "
-      "function.address2 = :address2 "
-      "ORDER BY basicblock.id");
-  statement.BindInt64(fixed_point->GetPrimary()->GetEntryPointAddress())
-      .BindInt64(fixed_point->GetSecondary()->GetEntryPointAddress());
+  ABSL_ASSIGN_OR_RETURN(
+      statement,
+      database->Statement(
+          "SELECT"
+          " basicblock.address1, basicblock.address2, basicblock.algorithm "
+          "FROM function "
+          "INNER JOIN basicblock ON functionid = function.id "
+          "INNER JOIN instruction ON basicblockid = basicblock.id "
+          "WHERE"
+          " function.address1 = :address1 AND"
+          " function.address2 = :address2 "
+          "ORDER BY basicblock.id"));
+  statement.BindInt64(fixed_point.GetPrimary()->GetEntryPointAddress())
+      .BindInt64(fixed_point.GetSecondary()->GetEntryPointAddress());
 
   std::pair<Address, Address> last_basic_block(
       std::numeric_limits<Address>::max(), std::numeric_limits<Address>::max());
   int last_algorithm = -1;
-  for (statement.ExecuteOrThrow(); statement.GotData();
-       statement.ExecuteOrThrow()) {
+  ABSL_RETURN_IF_ERROR(statement.Execute());
+  while (statement.GotData()) {
     std::pair<Address, Address> basic_block;
     int algorithm;
     statement.Into(&basic_block.first)
@@ -1067,28 +1067,28 @@ void Results::ReadBasicblockMatches(FixedPoint* fixed_point) {
       last_algorithm = algorithm;
       last_basic_block = basic_block;
     }
-    if (basic_block == last_basic_block) {
-      continue;
+    if (basic_block != last_basic_block) {
+      const auto primary_vertex =
+          fixed_point.GetPrimary()->GetVertex(last_basic_block.first);
+      const auto secondary_vertex =
+          fixed_point.GetSecondary()->GetVertex(last_basic_block.second);
+      fixed_point.Add(primary_vertex, secondary_vertex,
+                      algorithms[last_algorithm]);
+
+      last_basic_block = basic_block;
+      last_algorithm = algorithm;
     }
-
-    const auto primary_vertex =
-        fixed_point->GetPrimary()->GetVertex(last_basic_block.first);
-    const auto secondary_vertex =
-        fixed_point->GetSecondary()->GetVertex(last_basic_block.second);
-    fixed_point->Add(primary_vertex, secondary_vertex,
-                     algorithms[last_algorithm]);
-
-    last_basic_block = basic_block;
-    last_algorithm = algorithm;
+    ABSL_RETURN_IF_ERROR(statement.Execute());
   }
   if (last_algorithm != -1) {
     const auto primary_vertex =
-        fixed_point->GetPrimary()->GetVertex(last_basic_block.first);
+        fixed_point.GetPrimary()->GetVertex(last_basic_block.first);
     const auto secondary_vertex =
-        fixed_point->GetSecondary()->GetVertex(last_basic_block.second);
-    fixed_point->Add(primary_vertex, secondary_vertex,
-                     algorithms[last_algorithm]);
+        fixed_point.GetSecondary()->GetVertex(last_basic_block.second);
+    fixed_point.Add(primary_vertex, secondary_vertex,
+                    algorithms[last_algorithm]);
   }
+  return absl::OkStatus();
 }
 
 absl::Status Results::SetupTemporaryFlowGraphs(
@@ -1125,7 +1125,7 @@ absl::Status Results::SetupTemporaryFlowGraphs(
     FindFixedPointsBasicBlock(&fixed_point, &context,
                               GetDefaultMatchingStepsBasicBlock());
   } else {
-    ReadBasicblockMatches(&fixed_point);
+    ABSL_RETURN_IF_ERROR(ReadBasicBlockMatches(fixed_point));
   }
 
   return absl::OkStatus();
@@ -1137,9 +1137,9 @@ void Results::DeleteTemporaryFlowGraphs() {
   fixed_points_.clear();
 }
 
-bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
+absl::StatusOr<std::string> Results::PrepareVisualCallGraphDiff(size_t index) {
   if (index >= indexed_fixed_points_.size()) {
-    return false;
+    return absl::InvalidArgumentError("Index out of range");
   }
 
   const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
@@ -1155,29 +1155,25 @@ bool Results::PrepareVisualCallGraphDiff(size_t index, std::string* message) {
     // TODO(cblichmann): This is insanely inefficient: every single call graph
     //                   diff recreates the full result.
     // TODO(cblichmann): This code is duplicated in PrepareVisualDiff().
-    auto database_writer = DatabaseWriter::Create(name, true);
-    if (!database_writer.ok()) {
-      throw std::runtime_error(std::string(database_writer.status().message()));
-    }
-    if (auto status = (*database_writer)
-                          ->Write(call_graph1_, call_graph2_, flow_graphs1_,
-                                  flow_graphs2_, fixed_points_);
-        !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
-    database_file = (*database_writer)->filename();
+    ABSL_ASSIGN_OR_RETURN(auto database_writer,
+                          DatabaseWriter::Create(name, true));
+
+    ABSL_RETURN_IF_ERROR(database_writer->Write(call_graph1_, call_graph2_,
+                                                flow_graphs1_, flow_graphs2_,
+                                                fixed_points_));
+
+    database_file = database_writer->filename();
   }
 
-  *message = VisualDiffMessage(
+  return VisualDiffMessage(
       /*call_graph_match=*/true, database_file, call_graph1_.GetFilePath(),
       fixed_point_info.primary, call_graph2_.GetFilePath(),
       fixed_point_info.secondary);
-  return true;
 }
 
-bool Results::PrepareVisualDiff(size_t index, std::string* message) {
+absl::StatusOr<std::string> Results::PrepareVisualDiff(size_t index) {
   if (index >= indexed_fixed_points_.size()) {
-    return false;
+    return absl::InvalidArgumentError("Index out of range");
   }
 
   const FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
@@ -1192,8 +1188,8 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
                                                   : empty;
   if (primary_info.instruction_count == 0 &&
       secondary_info.instruction_count == 0) {
-    warning("Both functions are empty, nothing to display!");
-    return false;
+    return absl::FailedPreconditionError(
+        "Both functions are empty, nothing to display!");
   }
 
   FixedPoint fixed_point;
@@ -1206,12 +1202,10 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
     // basic block fixed_points.
     std::unique_ptr<FlowGraph> primary;
     std::unique_ptr<FlowGraph> secondary;
-    if (auto status = SetupTemporaryFlowGraphs(
-            fixed_point_info, fixed_point, primary, secondary,
-            /*create_instruction_matches=*/false);
-        !status.ok()) {
-      throw std::runtime_error(std::string(status.message()));
-    }
+    ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+        fixed_point_info, fixed_point, primary, secondary,
+        /*create_instruction_matches=*/false));
+
   } else {
     fixed_point = *FindFixedPoint(fixed_point_info);
   }
@@ -1222,19 +1216,13 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   ++diff_database_id_;
   std::string name(absl::StrCat("visual_diff", diff_database_id_, ".database"));
 
-  auto database_writer = DatabaseWriter::Create(name, true);
-  if (!database_writer.ok()) {
-    throw std::runtime_error(std::string(database_writer.status().message()));
-  }
-  if (auto status = (*database_writer)
-                        ->Write(call_graph1_, call_graph2_, flow_graphs1_,
-                                flow_graphs2_, fixed_points_);
-      !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
-  const std::string& database_file = (*database_writer)->filename();
+  ABSL_ASSIGN_OR_RETURN(auto database_writer,
+                        DatabaseWriter::Create(name, true));
+  ABSL_RETURN_IF_ERROR(database_writer->Write(
+      call_graph1_, call_graph2_, flow_graphs1_, flow_graphs2_, fixed_points_));
+  const std::string& database_file = database_writer->filename();
 
-  *message = VisualDiffMessage(
+  std::string message = VisualDiffMessage(
       /*call_graph_match=*/false, database_file, call_graph1_.GetFilePath(),
       fixed_point.GetPrimary()->GetEntryPointAddress(),
       call_graph2_.GetFilePath(),
@@ -1242,7 +1230,7 @@ bool Results::PrepareVisualDiff(size_t index, std::string* message) {
   if (is_incomplete()) {
     DeleteTemporaryFlowGraphs();
   }
-  return true;
+  return message;
 }
 
 FixedPoint* Results::FindFixedPoint(const FixedPointInfo& fixed_point_info) {
@@ -1259,7 +1247,7 @@ FixedPoint* Results::FindFixedPoint(const FixedPointInfo& fixed_point_info) {
   return nullptr;
 }
 
-void Results::Read(Reader* reader) {
+absl::Status Results::Read(Reader* reader) {
   flow_graph_infos1_.clear();
   flow_graph_infos2_.clear();
   fixed_point_infos_.clear();
@@ -1268,11 +1256,9 @@ void Results::Read(Reader* reader) {
   indexed_fixed_points_.clear();
 
   incomplete_ = true;
-  if (auto status = reader->Read(call_graph1_, call_graph2_, flow_graph_infos1_,
-                                 flow_graph_infos2_, fixed_point_infos_);
-      !status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
+  ABSL_RETURN_IF_ERROR(reader->Read(call_graph1_, call_graph2_,
+                                    flow_graph_infos1_, flow_graph_infos2_,
+                                    fixed_point_infos_));
   if (const auto* database_reader = dynamic_cast<DatabaseReader*>(reader)) {
     input_filename_ = database_reader->GetInputFilename();
     histogram_ = database_reader->GetBasicBlockFixedPointInfo();
@@ -1289,6 +1275,7 @@ void Results::Read(Reader* reader) {
   // TODO(cblichmann): Iterate over all fixed points that have been added
   //                   manually by the Java UI and evaluate them (add basic
   //                   block/instruction matches).
+  return absl::OkStatus();
 }
 
 absl::Status Results::Write(Writer* writer) {
@@ -1336,21 +1323,28 @@ void Results::CreateIndexedViews() {
       GetSimilarityScore(call_graph1_, call_graph2_, histogram_, counts_);
 }
 
-void Results::MarkPortedCommentsInTempDatabase() {
-  temp_database_->SetCommentsPorted(fixed_point_infos_);
+absl::Status Results::MarkPortedCommentsInTempDatabase() {
+  return temp_database_->SetCommentsPorted(fixed_point_infos_);
 }
 
 // Transfer from temp db to real db.
 void Results::MarkPortedCommentsInDatabase() {
-  try {
-    if (!input_filename_.empty()) {
-      auto database = *SqliteDatabase::Connect(input_filename_);
-      DatabaseTransmuter::MarkPortedComments(
-          &database, temp_database_->filename().c_str(), fixed_point_infos_);
-    }
-  } catch (...) {
-    // Swallow any errors here. The database may be read only or
-    // the commentsported table doesn't exist. We don't care...
+  if (input_filename_.empty()) {
+    return;
+  }
+
+  absl::StatusOr<SqliteDatabase> database =
+      SqliteDatabase::Connect(input_filename_);
+  absl::Status status = database.status();
+  if (status.ok()) {
+    status = DatabaseTransmuter::MarkPortedComments(
+        *database, temp_database_->filename().c_str());
+  }
+  // Don't fail here as the database might not be writable or the
+  // commentsported table might not exist.
+  if (!status.ok()) {
+    LOG(ERROR) << "Failed to mark ported comments in database: "
+               << status.message();
   }
 }
 
@@ -1361,38 +1355,32 @@ absl::Status Results::PortComments(Address start_address_source,
                                    double min_confidence,
                                    double min_similarity) {
   // TODO(cblichmann): Merge with the vector version of PortComments().
-  try {
-    for (auto* fixed_point_info : indexed_fixed_points_) {
-      if (get_func(static_cast<ea_t>(fixed_point_info->primary))) {
-        if (is_incomplete()) {
-          FixedPoint fixed_point;
-          std::unique_ptr<FlowGraph> primary;
-          std::unique_ptr<FlowGraph> secondary;
-          ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
-              *fixed_point_info, fixed_point, primary, secondary,
-              /*create_instruction_matches=*/false));
-          SetComments(&fixed_point, call_graph2_.comments(),
-                      start_address_target, end_address_target,
-                      start_address_source, end_address_source, min_confidence,
-                      min_similarity);
+  for (auto* fixed_point_info : indexed_fixed_points_) {
+    if (get_func(static_cast<ea_t>(fixed_point_info->primary))) {
+      if (is_incomplete()) {
+        FixedPoint fixed_point;
+        std::unique_ptr<FlowGraph> primary;
+        std::unique_ptr<FlowGraph> secondary;
+        ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+            *fixed_point_info, fixed_point, primary, secondary,
+            /*create_instruction_matches=*/false));
+        SetComments(&fixed_point, call_graph2_.comments(), start_address_target,
+                    end_address_target, start_address_source,
+                    end_address_source, min_confidence, min_similarity);
 
-          DeleteTemporaryFlowGraphs();
-        } else {
-          SetComments(FindFixedPoint(*fixed_point_info),
-                      call_graph2_.comments(), start_address_target,
-                      end_address_target, start_address_source,
-                      end_address_source, min_confidence, min_similarity);
-        }
+        DeleteTemporaryFlowGraphs();
+      } else {
+        SetComments(FindFixedPoint(*fixed_point_info), call_graph2_.comments(),
+                    start_address_target, end_address_target,
+                    start_address_source, end_address_source, min_confidence,
+                    min_similarity);
       }
-      fixed_point_info->comments_ported = true;
     }
-    MarkPortedCommentsInTempDatabase();
-  } catch (const std::exception& message) {
-    return absl::InternalError(
-        absl::StrCat("Importing symbols/comments: ", message.what()));
-  } catch (...) {
-    return absl::UnknownError("Importing symbols/comments");
+    fixed_point_info->comments_ported = true;
   }
+  ABSL_RETURN_IF_ERROR(MarkPortedCommentsInTempDatabase()).SetPrepend()
+      << "Importing symbols/comments: ";
+
   return absl::OkStatus();
 }
 
@@ -1401,54 +1389,50 @@ absl::Status Results::PortComments(absl::Span<const size_t> indices,
   if (indices.empty()) {
     return absl::OkStatus();
   }
-  try {
-    for (const size_t index : indices) {
-      if (index >= indexed_fixed_points_.size()) {
-        return absl::InvalidArgumentError(
-            absl::StrCat("Index out of range: ", index));
-      }
-      FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
-      const ea_t start_address_target = 0;
-      const ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
-      const ea_t start_address_source = fixed_point_info.primary;
-      func_t* function = get_func(static_cast<ea_t>(start_address_source));
-      if (function) {
-        const ea_t end_address_source = function->end_ea;
-        if (how == kAsExternalLib) {
-          function->flags |= FUNC_LIB;
-        }
-        if (is_incomplete()) {
-          FixedPoint fixed_point;
-          std::unique_ptr<FlowGraph> primary;
-          std::unique_ptr<FlowGraph> secondary;
-          // TODO(cblichmann): See comment in SetupTemporaryFlowGraphs(), cache
-          //                   the BinExport2.
-          ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
-              fixed_point_info, fixed_point, primary, secondary,
-              /*create_instruction_matches=*/false));
-          SetComments(&fixed_point, call_graph2_.comments(),
-                      start_address_target, end_address_target,
-                      start_address_source, end_address_source,
-                      /*min_confidence=*/0.0, /*min_similarity=*/0.0);
 
-          DeleteTemporaryFlowGraphs();
-        } else {
-          SetComments(FindFixedPoint(fixed_point_info), call_graph2_.comments(),
-                      start_address_target, end_address_target,
-                      start_address_source, end_address_source,
-                      /*min_confidence=*/0.0,
-                      /*min_similarity=*/0.0);
-        }
-      }
-      fixed_point_info.comments_ported = true;
+  for (const size_t index : indices) {
+    if (index >= indexed_fixed_points_.size()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Index out of range: ", index));
     }
-    MarkPortedCommentsInTempDatabase();
-  } catch (const std::exception& message) {
-    return absl::InternalError(
-        absl::StrCat("Importing symbols/comments: ", message.what()));
-  } catch (...) {
-    return absl::UnknownError("Importing symbols/comments");
+    FixedPointInfo& fixed_point_info = *indexed_fixed_points_[index];
+    const ea_t start_address_target = 0;
+    const ea_t end_address_target = std::numeric_limits<ea_t>::max() - 1;
+    const ea_t start_address_source = fixed_point_info.primary;
+    func_t* function = get_func(static_cast<ea_t>(start_address_source));
+    if (function) {
+      const ea_t end_address_source = function->end_ea;
+      if (how == kAsExternalLib) {
+        function->flags |= FUNC_LIB;
+      }
+      if (is_incomplete()) {
+        FixedPoint fixed_point;
+        std::unique_ptr<FlowGraph> primary;
+        std::unique_ptr<FlowGraph> secondary;
+        // TODO(cblichmann): See comment in SetupTemporaryFlowGraphs(), cache
+        //                   the BinExport2.
+        ABSL_RETURN_IF_ERROR(SetupTemporaryFlowGraphs(
+            fixed_point_info, fixed_point, primary, secondary,
+            /*create_instruction_matches=*/false));
+        SetComments(&fixed_point, call_graph2_.comments(), start_address_target,
+                    end_address_target, start_address_source,
+                    end_address_source,
+                    /*min_confidence=*/0.0, /*min_similarity=*/0.0);
+
+        DeleteTemporaryFlowGraphs();
+      } else {
+        SetComments(FindFixedPoint(fixed_point_info), call_graph2_.comments(),
+                    start_address_target, end_address_target,
+                    start_address_source, end_address_source,
+                    /*min_confidence=*/0.0,
+                    /*min_similarity=*/0.0);
+      }
+    }
+    fixed_point_info.comments_ported = true;
   }
+  ABSL_RETURN_IF_ERROR(MarkPortedCommentsInTempDatabase()).SetPrepend()
+      << "Importing symbols/comments: ";
+
   return absl::OkStatus();
 }
 

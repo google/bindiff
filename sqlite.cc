@@ -59,11 +59,11 @@ absl::StatusOr<SqliteDatabase> SqliteDatabase::Connect(
     absl::Status status = Sqlite3ErrToStatus(
         handle, absl::StrCat("open database '", filename, "'"));
     sqlite3_close(handle);
-    throw std::runtime_error(std::string(status.message()));
+    return status;
   }
 
   if (!handle) {
-    throw std::runtime_error("failed opening database");
+    return absl::InternalError("failed opening database");
   }
 
   SqliteDatabase database;
@@ -83,14 +83,6 @@ void SqliteDatabase::Disconnect() {
 absl::StatusOr<SqliteStatement> SqliteDatabase::Statement(
     absl::string_view statement) {
   return SqliteStatement::Prepare(*this, statement);
-}
-
-SqliteStatement SqliteDatabase::StatementOrThrow(absl::string_view statement) {
-  auto stmt = Statement(statement);
-  if (!stmt.ok()) {
-    throw std::runtime_error(std::string(stmt.status().message()));
-  }
-  return std::move(*stmt);
 }
 
 absl::Status SqliteDatabase::Execute(absl::string_view statement) {
@@ -230,14 +222,6 @@ absl::Status SqliteStatement::Execute() {
   column_ = 0;
   got_data_ = return_code == SQLITE_ROW;
   return absl::OkStatus();
-}
-
-SqliteStatement& SqliteStatement::ExecuteOrThrow() {
-  absl::Status status = Execute();
-  if (!status.ok()) {
-    throw std::runtime_error(std::string(status.message()));
-  }
-  return *this;
 }
 
 SqliteStatement& SqliteStatement::Reset() {
