@@ -22,9 +22,9 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.labels.PieSectionLabelGenerator;
 import org.jfree.chart.labels.PieToolTipGenerator;
 import org.jfree.chart.plot.PiePlot3D;
+import org.jfree.chart.ui.RectangleInsets;
+import org.jfree.chart.util.Rotation;
 import org.jfree.data.general.DefaultPieDataset;
-import org.jfree.ui.RectangleInsets;
-import org.jfree.util.Rotation;
 
 public class Pie3dPanel extends ChartPanel {
   private static final Font TITLE_FONT = new Font("Arial", Font.PLAIN, 16);
@@ -34,7 +34,7 @@ public class Pie3dPanel extends ChartPanel {
 
   public Pie3dPanel(
       final String title,
-      final DefaultPieDataset dataset,
+      final DefaultPieDataset<String> dataset,
       final PieSectionLabelGenerator customLabelGenerator) {
     super(
         ChartFactory.createPieChart3D(title, dataset, false, true, false),
@@ -59,7 +59,7 @@ public class Pie3dPanel extends ChartPanel {
     section.setBackgroundPaint(Color.WHITE);
     section.setOutlinePaint(Color.WHITE);
     //    section.setOutlineVisible(false);
-    section.setBaseSectionOutlinePaint(Color.WHITE);
+    section.setDefaultSectionOutlinePaint(Color.WHITE);
     section.setStartAngle(0);
     section.setDirection(Rotation.CLOCKWISE);
     section.setForegroundAlpha(0.5f);

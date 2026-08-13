@@ -53,7 +53,7 @@ public class BasicBlockMatchesPie3dPanel extends JPanel {
 
   private final Pie3dPanel piePanel;
 
-  private final DefaultPieDataset dataset = new DefaultPieDataset();
+  private final DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
 
   private final InternalFlowgraphCachedCountsListener changeListener =
       new InternalFlowgraphCachedCountsListener();

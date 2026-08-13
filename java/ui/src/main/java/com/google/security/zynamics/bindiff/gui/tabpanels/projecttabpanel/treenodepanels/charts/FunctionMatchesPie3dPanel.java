@@ -62,7 +62,7 @@ public class FunctionMatchesPie3dPanel extends JPanel {
     primaryUnmatchedPercent = (double) primaryUnmatchedCount / total * 100.0;
     secondaryUnmatchedPercent = (double) secondaryUnmatchedCount / total * 100.0;
 
-    final DefaultPieDataset dataset = new DefaultPieDataset();
+    final DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
     dataset.setValue(MATCHED_FUNCTIONS, matchedPercent);
     dataset.setValue(PRIMRAY_UNMATCHED_FUNCTIONS, primaryUnmatchedPercent);
     dataset.setValue(SECONDARY_UNMATCHED_FUNCTIONS, secondaryUnmatchedPercent);
@@ -101,7 +101,7 @@ public class FunctionMatchesPie3dPanel extends JPanel {
     primaryUnmatchedPercent = (double) primaryUnmatchedCount / total * 100.0;
     secondaryUnmatchedPercent = (double) secondaryUnmatchedCount / total * 100.0;
 
-    final DefaultPieDataset dataset = new DefaultPieDataset();
+    final DefaultPieDataset<String> dataset = new DefaultPieDataset<>();
     dataset.setValue(MATCHED_FUNCTIONS, matchedPercent);
     dataset.setValue(PRIMRAY_UNMATCHED_FUNCTIONS, primaryUnmatchedPercent);
     dataset.setValue(SECONDARY_UNMATCHED_FUNCTIONS, secondaryUnmatchedPercent);

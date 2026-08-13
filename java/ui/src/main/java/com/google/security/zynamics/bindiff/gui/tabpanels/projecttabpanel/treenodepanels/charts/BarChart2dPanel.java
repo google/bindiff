@@ -27,8 +27,8 @@ import org.jfree.chart.labels.CategoryToolTipGenerator;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.ui.RectangleInsets;
 import org.jfree.data.category.CategoryDataset;
-import org.jfree.ui.RectangleInsets;
 
 public class BarChart2dPanel extends ChartPanel {
   private static final Font TITLE_FONT = new Font("Arial", Font.PLAIN, 16);
@@ -38,7 +38,7 @@ public class BarChart2dPanel extends ChartPanel {
 
   public BarChart2dPanel(final String title, final CategoryDataset dataset) {
     super(
-        ChartFactory.createBarChart3D(
+        ChartFactory.createBarChart(
             title, "", "Matched Functions", dataset, PlotOrientation.VERTICAL, false, true, false),
         false,
         true,
@@ -69,7 +69,7 @@ public class BarChart2dPanel extends ChartPanel {
   }
 
   private Paint[] getBarColors() {
-    final Paint paint[] = new Paint[11];
+    final Paint[] paint = new Paint[11];
     for (int i = 0; i <= 10; i++) {
       paint[i] = SimilarityConfidenceCellRenderer.calcColor(i / 10.0);
     }
@@ -93,6 +93,6 @@ public class BarChart2dPanel extends ChartPanel {
 
   public void setTooltipGenerator(final CategoryToolTipGenerator generator) {
     final CategoryItemRenderer renderer = plot.getRenderer();
-    renderer.setBaseToolTipGenerator(generator);
+    renderer.setDefaultToolTipGenerator(generator);
   }
 }

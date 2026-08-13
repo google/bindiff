@@ -67,7 +67,7 @@ dependencies {
     implementation 'org.apache.xmlgraphics:batik-svggen:1.17'
     implementation 'org.slf4j:slf4j-nop:2.0.10'
     implementation 'org.jfree:jcommon:1.0.24'
-    implementation 'org.jfree:jfreechart:1.0.19'
+    implementation 'org.jfree:jfreechart:1.5.6'
     implementation 'org.xerial.thirdparty:nestedvm:1.0'
     implementation 'org.xerial:sqlite-jdbc:3.44.1.0'
     implementation project(':zylib')

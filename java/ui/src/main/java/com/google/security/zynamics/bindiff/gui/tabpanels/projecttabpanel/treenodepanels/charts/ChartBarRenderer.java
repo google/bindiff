@@ -15,9 +15,12 @@
 package com.google.security.zynamics.bindiff.gui.tabpanels.projecttabpanel.treenodepanels.charts;
 
 import java.awt.Paint;
-import org.jfree.chart.renderer.category.BarRenderer3D;
+import org.jfree.chart.renderer.category.BarRenderer;
 
-public class ChartBarRenderer extends BarRenderer3D {
+/**
+ * A custom BarRenderer for Bindiff charts.
+ */
+public class ChartBarRenderer extends BarRenderer {
   private final Paint[] colors;
 
   public ChartBarRenderer(final Paint[] colors) {
