@@ -32,6 +32,6 @@ constinit const char* kBinDiffDetailedVersion =
     ")";
 
 constinit const char* kBinDiffCopyright =
-    "(c)2004-2011 zynamics GmbH, (c)2011-2024 Google LLC.";
+    "(c)2004-2011 zynamics GmbH, (c)2011-2026 Google LLC.";
 
 }  // namespace security::bindiff
