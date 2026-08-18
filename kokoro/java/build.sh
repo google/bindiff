@@ -25,5 +25,5 @@ docker run \
   -v "${KOKORO_PIPER_DIR}/google3/third_party/ghidra":/build/deps/ghidra \
   -v "${KOKORO_PIPER_DIR}/google3/third_party/java/yfiles":/build/deps/yfiles \
   -v "${build_dir}/out":/build/out \
-  gcr.io/zynamics-build/debian10-java11 \
+  gcr.io/zynamics-build/debian-java \
   src/gfile/dockerized_build.sh
