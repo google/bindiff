@@ -20,22 +20,22 @@ allprojects {
         sourceCompatibility = JavaVersion.VERSION_11
     }
 
-    tasks.withType(AbstractArchiveTask) {
+    tasks.withType(AbstractArchiveTask).configureEach {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
     }
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
     }
 
     buildscript {
         repositories {
             maven {
-                url "https://maven-central.storage-download.googleapis.com/maven2/"
+                url = "https://maven-central.storage-download.googleapis.com/maven2/"
             }
             maven {
-                url "https://plugins.gradle.org/m2/"
+                url = "https://plugins.gradle.org/m2/"
             }
             mavenCentral()
         }
@@ -62,7 +62,7 @@ subprojects {
 }
 
 // Downloads all projects dependencies from the repository
-task resolveDependencies {
+tasks.register('resolveDependencies') {
     doLast {
         rootProject.allprojects { project ->
             project.buildscript.configurations.forEach { configuration ->
