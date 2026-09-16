@@ -22,7 +22,6 @@ for %%I in ("%BUILD_DIR%\wix" ^
             "%APP_DIR%\Plugins\IDA Pro") do if not exist "%%I" mkdir "%%I"
 
 :: Set tool paths
-set SIGNTOOL="%ProgramFiles(x86)%\Windows kits\10\bin\x86\signtool.exe"
 set JAVA_HOME=%BUILD_DIR%\zulu16.28.11-ca-jdk16.0.0-win_x64
 set HEAT="%BUILD_DIR%\wix\heat.exe"
 set CANDLE="%BUILD_DIR%\wix\candle.exe"
@@ -33,10 +32,6 @@ unzip -q "%KOKORO_GFILE_DIR%\zulu16.28.11-ca-jdk16.0.0-win_x64.zip" ^
   -d "%BUILD_DIR%" || exit /b
 unzip -q "%KOKORO_GFILE_DIR%\wix311-binaries.zip" ^
   -d "%BUILD_DIR%\wix" || exit /b
-
-:: Code-sign release artifacts
-if "%1" neq "release" ^
-  call :codesign "%KOKORO_GFILE_DIR%\*.exe" "%KOKORO_GFILE_DIR%\*.dll"
 
 :: Copy latest release artifacts.
 for %%I in (bindiff.exe ^
@@ -101,21 +96,5 @@ copy /Y ^
   "%BUILD_DIR%\Extra_Ghidra.wixobj" ^
   "%BUILD_DIR%\Jre.wixobj" ^
   "%BUILD_DIR%\Setup.wixobj" || exit /b
-
-:: Release build, code sign the artifacts
-@REM TODO(cblichmann): Re-enable code signing using a separate job.
-@REM if "%1" neq "release" call :codesign "%BUILD_DIR%\*.msi"
-@REM
-@REM exit /b
-@REM
-@REM :: Code-signs the specified artifacts and verifies them
-@REM :: %* artifacts to sign
-@REM :codesign
-@REM
-@REM set ARTIFACTS=%*
-@REM
-@REM ksigntool sign GOOGLE_EXTERNAL /v /debug /t http://timestamp.digicert.com ^
-@REM   %ARTIFACTS% || exit /b
-@REM %SIGNTOOL% verify /pa /all %ARTIFACTS% || exit /b
 
 exit /b
