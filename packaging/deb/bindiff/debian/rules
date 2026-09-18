@@ -14,13 +14,6 @@ override_dh_strip:
 	    debian/bindiff/opt/bindiff/plugins/binaryninja/*.so \
 	    debian/bindiff/opt/bindiff/plugins/idapro/*.so \
 	    || true
-	chrpath -d \
-	    debian/bindiff/opt/bindiff/bin/bindiff \
-	    debian/bindiff/opt/bindiff/bin/binexport2dump \
-	    debian/bindiff/opt/bindiff/libexec/bindiff_config_setup \
-	    debian/bindiff/opt/bindiff/plugins/binaryninja/*.so \
-	    debian/bindiff/opt/bindiff/plugins/idapro/*.so \
-	    || true
 
 override_dh_fixperms:
 	dh_fixperms
