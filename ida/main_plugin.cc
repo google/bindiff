@@ -236,6 +236,20 @@ absl::StatusOr<bool> ExportIdbs() {
   RemoveAll(secondary_temp_dir).IgnoreError();
   ABSL_RETURN_IF_ERROR(CreateDirectories(secondary_temp_dir));
 
+  // The export names end up as the "filename" column of the result file and
+  // as the names of the .BinExport files saved next to it. Same-named
+  // databases (e.g. two versions of the same binary in different directories)
+  // would overwrite each other there, so disambiguate both sides the same way
+  // the BinDiff UI does.
+  std::string primary_name =
+      ReplaceFileExtension(Basename(primary_idb_path), "");
+  const std::string secondary_name =
+      ReplaceFileExtension(Basename(secondary_idb_path), "");
+  const bool same_name = primary_name == secondary_name;
+  if (same_name) {
+    primary_name += "_primary";
+  }
+
   {
     const auto& config = config::Proto();
     auto options =
@@ -254,9 +268,8 @@ absl::StatusOr<bool> ExportIdbs() {
     std::thread export_thread(
         [&status, &exporter]() { status = exporter.Export(); });
 
-    const std::string primary_binexport = JoinPath(
-        primary_temp_dir,
-        ReplaceFileExtension(Basename(primary_idb_path), ".BinExport"));
+    const std::string primary_binexport =
+        JoinPath(primary_temp_dir, absl::StrCat(primary_name, ".BinExport"));
     idc_value_t arg = primary_binexport.c_str();
     if (qstring errbuf; !call_idc_func(
             /*result=*/nullptr, "BinExportBinary", &arg,
@@ -270,6 +283,18 @@ absl::StatusOr<bool> ExportIdbs() {
     if (!status.ok()) {
       return absl::UnknownError(absl::StrCat(
           "Export of the secondary database failed: ", status.message()));
+    }
+  }
+  if (same_name) {
+    // IdbExporter always names its output after the database.
+    const std::string exported = JoinPath(
+        secondary_temp_dir, absl::StrCat(secondary_name, ".BinExport"));
+    const std::string renamed =
+        JoinPath(secondary_temp_dir,
+                 absl::StrCat(secondary_name, "_secondary.BinExport"));
+    if (std::rename(exported.c_str(), renamed.c_str()) != 0) {
+      return absl::UnknownError(absl::StrCat(
+          "Failed to rename secondary export to \"", renamed, "\""));
     }
   }
   return true;
