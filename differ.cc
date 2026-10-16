@@ -550,11 +550,19 @@ double GetSimilarityScore(const CallGraph& call_graph1,
                           const CallGraph& call_graph2,
                           const Histogram& histogram, const Counts& counts) {
   double similarity = 0;
-  similarity +=
-      0.35 * counts[Counts::kFlowGraphEdgeMatchesNonLibrary] /
-      (std::max(1.0,
-                0.5 * (counts[Counts::kFlowGraphEdgesPrimaryNonLibrary] +
-                       counts[Counts::kFlowGraphEdgesSecondaryNonLibrary])));
+  const uint64_t edges_primary =
+      counts[Counts::kFlowGraphEdgesPrimaryNonLibrary];
+  const uint64_t edges_secondary =
+      counts[Counts::kFlowGraphEdgesSecondaryNonLibrary];
+  if (edges_primary == 0 && edges_secondary == 0) {
+    // Neither side has any edges, so there is nothing here that could fail to
+    // match. Without this, such binaries are capped at 0.65 no matter how well
+    // everything else lines up.
+    similarity += 0.35;
+  } else {
+    similarity += 0.35 * counts[Counts::kFlowGraphEdgeMatchesNonLibrary] /
+                  (std::max(1.0, 0.5 * (edges_primary + edges_secondary)));
+  }
   similarity +=
       0.25 * counts[Counts::kBasicBlockMatchesNonLibrary] /
       (std::max(1.0, 0.5 * (counts[Counts::kBasicBlocksPrimaryNonLibrary] +
