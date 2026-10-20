@@ -223,6 +223,17 @@ absl::StatusOr<bool> ExportIdbs() {
         "same name in the same directory. Please rename or move one of the "
         "files.");
   }
+  // IDA unpacks an open database next to it. The secondary export runs in a
+  // separate IDA process, which cannot open such a database and exits without
+  // exporting. Check now instead of failing after the primary export.
+  if (const std::string unpacked =
+          ReplaceFileExtension(secondary_idb_path, ".id0");
+      FileExists(unpacked)) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "The secondary database is open in another IDA instance or was not "
+        "closed properly (found \"",
+        unpacked, "\").\nPlease close it there and try again."));
+  }
 
   LOG(INFO) << "Diffing " << Basename(primary_idb_path) << " vs "
             << Basename(secondary_idb_path);
@@ -286,13 +297,17 @@ absl::StatusOr<bool> ExportIdbs() {
     }
   }
   if (same_name) {
-    // IdbExporter always names its output after the database.
+    // IdbExporter always names its output after the database. It ignores IDA's
+    // exit code, so a failed secondary export (e.g. the database is open in
+    // another IDA instance) only shows as a missing file, which the caller
+    // reports.
     const std::string exported = JoinPath(
         secondary_temp_dir, absl::StrCat(secondary_name, ".BinExport"));
     const std::string renamed =
         JoinPath(secondary_temp_dir,
                  absl::StrCat(secondary_name, "_secondary.BinExport"));
-    if (std::rename(exported.c_str(), renamed.c_str()) != 0) {
+    if (FileExists(exported) &&
+        std::rename(exported.c_str(), renamed.c_str()) != 0) {
       return absl::UnknownError(absl::StrCat(
           "Failed to rename secondary export to \"", renamed, "\""));
     }
