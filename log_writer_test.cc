@@ -74,9 +74,9 @@ TEST_F(LogWriterTest, Empty) {
               IsOk());
 
   ASSERT_THAT(FileExists(log), IsTrue());
+#ifdef GTEST_USES_POSIX_RE
   const std::string log_output =
       absl::AsciiStrToLower(GetTestFileContents(log));
-#ifdef GTEST_USES_POSIX_RE
   constexpr absl::string_view kPaddedValueRegex = R"((\s|\.)*:?\s+\d+(\.\d+)?)";
 
   // Log should mention the call graph MD indices and overall
