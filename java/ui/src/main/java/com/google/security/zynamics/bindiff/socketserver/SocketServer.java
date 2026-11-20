@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,7 +58,12 @@ public final class SocketServer {
     logger.atInfo().log("Received byte stream from socket...");
 
     try {
-      final DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+      final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+      // Harden against XXE: the IDA plugin never sends a DOCTYPE, so disallow it entirely.
+      builderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+      builderFactory.setXIncludeAware(false);
+      builderFactory.setExpandEntityReferences(false);
+      final DocumentBuilder builder = builderFactory.newDocumentBuilder();
       final Document match = builder.parse(new ByteArrayInputStream(bytes));
       final XPath xpath = XPathFactory.newInstance().newXPath();
       final DiffRequestMessage data = new DiffRequestMessage();
