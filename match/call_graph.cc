@@ -47,8 +47,11 @@
 #include "third_party/zynamics/bindiff/match/function_name_hash.h"
 #include "third_party/zynamics/bindiff/match/function_prime.h"
 #include "third_party/zynamics/bindiff/match/function_string_refs.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::bindiff {
+
+using binexport::FormatAddress;
 
 bool IsValidCandidate(const FlowGraph* flow_graph) {
   return !flow_graph->GetFixedPoint() &&
@@ -341,9 +344,10 @@ void BaseMatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
 }
 
 // This functions takes all features and returns only currently relevant ones.
-void BaseMatchingStepEdgesMdIndex::FilterResults(
-    const EdgeFeatureIndex& index, const CallGraph& call_graph,
-    const FlowGraphs& flow_graphs, EdgeFeatures* edges) {
+void BaseMatchingStepEdgesMdIndex::FilterResults(const EdgeFeatureIndex& index,
+                                                 const CallGraph& call_graph,
+                                                 const FlowGraphs& flow_graphs,
+                                                 EdgeFeatures* edges) {
   const EdgeFeatures& all_features = index.features;
   if (all_features.empty()) {
     return;
@@ -367,6 +371,12 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(
   size_t num_incident = 0;
   for (const FlowGraph* flow_graph : flow_graphs) {
     const CallGraph::Vertex vertex = flow_graph->GetCallGraphVertex();
+    // The indexed lookup below relies on the cached vertex being current. A
+    // stale one would silently drop edges, unlike the full scan.
+    DCHECK(vertex < num_vertices &&
+           call_graph.GetFlowGraph(vertex) == flow_graph)
+        << "Stale call graph vertex for flow graph at "
+        << FormatAddress(flow_graph->GetEntryPointAddress());
     if (vertex < num_vertices) {
       num_incident += index.offsets[vertex + 1] - index.offsets[vertex];
     }
@@ -422,9 +432,10 @@ void BaseMatchingStepEdgesMdIndex::BuildIncidence(const CallGraph& call_graph,
   const auto& graph = call_graph.GetGraph();
   const size_t num_vertices = boost::num_vertices(graph);
   const EdgeFeatures& features = index->features;
-  CHECK(features.size() < std::numeric_limits<uint32_t>::max());
+  // Each feature appears in up to two incidence lists, and offsets are 32-bit.
+  CHECK_LE(features.size(), std::numeric_limits<uint32_t>::max() / 2);
 
-  std::vector<uint32_t> degree(num_vertices + 1, 0);
+  std::vector<uint32_t> degree(num_vertices, 0);
   for (const auto& feature : features) {
     const CallGraph::Vertex source = boost::source(feature.edge, graph);
     const CallGraph::Vertex target = boost::target(feature.edge, graph);

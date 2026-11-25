@@ -142,9 +142,11 @@ class BaseMatchingStepEdgesMdIndex : public MatchingStep {
                              EdgeFeatureIndex* index);
 
   // This functions takes all features and returns only currently relevant ones.
-  void FilterResults(const EdgeFeatureIndex& index,
-                     const CallGraph& call_graph, const FlowGraphs& flow_graphs,
-                     EdgeFeatures* edges);
+  static void FilterResults(const EdgeFeatureIndex& index,
+                            const CallGraph& call_graph,
+                            const FlowGraphs& flow_graphs, EdgeFeatures* edges);
+
+  friend class BaseMatchingStepEdgesMdIndexPeer;  // For testing
 
   MatchingContext::FeatureId primary_feature_;
   MatchingContext::FeatureId secondary_feature_;
