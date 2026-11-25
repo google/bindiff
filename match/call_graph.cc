@@ -352,14 +352,11 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(const EdgeFeatureIndex& index,
   if (all_features.empty()) {
     return;
   }
-  const auto relevant = [&call_graph](const EdgeFeature& edge_feature) {
+  const auto endpoints = [&call_graph](const EdgeFeature& edge_feature) {
     const CallGraph::Edge& edge = edge_feature.edge;
-    const FlowGraph* source =
-        call_graph.GetFlowGraph(boost::source(edge, call_graph.GetGraph()));
-    const FlowGraph* target =
-        call_graph.GetFlowGraph(boost::target(edge, call_graph.GetGraph()));
-    // Already a fixed point, no need to evaluate again.
-    return source->GetFixedPoint() == 0 || target->GetFixedPoint() == 0;
+    return std::pair<FlowGraph*, FlowGraph*>(
+        call_graph.GetFlowGraph(boost::source(edge, call_graph.GetGraph())),
+        call_graph.GetFlowGraph(boost::target(edge, call_graph.GetGraph())));
   };
 
   // Diff() calls this for the callers and callees of every fixed point, so
@@ -369,28 +366,30 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(const EdgeFeatureIndex& index,
   const size_t num_vertices =
       index.offsets.empty() ? 0 : index.offsets.size() - 1;
   size_t num_incident = 0;
+  bool vertices_current = true;
   for (const FlowGraph* flow_graph : flow_graphs) {
     const CallGraph::Vertex vertex = flow_graph->GetCallGraphVertex();
     // The indexed lookup below relies on the cached vertex being current. A
-    // stale one would silently drop edges, unlike the full scan.
-    DCHECK(vertex < num_vertices &&
-           call_graph.GetFlowGraph(vertex) == flow_graph)
-        << "Stale call graph vertex for flow graph at "
-        << FormatAddress(flow_graph->GetEntryPointAddress());
-    if (vertex < num_vertices) {
-      num_incident += index.offsets[vertex + 1] - index.offsets[vertex];
+    // stale one would silently select the wrong edges, so use the full scan
+    // instead, which looks up flow graphs by address.
+    const bool current = vertex < num_vertices &&
+                         call_graph.GetFlowGraph(vertex) == flow_graph;
+    DCHECK(current) << "Stale call graph vertex for flow graph at "
+                    << FormatAddress(flow_graph->GetEntryPointAddress());
+    if (!current) {
+      vertices_current = false;
+      break;
     }
+    num_incident += index.offsets[vertex + 1] - index.offsets[vertex];
   }
-  if (num_incident < all_features.size()) {
+  if (vertices_current && num_incident < all_features.size()) {
     std::vector<uint32_t> candidates;
     candidates.reserve(num_incident);
     for (const FlowGraph* flow_graph : flow_graphs) {
       const CallGraph::Vertex vertex = flow_graph->GetCallGraphVertex();
-      if (vertex < num_vertices) {
-        candidates.insert(candidates.end(),
-                          index.incident.begin() + index.offsets[vertex],
-                          index.incident.begin() + index.offsets[vertex + 1]);
-      }
+      candidates.insert(candidates.end(),
+                        index.incident.begin() + index.offsets[vertex],
+                        index.incident.begin() + index.offsets[vertex + 1]);
     }
     // Edges between two requested flow graphs show up twice. Sorting also
     // restores the original feature order.
@@ -399,22 +398,23 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(const EdgeFeatureIndex& index,
                      candidates.end());
     for (const uint32_t candidate : candidates) {
       const EdgeFeature& edge_feature = all_features[candidate];
-      if (relevant(edge_feature)) {
-        edges->push_back(edge_feature);
+      const auto [source, target] = endpoints(edge_feature);
+      // Already a fixed point, no need to evaluate again.
+      if (source->GetFixedPoint() != 0 && target->GetFixedPoint() != 0) {
+        continue;
       }
+      edges->push_back(edge_feature);
     }
     return;
   }
 
   for (const auto& edge_feature : all_features) {
-    if (!relevant(edge_feature)) {
+    const auto [source, target] = endpoints(edge_feature);
+    // Already a fixed point, no need to evaluate again.
+    if (source->GetFixedPoint() != 0 && target->GetFixedPoint() != 0) {
       continue;
     }
-    const CallGraph::Edge& edge = edge_feature.edge;
-    FlowGraph* source =
-        call_graph.GetFlowGraph(boost::source(edge, call_graph.GetGraph()));
-    FlowGraph* target =
-        call_graph.GetFlowGraph(boost::target(edge, call_graph.GetGraph()));
+
     // TODO(cblichmann): Understand why this condition got here in the first
     //                   place. It is expensive to calculate and at least on the
     //                   libssl sample _reduces_ result quality instead of

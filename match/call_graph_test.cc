@@ -191,5 +191,41 @@ TEST_F(EdgeFeatureIndexTest, FilterResultsSkipsEdgesBetweenFixedPoints) {
   b->SetFixedPoint(nullptr);
 }
 
+// A flow graph whose cached call graph vertex does not match the call graph
+// must not be looked up through the index, as that selects another function's
+// edges. Debug builds flag it, release builds fall back to the full scan.
+TEST_F(EdgeFeatureIndexTest, FilterResultsDoesNotIndexStaleVertices) {
+  // Same function at the same address, but one vertex further along because of
+  // the extra function in front of it.
+  std::unique_ptr<DiffBinary> shifted =
+      DiffBinaryBuilder()
+          .AddFunctions({
+              MakeFunction(0x8000, "func_0", {}),
+              MakeFunction(0x10000, "func_a", {}),
+          })
+          .Build(cache_);
+  FlowGraph* stale =
+      shifted->call_graph.GetFlowGraph(shifted->call_graph.GetVertex(0x10000));
+  ASSERT_NE(stale, nullptr);
+  ASSERT_NE(stale->GetCallGraphVertex(), call_graph_.GetVertex(0x10000));
+
+  const FlowGraphs subset = {stale};
+#ifdef NDEBUG
+  EdgeFeatures actual;
+  Peer::FilterResults(index_, call_graph_, subset, &actual);
+  const std::vector<AddressPair> edges = ToAddresses(actual);
+  EXPECT_THAT(edges, ElementsAreArray(ExpectedEdges(subset)));
+  EXPECT_THAT(edges, Contains(Pair(0x10000, 0x20000)));
+  EXPECT_THAT(edges, Not(Contains(Pair(0x20000, 0x30000))));
+#else
+  EXPECT_DEATH_IF_SUPPORTED(
+      {
+        EdgeFeatures actual;
+        Peer::FilterResults(index_, call_graph_, subset, &actual);
+      },
+      "Stale call graph vertex");
+#endif
+}
+
 }  // namespace
 }  // namespace security::bindiff
