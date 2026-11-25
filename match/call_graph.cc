@@ -345,6 +345,9 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(
     const EdgeFeatureIndex& index, const CallGraph& call_graph,
     const FlowGraphs& flow_graphs, EdgeFeatures* edges) {
   const EdgeFeatures& all_features = index.features;
+  if (all_features.empty()) {
+    return;
+  }
   const auto relevant = [&call_graph](const EdgeFeature& edge_feature) {
     const CallGraph::Edge& edge = edge_feature.edge;
     const FlowGraph* source =
