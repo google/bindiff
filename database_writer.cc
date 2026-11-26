@@ -881,6 +881,15 @@ absl::Status DatabaseReader::Read(CallGraph& call_graph1,
       .Into(&similarity_)
       .Into(&confidence_);
   ABSL_RETURN_IF_ERROR(statement.Execute());
+  if (primary_filename_ == secondary_filename_) {
+    // Both sides would be read from the same .BinExport next to the results
+    // file; one of them has necessarily been overwritten by the other.
+    return absl::FailedPreconditionError(absl::StrCat(
+        "primary and secondary BinExport files both resolve to \"",
+        JoinPath(path_, primary_filename_ + ".BinExport"),
+        "\". Results for same-named binaries need to be re-diffed and saved "
+        "again"));
+  }
 
   // Function matches
   ABSL_ASSIGN_OR_RETURN(
