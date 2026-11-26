@@ -41,6 +41,8 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 public class MatchesDatabase extends SqliteDatabase {
@@ -49,6 +51,10 @@ public class MatchesDatabase extends SqliteDatabase {
   public static final int UNSAVED_BASIC_BLOCK_MATCH_ALGORITHM_ID = -1;
 
   private static final int DEFAULT_FILE_TABLE_COLUMN_COUNT = 13;
+
+  // Maximum number of bound parameters per statement. This is SQLite's
+  // SQLITE_MAX_VARIABLE_NUMBER default for versions prior to 3.32.0.
+  private static final int MAX_QUERY_PARAMETERS = 999;
 
   public MatchesDatabase(File matchesDatabase) throws SQLException {
     super(matchesDatabase);
@@ -149,36 +155,25 @@ public class MatchesDatabase extends SqliteDatabase {
 
   private void deleteBasicBlockMatches(long priFunctionAddr, long secFunctionAddr)
       throws SQLException {
-    try (PreparedStatement selectsBasicblockIds =
+    // Use subqueries instead of reading IDs back into Java.
+    try (PreparedStatement deleteInstructions =
         connection.prepareStatement(
-            "SELECT basicblock.id FROM function "
+            "DELETE FROM instruction WHERE basicblockid IN ("
+                + "SELECT basicblock.id FROM function "
                 + "INNER JOIN basicblock ON basicblock.functionid = function.id "
-                + "WHERE function.address1 = ? AND function.address2 = ?")) {
-      selectsBasicblockIds.setLong(1, priFunctionAddr);
-      selectsBasicblockIds.setLong(2, secFunctionAddr);
-
-      try (ResultSet result = selectsBasicblockIds.executeQuery()) {
-        var queryBuilder = new QueryBuilder("DELETE FROM instruction WHERE basicblockid IN ");
-        while (result.next()) {
-          queryBuilder.appendInSet(result.getString(1));
-        }
-        queryBuilder.execute(connection);
-      }
+                + "WHERE function.address1 = ? AND function.address2 = ?)")) {
+      deleteInstructions.setLong(1, priFunctionAddr);
+      deleteInstructions.setLong(2, secFunctionAddr);
+      deleteInstructions.executeUpdate();
     }
 
-    try (PreparedStatement selectsFunctionId =
+    try (PreparedStatement deleteBasicBlocks =
         connection.prepareStatement(
-            "SELECT id FROM function WHERE address1 = ? AND address2 = ?")) {
-      selectsFunctionId.setLong(1, priFunctionAddr);
-      selectsFunctionId.setLong(2, secFunctionAddr);
-
-      try (ResultSet result = selectsFunctionId.executeQuery()) {
-        var queryBuilder = new QueryBuilder("DELETE FROM basicblock WHERE functionid IN ");
-        if (result.next()) {
-          queryBuilder.appendInSet(result.getString(1));
-        }
-        queryBuilder.execute(connection);
-      }
+            "DELETE FROM basicblock WHERE functionid IN ("
+                + "SELECT id FROM function WHERE address1 = ? AND address2 = ?)")) {
+      deleteBasicBlocks.setLong(1, priFunctionAddr);
+      deleteBasicBlocks.setLong(2, secFunctionAddr);
+      deleteBasicBlocks.executeUpdate();
     }
   }
 
@@ -662,69 +657,42 @@ public class MatchesDatabase extends SqliteDatabase {
   }
 
   public Map<AddressPair, AddressPair> loadMatchedCallAddresses(Diff diff) throws SQLException {
-    var addrsMap = new HashMap<AddressPair, AddressPair>();
-    var callAddrs = new ArrayList<IAddress>();
+    // Deduplicate, as multiple call edges can originate from the same instruction.
+    var callAddrSet = new LinkedHashSet<Long>();
     for (RawCall call : diff.getCallGraph(ESide.PRIMARY).getEdges()) {
-      callAddrs.add(call.getSourceInstructionAddr());
+      callAddrSet.add(call.getSourceInstructionAddr().toLong());
     }
+    List<Long> callAddrs = new ArrayList<>(callAddrSet);
 
-    String queryString =
-        "SELECT function.address1, "
-            + "instruction.address1, function.address2, instruction.address2 "
-            + "FROM function INNER JOIN basicblock ON function.id = basicblock.functionid "
-            + "INNER JOIN instruction ON basicblock.id = instruction.basicblockid "
-            + "WHERE instruction.address1 IN ";
-
-    var queryBuffer = new StringBuilder(queryString);
-    var first = true;
+    var addrsMap = new HashMap<AddressPair, AddressPair>();
     try {
-      try (Statement statement = connection.createStatement()) {
-        // TODO: Use QueryBuilder! (Which is also a query splitter and should be used in
-        // addBasicBlockMatches(FunctionMatchData functionMatch);!)
-        for (IAddress callPair : callAddrs) {
-          if (first) {
-            queryBuffer.append("(");
-            first = false;
-          } else {
-            queryBuffer.append(",");
+      for (int start = 0; start < callAddrs.size(); start += MAX_QUERY_PARAMETERS) {
+        List<Long> chunk =
+            callAddrs.subList(start, Math.min(start + MAX_QUERY_PARAMETERS, callAddrs.size()));
+        // Only the placeholders are generated, all values are bound as parameters.
+        String query =
+            "SELECT function.address1, "
+                + "instruction.address1, function.address2, instruction.address2 "
+                + "FROM function INNER JOIN basicblock ON function.id = basicblock.functionid "
+                + "INNER JOIN instruction ON basicblock.id = instruction.basicblockid "
+                + "WHERE instruction.address1 IN ("
+                + String.join(",", Collections.nCopies(chunk.size(), "?"))
+                + ")";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+          for (int i = 0; i < chunk.size(); i++) {
+            statement.setLong(i + 1, chunk.get(i));
           }
-          queryBuffer.append(callPair.toLong());
+          try (ResultSet result = statement.executeQuery()) {
+            while (result.next()) {
+              long priFunctionAddr = result.getLong(1);
+              long priInstructionAddr = result.getLong(2);
+              long secFunctionAddr = result.getLong(3);
+              long secInstructionAddr = result.getLong(4);
 
-          if (queryBuffer.length() >= QueryBuilder.SQLITE_MAX_QUERY_SIZE - 10) {
-            queryBuffer.append(")");
-            try (ResultSet result = statement.executeQuery(queryBuffer.toString())) {
-              while (result.next()) {
-                long priFunctionAddr = result.getLong(1);
-                long priInstructionAddr = result.getLong(2);
-                long secFunctionAddr = result.getLong(3);
-                long secInstructionAddr = result.getLong(4);
-
-                addrsMap.put(
-                    new AddressPair(priFunctionAddr, priInstructionAddr),
-                    new AddressPair(secFunctionAddr, secInstructionAddr));
-              }
+              addrsMap.put(
+                  new AddressPair(priFunctionAddr, priInstructionAddr),
+                  new AddressPair(secFunctionAddr, secInstructionAddr));
             }
-            queryBuffer = new StringBuilder(queryString);
-            first = true;
-          }
-        }
-      }
-
-      if (!first && queryBuffer.length() != queryString.length()) {
-        queryBuffer.append(")");
-
-        try (Statement statement = connection.createStatement();
-            ResultSet result = statement.executeQuery(queryBuffer.toString())) {
-
-          while (result.next()) {
-            long priFunctionAddr = result.getLong(1);
-            long priInstructionAddr = result.getLong(2);
-            long secFunctionAddr = result.getLong(3);
-            long secInstructionAddr = result.getLong(4);
-
-            addrsMap.put(
-                new AddressPair(priFunctionAddr, priInstructionAddr),
-                new AddressPair(secFunctionAddr, secInstructionAddr));
           }
         }
       }
