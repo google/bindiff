@@ -16,11 +16,14 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdint>
 #include <initializer_list>
 #include <iterator>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "third_party/absl/container/flat_hash_map.h"
 #include "third_party/absl/log/check.h"
@@ -44,8 +47,11 @@
 #include "third_party/zynamics/bindiff/match/function_name_hash.h"
 #include "third_party/zynamics/bindiff/match/function_prime.h"
 #include "third_party/zynamics/bindiff/match/function_string_refs.h"
+#include "third_party/zynamics/binexport/util/format.h"
 
 namespace security::bindiff {
+
+using binexport::FormatAddress;
 
 bool IsValidCandidate(const FlowGraph* flow_graph) {
   return !flow_graph->GetFixedPoint() &&
@@ -246,7 +252,8 @@ MatchingStep::MatchingStep(std::string name, std::string display_name)
       display_name_(std::move(display_name)),
       confidence_(GetConfidenceFromConfig(name_)) {}
 
-void BaseMatchingStepEdgesMdIndex::FeatureDestructor(EdgeFeatures* feature) {
+void BaseMatchingStepEdgesMdIndex::FeatureDestructor(
+    EdgeFeatureIndex* feature) {
   delete feature;
 }
 
@@ -292,9 +299,9 @@ void BaseMatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
   // declaration), as step is used by multiple threads and must be reentrant.
   MatchingContext::FeatureId feature_id =
       is_primary ? primary_feature_ : secondary_feature_;
-  EdgeFeatures* cached =
+  EdgeFeatureIndex* cached =
       context->HasCachedFeatures(feature_id)
-          ? context->GetCachedFeatures<EdgeFeatures*>(feature_id)
+          ? context->GetCachedFeatures<EdgeFeatureIndex*>(feature_id)
           : nullptr;
   if (cached) {
     FilterResults(*cached, call_graph, flow_graphs, edges);
@@ -302,7 +309,8 @@ void BaseMatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
   }
   CallGraph::EdgeIterator edge;
   CallGraph::EdgeIterator end;
-  auto edge_features = std::make_unique<EdgeFeatures>();
+  auto index = std::make_unique<EdgeFeatureIndex>();
+  EdgeFeatures* edge_features = &index->features;
   for (auto [edge, end] = boost::edges(call_graph.GetGraph()); edge != end;
        ++edge) {
     // TODO(cblichmann): Refactor. There is a (near) identical copy of the
@@ -328,23 +336,80 @@ void BaseMatchingStepEdgesMdIndex::GetUnmatchedEdgesMdIndex(
     edge_features->push_back(
         MakeEdgeFeature(*edge, call_graph, source, target));
   }
-  FilterResults(*edge_features, call_graph, flow_graphs, edges);
+  BuildIncidence(call_graph, index.get());
+  FilterResults(*index, call_graph, flow_graphs, edges);
   if (context->HasCachedFeatures(feature_id)) {
-    context->SetCachedFeatures(feature_id, edge_features.release(),
-                               FeatureDestructor);
+    context->SetCachedFeatures(feature_id, index.release(), FeatureDestructor);
   }
 }
 
 // This functions takes all features and returns only currently relevant ones.
-void BaseMatchingStepEdgesMdIndex::FilterResults(
-    const EdgeFeatures& all_features, const CallGraph& call_graph,
-    const FlowGraphs& flow_graphs, EdgeFeatures* edges) {
-  for (const auto& edge_feature : all_features) {
+void BaseMatchingStepEdgesMdIndex::FilterResults(const EdgeFeatureIndex& index,
+                                                 const CallGraph& call_graph,
+                                                 const FlowGraphs& flow_graphs,
+                                                 EdgeFeatures* edges) {
+  const EdgeFeatures& all_features = index.features;
+  if (all_features.empty()) {
+    return;
+  }
+  const auto endpoints = [&call_graph](const EdgeFeature& edge_feature) {
     const CallGraph::Edge& edge = edge_feature.edge;
-    FlowGraph* source =
-        call_graph.GetFlowGraph(boost::source(edge, call_graph.GetGraph()));
-    FlowGraph* target =
-        call_graph.GetFlowGraph(boost::target(edge, call_graph.GetGraph()));
+    return std::pair<FlowGraph*, FlowGraph*>(
+        call_graph.GetFlowGraph(boost::source(edge, call_graph.GetGraph())),
+        call_graph.GetFlowGraph(boost::target(edge, call_graph.GetGraph())));
+  };
+
+  // Diff() calls this for the callers and callees of every fixed point, so
+  // scanning all features each time is O(functions * calls) overall. Only look
+  // at the features incident to the requested flow graphs, unless that would
+  // be more work than the full scan.
+  const size_t num_vertices =
+      index.offsets.empty() ? 0 : index.offsets.size() - 1;
+  size_t num_incident = 0;
+  bool vertices_current = true;
+  for (const FlowGraph* flow_graph : flow_graphs) {
+    const CallGraph::Vertex vertex = flow_graph->GetCallGraphVertex();
+    // The indexed lookup below relies on the cached vertex being current. A
+    // stale one would silently select the wrong edges, so use the full scan
+    // instead, which looks up flow graphs by address.
+    const bool current = vertex < num_vertices &&
+                         call_graph.GetFlowGraph(vertex) == flow_graph;
+    DCHECK(current) << "Stale call graph vertex for flow graph at "
+                    << FormatAddress(flow_graph->GetEntryPointAddress());
+    if (!current) {
+      vertices_current = false;
+      break;
+    }
+    num_incident += index.offsets[vertex + 1] - index.offsets[vertex];
+  }
+  if (vertices_current && num_incident < all_features.size()) {
+    std::vector<uint32_t> candidates;
+    candidates.reserve(num_incident);
+    for (const FlowGraph* flow_graph : flow_graphs) {
+      const CallGraph::Vertex vertex = flow_graph->GetCallGraphVertex();
+      candidates.insert(candidates.end(),
+                        index.incident.begin() + index.offsets[vertex],
+                        index.incident.begin() + index.offsets[vertex + 1]);
+    }
+    // Edges between two requested flow graphs show up twice. Sorting also
+    // restores the original feature order.
+    std::sort(candidates.begin(), candidates.end());
+    candidates.erase(std::unique(candidates.begin(), candidates.end()),
+                     candidates.end());
+    for (const uint32_t candidate : candidates) {
+      const EdgeFeature& edge_feature = all_features[candidate];
+      const auto [source, target] = endpoints(edge_feature);
+      // Already a fixed point, no need to evaluate again.
+      if (source->GetFixedPoint() != 0 && target->GetFixedPoint() != 0) {
+        continue;
+      }
+      edges->push_back(edge_feature);
+    }
+    return;
+  }
+
+  for (const auto& edge_feature : all_features) {
+    const auto [source, target] = endpoints(edge_feature);
     // Already a fixed point, no need to evaluate again.
     if (source->GetFixedPoint() != 0 && target->GetFixedPoint() != 0) {
       continue;
@@ -359,6 +424,40 @@ void BaseMatchingStepEdgesMdIndex::FilterResults(
     }
 
     edges->push_back(edge_feature);
+  }
+}
+
+void BaseMatchingStepEdgesMdIndex::BuildIncidence(const CallGraph& call_graph,
+                                                  EdgeFeatureIndex* index) {
+  const auto& graph = call_graph.GetGraph();
+  const size_t num_vertices = boost::num_vertices(graph);
+  const EdgeFeatures& features = index->features;
+  // Each feature appears in up to two incidence lists, and offsets are 32-bit.
+  CHECK_LE(features.size(), std::numeric_limits<uint32_t>::max() / 2);
+
+  std::vector<uint32_t> degree(num_vertices, 0);
+  for (const auto& feature : features) {
+    const CallGraph::Vertex source = boost::source(feature.edge, graph);
+    const CallGraph::Vertex target = boost::target(feature.edge, graph);
+    ++degree[source];
+    if (target != source) {
+      ++degree[target];
+    }
+  }
+  index->offsets.assign(num_vertices + 1, 0);
+  for (size_t vertex = 0; vertex < num_vertices; ++vertex) {
+    index->offsets[vertex + 1] = index->offsets[vertex] + degree[vertex];
+  }
+  index->incident.resize(index->offsets[num_vertices]);
+  std::vector<uint32_t> next(index->offsets.begin(), index->offsets.end() - 1);
+  // Filled in feature order, so each vertex's list is sorted.
+  for (uint32_t i = 0; i < features.size(); ++i) {
+    const CallGraph::Vertex source = boost::source(features[i].edge, graph);
+    const CallGraph::Vertex target = boost::target(features[i].edge, graph);
+    index->incident[next[source]++] = i;
+    if (target != source) {
+      index->incident[next[target]++] = i;
+    }
   }
 }
 

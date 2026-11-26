@@ -545,6 +545,13 @@ void CallGraph::DeleteVertices(Address from, Address to) {
     graph_[*it] = temp_vertices[j];
   }
 
+  // Refresh cached vertex IDs after all addresses are available for lookup.
+  for (const auto& vertex : temp_vertices) {
+    if (vertex.flow_graph_) {
+      vertex.flow_graph_->SetCallGraph(this);
+    }
+  }
+
   // TODO(cblichmann): Bug: comments_ contains orphans now.
   // TODO(cblichmann): Bug: IsDuplicate may contain wrong information for edges.
 }

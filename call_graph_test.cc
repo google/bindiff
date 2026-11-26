@@ -22,6 +22,7 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "third_party/zynamics/bindiff/flow_graph.h"
 #include "third_party/zynamics/bindiff/instruction.h"
 #include "third_party/zynamics/bindiff/test_util.h"
 #include "third_party/zynamics/binexport/util/types.h"
@@ -133,6 +134,19 @@ class SimpleCallGraphTest : public ::testing::Test {
 TEST_F(SimpleCallGraphTest, Construction) {
   EXPECT_THAT(boost::num_vertices(call_graph_.GetGraph()), Eq(2));
   EXPECT_THAT(boost::num_edges(call_graph_.GetGraph()), Eq(1));
+}
+
+TEST_F(SimpleCallGraphTest, RangeFilterUpdatesAttachedFlowGraphVertex) {
+  constexpr Address kFuncB = 0x20000;
+  const FlowGraph* func_b = call_graph_.GetFlowGraph(kFuncB);
+  ASSERT_NE(func_b, nullptr);
+
+  call_graph_.DeleteVertices(kFuncB, kFuncB);
+
+  const auto vertex = call_graph_.GetVertex(kFuncB);
+  ASSERT_EQ(vertex, 0);
+  EXPECT_EQ(call_graph_.GetFlowGraph(vertex), func_b);
+  EXPECT_EQ(func_b->GetCallGraphVertex(), vertex);
 }
 
 TEST_F(SimpleCallGraphTest, TopologyValid) {

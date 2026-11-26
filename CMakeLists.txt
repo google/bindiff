@@ -333,6 +333,7 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
   add_executable(match_tests
     match/basic_block_algorithms_test.cc
     match/basic_block_instruction_count_test.cc
+    match/call_graph_test.cc
     match/function_algorithms_test.cc
   )
   target_link_libraries(match_tests
