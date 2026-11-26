@@ -276,7 +276,9 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
             !proto_instruction.has_address()) {
           instruction_address = computed_instruction_address;
         } else {
-          instruction_address = GetInstructionAddress(proto, instruction_index);
+          ABSL_ASSIGN_OR_RETURN(
+              instruction_address,
+              GetInstructionAddress(proto, instruction_index));
         }
         computed_instruction_address =
             instruction_address + proto_instruction.raw_bytes().size();
@@ -336,14 +338,18 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
   std::vector<EdgeInfo> edge_properties(proto_flow_graph.edge_size());
   for (int i = 0; i < proto_flow_graph.edge_size(); ++i) {
     const BinExport2::FlowGraph::Edge& proto_edge = proto_flow_graph.edge(i);
-    const Address source_address = GetInstructionAddress(
-        proto, proto.basic_block(proto_edge.source_basic_block_index())
-                   .instruction_index(0)
-                   .begin_index());
-    const Address target_address = GetInstructionAddress(
-        proto, proto.basic_block(proto_edge.target_basic_block_index())
-                   .instruction_index(0)
-                   .begin_index());
+    ABSL_ASSIGN_OR_RETURN(
+        const Address source_address,
+        GetInstructionAddress(
+            proto, proto.basic_block(proto_edge.source_basic_block_index())
+                       .instruction_index(0)
+                       .begin_index()));
+    ABSL_ASSIGN_OR_RETURN(
+        const Address target_address,
+        GetInstructionAddress(
+            proto, proto.basic_block(proto_edge.target_basic_block_index())
+                       .instruction_index(0)
+                       .begin_index()));
     edges[i] = EdgeDescriptor(FindVertex(temp_addresses, source_address),
                               FindVertex(temp_addresses, target_address));
     edge_properties[i].flags_ = ProtoToFlowGraphEdgeType(proto_edge.type());
