@@ -1,4 +1,4 @@
-// Copyright 2011-2024 Google LLC
+// Copyright 2011-2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@
 namespace security::bindiff {
 
 using ::security::binexport::FormatAddress;
+using ::security::binexport::GetBasicBlockAddress;
 using ::security::binexport::GetInstructionAddress;
 
 namespace {
@@ -212,15 +213,10 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
     const BinExport2& proto, const BinExport2::FlowGraph& proto_flow_graph,
     CallGraph& call_graph, Instruction::Cache& instruction_cache) {
   ABSL_ASSIGN_OR_RETURN(
-      auto flow_graph,
-      FlowGraph::Create(
-          call_graph,
-          proto
-              .instruction(
-                  proto.basic_block(proto_flow_graph.entry_basic_block_index())
-                      .instruction_index(0)
-                      .begin_index())
-              .address()));
+      const Address entry_address,
+      GetBasicBlockAddress(proto, proto_flow_graph.entry_basic_block_index()));
+  ABSL_ASSIGN_OR_RETURN(auto flow_graph,
+                        FlowGraph::Create(call_graph, entry_address));
 
   flow_graph->call_graph_vertex_ =
       call_graph.GetVertex(flow_graph->entry_point_address_);
@@ -232,7 +228,7 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
   flow_graph->string_references_ = 1;
 
   Address computed_instruction_address = 0;
-  int last_instruction_index = 0;
+  int last_instruction_index = -1;
   std::string function_bytes;
   std::vector<VertexInfo> temp_vertices(
       proto_flow_graph.basic_block_index_size());
@@ -241,11 +237,19 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
   for (int basic_block_index = 0;
        basic_block_index < proto_flow_graph.basic_block_index_size();
        ++basic_block_index) {
-    const BinExport2::BasicBlock& proto_basic_block(proto.basic_block(
-        proto_flow_graph.basic_block_index(basic_block_index)));
+    const int proto_basic_block_index =
+        proto_flow_graph.basic_block_index(basic_block_index);
+    if (proto_basic_block_index < 0 ||
+        proto_basic_block_index >= proto.basic_block_size()) {
+      return absl::FailedPreconditionError(
+          absl::StrCat("Flow graph references out-of-range basic block ",
+                       proto_basic_block_index));
+    }
+    const BinExport2::BasicBlock& proto_basic_block =
+        proto.basic_block(proto_basic_block_index);
     std::string basic_block_bytes;
 
-    VertexInfo& vertex_info(temp_vertices[basic_block_index]);
+    VertexInfo& vertex_info = temp_vertices[basic_block_index];
     vertex_info.instruction_start_ = flow_graph->instructions_.size();
     vertex_info.prime_ = 0;        // Sum of instruction primes.
     vertex_info.fixed_point_ = 0;  // Not a fixed point yet...
@@ -257,22 +261,39 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
     // TODO(cblichmann): We don't export string references, see above.
     vertex_info.string_hash_ = 0;
     vertex_info.call_target_start_ = std::numeric_limits<uint32_t>::max();
-    CHECK(proto_basic_block.instruction_index_size());
+    if (proto_basic_block.instruction_index().empty()) {
+      return absl::FailedPreconditionError(
+          absl::StrCat("Basic block ", proto_basic_block_index,
+                       " has no instruction indices"));
+    }
     for (int interval_index = 0;
          interval_index < proto_basic_block.instruction_index_size();
          ++interval_index) {
-      const BinExport2::BasicBlock::IndexRange& instruction_interval(
-          proto_basic_block.instruction_index(interval_index));
-      const int instruction_end_index(instruction_interval.has_end_index()
-                                          ? instruction_interval.end_index()
-                                          : instruction_interval.begin_index() +
-                                                1);
-      for (int instruction_index = instruction_interval.begin_index();
+      const BinExport2::BasicBlock::IndexRange& instruction_interval =
+          proto_basic_block.instruction_index(interval_index);
+      const int instruction_begin_index = instruction_interval.begin_index();
+      if (instruction_begin_index < 0 ||
+          instruction_begin_index >= proto.instruction_size()) {
+        return absl::FailedPreconditionError(
+            absl::StrCat("Basic block instruction begin_index ",
+                         instruction_begin_index, " out of range"));
+      }
+      const int instruction_end_index = instruction_interval.has_end_index()
+                                            ? instruction_interval.end_index()
+                                            : instruction_begin_index + 1;
+      if (instruction_end_index <= instruction_begin_index ||
+          instruction_end_index > proto.instruction_size()) {
+        return absl::FailedPreconditionError(absl::StrCat(
+            "Basic block instruction index range [", instruction_begin_index,
+            ", ", instruction_end_index, ") out of range"));
+      }
+      for (int instruction_index = instruction_begin_index;
            instruction_index < instruction_end_index; ++instruction_index) {
-        const BinExport2::Instruction& proto_instruction(
-            proto.instruction(instruction_index));
+        const BinExport2::Instruction& proto_instruction =
+            proto.instruction(instruction_index);
         Address instruction_address = 0;
-        if (last_instruction_index == instruction_index - 1 &&
+        if (last_instruction_index >= 0 &&
+            last_instruction_index == instruction_index - 1 &&
             !proto_instruction.has_address()) {
           instruction_address = computed_instruction_address;
         } else {
@@ -283,8 +304,12 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
         computed_instruction_address =
             instruction_address + proto_instruction.raw_bytes().size();
         last_instruction_index = instruction_index;
-        const std::string& mnemonic(
-            proto.mnemonic(proto_instruction.mnemonic_index()).name());
+        const int mnemonic_index = proto_instruction.mnemonic_index();
+        if (mnemonic_index < 0 || mnemonic_index >= proto.mnemonic_size()) {
+          return absl::FailedPreconditionError(absl::StrCat(
+              "Instruction mnemonic_index ", mnemonic_index, " out of range"));
+        }
+        const std::string& mnemonic = proto.mnemonic(mnemonic_index).name();
         const uint32_t instruction_prime = bindiff::GetPrime(mnemonic);
         vertex_info.prime_ += instruction_prime;
         flow_graph->instructions_.emplace_back(&instruction_cache,
@@ -302,6 +327,10 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
         }
 
         for (const auto& comment_index : proto_instruction.comment_index()) {
+          if (comment_index < 0 || comment_index >= proto.comment_size()) {
+            return absl::FailedPreconditionError(absl::StrCat(
+                "Instruction comment_index ", comment_index, " out of range"));
+          }
           const BinExport2::Comment& proto_comment =
               proto.comment(comment_index);
           const auto comment_type = ToCommentType(proto_comment.type());
@@ -310,9 +339,15 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
               proto_comment.instruction_operand_index(), comment_type,
               repeatable);
 
+          const int string_table_index = proto_comment.string_table_index();
+          if (string_table_index < 0 ||
+              string_table_index >= proto.string_table_size()) {
+            return absl::FailedPreconditionError(
+                absl::StrCat("Comment string_table_index ", string_table_index,
+                             " out of range"));
+          }
           auto& comment = comments[{instruction_address, operand_num}];
-          comment.comment =
-              proto.string_table(proto_comment.string_table_index());
+          comment.comment = proto.string_table(string_table_index);
           comment.repeatable = repeatable;
           comment.type = comment_type;
         }
@@ -332,6 +367,10 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
     return absl::FailedPreconditionError("Basic blocks not sorted by address");
   }
 
+  if (proto_flow_graph.edge_size() > 0 && temp_addresses.empty()) {
+    return absl::FailedPreconditionError(
+        "Flow graph has edges but no basic blocks");
+  }
   using EdgeDescriptor =
       std::pair<Graph::edges_size_type, Graph::edges_size_type>;
   std::vector<EdgeDescriptor> edges(proto_flow_graph.edge_size());
@@ -340,16 +379,11 @@ absl::StatusOr<std::unique_ptr<FlowGraph>> FlowGraph::FromProto(
     const BinExport2::FlowGraph::Edge& proto_edge = proto_flow_graph.edge(i);
     ABSL_ASSIGN_OR_RETURN(
         const Address source_address,
-        GetInstructionAddress(
-            proto, proto.basic_block(proto_edge.source_basic_block_index())
-                       .instruction_index(0)
-                       .begin_index()));
+        GetBasicBlockAddress(proto, proto_edge.source_basic_block_index()));
     ABSL_ASSIGN_OR_RETURN(
         const Address target_address,
-        GetInstructionAddress(
-            proto, proto.basic_block(proto_edge.target_basic_block_index())
-                       .instruction_index(0)
-                       .begin_index()));
+        GetBasicBlockAddress(proto, proto_edge.target_basic_block_index()));
+
     edges[i] = EdgeDescriptor(FindVertex(temp_addresses, source_address),
                               FindVertex(temp_addresses, target_address));
     edge_properties[i].flags_ = ProtoToFlowGraphEdgeType(proto_edge.type());
@@ -577,7 +611,7 @@ FlowGraph::GetCallTargets(Vertex vertex) const {
 
 int FlowGraph::GetCallCount(Vertex vertex) const {
   const std::pair<CallTargets::const_iterator, CallTargets::const_iterator>
-      pair(GetCallTargets(vertex));
+      pair = GetCallTargets(vertex);
   return pair.second - pair.first;
 }
 
@@ -593,7 +627,7 @@ FlowGraph::GetInstructions(Vertex vertex) const {
 }
 
 int FlowGraph::GetInstructionCount(Vertex vertex) const {
-  const auto instructions(GetInstructions(vertex));
+  const auto instructions = GetInstructions(vertex);
   return std::distance(instructions.first, instructions.second);
 }
 

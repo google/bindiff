@@ -322,6 +322,14 @@ if(BUILD_TESTING AND BINDIFF_BUILD_TESTING)
   )
   gtest_discover_tests(database_writer_test)
 
+  add_executable(flow_graph_test flow_graph_test.cc)
+  target_link_libraries(flow_graph_test
+    absl::status_matchers
+    bindiff_test_base
+    bindiff_shared
+  )
+  gtest_discover_tests(flow_graph_test)
+
   add_executable(match_tests
     match/basic_block_algorithms_test.cc
     match/basic_block_instruction_count_test.cc
