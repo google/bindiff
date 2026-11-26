@@ -284,5 +284,39 @@ INSTANTIATE_TEST_SUITE_P(
             .set_truth("bindiff/fixtures/mydoom/"
                        "Mydoom-vc_orig_vs_Mydoom-vc_optz.truth")));
 
+// A binary can have no flow graph edges at all, e.g. if every function is a
+// single basic block without calls. Both sides then have nothing to disagree
+// about, so the edge term should count as a match instead of capping the score.
+TEST(SimilarityScoreTest, NoFlowGraphEdgesOnEitherSide) {
+  Counts counts;
+  counts[Counts::kFunctionsPrimaryNonLibrary] = 1;
+  counts[Counts::kFunctionsSecondaryNonLibrary] = 1;
+  counts[Counts::kFunctionMatchesNonLibrary] = 1;
+  counts[Counts::kBasicBlocksPrimaryNonLibrary] = 1;
+  counts[Counts::kBasicBlocksSecondaryNonLibrary] = 1;
+  counts[Counts::kBasicBlockMatchesNonLibrary] = 1;
+  counts[Counts::kInstructionsPrimaryNonLibrary] = 4;
+  counts[Counts::kInstructionsSecondaryNonLibrary] = 4;
+  counts[Counts::kInstructionMatchesNonLibrary] = 4;
+
+  const CallGraph call_graph;  // Empty, MD index 0 on both sides
+  const Histogram histogram{{MatchingStep::kFunctionCallReferenceName, 1}};
+  Confidences confidences;
+  const double confidence = GetConfidence(histogram, &confidences);
+  ASSERT_GT(confidence, 0.0);
+
+  // Everything that can match does match, so the score before confidence is
+  // applied should be 1.0 and not 0.65.
+  EXPECT_NEAR(GetSimilarityScore(call_graph, call_graph, histogram, counts),
+              confidence, 1e-9);
+
+  // Edges on one side only is a genuine difference in control flow, so the
+  // edge term has to stay at zero there.
+  Counts one_sided = counts;
+  one_sided[Counts::kFlowGraphEdgesPrimaryNonLibrary] = 1;
+  EXPECT_NEAR(GetSimilarityScore(call_graph, call_graph, histogram, one_sided),
+              0.65 * confidence, 1e-9);
+}
+
 }  // namespace
 }  // namespace security::bindiff
